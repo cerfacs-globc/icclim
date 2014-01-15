@@ -13,6 +13,9 @@ import numpy
 from datetime import datetime, timedelta
 from netCDF4 import num2date, date2num, Dataset
 from netcdftime import utime
+from progressbar import ProgressBar,Percentage,Bar
+import time
+
 
 import ctypes
 from numpy.ctypeslib import ndpointer
@@ -2066,8 +2069,7 @@ def get_dict_year_chunk(time_steps_vect):
     return mydict
     
 
-from progressbar import ProgressBar,Percentage,Bar
-import time
+
 
 # GLOBAL FUNCTION       
 def indice(ifiles_list, ofile, var, indice_name, time_range, slice_mode, project, N_lev=None):
