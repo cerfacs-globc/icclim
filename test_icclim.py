@@ -25,16 +25,19 @@ input_path = '/data/tatarinova/CMIP5/tas_day/'
 input_file_list = glob(input_path + '*.nc')
 
 
-output_file = '/data/tatarinova/tmp/res/test_chunking_HD_year.nc'
+output_file = '/data/tatarinova/tmp/res/HD_month_CNRM-CM5_historical_r1i1p1_19000101-19101231.nc'
 
 ######
-dt1 = datetime(2070,01,01)
-dt2 = datetime(2095,12,31)
+#dt1 = datetime(2070,01,01)
+#dt2 = datetime(2095,12,31)
+dt1 = datetime(1900,01,01)
+dt2 = datetime(1901,12,31)
 ######
 
 start = time()
 
-indice(ifiles_list=[input_file], ofile=output_file, var='tas', indice_name='HD', time_range=[dt1, dt2], slice_mode='month', project='CMIP5', N_lev=None)
+#indice(ifiles_list=[input_file], ofile=output_file, var='tas', indice_name='HD', time_range=[dt1, dt2], slice_mode='month', project='CMIP5', N_lev=None)
+indice(ifiles_list=input_file_list, ofile=output_file, var='tas', indice_name='HD', time_range=[dt1, dt2], slice_mode='month', project='CMIP5', N_lev=None)
 
 stop = time()
 

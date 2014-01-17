@@ -1212,7 +1212,8 @@ def ID_setvarattr(var_nc):
 def HD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Heating degree days (sum of 17 degrees - mean temperature)')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
+    var_nc.setncattr('_FillValue', '1e+20f')
+    var_nc.setncattr('_missing_value', '1e+20f')
     
     
 def GD_setvarattr(var_nc):
@@ -2186,7 +2187,8 @@ def indice(ifiles_list, ofile, var, indice_name, time_range, slice_mode, project
                 #print "data not processed ", year
 
 
-            time.sleep(1.01)
+            time.sleep(0.01)
+            #time.sleep(1.01)
             pbar.update(i+1)
             i+=1
         

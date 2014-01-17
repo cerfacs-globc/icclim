@@ -57,9 +57,9 @@
 <dl class="docutils">
 <dt>To use the ICCLIM you will need to install also the following python libraries:</dt>
 <dd><ul class="first last simple">
-<li>NumPy</li>
-<li>NetCDF4</li>
-<li>ctypes</li>
+<li><a class="reference external" href="http://www.numpy.org/">NumPy</a></li>
+<li><a class="reference external" href="http://netcdf4-python.googlecode.com/svn/trunk/docs/netCDF4-module.html">netCDF4</a></li>
+<li><a class="reference external" href="http://docs.python.org/2/library/ctypes.html">ctypes</a></li>
 </ul>
 </dd>
 </dl>
@@ -68,10 +68,26 @@
 <h2>CF convention<a class="headerlink" href="#cf-convention" title="Permalink to this headline">¶</a></h2>
 <p>NetCDF files to process must be compliant to the <a class="reference external" href="http://cf-pcmdi.llnl.gov/documents/cf-conventions/">CF convention</a> (at least CF-1.0).</p>
 </div>
-<div class="section" id="output-netcdf-file">
-<h2>Output NetCDF file<a class="headerlink" href="#output-netcdf-file" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="metadata-of-output-netcdf-file">
+<h2>Metadata of output NetCDF file<a class="headerlink" href="#metadata-of-output-netcdf-file" title="Permalink to this headline">¶</a></h2>
+<p>ICCLIM conserves the meta data stucture of source files:</p>
+<p>It copies from a source file the coordinate variables (e.g. &#8220;longitude&#8221; and &#8220;lattitude&#8221;) and all their attributs.
+It also copies the attributs of time coordinate, but does not copy its values because it will recalculate the output time steps vector (and it will also create <em>time_bnds</em> variable).
+It does not copy the vertical variable if it exists.
+Then a result indice variable is created.
+The name of this variable is the same as indice name (e.g. &#8220;FD&#8221;).
+It has the following attributs:</p>
+<blockquote>
+<div><ul class="simple">
+<li>long_name</li>
+<li>units</li>
+<li>_FillValue</li>
+<li>_missing_value</li>
+<li>( grid_mapping )</li>
+</ul>
+</div></blockquote>
 <dl class="docutils">
-<dt>According to the CF convention, the metadata of the output NetCDF file contains 6 global attributs:</dt>
+<dt>According to the CF convention, the output NetCDF file contains 6 global attributs:</dt>
 <dd><ul class="first last simple">
 <li>title</li>
 <li>institution</li>
@@ -82,6 +98,91 @@
 </ul>
 </dd>
 </dl>
+<p>Here&#8217;s an example of an input file metadata:</p>
+<div class="highlight-rest"><div class="highlight"><pre>netcdf tas_day_CNRM-CM5_historical_r1i1p1_18500101-18541231 {
+dimensions:
+        time = UNLIMITED ; // (1826 currently)
+        lat = 128 ;
+        lon = 256 ;
+        bnds = 2 ;
+variables:
+        double time(time) ;
+                time:bounds = &quot;time_bnds&quot; ;
+                time:units = &quot;days since 1850-1-1&quot; ;
+                time:calendar = &quot;gregorian&quot; ;
+                time:axis = &quot;T&quot; ;
+                time:long_name = &quot;time&quot; ;
+                time:standard_name = &quot;time&quot; ;
+        double time_bnds(time, bnds) ;
+        double lat(lat) ;
+                lat:bounds = &quot;lat_bnds&quot; ;
+                lat:units = &quot;degrees_north&quot; ;
+                lat:axis = &quot;Y&quot; ;
+                lat:long_name = &quot;latitude&quot; ;
+                lat:standard_name = &quot;latitude&quot; ;
+        double lat_bnds(lat, bnds) ;
+        double lon(lon) ;
+                lon:bounds = &quot;lon_bnds&quot; ;
+                lon:units = &quot;degrees_east&quot; ;
+                lon:axis = &quot;X&quot; ;
+                lon:long_name = &quot;longitude&quot; ;
+                lon:standard_name = &quot;longitude&quot; ;
+        double lon_bnds(lon, bnds) ;
+        double height ;
+                height:units = &quot;m&quot; ;
+                height:axis = &quot;Z&quot; ;
+                height:positive = &quot;up&quot; ;
+                height:long_name = &quot;height&quot; ;
+                height:standard_name = &quot;height&quot; ;
+        float tas(time, lat, lon) ;
+                tas:standard_name = &quot;air_temperature&quot; ;
+                tas:long_name = &quot;Near-Surface Air Temperature&quot; ;
+                tas:units = &quot;K&quot; ;
+                tas:original_name = &quot;tas&quot; ;
+                tas:cell_methods = &quot;time: mean&quot; ;
+                tas:cell_measures = &quot;area: areacella&quot; ;
+                tas:history = &quot;2011-04-07T06:39:36Z altered by CMOR: Treated scalar dimension: \&#39;height\&#39;.&quot; ;
+                tas:coordinates = &quot;height&quot; ;
+                tas:missing_value = 1.e+20f ;
+                tas:_FillValue = 1.e+20f ;
+                tas:associated_files = &quot;baseURL: http://cmip-pcmdi.llnl.gov/CMIP5/dataLocation gridspecFile: gridspec_atmos_fx_CNRM-CM5_historical_r0i0p0.nc areacella: areacella_fx_CNRM-CM5_historical_r0i0p0.nc&quot; ;
+
+// global attributes:
+                :institution = &quot;CNRM (Centre National de Recherches Meteorologiques, Meteo-France, Toulouse,France) and CERFACS (Centre Europeen de Recherches et de Formation Avancee en Calcul Scientifique, Toulouse, France)&quot; ;
+                :institute_id = &quot;CNRM-CERFACS&quot; ;
+                :experiment_id = &quot;historical&quot; ;
+                <span class="nc">:source = &quot;CNRM-CM5 2010 Atmosphere:</span> <span class="nf">ARPEGE-Climat (V5.2.1, TL127L31); Ocean: NEMO (nemo3.3.v10.6.6P, ORCA1degL42); Sea Ice: GELATO (V5.30); River Routing: TRIP (v1); Land: SURFEX (v5.1.c); Coupler : OASIS 3&quot; ;</span>
+                :model_id = &quot;CNRM-CM5&quot; ;
+                :forcing = &quot;GHG, SA, Sl, Vl, BC, OC&quot; ;
+                :parent_experiment_id = &quot;piControl&quot; ;
+                :parent_experiment_rip = &quot;r1i1p1&quot; ;
+                :branch_time = 146097. ;
+                <span class="nc">:contact = &quot;for all but decadal predictions :</span> <span class="nf">contact.CMIP5@meteo.fr - METEO-FRANCE, CNRM/GMGEC/ASTER, CNRS URA 1357, 42 Av. Coriolis F-31057 TOULOUSE CEDEX 1 /for decadal predictions : contact.CMIP5@cerfacs.fr - CERFACS, Climate Modelling And Global Change, URA CERFACS/CNRS No1875, 42 Av. Coriolis F-31057 TOULOUSE CEDEX 1&quot; ;</span>
+                <span class="nc">:comment = &quot;Soil layers depth scheme is specific for mrlsl and tsl - see variable-level comments. Atmosphere vertical hybrid coordinate :</span> <span class="nf">a_bnds and b_bnds arrays are correct, but a and b values provided are mid-sum of a_bnds and b_bnds, which is a poor approximation compared to the hydrostatic approximation actually used in the model.&quot; ;</span>
+                :references = &quot;See http://www.cnrm.meteo.fr/cmip5 - Follow model description link&quot; ;
+                :initialization_method = 1 ;
+                :physics_version = 1 ;
+                :tracking_id = &quot;cb2e6df1-075d-4bb9-a937-d9ddf8e8e56f&quot; ;
+                :product = &quot;output&quot; ;
+                :experiment = &quot;historical&quot; ;
+                :frequency = &quot;day&quot; ;
+                :creation_date = &quot;2011-04-07T06:39:40Z&quot; ;
+                :history = &quot;2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements.&quot; ;
+                :Conventions = &quot;CF-1.4&quot; ;
+                :project_id = &quot;CMIP5&quot; ;
+                :table_id = &quot;Table day (31 January 2011) 43a867c1fea438258e3971754e4dacea&quot; ;
+                :title = &quot;CNRM-CM5 model output prepared for CMIP5 historical&quot; ;
+                :parent_experiment = &quot;pre-industrial control&quot; ;
+                :modeling_realm = &quot;atmos&quot; ;
+                :realization = 1 ;
+                :cmor_version = &quot;2.5.3&quot; ;
+}
+</pre></div>
+</div>
+<p>And here&#8217;s an example of the output metadata:</p>
+<div class="highlight-rest"><div class="highlight"><pre>
+</pre></div>
+</div>
 </div>
 <div class="section" id="variable-to-process">
 <h2>Variable to process<a class="headerlink" href="#variable-to-process" title="Permalink to this headline">¶</a></h2>
@@ -255,7 +356,7 @@ This function calls C function &#8220;find_max_len_consec_sequence_3d&#8221; fro
 <li><a class="reference internal" href="#">Important to know</a><ul>
 <li><a class="reference internal" href="#libraries-to-istall">Libraries to istall</a></li>
 <li><a class="reference internal" href="#cf-convention">CF convention</a></li>
-<li><a class="reference internal" href="#output-netcdf-file">Output NetCDF file</a></li>
+<li><a class="reference internal" href="#metadata-of-output-netcdf-file">Metadata of output NetCDF file</a></li>
 <li><a class="reference internal" href="#variable-to-process">Variable to process</a></li>
 <li><a class="reference internal" href="#functions-description">Functions description</a></li>
 </ul>
