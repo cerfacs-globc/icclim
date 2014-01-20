@@ -60,6 +60,7 @@
 <li><a class="reference external" href="http://www.numpy.org/">NumPy</a></li>
 <li><a class="reference external" href="http://netcdf4-python.googlecode.com/svn/trunk/docs/netCDF4-module.html">netCDF4</a></li>
 <li><a class="reference external" href="http://docs.python.org/2/library/ctypes.html">ctypes</a></li>
+<li><a class="reference external" href="http://ncpp.github.io/ocgis">OCGIS</a></li>
 </ul>
 </dd>
 </dl>
@@ -80,14 +81,15 @@ It has the following attributs:</p>
 <blockquote>
 <div><ul class="simple">
 <li>long_name</li>
-<li>units (the same units as in source files)</li>
-<li>_FillValue (the same as in source files)</li>
-<li>_missing_value (the same as in source files)</li>
+<li>units</li>
+<li>_FillValue</li>
+<li>missing_value</li>
 <li>( grid_mapping )</li>
 </ul>
 </div></blockquote>
+<p>The <em>_FillValue</em> and <em>missing_value</em> will be the same as in source files.</p>
 <dl class="docutils">
-<dt>According to the CF convention, the output NetCDF file contains 6 global attributs:</dt>
+<dt>According to the CF convention, the output NetCDF file contains 6 main global attributs:</dt>
 <dd><ul class="first last simple">
 <li>title</li>
 <li>institution</li>
@@ -98,6 +100,7 @@ It has the following attributs:</p>
 </ul>
 </dd>
 </dl>
+<p>However other global attributs can be added.</p>
 <p>Here&#8217;s an example of an input file metadata:</p>
 <div class="highlight-rest"><div class="highlight"><pre>netcdf tas_day_CNRM-CM5_historical_r1i1p1_18500101-18541231 {
 dimensions:
@@ -180,9 +183,53 @@ variables:
 </pre></div>
 </div>
 <p>And here&#8217;s an example of the output metadata:</p>
-<div class="highlight-rest"><div class="highlight"><pre>
+<div class="highlight-rest"><div class="highlight"><pre>netcdf HD_month_CNRM-CM5_historical_r1i1p1_19000101-19101231 {
+dimensions:
+        time = UNLIMITED ; // (132 currently)
+        lat = 128 ;
+        lon = 256 ;
+        tbnds = 2 ;
+variables:
+        double time(time) ;
+                time:bounds = &quot;time_bnds&quot; ;
+                time:units = &quot;days since 1850-1-1&quot; ;
+                time:calendar = &quot;gregorian&quot; ;
+                time:axis = &quot;T&quot; ;
+                time:long_name = &quot;time&quot; ;
+                time:standard_name = &quot;time&quot; ;
+        double lat(lat) ;
+                lat:bounds = &quot;lat_bnds&quot; ;
+                lat:units = &quot;degrees_north&quot; ;
+                lat:axis = &quot;Y&quot; ;
+                lat:long_name = &quot;latitude&quot; ;
+                lat:standard_name = &quot;latitude&quot; ;
+        double lon(lon) ;
+                lon:bounds = &quot;lon_bnds&quot; ;
+                lon:units = &quot;degrees_east&quot; ;
+                lon:axis = &quot;X&quot; ;
+                lon:long_name = &quot;longitude&quot; ;
+                lon:standard_name = &quot;longitude&quot; ;
+        double time_bnds(time, tbnds) ;
+                time_bnds:units = &quot;days since 1850-1-1&quot; ;
+                time_bnds:calendar = &quot;gregorian&quot; ;
+        float HD(time, lat, lon) ;
+                HD:_FillValue = 1.e+20f ;
+                HD:long_name = &quot;Heating degree days (sum of 17 degrees - mean temperature)&quot; ;
+                HD:units = &quot;K&quot; ;
+                HD:missing_value = 1.e+20f ;
+
+// global attributes:
+                :title = &quot;Cold indice HD&quot; ;
+                :institution =  ;
+                :source =  ;
+                :reference =  ;
+                :comment =  ;
+                :history = &quot;2014-01-20 18:42:34 Calculation of HD indice (monthly) from 1900-01-01 to 1910-12-31.&quot; ;
+                :experiment =  ;
+}
 </pre></div>
 </div>
+<p>... Time steps values, time_bnds values... + example</p>
 </div>
 <div class="section" id="variable-to-process">
 <h2>Variable to process<a class="headerlink" href="#variable-to-process" title="Permalink to this headline">¶</a></h2>

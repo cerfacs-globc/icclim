@@ -13,6 +13,7 @@ To use the ICCLIM you will need to install also the following python libraries:
     - `NumPy <http://www.numpy.org/>`_
     - `netCDF4 <http://netcdf4-python.googlecode.com/svn/trunk/docs/netCDF4-module.html>`_
     - `ctypes <http://docs.python.org/2/library/ctypes.html>`_
+    - `OCGIS <http://ncpp.github.io/ocgis>`_
 
 
 CF convention
@@ -31,18 +32,22 @@ Then a result indice variable is created.
 The name of this variable is the same as indice name (e.g. "FD").
 It has the following attributs:
     - long_name
-    - units (the same units as in source files)
-    - _FillValue (the same as in source files)
-    - _missing_value (the same as in source files)
+    - units 
+    - _FillValue
+    - missing_value
     - ( grid_mapping )
 
-According to the CF convention, the output NetCDF file contains 6 global attributs:
-    - title
+The *_FillValue* and *missing_value* will be the same as in source files.
+
+According to the CF convention, the output NetCDF file contains 6 main global attributs:
+    - title 
     - institution
     - source
     - history
     - references
     - comment 
+
+However other global attributs can be added.
 
 Here's an example of an input file metadata:
 
@@ -132,8 +137,53 @@ And here's an example of the output metadata:
 
 .. code-block:: rest
 
+    netcdf HD_month_CNRM-CM5_historical_r1i1p1_19000101-19101231 {
+    dimensions:
+            time = UNLIMITED ; // (132 currently)
+            lat = 128 ;
+            lon = 256 ;
+            tbnds = 2 ;
+    variables:
+            double time(time) ;
+                    time:bounds = "time_bnds" ;
+                    time:units = "days since 1850-1-1" ;
+                    time:calendar = "gregorian" ;
+                    time:axis = "T" ;
+                    time:long_name = "time" ;
+                    time:standard_name = "time" ;
+            double lat(lat) ;
+                    lat:bounds = "lat_bnds" ;
+                    lat:units = "degrees_north" ;
+                    lat:axis = "Y" ;
+                    lat:long_name = "latitude" ;
+                    lat:standard_name = "latitude" ;
+            double lon(lon) ;
+                    lon:bounds = "lon_bnds" ;
+                    lon:units = "degrees_east" ;
+                    lon:axis = "X" ;
+                    lon:long_name = "longitude" ;
+                    lon:standard_name = "longitude" ;
+            double time_bnds(time, tbnds) ;
+                    time_bnds:units = "days since 1850-1-1" ;
+                    time_bnds:calendar = "gregorian" ;
+            float HD(time, lat, lon) ;
+                    HD:_FillValue = 1.e+20f ;
+                    HD:long_name = "Heating degree days (sum of 17 degrees - mean temperature)" ;
+                    HD:units = "K" ;
+                    HD:missing_value = 1.e+20f ;
+    
+    // global attributes:
+                    :title = "Cold indice HD" ;
+                    :institution =  ;
+                    :source =  ;
+                    :reference =  ;
+                    :comment =  ;
+                    :history = "2014-01-20 18:42:34 Calculation of HD indice (monthly) from 1900-01-01 to 1910-12-31." ;
+                    :experiment =  ;
+    }
 
 
+... Time steps values, time_bnds values... + example
 
 
 
