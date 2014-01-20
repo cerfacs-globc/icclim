@@ -1212,8 +1212,8 @@ def ID_setvarattr(var_nc):
 def HD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Heating degree days (sum of 17 degrees - mean temperature)')
     var_nc.setncattr('units', 'K')
-    var_nc.setncattr('_FillValue', '1e+20f')
-    var_nc.setncattr('_missing_value', '1e+20f')
+    #var_nc.setncattr('_FillValue', '1e+20f')
+    #var_nc.setncattr('missing_value', '1e+20f')
     
     
 def GD_setvarattr(var_nc):

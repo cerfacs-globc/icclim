@@ -31,9 +31,9 @@ Then a result indice variable is created.
 The name of this variable is the same as indice name (e.g. "FD").
 It has the following attributs:
     - long_name
-    - units
-    - _FillValue
-    - _missing_value
+    - units (the same units as in source files)
+    - _FillValue (the same as in source files)
+    - _missing_value (the same as in source files)
     - ( grid_mapping )
 
 According to the CF convention, the output NetCDF file contains 6 global attributs:
