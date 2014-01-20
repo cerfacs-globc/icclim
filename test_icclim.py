@@ -31,7 +31,7 @@ output_file = '/data/tatarinova/tmp/res/HD_month_CNRM-CM5_historical_r1i1p1_1900
 #dt1 = datetime(2070,01,01)
 #dt2 = datetime(2095,12,31)
 dt1 = datetime(1900,01,01)
-dt2 = datetime(1901,12,31)
+dt2 = datetime(1910,12,31)
 ######
 
 start = time()

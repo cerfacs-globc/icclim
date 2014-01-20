@@ -15,7 +15,7 @@ from netCDF4 import num2date, date2num, Dataset
 from netcdftime import utime
 from progressbar import ProgressBar,Percentage,Bar
 import time
-
+import ocgis
 
 import ctypes
 from numpy.ctypeslib import ndpointer
@@ -1066,165 +1066,130 @@ def SD_calculation_thresh(prsn_arr, fill_val, thresh):
 def TG_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Mean of daily mean temperature')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f') #AttributeError: NetCDF: Not a valid data type or _FillValue type mismatch
     
 def TN_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Mean of daily minimum temperature')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
     
 def TX_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Mean of daily maximum temperature')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def TXx_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Max of daily maximum temperature')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def TNx_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Max of daily minimum temperature')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def TXn_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Min of daily maximum temperature')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def TNn_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Min of daily minimum temperature')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
-
     
 def DTR_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Mean of diurnal temperature range')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
     
 def ETR_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Intra-period extreme temperature range')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
     
 def vDTR_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Mean absolute day-to-day difference in DTR (DTR: mean of diurnal temperature range)')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def SU_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Summer days (number of days where daily maximum temperature > 25 degrees)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def TR_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Tropical nights (number of days where daily minimum temperature > 20 degrees)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def CSU_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Maximum number of consecutive summer days(temperature > 25 degrees)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def RR_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Precipitation sum)')
     var_nc.setncattr('units', 'mm')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def RR1_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Wet days (precipitation >= 1 mm)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def CWD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Maximum number of consecutive wet days (precipitation >= 1 mm)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def CDD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Maximum number of consecutive dry days (precipitation < 1 mm)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def SDII_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Simple daily intensity index for wet days (mm/wet day)')
     var_nc.setncattr('units', 'mm')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def R10mm_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Heavy precipitation days (precipitation >= 10 mm)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
     
 def R20mm_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Very heavy precipitation days (precipitation >= 20 mm)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def RX1day_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Highest 1-day precipitation amount')
     var_nc.setncattr('units', 'mm')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def RX5day_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Highest 5-day precipitation amount')
     var_nc.setncattr('units', 'mm')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def SD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Mean of daily snow depth')
     var_nc.setncattr('units', 'cm')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def SD1_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Number of days where the snow depth >= 1 cm')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
     
 def SD5_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Number of days where the snow depth >= 5 cm')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
     
 def SD50_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Number of days where the snow depth >= 50 cm')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def FD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Frost days (minimum temperature < 0 degrees)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def CFD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Maximum number of consecutive frost days (minimum temperature < 0 degrees)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
 
 def ID_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Ice days (maximum temperature < 0 degrees)')
     var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')
     
 def HD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Heating degree days (sum of 17 degrees - mean temperature)')
     var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')
-    #var_nc.setncattr('missing_value', '1e+20f')
-    
     
 def GD_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Growing degree days (sum of TG > 4 degrees)')
-    var_nc.setncattr('units', 'K')
-    #var_nc.setncattr('_FillValue', '1e+20f')    
+    var_nc.setncattr('units', 'K')    
 
 def GSL_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Growing season length')
-    var_nc.setncattr('units', 'days')
-    #var_nc.setncattr('_FillValue', '1e+20f')    
+    var_nc.setncattr('units', 'days') 
 
 ####
 
@@ -1233,7 +1198,7 @@ def TG_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')        
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1242,7 +1207,7 @@ def TN_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')      
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1251,7 +1216,7 @@ def TX_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')    
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1260,7 +1225,7 @@ def TXx_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')      
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1269,7 +1234,7 @@ def TNx_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1278,7 +1243,7 @@ def TXn_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')    
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1287,7 +1252,7 @@ def TNn_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1296,7 +1261,7 @@ def DTR_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1305,7 +1270,7 @@ def ETR_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')     
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1314,7 +1279,7 @@ def vDTR_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1323,7 +1288,7 @@ def SU_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1332,7 +1297,7 @@ def TR_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1341,7 +1306,7 @@ def CSU_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1350,7 +1315,7 @@ def RR_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1359,7 +1324,7 @@ def RR1_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')        
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')        
 
@@ -1368,7 +1333,7 @@ def CWD_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1377,7 +1342,7 @@ def CDD_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')      
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1386,7 +1351,7 @@ def SDII_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')        
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1395,7 +1360,7 @@ def R10mm_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')     
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1404,7 +1369,7 @@ def R20mm_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')      
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')   
 
@@ -1413,7 +1378,7 @@ def RX1day_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')        
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '') 
 
@@ -1422,7 +1387,7 @@ def RX5day_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1431,7 +1396,7 @@ def SD_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')    
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1440,7 +1405,7 @@ def SD1_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1449,7 +1414,7 @@ def SD5_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')        
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1458,7 +1423,7 @@ def SD50_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')    
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1467,7 +1432,7 @@ def FD_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')      
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1476,7 +1441,7 @@ def CFD_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')        
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
 
@@ -1485,7 +1450,7 @@ def ID_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1495,7 +1460,7 @@ def HD_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1504,7 +1469,7 @@ def GD_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')       
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
     
@@ -1513,9 +1478,10 @@ def GSL_setglobattr(onc):
     #onc.setncattr('institution', '')
     #onc.setncattr('source', '')
     #onc.setncattr('experiment', '')
-    onc.setncattr('history', onc.__getattribute__('history') +'XXXXXXXXXXX')    
+    #onc.setncattr('history', '')    
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
+
 #########################################################################################
 
 def set_var_type(indice_name):
@@ -1738,230 +1704,177 @@ def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, ind, 
     mydict_indice={}
     
     if indice_name =='TG':
-        TG_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = TG_TN_TX_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        TG_setvarattr(ind)
         
         
     elif indice_name =='TX':
-        TX_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = TG_TN_TX_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        TX_setvarattr(ind)
         
             
     elif indice_name =='TN':
-        TN_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = TG_TN_TX_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        TN_setvarattr(ind)
             
     
     elif indice_name =='TXx':
-        TXx_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = TXx_TNx_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        TXx_setvarattr(ind)
     
     
     elif indice_name =='TNx':
-        TNx_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = TXx_TNx_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        TNx_setvarattr(ind)
     
     
     elif indice_name =='TXn':
-        TXn_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = TXn_TNn_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        TXn_setvarattr(ind)
     
     
     elif indice_name =='TNn':
-        TNn_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = TXn_TNn_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        TNn_setvarattr(ind)
     
     
     elif indice_name =='SU':
-        SU_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = SU_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        SU_setvarattr(ind)
+
     
     elif indice_name =='CSU':
-        CSU_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = CSU_calculation_C(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        CSU_setvarattr(ind)
     
     
     elif indice_name =='TR':
-        TR_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = TR_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        TR_setvarattr(ind)
     
     
     elif indice_name =='FD':
-        FD_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = FD_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        FD_setvarattr(ind)
     
     
     elif indice_name =='CFD':
-        CFD_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = CFD_calculation_C(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        CFD_setvarattr(ind)
     
     
     elif indice_name =='ID':
-        ID_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = ID_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        ID_setvarattr(ind)
     
     
     elif indice_name =='HD':
-        HD_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
-            #print key
             tab2D = HD_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        HD_setvarattr(ind)
+
     
     elif indice_name =='GD':
-        GD_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = GD_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        GD_setvarattr(ind)
         
         
     elif indice_name =='GSL': #peredelat'
-        GSL_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = GSL_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        GSL_setvarattr(ind)    
-    
-    
+  
     
     elif indice_name =='CDD':
-        CDD_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = CDD_calculation_C(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        CDD_setvarattr(ind) 
+ 
     
     elif indice_name =='CWD':
-        CWD_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = CWD_calculation_C(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        CWD_setvarattr(ind) 
-    
+
     
     elif indice_name =='RR':
-        RR_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = RR_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        RR_setvarattr(ind) 
-    
-    
-    
-    
+
     
     elif indice_name =='RR1':
-        RR1_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = RR1_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        RR1_setvarattr(ind) 
+ 
     
     elif indice_name =='SDII':
-        SDII_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = SDII_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        SDII_setvarattr(ind) 
+ 
     
     elif indice_name =='R10mm':
-        R10mm_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = R10mm_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        R10mm_setvarattr(ind) 
+ 
     
     elif indice_name =='R20mm':
-        R20mm_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = R20mm_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        R20mm_setvarattr(ind) 
     
     
     elif indice_name =='RX1day':
-        RX1day_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = RX1day_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        RX1day_setvarattr(ind) 
+ 
     
     elif indice_name =='RX5day':
-        RX5day_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = RX5day_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        RX5day_setvarattr(ind)
         
     
     elif indice_name =='SD':
-        SD_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = SD_calculation(dict_timeStep_sub3Darr[key], fill_val)
             mydict_indice[key]=tab2D
-        SD_setvarattr(ind)
+
     
     elif indice_name =='SD1':
-        SD1_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = SD_arr_thresh(dict_timeStep_sub3Darr[key], fill_val, 1)
             mydict_indice[key]=tab2D
-        SD1_setvarattr(ind)
+
         
     elif indice_name =='SD5cm':
-        SD5_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = SD_arr_thresh(dict_timeStep_sub3Darr[key], fill_val, 5)
             mydict_indice[key]=tab2D
-        SD5_setvarattr(ind)
+
         
     elif indice_name =='SD50cm':
-        SD50_setglobattr(onc)
         for key in dict_timeStep_sub3Darr.keys():
             tab2D = SD_arr_thresh(dict_timeStep_sub3Darr[key], fill_val, 50)
             mydict_indice[key]=tab2D
-        SD50_setvarattr(ind)
     
     
     
@@ -2038,6 +1951,19 @@ def get_globValuesArr_sourceTimeArr_ja(ifiles_list, var, var_time, N_lev):
     
     return (v_glob, time_glob)
     
+def setglobattr_history(onc, indice_name, slice_mode, dt1, dt2):
+    
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    if slice_mode == 'year':
+        mode = 'annual'
+    if slice_mode == 'month':
+        mode = 'monthly'
+    
+    # example of history_str_value: 2012-10-02 15:30:20 Calculation of SU indice (annual) from 1960-01-01 to 1990-12-31.
+    history_str_value = current_time + ' Calculation of ' + indice_name + ' indice (' + mode + ') from ' + dt1.strftime('%Y-%m-%d') + ' to ' + dt2.strftime('%Y-%m-%d') + '.'
+
+    onc.setncattr('history', history_str_value) 
 
 
 def get_dict_year_chunk(time_steps_vect):
@@ -2119,7 +2045,9 @@ def indice(ifiles_list, ofile, var, indice_name, time_range, slice_mode, project
     inc.close()
 
     ind_type = set_var_type(indice_name)    
-    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]))
+    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)
+    
+    
     
     dt_begin = time_range[0] # datetime object
     dt_end = time_range[1]
@@ -2207,6 +2135,23 @@ def indice(ifiles_list, ofile, var, indice_name, time_range, slice_mode, project
     glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
     
     ind[:,:,:] = glob_indice[0][:,:,:]
+    
+    # set global attributs
+    eval(indice_name + '_setglobattr(onc)')
+    # for all:
+    setglobattr_history(onc, indice_name, slice_mode, dt_begin, dt_end)
+    onc.setncattr('institution', '')
+    onc.setncattr('source', '')
+    onc.setncattr('experiment', '')
+    onc.setncattr('comment', '')   
+    onc.setncattr('reference', '')
+    
+    # set variable attributs
+    eval(indice_name + '_setvarattr(ind)')
+    # for all:
+    ind.missing_value = fill_val
+    
+    
     
     #print indice[1][:] # must be float or str!    
     #time_steps = [str(i) for i in indice[1][:]]
