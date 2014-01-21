@@ -1,7 +1,3 @@
-.. XXX documentation master file, created by
-   sphinx-quickstart on Sun Dec 15 22:09:57 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Important to know
 ===============================
@@ -18,174 +14,6 @@ To use the ICCLIM you will need to install also the following python libraries:
 CF convention
 -------------
 NetCDF files to process must be compliant to the `CF convention <http://cf-pcmdi.llnl.gov/documents/cf-conventions/>`_ (at least CF-1.0).
-
-Metadata of output NetCDF file
-------------------------------
-
-ICCLIM conserves the meta data stucture of source files:
-
-It copies from a source file the coordinate variables (e.g. "longitude" and "lattitude") and all their attributs.
-It also copies the attributs of time coordinate, but does not copy its values because it will recalculate the output time steps vector (and it will also create *time_bnds* variable).
-It does not copy the vertical variable if it exists.
-Then a result indice variable is created.
-The name of this variable is the same as indice name (e.g. "FD").
-It has the following attributs:
-    - long_name
-    - units 
-    - _FillValue
-    - missing_value
-    - ( grid_mapping )
-
-The *_FillValue* and *missing_value* will be the same as in source files.
-
-According to the CF convention, the output NetCDF file contains 6 main global attributs:
-    - title 
-    - institution
-    - source
-    - history
-    - references
-    - comment 
-
-However other global attributs can be added.
-
-Here's an example of an input file metadata:
-
-.. code-block:: rest
-
-    netcdf tas_day_CNRM-CM5_historical_r1i1p1_18500101-18541231 {
-    dimensions:
-            time = UNLIMITED ; // (1826 currently)
-            lat = 128 ;
-            lon = 256 ;
-            bnds = 2 ;
-    variables:
-            double time(time) ;
-                    time:bounds = "time_bnds" ;
-                    time:units = "days since 1850-1-1" ;
-                    time:calendar = "gregorian" ;
-                    time:axis = "T" ;
-                    time:long_name = "time" ;
-                    time:standard_name = "time" ;
-            double time_bnds(time, bnds) ;
-            double lat(lat) ;
-                    lat:bounds = "lat_bnds" ;
-                    lat:units = "degrees_north" ;
-                    lat:axis = "Y" ;
-                    lat:long_name = "latitude" ;
-                    lat:standard_name = "latitude" ;
-            double lat_bnds(lat, bnds) ;
-            double lon(lon) ;
-                    lon:bounds = "lon_bnds" ;
-                    lon:units = "degrees_east" ;
-                    lon:axis = "X" ;
-                    lon:long_name = "longitude" ;
-                    lon:standard_name = "longitude" ;
-            double lon_bnds(lon, bnds) ;
-            double height ;
-                    height:units = "m" ;
-                    height:axis = "Z" ;
-                    height:positive = "up" ;
-                    height:long_name = "height" ;
-                    height:standard_name = "height" ;
-            float tas(time, lat, lon) ;
-                    tas:standard_name = "air_temperature" ;
-                    tas:long_name = "Near-Surface Air Temperature" ;
-                    tas:units = "K" ;
-                    tas:original_name = "tas" ;
-                    tas:cell_methods = "time: mean" ;
-                    tas:cell_measures = "area: areacella" ;
-                    tas:history = "2011-04-07T06:39:36Z altered by CMOR: Treated scalar dimension: \'height\'." ;
-                    tas:coordinates = "height" ;
-                    tas:missing_value = 1.e+20f ;
-                    tas:_FillValue = 1.e+20f ;
-                    tas:associated_files = "baseURL: http://cmip-pcmdi.llnl.gov/CMIP5/dataLocation gridspecFile: gridspec_atmos_fx_CNRM-CM5_historical_r0i0p0.nc areacella: areacella_fx_CNRM-CM5_historical_r0i0p0.nc" ;
-    
-    // global attributes:
-                    :institution = "CNRM (Centre National de Recherches Meteorologiques, Meteo-France, Toulouse,France) and CERFACS (Centre Europeen de Recherches et de Formation Avancee en Calcul Scientifique, Toulouse, France)" ;
-                    :institute_id = "CNRM-CERFACS" ;
-                    :experiment_id = "historical" ;
-                    :source = "CNRM-CM5 2010 Atmosphere: ARPEGE-Climat (V5.2.1, TL127L31); Ocean: NEMO (nemo3.3.v10.6.6P, ORCA1degL42); Sea Ice: GELATO (V5.30); River Routing: TRIP (v1); Land: SURFEX (v5.1.c); Coupler : OASIS 3" ;
-                    :model_id = "CNRM-CM5" ;
-                    :forcing = "GHG, SA, Sl, Vl, BC, OC" ;
-                    :parent_experiment_id = "piControl" ;
-                    :parent_experiment_rip = "r1i1p1" ;
-                    :branch_time = 146097. ;
-                    :contact = "for all but decadal predictions : contact.CMIP5@meteo.fr - METEO-FRANCE, CNRM/GMGEC/ASTER, CNRS URA 1357, 42 Av. Coriolis F-31057 TOULOUSE CEDEX 1 /for decadal predictions : contact.CMIP5@cerfacs.fr - CERFACS, Climate Modelling And Global Change, URA CERFACS/CNRS No1875, 42 Av. Coriolis F-31057 TOULOUSE CEDEX 1" ;
-                    :comment = "Soil layers depth scheme is specific for mrlsl and tsl - see variable-level comments. Atmosphere vertical hybrid coordinate : a_bnds and b_bnds arrays are correct, but a and b values provided are mid-sum of a_bnds and b_bnds, which is a poor approximation compared to the hydrostatic approximation actually used in the model." ;
-                    :references = "See http://www.cnrm.meteo.fr/cmip5 - Follow model description link" ;
-                    :initialization_method = 1 ;
-                    :physics_version = 1 ;
-                    :tracking_id = "cb2e6df1-075d-4bb9-a937-d9ddf8e8e56f" ;
-                    :product = "output" ;
-                    :experiment = "historical" ;
-                    :frequency = "day" ;
-                    :creation_date = "2011-04-07T06:39:40Z" ;
-                    :history = "2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements." ;
-                    :Conventions = "CF-1.4" ;
-                    :project_id = "CMIP5" ;
-                    :table_id = "Table day (31 January 2011) 43a867c1fea438258e3971754e4dacea" ;
-                    :title = "CNRM-CM5 model output prepared for CMIP5 historical" ;
-                    :parent_experiment = "pre-industrial control" ;
-                    :modeling_realm = "atmos" ;
-                    :realization = 1 ;
-                    :cmor_version = "2.5.3" ;
-    }
-
-
-And here's an example of the output metadata:
-
-.. code-block:: rest
-
-    netcdf HD_month_CNRM-CM5_historical_r1i1p1_19000101-19101231 {
-    dimensions:
-            time = UNLIMITED ; // (132 currently)
-            lat = 128 ;
-            lon = 256 ;
-            tbnds = 2 ;
-    variables:
-            double time(time) ;
-                    time:bounds = "time_bnds" ;
-                    time:units = "days since 1850-1-1" ;
-                    time:calendar = "gregorian" ;
-                    time:axis = "T" ;
-                    time:long_name = "time" ;
-                    time:standard_name = "time" ;
-            double lat(lat) ;
-                    lat:bounds = "lat_bnds" ;
-                    lat:units = "degrees_north" ;
-                    lat:axis = "Y" ;
-                    lat:long_name = "latitude" ;
-                    lat:standard_name = "latitude" ;
-            double lon(lon) ;
-                    lon:bounds = "lon_bnds" ;
-                    lon:units = "degrees_east" ;
-                    lon:axis = "X" ;
-                    lon:long_name = "longitude" ;
-                    lon:standard_name = "longitude" ;
-            double time_bnds(time, tbnds) ;
-                    time_bnds:units = "days since 1850-1-1" ;
-                    time_bnds:calendar = "gregorian" ;
-            float HD(time, lat, lon) ;
-                    HD:_FillValue = 1.e+20f ;
-                    HD:long_name = "Heating degree days (sum of 17 degrees - mean temperature)" ;
-                    HD:units = "K" ;
-                    HD:missing_value = 1.e+20f ;
-    
-    // global attributes:
-                    :title = "Cold indice HD" ;
-                    :institution =  ;
-                    :source =  ;
-                    :reference =  ;
-                    :comment =  ;
-                    :history = "2014-01-20 18:42:34 Calculation of HD indice (monthly) from 1900-01-01 to 1910-12-31." ;
-                    :experiment =  ;
-    }
-
-
-... Time steps values, time_bnds values... + example
-
-
-
 
 
 Variable to process
@@ -212,10 +40,10 @@ For example, the FD indice needs '*the daily minimum temperature*' variable (e.g
 +------------------------------------------------------------+---------------------------------------------+
 
 
-Functions description
+Inputs/Outputs
 ---------------------
-Here is a description of some functions.
 
+Main function:
 
 .. function:: indice(in_files_list, out_file, var, indice_name, time_range, slice_mode, project, N_lev=None):
     
@@ -241,9 +69,9 @@ Here is a description of some functions.
     :type N_lev: int
     :rtype: output NetCDF file name
 
-.. note:: The list of indice names are :ref:`here <indices>`_ .  ############# ?????????????
+.. note:: The list of indice names are :ref:`here <indices.rst>`_ .  
 
-
+Some utility functions:
 
 .. function:: SU_indice_calculation(a, fill_val, t=25):
     

@@ -1,0 +1,494 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Output meta data &mdash; ICCLIM 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ICCLIM 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="prev" title="Indices" href="indices.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="indices.html" title="Indices"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ICCLIM 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="output-meta-data">
+<h1>Output meta data<a class="headerlink" href="#output-meta-data" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt>The output meta data conteins at least the following variables:</dt>
+<dd><ul class="first last simple">
+<li>lat</li>
+<li>lon</li>
+<li>time</li>
+<li>time_bnds</li>
+<li>indice</li>
+</ul>
+</dd>
+</dl>
+<div class="section" id="lat-lon">
+<h2>lat, lon<a class="headerlink" href="#lat-lon" title="Permalink to this headline">¶</a></h2>
+<p>We copy the <em>lat</em> and <em>lon</em> variables from source file with all their attributs.</p>
+</div>
+<div class="section" id="time-time-bnds">
+<h2>time, time_bnds<a class="headerlink" href="#time-time-bnds" title="Permalink to this headline">¶</a></h2>
+<p>From the <em>time</em> variable we copy only its attributs, then we recalculate its values (time steps).
+We also create the <em>time_bnds</em> variable.</p>
+<p>If <em>slice_mode=&#8217;year&#8217;</em>, the time steps will be the 30th June (&#8220;AAAA-06-30&#8221;) and the <em>time_bnds</em> values will be the 1st January and
+the 31th December of each year (&#8220;AAAA-01-01&#8221;, &#8220;AAAA-12-31&#8221;):</p>
+<div class="highlight-rest"><div class="highlight"><pre>time = &quot;1986-06-30&quot;, &quot;1987-06-30&quot;, &quot;1988-06-30&quot;, &quot;1989-06-30&quot;, &quot;1990-06-30&quot; ;
+
+time_bnds =
+  &quot;1986-01-01&quot;, &quot;1986-12-31 23:59:59.000005&quot;,
+  &quot;1987-01-01&quot;, &quot;1987-12-31 23:59:59.000005&quot;,
+  &quot;1988-01-01&quot;, &quot;1988-12-31 23:59:59.000005&quot;,
+  &quot;1989-01-01&quot;, &quot;1989-12-31 23:59:59.000005&quot;,
+  &quot;1990-01-01&quot;, &quot;1990-12-31 23:59:59.000005&quot; ;
+</pre></div>
+</div>
+<p>If <em>slice_mode=&#8217;month&#8217;</em>, the time steps will be the 15th day of each month (&#8220;AAAA-MM-15&#8221;) and the <em>time_bnds</em> values will be the 1st and
+the last days of each month:</p>
+<div class="highlight-rest"><div class="highlight"><pre>time = &quot;2010-01-15&quot;, &quot;2010-02-15&quot;, &quot;2010-03-15&quot;, &quot;2010-04-15&quot;, &quot;2010-05-15&quot;,
+    &quot;2010-06-15&quot;, &quot;2010-07-15&quot;, &quot;2010-08-15&quot;, &quot;2010-09-15&quot;, &quot;2010-10-15&quot;,
+    &quot;2010-11-15&quot;, &quot;2010-12-15&quot;, &quot;2011-01-15&quot;, &quot;2011-02-15&quot;, &quot;2011-03-15&quot;,
+    &quot;2011-04-15&quot;, &quot;2011-05-15&quot;, &quot;2011-06-15&quot;, &quot;2011-07-15&quot;, &quot;2011-08-15&quot;,
+<span class="cp">    ...</span>
+
+time_bnds =
+&quot;2010-01-01&quot;, &quot;2010-01-31 23:59:59.000005&quot;,
+&quot;2010-02-01&quot;, &quot;2010-02-28 23:59:59.000005&quot;,
+&quot;2010-03-01&quot;, &quot;2010-03-31 23:59:59.000005&quot;,
+&quot;2010-04-01&quot;, &quot;2010-04-30 23:59:59.000005&quot;,
+&quot;2010-05-01&quot;, &quot;2010-05-31 23:59:59.000005&quot;,
+&quot;2010-06-01&quot;, &quot;2010-06-30 23:59:59.000005&quot;,
+&quot;2010-07-01&quot;, &quot;2010-07-31 23:59:59.000005&quot;,
+<span class="gh">&quot;2010-08-01&quot;, &quot;2010-08-31 23:59:59.000005&quot;,</span>
+<span class="gh">...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="indice">
+<h2>indice<a class="headerlink" href="#indice" title="Permalink to this headline">¶</a></h2>
+<p>The <em>indice</em> variable has the same name as indice_name parameter (e.g. &#8220;FD&#8221;).
+It has the following attributs:</p>
+<blockquote>
+<div><ul class="simple">
+<li>long_name</li>
+<li>units</li>
+<li>_FillValue</li>
+<li>missing_value</li>
+<li>( grid_mapping )</li>
+</ul>
+</div></blockquote>
+<p>Example:</p>
+<div class="highlight-rest"><div class="highlight"><pre>float GD(time, lat, lon) ;
+        GD:_FillValue = 1.e+20f ;
+        GD:long_name = &quot;Growing degree days (sum of TG &gt; 4 degrees)&quot; ;
+        GD:units = &quot;K&quot; ;
+        GD:missing_value = 1.e+20f ;
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <em>_FillValue</em> and <em>missing_value</em> are the same as in source files.</p>
+</div>
+</div>
+<div class="section" id="global-attributs">
+<h2>Global attributs<a class="headerlink" href="#global-attributs" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>According to the CF convention, the output NetCDF file contains 6 main global attributs:</dt>
+<dd><ul class="first last simple">
+<li>title</li>
+<li>institution</li>
+<li>source</li>
+<li>history</li>
+<li>references</li>
+<li>comment</li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-rest"><div class="highlight"><pre>// global attributes:
+            :title = &quot;Cold indice GD&quot; ;
+            :institution =  ;
+            :source =  ;
+            :reference =  ;
+            :comment =  ;
+            :history = &quot;2014-01-21 11:59:26 Calculation of GD indice (monthly) from 2080-01-01 to 2085-12-31.&quot; ;
+</pre></div>
+</div>
+<p>However other global attributs can be added.</p>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Input metadata (CMIP5):</p>
+<div class="highlight-rest"><div class="highlight"><pre>netcdf tas_day_CNRM-CM5_historical_r1i1p1_18500101-18541231 {
+dimensions:
+        time = UNLIMITED ; // (1826 currently)
+        lat = 128 ;
+        lon = 256 ;
+        bnds = 2 ;
+variables:
+        double time(time) ;
+                time:bounds = &quot;time_bnds&quot; ;
+                time:units = &quot;days since 1850-1-1&quot; ;
+                time:calendar = &quot;gregorian&quot; ;
+                time:axis = &quot;T&quot; ;
+                time:long_name = &quot;time&quot; ;
+                time:standard_name = &quot;time&quot; ;
+        double time_bnds(time, bnds) ;
+        double lat(lat) ;
+                lat:bounds = &quot;lat_bnds&quot; ;
+                lat:units = &quot;degrees_north&quot; ;
+                lat:axis = &quot;Y&quot; ;
+                lat:long_name = &quot;latitude&quot; ;
+                lat:standard_name = &quot;latitude&quot; ;
+        double lat_bnds(lat, bnds) ;
+        double lon(lon) ;
+                lon:bounds = &quot;lon_bnds&quot; ;
+                lon:units = &quot;degrees_east&quot; ;
+                lon:axis = &quot;X&quot; ;
+                lon:long_name = &quot;longitude&quot; ;
+                lon:standard_name = &quot;longitude&quot; ;
+        double lon_bnds(lon, bnds) ;
+        double height ;
+                height:units = &quot;m&quot; ;
+                height:axis = &quot;Z&quot; ;
+                height:positive = &quot;up&quot; ;
+                height:long_name = &quot;height&quot; ;
+                height:standard_name = &quot;height&quot; ;
+        float tas(time, lat, lon) ;
+                tas:standard_name = &quot;air_temperature&quot; ;
+                tas:long_name = &quot;Near-Surface Air Temperature&quot; ;
+                tas:units = &quot;K&quot; ;
+                tas:original_name = &quot;tas&quot; ;
+                tas:cell_methods = &quot;time: mean&quot; ;
+                tas:cell_measures = &quot;area: areacella&quot; ;
+                tas:history = &quot;2011-04-07T06:39:36Z altered by CMOR: Treated scalar dimension: \&#39;height\&#39;.&quot; ;
+                tas:coordinates = &quot;height&quot; ;
+                tas:missing_value = 1.e+20f ;
+                tas:_FillValue = 1.e+20f ;
+                tas:associated_files = &quot;baseURL: http://cmip-pcmdi.llnl.gov/CMIP5/dataLocation gridspecFile: gridspec_atmos_fx_CNRM-CM5_historical_r0i0p0.nc areacella: areacella_fx_CNRM-CM5_historical_r0i0p0.nc&quot; ;
+
+// global attributes:
+                :institution = &quot;CNRM (Centre National de Recherches Meteorologiques, Meteo-France, Toulouse,France) and CERFACS (Centre Europeen de Recherches et de Formation Avancee en Calcul Scientifique, Toulouse, France)&quot; ;
+                :institute_id = &quot;CNRM-CERFACS&quot; ;
+                :experiment_id = &quot;historical&quot; ;
+                <span class="nc">:source = &quot;CNRM-CM5 2010 Atmosphere:</span> <span class="nf">ARPEGE-Climat (V5.2.1, TL127L31); Ocean: NEMO (nemo3.3.v10.6.6P, ORCA1degL42); Sea Ice: GELATO (V5.30); River Routing: TRIP (v1); Land: SURFEX (v5.1.c); Coupler : OASIS 3&quot; ;</span>
+                :model_id = &quot;CNRM-CM5&quot; ;
+                :forcing = &quot;GHG, SA, Sl, Vl, BC, OC&quot; ;
+                :parent_experiment_id = &quot;piControl&quot; ;
+                :parent_experiment_rip = &quot;r1i1p1&quot; ;
+                :branch_time = 146097. ;
+                <span class="nc">:contact = &quot;for all but decadal predictions :</span> <span class="nf">contact.CMIP5@meteo.fr - METEO-FRANCE, CNRM/GMGEC/ASTER, CNRS URA 1357, 42 Av. Coriolis F-31057 TOULOUSE CEDEX 1 /for decadal predictions : contact.CMIP5@cerfacs.fr - CERFACS, Climate Modelling And Global Change, URA CERFACS/CNRS No1875, 42 Av. Coriolis F-31057 TOULOUSE CEDEX 1&quot; ;</span>
+                <span class="nc">:comment = &quot;Soil layers depth scheme is specific for mrlsl and tsl - see variable-level comments. Atmosphere vertical hybrid coordinate :</span> <span class="nf">a_bnds and b_bnds arrays are correct, but a and b values provided are mid-sum of a_bnds and b_bnds, which is a poor approximation compared to the hydrostatic approximation actually used in the model.&quot; ;</span>
+                :references = &quot;See http://www.cnrm.meteo.fr/cmip5 - Follow model description link&quot; ;
+                :initialization_method = 1 ;
+                :physics_version = 1 ;
+                :tracking_id = &quot;cb2e6df1-075d-4bb9-a937-d9ddf8e8e56f&quot; ;
+                :product = &quot;output&quot; ;
+                :experiment = &quot;historical&quot; ;
+                :frequency = &quot;day&quot; ;
+                :creation_date = &quot;2011-04-07T06:39:40Z&quot; ;
+                :history = &quot;2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements.&quot; ;
+                :Conventions = &quot;CF-1.4&quot; ;
+                :project_id = &quot;CMIP5&quot; ;
+                :table_id = &quot;Table day (31 January 2011) 43a867c1fea438258e3971754e4dacea&quot; ;
+                :title = &quot;CNRM-CM5 model output prepared for CMIP5 historical&quot; ;
+                :parent_experiment = &quot;pre-industrial control&quot; ;
+                :modeling_realm = &quot;atmos&quot; ;
+                :realization = 1 ;
+                :cmor_version = &quot;2.5.3&quot; ;
+}
+</pre></div>
+</div>
+<p>Output metadata (CMIP5):</p>
+<div class="highlight-rest"><div class="highlight"><pre>netcdf HD_month_CNRM-CM5_historical_r1i1p1_19000101-19101231 {
+dimensions:
+        time = UNLIMITED ; // (132 currently)
+        lat = 128 ;
+        lon = 256 ;
+        tbnds = 2 ;
+variables:
+        double time(time) ;
+                time:bounds = &quot;time_bnds&quot; ;
+                time:units = &quot;days since 1850-1-1&quot; ;
+                time:calendar = &quot;gregorian&quot; ;
+                time:axis = &quot;T&quot; ;
+                time:long_name = &quot;time&quot; ;
+                time:standard_name = &quot;time&quot; ;
+        double lat(lat) ;
+                lat:bounds = &quot;lat_bnds&quot; ;
+                lat:units = &quot;degrees_north&quot; ;
+                lat:axis = &quot;Y&quot; ;
+                lat:long_name = &quot;latitude&quot; ;
+                lat:standard_name = &quot;latitude&quot; ;
+        double lon(lon) ;
+                lon:bounds = &quot;lon_bnds&quot; ;
+                lon:units = &quot;degrees_east&quot; ;
+                lon:axis = &quot;X&quot; ;
+                lon:long_name = &quot;longitude&quot; ;
+                lon:standard_name = &quot;longitude&quot; ;
+        double time_bnds(time, tbnds) ;
+                time_bnds:units = &quot;days since 1850-1-1&quot; ;
+                time_bnds:calendar = &quot;gregorian&quot; ;
+        float HD(time, lat, lon) ;
+                HD:_FillValue = 1.e+20f ;
+                HD:long_name = &quot;Heating degree days (sum of 17 degrees - mean temperature)&quot; ;
+                HD:units = &quot;K&quot; ;
+                HD:missing_value = 1.e+20f ;
+
+// global attributes:
+                :title = &quot;Cold indice HD&quot; ;
+                :institution =  ;
+                :source =  ;
+                :reference =  ;
+                :comment =  ;
+                :history = &quot;2014-01-20 18:42:34 Calculation of HD indice (monthly) from 1900-01-01 to 1910-12-31.&quot; ;
+                :experiment =  ;
+}
+</pre></div>
+</div>
+<p>Input metadata (CORDEX)</p>
+<div class="highlight-rest"><div class="highlight"><pre>netcdf tas_AFR-44_CNRM-CERFACS-CNRM-CM5_historical_r1i1p1_SMHI-RCA4_v1_day_19860101-19901231 {
+dimensions:
+        bnds = 2 ;
+        time = UNLIMITED ; // (1826 currently)
+        rlon = 194 ;
+        rlat = 201 ;
+variables:
+        double height ;
+                height:axis = &quot;Z&quot; ;
+                height:long_name = &quot;height&quot; ;
+                height:positive = &quot;up&quot; ;
+                height:standard_name = &quot;height&quot; ;
+                height:units = &quot;m&quot; ;
+        double time_bnds(time, bnds) ;
+        double rlon(rlon) ;
+                rlon:standard_name = &quot;grid_longitude&quot; ;
+                rlon:long_name = &quot;longitude in rotated pole grid&quot; ;
+                rlon:units = &quot;degrees&quot; ;
+                rlon:axis = &quot;X&quot; ;
+        double rlat(rlat) ;
+                rlat:standard_name = &quot;grid_latitude&quot; ;
+                rlat:long_name = &quot;latitude in rotated pole grid&quot; ;
+                rlat:units = &quot;degrees&quot; ;
+                rlat:axis = &quot;Y&quot; ;
+        char rotated_pole ;
+                rotated_pole:grid_mapping_name = &quot;rotated_latitude_longitude&quot; ;
+                rotated_pole:grid_north_pole_latitude = 90. ;
+                rotated_pole:grid_north_pole_longitude = -180. ;
+        double time(time) ;
+                time:standard_name = &quot;time&quot; ;
+                time:units = &quot;days since 1949-12-01 00:00:00&quot; ;
+                time:calendar = &quot;standard&quot; ;
+                time:long_name = &quot;time&quot; ;
+                time:bounds = &quot;time_bnds&quot; ;
+                time:axis = &quot;T&quot; ;
+        float tas(time, rlat, rlon) ;
+                tas:grid_mapping = &quot;rotated_pole&quot; ;
+                tas:_FillValue = 1.e+20f ;
+                tas:standard_name = &quot;air_temperature&quot; ;
+                tas:long_name = &quot;Near-Surface Air Temperature&quot; ;
+                tas:units = &quot;K&quot; ;
+                tas:coordinates = &quot;lon lat height&quot; ;
+                tas:missing_value = 1.e+20f ;
+                tas:cell_methods = &quot;time: mean&quot; ;
+        double lon(rlat, rlon) ;
+                lon:standard_name = &quot;longitude&quot; ;
+                lon:long_name = &quot;longitude&quot; ;
+                lon:units = &quot;degrees_east&quot; ;
+        double lat(rlat, rlon) ;
+                lat:standard_name = &quot;latitude&quot; ;
+                lat:long_name = &quot;latitude&quot; ;
+                lat:units = &quot;degrees_north&quot; ;
+
+// global attributes:
+                :Conventions = &quot;CF-1.4&quot; ;
+                :contact = &quot;rossby.cordex@smhi.se&quot; ;
+                :creation_date = &quot;2012-07-07-T22:17:14Z&quot; ;
+                :experiment = &quot;historical&quot; ;
+                :experiment_id = &quot;historical&quot; ;
+                :driving_experiment = &quot;CNRM-CERFACS-CNRM-CM5, historical, r1i1p1&quot; ;
+                :driving_model_id = &quot;CNRM-CERFACS-CNRM-CM5&quot; ;
+                :driving_model_ensemble_member = &quot;r1i1p1&quot; ;
+                :driving_experiment_name = &quot;historical&quot; ;
+                :frequency = &quot;day&quot; ;
+                :institution = &quot;Swedish Meteorological and Hydrological Institute, Rossby Centre&quot; ;
+                :institute_id = &quot;SMHI&quot; ;
+                :model_id = &quot;SMHI-RCA4&quot; ;
+                :rcm_version_id = &quot;v1&quot; ;
+                :project_id = &quot;CORDEX&quot; ;
+                :CORDEX_domain = &quot;AFR-44&quot; ;
+                :product = &quot;output&quot; ;
+                :references = &quot;http://www.smhi.se/en/Research/Research-departments/climate-research-rossby-centre&quot; ;
+                :tracking_id = &quot;7bf57394-e559-4bab-8a27-e54a0d7397bf&quot; ;
+                <span class="nc">:rossby_comment = &quot;201110:</span> <span class="nf">CORDEX Africa 0.44 deg | RCA4 v1 | CNRM-CERFACS-CNRM-CM5 | r1i1p1 | historical | L40&quot; ;</span>
+                :rossby_run_id = &quot;201110&quot; ;
+                :rossby_grib_path = &quot;/nobackup/rossby15/rossby/joint_exp/cordex/201110/raw/&quot; ;
+}
+</pre></div>
+</div>
+<p>Output metadata (CORDEX)</p>
+<div class="highlight-rest"><div class="highlight"><pre>netcdf HD_year_AFR-44_CNRM-CERFACS-CNRM-CM5_historical_r1i1p1_SMHI-RCA4_v1_19860101-19901231 {
+dimensions:
+        time = UNLIMITED ; // (5 currently)
+        rlat = 201 ;
+        rlon = 194 ;
+        tbnds = 2 ;
+variables:
+        double time(time) ;
+                time:standard_name = &quot;time&quot; ;
+                time:units = &quot;days since 1949-12-01 00:00:00&quot; ;
+                time:calendar = &quot;standard&quot; ;
+                time:long_name = &quot;time&quot; ;
+                time:bounds = &quot;time_bnds&quot; ;
+                time:axis = &quot;T&quot; ;
+        double rlat(rlat) ;
+                rlat:standard_name = &quot;grid_latitude&quot; ;
+                rlat:long_name = &quot;latitude in rotated pole grid&quot; ;
+                rlat:units = &quot;degrees&quot; ;
+                rlat:axis = &quot;Y&quot; ;
+        double rlon(rlon) ;
+                rlon:standard_name = &quot;grid_longitude&quot; ;
+                rlon:long_name = &quot;longitude in rotated pole grid&quot; ;
+                rlon:units = &quot;degrees&quot; ;
+                rlon:axis = &quot;X&quot; ;
+        double time_bnds(time, tbnds) ;
+                time_bnds:units = &quot;days since 1949-12-01 00:00:00&quot; ;
+                time_bnds:calendar = &quot;standard&quot; ;
+        double lon(rlat, rlon) ;
+                lon:standard_name = &quot;longitude&quot; ;
+                lon:long_name = &quot;longitude&quot; ;
+                lon:units = &quot;degrees_east&quot; ;
+        double lat(rlat, rlon) ;
+                lat:standard_name = &quot;latitude&quot; ;
+                lat:long_name = &quot;latitude&quot; ;
+                lat:units = &quot;degrees_north&quot; ;
+        char rotated_pole ;
+                rotated_pole:grid_mapping_name = &quot;rotated_latitude_longitude&quot; ;
+                rotated_pole:grid_north_pole_latitude = 90. ;
+                rotated_pole:grid_north_pole_longitude = -180. ;
+        float HD(time, rlat, rlon) ;
+                HD:_FillValue = 1.e+20f ;
+                HD:long_name = &quot;Heating degree days (sum of 17 degrees - mean temperature)&quot; ;
+                HD:units = &quot;K&quot; ;
+                HD:missing_value = 1.e+20f ;
+
+// global attributes:
+                :experiment = &quot;historical&quot; ;
+                :title = &quot;Cold indice HD&quot; ;
+                :institution =  ;
+                :source =  ;
+                :reference =  ;
+                :comment =  ;
+                :history = &quot;2014-01-21 15:29:57 Calculation of HD indice (annual) from 1986-01-01 to 1990-12-31.&quot; ;
+}
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Output meta data</a><ul>
+<li><a class="reference internal" href="#lat-lon">lat, lon</a></li>
+<li><a class="reference internal" href="#time-time-bnds">time, time_bnds</a></li>
+<li><a class="reference internal" href="#indice">indice</a></li>
+<li><a class="reference internal" href="#global-attributs">Global attributs</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="indices.html"
+                        title="previous chapter">Indices</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="examples.html"
+                        title="next chapter">Examples</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/output_metadata.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="examples.html" title="Examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="indices.html" title="Indices"
+             >previous</a> |</li>
+        <li><a href="index.html">ICCLIM 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, CERFACS.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b3.
+    </div>
+  </body>
+</html>

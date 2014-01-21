@@ -1,7 +1,3 @@
-.. XXX documentation master file, created by
-   sphinx-quickstart on Sun Dec 15 22:09:57 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 Indices
 ===============================
@@ -27,11 +23,11 @@ For the moment you can calculate only the indices in bold (the others are in dev
         - TX90p
         - TN90p        
     * cold
-        - **GD4**
+        - **GD** (=GD4)
         - GSL
         - **CFD**
         - **FD**
-        - **HD17**
+        - **HD** (=HD17)
         - **ID**
         - **TXn**
         - **TNn**

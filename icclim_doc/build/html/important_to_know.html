@@ -68,168 +68,6 @@
 <h2>CF convention<a class="headerlink" href="#cf-convention" title="Permalink to this headline">¶</a></h2>
 <p>NetCDF files to process must be compliant to the <a class="reference external" href="http://cf-pcmdi.llnl.gov/documents/cf-conventions/">CF convention</a> (at least CF-1.0).</p>
 </div>
-<div class="section" id="metadata-of-output-netcdf-file">
-<h2>Metadata of output NetCDF file<a class="headerlink" href="#metadata-of-output-netcdf-file" title="Permalink to this headline">¶</a></h2>
-<p>ICCLIM conserves the meta data stucture of source files:</p>
-<p>It copies from a source file the coordinate variables (e.g. &#8220;longitude&#8221; and &#8220;lattitude&#8221;) and all their attributs.
-It also copies the attributs of time coordinate, but does not copy its values because it will recalculate the output time steps vector (and it will also create <em>time_bnds</em> variable).
-It does not copy the vertical variable if it exists.
-Then a result indice variable is created.
-The name of this variable is the same as indice name (e.g. &#8220;FD&#8221;).
-It has the following attributs:</p>
-<blockquote>
-<div><ul class="simple">
-<li>long_name</li>
-<li>units</li>
-<li>_FillValue</li>
-<li>missing_value</li>
-<li>( grid_mapping )</li>
-</ul>
-</div></blockquote>
-<p>The <em>_FillValue</em> and <em>missing_value</em> will be the same as in source files.</p>
-<dl class="docutils">
-<dt>According to the CF convention, the output NetCDF file contains 6 main global attributs:</dt>
-<dd><ul class="first last simple">
-<li>title</li>
-<li>institution</li>
-<li>source</li>
-<li>history</li>
-<li>references</li>
-<li>comment</li>
-</ul>
-</dd>
-</dl>
-<p>However other global attributs can be added.</p>
-<p>Here&#8217;s an example of an input file metadata:</p>
-<div class="highlight-rest"><div class="highlight"><pre>netcdf tas_day_CNRM-CM5_historical_r1i1p1_18500101-18541231 {
-dimensions:
-        time = UNLIMITED ; // (1826 currently)
-        lat = 128 ;
-        lon = 256 ;
-        bnds = 2 ;
-variables:
-        double time(time) ;
-                time:bounds = &quot;time_bnds&quot; ;
-                time:units = &quot;days since 1850-1-1&quot; ;
-                time:calendar = &quot;gregorian&quot; ;
-                time:axis = &quot;T&quot; ;
-                time:long_name = &quot;time&quot; ;
-                time:standard_name = &quot;time&quot; ;
-        double time_bnds(time, bnds) ;
-        double lat(lat) ;
-                lat:bounds = &quot;lat_bnds&quot; ;
-                lat:units = &quot;degrees_north&quot; ;
-                lat:axis = &quot;Y&quot; ;
-                lat:long_name = &quot;latitude&quot; ;
-                lat:standard_name = &quot;latitude&quot; ;
-        double lat_bnds(lat, bnds) ;
-        double lon(lon) ;
-                lon:bounds = &quot;lon_bnds&quot; ;
-                lon:units = &quot;degrees_east&quot; ;
-                lon:axis = &quot;X&quot; ;
-                lon:long_name = &quot;longitude&quot; ;
-                lon:standard_name = &quot;longitude&quot; ;
-        double lon_bnds(lon, bnds) ;
-        double height ;
-                height:units = &quot;m&quot; ;
-                height:axis = &quot;Z&quot; ;
-                height:positive = &quot;up&quot; ;
-                height:long_name = &quot;height&quot; ;
-                height:standard_name = &quot;height&quot; ;
-        float tas(time, lat, lon) ;
-                tas:standard_name = &quot;air_temperature&quot; ;
-                tas:long_name = &quot;Near-Surface Air Temperature&quot; ;
-                tas:units = &quot;K&quot; ;
-                tas:original_name = &quot;tas&quot; ;
-                tas:cell_methods = &quot;time: mean&quot; ;
-                tas:cell_measures = &quot;area: areacella&quot; ;
-                tas:history = &quot;2011-04-07T06:39:36Z altered by CMOR: Treated scalar dimension: \&#39;height\&#39;.&quot; ;
-                tas:coordinates = &quot;height&quot; ;
-                tas:missing_value = 1.e+20f ;
-                tas:_FillValue = 1.e+20f ;
-                tas:associated_files = &quot;baseURL: http://cmip-pcmdi.llnl.gov/CMIP5/dataLocation gridspecFile: gridspec_atmos_fx_CNRM-CM5_historical_r0i0p0.nc areacella: areacella_fx_CNRM-CM5_historical_r0i0p0.nc&quot; ;
-
-// global attributes:
-                :institution = &quot;CNRM (Centre National de Recherches Meteorologiques, Meteo-France, Toulouse,France) and CERFACS (Centre Europeen de Recherches et de Formation Avancee en Calcul Scientifique, Toulouse, France)&quot; ;
-                :institute_id = &quot;CNRM-CERFACS&quot; ;
-                :experiment_id = &quot;historical&quot; ;
-                <span class="nc">:source = &quot;CNRM-CM5 2010 Atmosphere:</span> <span class="nf">ARPEGE-Climat (V5.2.1, TL127L31); Ocean: NEMO (nemo3.3.v10.6.6P, ORCA1degL42); Sea Ice: GELATO (V5.30); River Routing: TRIP (v1); Land: SURFEX (v5.1.c); Coupler : OASIS 3&quot; ;</span>
-                :model_id = &quot;CNRM-CM5&quot; ;
-                :forcing = &quot;GHG, SA, Sl, Vl, BC, OC&quot; ;
-                :parent_experiment_id = &quot;piControl&quot; ;
-                :parent_experiment_rip = &quot;r1i1p1&quot; ;
-                :branch_time = 146097. ;
-                <span class="nc">:contact = &quot;for all but decadal predictions :</span> <span class="nf">contact.CMIP5@meteo.fr - METEO-FRANCE, CNRM/GMGEC/ASTER, CNRS URA 1357, 42 Av. Coriolis F-31057 TOULOUSE CEDEX 1 /for decadal predictions : contact.CMIP5@cerfacs.fr - CERFACS, Climate Modelling And Global Change, URA CERFACS/CNRS No1875, 42 Av. Coriolis F-31057 TOULOUSE CEDEX 1&quot; ;</span>
-                <span class="nc">:comment = &quot;Soil layers depth scheme is specific for mrlsl and tsl - see variable-level comments. Atmosphere vertical hybrid coordinate :</span> <span class="nf">a_bnds and b_bnds arrays are correct, but a and b values provided are mid-sum of a_bnds and b_bnds, which is a poor approximation compared to the hydrostatic approximation actually used in the model.&quot; ;</span>
-                :references = &quot;See http://www.cnrm.meteo.fr/cmip5 - Follow model description link&quot; ;
-                :initialization_method = 1 ;
-                :physics_version = 1 ;
-                :tracking_id = &quot;cb2e6df1-075d-4bb9-a937-d9ddf8e8e56f&quot; ;
-                :product = &quot;output&quot; ;
-                :experiment = &quot;historical&quot; ;
-                :frequency = &quot;day&quot; ;
-                :creation_date = &quot;2011-04-07T06:39:40Z&quot; ;
-                :history = &quot;2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements.&quot; ;
-                :Conventions = &quot;CF-1.4&quot; ;
-                :project_id = &quot;CMIP5&quot; ;
-                :table_id = &quot;Table day (31 January 2011) 43a867c1fea438258e3971754e4dacea&quot; ;
-                :title = &quot;CNRM-CM5 model output prepared for CMIP5 historical&quot; ;
-                :parent_experiment = &quot;pre-industrial control&quot; ;
-                :modeling_realm = &quot;atmos&quot; ;
-                :realization = 1 ;
-                :cmor_version = &quot;2.5.3&quot; ;
-}
-</pre></div>
-</div>
-<p>And here&#8217;s an example of the output metadata:</p>
-<div class="highlight-rest"><div class="highlight"><pre>netcdf HD_month_CNRM-CM5_historical_r1i1p1_19000101-19101231 {
-dimensions:
-        time = UNLIMITED ; // (132 currently)
-        lat = 128 ;
-        lon = 256 ;
-        tbnds = 2 ;
-variables:
-        double time(time) ;
-                time:bounds = &quot;time_bnds&quot; ;
-                time:units = &quot;days since 1850-1-1&quot; ;
-                time:calendar = &quot;gregorian&quot; ;
-                time:axis = &quot;T&quot; ;
-                time:long_name = &quot;time&quot; ;
-                time:standard_name = &quot;time&quot; ;
-        double lat(lat) ;
-                lat:bounds = &quot;lat_bnds&quot; ;
-                lat:units = &quot;degrees_north&quot; ;
-                lat:axis = &quot;Y&quot; ;
-                lat:long_name = &quot;latitude&quot; ;
-                lat:standard_name = &quot;latitude&quot; ;
-        double lon(lon) ;
-                lon:bounds = &quot;lon_bnds&quot; ;
-                lon:units = &quot;degrees_east&quot; ;
-                lon:axis = &quot;X&quot; ;
-                lon:long_name = &quot;longitude&quot; ;
-                lon:standard_name = &quot;longitude&quot; ;
-        double time_bnds(time, tbnds) ;
-                time_bnds:units = &quot;days since 1850-1-1&quot; ;
-                time_bnds:calendar = &quot;gregorian&quot; ;
-        float HD(time, lat, lon) ;
-                HD:_FillValue = 1.e+20f ;
-                HD:long_name = &quot;Heating degree days (sum of 17 degrees - mean temperature)&quot; ;
-                HD:units = &quot;K&quot; ;
-                HD:missing_value = 1.e+20f ;
-
-// global attributes:
-                :title = &quot;Cold indice HD&quot; ;
-                :institution =  ;
-                :source =  ;
-                :reference =  ;
-                :comment =  ;
-                :history = &quot;2014-01-20 18:42:34 Calculation of HD indice (monthly) from 1900-01-01 to 1910-12-31.&quot; ;
-                :experiment =  ;
-}
-</pre></div>
-</div>
-<p>... Time steps values, time_bnds values... + example</p>
-</div>
 <div class="section" id="variable-to-process">
 <h2>Variable to process<a class="headerlink" href="#variable-to-process" title="Permalink to this headline">¶</a></h2>
 <p>It needs to respect the correspondence between the variable to process and the indice to calculate.
@@ -266,9 +104,9 @@ For example, the FD indice needs &#8216;<em>the daily minimum temperature</em>&#
 </tbody>
 </table>
 </div>
-<div class="section" id="functions-description">
-<h2>Functions description<a class="headerlink" href="#functions-description" title="Permalink to this headline">¶</a></h2>
-<p>Here is a description of some functions.</p>
+<div class="section" id="inputs-outputs">
+<h2>Inputs/Outputs<a class="headerlink" href="#inputs-outputs" title="Permalink to this headline">¶</a></h2>
+<p>Main function:</p>
 <dl class="function">
 <dt>
 <tt class="descname">indice(in_files_list, out_file, var, indice_name, time_range, slice_mode, project, N_lev=None):</tt></dt>
@@ -298,8 +136,9 @@ For example, the FD indice needs &#8216;<em>the daily minimum temperature</em>&#
 
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The list of indice names are <a href="#id2"><span class="problematic" id="id3">:ref:`here &lt;indices&gt;`_</span></a> .  ############# ?????????????</p>
+<p class="last">The list of indice names are <a href="#id2"><span class="problematic" id="id3">:ref:`here &lt;indices.rst&gt;`_</span></a> .</p>
 </div>
+<p>Some utility functions:</p>
 <dl class="function">
 <dt>
 <tt class="descname">SU_indice_calculation(a, fill_val, t=25):</tt></dt>
@@ -402,9 +241,8 @@ This function calls C function &#8220;find_max_len_consec_sequence_3d&#8221; fro
 <li><a class="reference internal" href="#">Important to know</a><ul>
 <li><a class="reference internal" href="#libraries-to-istall">Libraries to istall</a></li>
 <li><a class="reference internal" href="#cf-convention">CF convention</a></li>
-<li><a class="reference internal" href="#metadata-of-output-netcdf-file">Metadata of output NetCDF file</a></li>
 <li><a class="reference internal" href="#variable-to-process">Variable to process</a></li>
-<li><a class="reference internal" href="#functions-description">Functions description</a></li>
+<li><a class="reference internal" href="#inputs-outputs">Inputs/Outputs</a></li>
 </ul>
 </li>
 </ul>

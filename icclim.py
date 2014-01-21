@@ -2142,7 +2142,6 @@ def indice(ifiles_list, ofile, var, indice_name, time_range, slice_mode, project
     setglobattr_history(onc, indice_name, slice_mode, dt_begin, dt_end)
     onc.setncattr('institution', '')
     onc.setncattr('source', '')
-    onc.setncattr('experiment', '')
     onc.setncattr('comment', '')   
     onc.setncattr('reference', '')
     
