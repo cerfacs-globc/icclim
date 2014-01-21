@@ -13,7 +13,6 @@ To use the ICCLIM you will need to install also the following python libraries:
     - `NumPy <http://www.numpy.org/>`_
     - `netCDF4 <http://netcdf4-python.googlecode.com/svn/trunk/docs/netCDF4-module.html>`_
     - `ctypes <http://docs.python.org/2/library/ctypes.html>`_
-    - `OCGIS <http://ncpp.github.io/ocgis>`_
 
 
 CF convention
@@ -224,7 +223,7 @@ Here is a description of some functions.
     This function returns result NetCDF file containing a climate indice.
     
     
-    :param in_files_list: input NetCDF files
+    :param in_files_list: absolute paths to NetCDF dataset (including URLs)
     :type in_files_list: list of str
     :param out_file: output NetCDF file
     :type out_file: str
