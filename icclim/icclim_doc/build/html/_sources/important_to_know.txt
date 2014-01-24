@@ -10,20 +10,45 @@ To use the ICCLIM you will need to install also the following python libraries:
     - `netCDF4 <http://netcdf4-python.googlecode.com/svn/trunk/docs/netCDF4-module.html>`_
     - `ctypes <http://docs.python.org/2/library/ctypes.html>`_
 
-Installation
-------------
-coucou!!
+Installation (Linux)
+--------------------
+.. note:: Make sure that Python 2.7 is installed.
+
+1. Go to `<https://github.com/tatarinova/icclim>`_.
+2. Download the current version: click to **Download ZIP**.
+3. Go to extracted directory.
+4. Run the following command:
+
+.. code-block:: sh
+    [sudo] python setup.py install
+    
+5. Check if the library is installed correctly:
+
+.. code-block:: sh
+
+    >>> import icclim
+    
+To get the version of installed library, do the following:
+
+.. code-block:: sh
+
+    >>> icclim.__version__
+    0.0.1
 
 
+.. note:: ICCLIM was not tested on Windows and Mac platforms...
 
 CF convention
 -------------
-NetCDF files to process must be compliant to the `CF convention <http://cf-pcmdi.llnl.gov/documents/cf-conventions/>`_ (at least CF-1.0).
+NetCDF files to process must be compliant to the `CF convention <http://cf-pcmdi.llnl.gov/documents/cf-conventions/>`_.
 
 
 Variable to process
 -------------------
-It needs to respect the correspondence between the variable to process and the indice to calculate.
+
+.. warning:: For the moment, the library processes only 3D variables.
+
+Needs to respect the correspondence between the variable to process and the indice to calculate.
 For example, the FD indice needs '*the daily minimum temperature*' variable (e.g. "tasmin").
 
 
@@ -43,6 +68,7 @@ For example, the FD indice needs '*the daily minimum temperature*' variable (e.g
 +------------------------------------------------------------+---------------------------------------------+
 |SD, SD1, SD5cm, SD50cm                                      |  daily precipitation (solid phase)          |
 +------------------------------------------------------------+---------------------------------------------+
+
 
 
 Inputs/Outputs
@@ -78,7 +104,7 @@ Main function:
 
 Some utility functions:
 
-.. function:: SU_indice_calculation(a, fill_val, t=25):
+.. function:: SU_calculation(a, fill_val, t=25):
     
     Calculates the indice SU: summer days (daily maximum temperature > 25 degrees Celsius).
     
@@ -92,7 +118,7 @@ Some utility functions:
     :rtype: numpy.ndarray (2D)
            
 
-.. function:: CWD_indice_calculation(a, fill_val, precip_thresh=1):
+.. function:: CWD_calculation(a, fill_val, precip_thresh=1):
 
     Calculates the indice CWD: maximum number of consecutive wet days (daily precipitation >= 1 mm).
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c

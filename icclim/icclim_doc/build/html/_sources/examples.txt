@@ -1,7 +1,7 @@
 
 Examples
 ===============================
-First of all, import the ICCLIM library:
+First, import the ICCLIM library:
 
 >>> from icclim import *
 

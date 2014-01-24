@@ -9,9 +9,9 @@ For the moment you can calculate only the indices in bold (the others are in dev
         - **TG**
         - **TX**
         - **TN**
-        - **DTR**
-        - **ETR**
-        - **vDTR**        
+        - DTR
+        - ETR
+        - vDTR        
     * heat
         - **SU**
         - **TR**
@@ -50,7 +50,7 @@ For the moment you can calculate only the indices in bold (the others are in dev
         - **R10mm**
         - **R20mm**
         - **RX1day**
-        - **RX5day**
+        - RX5day
         - R75p
         - R75pTOT
         - R95p
@@ -60,8 +60,8 @@ For the moment you can calculate only the indices in bold (the others are in dev
     * snow
         - **SD**
         - **SD1**
-        - **SD5cm**
-        - **SD50cm**
+        - **SD5** (=SD5cm)
+        - **SD50** (=SD50cm)
 
 - Compound indices (temperature + precipitation)
         - CD

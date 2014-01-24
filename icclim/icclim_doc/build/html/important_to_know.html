@@ -64,17 +64,45 @@
 </dd>
 </dl>
 </div>
-<div class="section" id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<p>coucou!!</p>
+<div class="section" id="installation-linux">
+<h2>Installation (Linux)<a class="headerlink" href="#installation-linux" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Make sure that Python 2.7 is installed.</p>
+</div>
+<ol class="arabic simple">
+<li>Go to <a class="reference external" href="https://github.com/tatarinova/icclim">https://github.com/tatarinova/icclim</a>.</li>
+<li>Download the current version: click to <strong>Download ZIP</strong>.</li>
+<li>Go to extracted directory.</li>
+<li>Run the following command:</li>
+</ol>
+<ol class="arabic simple" start="5">
+<li>Check if the library is installed correctly:</li>
+</ol>
+<div class="highlight-sh"><div class="highlight"><pre>&gt;&gt;&gt; import icclim
+</pre></div>
+</div>
+<p>To get the version of installed library, do the following:</p>
+<div class="highlight-sh"><div class="highlight"><pre>&gt;&gt;&gt; icclim.__version__
+0.0.1
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">ICCLIM was not tested on Windows and Mac platforms...</p>
+</div>
 </div>
 <div class="section" id="cf-convention">
 <h2>CF convention<a class="headerlink" href="#cf-convention" title="Permalink to this headline">¶</a></h2>
-<p>NetCDF files to process must be compliant to the <a class="reference external" href="http://cf-pcmdi.llnl.gov/documents/cf-conventions/">CF convention</a> (at least CF-1.0).</p>
+<p>NetCDF files to process must be compliant to the <a class="reference external" href="http://cf-pcmdi.llnl.gov/documents/cf-conventions/">CF convention</a>.</p>
 </div>
 <div class="section" id="variable-to-process">
 <h2>Variable to process<a class="headerlink" href="#variable-to-process" title="Permalink to this headline">¶</a></h2>
-<p>It needs to respect the correspondence between the variable to process and the indice to calculate.
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">For the moment, the library processes only 3D variables.</p>
+</div>
+<p>Needs to respect the correspondence between the variable to process and the indice to calculate.
 For example, the FD indice needs &#8216;<em>the daily minimum temperature</em>&#8216; variable (e.g. &#8220;tasmin&#8221;).</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -145,7 +173,7 @@ For example, the FD indice needs &#8216;<em>the daily minimum temperature</em>&#
 <p>Some utility functions:</p>
 <dl class="function">
 <dt>
-<tt class="descname">SU_indice_calculation(a, fill_val, t=25):</tt></dt>
+<tt class="descname">SU_calculation(a, fill_val, t=25):</tt></dt>
 <dd><p>Calculates the indice SU: summer days (daily maximum temperature &gt; 25 degrees Celsius).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -167,7 +195,7 @@ For example, the FD indice needs &#8216;<em>the daily minimum temperature</em>&#
 
 <dl class="function">
 <dt>
-<tt class="descname">CWD_indice_calculation(a, fill_val, precip_thresh=1):</tt></dt>
+<tt class="descname">CWD_calculation(a, fill_val, precip_thresh=1):</tt></dt>
 <dd><p>Calculates the indice CWD: maximum number of consecutive wet days (daily precipitation &gt;= 1 mm).
 This function calls C function &#8220;find_max_len_consec_sequence_3d&#8221; from libC.c</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -244,7 +272,7 @@ This function calls C function &#8220;find_max_len_consec_sequence_3d&#8221; fro
   <ul>
 <li><a class="reference internal" href="#">Important to know</a><ul>
 <li><a class="reference internal" href="#libraries-to-istall">Libraries to istall</a></li>
-<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#installation-linux">Installation (Linux)</a></li>
 <li><a class="reference internal" href="#cf-convention">CF convention</a></li>
 <li><a class="reference internal" href="#variable-to-process">Variable to process</a></li>
 <li><a class="reference internal" href="#inputs-outputs">Inputs/Outputs</a></li>
