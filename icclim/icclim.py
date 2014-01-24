@@ -243,7 +243,7 @@ def copy_var_dim(inc, onc, var, project):
     v_dim = v.dimensions # (e.g.: u'time', u'lat', u'lon')
 
 
-    glob_att = ['title', 'institution', 'source', 'reference', 'comment', 'history', 'experiment']
+    glob_att = ['title', 'institution', 'source', 'reference', 'comment', 'history']
 
     # Note: it needs to do it BEFORE the creation of var/dim
     for att in glob_att:
@@ -326,37 +326,6 @@ def copy_var_dim(inc, onc, var, project):
             
                 
     return (str(v_dim[0]), str(v_dim[1]), str(v_dim[2])) # tuple ('time', 'lat', 'lon')
-        
-
-    #    
-    #
-    #    
-    #
-    #
-    #
-    #########################################################################################
-    #if v.ndim == 4:  # (time, plev, lat, lon)        # VKLJUCHIT' VAR TIME FOR 4D
-    #    
-    #    inc_dim1 = inc.variables[str(v_dim[2])]
-    #    inc_dim2 = inc.variables[str(v_dim[3])]
-    #    
-    #    onc.createDimension(str(v_dim[2]), v.shape[2])
-    #    onc.createDimension(str(v_dim[3]), v.shape[3])
-    #    
-    #    onc_dim1 = onc.createVariable( str(v_dim[2]), inc.variables[str(v_dim[2])].dtype, (str(v_dim[2])) )
-    #    onc_dim2 = onc.createVariable( str(v_dim[3]), inc.variables[str(v_dim[3])].dtype, (str(v_dim[3])) )
-    #    
-    #    var_dim = [str(v_dim[2]), str(v_dim[3])]
-    #    
-    #    for j in range(len(inc_dim1.ncattrs())): # set attributs of current variable       
-    #        onc_dim1.__setattr__(  inc_dim1.__dict__.items()[j][0]  , inc_dim1.__dict__.items()[j][1])  
-    #
-    #    for j in range(len(inc_dim2.ncattrs())): # set attributs of current variable       
-    #        onc_dim2.__setattr__(  inc_dim2.__dict__.items()[j][0]  , inc_dim2.__dict__.items()[j][1])  
-    #
-    #    onc_dim1[:] = inc.variables[str(v_dim[2])][:]
-    #    onc_dim2[:] = inc.variables[str(v_dim[3])][:]    
-    ##########################################################################################
 
 
 def max_sum_window(arr_1d, w_width):
@@ -372,7 +341,8 @@ def max_sum_window(arr_1d, w_width):
 
 #####################################################"
 ######### temperature indices
-def TG_TN_TX_calculation(a, fill_val):
+
+def TG_calculation(a, fill_val):
     
     '''    
     Calculates the indices TG, TN and TX.
@@ -391,7 +361,64 @@ def TG_TN_TX_calculation(a, fill_val):
     return indice
 
 
-def TXx_TNx_calculation(a, fill_val):
+def TN_calculation(a, fill_val):
+    
+    '''    
+    Calculates the indices TG, TN and TX.
+    
+    :param a: variable to process ("tas" for TG, "tasmin" for TN, "tasmax" for TX)
+    :type a: numpy.ndarray (3D)
+    :param fill_val: fill value (ref.: function "get_att_value")
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)
+    '''
+    my_mask = (a==fill_val)
+    a_masked = numpy.ma.masked_array(a, mask=my_mask)
+    indice = a_masked.mean(axis=0)                              # type(indice): <class 'numpy.ma.core.MaskedArray'>
+    indice = indice.filled(fill_value=fill_val)                 # <type 'numpy.ndarray'>
+    return indice
+
+
+def TX_calculation(a, fill_val):
+    
+    '''    
+    Calculates the indices TG, TN and TX.
+    
+    :param a: variable to process ("tas" for TG, "tasmin" for TN, "tasmax" for TX)
+    :type a: numpy.ndarray (3D)
+    :param fill_val: fill value (ref.: function "get_att_value")
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)
+    '''
+    my_mask = (a==fill_val)
+    a_masked = numpy.ma.masked_array(a, mask=my_mask)
+    indice = a_masked.mean(axis=0)                              # type(indice): <class 'numpy.ma.core.MaskedArray'>
+    indice = indice.filled(fill_value=fill_val)                 # <type 'numpy.ndarray'>
+    return indice
+
+
+
+def TXx_calculation(a, fill_val):
+    
+    '''    
+    Calculates the indices TXx and TNx.
+    
+    :param a: variable to process ("tasmax" for TXx, "tasmin" for TNx)
+    :type a: numpy.ndarray (3D)
+    :param fill_val: fill value (ref.: function "get_att_value")
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)
+    '''
+    my_mask = (a==fill_val)
+    a_masked = numpy.ma.masked_array(a, mask=my_mask)
+    indice = a_masked.max(axis=0)                               # type(indice): <class 'numpy.ma.core.MaskedArray'>
+    indice = indice.filled(fill_value=fill_val)                 # <type 'numpy.ndarray'>
+    return indice
+
+def TNx_calculation(a, fill_val):
     
     '''    
     Calculates the indices TXx and TNx.
@@ -410,7 +437,24 @@ def TXx_TNx_calculation(a, fill_val):
     return indice
 
 
-def TXn_TNn_calculation(a, fill_val):    
+def TXn_calculation(a, fill_val):    
+    '''    
+    Calculates the indices TXn and TNn.
+    
+    :param a: variable to process ("tasmax" for TXn, "tasmin" for TNn)
+    :type a: numpy.ndarray (3D)
+    :param fill_val: fill value (ref.: function "get_att_value")
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)
+    '''    
+    my_mask = (a==fill_val)
+    a_masked = numpy.ma.masked_array(a, mask=my_mask)
+    indice = a_masked.min(axis=0)                               # type(indice): <class 'numpy.ma.core.MaskedArray'>
+    indice = indice.filled(fill_value=fill_val)                 # <type 'numpy.ndarray'>
+    return indice
+
+def TNn_calculation(a, fill_val):    
     '''    
     Calculates the indices TXn and TNn.
     
@@ -549,7 +593,7 @@ def SU_calculation(a, fill_val, t=25):
     return indice
     
    
-def CSU_calculation_C(a, fill_val, t=25):
+def CSU_calculation(a, fill_val, t=25):
 
     '''
     Calculates the indice CSU.
@@ -635,7 +679,7 @@ def FD_calculation(a, fill_val):
     
 
 
-def CFD_calculation_C(a, fill_val):
+def CFD_calculation(a, fill_val):
 
     '''
     Calculates the indice CFD.
@@ -911,7 +955,7 @@ def SDII_calculation(prr_arr, fill_val, precip_thresh_mm=1):
     return indice
 
 
-def CDD_arr_C(a, fill_val, precip_thresh=1):
+def CDD_calculation(a, fill_val, precip_thresh=1):
 
     '''
     Calculates the indice CDD.
@@ -949,7 +993,7 @@ def CDD_arr_C(a, fill_val, precip_thresh=1):
     return indice
 
 
-def CWD_arr_C(a, fill_val, precip_thresh=1):
+def CWD_calculation(a, fill_val, precip_thresh=1):
 
     '''
     Calculates the indice CWD: maximum number of consecutive wet days (daily precipitation >= 1 mm).
@@ -1045,7 +1089,7 @@ def SD_calculation(prsn_arr, fill_val):
     ###
     return indice.filled()
 
-def SD_calculation_thresh(prsn_arr, fill_val, thresh):
+def SD1_calculation(prsn_arr, fill_val, thresh=1):
     '''
     :param thresh: snow deph threshold [cm]
     '''
@@ -1059,9 +1103,35 @@ def SD_calculation_thresh(prsn_arr, fill_val, thresh):
     ###
     return indice.filled()
 
+def SD5_calculation(prsn_arr, fill_val, thresh=5):
+    '''
+    :param thresh: snow deph threshold [cm]
+    '''
+    prsn_daily = (prsn_arr*60*60*24)/10 # Nb_prsn_daily [cm/day]
+    prsn_daily[prsn_daily<thresh]=0
+    prsn_daily[prsn_daily>=thresh]=1
+    indice=prsn_daily.sum(axis=0)
+    ### 
+    mask_fill_val = (prsn_arr==fill_val).any(axis=0)
+    indice = numpy.ma.array(indice, mask=mask_fill_val)
+    ###
+    return indice.filled()
 
+def SD50_calculation(prsn_arr, fill_val, thresh=50):
+    '''
+    :param thresh: snow deph threshold [cm]
+    '''
+    prsn_daily = (prsn_arr*60*60*24)/10 # Nb_prsn_daily [cm/day]
+    prsn_daily[prsn_daily<thresh]=0
+    prsn_daily[prsn_daily>=thresh]=1
+    indice=prsn_daily.sum(axis=0)
+    ### 
+    mask_fill_val = (prsn_arr==fill_val).any(axis=0)
+    indice = numpy.ma.array(indice, mask=mask_fill_val)
+    ###
+    return indice.filled()
 
-####
+#### 
 
 def TG_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Mean of daily mean temperature')
@@ -1195,301 +1265,133 @@ def GSL_setvarattr(var_nc):
 
 def TG_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice TG')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')        
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def TN_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice TN')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')      
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def TX_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice TX')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')    
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def TXx_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice TXx')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')      
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def TNx_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice TNx')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def TXn_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice TXn')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')    
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def TNn_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice TNn')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def DTR_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice DTR')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def ETR_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice ETR')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')     
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def vDTR_setglobattr(onc):
     onc.setncattr('title', 'Temperature indice vDTR')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def SU_setglobattr(onc):
     onc.setncattr('title', 'Heat indice SU')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def TR_setglobattr(onc):
     onc.setncattr('title', 'Heat indice TR')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def CSU_setglobattr(onc):
     onc.setncattr('title', 'Heat indice CSU')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def RR_setglobattr(onc):
     onc.setncattr('title', 'Rain indice RR')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def RR1_setglobattr(onc):
     onc.setncattr('title', 'Rain indice RR1')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')        
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')        
+      
 
 def CWD_setglobattr(onc):
     onc.setncattr('title', 'Rain indice CWD')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def CDD_setglobattr(onc):
     onc.setncattr('title', 'Drought indice CDD')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')      
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def SDII_setglobattr(onc):
     onc.setncattr('title', 'Rain indice SDII')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')        
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def R10mm_setglobattr(onc):
     onc.setncattr('title', 'Rain indice R10mm')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')     
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def R20mm_setglobattr(onc):
     onc.setncattr('title', 'Rain indice R20mm')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')      
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')   
+   
 
 def RX1day_setglobattr(onc):
     onc.setncattr('title', 'Rain indice RX1day')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')        
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '') 
+
 
 def RX5day_setglobattr(onc):
     onc.setncattr('title', 'Rain indice RX5day')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def SD_setglobattr(onc):
     onc.setncattr('title', 'Snow indice SD')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')    
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def SD1_setglobattr(onc):
     onc.setncattr('title', 'Snow indice SD1')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def SD5_setglobattr(onc):
     onc.setncattr('title', 'Snow indice SD5')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')        
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def SD50_setglobattr(onc):
     onc.setncattr('title', 'Snow indice SD50')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')    
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def FD_setglobattr(onc):
     onc.setncattr('title', 'Cold indice FD')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')      
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def CFD_setglobattr(onc):
     onc.setncattr('title', 'Cold indice CFD')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')        
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 def ID_setglobattr(onc):
     onc.setncattr('title', 'Cold indice ID')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
     
     
 def HD_setglobattr(onc):
     onc.setncattr('title', 'Cold indice HD')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def GD_setglobattr(onc):
     onc.setncattr('title', 'Cold indice GD')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')       
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
     
 def GSL_setglobattr(onc):
     onc.setncattr('title', 'Cold indice GSL')
-    #onc.setncattr('institution', '')
-    #onc.setncattr('source', '')
-    #onc.setncattr('experiment', '')
-    #onc.setncattr('history', '')    
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
+
 
 #########################################################################################
-
-def set_var_type(indice_name):
-    if indice_name in ('SU', 'CSU', 'TR', 'GSL', 'FD', 'CFD', 'ID', 'CDD', 'RR1', 'CWD', 'R10mm', 'R20mm', 'SD1', 'SD5cm', 'SD50cm'):
-        ind_type = 'i'
-    elif indice_name in ('TG', 'TX', 'TN', 'TXx', 'TNx', 'TXn', 'TNn', 'ETR', 'DTR', 'vDTR', 'GD', 'HD', 'RR', 'SDII', 'RX1day', 'RX5day', 'SD'):
-        ind_type = 'f'
-    return ind_type
 
 def get_all_years(time_steps_list):
     
@@ -1699,257 +1601,84 @@ def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, ind, 
     :rtype: dict (keys: datetime object, values: numpy.ndarray)
     
     '''
-    
-    
+  
     mydict_indice={}
     
-    if indice_name =='TG':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = TG_TN_TX_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-        
-        
-    elif indice_name =='TX':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = TG_TN_TX_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-        
-            
-    elif indice_name =='TN':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = TG_TN_TX_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-            
+    for key in dict_timeStep_sub3Darr.keys():
+        tab2D = eval(indice_name+'_calculation(dict_timeStep_sub3Darr[key], fill_val)')
+        mydict_indice[key]=tab2D
     
-    elif indice_name =='TXx':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = TXx_TNx_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='TNx':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = TXx_TNx_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='TXn':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = TXn_TNn_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='TNn':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = TXn_TNn_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='SU':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = SU_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-
-    
-    elif indice_name =='CSU':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = CSU_calculation_C(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='TR':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = TR_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='FD':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = FD_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='CFD':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = CFD_calculation_C(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='ID':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = ID_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='HD':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = HD_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-
-    
-    elif indice_name =='GD':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = GD_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-        
-        
-    elif indice_name =='GSL': #peredelat'
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = GSL_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-  
-    
-    elif indice_name =='CDD':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = CDD_calculation_C(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
- 
-    
-    elif indice_name =='CWD':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = CWD_calculation_C(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-
-    
-    elif indice_name =='RR':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = RR_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-
-    
-    elif indice_name =='RR1':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = RR1_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
- 
-    
-    elif indice_name =='SDII':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = SDII_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
- 
-    
-    elif indice_name =='R10mm':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = R10mm_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
- 
-    
-    elif indice_name =='R20mm':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = R20mm_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-    
-    
-    elif indice_name =='RX1day':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = RX1day_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
- 
-    
-    elif indice_name =='RX5day':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = RX5day_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-        
-    
-    elif indice_name =='SD':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = SD_calculation(dict_timeStep_sub3Darr[key], fill_val)
-            mydict_indice[key]=tab2D
-
-    
-    elif indice_name =='SD1':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = SD_arr_thresh(dict_timeStep_sub3Darr[key], fill_val, 1)
-            mydict_indice[key]=tab2D
-
-        
-    elif indice_name =='SD5cm':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = SD_arr_thresh(dict_timeStep_sub3Darr[key], fill_val, 5)
-            mydict_indice[key]=tab2D
-
-        
-    elif indice_name =='SD50cm':
-        for key in dict_timeStep_sub3Darr.keys():
-            tab2D = SD_arr_thresh(dict_timeStep_sub3Darr[key], fill_val, 50)
-            mydict_indice[key]=tab2D
-    
-    
-    
-        
     return mydict_indice
 
 
-def get_globValuesArr_sourceTimeArr_ocgis(ifiles_list, var, time_range, time_steps_type, N_lev):
-    # OCGIS    
-    
-    # attention: dt2 n'est pas inclue !!!
-    rd = ocgis.RequestDataset(ifiles_list, var, time_range=time_range)
-    arrs = ocgis.OcgOperations(dataset=rd, calc=None, output_format='numpy').execute()
-    
-    values = arrs[1].variables[var].value # attention! 4D (time, lev, lat, lon), next release -> 5D
-    if N_lev == None:
-        values = values.reshape(values.shape[0], values.shape[2], values.shape[3])
-    else:
-        values = values[:,N_lev,:,:]
-    
-    if time_steps_type=='dt':
-        time_steps = arrs[1].variables[var].temporal.value_datetime    # for datetime objects
-    elif time_steps_type=='num':
-        time_steps = arrs[1].variables[var].temporal.value                # for float objects
-   
-    valuesArr_sourceTimeArr = (values, time_steps)
-    
-    return valuesArr_sourceTimeArr # tuple with 2 numpy arr (values, time steps)
+#def get_globValuesArr_sourceTimeArr_ocgis(ifiles_list, var, time_range, time_steps_type, N_lev):
+#    # OCGIS    
+#    
+#    # attention: dt2 n'est pas inclue !!!
+#    rd = ocgis.RequestDataset(ifiles_list, var, time_range=time_range)
+#    arrs = ocgis.OcgOperations(dataset=rd, calc=None, output_format='numpy').execute()
+#    
+#    values = arrs[1].variables[var].value # attention! 4D (time, lev, lat, lon), next release -> 5D
+#    if N_lev == None:
+#        values = values.reshape(values.shape[0], values.shape[2], values.shape[3])
+#    else:
+#        values = values[:,N_lev,:,:]
+#    
+#    if time_steps_type=='dt':
+#        time_steps = arrs[1].variables[var].temporal.value_datetime    # for datetime objects
+#    elif time_steps_type=='num':
+#        time_steps = arrs[1].variables[var].temporal.value                # for float objects
+#   
+#    valuesArr_sourceTimeArr = (values, time_steps)
+#    
+#    return valuesArr_sourceTimeArr # tuple with 2 numpy arr (values, time steps)
+#
 
 
 
-
-def get_globValuesArr_sourceTimeArr_ja(ifiles_list, var, var_time, N_lev):
-    
-    '''
-    There is no yet time subsetting...
-    '''
-    
-    
-    v_glob = numpy.array([])
-
-    i=0
-    for filename in ifiles_list:
-        inc = Dataset(filename, 'r')
-        v_current = inc.variables[var]
-
-        if v_current.ndim == 3:
-            v_current_arr = v_current[:,:,:]
-        if v_current.ndim == 4:
-            v_current_arr = v_current[:,N_lev, :,:] # 4D -> 3D
-        
-        time_current = inc.variables[var_time]
-        time_current_arr = time_current[:]
-        
-        #print i
-        
-        if i == 0:
-            v_glob = v_current_arr
-            time_glob = time_current_arr
-        else:
-            v_glob = numpy.concatenate([v_glob, v_current_arr], axis = 0)
-            time_glob = numpy.concatenate([time_glob, time_current_arr])
-        #print v_glob.shape
-
-        i+=1
-        
-        inc.close()
-    
-    
-    #print v_glob.shape
-    #print time_glob.shape
-    
-    # now to convert time_glob from num to dt
-    
-    return (v_glob, time_glob)
+#def get_globValuesArr_sourceTimeArr_ja(ifiles_list, var, var_time, N_lev):
+#    
+#    '''
+#    There is no yet time subsetting...
+#    '''
+#    
+#    
+#    v_glob = numpy.array([])
+#
+#    i=0
+#    for filename in ifiles_list:
+#        inc = Dataset(filename, 'r')
+#        v_current = inc.variables[var]
+#
+#        if v_current.ndim == 3:
+#            v_current_arr = v_current[:,:,:]
+#        if v_current.ndim == 4:
+#            v_current_arr = v_current[:,N_lev, :,:] # 4D -> 3D
+#        
+#        time_current = inc.variables[var_time]
+#        time_current_arr = time_current[:]
+#        
+#        #print i
+#        
+#        if i == 0:
+#            v_glob = v_current_arr
+#            time_glob = time_current_arr
+#        else:
+#            v_glob = numpy.concatenate([v_glob, v_current_arr], axis = 0)
+#            time_glob = numpy.concatenate([time_glob, time_current_arr])
+#        #print v_glob.shape
+#
+#        i+=1
+#        
+#        inc.close()
+#    
+#    
+#    #print v_glob.shape
+#    #print time_glob.shape
+#    
+#    # now to convert time_glob from num to dt
+#    
+#    return (v_glob, time_glob)
     
 def setglobattr_history(onc, indice_name, slice_mode, dt1, dt2):
     
@@ -2044,7 +1773,7 @@ def indice(ifiles_list, ofile, var, indice_name, time_range, slice_mode, project
     
     inc.close()
 
-    ind_type = set_var_type(indice_name)    
+    ind_type = 'f'    
     ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)
     
     
