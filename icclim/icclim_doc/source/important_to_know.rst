@@ -10,6 +10,11 @@ To use the ICCLIM you will need to install also the following python libraries:
     - `netCDF4 <http://netcdf4-python.googlecode.com/svn/trunk/docs/netCDF4-module.html>`_
     - `ctypes <http://docs.python.org/2/library/ctypes.html>`_
 
+Installation
+------------
+coucou!!
+
+
 
 CF convention
 -------------
