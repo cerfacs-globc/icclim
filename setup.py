@@ -1,12 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
  
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Command
  
 # notez qu'on import la lib
 # donc assurez-vous que l'importe n'a pas d'effet de bord
-import icclim
- 
+#import icclim
+import os
+
+class Install_C_sharedLib(Command):
+    description = ""
+    user_options = []
+
+    def initialize_options(self): pass
+    
+    def finalize_options(self): pass
+    
+    def run(self):
+        os.system('gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o') # create libC.o
+        os.system('gcc -shared -o ./icclim/libC.so ./icclim/libC.o') # create libC.so
+        os.system('python setup.py install')
+
+
+
 # Ceci n'est qu'un appel de fonction. Mais il est treeeeeeeeeees long
 # et il comporte beaucoup de parametres
 setup(
@@ -15,7 +31,8 @@ setup(
     name='icclim',
  
     # la version du code
-    version=icclim.__version__,
+    
+    version="0.0.1",
  
     # Liste les packages a inserer dans la distribution
     # plutot que de le faire a la main, on utilise la foncton
@@ -92,4 +109,5 @@ setup(
     # Il y a encore une chiee de parametres possibles, mais avec ca vous
     # couvrez 90% des besoins
  
+    cmdclass={'install_all':Install_C_sharedLib}
 )

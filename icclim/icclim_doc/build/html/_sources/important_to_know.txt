@@ -20,7 +20,8 @@ Installation (Linux)
 4. Run the following command:
 
 .. code-block:: sh
-    [sudo] python setup.py install
+
+    [sudo] python setup.py install_all
     
 5. Check if the library is installed correctly:
 
