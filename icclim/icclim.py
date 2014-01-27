@@ -25,7 +25,7 @@ from numpy.ctypeslib import ndpointer
 #my_rep=dist_package_rep+'/icclim-0.0.1-py2.7.egg/icclim/' # il faut faire plus generique (version!)
 #libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
-libraryC = ctypes.cdll.LoadLibrary('./libC.so')
+libraryC = ctypes.cdll.LoadLibrary('./icclim/libC.so')
 
 
 
