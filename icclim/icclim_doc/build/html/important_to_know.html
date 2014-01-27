@@ -68,15 +68,17 @@
 <h2>Installation (Linux)<a class="headerlink" href="#installation-linux" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Make sure that Python 2.7 is installed.</p>
+<p class="last">Make sure that <strong>Python 2.7</strong> and <strong>GCC</strong> is installed.</p>
 </div>
 <ol class="arabic simple">
 <li>Go to <a class="reference external" href="https://github.com/tatarinova/icclim">https://github.com/tatarinova/icclim</a>.</li>
 <li>Download the current version: click to <strong>Download ZIP</strong>.</li>
 <li>Go to extracted directory.</li>
-<li>Run the following command:</li>
+<li>Run the following commands:</li>
 </ol>
-<div class="highlight-sh"><div class="highlight"><pre><span class="o">[</span>sudo<span class="o">]</span> python setup.py install_all
+<div class="highlight-sh"><div class="highlight"><pre>gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o
+gcc -shared -o ./icclim/libC.so ./icclim/libC.o
+<span class="o">[</span>sudo<span class="o">]</span> python setup.py install
 </pre></div>
 </div>
 <ol class="arabic simple" start="5">

@@ -8,18 +8,18 @@ from setuptools import setup, find_packages, Command
 #import icclim
 import os
 
-class Install_C_sharedLib(Command):
-    description = ""
-    user_options = []
-
-    def initialize_options(self): pass
-    
-    def finalize_options(self): pass
-    
-    def run(self):
-        os.system('gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o') # create libC.o
-        os.system('gcc -shared -o ./icclim/libC.so ./icclim/libC.o') # create libC.so
-        os.system('python setup.py install')
+#class Install_C_sharedLib(Command):
+#    description = ""
+#    user_options = []
+#
+#    def initialize_options(self): pass
+#    
+#    def finalize_options(self): pass
+#    
+#    def run(self):
+#        os.system('gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o') # create libC.o
+#        os.system('gcc -shared -o ./icclim/libC.so ./icclim/libC.o') # create libC.so
+#        os.system('python setup.py install')
 
 
 
@@ -109,5 +109,5 @@ setup(
     # Il y a encore une chiee de parametres possibles, mais avec ca vous
     # couvrez 90% des besoins
  
-    cmdclass={'install_all':Install_C_sharedLib}
+    #cmdclass={'install_all':Install_C_sharedLib}
 )

@@ -12,16 +12,18 @@ To use the ICCLIM you will need to install also the following python libraries:
 
 Installation (Linux)
 --------------------
-.. note:: Make sure that Python 2.7 is installed.
+.. note:: Make sure that **Python 2.7** and **GCC** is installed.
 
 1. Go to `<https://github.com/tatarinova/icclim>`_.
 2. Download the current version: click to **Download ZIP**.
 3. Go to extracted directory.
-4. Run the following command:
+4. Run the following commands:
 
 .. code-block:: sh
-
-    [sudo] python setup.py install_all
+    
+    gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o
+    gcc -shared -o ./icclim/libC.so ./icclim/libC.o
+    [sudo] python setup.py install
     
 5. Check if the library is installed correctly:
 
