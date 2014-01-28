@@ -13,7 +13,7 @@ import numpy
 from datetime import datetime, timedelta
 from netCDF4 import num2date, date2num, Dataset
 from netcdftime import utime
-from progressbar import ProgressBar,Percentage,Bar
+#from progressbar import ProgressBar,Percentage,Bar
 import time
 
 
@@ -1833,12 +1833,12 @@ def indice(ifiles_list, ofile, var, indice_name, time_range, slice_mode, project
             values = nc.variables[var][:,N_lev,:,:]
         
         
-        pbar = ProgressBar(widgets=['',Percentage(), Bar()], maxval=len(dict_year_chunk.keys())).start()
-        i=0
+        #pbar = ProgressBar(widgets=['',Percentage(), Bar()], maxval=len(dict_year_chunk.keys())).start()
+        #i=0
         
         for year in sorted(dict_year_chunk.keys()):
             
-            pbar.widgets[0]= ' <'+str(year)+' processed> '
+            #pbar.widgets[0]= ' <'+str(year)+' processed> '
             
             if year>=dt_begin.year and year<=dt_end.year:
                 i1 = dict_year_chunk[year][0]
@@ -1862,18 +1862,18 @@ def indice(ifiles_list, ofile, var, indice_name, time_range, slice_mode, project
   
   
   
-                #print "data processed ", year
+                print "data processed ", year
                 
-            #else:
-                #print "data not processed ", year
+            else:
+                print "data not processed ", year
 
 
-            time.sleep(0.01)
-            #time.sleep(1.01)
-            pbar.update(i+1)
-            i+=1
-        
-        pbar.finish()
+        #    time.sleep(0.01)
+        #    #time.sleep(1.01)
+        #    pbar.update(i+1)
+        #    i+=1
+        #
+        #pbar.finish()
         
         nc.close()
         
