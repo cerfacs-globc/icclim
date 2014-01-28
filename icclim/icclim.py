@@ -25,7 +25,24 @@ from numpy.ctypeslib import ndpointer
 #my_rep=dist_package_rep+'/icclim-0.0.1-py2.7.egg/icclim/' # il faut faire plus generique (version!)
 #libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
-libraryC = ctypes.cdll.LoadLibrary('./libC.so')
+#libraryC = ctypes.cdll.LoadLibrary('/home/globc/tatarinova/codes/ICCLIM_TEST/lib/python2.7/site-packages/libC.so')
+
+import os
+#path = os.environ['PYTHONPATH'].split(os.pathsep)[0]
+#egg_file = path + 'icclim-0.0.1-py2.7.egg'
+#os.system('unzip ' + egg_file)
+#os.system('rm ' + egg_file)
+#
+##libraryC = ctypes.cdll.LoadLibrary(path + 'icclim-0.0.1-py2.7.egg/icclim/libC.so')
+#libraryC = ctypes.cdll.LoadLibrary(path + 'icclim/libC.so')
+
+my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
+
+libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
+
+
+def test():
+    print my_rep
 
 
 
