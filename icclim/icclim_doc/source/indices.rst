@@ -72,21 +72,3 @@ For the moment you can calculate only the indices in bold (the others are in dev
 
 Each indice is calculated as annual or monthly values (soon: as seasonal values).
 
-Indices are calculated for the
-*mixed*
-blended series only and over a time
-span which is as long as the record allows. For an index to be ca
-lculated
-for a particular year, at least 350 days with valid daily data
-must exist.
-For an index to be calculated for a half-year period, at least
-175 days with
-valid daily data must exist. For an index to be calculated for
-a seasonal
-period, at least 85 days with valid daily data must exist. For
-an index to be
-calculated for a monthly period, at least 25 days with valid d
-aily data must
-exist. Indices results are stored in the database only if a se
-ries contains at
-least 10 years of valid data.
