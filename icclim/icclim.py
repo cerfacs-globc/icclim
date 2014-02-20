@@ -436,9 +436,9 @@ def ID_calculation(a, fill_val):
     return indice
 
 
-def HD_calculation(a, fill_val):
+def HD17_calculation(a, fill_val):
     '''
-    Calculates the HD indice: heating degree days (sum of (17 degrees Celsius - daily mean temperature)) ("HD17" in ATBD of ECA&D indices).
+    Calculates the HD indice: heating degree days (sum of (17 degrees Celsius - daily mean temperature)).
     
     :param a: daily mean temperature (e.g. "tas")
     :type a: numpy.ndarray (3D)
@@ -461,9 +461,9 @@ def HD_calculation(a, fill_val):
 
 
 # !!! 
-def GD_calculation(a, fill_val):
+def GD4_calculation(a, fill_val):
     '''
-    Calculates the GD indice: growing degree days (sum of daily mean temperature > 4 degrees Celsius) ("GD4" in ATBD of ECA&D indices).
+    Calculates the GD indice: growing degree days (sum of daily mean temperature > 4 degrees Celsius).
     
     :param a: daily mean temperature (e.g. "tas")
     :type a: numpy.ndarray (3D)
