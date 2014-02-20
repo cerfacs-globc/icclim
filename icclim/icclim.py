@@ -276,7 +276,7 @@ def SU_calculation(a, fill_val):
     '''
     Calculates the SU indice: summer days (daily maximum temperature > 25 degrees Celsius) [days].
     
-    :param a: daily maximum temperature (e.g. "tasmax")
+    :param a: daily maximum temperature (e.g. "tasmax") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -299,7 +299,7 @@ def CSU_calculation(a, fill_val):
     Calculates the CSU indice: maximum number of consecutive summer days (daily maximum temperature > 25 degrees Celsius) [days].
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
-    :param a: daily maximum temperature (e.g. "tasmax")
+    :param a: daily maximum temperature (e.g. "tasmax") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -333,7 +333,7 @@ def TR_calculation(a, fill_val):
     '''
     Calculates the TR indice: tropical nights (daily minimum temperature > 20 degrees Celsius) [days]. 
     
-    :param a: daily min temperature (e.g. "tasmin")
+    :param a: daily min temperature (e.g. "tasmin") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -355,7 +355,7 @@ def FD_calculation(a, fill_val):
     '''
     Calculates the FD indice: frost days (daily minimum temperature < 0 degrees Celsius) [days].
     
-    :param a: daily min temperature (e.g. "tasmin")
+    :param a: daily min temperature (e.g. "tasmin") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -381,7 +381,7 @@ def CFD_calculation(a, fill_val):
     Calculates the CFD indice: maximum number of consecutive frost days (daily minimum temperature < 0 degrees Celsius) [days].
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
-    :param a: daily min temperature (e.g. "tasmin")
+    :param a: daily min temperature (e.g. "tasmin") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -417,7 +417,7 @@ def ID_calculation(a, fill_val):
     '''
     Calculates the ID indice: ice days (daily maximum temperature < 0 degrees Celsius) [days].
     
-    :param a: daily max temperature (e.g. "tasmax")
+    :param a: daily max temperature (e.g. "tasmax") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -440,7 +440,7 @@ def HD17_calculation(a, fill_val):
     '''
     Calculates the HD indice: heating degree days (sum of (17 degrees Celsius - daily mean temperature)).
     
-    :param a: daily mean temperature (e.g. "tas")
+    :param a: daily mean temperature (e.g. "tas") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -465,7 +465,7 @@ def GD4_calculation(a, fill_val):
     '''
     Calculates the GD indice: growing degree days (sum of daily mean temperature > 4 degrees Celsius).
     
-    :param a: daily mean temperature (e.g. "tas")
+    :param a: daily mean temperature (e.g. "tas") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
