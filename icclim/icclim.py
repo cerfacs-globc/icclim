@@ -272,7 +272,7 @@ def vDTR_calculation(a, b, fill_val_a, fill_val_b):
 
 
 ###### heat indices
-def SU_calculation(a, fill_val, t=25):
+def SU_calculation(a, fill_val):
     '''
     Calculates the SU indice: summer days (daily maximum temperature > 25 degrees Celsius) [days].
     
@@ -280,12 +280,10 @@ def SU_calculation(a, fill_val, t=25):
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold [degrees Celsius] (default: t = 25 degrees Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
-    
+    t = 25          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     mask_a = (a==fill_val)
     a[a!=fill_val] = (a[a!=fill_val]>T) # values>T -> 1, values<=T -> 0, + fill_val
@@ -295,7 +293,7 @@ def SU_calculation(a, fill_val, t=25):
     return indice
     
    
-def CSU_calculation(a, fill_val, t=25):
+def CSU_calculation(a, fill_val):
 
     '''
     Calculates the CSU indice: maximum number of consecutive summer days (daily maximum temperature > 25 degrees Celsius) [days].
@@ -305,13 +303,11 @@ def CSU_calculation(a, fill_val, t=25):
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold (degree Celsius, default: t = 25 Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
 
-    
+    t = 25          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     
     C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
@@ -333,7 +329,7 @@ def CSU_calculation(a, fill_val, t=25):
     return indice    
     
 
-def TR_calculation(a, fill_val, t=20):
+def TR_calculation(a, fill_val):
     '''
     Calculates the TR indice: tropical nights (daily minimum temperature > 20 degrees Celsius) [days]. 
     
@@ -341,12 +337,10 @@ def TR_calculation(a, fill_val, t=20):
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold (degree Celsius, default: t = 20 Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
-    
+    t = 20          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     mask_a = (a==fill_val)
     a[a!=fill_val] = (a[a!=fill_val]>T) # values>T -> 1, values<=T -> 0, + fill_val
@@ -431,7 +425,7 @@ def ID_calculation(a, fill_val):
     :rtype: numpy.ndarray (2D)
     '''
     
-    t = 0   # temperature threshold (degree Celsius)
+    t = 0           # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     
     mask_a = (a==fill_val)
@@ -442,7 +436,7 @@ def ID_calculation(a, fill_val):
     return indice
 
 
-def HD_calculation(a, fill_val, t=17):
+def HD_calculation(a, fill_val):
     '''
     Calculates the HD indice: heating degree days (sum of (17 degrees Celsius - daily mean temperature)) ("HD17" in ATBD of ECA&D indices).
     
@@ -450,12 +444,11 @@ def HD_calculation(a, fill_val, t=17):
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold (degree Celsius, default: t = 17 Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
-
+    
+    t = 17          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     mask_a = (a==fill_val)
     a_masked = numpy.ma.masked_array(a, mask=mask_a)
@@ -468,7 +461,7 @@ def HD_calculation(a, fill_val, t=17):
 
 
 # !!! 
-def GD_calculation(a, fill_val, t=4):
+def GD_calculation(a, fill_val):
     '''
     Calculates the GD indice: growing degree days (sum of daily mean temperature > 4 degrees Celsius) ("GD4" in ATBD of ECA&D indices).
     
@@ -476,12 +469,11 @@ def GD_calculation(a, fill_val, t=4):
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold (degree Celsius, default: t = 4 Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
-        
+    
+    t = 4          # temperature threshold (degree Celsius)    
     T = t + 273.15  # Celsius -> Kelvin
     b = a - T
     b[b<0]=0   
