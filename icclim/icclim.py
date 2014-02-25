@@ -357,9 +357,9 @@ def max_sum_window(arr_1d, w_width):
 def TG_calculation(a, fill_val):
     
     '''    
-    Calculates the indices TG, TN and TX.
+    Calculates the TG indice: mean of daily mean temperature.
     
-    :param a: variable to process ("tas" for TG, "tasmin" for TN, "tasmax" for TX)
+    :param a: daily mean temperature (e.g. "tas")
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -376,9 +376,9 @@ def TG_calculation(a, fill_val):
 def TN_calculation(a, fill_val):
     
     '''    
-    Calculates the indices TG, TN and TX.
+    Calculates the TN indice: mean of daily min temperature.
     
-    :param a: variable to process ("tas" for TG, "tasmin" for TN, "tasmax" for TX)
+    :param a: daily min temperature (e.g. "tasmin")
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -395,9 +395,9 @@ def TN_calculation(a, fill_val):
 def TX_calculation(a, fill_val):
     
     '''    
-    Calculates the indices TG, TN and TX.
+    Calculates the TX indice: mean of daily max temperature.
     
-    :param a: variable to process ("tas" for TG, "tasmin" for TN, "tasmax" for TX)
+    :param a: daily max temperature (e.g. "tasmax")
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -415,9 +415,9 @@ def TX_calculation(a, fill_val):
 def TXx_calculation(a, fill_val):
     
     '''    
-    Calculates the indices TXx and TNx.
+    Calculates the TXx indice: max of daily max temperature.
     
-    :param a: variable to process ("tasmax" for TXx, "tasmin" for TNx)
+    :param a: daily max temperature (e.g. "tasmax")
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -433,9 +433,9 @@ def TXx_calculation(a, fill_val):
 def TNx_calculation(a, fill_val):
     
     '''    
-    Calculates the indices TXx and TNx.
+    Calculates the TNx indice: max of daily min temperature.
     
-    :param a: variable to process ("tasmax" for TXx, "tasmin" for TNx)
+    :param a: daily min temperature (e.g. "tasmin")
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -451,9 +451,9 @@ def TNx_calculation(a, fill_val):
 
 def TXn_calculation(a, fill_val):    
     '''    
-    Calculates the indices TXn and TNn.
+    Calculates the TXn indice: min of daily max temperature.
     
-    :param a: variable to process ("tasmax" for TXn, "tasmin" for TNn)
+    :param a: daily max temperature (e.g. "tasmax")
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -468,9 +468,9 @@ def TXn_calculation(a, fill_val):
 
 def TNn_calculation(a, fill_val):    
     '''    
-    Calculates the indices TXn and TNn.
+    Calculates the TNn indice: min of daily min temperature.
     
-    :param a: variable to process ("tasmax" for TXn, "tasmin" for TNn)
+    :param a: daily min temperature (e.g. "tasmin")
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -487,11 +487,11 @@ def TNn_calculation(a, fill_val):
 def DTR_calculation(a, b, fill_val_a, fill_val_b):
     
     '''    
-    Calculates the indice DTR.
+    Calculates the DTR indice: mean of diurnal temperature range.
     
-    :param a: variable to process ("tasmax")
+    :param a: daily max temperature (e.g. "tasmax")
     :type a: numpy.ndarray (3D)
-    :param b: variable to process ("tasmin")
+    :param b: daily min temperature (e.g. "tasmin")
     :type b: numpy.ndarray (3D)
     
     :param fill_val_a: fill value of a (ref.: function "get_att_value")
@@ -518,11 +518,11 @@ def DTR_calculation(a, b, fill_val_a, fill_val_b):
 
 def ETR_calculation(a, b, fill_val_a, fill_val_b):  
     '''    
-    Calculates the indice ETR.
+    Calculates the ETR indice: intra-period extreme temperature range.
     
-    :param a: variable to process ("tasmax")
+    :param a: daily max temperature (e.g. "tasmax")
     :type a: numpy.ndarray (3D)
-    :param b: variable to process ("tasmin")
+    :param b: daily min temperature (e.g. "tasmin")
     :type b: numpy.ndarray (3D)
     
     :param fill_val_a: fill value of a (ref.: function "get_att_value")
@@ -550,11 +550,11 @@ def ETR_calculation(a, b, fill_val_a, fill_val_b):
 
 def vDTR_calculation(a, b, fill_val_a, fill_val_b):
     '''    
-    Calculates the indice vDTR.
+    Calculates the vDTR indice: mean absolute day-to-day difference in DTR.
     
-    :param a: variable to process ("tasmax")
+    :param a: daily max temperature (e.g. "tasmax")
     :type a: numpy.ndarray (3D)
-    :param b: variable to process ("tasmin")
+    :param b: daily min temperature (e.g. "tasmin")
     :type b: numpy.ndarray (3D)
     
     :param fill_val_a: fill value of a (ref.: function "get_att_value")
@@ -582,20 +582,18 @@ def vDTR_calculation(a, b, fill_val_a, fill_val_b):
 
 
 ###### heat indices
-def SU_calculation(a, fill_val, t=25):
+def SU_calculation(a, fill_val):
     '''
-    Calculates the indice SU: summer days (daily maximum temperature > 25 degrees Celsius).
+    Calculates the SU indice: summer days (daily maximum temperature > 25 degrees Celsius) [days].
     
-    :param a: variable array to process (daily maximum temperature (e.g."tasmax"))
+    :param a: daily maximum temperature (e.g. "tasmax") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold [degrees Celsius] (default: t = 25 degrees Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
-    
+    t = 25          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     mask_a = (a==fill_val)
     a[a!=fill_val] = (a[a!=fill_val]>T) # values>T -> 1, values<=T -> 0, + fill_val
@@ -605,23 +603,21 @@ def SU_calculation(a, fill_val, t=25):
     return indice
     
    
-def CSU_calculation(a, fill_val, t=25):
+def CSU_calculation(a, fill_val):
 
     '''
-    Calculates the indice CSU.
+    Calculates the CSU indice: maximum number of consecutive summer days (daily maximum temperature > 25 degrees Celsius) [days].
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
-    :param a: variable to process ("tasmax")
+    :param a: daily maximum temperature (e.g. "tasmax") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold (degree Celsius, default: t = 25 Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
 
-    
+    t = 25          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     
     C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
@@ -643,20 +639,18 @@ def CSU_calculation(a, fill_val, t=25):
     return indice    
     
 
-def TR_calculation(a, fill_val, t=20):
+def TR_calculation(a, fill_val):
     '''
-    Calculates the indice TR.
+    Calculates the TR indice: tropical nights (daily minimum temperature > 20 degrees Celsius) [days]. 
     
-    :param a: variable to process ("tasmin")
+    :param a: daily min temperature (e.g. "tasmin") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold (degree Celsius, default: t = 20 Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
-    
+    t = 20          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     mask_a = (a==fill_val)
     a[a!=fill_val] = (a[a!=fill_val]>T) # values>T -> 1, values<=T -> 0, + fill_val
@@ -669,9 +663,9 @@ def TR_calculation(a, fill_val, t=20):
 ###### cold indices
 def FD_calculation(a, fill_val):
     '''
-    Calculates the indice FD.
+    Calculates the FD indice: frost days (daily minimum temperature < 0 degrees Celsius) [days].
     
-    :param a: variable to process ("tasmin")
+    :param a: daily min temperature (e.g. "tasmin") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -694,10 +688,10 @@ def FD_calculation(a, fill_val):
 def CFD_calculation(a, fill_val):
 
     '''
-    Calculates the indice CFD.
+    Calculates the CFD indice: maximum number of consecutive frost days (daily minimum temperature < 0 degrees Celsius) [days].
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
-    :param a: variable to process ("tasmin")
+    :param a: daily min temperature (e.g. "tasmin") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -731,9 +725,9 @@ def CFD_calculation(a, fill_val):
 
 def ID_calculation(a, fill_val):
     '''
-    Calculates the indice ID.
+    Calculates the ID indice: ice days (daily maximum temperature < 0 degrees Celsius) [days].
     
-    :param a: variable to process ("tasmax")
+    :param a: daily max temperature (e.g. "tasmax") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -741,7 +735,7 @@ def ID_calculation(a, fill_val):
     :rtype: numpy.ndarray (2D)
     '''
     
-    t = 0   # temperature threshold (degree Celsius)
+    t = 0           # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     
     mask_a = (a==fill_val)
@@ -752,20 +746,19 @@ def ID_calculation(a, fill_val):
     return indice
 
 
-def HD_calculation(a, fill_val, t=17):
+def HD17_calculation(a, fill_val):
     '''
-    Calculates the indice HD ("HD17" in ATBD of ECA&D indices).
+    Calculates the HD indice: heating degree days (sum of (17 degrees Celsius - daily mean temperature)).
     
-    :param a: variable to process ("tas")
+    :param a: daily mean temperature (e.g. "tas") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold (degree Celsius, default: t = 17 Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
-
+    
+    t = 17          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     mask_a = (a==fill_val)
     a_masked = numpy.ma.masked_array(a, mask=mask_a)
@@ -778,20 +771,19 @@ def HD_calculation(a, fill_val, t=17):
 
 
 # !!! 
-def GD_calculation(a, fill_val, t=4):
+def GD4_calculation(a, fill_val):
     '''
-    Calculates the indice GD ("GD4" in ATBD of ECA&D indices).
+    Calculates the GD indice: growing degree days (sum of daily mean temperature > 4 degrees Celsius).
     
-    :param a: variable to process ("tas")
+    :param a: daily mean temperature (e.g. "tas") in Kelvin
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
-    :param t: temperature threshold (degree Celsius, default: t = 4 Celsius)
-    :type t: float
     
     :rtype: numpy.ndarray (2D)
     '''
-        
+    
+    t = 4          # temperature threshold (degree Celsius)    
     T = t + 273.15  # Celsius -> Kelvin
     b = a - T
     b[b<0]=0   
@@ -800,7 +792,7 @@ def GD_calculation(a, fill_val, t=4):
     return indice
 
 
-
+## the GSL indice calculation is very slow => I will optimize with C #####
 ################################################################## GSL #################################
 
 def find_first_index_consecutive(a, min_len, threshold, operation):
@@ -973,7 +965,7 @@ def CDD_calculation(a, fill_val, precip_thresh=1):
     Calculates the indice CDD.
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
-    :param a: variable to process (daily precipitation [mm/s])
+    :param a: daily precipitation [mm/s]
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -1011,7 +1003,7 @@ def CWD_calculation(a, fill_val, precip_thresh=1):
     Calculates the indice CWD: maximum number of consecutive wet days (daily precipitation >= 1 mm).
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
-    :param a: variable array to process (daily precipitation [mm/s])
+    :param a: daily precipitation (liquide phase) [mm/s]
     :type a: numpy.ndarray (3D)
     :param fill_val: fill value (ref.: function "get_att_value")
     :type fill_val: float
@@ -1142,6 +1134,8 @@ def SD50_calculation(prsn_arr, fill_val, thresh=50):
     indice = numpy.ma.array(indice, mask=mask_fill_val)
     ###
     return indice.filled()
+
+
 
 #### 
 
