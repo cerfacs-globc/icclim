@@ -15,7 +15,8 @@ def set_title_globattr(out_nc, indice_group, indice_name):
     '''
     
     # example:      title: ECA heat indice SU
-    out_nc.setncattr('title', 'ECA '+ indice_group + ' indice ' + indice_name)
+    title_str = 'ECA {0} indice {1}'.format(indice_group, indice_name)
+    out_nc.setncattr('title', title_str)
     
 def set_history_globattr(out_nc, calc_grouping, indice_name, time_range):
     '''
@@ -38,14 +39,16 @@ def set_history_globattr(out_nc, calc_grouping, indice_name, time_range):
     dt1 = time_range[0]
     dt2 = time_range[1]
     
+    dt1_str = '{0}-{1}-{2}'.format(dt1.year, dt1.month, dt1.day)
+    dt2_str = '{0}-{1}-{2}'.format(dt2.year, dt2.month, dt2.day)
+    
     if calc_grouping == ['year','month']:
         mode = 'monthly'
     elif calc_grouping == ['year']:
-        mode = 'annual'
-        
+        mode = 'annual'  
     # etc ...
     
-    # example of history_str_value:     2012-10-02 15:30:20 Calculation of SU indice (monthly) from 1960-01-01 to 1990-12-31.
-    history_str_value = current_time + ' Calculation of ' + indice_name + ' indice (' + mode + ') from ' + dt1.strftime('%Y-%m-%d') + ' to ' + dt2.strftime('%Y-%m-%d') + '.'
-    
-    out_nc.setncattr('history', history_str_value) 
+    # example of history_str:     2012-10-02 15:30:20 Calculation of SU indice (monthly) from 1960-01-01 to 1990-12-31.
+    history_str = '{0} Calculation of {1} indice ({2}) from {3} to {4}.'.format(current_time, indice_name, mode, dt1_str, dt2_str)
+        
+    out_nc.setncattr('history', history_str + '\n' + out_nc.__getattribute__('history')) # Problem: it displays the new-line caracter "\n" in the end of history_str !!!!!... 
