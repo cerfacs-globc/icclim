@@ -10,7 +10,7 @@ def set_title_globattr(out_nc, indice_group, indice_name):
     :param indice_group: group of indice (e.g.: temperature/precipitation/snow/...)
     :type indice_group: str
     :param indice_name: name of indice 
-    :type indice_group: str
+    :type indice_name: str
     
     '''
     
@@ -27,7 +27,7 @@ def set_history_globattr(out_nc, calc_grouping, indice_name, time_range):
     :param calc_grouping: temporal grouping to apply for calculations
     :type calc_grouping: list of str or int
     :param indice_name: name of indice 
-    :type indice_group: str
+    :type indice_name: str
     :param time_range: upper and lower bounds for time dimension subsetting
     :type time_range:[datetime.datetime, datetime.datetime]
     
