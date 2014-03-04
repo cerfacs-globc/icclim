@@ -1,18 +1,29 @@
 # set the global attributs "title" and "history" in output meta data
 
 
-def set_title_globattr(out_nc, indice_group, indice_name):
+def set_title_globattr(out_nc, indice_name):
     '''
     Set the global attribute "title" in output meta data
     
     :param out_nc: out NetCDF dataset
-    :type out: netCDF4.Dataset
-    :param indice_group: group of indice (e.g.: temperature/precipitation/snow/...)
-    :type indice_group: str
+    :type out_nc: netCDF4.Dataset
     :param indice_name: name of indice 
     :type indice_name: str
     
     '''
+    
+    if indice_name in ['TG', 'TX', 'TN', 'DTR', 'ETR', 'vDTR']:
+        indice_group = 'temperature'
+    elif indice_name in ['SU', 'TR', 'CSU', 'TXx', 'TNx']:
+        indice_group = 'heat'
+    elif indice_name in ['GD4', 'GSL', 'FD', 'CFD', 'HD17','ID', 'TXn', 'TNn']:
+        indice_group = 'cold'
+    elif indice_name in ['CDD']:
+        indice_group = 'drought' 
+    elif indice_name in ['RR', 'RR1', 'SDII', 'CWD', 'R10mm', 'R20mm', 'RX1day']:
+        indice_group = 'rain'
+    elif indice_name in ['SD','SD1', 'SD5', 'SD50']:
+        indice_group = 'snow'    
     
     # example:      title: ECA heat indice SU
     title_str = 'ECA {0} indice {1}'.format(indice_group, indice_name)
