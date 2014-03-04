@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 # set the global attributs "title" and "history" in output meta data
 
 
@@ -53,13 +56,19 @@ def set_history_globattr(out_nc, calc_grouping, indice_name, time_range):
     dt1_str = '{0}-{1}-{2}'.format(dt1.year, dt1.month, dt1.day)
     dt2_str = '{0}-{1}-{2}'.format(dt2.year, dt2.month, dt2.day)
     
-    if calc_grouping == ['year','month']:
-        mode = 'monthly'
-    elif calc_grouping == ['year']:
-        mode = 'annual'  
+    ## use sets to allow different orderings
+    if set(calc_grouping) == set(['year','month']):
+        mode = 'monthly time series'
+    ## always convert to list before comparison in case a tuple is passed
+    elif list(calc_grouping) == ['year']:
+        mode = 'annual'
+    elif list(calc_grouping) == ['month']:
+        mode = 'monthly climatology'
+    else:
+        raise(NotImplementedError(calc_grouping))
     # etc ...
     
-    # example of history_str:     2012-10-02 15:30:20 Calculation of SU indice (monthly) from 1960-01-01 to 1990-12-31.
+    # example of history_str: 2012-10-02 15:30:20 Calculation of SU indice (monthly) from 1960-01-01 to 1990-12-31.
     history_str = '{0} Calculation of {1} indice ({2}) from {3} to {4}.'.format(current_time, indice_name, mode, dt1_str, dt2_str)
         
-    out_nc.setncattr('history', history_str + '\n' + out_nc.__getattribute__('history')) # Problem: it displays the new-line caracter "\n" in the end of history_str !!!!!... 
+    out_nc.setncattr('history', history_str + '\n' + getattr(out_nc,'history')) 
