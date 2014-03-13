@@ -1,7 +1,8 @@
 from datetime import datetime
 
 
-# set the global attributs "title" and "history" in output meta data
+# set the global attributs "title", "history", "reference", "institution" and "comment" in output meta data
+# (the minimum set of global attributes recomended by CF: http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/cf-conventions.html)
 
 
 def set_title_globattr(out_nc, indice_name):
@@ -71,3 +72,54 @@ def set_history_globattr(out_nc, calc_grouping, indice_name, time_range):
     # example of history_str: 2012-10-02 15:30:20 Calculation of SU indice (monthly) from 1960-01-01 to 1990-12-31.
     history_str = '{0} Calculation of {1} indice ({2}) from {3} to {4}.'.format(current_time, indice_name, mode, dt1_str, dt2_str)
     out_nc.setncattr('history', history_str + '\n' + getattr(out_nc,'history')) 
+
+
+def set_references_globattr(out_nc):
+    '''
+    Set the global attribute "references" in output meta data
+    
+    :param out_nc: out NetCDF dataset
+    :type out_nc: netCDF4.Dataset
+    
+    '''
+    
+    references_str = 'ATBD of the ECA indices calculation (http://eca.knmi.nl/documents/atbd.pdf)'
+    out_nc.setncattr('references', references_str)
+
+
+def set_institution_globattr(out_nc):
+    '''
+    Set the global attribute "institution" in output meta data
+    
+    :param out_nc: out NetCDF dataset
+    :type out_nc: netCDF4.Dataset
+    
+    '''
+    
+    institution_str = 'Climate impact portal (http://climate4impact.eu)'
+    out_nc.setncattr('institution', institution_str)
+    
+def set_comment_globattr(out_nc, indice_name):
+    '''
+    Set the global attribute "comment" in output meta data
+    
+    :param out_nc: out NetCDF dataset
+    :type out_nc: netCDF4.Dataset
+    
+    Note: will be defined for several indices, else will be empty
+    
+    '''
+    
+    if indice_name == 'GSL':
+        comment_str = 'This indice is defined only for the northern hemisphere'
+        
+    # elif ...
+    
+    # elif ...
+    
+    # etc
+    
+    else:
+        comment_str = ' '
+        
+    out_nc.setncattr('comment', comment_str)
