@@ -100,15 +100,27 @@ def set_institution_globattr(out_nc):
     institution_str = 'Climate impact portal (http://climate4impact.eu)'
     out_nc.setncattr('institution', institution_str)
     
-def set_comment_globattr(out_nc):
+def set_comment_globattr(out_nc, indice_name):
     '''
     Set the global attribute "comment" in output meta data
     
     :param out_nc: out NetCDF dataset
     :type out_nc: netCDF4.Dataset
     
-    Note: empty for the moment...
+    Note: will be defined for several indices, else will be empty
+    
     '''
     
-    comment_str = ' '
+    if indice_name == 'GSL':
+        comment_str = 'This indice is defined only for the northern hemisphere'
+        
+    # elif ...
+    
+    # elif ...
+    
+    # etc
+    
+    else:
+        comment_str = ' '
+        
     out_nc.setncattr('comment', comment_str)
