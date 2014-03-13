@@ -1,7 +1,8 @@
 from datetime import datetime
 
 
-# set the global attributs "title", "history", "reference" and "institution" in output meta data
+# set the global attributs "title", "history", "reference", "institution" and "comment" in output meta data
+# (the minimum set of global attributes recomended by CF: http://cf-pcmdi.llnl.gov/documents/cf-conventions/1.4/cf-conventions.html)
 
 
 def set_title_globattr(out_nc, indice_name):
@@ -98,3 +99,16 @@ def set_institution_globattr(out_nc):
     
     institution_str = 'Climate impact portal (http://climate4impact.eu)'
     out_nc.setncattr('institution', institution_str)
+    
+def set_comment_globattr(out_nc):
+    '''
+    Set the global attribute "comment" in output meta data
+    
+    :param out_nc: out NetCDF dataset
+    :type out_nc: netCDF4.Dataset
+    
+    Note: empty for the moment...
+    '''
+    
+    comment_str = ' '
+    out_nc.setncattr('comment', comment_str)
