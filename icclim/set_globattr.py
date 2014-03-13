@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-# set the global attributs "title" and "history" in output meta data
+# set the global attributs "title", "history", "reference" and "institution" in output meta data
 
 
 def set_title_globattr(out_nc, indice_name):
@@ -72,3 +72,29 @@ def set_history_globattr(out_nc, calc_grouping, indice_name, time_range):
     history_str = '{0} Calculation of {1} indice ({2}) from {3} to {4}.'.format(current_time, indice_name, mode, dt1_str, dt2_str)
         
     out_nc.setncattr('history', history_str + '\n' + getattr(out_nc,'history')) 
+
+
+def set_references_globattr(out_nc):
+    '''
+    Set the global attribute "references" in output meta data
+    
+    :param out_nc: out NetCDF dataset
+    :type out_nc: netCDF4.Dataset
+    
+    '''
+    
+    references_str = 'ATBD of the ECA indices calculation (http://eca.knmi.nl/documents/atbd.pdf)'
+    out_nc.setncattr('references', references_str)
+
+
+def set_institution_globattr(out_nc):
+    '''
+    Set the global attribute "institution" in output meta data
+    
+    :param out_nc: out NetCDF dataset
+    :type out_nc: netCDF4.Dataset
+    
+    '''
+    
+    institution_str = 'Climate impact portal (http://climate4impact.eu)'
+    out_nc.setncattr('institution', institution_str)
