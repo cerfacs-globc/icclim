@@ -87,7 +87,7 @@ def set_references_globattr(out_nc):
     out_nc.setncattr('references', references_str)
 
 
-def set_institution_globattr(out_nc):
+def set_institution_globattr(out_nc, institution_str):
     '''
     Set the global attribute "institution" in output meta data
     
@@ -96,8 +96,10 @@ def set_institution_globattr(out_nc):
     
     '''
     
-    institution_str = 'Climate impact portal (http://climate4impact.eu)'
+    #institution_str = 'Climate impact portal (http://climate4impact.eu)'
+    
     out_nc.setncattr('institution', institution_str)
+ 
     
 def set_comment_globattr(out_nc, indice_name):
     '''
