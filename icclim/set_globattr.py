@@ -71,8 +71,7 @@ def set_history_globattr(out_nc, calc_grouping, indice_name, time_range):
     
     # example of history_str: 2012-10-02 15:30:20 Calculation of SU indice (monthly) from 1960-01-01 to 1990-12-31.
     history_str = '{0} Calculation of {1} indice ({2}) from {3} to {4}.'.format(current_time, indice_name, mode, dt1_str, dt2_str)
-        
-    out_nc.setncattr('history', history_str + '\n' + getattr(out_nc,'history')) 
+    out_nc.setncattr('history', getattr(out_nc,'history') + ' \n' + history_str)
 
 
 def set_references_globattr(out_nc):
