@@ -1,0 +1,47 @@
+ECA indices description
+
+Temperature indices:
+- TG: mean of daily mean temperature
+- TN: mean of daily min temperature
+- TX: mean of daily max temperature
+- DTR: mean of diurnal temperature range
+- ETR: intra-period extreme temperature range
+- vDTR: mean absolute day-to-day difference in DTR
+
+Heat indices:
+- TNx: max of daily min temperature
+- TXx: max of daily max temperature
+- SU: number of summer days (daily maximum temperature > 25 degrees Celsius) [days]
+- CSU: maximum number of consecutive summer days (daily maximum temperature > 25 degrees Celsius) [days]
+- TR: number of tropical nights (daily minimum temperature > 20 degrees Celsius) [days]
+
+Cold indices:
+- TNn: min of daily min temperature
+- TXn: min of daily max temperature
+- FD: number of frost days (daily minimum temperature < 0 degrees Celsius) [days]
+- CFD: maximum number of consecutive frost days (daily minimum temperature < 0 degrees Celsius) [days]
+- ID: number of ice days (daily maximum temperature < 0 degrees Celsius) [days]
+- HD17: heating degree days (sum of (17 degrees Celsius - daily mean temperature))
+- GD4: growing degree days (sum of daily mean temperature > 4 degrees Celsius)
+
+
+Drought indices:
+- CDD: maximum number of consecutive dry days (daily precipitation amount < 1 mm) [days]
+
+
+Rain indices:
+- RR: precipitation sum [mm]
+- RR1: number of wet days (daily precipitation amount ≥ 1 mm) [days]
+- SDII: simple daily intensity index [mm/wet day]
+
+- CWD: maximum number of consecutive wet days (daily precipitation amount ≥ 1 mm) [days]
+- R10mm: number of heavy precipitation days (daily precipitation amount ≥ 10 mm) [days]
+- R20mm: number of very heavy precipitation days (daily precipitation amount ≥ 20 mm) [days]
+- RX1day: highest 1-day precipitation amount [mm]
+- RX5day: highest 5-day precipitation amount [mm]
+
+Snow indices:
+- SD: mean of daily snow depth [cm]
+- SD1: number of snow days (daily snow depth ≥ 1 cm) [days]
+- SD5: number of snow days (daily snow depth ≥ 5 cm) [days]
+- SD50: number of snow days (daily snow depth ≥ 50 cm) [days]
