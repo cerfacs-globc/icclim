@@ -213,7 +213,7 @@ def set_timebnds_values(nc, time_bnds_dt, calend, units):
 #############
 def copy_var_dim(inc, onc, var, project): 
     '''
-    Copies the spacial coordinate variables (e.g.: lat, lon) of a variable (var) from one NetCDF file (ifile) to another (ofile)
+    Copies the spacial coordinate variables (e.g.: lat, lon) of a variable (var) from one NetCDF file (ifile) to another (out_file)
     and returns list of coordinates variables.
     
     :param inc: input dataset
@@ -570,8 +570,8 @@ def get_dict_year_chunk(time_steps_vect):
 
 
 # GLOBAL FUNCTION       
-def indice(ifiles_list,
-           ofile,
+def indice(in_files,
+           out_file,
            var,
            indice_name,
            time_range,
@@ -584,10 +584,10 @@ def indice(ifiles_list,
     This function returns result NetCDF file containing a simple climate indice (based on one variable).
     
     
-    :param ifiles_list: input NetCDF files
-    :type ifiles_list: list of str
-    :param ofile: output NetCDF file
-    :type ofile: str
+    :param in_files: input NetCDF files
+    :type in_files: list of str
+    :param out_file: output file name
+    :type out_file: str
     :param var: variable name to process
     :type var: str
     :param indice_name: climate indice name
@@ -603,13 +603,13 @@ def indice(ifiles_list,
     
     '''
     
-    print "DADA"
+    #print "DADA"
        
-    #callback("Init Opening "+ifiles_list[0],0);
-    inc = Dataset(ifiles_list[0], 'r')
-    #callback("Finished opening "+ifiles_list[0],0);
+    #callback("Init Opening "+in_files[0],0);
+    inc = Dataset(in_files[0], 'r')
+    #callback("Finished opening "+in_files[0],0);
     
-    onc = Dataset(ofile, 'w' ,format="NETCDF3_CLASSIC")
+    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
     fill_val = get_att_value(inc, var, '_FillValue')
 
@@ -635,11 +635,11 @@ def indice(ifiles_list,
     ############################
     
     #j=0
-    #pbar_files = ProgressBar(widgets=[Percentage(),' ', Bar()], maxval=len(ifiles_list)).start()
+    #pbar_files = ProgressBar(widgets=[Percentage(),' ', Bar()], maxval=len(in_files)).start()
     
     total_nb_years_to_process = dt_end.year -dt_begin.year + 1
     
-    for ifile in ifiles_list:
+    for ifile in in_files:
         
         
         #pbar_files.widgets[1]= ' processing file ' +str(j+1)
@@ -764,4 +764,4 @@ def indice(ifiles_list,
     
     onc.close()
     
-    return ofile
+    return out_file
