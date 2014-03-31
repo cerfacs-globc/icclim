@@ -9,7 +9,7 @@ import numpy
 from datetime import datetime, timedelta
 from netCDF4 import num2date, date2num, Dataset
 from netcdftime import utime
-from progressbar import ProgressBar,Percentage,Bar
+#from progressbar import ProgressBar,Percentage,Bar
 import time
 
 import ctypes
