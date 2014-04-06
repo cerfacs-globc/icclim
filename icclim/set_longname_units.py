@@ -97,11 +97,11 @@ def SD1_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Number of days where the snow depth >= 1 cm')
     var_nc.setncattr('units', 'days')
     
-def SD5_setvarattr(var_nc):
+def SD5cm_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Number of days where the snow depth >= 5 cm')
     var_nc.setncattr('units', 'days')
     
-def SD50_setvarattr(var_nc):
+def SD50cm_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Number of days where the snow depth >= 50 cm')
     var_nc.setncattr('units', 'days')
 
@@ -117,11 +117,11 @@ def ID_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Ice days (maximum temperature < 0 degrees)')
     var_nc.setncattr('units', 'days')
     
-def HD_setvarattr(var_nc):
+def HD17_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Heating degree days (sum of 17 degrees - mean temperature)')
     var_nc.setncattr('units', 'K')
     
-def GD_setvarattr(var_nc):
+def GD4_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Growing degree days (sum of TG > 4 degrees)')
     var_nc.setncattr('units', 'K')    
 
