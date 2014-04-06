@@ -33,7 +33,6 @@ Rain indices:
 - RR: precipitation sum [mm]
 - RR1: number of wet days (daily precipitation amount ≥ 1 mm) [days]
 - SDII: simple daily intensity index [mm/wet day]
-
 - CWD: maximum number of consecutive wet days (daily precipitation amount ≥ 1 mm) [days]
 - R10mm: number of heavy precipitation days (daily precipitation amount ≥ 10 mm) [days]
 - R20mm: number of very heavy precipitation days (daily precipitation amount ≥ 20 mm) [days]
@@ -43,5 +42,5 @@ Rain indices:
 Snow indices:
 - SD: mean of daily snow depth [cm]
 - SD1: number of snow days (daily snow depth ≥ 1 cm) [days]
-- SD5: number of snow days (daily snow depth ≥ 5 cm) [days]
-- SD50: number of snow days (daily snow depth ≥ 50 cm) [days]
+- SD5cm: number of snow days (daily snow depth ≥ 5 cm) [days]
+- SD50cm: number of snow days (daily snow depth ≥ 50 cm) [days]
