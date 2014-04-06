@@ -660,7 +660,7 @@ def SD1_calculation(prsn_arr, fill_val, thresh=1):
     ###
     return indice.filled()
 
-def SD5_calculation(prsn_arr, fill_val, thresh=5):
+def SD5cm_calculation(prsn_arr, fill_val, thresh=5):
     '''
     :param thresh: snow deph threshold [cm]
     '''
@@ -674,7 +674,7 @@ def SD5_calculation(prsn_arr, fill_val, thresh=5):
     ###
     return indice.filled()
 
-def SD50_calculation(prsn_arr, fill_val, thresh=50):
+def SD50cm_calculation(prsn_arr, fill_val, thresh=50):
     '''
     :param thresh: snow deph threshold [cm]
     '''

@@ -26,7 +26,7 @@ def title(out_nc, indice_name):
         indice_group = 'drought' 
     elif indice_name in ['RR', 'RR1', 'SDII', 'CWD', 'R10mm', 'R20mm', 'RX1day']:
         indice_group = 'rain'
-    elif indice_name in ['SD','SD1', 'SD5', 'SD50']:
+    elif indice_name in ['SD','SD1', 'SD5cm', 'SD50cm']:
         indice_group = 'snow'    
     
     # example:      title: ECA heat indice SU
