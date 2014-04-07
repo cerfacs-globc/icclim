@@ -756,3 +756,192 @@ def indice(in_files,
     onc.close()
     
     return out_file
+
+
+
+# GLOBAL FUNCTION       
+def indice_multivar(in_files1, var1,
+                    in_files2, var2,
+                    out_file,
+                    indice_name,
+                    time_range,
+                    slice_mode,
+                    project,
+                    N_lev=None,
+                    callback=None):
+    
+    '''
+    This function returns result NetCDF file containing a climate indice based on two variable (ETR, DTR, vDTR).
+    
+    
+    :param in_files1: input NetCDF files corresponding to the first variable
+    :type in_files1: list of str
+    :param var1: first variable to process (e.g. "tasmax")
+    :type var1: str
+    
+    :param in_files2: input NetCDF files corresponding to the second variable
+    :type in_files2: list of str
+    :param var2: second variable to process (e.g. "tasmin")
+    :type var2: str
+    
+    :param out_file: output file name
+    :type out_file: str
+    :param indice_name: climate indice name
+    :type indice_name: str
+    :param time_range: time range (dt1 should be the first day of year/month, dt2 - the last day of year/month). Note: to include dt2 -> add in datetime hour/minute (HH=23, mm=59).
+    :type time_range: list of 2 datetime objects [dt1, dt2]  
+    :param slice_mode: "year" or "month" 
+    :type slice_mode: str
+    :param project: project name ("CMIP5" or "CORDEX")
+    :type slice_mode: str
+    
+    :rtype: output NetCDF file name (str)
+    
+    ..note:: Both file lists must contain the same number steps. (?) 
+    '''
+    
+    #print "DADA"
+       
+    #callback("Init Opening "+in_files[0],0);
+    inc = Dataset(in_files1[0], 'r')
+    #callback("Finished opening "+in_files[0],0);
+    
+    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
+    
+    fill_val = get_att_value(inc, var1, '_FillValue')
+
+    indice_dim = copy_var_dim(inc, onc, var1, project) # tuple ('time', 'lat', 'lon')
+    
+    nb_rows = inc.variables[indice_dim[1]].shape[0]
+    nb_columns = inc.variables[indice_dim[2]].shape[0]
+    
+    calend = get_att_value(inc, indice_dim[0], 'calendar')
+    units = get_att_value(inc, indice_dim[0], 'units')
+    
+    inc.close()
+
+    ind_type = 'f'    
+    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)
+       
+    
+    dt_begin = time_range[0] # datetime object
+    dt_end = time_range[1] # datetime object
+    
+    ############################
+    glob_dict_timeStep_indice = {}
+    ############################
+
+    
+    for in_file1, in_file2  in zip(in_files1, in_files2):
+        
+
+        nc1 = Dataset(ifile1, 'r')
+        nc2 = Dataset(ifile2, 'r')
+        
+        time_steps_vect1 = get_list_dates_from_nc(nc1, 'dt')
+        #time_steps_vect2 = get_list_dates_from_nc(nc2, 'dt') #  time_steps_vect2 = time_steps_vect2
+        
+        dict_year_chunk1 = get_dict_year_chunk(time_steps_vect1)   
+        dict_year_chunk2 = get_dict_year_chunk(time_steps_vect2)
+        
+        if N_lev==None:
+            values1 = nc1.variables[var1]
+            values2 = nc2.variables[var2]
+        else:
+            values1 = nc1.variables[var1][:,N_lev,:,:]
+            values2 = nc2.variables[var2][:,N_lev,:,:]
+        
+
+        for year in sorted(dict_year_chunk1.keys()):
+
+            if year>=dt_begin.year and year<=dt_end.year:
+                
+                i1 = dict_year_chunk1[year][0]
+                i2 = dict_year_chunk1[year][1]
+
+                values_current_chunk1 = values1[i1:i2+1,:,:] # on charge les donnees (pour 1 annee) pour faire le traitement
+                values_current_chunk2 = values2[i1:i2+1,:,:]
+                
+                time_steps_current_chunk1 = numpy.array(time_steps_vect1[i1:i2+1])
+                # time_steps_current_chunk2 = time_steps_current_chunk1
+                
+                if (slice_mode=='year'):
+                    mydict_TimeStep_3DArray1=get_dict_year_3Darr(values_current_chunk1, time_steps_current_chunk1)
+                    mydict_TimeStep_3DArray2=get_dict_year_3Darr(values_current_chunk2, time_steps_current_chunk1)
+                elif (slice_mode=='month'):
+                    mydict_TimeStep_3DArray=get_dict_month_3Darr(values_current_chunk, time_steps_current_chunk)
+                    
+                
+                mydict_indice=get_dict_timeStep_indice(mydict_TimeStep_3DArray, indice_name, fill_val, ind, onc)
+                
+                glob_dict_timeStep_indice.update(mydict_indice)
+  
+                del values_current_chunk, time_steps_current_chunk
+  
+                print "Processed: ", year
+                
+                #counter_year = counter_year + 1
+                #print counter_year, total_nb_years_to_process
+
+                #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
+                #print status
+                
+            #else:
+                #print "data not processed ", year
+                #callback("Skipping year %d" % year,percentageComplete)
+
+            #time.sleep(0.01)
+        #    #time.sleep(1.01)
+        #    pbar.update(i+1)
+        #    i+=1
+        #
+        #pbar.finish()
+        
+        nc.close()
+        
+        
+
+    #pbar_files.finish()
+        
+    #print '---'    
+    #print sorted(glob_dict_timeStep_indice.keys())
+    #print '---'     
+    
+    glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
+    
+    ind[:,:,:] = glob_indice[0][:,:,:]
+    
+    # set global attributs
+    #eval(indice_name + '_setglobattr(onc)')
+    ## for all:
+    #setglobattr_history(onc, indice_name, slice_mode, dt_begin, dt_end)
+    #onc.setncattr('institution', '')
+    onc.setncattr('source', '') # Here soon will be source meta data
+    #onc.setncattr('comment', '')   
+    #onc.setncattr('reference', '')
+    
+    # set global attributs
+    set_globattr.title(onc, indice_name)
+    set_globattr.references(onc)
+    set_globattr.comment(onc, indice_name)
+    set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
+    set_globattr.history2(onc, slice_mode, indice_name, time_range)
+
+    # set variable attributs
+    eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
+    # for all:
+    ind.missing_value = fill_val
+    
+
+    #print indice[1][:] # must be float or str!    
+    #time_steps = [str(i) for i in indice[1][:]]
+    
+    time_steps_indice_dt = glob_indice[1][:]
+    time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
+    
+    set_time_values(onc, time_steps_indice_dt, calend, units)
+    set_timebnds_values(onc, time_bnds_dt, calend, units)
+    
+    onc.close()
+    
+    return out_file
