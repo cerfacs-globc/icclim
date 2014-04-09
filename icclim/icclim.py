@@ -759,6 +759,62 @@ def indice(in_files,
 
 
 
+# on cree un dictionnaire : (annee -> sous-array3D avec seulement les donnees de cette annee)
+def get_dict_year_3Darr_2arr(glob_3Darr1, glob_3Darr2, time_steps_list):
+    
+    '''
+    This function returns a dictionary, where keys = years, and values = sub 3D array1 ( of glob_3Darr1),  sub 3D array2 ( of glob_3Darr2).
+    
+    :param glob_3Darr1: global 3D array of values
+    :type glob_3Darr1: numpy.ndarray
+    :param glob_3Darr2: global 3D array of values
+    :type glob_3Darr2: numpy.ndarray
+    :param time_steps_list: global list of time steps
+    :type time_steps_list: list of datetimeobjects
+    
+    :rtype: dictionary (keys: datetime object, values: numpy.ndarray)
+    
+    '''
+    
+    all_years=get_all_years(time_steps_list)
+    mydict_years={}
+    for i in range(len(all_years)):
+        key = all_years[i] 
+        bounds =get_time_bnds(all_years[i],'year')
+        mask = (time_steps_list>=bounds[0]) & (time_steps_list<=bounds[1])
+        value = glob_3Darr[mask,:,:]
+        mydict_years[key]=value
+    return mydict_years
+
+
+# on cree un dictionnaire : (month -> sous-array3D avec seulement les donnees de ce month)
+def get_dict_month_3Darr_2arr(glob_3Darr, time_steps_list):
+    
+    '''
+    This function returns a dictionary, where keys = months, and values = sub 3D arrays of glob_3Darr.
+    
+    :param glob_3Darr: global 3D array of values
+    :type glob_3Darr: numpy.ndarray
+    :param time_steps_list: global list of time steps
+    :type time_steps_list: list of datetimeobjects
+    
+    :rtype: dictionary (keys: datetime object, values: numpy.ndarray)
+    
+    '''
+    
+    all_months=get_all_months(time_steps_list)
+    mydict_months={}
+    for i in range(len(all_months)):
+        key = all_months[i] 
+        bounds =get_time_bnds(all_months[i],'month')
+        mask = (time_steps_list>=bounds[0]) & (time_steps_list<=bounds[1])
+        value = glob_3Darr[mask,:,:]
+        mydict_months[key]=value
+    return mydict_months
+
+
+
+
 # GLOBAL FUNCTION       
 def indice_multivar(in_files1, var1,
                     in_files2, var2,
