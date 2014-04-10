@@ -742,7 +742,7 @@ def indice(in_files,
     eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
     # for all:
     ind.missing_value = fill_val
-    
+    ind.setncattr('standard_name', 'ECA_indice')
 
     #print indice[1][:] # must be float or str!    
     #time_steps = [str(i) for i in indice[1][:]]
@@ -960,7 +960,7 @@ def indice_multivar(in_files1, var1,
     eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
     # for all:
     ind.missing_value = fill_val1
-    
+    ind.setncattr('standard_name', 'ECA_indice')
 
     #print indice[1][:] # must be float or str!    
     #time_steps = [str(i) for i in indice[1][:]]
