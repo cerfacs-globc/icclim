@@ -761,7 +761,7 @@ def indice(in_files,
 
 ####################################################
 
-def get_dict_timeStep_indice_multivar(mydict_TimeStep_3DArray1, mydict_TimeStep_3DArray2, indice_name, fill_val1, fill_val2, ind, onc):
+def get_dict_timeStep_indice_multivar(dict_timeStep_sub3Darr1, dict_timeStep_sub3Darr2, indice_name, fill_val1, fill_val2, ind, onc):
     
     '''
     This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
@@ -779,7 +779,7 @@ def get_dict_timeStep_indice_multivar(mydict_TimeStep_3DArray1, mydict_TimeStep_
   
     mydict_indice={}
     
-    for key in dict_timeStep_sub3Darr.keys():
+    for key in dict_timeStep_sub3Darr1.keys():
         tab2D = eval('calc_indice.' + indice_name + '_calculation(dict_timeStep_sub3Darr1[key], dict_timeStep_sub3Darr2[key], fill_val1, fill_val2)')
         mydict_indice[key]=tab2D
     
@@ -848,7 +848,7 @@ def indice_multivar(in_files1, var1,
     inc2.close()
 
     ind_type = 'f'    
-    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)
+    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val1)
        
     
     dt_begin = time_range[0] # datetime object
@@ -862,8 +862,8 @@ def indice_multivar(in_files1, var1,
     for in_file1, in_file2  in zip(in_files1, in_files2):
         
 
-        nc1 = Dataset(ifile1, 'r')
-        nc2 = Dataset(ifile2, 'r')
+        nc1 = Dataset(in_file1, 'r')
+        nc2 = Dataset(in_file2, 'r')
         
         time_steps_vect1 = get_list_dates_from_nc(nc1, 'dt')
         time_steps_vect2 = get_list_dates_from_nc(nc2, 'dt') 
@@ -906,7 +906,7 @@ def indice_multivar(in_files1, var1,
                     
                     glob_dict_timeStep_indice.update(mydict_indice)
       
-                    del values_current_chunk, time_steps_current_chunk
+                    del values_current_chunk1, values_current_chunk2, time_steps_current_chunk1
       
                     print "Processed: ", year
                     
@@ -927,8 +927,8 @@ def indice_multivar(in_files1, var1,
             #
             #pbar.finish()
             
-            nc.close()
-            
+            nc1.close()
+            nc2.close()
             
     
         #pbar_files.finish()
@@ -960,7 +960,7 @@ def indice_multivar(in_files1, var1,
         # set variable attributs
         eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
         # for all:
-        ind.missing_value = fill_val
+        ind.missing_value = fill_val1
         
     
         #print indice[1][:] # must be float or str!    
