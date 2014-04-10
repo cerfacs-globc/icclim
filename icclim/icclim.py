@@ -860,7 +860,6 @@ def indice_multivar(in_files1, var1,
 
     
     for in_file1, in_file2  in zip(in_files1, in_files2):
-        
 
         nc1 = Dataset(in_file1, 'r')
         nc2 = Dataset(in_file2, 'r')
@@ -927,9 +926,9 @@ def indice_multivar(in_files1, var1,
             #
             #pbar.finish()
             
+
             nc1.close()
             nc2.close()
-            
     
         #pbar_files.finish()
             
@@ -937,41 +936,41 @@ def indice_multivar(in_files1, var1,
         #print sorted(glob_dict_timeStep_indice.keys())
         #print '---'     
         
-        glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
-        
-        ind[:,:,:] = glob_indice[0][:,:,:]
-        
-        # set global attributs
-        #eval(indice_name + '_setglobattr(onc)')
-        ## for all:
-        #setglobattr_history(onc, indice_name, slice_mode, dt_begin, dt_end)
-        #onc.setncattr('institution', '')
-        onc.setncattr('source', '') # Here soon will be source meta data
-        #onc.setncattr('comment', '')   
-        #onc.setncattr('reference', '')
-        
-        # set global attributs
-        set_globattr.title(onc, indice_name)
-        set_globattr.references(onc)
-        set_globattr.comment(onc, indice_name)
-        set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
-        set_globattr.history2(onc, slice_mode, indice_name, time_range)
+    glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
     
-        # set variable attributs
-        eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-        # for all:
-        ind.missing_value = fill_val1
-        
+    ind[:,:,:] = glob_indice[0][:,:,:]
     
-        #print indice[1][:] # must be float or str!    
-        #time_steps = [str(i) for i in indice[1][:]]
-        
-        time_steps_indice_dt = glob_indice[1][:]
-        time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
-        
-        set_time_values(onc, time_steps_indice_dt, calend, units)
-        set_timebnds_values(onc, time_bnds_dt, calend, units)
-        
-        onc.close()
-        
-        return out_file
+    # set global attributs
+    #eval(indice_name + '_setglobattr(onc)')
+    ## for all:
+    #setglobattr_history(onc, indice_name, slice_mode, dt_begin, dt_end)
+    #onc.setncattr('institution', '')
+    onc.setncattr('source', '') # Here soon will be source meta data
+    #onc.setncattr('comment', '')   
+    #onc.setncattr('reference', '')
+    
+    # set global attributs
+    set_globattr.title(onc, indice_name)
+    set_globattr.references(onc)
+    set_globattr.comment(onc, indice_name)
+    set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
+    set_globattr.history2(onc, slice_mode, indice_name, time_range)
+
+    # set variable attributs
+    eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
+    # for all:
+    ind.missing_value = fill_val1
+    
+
+    #print indice[1][:] # must be float or str!    
+    #time_steps = [str(i) for i in indice[1][:]]
+    
+    time_steps_indice_dt = glob_indice[1][:]
+    time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
+    
+    set_time_values(onc, time_steps_indice_dt, calend, units)
+    set_timebnds_values(onc, time_bnds_dt, calend, units)
+    
+    onc.close()
+    
+    return out_file
