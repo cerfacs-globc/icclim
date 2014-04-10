@@ -332,14 +332,14 @@ def get_all_years(time_steps_list):
     :param time_steps_list: time steps vector
     :type time_steps_list: list of datetime objects
     
-    :rtype: list of datetime objects (cenroid: 30th June of each year)
+    :rtype: list of datetime objects (cenroid: 1st July of each year)
     
     '''
     
     all_years = []
     for i in range(len(time_steps_list)):
         #new_date = datetime(time_steps_list[i].year,1,1) # begining of year date: 1st January
-        new_date = datetime(time_steps_list[i].year,6,30) # middle of year date: 30th July
+        new_date = datetime(time_steps_list[i].year,7,1) # middle of year date: the 1st July
         if new_date not in all_years:
             all_years.append(new_date)
     return all_years
