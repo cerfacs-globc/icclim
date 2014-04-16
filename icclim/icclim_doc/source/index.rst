@@ -18,7 +18,7 @@ Contents:
    examples.rst
    contact.rst 
 
-.. warning:: At the moment we are working on calling ICCLIM from `OpenClimateGIS <http://ncpp.github.io/ocgis/index.html>`_ that should be more reliable than useing ICCLIM as a standalone package.
+
 
 
 Indices and tables
