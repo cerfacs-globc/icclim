@@ -1,0 +1,289 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Python API &mdash; ICCLIM 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ICCLIM 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Indices" href="indices.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="indices.html" title="Indices"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ICCLIM 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="python-api">
+<h1>Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="main-functions">
+<h2>Main functions<a class="headerlink" href="#main-functions" title="Permalink to this headline">¶</a></h2>
+<p>The function to calculate a simple indice (i.e. based on one variable):</p>
+<dl class="function">
+<dt>
+<tt class="descname">indice(in_files, out_file, var, indice_name, time_range, slice_mode, project, N_lev=None):</tt></dt>
+<dd><p>This function returns result NetCDF file containing a climate indice.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute paths to NetCDF dataset (including URLs)</li>
+<li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file</li>
+<li><strong>var</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
+<li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
+<li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range (dt1 is the first day of year/month, dt2 is the last day of year/month)</li>
+<li><strong>slice_mode</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;year&#8221; for annual values, &#8220;month&#8221; for monthly values</li>
+<li><strong>project</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; project name (&#8220;CMIP5&#8221; or &#8220;CORDEX&#8221;)</li>
+<li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable (dafault: N_lev=None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">output NetCDF file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The list of indice names are <a class="reference internal" href="indices.html#indices"><em>here</em></a>.</p>
+</div>
+<p>To calculate a multivariate indice like ETR, DTR or vDTR, use the following function:</p>
+<dl class="function">
+<dt>
+<tt class="descname">indice_multivar(in_files1, var1, in_files2, var2, out_file, indice_name, time_range, slice_mode, project, N_lev=None):</tt></dt>
+<dd><p>This function returns result NetCDF file containing a climate indice.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>in_files1</strong> (<em>list of str</em>) &#8211; absolute paths to NetCDF dataset (including URLs) corresponding to the var1</li>
+<li><strong>var1</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
+<li><strong>in_files2</strong> (<em>list of str</em>) &#8211; absolute paths to NetCDF dataset (including URLs) corresponding to the var2</li>
+<li><strong>var2</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
+<li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file</li>
+<li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
+<li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range (dt1 is the first day of year/month, dt2 is the last day of year/month)</li>
+<li><strong>slice_mode</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;year&#8221; for annual values, &#8220;month&#8221; for monthly values</li>
+<li><strong>project</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; project name (&#8220;CMIP5&#8221; or &#8220;CORDEX&#8221;)</li>
+<li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable (dafault: N_lev=None)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">output NetCDF file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The both file lists must be identical, i.e. each corresponding file must contain the same time step vector.</p>
+</div>
+</div>
+<div class="section" id="elementary-functions">
+<h2>Elementary functions<a class="headerlink" href="#elementary-functions" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py">calc_indice.py</a> module contains the elementary functions computing indices.
+These functions, manipulating 3D arrays, could be reused in other environments. Below some of them.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A function name is composed from an indice name and &#8220;_calculation&#8221; (example: FD_calculation).</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Input array(s) could be filled (numpy.ndarray) or masked (numpy.ma.MaskedArray). The output array type corresponds to the input array type.</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p>If input array is filled, a fill_value (parameter &#8220;fill_val&#8221;) must be provided:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">FD_calculation</span><span class="p">(</span><span class="n">my_3D_array</span><span class="p">,</span> <span class="n">fill_val</span><span class="o">=</span><span class="mi">99999</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If input array is masked, the &#8220;fill_val&#8221; is ignored:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">FD_calculation</span><span class="p">(</span><span class="n">my_3D_masked_array</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<dl class="function">
+<dt>
+<tt class="descname">TNx_calculation(arr, fill_val=None):</tt></dt>
+<dd><p>Calculates the TNx indice: maximum of daily minimum temperature.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arr</strong> (<em>numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)</em>) &#8211; daily min temperature (e.g. &#8220;tasmin&#8221;)</li>
+<li><strong>fill_val</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; fill value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray (2D)        (if &#8220;arr&#8221; is numpy.ndarray)
+or numpy.ma.MaskedArray (2D) (if &#8220;arr&#8221; is numpy.ma.MaskedArray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">CSU_calculation(arr, fill_val=None):</tt></dt>
+<dd><p>Calculates the CSU indice: maximum number of consecutive summer days (i.e. days with daily maximum temperature &gt; 25 degrees Celsius) [days].
+This function calls C function &#8220;find_max_len_consec_sequence_3d&#8221; from libC.c</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arr</strong> (<em>numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)</em>) &#8211; daily maximum temperature (e.g. &#8220;tasmax&#8221;) in Kelvin</li>
+<li><strong>fill_val</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; fill value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray (2D)        (if &#8220;arr&#8221; is numpy.ndarray)
+or numpy.ma.MaskedArray (2D) (if &#8220;arr&#8221; is numpy.ma.MaskedArray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Units of &#8220;arr&#8221; must be Kelvin!</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">DTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):</tt></dt>
+<dd><p>Calculates the DTR indice: mean of daily temperature range.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arr1</strong> (<em>numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)</em>) &#8211; daily max temperature (e.g. &#8220;tasmax&#8221;)</li>
+<li><strong>arr2</strong> (<em>numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)</em>) &#8211; daily min temperature (e.g. &#8220;tasmin&#8221;)</li>
+<li><strong>fill_val1</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; fill value of arr1</li>
+<li><strong>fill_val2</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; fill value of arr2</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray (2D)        (if &#8220;arr1&#8221; and &#8220;arr2&#8221; are numpy.ndarray)
+or numpy.ma.MaskedArray (2D) (if &#8220;arr1&#8221; and &#8220;arr2&#8221; are numpy.ma.MaskedArray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">&#8220;arr1&#8221; and &#8220;arr2&#8221; must be both the same type, have the same shape and be corresponding to the same time step vector.</p>
+</div>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Python API</a><ul>
+<li><a class="reference internal" href="#main-functions">Main functions</a></li>
+<li><a class="reference internal" href="#elementary-functions">Elementary functions</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="indices.html"
+                        title="next chapter">Indices</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/python_api.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="indices.html" title="Indices"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="index.html">ICCLIM 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, CERFACS.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b3.
+    </div>
+  </body>
+</html>

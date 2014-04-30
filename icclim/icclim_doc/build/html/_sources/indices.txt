@@ -1,3 +1,4 @@
+.. _indices:
 
 Indices
 ===============================
@@ -9,9 +10,9 @@ For the moment you can calculate only the indices in bold (the others are in dev
         - **TG**
         - **TX**
         - **TN**
-        - DTR
-        - ETR
-        - vDTR        
+        - **DTR**
+        - **ETR**
+        - **vDTR**        
     * heat
         - **SU**
         - **TR**
@@ -23,11 +24,11 @@ For the moment you can calculate only the indices in bold (the others are in dev
         - TX90p
         - TN90p        
     * cold
-        - **GD** (=GD4)
+        - **GD4** 
         - GSL
         - **CFD**
         - **FD**
-        - **HD** (=HD17)
+        - **HD17** 
         - **ID**
         - **TXn**
         - **TNn**
@@ -60,8 +61,8 @@ For the moment you can calculate only the indices in bold (the others are in dev
     * snow
         - **SD**
         - **SD1**
-        - **SD5** (=SD5cm)
-        - **SD50** (=SD50cm)
+        - **SD5cm** 
+        - **SD50cm** 
 
 - Compound indices (temperature + precipitation)
         - CD
@@ -70,5 +71,27 @@ For the moment you can calculate only the indices in bold (the others are in dev
         - WW
 
 
-Each indice is calculated as annual or monthly values (soon: as seasonal values).
+Each indice is calculated as annual or monthly values.
+
+
+
+.. warning:: Needs to respect the correspondence between the variable to process and the indice to calculate. For example, the FD indice needs a '*daily minimum temperature*' variable (e.g. "tasmin"). See the correspondance table below.
+
+
++------------------------------------------------------------+---------------------------------------------+
+|   Indice                                                   |   Variable                                  |
++============================================================+=============================================+
+|TG, GD4, GSL, HD17                                          |  daily mean temperature                     |
++------------------------------------------------------------+---------------------------------------------+
+|TN, TR, TNx, CFD, FD, TNn                                   |  daily minimum temperature                  |
++------------------------------------------------------------+---------------------------------------------+
+|TX, SU, TXx, CSU, TXn                                       |  daily maximum temperature                  |
++------------------------------------------------------------+---------------------------------------------+
+|DTR, ETR, vDTR                                              |  daily minimum + daily maimum temperature   |
++------------------------------------------------------------+---------------------------------------------+
+|                                                            |                                             |
+|RR, RR1, SDII, CWD, CDD, R10mm, R20mm, RX1day, RX5day       |  daily precipitation (liquide phase)        |
++------------------------------------------------------------+---------------------------------------------+
+|SD, SD1, SD5cm, SD50cm                                      |  daily precipitation (solid phase)          |
++------------------------------------------------------------+---------------------------------------------+
 

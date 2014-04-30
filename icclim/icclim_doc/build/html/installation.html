@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; ICCLIM 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ICCLIM 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Python API" href="python_api.html" />
+    <link rel="prev" title="Important to know" href="important_to_know.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="python_api.html" title="Python API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="important_to_know.html" title="Important to know"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ICCLIM 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>To use the ICCLIM you first need to install the following python libraries:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference external" href="http://www.numpy.org/">NumPy</a></li>
+<li><a class="reference external" href="http://netcdf4-python.googlecode.com/svn/trunk/docs/netCDF4-module.html">netCDF4</a></li>
+<li><a class="reference external" href="http://docs.python.org/2/library/ctypes.html">ctypes</a></li>
+<li><a class="reference external" href="http://ncpp.github.io/ocgis/index.html">OpenClimateGIS</a> and its dependencies if you want to use <a class="reference internal" href="icclim_ocgis.html#icclim-ocgis"><em>ICCLIM inside OpenClimateGIS</em></a></li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="installation-linux">
+<h2>Installation (Linux)<a class="headerlink" href="#installation-linux" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Make sure that <strong>Python 2.7</strong> and <strong>GCC</strong> are installed.</p>
+</div>
+<ol class="arabic simple">
+<li>Go to <a class="reference external" href="https://github.com/tatarinova/icclim">https://github.com/tatarinova/icclim</a>.</li>
+<li>Download the current version: click to <strong>Download ZIP</strong>.</li>
+<li>Extract the file.</li>
+<li>Go to extracted directory.</li>
+<li>Run the following commands:</li>
+</ol>
+<div class="highlight-sh"><div class="highlight"><pre>gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o
+
+gcc -shared -o ./icclim/libC.so ./icclim/libC.o
+
+<span class="o">[</span>sudo<span class="o">]</span> python setup.py install
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li>Check if the library is installed correctly:</li>
+</ol>
+<div class="highlight-sh"><div class="highlight"><pre>&gt;&gt;&gt; import icclim
+</pre></div>
+</div>
+<p>To get the version of installed library, do the following:</p>
+<div class="highlight-sh"><div class="highlight"><pre>&gt;&gt;&gt; icclim.__version__
+0.0.1
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">ICCLIM was not tested on Windows and Mac platforms...</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#installation-linux">Installation (Linux)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="important_to_know.html"
+                        title="previous chapter">Important to know</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="python_api.html"
+                        title="next chapter">Python API</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/installation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="python_api.html" title="Python API"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="important_to_know.html" title="Important to know"
+             >previous</a> |</li>
+        <li><a href="index.html">ICCLIM 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, CERFACS.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b3.
+    </div>
+  </body>
+</html>

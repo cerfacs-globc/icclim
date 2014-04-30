@@ -2,8 +2,8 @@
 Welcome to ICCLIM's documentation!
 ===============================
 
-*Index Calculation CLIMate* is a python libary designed for calculation of climate indices and indicators. 
-For the first time the climate indices calculated by this librarie are the `ECA&D climate indices <http://eca.knmi.nl/documents/atbd.pdf>`_.
+*Index Calculation CLIMate* is a Python libary designed for calculation of climate indices and indicators. 
+For the first time ICCLIM calculates `ECA&D climate indices <http://eca.knmi.nl/documents/atbd.pdf>`_.
 Later other climate indices and indicators will be added. 
 
 
@@ -13,11 +13,15 @@ Contents:
    :numbered
     
    important_to_know.rst
+   installation.rst
+   python_api.rst
    indices.rst
    output_metadata.rst
    examples.rst
    contact.rst 
-
+    
+   icclim_ocgis.rst
+    
 
 
 
