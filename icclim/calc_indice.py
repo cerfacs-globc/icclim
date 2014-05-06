@@ -460,7 +460,7 @@ def CSU_calculation(arr, fill_val=None):
         
     # array data type should be 'float32' to pass it to C function  
     if arr_demasked.dtype != 'float32':
-        arr_demasked.dtype = 'float32'
+        arr_demasked = numpy.array(arr_demasked, dtype='float32')
     
     C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
     C_find_max_len_consec_sequence_3d.restype = None
@@ -582,7 +582,7 @@ def CFD_calculation(arr, fill_val=None):
         
     # array data type should be 'float32' to pass it to C function  
     if arr_demasked.dtype != 'float32':
-        arr_demasked.dtype = 'float32'
+        arr_demasked = numpy.array(arr_demasked, dtype='float32')
     
     C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
     C_find_max_len_consec_sequence_3d.restype = None
@@ -737,7 +737,7 @@ def CDD_calculation(arr, fill_val=None):
         
     # array data type should be 'float32' to pass it to C function  
     if arr_demasked.dtype != 'float32':
-        arr_demasked.dtype = 'float32'
+        arr_demasked = numpy.array(arr_demasked, dtype='float32')
     
     C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
     C_find_max_len_consec_sequence_3d.restype = None
@@ -857,7 +857,7 @@ def CWD_calculation(arr, fill_val=None):
         
     # array data type should be 'float32' to pass it to C function  
     if arr_demasked.dtype != 'float32':
-        arr_demasked.dtype = 'float32'
+        arr_demasked = numpy.array(arr_demasked, dtype='float32')
     
     C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
     C_find_max_len_consec_sequence_3d.restype = None
