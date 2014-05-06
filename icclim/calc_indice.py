@@ -1013,6 +1013,61 @@ def RX1day_calculation(arr, fill_val=None):
         RX1day = RX1day.filled(fill_value=arr_masked.fill_value) 
     
     return RX1day
+
+
+def RX5day_calculation(arr, fill_val=None):
+    
+    '''
+    Calculates the RX5day indice: maximum consecutive 5-day precipitation amount [mm]
+    This function calls C function "find_max_sum_slidingwindow_3d" from libC.c
+    
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param fill_val: fill value 
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+         or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+         
+    .. warning:: Units of "arr" must be mm/s.
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    '''
+    
+    arr = arr*60*60*24                          # mm/s --> mm/day
+    w_width = 5                                 # 5-day window
+
+        
+    # if "arr" is a masked array, we fill it with its fill_value to transform it into a normal array (to pass after to C function!)
+    if isinstance(arr, numpy.ma.MaskedArray):
+        fill_val = arr.fill_value
+        arr_demasked = arr.filled(fill_value=fill_val)
+    else:
+        arr_demasked = arr
+    
+    ## array data type should be 'float32' to pass it to C function  
+    if arr_demasked.dtype != 'float32':
+        arr_demasked = numpy.array(arr_demasked, dtype='float32')
+    
+    C_find_max_sum_slidingwindow_3d = libraryC.find_max_sum_slidingwindow_3d
+    C_find_max_sum_slidingwindow_3d.restype = None
+    C_find_max_sum_slidingwindow_3d.argtypes = [ndpointer(ctypes.c_float),
+                                                    ctypes.c_int,
+                                                    ctypes.c_int,
+                                                    ctypes.c_int,
+                                                    ndpointer(ctypes.c_double),
+                                                    ctypes.c_int,
+                                                    ctypes.c_float]
+    
+    RX5day = numpy.zeros([arr_demasked.shape[1], arr_demasked.shape[2]]) # reserve memory
+  
+    C_find_max_sum_slidingwindow_3d(arr_demasked, arr_demasked.shape[0], arr_demasked.shape[1], arr_demasked.shape[2], RX5day, w_width, fill_val)
+    RX5day = RX5day.reshape(arr_demasked.shape[1], arr_demasked.shape[2])
+    
+    if isinstance(arr, numpy.ma.MaskedArray):
+        RX5day = numpy.ma.array(RX5day, mask=(RX5day==fill_val), fill_value=fill_val)
+
+    return RX5day
  
 
 ###### snow indices

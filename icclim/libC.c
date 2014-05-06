@@ -182,6 +182,68 @@ void find_max_len_consec_sequence_3d(const float *indata, int _sizeT,int _sizeI,
     }
     
 
+float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, float fill_val)
+    {
+        float max_sum=0.0;
+        float sum=0.0;
+        int t;
+        float val, val_to_subtract;
+        
+        
+        // initialize max_sum [for the first (w_width-1) elements]
+        for (t=0; t<w_width; t++)
+            {
+                val = getElementAt(indata,t,i,j);
+                
+                if (val==fill_val) val=0.0;  
+                
+                sum += val;
+            }
+        max_sum = sum;      
+        
+        // calculate the current sum, and compare it to the max_sum               
+        for (t=w_width; t<=sizeT-1; t++) 
+            {
+                val = getElementAt(indata,t,i,j);
+                if (val==fill_val) val=0.0;
+                sum += val;                                 // previous sum + following element
+                
+                val_to_subtract = getElementAt(indata,t-w_width,i,j);
+                if (val_to_subtract==fill_val) val_to_subtract=0.0;
+                sum -= val_to_subtract;                      // current sum
+
+                if (sum > max_sum)
+                {
+                    max_sum =  sum;
+                }
+                
+            }    
+        
+
+        return max_sum;
+    }
+    
+
+void find_max_sum_slidingwindow_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int w_width, float fill_val)
+    {
+    // find max sum of a consecutif sequence of w_width elements (sliding window of size=w_width) (along time axis)
+
+        setGlobalVariables(_sizeT,_sizeI,_sizeJ); 
+        int i,j;
+        
+            for (i = 0; i < sizeI; i++)
+                {
+                    for (j = 0; j < sizeJ; j++)
+                        {
+                            outdata[i*sizeJ+j] = get_max_sum_window_1d(indata, i, j, w_width, fill_val); 
+                        }
+                }
+    }
+
+
+
+
+
 
 // indexMiddleOfYear is the index of the 1st day in the 2nd semester for which we have a value for temperature
 // -> in a complete year, it should be the 1st of july : indexMiddleOfYear = 181 (or 182 in a bissextile year)
