@@ -219,6 +219,38 @@ reference period is the 1961-1990 (30 years)):</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="example-4-opendap-dataset-big-request">
+<h2>Example 4: OPeNDAP dataset, big request<a class="headerlink" href="#example-4-opendap-dataset-big-request" title="Permalink to this headline">¶</a></h2>
+<p>If you want to process OPeNDAP datasets of total size more than for example the OPenDAP/THREDDS limit (500 Mbytes),
+use the <a class="reference external" href="http://ncpp.github.io/ocgis/utility.html#ocgis.util.large_array.compute">compute function</a> which processes data chunk-by-chunk:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">ocgis.util.large_array</span> <span class="kn">import</span> <span class="n">compute</span>
+</pre></div>
+</div>
+<p>This function takes the <em>tile_dimention</em> parameter,
+so first we need to find an optimal tile dimention (number of pixels) to get a chunk less than the the OPenDAP/THREDDS limit:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">limit_opendap_mb</span> <span class="o">=</span> <span class="mf">475.0</span> <span class="c"># we reduce the limit on about 25 Mbytes (don&#39;t ask me why :) )</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">size</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">get_base_request_size</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nb_time_coordinates_rd</span> <span class="o">=</span> <span class="n">size</span><span class="p">[</span><span class="s">&#39;variables&#39;</span><span class="p">][</span><span class="s">&#39;tas&#39;</span><span class="p">][</span><span class="s">&#39;temporal&#39;</span><span class="p">][</span><span class="s">&#39;shape&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element_in_kb</span> <span class="o">=</span> <span class="n">size</span><span class="p">[</span><span class="s">&#39;total&#39;</span><span class="p">]</span><span class="o">/</span><span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span> <span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="n">size</span><span class="p">[</span><span class="s">&#39;variables&#39;</span><span class="p">][</span><span class="s">&#39;tas&#39;</span><span class="p">][</span><span class="s">&#39;value&#39;</span><span class="p">][</span><span class="s">&#39;shape&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">element_in_mb</span> <span class="o">=</span> <span class="n">element_in_kb</span><span class="o">*</span><span class="mf">0.001</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tile_dim</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">limit_opendap_mb</span><span class="o">/</span><span class="p">(</span><span class="n">element_in_mb</span><span class="o">*</span><span class="n">nb_time_coordinates_rd</span><span class="p">))</span> <span class="c"># maximum chunk size</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Chunks are cut along the time axis, i.e. a maximum chunk size in pixels is <strong>tile_dimention</strong> x <strong>tile_dimention</strong> x <strong>number_time_steps</strong>.</p>
+</div>
+<div class="figure">
+<a class="reference internal image-reference" href="_images/chunks.png"><img alt="_images/chunks.png" src="_images/chunks.png" /></a>
+</div>
+<p>Now we can use the compute function:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">RequestDataset</span><span class="p">(</span><span class="n">input_files</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ops</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">OcgOperations</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">rd</span><span class="p">,</span> <span class="n">calc</span><span class="o">=</span><span class="n">calc_icclim</span><span class="p">,</span> <span class="n">calc_grouping</span><span class="o">=</span><span class="n">calc_grouping</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;indiceETR_1980_1989&#39;</span><span class="p">,</span> <span class="n">add_auxiliary_files</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">compute</span><span class="p">(</span><span class="n">ops</span><span class="p">,</span> <span class="n">tile_dimension</span><span class="o">=</span><span class="n">tile_dim</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -235,6 +267,7 @@ reference period is the 1961-1990 (30 years)):</p>
 <li><a class="reference internal" href="#example-1-simple-indice-calculation">Example 1: simple indice calculation</a></li>
 <li><a class="reference internal" href="#example-2-multivariable-indice-calculation">Example 2: multivariable indice calculation</a></li>
 <li><a class="reference internal" href="#example-3-percentile-based-indices">Example 3: percentile-based indices</a></li>
+<li><a class="reference internal" href="#example-4-opendap-dataset-big-request">Example 4: OPeNDAP dataset, big request</a></li>
 </ul>
 </li>
 </ul>

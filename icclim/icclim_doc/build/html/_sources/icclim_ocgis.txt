@@ -164,3 +164,33 @@ Finally, to calculate the TG10p indice:
 >>> ops = ocgis.OcgOperations(dataset=rd,calc_grouping=calc_grouping,calc=calc, output_format='nc', prefix='indiceTG10p_1980_1989', add_auxiliary_files=False)
 >>> ops.execute()
 
+
+Example 4: OPeNDAP dataset, big request
+---------------------------------------
+If you want to process OPeNDAP datasets of total size more than for example the OPenDAP/THREDDS limit (500 Mbytes),
+use the `compute function <http://ncpp.github.io/ocgis/utility.html#ocgis.util.large_array.compute>`_ which processes data chunk-by-chunk:
+
+>>> from ocgis.util.large_array import compute
+
+This function takes the *tile_dimention* parameter,
+so first we need to find an optimal tile dimention (number of pixels) to get a chunk less than the the OPenDAP/THREDDS limit:
+
+>>> limit_opendap_mb = 475.0 # we reduce the limit on about 25 Mbytes (don't ask me why :) )
+>>> size = ops.get_base_request_size()
+>>> nb_time_coordinates_rd = size['variables']['tas']['temporal']['shape'][0]
+>>> element_in_kb = size['total']/reduce(lambda x,y: x*y,size['variables']['tas']['value']['shape'])
+>>> element_in_mb = element_in_kb*0.001
+>>> import numpy as np
+>>> tile_dim = np.sqrt(limit_opendap_mb/(element_in_mb*nb_time_coordinates_rd)) # maximum chunk size 
+
+.. note:: Chunks are cut along the time axis, i.e. a maximum chunk size in pixels is **tile_dimention** x **tile_dimention** x **number_time_steps**.
+
+.. figure:: /images/chunks.png
+   :scale: 90%
+
+
+Now we can use the compute function:
+
+>>> rd = ocgis.RequestDataset(input_files, variable='tas', time_range=[dt1, dt2])
+>>> ops = ocgis.OcgOperations(dataset=rd, calc=calc_icclim, calc_grouping=calc_grouping, prefix='indiceETR_1980_1989', add_auxiliary_files=False)
+>>> compute(ops, tile_dimension=tile_dim)
