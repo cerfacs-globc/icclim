@@ -398,7 +398,7 @@ def vDTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
 
 ###### heat indices
 
-def SU_calculation(arr, fill_val=None):
+def SU_calculation(arr, fill_val=None, threshold=None):
     '''
     Calculates the SU indice: number of summer days (i.e. days with daily maximum temperature > 25 degrees Celsius) [days].
     
@@ -406,16 +406,25 @@ def SU_calculation(arr, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
+    :param threshold: user defined temperature threshold in degrees Celsius (default: threshold=25)
+    :type threshold: float
 
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
     .. warning:: Units of "arr" must be Kelvin.
     
+    .. warning:: Units of "threshold" must be in Celsius.
+    
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    t = 25          # temperature threshold (degree Celsius)
+    # temperature threshold (degree Celsius)    
+    if threshold==None:
+        t = 25
+    else:
+        t = threshold
+    
     T = t + 273.15  # Celsius -> Kelvin
     
     arr_masked = get_masked_arr(arr, fill_val) 
@@ -429,7 +438,7 @@ def SU_calculation(arr, fill_val=None):
     
     return SU
 
-def CSU_calculation(arr, fill_val=None):
+def CSU_calculation(arr, fill_val=None, threshold=None):
 
     '''
     Calculates the CSU indice: maximum number of consecutive summer days (i.e. days with daily maximum temperature > 25 degrees Celsius) [days].
@@ -439,16 +448,25 @@ def CSU_calculation(arr, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
+    :param threshold: user defined temperature threshold in degrees Celsius (default: threshold=25)
+    :type threshold: float
     
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
     .. warning:: Units of "arr" must be Kelvin.
+        
+    .. warning:: Units of "threshold" must be in Celsius.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
-    t = 25          # temperature threshold (degree Celsius)
+    # temperature threshold (degree Celsius)    
+    if threshold==None:
+        t = 25
+    else:
+        t = threshold
+        
     T = t + 273.15  # Celsius -> Kelvin
     
     # if "arr" is a masked array, we fill it with its fill_value to transform it into a normal array (to pass after to C function!)
@@ -485,7 +503,7 @@ def CSU_calculation(arr, fill_val=None):
 
 
 
-def TR_calculation(arr, fill_val=None):
+def TR_calculation(arr, fill_val=None, threshold=None):
     '''
     Calculates the TR indice: number of tropical nights (i.e. days with daily minimum temperature > 20 degrees Celsius) [days]. 
     
@@ -493,16 +511,25 @@ def TR_calculation(arr, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
+    :param threshold: user defined temperature threshold in degrees Celsius (default: threshold=20)
+    :type threshold: float
     
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
     .. warning:: Units of "arr" must be Kelvin.
-    
+        
+    .. warning:: Units of "threshold" must be in Celsius.
+       
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    t = 20          # temperature threshold (degree Celsius)
+    # temperature threshold (degree Celsius)    
+    if threshold==None:
+        t = 20
+    else:
+        t = threshold
+        
     T = t + 273.15  # Celsius -> Kelvin
     
     arr_masked = get_masked_arr(arr, fill_val)
@@ -651,10 +678,10 @@ def HD17_calculation(arr, fill_val=None):
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
     .. warning:: Units of "arr" must be Kelvin.
-    
+       
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    
+
     t = 17          # temperature threshold (degree Celsius)
     T = t + 273.15  # Celsius -> Kelvin
     
@@ -684,11 +711,11 @@ def GD4_calculation(arr, fill_val=None):
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
     .. warning:: Units of "arr" must be Kelvin.
-    
+       
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    
-    t = 4          # temperature threshold (degree Celsius)    
+   
+    t = 4           # temperature threshold (degree Celsius)         
     T = t + 273.15  # Celsius -> Kelvin
     
     arr_masked = get_masked_arr(arr, fill_val)

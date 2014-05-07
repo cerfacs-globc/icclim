@@ -12,10 +12,10 @@ from netcdftime import utime
 #from progressbar import ProgressBar,Percentage,Bar
 import time
 
-import calc_indice
+from calc_indice import *
 import set_globattr
 import set_longname_units
-
+import set_longname_units_custom_indices
 
 
 def test():
@@ -503,7 +503,7 @@ def get_globindice(dict_indice, nb_rows, nb_columns):
     
     return glob_indice
 
-def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, ind, onc):
+def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, ind, onc, threshold):
     
     '''
     This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
@@ -512,6 +512,8 @@ def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, ind, 
     :type dict_timeStep_sub3Darr: dict
     :param indice_name: name of an indice
     :type indice_name: str
+    :param threshold: user defined threshold for certain indices 
+    :type threshold: float
     
     :rtype: dict (keys: datetime object, values: numpy.ndarray)
     
@@ -520,7 +522,11 @@ def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, ind, 
     mydict_indice={}
     
     for key in dict_timeStep_sub3Darr.keys():
-        tab2D = eval('calc_indice.' + indice_name + '_calculation(dict_timeStep_sub3Darr[key], fill_val)')
+        if threshold != None:
+            tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr[key], fill_val, threshold)')
+        else:
+            tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr[key], fill_val)')
+            
         mydict_indice[key]=tab2D
     
     return mydict_indice
@@ -568,6 +574,7 @@ def indice(in_files,
            time_range,
            slice_mode,
            project,
+           threshold=None,
            N_lev=None,
            callback=None):
     
@@ -588,7 +595,9 @@ def indice(in_files,
     :param slice_mode: "year" or "month" 
     :type slice_mode: str
     :param project: project name ("CMIP5" or "CORDEX")
-    :type slice_mode: str
+    :type project: str
+    :param threshold: user defined threshold for certain indices 
+    :type threshold: float
     
     :rtype: output NetCDF file name (str)
     
@@ -614,9 +623,9 @@ def indice(in_files,
     
     inc.close()
 
-    ind_type = 'f'    
-    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)
-       
+    ind_type = 'f'
+        
+    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)  
     
     dt_begin = time_range[0] # datetime object
     dt_end = time_range[1] # datetime object
@@ -683,7 +692,7 @@ def indice(in_files,
                     mydict_TimeStep_3DArray=get_dict_month_3Darr(values_current_chunk, time_steps_current_chunk)
                     
                 
-                mydict_indice=get_dict_timeStep_indice(mydict_TimeStep_3DArray, indice_name, fill_val, ind, onc)
+                mydict_indice=get_dict_timeStep_indice(mydict_TimeStep_3DArray, indice_name, fill_val, ind, onc, threshold)
                 
                 glob_dict_timeStep_indice.update(mydict_indice)
   
@@ -727,23 +736,33 @@ def indice(in_files,
     ## for all:
     #setglobattr_history(onc, indice_name, slice_mode, dt_begin, dt_end)
     #onc.setncattr('institution', '')
-    onc.setncattr('source', '') # Here soon will be source meta data
+    onc.setncattr('source', '') 
     #onc.setncattr('comment', '')   
     #onc.setncattr('reference', '')
+       
     
     # set global attributs
-    set_globattr.title(onc, indice_name)
+    
+    # title
+    if threshold != None:
+        onc.setncattr('title', 'Indice {0} with user defined threshold'.format(indice_name))
+    else:
+        set_globattr.title(onc, indice_name)
+        
     set_globattr.references(onc)
     set_globattr.comment(onc, indice_name)
     set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
     set_globattr.history2(onc, slice_mode, indice_name, time_range)
 
     # set variable attributs
-    eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
+    if threshold != None:
+        eval('set_longname_units_custom_indices.' + indice_name + '_setvarattr(ind, threshold)')
+    else:
+        eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
+        ind.setncattr('standard_name', 'ECA_indice')
     # for all:
     ind.missing_value = fill_val
-    ind.setncattr('standard_name', 'ECA_indice')
-
+    
     #print indice[1][:] # must be float or str!    
     #time_steps = [str(i) for i in indice[1][:]]
     
@@ -780,7 +799,8 @@ def get_dict_timeStep_indice_multivar(dict_timeStep_sub3Darr1, dict_timeStep_sub
     mydict_indice={}
     
     for key in dict_timeStep_sub3Darr1.keys():
-        tab2D = eval('calc_indice.' + indice_name + '_calculation(dict_timeStep_sub3Darr1[key], dict_timeStep_sub3Darr2[key], fill_val1, fill_val2)')
+        #tab2D = eval('calc_indice.' + indice_name + '_calculation(dict_timeStep_sub3Darr1[key], dict_timeStep_sub3Darr2[key], fill_val1, fill_val2)')
+        tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr1[key], dict_timeStep_sub3Darr2[key], fill_val1, fill_val2)')
         mydict_indice[key]=tab2D
     
     return mydict_indice
