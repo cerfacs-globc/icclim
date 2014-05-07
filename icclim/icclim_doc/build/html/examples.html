@@ -66,16 +66,20 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">1860</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">1890</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">indice</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;SU&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">],</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;year&#39;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="s">&#39;CMIP5&#39;</span><span class="p">,</span> <span class="n">N_lev</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">indice</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;SU&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">],</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;year&#39;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="s">&#39;CMIP5&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The output dataset will contain the SU indice (3D array) of 31 time steps (31 years).</p>
-<p>You can check metadata of the output file with &#8220;ncdump&#8221; command:</p>
+<p>If you want to get a derived indice from SU, CSU or TR indices, set the &#8220;threshold&#8221; parameter:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">indice</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;SU&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">],</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;year&#39;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="s">&#39;CMIP5&#39;</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Check metadata of the output file with &#8220;ncdump&#8221; command:</p>
 <div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ncdump -h indice_SU_year_1860-1890.nc
 <span class="o">[</span>...<span class="o">]</span>
 </pre></div>
 </div>
-<p>Check also <em>time</em> and <em>time_bnds</em> variables:</p>
+<p>Check <em>time</em> and <em>time_bnds</em> variables:</p>
 <div class="highlight-sh"><div class="highlight"><pre><span class="nv">$ </span>ncdump -v <span class="nb">time </span>indice_SU_year_1860-1890.nc -t
 <span class="o">[</span>...<span class="o">]</span>
 </pre></div>

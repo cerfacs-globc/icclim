@@ -6,7 +6,7 @@ Main functions
 
 The function to calculate a simple indice (i.e. based on one variable):
 
-.. function:: indice(in_files, out_file, var, indice_name, time_range, slice_mode, project, N_lev=None):
+.. function:: indice(in_files, out_file, var, indice_name, time_range, slice_mode, project, threshold=None):
     
     
     This function returns result NetCDF file containing a climate indice.
@@ -26,8 +26,8 @@ The function to calculate a simple indice (i.e. based on one variable):
     :type slice_mode: str
     :param project: project name ("CMIP5" or "CORDEX")
     :type project: str
-    :param N_lev: level number if 4D variable (dafault: N_lev=None)
-    :type N_lev: int
+    :param threshold: user defined threshold for certain indices 
+    :type threshold: float
     
     :rtype: output NetCDF file
 
@@ -136,5 +136,6 @@ These functions, manipulating 3D arrays, could be reused in other environments. 
          
   
     .. warning:: "arr1" and "arr2" must be both the same type, have the same shape and be corresponding to the same time step vector.
+
 
 
