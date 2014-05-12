@@ -142,7 +142,7 @@ We do the same for reference period (usually the
 reference period is the 1961-1990 (30 years)):
 
 >>> dt1_ref = datetime.datetime(1961, 01, 01)
->>> dt2_ref = datetime.datetime(1990, 01, 01)
+>>> dt2_ref = datetime.datetime(1990, 12, 31)
 >>> time_range_ref = [dt1_ref, dt2_ref]
 >>> rd_ref = ocgis.RequestDataset(tas_files, 'tas', time_range=time_range_ref)
 >>> basis_ref = rd_ref.get() # OCGIS data object
