@@ -90,8 +90,8 @@ Each indice is calculated as annual or monthly values.
 |DTR, ETR, vDTR                                              |  daily minimum + daily maimum temperature   |
 +------------------------------------------------------------+---------------------------------------------+
 |                                                            |                                             |
-|RR, RR1, SDII, CWD, CDD, R10mm, R20mm, RX1day, RX5day       |  daily precipitation (liquide phase)        |
+|RR, RR1, SDII, CWD, CDD, R10mm, R20mm, RX1day, RX5day       |  daily precipitation flux (liquide phase)   |
 +------------------------------------------------------------+---------------------------------------------+
-|SD, SD1, SD5cm, SD50cm                                      |  daily precipitation (solid phase)          |
+|SD, SD1, SD5cm, SD50cm                                      |  daily snowfall flux (solid phase)          |
 +------------------------------------------------------------+---------------------------------------------+
 
