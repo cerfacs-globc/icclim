@@ -51,7 +51,7 @@ For the moment you can calculate only the indices in bold (the others are in dev
         - **R10mm**
         - **R20mm**
         - **RX1day**
-        - RX5day
+        - **RX5day**
         - R75p
         - R75pTOT
         - R95p
