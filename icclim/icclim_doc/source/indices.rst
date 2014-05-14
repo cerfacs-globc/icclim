@@ -3,7 +3,7 @@
 Indices
 ===============================
 
-For the moment you can calculate only the indices in bold (the others are in development).   
+For the moment you can calculate the indices in bold (the others are in development).   
 
 - Temperature indices (based on the temperature variable, e.g. "tas"/"tasmax"/"tasmin") 
     * temperature
