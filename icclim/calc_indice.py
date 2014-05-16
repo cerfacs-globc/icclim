@@ -1153,7 +1153,7 @@ def SD1_calculation(arr, fill_val=None):
     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
     arr_masked = (arr_masked*60*60*24)*0.1      # cm/day
     
-    arr_masked_bool = (arr_masked >= pr_thresh) # array with True/False values
+    arr_masked_bool = (arr_masked >= sd_thresh) # array with True/False values
     SD1 = arr_masked_bool.sum(axis=0)
     numpy.ma.set_fill_value(SD1, arr_masked.fill_value)
     
@@ -1185,7 +1185,7 @@ def SD5_calculation(arr, fill_val=None):
     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
     arr_masked = (arr_masked*60*60*24)*0.1      # cm/day
     
-    arr_masked_bool = (arr_masked >= pr_thresh) # array with True/False values
+    arr_masked_bool = (arr_masked >= sd_thresh) # array with True/False values
     SD5 = arr_masked_bool.sum(axis=0)
     numpy.ma.set_fill_value(SD5, arr_masked.fill_value)
     
@@ -1217,7 +1217,7 @@ def SD50_calculation(arr, fill_val=None):
     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
     arr_masked = (arr_masked*60*60*24)*0.1      # cm/day
     
-    arr_masked_bool = (arr_masked >= pr_thresh) # array with True/False values
+    arr_masked_bool = (arr_masked >= sd_thresh) # array with True/False values
     SD50 = arr_masked_bool.sum(axis=0)
     numpy.ma.set_fill_value(SD50, arr_masked.fill_value)
     
