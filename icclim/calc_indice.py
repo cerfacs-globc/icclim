@@ -311,10 +311,10 @@ def DTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     
     range_ = arr1_masked - arr2_masked                              # masked array with fill_value = fill_value of the first masked array in expression (i.e. arr1_masked)
     DTR = range_.mean(axis=0)                           # masked array with new fill_value
-    numpy.ma.set_fill_value(DTR, arr1_masked.fill_value1)      # we set a fill_value = fill_value of arr1_masked (or arr2_masked) 
+    numpy.ma.set_fill_value(DTR, arr1_masked.fill_value)      # we set a fill_value = fill_value of arr1_masked (or arr2_masked) 
     
     if not isinstance(arr1, numpy.ma.MaskedArray) :     # or if not isinstance(arr2, numpy.ma.MaskedArray) [because the both input arrays are the same type]
-        DTR = DTR.filled(fill_value=arr1_masked.fill_value1)      
+        DTR = DTR.filled(fill_value=arr1_masked.fill_value)      
     
     return DTR    
     
@@ -349,10 +349,10 @@ def ETR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     max_arr1_masked = arr1_masked.max(axis=0)   # masked array with new fill_value (default)
     min_arr2_masked = arr2_masked.min(axis=0)   # masked array with new fill_value (default)
     ETR = max_arr1_masked - min_arr2_masked     # masked array with new fill_value (default)
-    numpy.ma.set_fill_value(ETR, arr1_masked.fill_value1)
+    numpy.ma.set_fill_value(ETR, arr1_masked.fill_value)
     
     if not isinstance(arr1, numpy.ma.MaskedArray) :     
-        ETR = ETR.filled(fill_value=arr1_masked.fill_value1)      
+        ETR = ETR.filled(fill_value=arr1_masked.fill_value)      
     
     return ETR 
     
@@ -388,10 +388,10 @@ def vDTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     b = arr1_masked[:-1] - arr2_masked[:-1]
     c = abs(a-b)
     vDTR = c.mean(axis=0)
-    numpy.ma.set_fill_value(vDTR, arr1_masked.fill_value1)
+    numpy.ma.set_fill_value(vDTR, arr1_masked.fill_value)
     
     if not isinstance(arr1, numpy.ma.MaskedArray) :     
-        vDTR = vDTR.filled(fill_value=arr1_masked.fill_value1)      
+        vDTR = vDTR.filled(fill_value=arr1_masked.fill_value)      
     
     return vDTR
 
