@@ -1163,9 +1163,9 @@ def SD1_calculation(arr, fill_val=None):
     return SD1
 
 
-def SD5_calculation(arr, fill_val=None):
+def SD5cm_calculation(arr, fill_val=None):
     '''
-    Calculates the SD5 indice: number of days with snow depth >= 5 cm [days]
+    Calculates the SD5cm indice: number of days with snow depth >= 5 cm [days]
     
     :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/s
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -1186,18 +1186,18 @@ def SD5_calculation(arr, fill_val=None):
     arr_masked = (arr_masked*60*60*24)*0.1      # cm/day
     
     arr_masked_bool = (arr_masked >= sd_thresh) # array with True/False values
-    SD5 = arr_masked_bool.sum(axis=0)
-    numpy.ma.set_fill_value(SD5, arr_masked.fill_value)
+    SD5cm = arr_masked_bool.sum(axis=0)
+    numpy.ma.set_fill_value(SD5cm, arr_masked.fill_value)
     
     if not isinstance(arr, numpy.ma.MaskedArray):
-        SD5 = SD5.filled(fill_value=arr_masked.fill_value) 
+        SD5cm = SD5cm.filled(fill_value=arr_masked.fill_value) 
     
-    return SD5
+    return SD5cm
 
 
-def SD50_calculation(arr, fill_val=None):
+def SD50cm_calculation(arr, fill_val=None):
     '''
-    Calculates the SD50 indice: number of days with snow depth >= 50 cm [days]
+    Calculates the SD50cm indice: number of days with snow depth >= 50 cm [days]
     
     :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/s
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -1218,10 +1218,10 @@ def SD50_calculation(arr, fill_val=None):
     arr_masked = (arr_masked*60*60*24)*0.1      # cm/day
     
     arr_masked_bool = (arr_masked >= sd_thresh) # array with True/False values
-    SD50 = arr_masked_bool.sum(axis=0)
-    numpy.ma.set_fill_value(SD50, arr_masked.fill_value)
+    SD50cm = arr_masked_bool.sum(axis=0)
+    numpy.ma.set_fill_value(SD50cm, arr_masked.fill_value)
     
     if not isinstance(arr, numpy.ma.MaskedArray):
-        SD50 = SD50.filled(fill_value=arr_masked.fill_value) 
+        SD50cm = SD50cm.filled(fill_value=arr_masked.fill_value) 
     
-    return SD50   
+    return SD50cm   
