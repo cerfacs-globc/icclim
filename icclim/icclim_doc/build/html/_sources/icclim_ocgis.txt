@@ -23,6 +23,19 @@ Important to know
     - ID
     - HD17
     - GD4
+    - RR
+    - RR1
+    - CWD
+    - SDII
+    - R10mm
+    - R20mm
+    - RX1day
+    - RX5day
+    - SD
+    - SD1
+    - SD5cm
+    - SD50cm
+    - CDD
     
     - DTR
     - ETR
