@@ -17,6 +17,8 @@ import set_globattr
 import set_longname_units
 import set_longname_units_custom_indices
 
+from calc_indice_perc import *
+
 
 def test():
     print my_rep
@@ -994,3 +996,179 @@ def indice_multivar(in_files1, var1,
     onc.close()
     
     return out_file
+
+
+def perc_indice(in_files, out_file, var, time_range, indice_name, percentile_dict, slice_mode, project, N_lev=None):
+    
+    '''
+    Documenter !!!!!!!!!!!!!!!
+    '''
+    
+
+       
+    #callback("Init Opening "+in_files[0],0);
+    inc = Dataset(in_files[0], 'r')
+    #callback("Finished opening "+in_files[0],0);
+    
+    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
+    
+    fill_val = get_att_value(inc, var, '_FillValue')
+
+    indice_dim = copy_var_dim(inc, onc, var, project) # tuple ('time', 'lat', 'lon')
+    
+    nb_rows = inc.variables[indice_dim[1]].shape[0]
+    nb_columns = inc.variables[indice_dim[2]].shape[0]
+    
+    calend = get_att_value(inc, indice_dim[0], 'calendar')
+    units = get_att_value(inc, indice_dim[0], 'units')
+    
+    inc.close()
+
+    ind_type = 'f'
+        
+    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)  
+    
+    dt_begin = time_range[0] # datetime object
+    dt_end = time_range[1] # datetime object
+    
+    ############################
+    glob_dict_timeStep_indice = {}
+    ############################
+    
+    #j=0
+    #pbar_files = ProgressBar(widgets=[Percentage(),' ', Bar()], maxval=len(in_files)).start()
+    
+    total_nb_years_to_process = dt_end.year -dt_begin.year + 1
+    
+    for ifile in in_files:
+        
+        
+        #pbar_files.widgets[1]= ' processing file ' +str(j+1)
+        #time.sleep(1.01)
+        #pbar_files.update(j+1)
+        #j+=1
+        
+        #callback("Opening "+ifile,0);
+        nc = Dataset(ifile, 'r')
+        
+        time_steps_vect = get_list_dates_from_nc(nc, 'dt') 
+        
+        dict_year_chunk = get_dict_year_chunk(time_steps_vect)   
+        #print dict_year_chunk
+        
+        if N_lev==None:
+            values = nc.variables[var]
+        else:
+            values = nc.variables[var][:,N_lev,:,:]
+        
+        
+        #pbar = ProgressBar(widgets=['',Percentage(), Bar()], maxval=len(dict_year_chunk.keys())).start()
+        #i=0
+        
+        currentStep=1
+        totalSteps=len(dict_year_chunk.keys())
+        
+        counter_year = 0
+        for year in sorted(dict_year_chunk.keys()):
+
+            #pbar.widgets[0]= ' <'+str(year)+' processed> '
+            
+            percentageComplete = (currentStep/totalSteps)*100
+            #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
+            
+            
+
+            
+            if year>=dt_begin.year and year<=dt_end.year:
+                
+                #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
+                
+                i1 = dict_year_chunk[year][0]
+                i2 = dict_year_chunk[year][1]
+                #print i1, i2
+                values_current_chunk = values[i1:i2+1,:,:] # on charge les donnees (pour 1 annee) pour faire le traitement
+                time_steps_current_chunk = numpy.array(time_steps_vect[i1:i2+1])
+                
+               
+                
+                if (slice_mode=='year'):
+                    mydict_TimeStep_3DArray=get_dict_year_3Darr(values_current_chunk, time_steps_current_chunk)
+                    mydict_TimeStep_dtarr = get_dict_year_dtarr(time_steps_current_chunk)
+                elif (slice_mode=='month'):
+                    mydict_TimeStep_3DArray=get_dict_month_3Darr(values_current_chunk, time_steps_current_chunk)
+                    mydict_TimeStep_dtarr = get_dict_month_dtarr(time_steps_current_chunk)
+                
+                mydict_indice=get_dict_timeStep_indice_perc(mydict_TimeStep_3DArray, mydict_TimeStep_dtarr, percentile_dict, indice_name, fill_val)
+                
+                glob_dict_timeStep_indice.update(mydict_indice)
+                
+
+
+                del values_current_chunk, time_steps_current_chunk
+  
+                print "Processed: ", year
+                
+                #counter_year = counter_year + 1
+                #print counter_year, total_nb_years_to_process
+
+                #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
+                #print status
+                
+            #else:
+                #print "data not processed ", year
+                #callback("Skipping year %d" % year,percentageComplete)
+
+            #time.sleep(0.01)
+        #    #time.sleep(1.01)
+        #    pbar.update(i+1)
+        #    i+=1
+        #
+        #pbar.finish()
+        
+        nc.close()
+        
+        
+
+    #pbar_files.finish()
+        
+    #print '---'    
+    #print sorted(glob_dict_timeStep_indice.keys())
+    #print '---'     
+    
+    glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
+    
+    ind[:,:,:] = glob_indice[0][:,:,:]
+    
+
+    onc.setncattr('source', '') 
+
+    # set global attributs
+    
+    # title
+
+    set_globattr.title(onc, indice_name)        
+    set_globattr.references(onc)
+    set_globattr.comment(onc, indice_name)
+    set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
+    set_globattr.history2(onc, slice_mode, indice_name, time_range)
+
+    # set variable attributs
+
+    eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
+    ind.setncattr('standard_name', 'ECA_indice')
+    # for all:
+    ind.missing_value = fill_val
+    
+    #print indice[1][:] # must be float or str!    
+    #time_steps = [str(i) for i in indice[1][:]]
+    
+    time_steps_indice_dt = glob_indice[1][:]
+    time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
+    
+    set_time_values(onc, time_steps_indice_dt, calend, units)
+    set_timebnds_values(onc, time_bnds_dt, calend, units)
+    
+    onc.close()
+    
+    return out_file
+
