@@ -998,6 +998,76 @@ def indice_multivar(in_files1, var1,
     return out_file
 
 
+
+
+
+def get_dict_year_dtarr(dt_arr):
+    '''
+    This function returns a dictionary, where keys = years, and values = sub dt array.
+    
+    '''
+    
+    all_years=get_all_years(dt_arr)
+    mydict_years={}
+    for i in range(len(all_years)):
+        key = all_years[i]
+        bounds =get_time_bnds(all_years[i],'year')
+        mask = (dt_arr>=bounds[0]) & (dt_arr<=bounds[1])
+        sub_dtarr = dt_arr[mask]
+        mydict_years[key]=sub_dtarr
+        
+    return mydict_years    
+
+
+def get_dict_month_dtarr(dt_arr):
+    '''
+    This function returns a dictionary, where keys = months, and values = sub dt array.
+    
+    '''
+    
+    all_months=get_all_months(dt_arr)
+    mydict_months={}
+    for i in range(len(all_months)):
+        key = all_months[i] 
+        bounds =get_time_bnds(all_months[i],'month')
+        mask = (dt_arr>=bounds[0]) & (dt_arr<=bounds[1])
+        sub_dtarr = dt_arr[mask]
+        mydict_months[key]=sub_dtarr
+        
+    return mydict_months  
+
+
+def get_dict_timeStep_indice_perc(dict_timeStep_sub3Darr, dict_timeStep_dtarr, percentile_dict, indice_name, fill_val):
+
+    '''
+    This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
+    
+    :param dict_timeStep_sub3Darr: dictionary where a sub 3D array associated for one time step
+    :type dict_timeStep_sub3Darr: dict
+    :param dict_timeStep_dtarr: dictionary where a sub datetime array associated for one time step (the same time step as in "dict_timeStep_sub3Darr")
+    :type dict_timeStep_dtarr: dict
+    
+    :param indice_name: name of an indice
+    :type indice_name: str
+    :param threshold: user defined threshold for certain indices 
+    :type threshold: float
+    
+    :rtype: dict (keys: datetime object, values: numpy.ndarray)
+    
+    '''
+  
+    mydict_indice={}
+    
+    for key in dict_timeStep_sub3Darr.keys():
+       
+        tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr[key], dict_timeStep_dtarr[key], percentile_dict, fill_val)')
+            
+        mydict_indice[key]=tab2D
+    
+    return mydict_indice
+
+
+
 def perc_indice(in_files, out_file, var, time_range, indice_name, percentile_dict, slice_mode, project, N_lev=None):
     
     '''
