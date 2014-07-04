@@ -339,6 +339,92 @@ void find_GSL_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *
 
 
 
+
+
+
+
+
+
+///////////////////////////// WSDI and CSDI indices (counting numbers when consecutive sequence is at least of 6)
+
+
+
+// same as getElementAt, but returns 0 if t == sizeT
+// we simulate an additionnal zero at the end of the array (ref: WSDI_CSDI_1d)
+double getElementAt_2(const float *table, int t, int i, int j){
+    if (t==sizeT) return 0;
+    else return getElementAt(table,  t,  i,  j);
+}
+
+
+// for a 1D array, find     
+int WSDI_CSDI_1d(const float *indata,int i, int j, int N)
+
+// equivalent code in Python:
+/*
+sum_glob = 0
+sum_portion = 0
+
+for i in range(len(a)):
+    
+    a = numpy.append(a, 0)
+    
+    if a[i]==1:
+        sum_portion += 1
+        
+        if sum_portion >= N and a[i+1]==0: 
+            sum_glob += sum_portion
+            
+            
+    elif a[i]==0:
+        sum_portion = 0
+*/
+
+    {
+        int sum_portion = 0;
+        int sum_glob = 0;
+        int val;
+        int t;
+      
+        for (t = 0; t < sizeT; t++)
+            {
+                val = getElementAt_2(indata,t,i,j);
+                
+                if (val == 1)
+                    {
+                    sum_portion += 1;
+        
+                    if (sum_portion >= N && getElementAt_2(indata,t+1,i,j) == 0)  sum_glob += sum_portion;
+                    
+                        
+                    }
+                    
+                else if (val == 0) sum_portion = 0;
+            }
+        
+    return sum_glob;
+        
+    }
+
+
+// fonction appelee depus python 
+void WSDI_CSDI_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, int N) 
+    {
+        setGlobalVariables(_sizeT,_sizeI,_sizeJ);
+        int i,j;
+        
+        for (i = 0; i < sizeI; i++)
+            {
+                for (j = 0; j < sizeJ; j++)
+                    {
+                        outdata[i*sizeJ+j] = WSDI_CSDI_1d(indata,i,j,N); 
+                    }
+            }
+    }
+
+
+
+
     
 //void main(){
 //    
