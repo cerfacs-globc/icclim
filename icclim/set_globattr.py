@@ -18,13 +18,13 @@ def title(out_nc, indice_name):
     
     if indice_name in ['TG', 'TX', 'TN', 'DTR', 'ETR', 'vDTR']:
         indice_group = 'temperature'
-    elif indice_name in ['SU', 'TR', 'CSU', 'TXx', 'TNx']:
+    elif indice_name in ['SU', 'TR', 'CSU', 'TXx', 'TNx', 'TG90p', 'TX90p', 'TN90p', 'WSDI']:
         indice_group = 'heat'
-    elif indice_name in ['GD4', 'GSL', 'FD', 'CFD', 'HD17','ID', 'TXn', 'TNn']:
+    elif indice_name in ['GD4', 'GSL', 'FD', 'CFD', 'HD17','ID', 'TXn', 'TNn', 'TG10p', 'TX10p', 'TN10p', 'CSDI']:
         indice_group = 'cold'
     elif indice_name in ['CDD']:
         indice_group = 'drought' 
-    elif indice_name in ['RR', 'RR1', 'SDII', 'CWD', 'R10mm', 'R20mm', 'RX1day', 'RX5day']:
+    elif indice_name in ['RR', 'RR1', 'SDII', 'CWD', 'R10mm', 'R20mm', 'RX1day', 'RX5day', 'R75p', 'R95p', 'R99p', 'R75TOT', 'R95TOT', 'R99TOT']:
         indice_group = 'rain'
     elif indice_name in ['SD','SD1', 'SD5cm', 'SD50cm']:
         indice_group = 'snow'
