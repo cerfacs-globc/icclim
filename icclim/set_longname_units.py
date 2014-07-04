@@ -128,3 +128,60 @@ def GD4_setvarattr(var_nc):
 def GSL_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Growing season length')
     var_nc.setncattr('units', 'days') 
+
+def TG90p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Number of warm days')
+    var_nc.setncattr('units', 'days')
+    
+def TX90p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Number of warm day-times')
+    var_nc.setncattr('units', 'days')
+        
+def TN90p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Number of warm nights')
+    var_nc.setncattr('units', 'days')
+    
+def TG10p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Number of cold days')
+    var_nc.setncattr('units', 'days')
+    
+def TX10p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Number of cold day-times')
+    var_nc.setncattr('units', 'days')
+    
+def TN10p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Number of cold nights')
+    var_nc.setncattr('units', 'days')
+    
+def WSDI_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Warm-spell duration index')
+    var_nc.setncattr('units', 'days')
+    
+def CSDI_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Cold-spell duration index')
+    var_nc.setncattr('units', 'days')
+    
+def R75p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Moderate wet days')
+    var_nc.setncattr('units', 'days')
+    
+def R95p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Very wet days')
+    var_nc.setncattr('units', 'days')
+    
+def R99p_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Extremely wet days')
+    var_nc.setncattr('units', 'days')
+    
+def R75TOT_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Precipitation fraction due to moderate wet days')
+    var_nc.setncattr('units', '%')
+    
+def R95TOT_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Precipitation fraction due to very wet days')
+    var_nc.setncattr('units', '%')
+    
+def R99TOT_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Precipitation fraction due to extremely wet days')
+    var_nc.setncattr('units', '%')
+
