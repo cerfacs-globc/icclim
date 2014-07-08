@@ -149,10 +149,11 @@ def TX90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     return TX90p
     
 
-def WSDI_calculation(arr, dt_arr, percentile_dict, N=6, fill_val=None):
+def WSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6):
     '''
     Calculate the WSDI indice (warm-spell duration index): number of days where, in intervals of at least 6 consecutive days, 
     daily max temperature > 90th percentile of daily max temperature in the 1961-1990 period).
+    This function calls C function "WSDI_CSDI_3d" from libC.c
     
     :param arr: daily max temperature (e.g. "tasmax")
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -160,10 +161,10 @@ def WSDI_calculation(arr, dt_arr, percentile_dict, N=6, fill_val=None):
     :type dt_arr: numpy.ndarray (1D) of datetime objects
     :param percentile_dict: 90th percentile of daily max temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
     :type percentile_dict: dict
-    :param N: number of consecutive days (default: 6)
-    :type N: int
     :param fill_val: fill value
     :type fill_val: float
+    :param N: number of consecutive days (default: 6)
+    :type N: int
     
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
         or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
@@ -177,7 +178,7 @@ def WSDI_calculation(arr, dt_arr, percentile_dict, N=6, fill_val=None):
     arr_masked = get_masked_arr(arr, fill_val)
     
     # step1: we get a 3D binary array from arr (if arr value > corresponding 90th percentile value: 1, else: 0)    
-    bin_arr = numpy.zeros((arr.shape[1], arr.shape[2]))
+    bin_arr = numpy.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
     
     i=0
     for dt in dt_arr:
@@ -416,6 +417,82 @@ def TN10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
         TN10p = TN10p.filled(fill_value=arr_masked.fill_value)    
     
     return TN10p    
+
+
+def CSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6):
+    '''
+    Calculate the CSDI indice (cold-spell duration index): number of days where, in intervals of at least 6 consecutive days, 
+    daily min temperature < 10th percentile of daily min temperature in the 1961-1990 period).
+    This function calls C function "WSDI_CSDI_3d" from libC.c
+    
+    :param arr: daily min temperature (e.g. "tasmin")
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 10th percentile of daily max temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    :param N: number of consecutive days (default: 6)
+    :type N: int
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+    
+    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+ 
+    arr_masked = get_masked_arr(arr, fill_val)
+    
+    # step1: we get a 3D binary array from arr (if arr value < corresponding 10th percentile value: 1, else: 0)    
+    bin_arr = numpy.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
+    
+    i=0
+    for dt in dt_arr:
+        
+        # current calendar day
+        m = dt.month
+        d = dt.day
+
+        current_perc_arr = percentile_dict[m,d]
+        
+        # we are looking for the values which are less than the 10th percentile  
+        bin_arr_current_slice = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='lt') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        bin_arr_current_slice = bin_arr_current_slice.filled(fill_value=0) # we fill the bin_arr_current_slice with zeros
+        bin_arr[i,:,:] = bin_arr_current_slice
+
+        i+=1
+    
+    # step2: now we will pass our 3D binary array (bin_arr) to C function WSDI_CSDI_3d
+    
+    # array data type should be 'float32' to pass it to C function  
+    if bin_arr.dtype != 'float32':
+        bin_arr = numpy.array(bin_arr, dtype='float32')
+    
+    
+    WSDI_CSDI_C = libraryC.WSDI_CSDI_3d    
+    WSDI_CSDI_C.restype = None
+    WSDI_CSDI_C.argtypes = [ndpointer(ctypes.c_float),
+                            ctypes.c_int,
+                            ctypes.c_int,
+                            ctypes.c_int,
+                            ndpointer(ctypes.c_double),
+                            ctypes.c_int] 
+        
+    CSDI = numpy.zeros([arr.shape[1], arr.shape[2]]) # reserve memory
+        
+    WSDI_CSDI_C(bin_arr, bin_arr.shape[0], bin_arr.shape[1], bin_arr.shape[2], CSDI, N)
+    
+    CSDI = CSDI.reshape(arr.shape[1], arr.shape[2])
+    
+    if isinstance(arr, numpy.ma.MaskedArray):
+        CSDI = numpy.ma.array(CSDI, mask=(CSDI==fill_val), fill_value=fill_val)
+
+    return CSDI
+
     
 
 def R75p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
