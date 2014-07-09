@@ -1068,7 +1068,7 @@ def get_dict_timeStep_indice_perc(dict_timeStep_sub3Darr, dict_timeStep_dtarr, p
 
 
 
-def perc_indice(in_files, out_file, var, time_range, indice_name, percentile_dict, slice_mode, project, N_lev=None):
+def indice_perc(in_files, out_file, var, time_range, indice_name, percentile_dict, slice_mode, project, N_lev=None):
     
     '''
     Documenter !!!!!!!!!!!!!!!
