@@ -2,7 +2,11 @@ import numpy
 
 import ctypes
 from numpy.ctypeslib import ndpointer
-libraryC = ctypes.cdll.LoadLibrary('./libC.so')
+import os
+
+my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
+
+libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
 ############# utility functions: begin #############
 def get_binary_arr(arr1, arr2, logical_operation):
