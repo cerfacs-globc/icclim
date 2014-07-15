@@ -3,6 +3,7 @@ import numpy
 import ctypes
 from numpy.ctypeslib import ndpointer
 import os
+import calc_indice
 
 my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
@@ -653,42 +654,6 @@ def R99p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     return R99p
 
 
-
-
-
-###############################################################################################################
-
-def RR_calculation(arr, fill_val=None):
-    '''
-    Calculates the RR indice: precipitation sum [mm]
-    
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
-    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    :param fill_val: fill value 
-    :type fill_val: float
-    
-    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
-         or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
-         
-    .. warning:: Units of "arr" must be mm/s.
-    
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
-    '''
-    
-    arr_masked = get_masked_arr(arr, fill_val)  # mm/s    
-    arr_masked = arr_masked*60*60*24            # mm/day
-    
-    RR = arr_masked.sum(axis=0)
-    numpy.ma.set_fill_value(RR, arr_masked.fill_value)
-    
-    if not isinstance(arr, numpy.ma.MaskedArray):
-        RR = RR.filled(fill_value=arr_masked.fill_value) 
-    
-    return RR
-
-###############################################################################################################
-
-
 def R75TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
     Calculate the R75TOT indice: precipitation fraction due to moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the 1961-1990 period) [%]
@@ -736,7 +701,7 @@ def R75TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
         i+=1
     
     # we calculate the denominator: all sum for the period
-    denominator = RR_calculation(arr, fill_val)
+    denominator = calc_indice.RR_calculation(arr, fill_val)
     
     if isinstance(denominator, numpy.ma.MaskedArray):
         denominator = denominator.filled(fill_value=-1) # we fill with -1
