@@ -7,7 +7,7 @@ Natalia Tatarinova: natalia.tatarinova@cerfacs.fr
 
 import numpy
 from datetime import datetime, timedelta
-from netCDF4 import num2date, date2num, Dataset
+from netCDF4 import num2date, date2num, Dataset, MFDataset
 from netcdftime import utime
 #from progressbar import ProgressBar,Percentage,Bar
 import time
@@ -17,6 +17,7 @@ import set_globattr
 import set_longname_units
 import set_longname_units_custom_indices
 
+import percentile_dict
 from calc_indice_perc import *
 
 
@@ -776,6 +777,8 @@ def indice(in_files,
     
     onc.close()
     
+    print "Indice " + indice_name + ": OK"
+    
     return out_file
 
 
@@ -995,6 +998,8 @@ def indice_multivar(in_files1, var1,
     
     onc.close()
     
+    print "Indice " + indice_name + ": OK"
+    
     return out_file
 
 
@@ -1065,6 +1070,81 @@ def get_dict_timeStep_indice_perc(dict_timeStep_sub3Darr, dict_timeStep_dtarr, p
         mydict_indice[key]=tab2D
     
     return mydict_indice
+
+
+
+
+
+
+def get_indices_subset(dt_arr, time_range):
+    '''
+    Returns indices for time subset.
+    
+    :param dt_arr: time steps vector
+    :type dt_arr: numpy.ndarray of datetime objects
+    :param time_range: time range
+    :type time_range: [datetime1, datetime2]
+    
+    '''
+    
+    dt1 = time_range[0]
+    dt2 = time_range[1]
+    
+
+    if dt1 >= dt_arr[0] and dt2 <= dt_arr[-1]:
+
+        mask_dt_arr = numpy.logical_or(dt_arr<dt1, dt_arr>dt2)
+        
+        indices_non_masked = numpy.where(mask_dt_arr==False)[0]
+
+        return indices_non_masked
+        
+    else:    
+        print 'The time range is not included in the input time steps array.'
+
+
+def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=None, only_leap_years=False):
+    '''
+    rtype: dict
+    
+    .. warning:: only for 3D variable
+    
+    '''
+    
+    nc = MFDataset(in_files, 'r')
+    
+    var = nc.variables[var]
+    
+    var_time = nc.variables['time']    
+    time_calend = var_time.calendar
+    time_units = var_time.units    
+    
+
+    arr = var[:,:,:]        
+    time_arr = var_time[:]
+    dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
+
+    if time_range == None:
+        base_arr = arr
+        dt_base_arr = dt_arr
+        
+    else:        
+        indices_subset = get_indices_subset(dt_arr, time_range)
+
+        base_arr = arr[indices_subset,:,:].squeeze()
+        dt_base_arr = dt_arr[indices_subset].squeeze()
+                
+    del arr, time_arr, dt_arr  
+    
+    
+    dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years)
+    
+    return dic
+
+
+
+
+
 
 
 
@@ -1239,6 +1319,8 @@ def indice_perc(in_files, out_file, var, time_range, indice_name, percentile_dic
     set_timebnds_values(onc, time_bnds_dt, calend, units)
     
     onc.close()
+    
+    print "Indice " + indice_name + ": OK"
     
     return out_file
 
