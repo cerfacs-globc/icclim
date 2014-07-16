@@ -165,9 +165,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     :type only_leap_years: bool
     
     :rtype: dict
-    
-    ..warning:: for window_width=5: if only_leap_years == True, then ...
-     (add example !!!)
+
     
     '''
     
@@ -207,28 +205,5 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
 
 
 
-
-#################### example
-#
-#import time
-#start1 = time.time()
-#
-#files = ['/home/globc/tatarinova/Downloads/tasmax_day_EC-EARTH_rcp26_r8i1p1_20800101-20841231.nc']
-#
-#import netCDF4
-#nc = netCDF4.MFDataset(files, 'r')
-#base_arr = nc.variables['tasmax'][:,:,:]
-#
-#time_base_arr = nc.variables['time'][:]
-#
-## time_base_arr to datetime array
-#dt_base_arr = numpy.array([num2date(dt, calend="standard", units="days since 2006-01-01 00:00:00") for dt in time_base_arr])
-#
-#dic = get_percentile_dict(base_arr, dt_base_arr, percentile=90, window_width=5,only_leap_years=False)
-#
-#stop1 = time.time()
-#
-#time1 = stop1 - start1
-#print "creating dict: ", time1
 
 
