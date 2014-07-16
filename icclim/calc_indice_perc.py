@@ -67,7 +67,7 @@ def TG90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 90th percentile of daily mean temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :param percentile_dict: 90th percentile of daily mean temperature 
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -115,7 +115,7 @@ def TX90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 90th percentile of daily max temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :param percentile_dict: 90th percentile of daily max temperature 
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -164,7 +164,7 @@ def WSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 90th percentile of daily max temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :param percentile_dict: 90th percentile of daily max temperature 
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -241,7 +241,7 @@ def TN90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 90th percentile of daily min temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :param percentile_dict: 90th percentile of daily min temperature 
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -290,7 +290,7 @@ def TG10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 10th percentile of daily mean temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :param percentile_dict: 10th percentile of daily mean temperature 
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -338,7 +338,7 @@ def TX10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 10th percentile of daily max temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :param percentile_dict: 10th percentile of daily max temperature 
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -385,7 +385,7 @@ def TN10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 10th percentile of daily min temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :param percentile_dict: 10th percentile of daily min temperature 
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -434,7 +434,7 @@ def CSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 10th percentile of daily max temperature ( percentile_dict[month,day] = 2D_numpy.ndarray )
+    :param percentile_dict: 10th percentile of daily max temperature 
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -508,7 +508,7 @@ def R75p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 75th percentile of daily precipitation amount at wet days ( percentile_dict[month,day] = 2D_numpy.ndarray ) in mm/day
+    :param percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -559,7 +559,7 @@ def R95p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 95th percentile of daily precipitation amount at wet days ( percentile_dict[month,day] = 2D_numpy.ndarray ) in mm/day
+    :param percentile_dict: 95th percentile of daily precipitation amount at wet days in mm/day
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -610,7 +610,7 @@ def R99p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 99th percentile of daily precipitation amount at wet days ( percentile_dict[month,day] = 2D_numpy.ndarray ) in mm/day
+    :param percentile_dict: 99th percentile of daily precipitation amount at wet days in mm/day
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -662,7 +662,7 @@ def R75TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 75th percentile of daily precipitation amount at wet days ( percentile_dict[month,day] = 2D_numpy.ndarray ) in mm/day
+    :param percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -725,7 +725,7 @@ def R95TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 75th percentile of daily precipitation amount at wet days ( percentile_dict[month,day] = 2D_numpy.ndarray ) in mm/day
+    :param percentile_dict: 95th percentile of daily precipitation amount at wet days in mm/day
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
@@ -787,7 +787,7 @@ def R99TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
-    :param percentile_dict: 75th percentile of daily precipitation amount at wet days ( percentile_dict[month,day] = 2D_numpy.ndarray ) in mm/day
+    :param percentile_dict: 99th percentile of daily precipitation amount at wet days in mm/day
     :type percentile_dict: dict
     :param fill_val: fill value
     :type fill_val: float
