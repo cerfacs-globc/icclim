@@ -716,3 +716,127 @@ def R75TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
     return R75TOT
     
+
+def R95TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
+    '''
+    Calculate the R95TOT indice: precipitation fraction due to very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the 1961-1990 period) [%]
+    
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 75th percentile of daily precipitation amount at wet days ( percentile_dict[month,day] = 2D_numpy.ndarray ) in mm/day
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+    
+    pr_thresh = 1                               # precipitation threshold = 1 mm
+
+    arr_masked = get_masked_arr(arr, fill_val)  # mm/s
+    arr_masked = arr_masked*60*60*24            # mm/day
+    
+    # we calculate the numerator (see the formula in the doc)
+    numerator = numpy.zeros((arr.shape[1], arr.shape[2]))
+    i=0
+    for dt in dt_arr:
+        
+        # current calendar day
+        m = dt.month
+        d = dt.day
+
+        current_perc_arr = percentile_dict[m,d]
+        
+        # we are looking for the values which are greater than the 75th percentile
+        # so, we need first to mask all values <= 75th percentile
+        mask = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='let') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        arr_current_slice_masked = numpy.ma.array(arr_masked[i,:,:], mask=mask, fill_value=0.0)
+        arr_current_slice = arr_current_slice_masked.filled() # filled with 0
+        
+        numerator = numerator + arr_current_slice
+        
+        i+=1
+    
+    # we calculate the denominator: all sum for the period
+    denominator = calc_indice.RR_calculation(arr, fill_val)
+    
+    if isinstance(denominator, numpy.ma.MaskedArray):
+        denominator = denominator.filled(fill_value=-1) # we fill with -1
+        
+    R95TOT = 100*(numerator/denominator)
+    R95TOT[R95TOT<0]=fill_val
+    
+    if isinstance(arr, numpy.ma.MaskedArray):
+        mask_R95TOT = R95TOT==fill_val
+        R95TOT = numpy.ma.array(R95TOT, mask=mask_R95TOT, fill_value=arr.fill_value)
+    
+    
+    return R95TOT
+
+def R99TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
+    '''
+    Calculate the R99TOT indice: precipitation fraction due to extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the 1961-1990 period) [%]
+    
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 75th percentile of daily precipitation amount at wet days ( percentile_dict[month,day] = 2D_numpy.ndarray ) in mm/day
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+    
+    pr_thresh = 1                               # precipitation threshold = 1 mm
+
+    arr_masked = get_masked_arr(arr, fill_val)  # mm/s
+    arr_masked = arr_masked*60*60*24            # mm/day
+    
+    # we calculate the numerator (see the formula in the doc)
+    numerator = numpy.zeros((arr.shape[1], arr.shape[2]))
+    i=0
+    for dt in dt_arr:
+        
+        # current calendar day
+        m = dt.month
+        d = dt.day
+
+        current_perc_arr = percentile_dict[m,d]
+        
+        # we are looking for the values which are greater than the 75th percentile
+        # so, we need first to mask all values <= 75th percentile
+        mask = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='let') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        arr_current_slice_masked = numpy.ma.array(arr_masked[i,:,:], mask=mask, fill_value=0.0)
+        arr_current_slice = arr_current_slice_masked.filled() # filled with 0
+        
+        numerator = numerator + arr_current_slice
+        
+        i+=1
+    
+    # we calculate the denominator: all sum for the period
+    denominator = calc_indice.RR_calculation(arr, fill_val)
+    
+    if isinstance(denominator, numpy.ma.MaskedArray):
+        denominator = denominator.filled(fill_value=-1) # we fill with -1
+        
+    R99TOT = 100*(numerator/denominator)
+    R99TOT[R99TOT<0]=fill_val
+    
+    if isinstance(arr, numpy.ma.MaskedArray):
+        mask_R99TOT = R99TOT==fill_val
+        R99TOT = numpy.ma.array(R99TOT, mask=mask_R99TOT, fill_value=arr.fill_value)
+    
+    
+    return R99TOT
