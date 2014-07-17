@@ -9,6 +9,66 @@ my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
 libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
+'''
+Elementary functions computing climate indices:
+- TG
+- TX
+- TN
+- TXx
+- TNx
+- TXn
+- TNn
+- DTR
+- ETR
+- vDTR
+- SU
+- CSU
+- TR
+- FD
+- CFD
+- ID
+- HD17
+- GD4
+- RR
+- RR1
+- SDII
+- R10mm
+- R20mm
+- RX1day
+- CDD
+- CWD
+- SD
+- SD1
+- SD5cm
+- SD50cm
+'''
+
+
+'''
+Note: these functions maniputate 3D arrays - usual (numpy.ndarray) or masked (numpy.ma.MaskedArray).
+Return type: the same type as the type of input array(s)
+
+Note: A function name is composed from an indice name and "_calculation" (example: FD_calculation).
+
+Example of function calling:
+        1. if input array is an usual array (numpy.ndarray), a fill_value must be provided: FD_calculation(my_3D_array, fill_val=99999)
+        2. if input array is a masked array (numpy.ma.MaskedArray): FD_calculation(my_3D_masked_array)
+
+Note:
+- 4 functions (CSU, CFD, CDD, CWD):
+        1) transforming input array into usual array (numpy.ndarray)
+        2) C function: processing -> result: usual array
+        3) if input array is masked array: transforming the result into a masked array
+
+- other functions:
+        1) transforming input array into masked array (numpy.ma.MaskedArray)
+        2) processing -> result: masked array
+        3) if input array is usual array: transforming the result into usual array
+
+
+'''
+
+
 
 ##### utility function (begin) #####
 def get_masked_arr(arr, fill_val):
@@ -1167,26 +1227,3 @@ def SD50cm_calculation(arr, fill_val=None):
 
 
 
-'''
-Note: these functions maniputate 3D arrays - usual (numpy.ndarray) or masked (numpy.ma.MaskedArray).
-Return type: the same type as the type of input array(s)
-
-Note: A function name is composed from an indice name and "_calculation" (example: FD_calculation).
-
-Example of function calling:
-        1. if input array is an usual array (numpy.ndarray), a fill_value must be provided: FD_calculation(my_3D_array, fill_val=99999)
-        2. if input array is a masked array (numpy.ma.MaskedArray): FD_calculation(my_3D_masked_array)
-
-Note:
-- 4 functions (CSU, CFD, CDD, CWD):
-        1) transforming input array into usual array (numpy.ndarray)
-        2) C function: processing -> result: usual array
-        3) if input array is masked array: transforming the result into a masked array
-
-- other functions:
-        1) transforming input array into masked array (numpy.ma.MaskedArray)
-        2) processing -> result: masked array
-        3) if input array is usual array: transforming the result into usual array
-
-
-'''
