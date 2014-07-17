@@ -296,6 +296,6 @@ intersphinx_mapping = {'http://docs.python.org/': None}
 
 import mock
 
-MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'ctypes', 'numpy.ctypeslib', 'libC' ]
+MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot', 'scipy.interpolate', 'ctypes', 'numpy.ctypeslib', 'libC', 'libC.so' ]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
