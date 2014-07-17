@@ -1,64 +1,4 @@
 # -*- coding: latin-1 -*-
-
-'''
-Elementary functions computing climate indices:
-- TG
-- TX
-- TN
-- TXx
-- TNx
-- TXn
-- TNn
-- DTR
-- ETR
-- vDTR
-- SU
-- CSU
-- TR
-- FD
-- CFD
-- ID
-- HD17
-- GD4
-- RR
-- RR1
-- SDII
-- R10mm
-- R20mm
-- RX1day
-- CDD
-- CWD
-- SD
-- SD1
-- SD5cm
-- SD50cm
-'''
-
-'''
-Note: these functions maniputate 3D arrays - usual (numpy.ndarray) or masked (numpy.ma.MaskedArray).
-Return type: the same type as the type of input array(s)
-
-Note: A function name is composed from an indice name and "_calculation" (example: FD_calculation).
-
-Example of function calling:
-        1. if input array is an usual array (numpy.ndarray), a fill_value must be provided: FD_calculation(my_3D_array, fill_val=99999)
-        2. if input array is a masked array (numpy.ma.MaskedArray): FD_calculation(my_3D_masked_array)
-
-Note:
-- 4 functions (CSU, CFD, CDD, CWD):
-        1) transforming input array into usual array (numpy.ndarray)
-        2) C function: processing -> result: usual array
-        3) if input array is masked array: transforming the result into a masked array
-
-- other functions:
-        1) transforming input array into masked array (numpy.ma.MaskedArray)
-        2) processing -> result: masked array
-        3) if input array is usual array: transforming the result into usual array
-
-
-'''
-
-
 import numpy
 
 import ctypes
@@ -213,9 +153,9 @@ def TNx_calculation(arr, fill_val=None):
     
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
-         
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
-    '''
+    '''     
+    #.. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    
     
     arr_masked = get_masked_arr(arr, fill_val)                
     
@@ -299,12 +239,11 @@ def DTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     
     :rtype: numpy.ndarray (2D)        (if "arr1" and "arr2" are numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr1" and "arr2" are numpy.ma.MaskedArray)
-         
-    .. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
-    
+
     .. warning:: "arr1" and "arr2" must be both the same type, have the same shape and be corresponding to the same time step vector.
     
-    '''  
+    '''
+    #.. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
       
     arr1_masked = get_masked_arr(arr1, fill_val1)
     arr2_masked = get_masked_arr(arr2, fill_val2)
@@ -457,9 +396,9 @@ def CSU_calculation(arr, fill_val=None, threshold=None):
     .. warning:: Units of "arr" must be Kelvin.
         
     .. warning:: Units of "threshold" must be in Celsius.
-    
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
+    #.. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    
 
     # temperature threshold (degree Celsius)    
     if threshold==None:
@@ -1225,3 +1164,29 @@ def SD50cm_calculation(arr, fill_val=None):
         SD50cm = SD50cm.filled(fill_value=arr_masked.fill_value) 
     
     return SD50cm   
+
+
+
+'''
+Note: these functions maniputate 3D arrays - usual (numpy.ndarray) or masked (numpy.ma.MaskedArray).
+Return type: the same type as the type of input array(s)
+
+Note: A function name is composed from an indice name and "_calculation" (example: FD_calculation).
+
+Example of function calling:
+        1. if input array is an usual array (numpy.ndarray), a fill_value must be provided: FD_calculation(my_3D_array, fill_val=99999)
+        2. if input array is a masked array (numpy.ma.MaskedArray): FD_calculation(my_3D_masked_array)
+
+Note:
+- 4 functions (CSU, CFD, CDD, CWD):
+        1) transforming input array into usual array (numpy.ndarray)
+        2) C function: processing -> result: usual array
+        3) if input array is masked array: transforming the result into a masked array
+
+- other functions:
+        1) transforming input array into masked array (numpy.ma.MaskedArray)
+        2) processing -> result: masked array
+        3) if input array is usual array: transforming the result into usual array
+
+
+'''
