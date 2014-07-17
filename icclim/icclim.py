@@ -1,10 +1,5 @@
 # -*- coding: latin-1 -*-
 
-'''
-Python library "Index Calculation CLIMate"
-Natalia Tatarinova: natalia.tatarinova@cerfacs.fr
-'''
-
 import numpy
 from datetime import datetime, timedelta
 from netCDF4 import num2date, date2num, Dataset, MFDataset
@@ -571,42 +566,49 @@ def get_dict_year_chunk(time_steps_vect):
 
 # GLOBAL FUNCTION       
 def indice(in_files,
-           out_file,
            var,
            indice_name,
            time_range,
            slice_mode,
            project,
+           out_file="./icclim_out.nc",
            threshold=None,
-           N_lev=None,
-           callback=None):
+           N_lev=None):
+           #callback=None):
     
     '''
-    This function returns result NetCDF file containing a simple climate indice (based on one variable).
-    
-    
-    :param in_files: input NetCDF files
+
+    :param in_files: absolute path(s) to NetCDF dataset(s) (including URLs)
     :type in_files: list of str
-    :param out_file: output file name
-    :type out_file: str
+
     :param var: variable name to process
     :type var: str
+    
     :param indice_name: climate indice name
     :type indice_name: str
-    :param time_range: time range (dt1 should be the first day of year/month, dt2 - the last day of year/month). Note: to include dt2 -> add in datetime hour/minute (HH=23, mm=59).
-    :type time_range: list of 2 datetime objects [dt1, dt2]  
-    :param slice_mode: "year" or "month" 
+    
+    :param time_range: time range
+    :type time_range: list of 2 datetime objects [dt1, dt2]
+    
+    :param slice_mode: "year" for annual values, "month" for monthly values 
     :type slice_mode: str
+    
     :param project: project name ("CMIP5" or "CORDEX")
     :type project: str
+    
+    :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
+    :type out_file: str
+    
     :param threshold: user defined threshold for certain indices 
     :type threshold: float
     
-    :rtype: output NetCDF file name (str)
+    :param N_lev: level number if 4D variable
+    :type N_lev: int
+    
+    :rtype: NetCDF file
     
     '''
-    
-    #print "DADA"
+
        
     #callback("Init Opening "+in_files[0],0);
     inc = Dataset(in_files[0], 'r')
@@ -813,44 +815,51 @@ def get_dict_timeStep_indice_multivar(dict_timeStep_sub3Darr1, dict_timeStep_sub
 
 # GLOBAL FUNCTION       
 def indice_multivar(in_files1, var1,
-                    in_files2, var2,
-                    out_file,
+                    in_files2, var2,                    
                     indice_name,
                     time_range,
                     slice_mode,
                     project,
-                    N_lev=None,
-                    callback=None):
+                    out_file="./icclim_out.nc",
+                    N_lev=None):
+                    #callback=None):
     
     '''
-    This function returns result NetCDF file containing a climate indice based on two variable (ETR, DTR, vDTR).
-    
-    
-    :param in_files1: input NetCDF files corresponding to the first variable
+    :param in_files1: absolute path(s) to NetCDF dataset(s) (including URLs) corresponding to the "var1"
     :type in_files1: list of str
-    :param var1: first variable to process (e.g. "tasmax")
+    
+    :param var1: daily max temperature (e.g. "tasmax")
     :type var1: str
     
-    :param in_files2: input NetCDF files corresponding to the second variable
+    :param in_files2: absolute path(s) to NetCDF dataset(s) (including URLs) corresponding to the "var2"
     :type in_files2: list of str
-    :param var2: second variable to process (e.g. "tasmin")
+    
+    :param var2: daily min temperature (e.g. "tasmin")
     :type var2: str
     
-    :param out_file: output file name
-    :type out_file: str
     :param indice_name: climate indice name
     :type indice_name: str
-    :param time_range: time range (dt1 should be the first day of year/month, dt2 - the last day of year/month). Note: to include dt2 -> add in datetime hour/minute (HH=23, mm=59).
-    :type time_range: list of 2 datetime objects [dt1, dt2]  
-    :param slice_mode: "year" or "month" 
+    
+    :param time_range: time range
+    :type time_range: list of 2 datetime objects [dt1, dt2]
+    
+    :param slice_mode: "year" for annual values, "month" for monthly values 
     :type slice_mode: str
+    
     :param project: project name ("CMIP5" or "CORDEX")
-    :type slice_mode: str
+    :type project: str
     
-    :rtype: output NetCDF file name (str)
+    :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
+    :type out_file: str
     
-    .. note:: Both file lists must contain the same number steps.
-    .. note:: First variable is always bigger that the second variable (par ex. var1="tasmax" and var2="tasmin")
+    :param N_lev: level number if 4D variable
+    :type N_lev: int
+    
+    :rtype: NetCDF file
+
+    
+    .. warning:: The both file lists must be identical, i.e. each corresponding file must contain the same time step vector.
+
     '''
 
     inc1 = Dataset(in_files1[0], 'r')
@@ -1105,9 +1114,25 @@ def get_indices_subset(dt_arr, time_range):
 
 def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=None, only_leap_years=False):
     '''
-    rtype: dict
+    :param in_files: absolute path(s) to NetCDF dataset(s) (including URLs)
+    :type in_files: list of str
     
-    .. warning:: only for 3D variable
+    :param var: variable name to process (base period: usually 1961-1990)
+    :type var: str
+    
+    :param percentile: percentile to compute which must be between 0 and 100 inclusive
+    :type percentile: int
+    
+    :param window_width: window width, must be odd
+    :type window_width: int
+    
+    :param time_range: time range of the base period (usually: 1961-1990), if None: whole period of input files will be processed
+    :type time_range: list of 2 datetime objects: [dt1, dt2]
+    
+    :param only_leap_years: option for February 29th (default: False)
+    :type only_leap_years: bool
+    
+    :rtype: dict
     
     '''
     
@@ -1148,10 +1173,39 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
 
 
 
-def indice_perc(in_files, out_file, var, time_range, indice_name, percentile_dict, slice_mode, project, N_lev=None):
+def indice_perc(in_files, var, indice_name, percentile_dict, time_range, slice_mode, project, out_file="./icclim_out.nc", N_lev=None):
     
     '''
-    Documenter !!!!!!!!!!!!!!!
+    :param in_files: absolute path(s) to NetCDF dataset(s) (including URLs)
+    :type in_files: list of str
+    
+    :param var: variable name to process
+    :type var: str
+    
+    :param indice_name: climate indice name
+    :type indice_name: str
+    
+    :param percentile_dict: dictionary with calendar days as keys and 2D arrays with percentiles as values 
+    :type percentile_dict: dict
+
+    :param time_range: time range, if None: whole period of input files will be processed
+    :type time_range: list of 2 datetime objects [dt1, dt2]  
+    
+    :param slice_mode: "year" for annual values, "month" for monthly values (default: "year")
+    :type slice_mode: str
+    
+    :param project: project name ("CMIP5" or "CORDEX")
+    :type project: str
+    
+    :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
+    :type out_file: str
+
+    :param N_lev: level number if 4D variable
+    :type N_lev: int
+    
+    :rtype: NetCDF file
+
+    .. warning:: Before using this function, create first a :ref:`daily percentile dictionary <creation_daily_percentile_dictionary_label>` ("percentile_dict" parameter).
     '''
     
 
