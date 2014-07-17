@@ -9,6 +9,25 @@ my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
 
 libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
+
+'''
+Elementary functions computing percentile based indices:
+- TG10p
+- TX10p
+- TN10p
+- TG90p
+- TX90p
+- TN90p
+- WSDI
+- CSDI
+- R75p
+- R75TOT
+- R95p
+- R95TOT
+- R99p
+- R99TOT
+'''
+
 ############# utility functions: begin #############
 def get_binary_arr(arr1, arr2, logical_operation):
     '''
