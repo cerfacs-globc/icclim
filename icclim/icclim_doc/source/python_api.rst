@@ -1,76 +1,211 @@
 Python API
 ==========
 
-Main functions
---------------
+First, import the ICCLIM library:
 
-The function to calculate a simple indice (i.e. based on one variable):
+>>> import icclim
 
-.. function:: indice(in_files, out_file, var, indice_name, time_range, slice_mode, project, threshold=None):
-    
-    
-    This function returns result NetCDF file containing a climate indice.
-    
-    
-    :param in_files: absolute paths to NetCDF dataset (including URLs)
-    :type in_files: list of str
-    :param out_file: output NetCDF file
-    :type out_file: str
-    :param var: variable name to process
-    :type var: str
-    :param indice_name: climate indice name
-    :type indice_name: str
-    :param time_range: time range (dt1 is the first day of year/month, dt2 is the last day of year/month)
-    :type time_range: list of 2 datetime objects [dt1, dt2]  
-    :param slice_mode: "year" for annual values, "month" for monthly values
-    :type slice_mode: str
-    :param project: project name ("CMIP5" or "CORDEX")
-    :type project: str
-    :param threshold: user defined threshold for certain indices 
-    :type threshold: float
-    
-    :rtype: output NetCDF file
 
-.. note:: The list of indice names are :ref:`here <indices>`.  
+Main functions to compute climate indices
+-----------------------------------------
 
-To calculate a multivariate indice like ETR, DTR or vDTR, use the following function:
+Depending on the type of a climate indice, use the appropriate function: 
 
-.. function:: indice_multivar(in_files1, var1, in_files2, var2, out_file, indice_name, time_range, slice_mode, project, N_lev=None):
-    
-    
-    This function returns result NetCDF file containing a climate indice.
-    
-    
-    :param in_files1: absolute paths to NetCDF dataset (including URLs) corresponding to the var1
-    :type in_files1: list of str
-    :param var1: variable name to process 
-    :type var1: str
-    :param in_files2: absolute paths to NetCDF dataset (including URLs) corresponding to the var2
-    :type in_files2: list of str
-    :param var2: variable name to process
-    :type var2: str
-    :param out_file: output NetCDF file
-    :type out_file: str
-    :param indice_name: climate indice name
-    :type indice_name: str
-    :param time_range: time range (dt1 is the first day of year/month, dt2 is the last day of year/month)
-    :type time_range: list of 2 datetime objects [dt1, dt2]  
-    :param slice_mode: "year" for annual values, "month" for monthly values
-    :type slice_mode: str
-    :param project: project name ("CMIP5" or "CORDEX")
-    :type project: str
-    :param N_lev: level number if 4D variable (dafault: N_lev=None)
-    :type N_lev: int
-    
-    :rtype: output NetCDF file
++--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
+|                          |   Indice                                                   |   Function                                                |
++==========================+============================================================+===========================================================+
+| simple indice            | TG, TX, TN, TXx, TXn, TNx, TNn, SU, TR, CSU, GD4, FD, CFD, | :ref:`indice(...) <func_indice_label>`                    |
+|                          | ID, HD17,                                                  |                                                           |
+|                          | CDD, CWD, RR, RR1, SDII, R10mm, R20mm, RX1day, RX5day,     |                                                           |
+|                          | SD, SD1, SD5cm, SD50cm                                     |                                                           |
++--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
+| multivariate indice      | DTR, ETR, vDTR                                             | :ref:`indice_multivar(...) <func_indice_multivar_label>`  |
++--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
+| percentile based indice  | TG10p, TX10p, TN10p, TG90p, TX90p, TN90p, WSDI, CSDI,      | :ref:`indice_perc(...) <func_indice_perc_label>`          |
+|                          | R75p, R75TOT, R95p, R95TOT, R99p, R99TOT                   |                                                           |
++--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
 
-.. warning:: The both file lists must be identical, i.e. each corresponding file must contain the same time step vector.
+Below more detailed about input parameters of each function. These functions return a result netCDF file containing a climate indice.
+
+.. _func_indice_label:
+.. automodule:: icclim
+    :members: indice
+    
+To compute the SU indice (annual time series):
+
+>>> import glob
+>>> import datetime
+>>> 
+>>> input_path = '/data/tatarinova/CMIP5/tasmax_day/'
+>>> files = glob.glob(input_path + '*.nc')
+>>> out_file = '/data/tatarinova/tmp/indice_SU_year_1860-1890.nc'
+>>> 
+>>> dt1 = datetime.datetime(1860,01,01)
+>>> dt2 = datetime.datetime(1890,12,31)
+>>> 
+>>> icclim.indice(in_files=files, var='tasmax', indice_name='SU', time_range=[dt1, dt2], slice_mode='year', project='CMIP5', out_file=out_file)
+
+The output dataset will contain the SU indice (3D array) of 31 time steps (31 years).
+
+
+To get a derived indice from SU, CSU or TR indices, set the "threshold" parameter (in Celsius):
+
+>>> iicclim.indice(in_files=files, var='tasmax', indice_name='SU', time_range=[dt1, dt2], slice_mode='year', project='CMIP5', out_file=out_file, threshold=30)
+
+    
+.. _func_indice_multivar_label:
+.. automodule:: icclim
+    :members: indice_multivar
+    
+
+
+>>> file_tasmax1 = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19050101-19091231.nc'
+>>> file_tasmax2 = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19100101-19141231.nc'
+>>> 
+>>> file_tasmin1 = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19050101-19091231.nc'
+>>> file_tasmin2 = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19100101-19141231.nc'
+>>>
+>>> dt1 = datetime.datetime(1905,01,01)
+>>> dt2 = datetime.datetime(1912,12,31)
+>>> 
+>>> icclim.indice_multivar(in_files1=[file_tasmax1, file_tasmax2], var1='tasmax', in_files2=[file_tasmin1, file_tasmin2], var2='tasmin', indice_name='ETR', time_range=[dt1, dt2], slice_mode='year', project='CMIP5', out_file='indice_ETR_year_1905_1912.nc')    
+    
+
+    
+.. _func_indice_perc_label:
+.. automodule:: icclim
+    :members: indice_perc
+
+
+
+
+.. _creation_daily_percentile_dictionary_label:
+
+Create a daily percentile dictionary
+------------------------------------
+
+Daily percentile values are computed from values of reference period, named *based period* which is usually of 30 years: 1961-1990.
+
+The *window width* is a odd number of days (usually 5) which will be taken from yeach year of the base period; the window is centred on a certain calendar day, for example for the calendar day of:
+    - **April 13th**, we take the values corresponding to *April 11th*, *April 12th*, *April 13th*, *April 14th* and *April 15th* of each year of the base period.
+    - **January 1st**, we take all days of *December 30th*, *December 31st*, *January 1st*, *January 2nd* and *January 3rd*.
+
+So, for a base period of 30 years and 5-day window width, for each calendar day (except February 29th and the annual extremities: December 30th and 31st, January 1st and 2nd) we have 150 values ( 30 * 5 )
+to compute its percentile value.
+
+The function "get_percentile_dict" creates a dictionary where each calendar day (key) has a coresponding 2D array with percentile values:
+
+.. automodule:: icclim
+    :members: get_percentile_dict
+
+
+.. note:: The function uses the `numpy.percentile <http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.percentile.html>`_ function with "linear" interpolation method as default.
+    
+.. note:: The "only_leap_years" parameter is to select one of two ways to calculate a percentile value for the calendar day of **February 29th**:
+
+    - if it is *True*, then we take only leap years, i.e. for example for the base period of 1980-1990 and 5-day window width, we take the values corresponding to the following dates:
+
+        1980-02-27,
+        1980-02-28,
+        **1980-02-29**,
+        1980-03-01,
+        1980-03-02,
+        
+        1984-02-27,
+        1984-02-28,        
+        **1984-02-29**,
+        1984-03-01,
+        1984-03-02,
+        
+        1988-02-27,
+        1988-02-28,        
+        **1988-02-29**,
+        1988-03-01,
+        1988-03-02
+
+
+    - if it is *False*, then for the same base period and window width, we have:
+
+        1980-02-27,
+        1980-02-28,
+        **1980-02-29**,
+        1980-03-01,
+        1980-03-02,
+        
+        1981-02-27,
+        1981-02-28,
+        1981-03-01,
+        1981-03-02,
+        
+        1982-02-27,
+        1982-02-28,
+        1982-03-01,
+        1982-03-02,
+        
+        1983-02-27,
+        1983-02-28,
+        1983-03-01,
+        1983-03-02,
+        
+        1984-02-27,
+        1984-02-28,        
+        **1984-02-29**,
+        1984-03-01,
+        1984-03-02,
+
+        1985-02-27,
+        1985-02-28,
+        1985-03-01,
+        1985-03-02,
+        
+        1986-02-27,
+        1986-02-28,
+        1986-03-01,
+        1986-03-02,
+        
+        1987-02-27,
+        1987-02-28,
+        1987-03-01,
+        1987-03-02,
+        
+        1988-02-27,
+        1988-02-28,        
+        **1988-02-29**,
+        1988-03-01,
+        1988-03-02
+
+        1989-02-27,
+        1989-02-28,
+        1989-03-01,
+        1989-03-02,
+        
+        1990-02-27,
+        1990-02-28,
+        1990-03-01,
+        1990-03-02
+    
+    The second way is preferable, because we have more samples.
+
+.. note:: A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma, i.e. to get for example the 2D percentile array for *April 13th* it will looks like *my_perc_dict[4,13]*.
+
+>>> file_base1 = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19510101-19701231.nc'
+>>> file_base2 = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19710101-19901231.nc'
+>>>
+>>> # time range for base period
+>>> base_dt1 = datetime.datetime(1961,01,01)
+>>> base_dt2 = datetime.datetime(1990,12,31)
+>>>
+>>> perc_dict = icclim.get_percentile_dict(in_files=[file_base1, file_base2], var='tasmin', percentile=10, window_width=5, time_range=[base_dt1, base_dt2], only_leap_years=False)
+
+
+
+
 
 Elementary functions
 --------------------
 
 
-The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ module contains the elementary functions computing indices.
+The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ and `calc_indice_perc.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py>`_ modules contains the elementary functions computing indices.
 These functions, manipulating 3D arrays, could be reused in other environments. Below some of them.
 
 .. note:: A function name is composed from an indice name and "_calculation" (example: FD_calculation).
@@ -88,54 +223,37 @@ These functions, manipulating 3D arrays, could be reused in other environments. 
 
 
 
-.. function:: TNx_calculation(arr, fill_val=None):
-  
-    Calculates the TNx indice: maximum of daily minimum temperature.
-    
-    :param arr: daily min temperature (e.g. "tasmin")
-    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    :param fill_val: fill value
-    :type fill_val: float
-    
-    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
-         or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+.. automodule:: calc_indice
+    :members: TNx_calculation, CSU_calculation, DTR_calculation
+   
+.. automodule:: calc_indice_perc
+    :members: TN10p_calculation, WSDI_calculation
+
+.. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
 
 
-.. function:: CSU_calculation(arr, fill_val=None):
+Correspondance table "indice - variable"
+----------------------------------------
 
-    Calculates the CSU indice: maximum number of consecutive summer days (i.e. days with daily maximum temperature > 25 degrees Celsius) [days].
-    This function calls C function "find_max_len_consec_sequence_3d" from libC.c
-    
-    :param arr: daily maximum temperature (e.g. "tasmax") in Kelvin
-    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    :param fill_val: fill value 
-    :type fill_val: float
-    
-    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
-         or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
-         
-    .. warning:: Units of "arr" must be Kelvin!
-
-
-.. function:: DTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
-    
-    Calculates the DTR indice: mean of daily temperature range.
-    
-    :param arr1: daily max temperature (e.g. "tasmax")
-    :type arr1: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    :param arr2: daily min temperature (e.g. "tasmin")
-    :type arr2: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) 
-    
-    :param fill_val1: fill value of arr1 
-    :type fill_val1: float
-    :param fill_val2: fill value of arr2 
-    :type fill_val2: float
-    
-    :rtype: numpy.ndarray (2D)        (if "arr1" and "arr2" are numpy.ndarray)
-         or numpy.ma.MaskedArray (2D) (if "arr1" and "arr2" are numpy.ma.MaskedArray)
-         
-  
-    .. warning:: "arr1" and "arr2" must be both the same type, have the same shape and be corresponding to the same time step vector.
++------------------------------------------------------------+---------------------------------------------+
+|   Indice                                                   |   Variable                                  |
++============================================================+=============================================+
+|TG, GD4, HD17, TG10p, TG90p                                 |  daily mean temperature                     |
++------------------------------------------------------------+---------------------------------------------+
+|TN, TNx, TNn, TR, FD, CFD, TN10p, TN90p, CSDI               |  daily minimum temperature                  |
++------------------------------------------------------------+---------------------------------------------+
+|TX, TXx, TXn, SU, CSU, ID, TX10p, TX90p, WSDI               |  daily maximum temperature                  |
++------------------------------------------------------------+---------------------------------------------+
+|DTR, ETR, vDTR                                              |  daily minimum + daily maimum temperature   |
++------------------------------------------------------------+---------------------------------------------+
+|RR, RR1, SDII, CWD, CDD, R10mm, R20mm, RX1day, RX5day,      |  daily precipitation flux (liquide phase)   |
+|R75p, R75TOT, R95p, R95TOT, R99p, R99TOT                    |                                             |
++------------------------------------------------------------+---------------------------------------------+
+|SD, SD1, SD5cm, SD50cm                                      |  daily snowfall flux (solid phase)          |
++------------------------------------------------------------+---------------------------------------------+
 
 
-
+Utility functions
+-----------------
+.. automodule:: spatial_stat
+    :members: get_weight_matrix, multiply_to_weight_matrix

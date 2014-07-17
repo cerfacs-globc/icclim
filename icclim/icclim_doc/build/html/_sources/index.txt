@@ -7,22 +7,29 @@ For the first time ICCLIM calculates `ECA&D climate indices <http://eca.knmi.nl/
 Later other climate indices and indicators will be added. 
 
 
+
 Contents:
 
 .. toctree::
    :numbered
     
+
    important_to_know.rst
    installation.rst
    python_api.rst
-   indices.rst
    output_metadata.rst
-   examples.rst
    contact.rst 
     
    icclim_ocgis.rst
     
 
+**NEWS:**
+
+17/07/2014
+
+- Added percentile indices
+- Added utility functions for spatial statistics
+- The documentation is updated
 
 
 Indices and tables
