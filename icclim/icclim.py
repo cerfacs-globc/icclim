@@ -1117,7 +1117,7 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
     :param in_files: absolute path(s) to NetCDF dataset(s) (including URLs)
     :type in_files: list of str
     
-    :param var: variable name to process (base period: usually 1961-1990)
+    :param var: variable name to process
     :type var: str
     
     :param percentile: percentile to compute which must be between 0 and 100 inclusive
