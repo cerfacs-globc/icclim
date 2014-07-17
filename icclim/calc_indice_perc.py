@@ -173,12 +173,12 @@ def WSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6):
     
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
         or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
-    
-    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
-    
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
-
     '''
+    
+        
+    #.. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    #
+    #.. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
  
     arr_masked = get_masked_arr(arr, fill_val)
     
@@ -392,12 +392,12 @@ def TN10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
         or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
-    
-    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
-    
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
-
     '''
+    
+    #.. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    #
+    #.. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
 
     TN10p = numpy.zeros((arr.shape[1], arr.shape[2]))
     
