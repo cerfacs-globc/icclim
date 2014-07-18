@@ -80,7 +80,7 @@ def get_masked_arr(arr, fill_val):
 
 def TG90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the TG90p indice: number of warm days (i.e. days with daily mean temperature > 90th percentile of daily mean temperature in the 1961-1990 period).
+    Calculate the TG90p indice: number of warm days (i.e. days with daily mean temperature > 90th percentile of daily mean temperature in the base period).
     
     :param arr: daily mean temperature (e.g. "tas")
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -128,7 +128,7 @@ def TG90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
 def TX90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the TX90p indice: number of warm days-times (i.e. days with daily max temperature > 90th percentile of daily max temperature in the 1961-1990 period).
+    Calculate the TX90p indice: number of warm days-times (i.e. days with daily max temperature > 90th percentile of daily max temperature in the base period).
     
     :param arr: daily max temperature (e.g. "tasmax")
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -176,7 +176,7 @@ def TX90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 def WSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6):
     '''
     Calculate the WSDI indice (warm-spell duration index): number of days where, in intervals of at least 6 consecutive days, 
-    daily max temperature > 90th percentile of daily max temperature in the 1961-1990 period).
+    daily max temperature > 90th percentile of daily max temperature in the base period).
     This function calls C function "WSDI_CSDI_3d" from libC.c
     
     :param arr: daily max temperature (e.g. "tasmax")
@@ -254,7 +254,7 @@ def TN90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
     
     '''
-    Calculate the TN90p indice: number of warm nights (i.e. days with daily min temperature > 90th percentile of daily min temperature in the 1961-1990 period).
+    Calculate the TN90p indice: number of warm nights (i.e. days with daily min temperature > 90th percentile of daily min temperature in the base period).
     
     :param arr: daily min temperature (e.g. "tasmin")
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -303,7 +303,7 @@ def TN90p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
 def TG10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the TG10p indice: number of cold days (i.e. days with daily mean temperature < 10th percentile of daily mean temperature in the 1961-1990 period).
+    Calculate the TG10p indice: number of cold days (i.e. days with daily mean temperature < 10th percentile of daily mean temperature in the base period).
     
     :param arr: daily mean temperature (e.g. "tas")
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -351,7 +351,7 @@ def TG10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
 def TX10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the TX10p indice: number of cold day-times (i.e. days with daily max temperature < 10th percentile of daily max temperature in the 1961-1990 period).
+    Calculate the TX10p indice: number of cold day-times (i.e. days with daily max temperature < 10th percentile of daily max temperature in the base period).
     
     :param arr: daily max temperature (e.g. "tasmax")
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -398,7 +398,7 @@ def TX10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
 def TN10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the TN10p indice: number of cold nights (i.e. days with daily min temperature < 10th percentile of daily min temperature in the 1961-1990 period).
+    Calculate the TN10p indice: number of cold nights (i.e. days with daily min temperature < 10th percentile of daily min temperature in the base period).
     
     :param arr: daily min temperature (e.g. "tasmin")
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -446,7 +446,7 @@ def TN10p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 def CSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6):
     '''
     Calculate the CSDI indice (cold-spell duration index): number of days where, in intervals of at least 6 consecutive days, 
-    daily min temperature < 10th percentile of daily min temperature in the 1961-1990 period).
+    daily min temperature < 10th percentile of daily min temperature in the base period).
     This function calls C function "WSDI_CSDI_3d" from libC.c
     
     :param arr: daily min temperature (e.g. "tasmin")
@@ -521,7 +521,7 @@ def CSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6):
 
 def R75p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the R75p indice: number of moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the 1961-1990 period).
+    Calculate the R75p indice: number of moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the base period).
     
     :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -572,7 +572,7 @@ def R75p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
 def R95p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the R95p indice: number of very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the 1961-1990 period).
+    Calculate the R95p indice: number of very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the base period).
     
     :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -623,7 +623,7 @@ def R95p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
 def R99p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the R99p indice: number of extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the 1961-1990 period).
+    Calculate the R99p indice: number of extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the base period).
     
     :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -675,7 +675,7 @@ def R99p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
 def R75TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the R75TOT indice: precipitation fraction due to moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the 1961-1990 period) [%]
+    Calculate the R75TOT indice: precipitation fraction due to moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the base period) [%]
     
     :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -738,7 +738,7 @@ def R75TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
 def R95TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the R95TOT indice: precipitation fraction due to very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the 1961-1990 period) [%]
+    Calculate the R95TOT indice: precipitation fraction due to very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the base period) [%]
     
     :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -800,7 +800,7 @@ def R95TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
 def R99TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     '''
-    Calculate the R99TOT indice: precipitation fraction due to extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the 1961-1990 period) [%]
+    Calculate the R99TOT indice: precipitation fraction due to extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the base period) [%]
     
     :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
