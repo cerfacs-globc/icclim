@@ -299,7 +299,7 @@ import mock
 
 import ctypes
 libraryC = ctypes.cdll.LoadLibrary('../../libC.so')
-
+from numpy.ctypeslib import ndpointer
 
 MOCK_MODULES = ['numpy', 'scipy', 'ctypes', 'numpy.ctypeslib', 'ctypes.cdll', 'libC', 'libC.c', 'libC.so', 'libraryC']
 for mod_name in MOCK_MODULES:
