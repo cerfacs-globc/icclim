@@ -825,13 +825,13 @@ def indice_multivar(in_files1, var1,
                     #callback=None):
     
     '''
-    :param in_files1: absolute path(s) to NetCDF dataset(s) (including URLs) corresponding to the "var1"
+    :param in_files1: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the "var1"
     :type in_files1: list of str
     
     :param var1: daily max temperature (e.g. "tasmax")
     :type var1: str
     
-    :param in_files2: absolute path(s) to NetCDF dataset(s) (including URLs) corresponding to the "var2"
+    :param in_files2: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the "var2"
     :type in_files2: list of str
     
     :param var2: daily min temperature (e.g. "tasmin")
@@ -855,7 +855,7 @@ def indice_multivar(in_files1, var1,
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
-    :rtype: NetCDF file
+    :rtype: path to NetCDF file
 
     
     .. warning:: The both file lists must be identical, i.e. each corresponding file must contain the same time step vector.
@@ -1114,7 +1114,7 @@ def get_indices_subset(dt_arr, time_range):
 
 def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=None, only_leap_years=False):
     '''
-    :param in_files: absolute path(s) to NetCDF dataset(s) (including URLs)
+    :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
     
     :param var: variable name to process
@@ -1176,7 +1176,7 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
 def indice_perc(in_files, var, indice_name, percentile_dict, time_range, slice_mode, project, out_file="./icclim_out.nc", N_lev=None):
     
     '''
-    :param in_files: absolute path(s) to NetCDF dataset(s) (including URLs)
+    :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
     
     :param var: variable name to process
@@ -1203,7 +1203,7 @@ def indice_perc(in_files, var, indice_name, percentile_dict, time_range, slice_m
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
-    :rtype: NetCDF file
+    :rtype: path to NetCDF file
 
     .. warning:: Before using this function, create first a :ref:`daily percentile dictionary <creation_daily_percentile_dictionary_label>` to pass it then to the ``percentile_dict`` parameter.
     '''
