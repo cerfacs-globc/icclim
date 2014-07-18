@@ -578,7 +578,7 @@ def indice(in_files,
     
     '''
 
-    :param in_files: absolute path(s) to NetCDF dataset(s) (including URLs)
+    :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
 
     :param var: variable name to process
@@ -605,7 +605,7 @@ def indice(in_files,
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
-    :rtype: NetCDF file
+    :rtype: path to NetCDF file
     
     '''
 
@@ -1126,7 +1126,7 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
     :param window_width: window width, must be odd
     :type window_width: int
     
-    :param time_range: time range of the base period (usually: 1961-1990), if None: whole period of input files will be processed
+    :param time_range: time range of the base period (usually: 1961-1990), if ``None``: whole period of input files will be processed
     :type time_range: list of 2 datetime objects: [dt1, dt2]
     
     :param only_leap_years: option for February 29th (default: False)
@@ -1185,7 +1185,7 @@ def indice_perc(in_files, var, indice_name, percentile_dict, time_range, slice_m
     :param indice_name: climate indice name
     :type indice_name: str
     
-    :param percentile_dict: dictionary with calendar days as keys and 2D arrays with percentiles as values 
+    :param percentile_dict: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict`
     :type percentile_dict: dict
 
     :param time_range: time range, if None: whole period of input files will be processed
@@ -1205,7 +1205,7 @@ def indice_perc(in_files, var, indice_name, percentile_dict, time_range, slice_m
     
     :rtype: NetCDF file
 
-    .. warning:: Before using this function, create first a :ref:`daily percentile dictionary <creation_daily_percentile_dictionary_label>` ("percentile_dict" parameter).
+    .. warning:: Before using this function, create first a :ref:`daily percentile dictionary <creation_daily_percentile_dictionary_label>` to pass it then to the ``percentile_dict`` parameter.
     '''
     
 
