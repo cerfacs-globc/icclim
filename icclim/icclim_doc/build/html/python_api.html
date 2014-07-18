@@ -60,7 +60,7 @@
 </div>
 <div class="section" id="main-functions-to-compute-climate-indices">
 <h2>Main functions to compute climate indices<a class="headerlink" href="#main-functions-to-compute-climate-indices" title="Permalink to this headline">¶</a></h2>
-<p>Depending on the type of a climate indice, use the appropriate function:</p>
+<p>Depending on the type of climate indice, use the appropriate function:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="18%" />
@@ -85,14 +85,14 @@ SD, SD1, SD5cm, SD50cm</td>
 <td>DTR, ETR, vDTR</td>
 <td><a class="reference internal" href="#func-indice-multivar-label"><em>indice_multivar(...)</em></a></td>
 </tr>
-<tr class="row-even"><td>percentile based indice</td>
+<tr class="row-even"><td>percentile-based indice</td>
 <td>TG10p, TX10p, TN10p, TG90p, TX90p, TN90p, WSDI, CSDI,
 R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <td><a class="reference internal" href="#func-indice-perc-label"><em>indice_perc(...)</em></a></td>
 </tr>
 </tbody>
 </table>
-<p>Below more detailed about input parameters of each function. These functions return a result netCDF file containing a climate indice.</p>
+<p>Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.</p>
 <span class="target" id="module-icclim"><span id="func-indice-label"></span></span><dl class="function">
 <dt id="icclim.indice">
 <tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>time_range</em>, <em>slice_mode</em>, <em>project</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
@@ -101,7 +101,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including URLs)</li>
+<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)</li>
 <li><strong>var</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
 <li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range</li>
@@ -113,13 +113,17 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">NetCDF file</p>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">path to NetCDF file</p>
 </td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last"><tt class="docutils literal"><span class="pre">out_file</span></tt> parameter: Iclim will overwrite if the file already exists.</p>
+</div>
 <p>To compute the SU indice (annual time series):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glob</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
@@ -135,7 +139,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </pre></div>
 </div>
 <p>The output dataset will contain the SU indice (3D array) of 31 time steps (31 years).</p>
-<p>To get a derived indice from SU, CSU or TR indices, set the &#8220;threshold&#8221; parameter (in Celsius):</p>
+<p>To get a derived indice from SU, CSU or TR indices, set the <tt class="docutils literal"><span class="pre">threshold</span></tt> parameter (in Celsius):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">iicclim</span><span class="o">.</span><span class="n">indice</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;SU&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">],</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;year&#39;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="s">&#39;CMIP5&#39;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -147,9 +151,9 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files1</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including URLs) corresponding to the &#8220;var1&#8221;</li>
+<li><strong>in_files1</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the &#8220;var1&#8221;</li>
 <li><strong>var1</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; daily max temperature (e.g. &#8220;tasmax&#8221;)</li>
-<li><strong>in_files2</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including URLs) corresponding to the &#8220;var2&#8221;</li>
+<li><strong>in_files2</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the &#8220;var2&#8221;</li>
 <li><strong>var2</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; daily min temperature (e.g. &#8220;tasmin&#8221;)</li>
 <li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range</li>
@@ -160,7 +164,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">NetCDF file</p>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">path to NetCDF file</p>
 </td>
 </tr>
 </tbody>
@@ -191,10 +195,10 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including URLs)</li>
+<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)</li>
 <li><strong>var</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
 <li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
-<li><strong>percentile_dict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary with calendar days as keys and 2D arrays with percentiles as values</li>
+<li><strong>percentile_dict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a></li>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range, if None: whole period of input files will be processed</li>
 <li><strong>slice_mode</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;year&#8221; for annual values, &#8220;month&#8221; for monthly values (default: &#8220;year&#8221;)</li>
 <li><strong>project</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; project name (&#8220;CMIP5&#8221; or &#8220;CORDEX&#8221;)</li>
@@ -203,32 +207,32 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">NetCDF file</p>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">path to NetCDF file</p>
 </td>
 </tr>
 </tbody>
 </table>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">Before using this function, create first a <a class="reference internal" href="#creation-daily-percentile-dictionary-label"><em>daily percentile dictionary</em></a> (&#8220;percentile_dict&#8221; parameter).</p>
+<p class="last">Before using this function, create first a <a class="reference internal" href="#creation-daily-percentile-dictionary-label"><em>daily percentile dictionary</em></a> to pass it then to the <tt class="docutils literal"><span class="pre">percentile_dict</span></tt> parameter.</p>
 </div>
 </dd></dl>
 
 </div>
 <div class="section" id="create-a-daily-percentile-dictionary">
 <span id="creation-daily-percentile-dictionary-label"></span><h2>Create a daily percentile dictionary<a class="headerlink" href="#create-a-daily-percentile-dictionary" title="Permalink to this headline">¶</a></h2>
-<p>Daily percentile values are computed from values of reference period, named <em>based period</em> which is usually of 30 years: 1961-1990.</p>
+<p>Daily percentile values are computed from values inside a reference period, named <em>base period</em> which is usually 30 years (i.e. 1961-1990).</p>
 <dl class="docutils">
-<dt>The <em>window width</em> is a odd number of days (usually 5) which will be taken from yeach year of the base period; the window is centred on a certain calendar day, for example for the calendar day of:</dt>
+<dt>The <em>window width</em> is an odd number of days (usually 5) which will be extracted from all years in the base period; the window is centred on a certain calendar day, for example:</dt>
 <dd><ul class="first last simple">
-<li><strong>April 13th</strong>, we take the values corresponding to <em>April 11th</em>, <em>April 12th</em>, <em>April 13th</em>, <em>April 14th</em> and <em>April 15th</em> of each year of the base period.</li>
+<li><strong>April 13th</strong>, we take the values for <em>April 11th</em>, <em>April 12th</em>, <em>April 13th</em>, <em>April 14th</em> and <em>April 15th</em> of each year of the base period.</li>
 <li><strong>January 1st</strong>, we take all days of <em>December 30th</em>, <em>December 31st</em>, <em>January 1st</em>, <em>January 2nd</em> and <em>January 3rd</em>.</li>
 </ul>
 </dd>
 </dl>
-<p>So, for a base period of 30 years and 5-day window width, for each calendar day (except February 29th and the annual extremities: December 30th and 31st, January 1st and 2nd) we have 150 values ( 30 * 5 )
+<p>Hence, for a base period of 30 years and 5-day window width for each calendar day (except February 29th and the annual extremities: December 30th and 31st, January 1st and 2nd), there are 150 values ( 30 * 5 )
 to compute its percentile value.</p>
-<p>The function &#8220;get_percentile_dict&#8221; creates a dictionary where each calendar day (key) has a coresponding 2D array with percentile values:</p>
+<p>The function <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a> creates a dictionary where each calendar day (key) has a corresponding 2D array with percentile values:</p>
 <span class="target" id="module-icclim"></span><dl class="function">
 <dt id="icclim.get_percentile_dict">
 <tt class="descclassname">icclim.</tt><tt class="descname">get_percentile_dict</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>percentile</em>, <em>window_width=5</em>, <em>time_range=None</em>, <em>only_leap_years=False</em><big>)</big><a class="headerlink" href="#icclim.get_percentile_dict" title="Permalink to this definition">¶</a></dt>
@@ -237,11 +241,11 @@ to compute its percentile value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including URLs)</li>
+<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)</li>
 <li><strong>var</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
 <li><strong>percentile</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; percentile to compute which must be between 0 and 100 inclusive</li>
 <li><strong>window_width</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; window width, must be odd</li>
-<li><strong>time_range</strong> (<em>list of 2 datetime objects: [dt1, dt2]</em>) &#8211; time range of the base period (usually: 1961-1990), if None: whole period of input files will be processed</li>
+<li><strong>time_range</strong> (<em>list of 2 datetime objects: [dt1, dt2]</em>) &#8211; time range of the base period (usually: 1961-1990), if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
 <li><strong>only_leap_years</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; option for February 29th (default: False)</li>
 </ul>
 </td>
@@ -259,7 +263,7 @@ to compute its percentile value.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>The &#8220;only_leap_years&#8221; parameter is to select one of two ways to calculate a percentile value for the calendar day of <strong>February 29th</strong>:</p>
+<p>The <tt class="docutils literal"><span class="pre">only_leap_years</span></tt> parameter selects which of two methods to use for calculating a percentile value for the calendar day of <strong>February 29th</strong>:</p>
 <ul>
 <li><p class="first">if it is <em>True</em>, then we take only leap years, i.e. for example for the base period of 1980-1990 and 5-day window width, we take the values corresponding to the following dates:</p>
 <blockquote>
@@ -351,11 +355,11 @@ to compute its percentile value.</p>
 </div>
 <div class="section" id="elementary-functions">
 <h2>Elementary functions<a class="headerlink" href="#elementary-functions" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py">calc_indice.py</a> and <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py">calc_indice_perc.py</a> modules contains the elementary functions computing indices.
-These functions, manipulating 3D arrays, could be reused in other environments. Below some of them.</p>
+<p>The <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py">calc_indice.py</a> and <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py">calc_indice_perc.py</a> modules contain the elementary functions for computing indices.
+These functions could be reused in other environments. Below are some of them.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">A function name is composed from an indice name and &#8220;_calculation&#8221; (example: FD_calculation).</p>
+<p class="last">A function name is composed of an indice name and &#8220;_calculation&#8221; (example: FD_calculation).</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -457,7 +461,7 @@ or numpy.ma.MaskedArray (2D) (if &#8220;arr1&#8221; and &#8220;arr2&#8221; are n
 <span class="target" id="module-calc_indice_perc"></span><dl class="function">
 <dt id="calc_indice_perc.TN10p_calculation">
 <tt class="descclassname">calc_indice_perc.</tt><tt class="descname">TN10p_calculation</tt><big>(</big><em>arr</em>, <em>dt_arr</em>, <em>percentile_dict</em>, <em>fill_val=None</em><big>)</big><a class="headerlink" href="#calc_indice_perc.TN10p_calculation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate the TN10p indice: number of cold nights (i.e. days with daily min temperature &lt; 10th percentile of daily min temperature in the 1961-1990 period).</p>
+<dd><p>Calculate the TN10p indice: number of cold nights (i.e. days with daily min temperature &lt; 10th percentile of daily min temperature in the base period).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -482,7 +486,7 @@ or numpy.ma.MaskedArray (2D) (if &#8220;arr&#8221; is numpy.ma.MaskedArray)</p>
 <dt id="calc_indice_perc.WSDI_calculation">
 <tt class="descclassname">calc_indice_perc.</tt><tt class="descname">WSDI_calculation</tt><big>(</big><em>arr</em>, <em>dt_arr</em>, <em>percentile_dict</em>, <em>fill_val=None</em>, <em>N=6</em><big>)</big><a class="headerlink" href="#calc_indice_perc.WSDI_calculation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the WSDI indice (warm-spell duration index): number of days where, in intervals of at least 6 consecutive days, 
-daily max temperature &gt; 90th percentile of daily max temperature in the 1961-1990 period).
+daily max temperature &gt; 90th percentile of daily max temperature in the base period).
 This function calls C function &#8220;WSDI_CSDI_3d&#8221; from libC.c</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -510,8 +514,8 @@ or numpy.ma.MaskedArray (2D) (if &#8220;arr&#8221; is numpy.ma.MaskedArray)</p>
 <p class="last">Units of &#8220;arr&#8221; and percentile values of &#8220;percentile_dict&#8221; must be the same.</p>
 </div>
 </div>
-<div class="section" id="correspondance-table-indice-variable">
-<h2>Correspondance table &#8220;indice - variable&#8221;<a class="headerlink" href="#correspondance-table-indice-variable" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="correspondence-table-indice-source-variable">
+<h2>Correspondence table &#8220;indice - source variable&#8221;<a class="headerlink" href="#correspondence-table-indice-source-variable" title="Permalink to this headline">¶</a></h2>
 <table border="1" class="docutils">
 <colgroup>
 <col width="57%" />
@@ -519,7 +523,7 @@ or numpy.ma.MaskedArray (2D) (if &#8220;arr&#8221; is numpy.ma.MaskedArray)</p>
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Indice</th>
-<th class="head">Variable</th>
+<th class="head">Source variable</th>
 </tr>
 </thead>
 <tbody valign="top">
@@ -619,7 +623,7 @@ if &#8220;arr&#8221; is a 3D array, then arr.shape[1] = weight_matrix.shape[0] a
 <li><a class="reference internal" href="#main-functions-to-compute-climate-indices">Main functions to compute climate indices</a></li>
 <li><a class="reference internal" href="#create-a-daily-percentile-dictionary">Create a daily percentile dictionary</a></li>
 <li><a class="reference internal" href="#elementary-functions">Elementary functions</a></li>
-<li><a class="reference internal" href="#correspondance-table-indice-variable">Correspondance table &#8220;indice - variable&#8221;</a></li>
+<li><a class="reference internal" href="#correspondence-table-indice-source-variable">Correspondence table &#8220;indice - source variable&#8221;</a></li>
 <li><a class="reference internal" href="#module-spatial_stat">Utility functions</a></li>
 </ul>
 </li>

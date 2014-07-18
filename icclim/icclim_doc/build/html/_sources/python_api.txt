@@ -9,7 +9,7 @@ First, import the ICCLIM library:
 Main functions to compute climate indices
 -----------------------------------------
 
-Depending on the type of a climate indice, use the appropriate function: 
+Depending on the type of climate indice, use the appropriate function: 
 
 +--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
 |                          |   Indice                                                   |   Function                                                |
@@ -21,15 +21,17 @@ Depending on the type of a climate indice, use the appropriate function:
 +--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
 | multivariate indice      | DTR, ETR, vDTR                                             | :ref:`indice_multivar(...) <func_indice_multivar_label>`  |
 +--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
-| percentile based indice  | TG10p, TX10p, TN10p, TG90p, TX90p, TN90p, WSDI, CSDI,      | :ref:`indice_perc(...) <func_indice_perc_label>`          |
+| percentile-based indice  | TG10p, TX10p, TN10p, TG90p, TX90p, TN90p, WSDI, CSDI,      | :ref:`indice_perc(...) <func_indice_perc_label>`          |
 |                          | R75p, R75TOT, R95p, R95TOT, R99p, R99TOT                   |                                                           |
 +--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
 
-Below more detailed about input parameters of each function. These functions return a result netCDF file containing a climate indice.
+Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.
 
 .. _func_indice_label:
 .. automodule:: icclim
     :members: indice
+
+.. warning:: ``out_file`` parameter: Iclim will overwrite if the file already exists. 
     
 To compute the SU indice (annual time series):
 
@@ -48,7 +50,7 @@ To compute the SU indice (annual time series):
 The output dataset will contain the SU indice (3D array) of 31 time steps (31 years).
 
 
-To get a derived indice from SU, CSU or TR indices, set the "threshold" parameter (in Celsius):
+To get a derived indice from SU, CSU or TR indices, set the ``threshold`` parameter (in Celsius):
 
 >>> iicclim.indice(in_files=files, var='tasmax', indice_name='SU', time_range=[dt1, dt2], slice_mode='year', project='CMIP5', out_file=out_file, threshold=30)
 
@@ -84,16 +86,16 @@ To get a derived indice from SU, CSU or TR indices, set the "threshold" paramete
 Create a daily percentile dictionary
 ------------------------------------
 
-Daily percentile values are computed from values of reference period, named *based period* which is usually of 30 years: 1961-1990.
+Daily percentile values are computed from values inside a reference period, named *base period* which is usually 30 years (i.e. 1961-1990).
 
-The *window width* is a odd number of days (usually 5) which will be taken from yeach year of the base period; the window is centred on a certain calendar day, for example for the calendar day of:
-    - **April 13th**, we take the values corresponding to *April 11th*, *April 12th*, *April 13th*, *April 14th* and *April 15th* of each year of the base period.
+The *window width* is an odd number of days (usually 5) which will be extracted from all years in the base period; the window is centred on a certain calendar day, for example:
+    - **April 13th**, we take the values for *April 11th*, *April 12th*, *April 13th*, *April 14th* and *April 15th* of each year of the base period.
     - **January 1st**, we take all days of *December 30th*, *December 31st*, *January 1st*, *January 2nd* and *January 3rd*.
 
-So, for a base period of 30 years and 5-day window width, for each calendar day (except February 29th and the annual extremities: December 30th and 31st, January 1st and 2nd) we have 150 values ( 30 * 5 )
+Hence, for a base period of 30 years and 5-day window width for each calendar day (except February 29th and the annual extremities: December 30th and 31st, January 1st and 2nd), there are 150 values ( 30 * 5 )
 to compute its percentile value.
 
-The function "get_percentile_dict" creates a dictionary where each calendar day (key) has a coresponding 2D array with percentile values:
+The function :func:`icclim.get_percentile_dict` creates a dictionary where each calendar day (key) has a corresponding 2D array with percentile values:
 
 .. automodule:: icclim
     :members: get_percentile_dict
@@ -101,7 +103,7 @@ The function "get_percentile_dict" creates a dictionary where each calendar day 
 
 .. note:: The function uses the `numpy.percentile <http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.percentile.html>`_ function with "linear" interpolation method as default.
     
-.. note:: The "only_leap_years" parameter is to select one of two ways to calculate a percentile value for the calendar day of **February 29th**:
+.. note:: The ``only_leap_years`` parameter selects which of two methods to use for calculating a percentile value for the calendar day of **February 29th**:
 
     - if it is *True*, then we take only leap years, i.e. for example for the base period of 1980-1990 and 5-day window width, we take the values corresponding to the following dates:
 
@@ -205,10 +207,10 @@ Elementary functions
 --------------------
 
 
-The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ and `calc_indice_perc.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py>`_ modules contains the elementary functions computing indices.
-These functions, manipulating 3D arrays, could be reused in other environments. Below some of them.
+The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ and `calc_indice_perc.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py>`_ modules contain the elementary functions for computing indices.
+These functions could be reused in other environments. Below are some of them.
 
-.. note:: A function name is composed from an indice name and "_calculation" (example: FD_calculation).
+.. note:: A function name is composed of an indice name and "_calculation" (example: FD_calculation).
 
 .. note:: Input array(s) could be filled (numpy.ndarray) or masked (numpy.ma.MaskedArray). The output array type corresponds to the input array type.
 
@@ -232,11 +234,11 @@ These functions, manipulating 3D arrays, could be reused in other environments. 
 .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
 
 
-Correspondance table "indice - variable"
-----------------------------------------
+Correspondence table "indice - source variable"
+-----------------------------------------------
 
 +------------------------------------------------------------+---------------------------------------------+
-|   Indice                                                   |   Variable                                  |
+|   Indice                                                   |   Source variable                           |
 +============================================================+=============================================+
 |TG, GD4, HD17, TG10p, TG90p                                 |  daily mean temperature                     |
 +------------------------------------------------------------+---------------------------------------------+
