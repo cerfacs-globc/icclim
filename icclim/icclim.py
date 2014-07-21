@@ -564,13 +564,47 @@ def get_dict_year_chunk(time_steps_vect):
 #    print ("[%s] %d" % (message,percentage))
 
 
+def get_time_range(files, temporal_var_name="time"):
+    
+    '''
+    :param files: netCDF file(s) (including OPeNDAP URL(s))
+    :type files: str or list of str
+    
+    :param temporal_var_name: name of temporal variable from netCDF file (usually: "time")
+    :type temporal_var_name: str
+    
+    :rtype
+    
+    
+    Returns a time range: a list two datetime objects: [begin, end], where "begin" is the first date, and "end" is the last.
+    '''
+    
+    multi_nc = MFDataset(files,'r')
+    time = multi_nc.variables[temporal_var_name]
+    calend = time.calendar
+    units = time.units
+    time_arr = time[:]
+    
+    begin_num = min(time_arr)
+    end_num = max(time_arr)
+    
+    del time_arr
+    multi_nc.close()
+    
+    begin_dt = num2date(begin_num, calend, units)
+    end_dt = num2date(end_num, calend, units)
+    
+    return [begin_dt, end_dt]
+
+
+
 # GLOBAL FUNCTION       
 def indice(in_files,
            var,
            indice_name,
-           time_range,
            slice_mode,
            project,
+           time_range=None,
            out_file="./icclim_out.nc",
            threshold=None,
            N_lev=None):
@@ -632,8 +666,14 @@ def indice(in_files,
         
     ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)  
     
-    dt_begin = time_range[0] # datetime object
-    dt_end = time_range[1] # datetime object
+    
+    if time_range == None:
+        time_range = get_time_range(in_files, temporal_var_name=indice_dim[0])
+        dt_begin = time_range[0] # datetime object
+        dt_end = time_range[1] # datetime object
+    else:
+        dt_begin = time_range[0] # datetime object
+        dt_end = time_range[1] # datetime object
     
     ############################
     glob_dict_timeStep_indice = {}
@@ -816,10 +856,10 @@ def get_dict_timeStep_indice_multivar(dict_timeStep_sub3Darr1, dict_timeStep_sub
 # GLOBAL FUNCTION       
 def indice_multivar(in_files1, var1,
                     in_files2, var2,                    
-                    indice_name,
-                    time_range,
+                    indice_name,                    
                     slice_mode,
                     project,
+                    time_range=None,
                     out_file="./icclim_out.nc",
                     N_lev=None):
                     #callback=None):
@@ -885,8 +925,13 @@ def indice_multivar(in_files1, var1,
     ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val1)
        
     
-    dt_begin = time_range[0] # datetime object
-    dt_end = time_range[1] # datetime object
+    if time_range == None:
+        time_range = get_time_range(in_files1, temporal_var_name=indice_dim[0])
+        dt_begin = time_range[0] # datetime object
+        dt_end = time_range[1] # datetime object
+    else:
+        dt_begin = time_range[0] # datetime object
+        dt_end = time_range[1] # datetime object
     
     ############################
     glob_dict_timeStep_indice = {}
@@ -1173,7 +1218,7 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
 
 
 
-def indice_perc(in_files, var, indice_name, percentile_dict, time_range, slice_mode, project, out_file="./icclim_out.nc", N_lev=None):
+def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project, time_range=None, out_file="./icclim_out.nc", N_lev=None):
     
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
@@ -1232,8 +1277,13 @@ def indice_perc(in_files, var, indice_name, percentile_dict, time_range, slice_m
         
     ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)  
     
-    dt_begin = time_range[0] # datetime object
-    dt_end = time_range[1] # datetime object
+    if time_range == None:
+        time_range = get_time_range(in_files, temporal_var_name=indice_dim[0])
+        dt_begin = time_range[0] # datetime object
+        dt_end = time_range[1] # datetime object
+    else:
+        dt_begin = time_range[0] # datetime object
+        dt_end = time_range[1] # datetime object
     
     ############################
     glob_dict_timeStep_indice = {}
