@@ -25,6 +25,12 @@ Contents:
 
 **NEWS:**
 
+21/07/2014
+In the functions "icclim.indice()", "icclim.indice_multivar()" and "icclim.indice_perc()":
+- Removed the "project" parameter
+- The "time_range" parameter is not required, i.e. if it is None, then the whole period of input files will be processed
+
+
 17/07/2014
 
 - Added percentile indices
