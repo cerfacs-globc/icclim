@@ -136,7 +136,7 @@ def check_att(nc, att):
 def copy_att(nc1, nc2, att):
     
     '''
-    Copies a global attribut from one dataset (nc1) to another (nc2).
+    Copies a global attribute from one dataset (nc1) to another (nc2).
     
     :param nc1: from
     :type nc1: netCDF4.Dataset
@@ -149,7 +149,48 @@ def copy_att(nc1, nc2, att):
     if (check_att(nc1,att)==1):
         nc2.__setattr__(att, nc1.__getattribute__(att))
         
+def copy_var_attrs(source, destination):
+    '''
+    Copies all attributes from one variable (source) to another (destination).
+    
+    :param source: from
+    :type source: netCDF4.Variable
+    :param destination: to
+    :type destination: netCDF4.Variable
 
+    '''
+    sourceAttrs = source.ncattrs()
+    for attr in sourceAttrs:
+      destination.setncattr(attr, source.getncattr(attr))
+        
+def copy_var(variableName,sourceDataset, destinationDataset):
+    '''
+    Copies a variable from one dataset(sourceDataset) to another(destinationDataset) by name(variableName).
+    
+    :param variableName: name of variable to write
+    :type variableName: str
+    :param sourceDataset: from
+    :type sourceDataset: netCDF4.Dataset
+    :param destinationDataset: to
+    :type destinationDataset: netCDF4.Dataset
+
+    '''
+    # Get the variable to copy
+    sourceVar = sourceDataset.variables[variableName];
+    
+    # Copy the dims of the variable
+    for dimname in sourceVar.dimensions:
+      if destinationDataset.dimensions.has_key(dimname) == False:
+        dim = rootgrp.dimensions.get(dimname)
+        destinationDataset.createDimension(dimname,len(dim))
+    
+    # Create the variable
+    destinationVariable = destinationDataset.createVariable(variableName,sourceVar.dtype, sourceVar.dimensions)
+    
+    #Copy its attributes
+    copy_var_attrs(sourceVar,destinationVariable);
+    destinationVariable[:] = sourceVar[:]
+    
 def get_att_value(nc, var, att):
     '''
     Returns an attribut value of a variable in dataset.
@@ -200,9 +241,9 @@ def set_timebnds_values(nc, time_bnds_dt, calend, units):
 
 
 #############
-def copy_var_dim(inc, onc, var, project): 
+def copy_var_dim(inc, onc, var): 
     '''
-    Copies the spacial coordinate variables (e.g.: lat, lon) of a variable (var) from one NetCDF file (ifile) to another (out_file)
+    Copies the spatial coordinate variables (e.g.: lat, lon) of a variable (var) from one NetCDF file (ifile) to another (out_file)
     and returns list of coordinates variables.
     
     :param inc: input dataset
@@ -270,38 +311,58 @@ def copy_var_dim(inc, onc, var, project):
         
         
         #######################
-        if project == 'CORDEX':
         
-            if check_att(v, 'coordinates')==1:
-                a = str(v.__getattribute__('coordinates').split()[0])
-                b = str(v.__getattribute__('coordinates').split()[1])
-                
-                inc_a = inc.variables[a]
-                inc_b = inc.variables[b]
-                
-                onc_a = onc.createVariable( a, inc.variables[a].dtype, ( str(v_dim[1]), str(v_dim[2]) ) )
-                onc_b = onc.createVariable( b, inc.variables[b].dtype, ( str(v_dim[1]), str(v_dim[2]) ) )
-            
-                for j in range(len(inc_a.ncattrs())): # set attributs of current variable       
-                    onc_a.__setattr__(  inc_a.__dict__.items()[j][0]  , inc_a.__dict__.items()[j][1])
-                    
-                for j in range(len(inc_b.ncattrs())): # set attributs of current variable       
-                    onc_b.__setattr__(  inc_b.__dict__.items()[j][0]  , inc_b.__dict__.items()[j][1])  
-            
-            if check_att(v, 'grid_mapping')==1:
-                c = str(v.__getattribute__('grid_mapping'))
-                inc_c = inc.variables[c]
-                
-                onc_c = onc.createVariable( c, inc.variables[c].dtype )
-                
-                for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
-                    onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
-                    
-                    
-            onc_a[:,:] = inc_a[:,:]
-            onc_b[:,:] = inc_b[:,:]
+        # Copy coordinate variables
+        if check_att(v, 'coordinates')==1:
+          #print "There are coordinate vars"
+          coordinateAttr = v.getncattr("coordinates").split()
+          for coordinate in coordinateAttr:
+            #print "Copying coordidinate"+coordinate
+            copy_var(coordinate,inc,onc)
+        # maartenplieger comments: Is this necessary? Should copy all grid_mapping of the var to write and it will be fine.
+        if check_att(v, 'grid_mapping')==1:
+              c = str(v.__getattribute__('grid_mapping'))
+              inc_c = inc.variables[c]
+              
+              onc_c = onc.createVariable( c, inc.variables[c].dtype )
+              
+              for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
+                  onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
         
-            onc_c = inc_c # ????        
+        ## maartenplieger comments: This could be removed...
+        #if project == 'CORDEX_DEPRECATED':
+        #
+        #  if check_att(v, 'coordinates')==1:
+        #      a = str(v.__getattribute__('coordinates').split()[0])
+        #      b = str(v.__getattribute__('coordinates').split()[1])
+        #      
+        #      inc_a = inc.variables[a]
+        #      inc_b = inc.variables[b]
+        #      
+        #      onc_a = onc.createVariable( a, inc.variables[a].dtype, ( str(v_dim[1]), str(v_dim[2]) ) )
+        #      onc_b = onc.createVariable( b, inc.variables[b].dtype, ( str(v_dim[1]), str(v_dim[2]) ) )
+        #  
+        #      for j in range(len(inc_a.ncattrs())): # set attributs of current variable       
+        #          onc_a.__setattr__(  inc_a.__dict__.items()[j][0]  , inc_a.__dict__.items()[j][1])
+        #          
+        #      for j in range(len(inc_b.ncattrs())): # set attributs of current variable       
+        #          onc_b.__setattr__(  inc_b.__dict__.items()[j][0]  , inc_b.__dict__.items()[j][1])  
+        #  
+        #  if check_att(v, 'grid_mapping')==1:
+        #      c = str(v.__getattribute__('grid_mapping'))
+        #      inc_c = inc.variables[c]
+        #      
+        #      onc_c = onc.createVariable( c, inc.variables[c].dtype )
+        #      
+        #      for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
+        #          onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
+        #          
+        #          
+        #  onc_a[:,:] = inc_a[:,:]
+        #  onc_b[:,:] = inc_b[:,:]
+        #
+        #  onc_c = inc_c # ???
+      
                     
             
                 
@@ -560,17 +621,16 @@ def get_dict_year_chunk(time_steps_vect):
     return mydict
 
     
-#def defaultCallback(message,percentage):
-#    print ("[%s] %d" % (message,percentage))
+def defaultCallback(message,percentage):
+    print ("[%s] %d" % (message,percentage))
 
 
-def get_time_range(files, temporal_var_name="time"):
-    
+def get_time_range(files, temporal_var_name="time"):    
     '''
     :param files: netCDF file(s) (including OPeNDAP URL(s))
     :type files: str or list of str
     
-    :param temporal_var_name: name of temporal variable from netCDF file (usually: "time")
+    :param temporal_var_name: name of temporal variable from netCDF file (default: "time")
     :type temporal_var_name: str
     
     :rtype
@@ -603,12 +663,11 @@ def indice(in_files,
            var,
            indice_name,
            slice_mode,
-           project,
            time_range=None,
            out_file="./icclim_out.nc",
            threshold=None,
-           N_lev=None):
-           #callback=None):
+           N_lev=None,
+           callback=defaultCallback):
     
     '''
 
@@ -620,16 +679,13 @@ def indice(in_files,
     
     :param indice_name: climate indice name
     :type indice_name: str
-    
-    :param time_range: time range
-    :type time_range: list of 2 datetime objects [dt1, dt2]
-    
+        
     :param slice_mode: "year" for annual values, "month" for monthly values 
     :type slice_mode: str
     
-    :param project: project name ("CMIP5" or "CORDEX")
-    :type project: str
-    
+    :param time_range: time range, if ``None``: whole period of input files will be processed
+    :type time_range: list of 2 datetime objects [dt1, dt2]
+
     :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
     :type out_file: str
     
@@ -639,34 +695,67 @@ def indice(in_files,
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
+    :param callback: callback print
+    :type callback: "defaultCallback" function
+
     :rtype: path to NetCDF file
     
     '''
-
-       
-    #callback("Init Opening "+in_files[0],0);
+    
+    callback("Init Opening "+in_files[0],0);
     inc = Dataset(in_files[0], 'r')
-    #callback("Finished opening "+in_files[0],0);
+    callback("Finished opening "+in_files[0],0);
     
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
     fill_val = get_att_value(inc, var, '_FillValue')
 
-    indice_dim = copy_var_dim(inc, onc, var, project) # tuple ('time', 'lat', 'lon')
+    indice_dim = copy_var_dim(inc, onc, var) # tuple ('time', 'lat', 'lon')
     
-    nb_rows = inc.variables[indice_dim[1]].shape[0]
-    nb_columns = inc.variables[indice_dim[2]].shape[0]
+    indice_dim = list(indice_dim)
+
+    # As default, no threshold is defined, no threshold dimension is created and added to the indice var
+    nb_thresholds = 0
+    thresholds = [None];
     
-    calend = get_att_value(inc, indice_dim[0], 'calendar')
-    units = get_att_value(inc, indice_dim[0], 'units')
+    # A threshold can be given as a unique value or as a list of values, internally we always use a list
+    if threshold != None:
+      if(type(threshold)!=list):
+        threshold = [threshold]        
+      thresholds = []
+      for i in threshold:
+        thresholds.append(i)
+      nb_thresholds = len(thresholds)
+      # Create an extra dimension for the indice:
+      indice_dim.insert(1,'threshold')
+      onc.createDimension('threshold',nb_thresholds)
+      thresholdvar = onc.createVariable('threshold','f8',('threshold'))
+      thresholdvar[:] = thresholds
+      thresholdvar.setncattr("units","threshold");
+      thresholdvar.setncattr("standard_name","threshold");
     
-    inc.close()
+    index_row = len(indice_dim)-2
+    index_col = len(indice_dim)-1
+    index_time = 0
+    
+    nb_rows = inc.variables[indice_dim[index_row]].shape[0]
+    nb_columns = inc.variables[indice_dim[index_col]].shape[0]
+
+    
+    calend = get_att_value(inc, indice_dim[index_time], 'calendar')
+    units = get_att_value(inc, indice_dim[index_time], 'units')
+    
+    
 
     ind_type = 'f'
         
-    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)  
+    ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)  
     
+    # Copy attributes from variable to process to indice variable
+    copy_var_attrs(inc.variables[var],ind)
     
+    inc.close()
+
     if time_range == None:
         time_range = get_time_range(in_files, temporal_var_name=indice_dim[0])
         dt_begin = time_range[0] # datetime object
@@ -676,13 +765,13 @@ def indice(in_files,
         dt_end = time_range[1] # datetime object
     
     ############################
-    glob_dict_timeStep_indice = {}
+    glob_dict_timeStep_indice = [dict() for x in thresholds]
     ############################
     
     #j=0
     #pbar_files = ProgressBar(widgets=[Percentage(),' ', Bar()], maxval=len(in_files)).start()
     
-    total_nb_years_to_process = dt_end.year -dt_begin.year + 1
+    total_nb_years_to_process = dt_end.year - dt_begin.year + 1
     
     for ifile in in_files:
         
@@ -692,7 +781,7 @@ def indice(in_files,
         #pbar_files.update(j+1)
         #j+=1
         
-        #callback("Opening "+ifile,0);
+        callback("Opening "+ifile,0);
         nc = Dataset(ifile, 'r')
         
         time_steps_vect = get_list_dates_from_nc(nc, 'dt') 
@@ -722,7 +811,7 @@ def indice(in_files,
             
             if year>=dt_begin.year and year<=dt_end.year:
                 
-                #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
+                callback("Processing year %d, step (%d/%d)" % (year,currentStep,totalSteps),percentageComplete)
                 
                 i1 = dict_year_chunk[year][0]
                 i2 = dict_year_chunk[year][1]
@@ -736,14 +825,13 @@ def indice(in_files,
                 elif (slice_mode=='month'):
                     mydict_TimeStep_3DArray=get_dict_month_3Darr(values_current_chunk, time_steps_current_chunk)
                     
+                for t in range(0,len(thresholds)):
+                  mydict_indice=get_dict_timeStep_indice(mydict_TimeStep_3DArray, indice_name, fill_val, ind, onc, thresholds[t])
+                  glob_dict_timeStep_indice[t].update(mydict_indice)
                 
-                mydict_indice=get_dict_timeStep_indice(mydict_TimeStep_3DArray, indice_name, fill_val, ind, onc, threshold)
-                
-                glob_dict_timeStep_indice.update(mydict_indice)
-  
                 del values_current_chunk, time_steps_current_chunk
   
-                print "Processed: ", year
+                #print "Processed: ", year
                 
                 #counter_year = counter_year + 1
                 #print counter_year, total_nb_years_to_process
@@ -751,10 +839,10 @@ def indice(in_files,
                 #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                 #print status
                 
-            #else:
+            else:
                 #print "data not processed ", year
-                #callback("Skipping year %d" % year,percentageComplete)
-
+                callback("Skipping year %d" % year,percentageComplete)
+            currentStep+=1.0
             #time.sleep(0.01)
         #    #time.sleep(1.01)
         #    pbar.update(i+1)
@@ -772,9 +860,12 @@ def indice(in_files,
     #print sorted(glob_dict_timeStep_indice.keys())
     #print '---'     
     
-    glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
-    
-    ind[:,:,:] = glob_indice[0][:,:,:]
+    for t in range(0,len(thresholds)):
+      glob_indice = get_globindice(glob_dict_timeStep_indice[t], nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
+      if nb_thresholds > 0:
+        ind[:,t,:,:] = glob_indice[0][:,:,:]
+      else:
+        ind[:,:,:] = glob_indice[0][:,:,:]
     
     # set global attributs
     #eval(indice_name + '_setglobattr(onc)')
@@ -802,6 +893,7 @@ def indice(in_files,
     # set variable attributs
     if threshold != None:
         eval('set_longname_units_custom_indices.' + indice_name + '_setvarattr(ind, threshold)')
+        eval('set_longname_units_custom_indices.' + indice_name + '_setthresholdattr(thresholdvar)')
     else:
         eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
         ind.setncattr('standard_name', 'ECA_indice')
@@ -819,7 +911,7 @@ def indice(in_files,
     
     onc.close()
     
-    print "Indice " + indice_name + ": OK"
+    #print "Indice " + indice_name + ": OK"
     
     return out_file
 
