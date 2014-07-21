@@ -950,11 +950,11 @@ def indice_multivar(in_files1, var1,
                     in_files2, var2,                    
                     indice_name,                    
                     slice_mode,
-                    project,
+                    #project,
                     time_range=None,
                     out_file="./icclim_out.nc",
-                    N_lev=None):
-                    #callback=None):
+                    N_lev=None,
+                    callback=defaultCallback):
     
     '''
     :param in_files1: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the "var1"
@@ -972,14 +972,11 @@ def indice_multivar(in_files1, var1,
     :param indice_name: climate indice name
     :type indice_name: str
     
-    :param time_range: time range
-    :type time_range: list of 2 datetime objects [dt1, dt2]
-    
     :param slice_mode: "year" for annual values, "month" for monthly values 
     :type slice_mode: str
     
-    :param project: project name ("CMIP5" or "CORDEX")
-    :type project: str
+    :param time_range: time range, if ``None``: whole period of input files will be processed
+    :type time_range: list of 2 datetime objects [dt1, dt2]
     
     :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
     :type out_file: str
@@ -987,35 +984,48 @@ def indice_multivar(in_files1, var1,
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
+    :param callback: callback print
+    :type callback: :func:`icclim.defaultCallback`
+    
     :rtype: path to NetCDF file
 
     
     .. warning:: The both file lists must be identical, i.e. each corresponding file must contain the same time step vector.
 
     '''
-
+    
+    callback("Init Opening "+in_files1[0],0);
     inc1 = Dataset(in_files1[0], 'r')
     inc2 = Dataset(in_files2[0], 'r')
+    callback("Finished opening "+in_files1[0],0);
     
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
     fill_val1 = get_att_value(inc1, var1, '_FillValue')
     fill_val2 = get_att_value(inc2, var2, '_FillValue')
     
-    indice_dim = copy_var_dim(inc1, onc, var1, project) # tuple ('time', 'lat', 'lon')
+    indice_dim = copy_var_dim(inc1, onc, var1) # tuple ('time', 'lat', 'lon')
     
-    nb_rows = inc1.variables[indice_dim[1]].shape[0]
-    nb_columns = inc1.variables[indice_dim[2]].shape[0]
+    indice_dim = list(indice_dim)
     
-    calend = get_att_value(inc1, indice_dim[0], 'calendar')
-    units = get_att_value(inc1, indice_dim[0], 'units')
+    index_row = len(indice_dim)-2
+    index_col = len(indice_dim)-1
+    index_time = 0
+    
+    nb_rows = inc1.variables[indice_dim[index_row]].shape[0]
+    nb_columns = inc1.variables[indice_dim[index_col]].shape[0]
+    
+    calend = get_att_value(inc1, indice_dim[index_time], 'calendar')
+    units = get_att_value(inc1, indice_dim[index_time], 'units')
+
+    ind_type = 'f'    
+    ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val1)
+    
+    # Copy attributes from variable to process to indice variable
+    copy_var_attrs(inc1.variables[var1],ind)   
     
     inc1.close()
     inc2.close()
-
-    ind_type = 'f'    
-    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val1)
-       
     
     if time_range == None:
         time_range = get_time_range(in_files1, temporal_var_name=indice_dim[0])
@@ -1029,9 +1039,11 @@ def indice_multivar(in_files1, var1,
     glob_dict_timeStep_indice = {}
     ############################
 
+    total_nb_years_to_process = dt_end.year - dt_begin.year + 1
     
     for in_file1, in_file2  in zip(in_files1, in_files2):
-
+        
+        callback("Opening "+in_file1,0);
         nc1 = Dataset(in_file1, 'r')
         nc2 = Dataset(in_file2, 'r')
         
@@ -1051,10 +1063,18 @@ def indice_multivar(in_files1, var1,
                 values1 = nc1.variables[var1][:,N_lev,:,:]
                 values2 = nc2.variables[var2][:,N_lev,:,:]
             
-    
+            currentStep=1
+            totalSteps=len(dict_year_chunk1.keys())
+        
+            counter_year = 0
+            
             for year in sorted(dict_year_chunk1.keys()):
-    
+                
+                percentageComplete = (currentStep/totalSteps)*100
+                
                 if year>=dt_begin.year and year<=dt_end.year:
+                    
+                    callback("Processing year %d, step (%d/%d)" % (year,currentStep,totalSteps),percentageComplete)
                     
                     i1 = dict_year_chunk1[year][0]
                     i2 = dict_year_chunk1[year][1]
@@ -1078,7 +1098,7 @@ def indice_multivar(in_files1, var1,
       
                     del values_current_chunk1, values_current_chunk2, time_steps_current_chunk1
       
-                    print "Processed: ", year
+                    #print "Processed: ", year
                     
                     #counter_year = counter_year + 1
                     #print counter_year, total_nb_years_to_process
@@ -1086,10 +1106,10 @@ def indice_multivar(in_files1, var1,
                     #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                     #print status
                     
-                #else:
+                else:
                     #print "data not processed ", year
-                    #callback("Skipping year %d" % year,percentageComplete)
-    
+                    callback("Skipping year %d" % year,percentageComplete)
+                currentStep+=1.0
                 #time.sleep(0.01)
             #    #time.sleep(1.01)
             #    pbar.update(i+1)
@@ -1144,7 +1164,7 @@ def indice_multivar(in_files1, var1,
     
     onc.close()
     
-    print "Indice " + indice_name + ": OK"
+    #print "Indice " + indice_name + ": OK"
     
     return out_file
 
@@ -1310,8 +1330,15 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
 
 
 
-def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project, time_range=None, out_file="./icclim_out.nc", N_lev=None):
-    
+def indice_perc(in_files,
+                var,
+                indice_name,
+                percentile_dict,
+                slice_mode,
+                time_range=None,
+                out_file="./icclim_out.nc",
+                N_lev=None,
+                callback=defaultCallback):
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
@@ -1324,21 +1351,21 @@ def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project
     
     :param percentile_dict: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict`
     :type percentile_dict: dict
-
-    :param time_range: time range, if None: whole period of input files will be processed
-    :type time_range: list of 2 datetime objects [dt1, dt2]  
     
     :param slice_mode: "year" for annual values, "month" for monthly values (default: "year")
     :type slice_mode: str
     
-    :param project: project name ("CMIP5" or "CORDEX")
-    :type project: str
+    :param time_range: time range, if ``None``: whole period of input files will be processed
+    :type time_range: list of 2 datetime objects [dt1, dt2]
     
     :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
     :type out_file: str
 
     :param N_lev: level number if 4D variable
     :type N_lev: int
+    
+    :param callback: callback print
+    :type callback: :func:`icclim.defaultCallback`
     
     :rtype: path to NetCDF file
 
@@ -1347,27 +1374,38 @@ def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project
     
 
        
-    #callback("Init Opening "+in_files[0],0);
+    callback("Init Opening "+in_files[0],0);
     inc = Dataset(in_files[0], 'r')
-    #callback("Finished opening "+in_files[0],0);
+    callback("Finished opening "+in_files[0],0);
     
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
     fill_val = get_att_value(inc, var, '_FillValue')
 
-    indice_dim = copy_var_dim(inc, onc, var, project) # tuple ('time', 'lat', 'lon')
+    indice_dim = copy_var_dim(inc, onc, var) # tuple ('time', 'lat', 'lon')
     
-    nb_rows = inc.variables[indice_dim[1]].shape[0]
-    nb_columns = inc.variables[indice_dim[2]].shape[0]
+    indice_dim = list(indice_dim)
     
-    calend = get_att_value(inc, indice_dim[0], 'calendar')
-    units = get_att_value(inc, indice_dim[0], 'units')
+    index_row = len(indice_dim)-2
+    index_col = len(indice_dim)-1
+    index_time = 0
     
-    inc.close()
+    nb_rows = inc.variables[indice_dim[index_row]].shape[0]
+    nb_columns = inc.variables[indice_dim[index_col]].shape[0]
+    
+    calend = get_att_value(inc, indice_dim[index_time], 'calendar')
+    units = get_att_value(inc, indice_dim[index_time], 'units')
+    
+    
 
     ind_type = 'f'
         
     ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)  
+    
+    # Copy attributes from variable to process to indice variable
+    copy_var_attrs(inc.variables[var],ind)
+    
+    inc.close()
     
     if time_range == None:
         time_range = get_time_range(in_files, temporal_var_name=indice_dim[0])
@@ -1394,7 +1432,7 @@ def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project
         #pbar_files.update(j+1)
         #j+=1
         
-        #callback("Opening "+ifile,0);
+        callback("Opening "+ifile,0);
         nc = Dataset(ifile, 'r')
         
         time_steps_vect = get_list_dates_from_nc(nc, 'dt') 
@@ -1427,7 +1465,7 @@ def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project
             
             if year>=dt_begin.year and year<=dt_end.year:
                 
-                #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
+                callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
                 
                 i1 = dict_year_chunk[year][0]
                 i2 = dict_year_chunk[year][1]
@@ -1460,10 +1498,10 @@ def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project
                 #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                 #print status
                 
-            #else:
+            else:
                 #print "data not processed ", year
-                #callback("Skipping year %d" % year,percentageComplete)
-
+                callback("Skipping year %d" % year,percentageComplete)
+            currentStep+=1.0
             #time.sleep(0.01)
         #    #time.sleep(1.01)
         #    pbar.update(i+1)
@@ -1487,11 +1525,7 @@ def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project
     
 
     onc.setncattr('source', '') 
-
     # set global attributs
-    
-    # title
-
     set_globattr.title(onc, indice_name)        
     set_globattr.references(onc)
     set_globattr.comment(onc, indice_name)
@@ -1516,7 +1550,7 @@ def indice_perc(in_files, var, indice_name, percentile_dict, slice_mode, project
     
     onc.close()
     
-    print "Indice " + indice_name + ": OK"
+    #print "Indice " + indice_name + ": OK"
     
     return out_file
 
