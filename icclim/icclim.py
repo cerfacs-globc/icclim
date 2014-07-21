@@ -696,7 +696,7 @@ def indice(in_files,
     :type N_lev: int
     
     :param callback: callback print
-    :type callback: "defaultCallback" function
+    :type callback: :func:`defaultCallback`
 
     :rtype: path to NetCDF file
     
