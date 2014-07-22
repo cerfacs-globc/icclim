@@ -12,6 +12,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+# GOOD website with examples: http://openalea.gforge.inria.fr/doc/openalea/doc/_build/html/source/sphinx/rest_syntax.html
+
 import sys
 import os
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'

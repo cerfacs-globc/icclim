@@ -13,7 +13,7 @@ Contents:
 .. toctree::
 
     
-
+   intro.rst
    important_to_know.rst
    installation.rst
    python_api.rst
