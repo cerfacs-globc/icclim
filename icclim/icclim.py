@@ -720,19 +720,19 @@ def indice(in_files,
     
     # A threshold can be given as a unique value or as a list of values, internally we always use a list
     if threshold != None:
-      if(type(threshold)!=list):
-        threshold = [threshold]        
-      thresholds = []
-      for i in threshold:
-        thresholds.append(i)
-      nb_thresholds = len(thresholds)
-      # Create an extra dimension for the indice:
-      indice_dim.insert(1,'threshold')
-      onc.createDimension('threshold',nb_thresholds)
-      thresholdvar = onc.createVariable('threshold','f8',('threshold'))
-      thresholdvar[:] = thresholds
-      thresholdvar.setncattr("units","threshold");
-      thresholdvar.setncattr("standard_name","threshold");
+        if(type(threshold)!=list):
+            threshold = [threshold]        
+        thresholds = []
+        for i in threshold:
+            thresholds.append(i)
+        nb_thresholds = len(thresholds)
+        # Create an extra dimension for the indice:
+        indice_dim.insert(1,'threshold')
+        onc.createDimension('threshold',nb_thresholds)
+        thresholdvar = onc.createVariable('threshold','f8',('threshold'))
+        thresholdvar[:] = thresholds
+        thresholdvar.setncattr("units","threshold");
+        thresholdvar.setncattr("standard_name","threshold");
     
     index_row = len(indice_dim)-2
     index_col = len(indice_dim)-1
