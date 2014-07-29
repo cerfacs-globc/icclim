@@ -169,7 +169,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     
     '''
     
-    #we redice the number of dimensions (in case if)
+    #we reduce the number of dimensions (in case if)
     arr = arr.squeeze()
     
     # step1: creation of the dictionary with all calendar days:
