@@ -1280,7 +1280,7 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
     :param percentile: percentile to compute which must be between 0 and 100 inclusive
     :type percentile: int
     
-    :param window_width: window width, must be odd
+    :param window_width: window width, must be odd (default: 5)
     :type window_width: int
     
     :param time_range: time range of the base period (usually: 1961-1990), if ``None``: whole period of input files will be processed
