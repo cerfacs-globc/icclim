@@ -197,7 +197,7 @@ The function :func:`icclim.get_percentile_dict` creates a dictionary where each 
 >>> base_dt1 = datetime.datetime(1961,01,01)
 >>> base_dt2 = datetime.datetime(1990,12,31)
 >>>
->>> perc_dict = icclim.get_percentile_dict(in_files=[file_base1, file_base2], var='tasmin', percentile=10, window_width=5, time_range=[base_dt1, base_dt2], only_leap_years=False)
+>>> perc_dict = icclim.get_percentile_dict(in_files=[file_base1, file_base2], var='tasmin', percentile=10, time_range=[base_dt1, base_dt2], only_leap_years=False)
 
 
 

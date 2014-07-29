@@ -95,7 +95,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <p>Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.</p>
 <span class="target" id="module-icclim"><span id="func-indice-label"></span></span><dl class="function">
 <dt id="icclim.indice">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x38dc7d0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x25daa28&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -145,7 +145,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-multivar-label"></span></span><dl class="function">
 <dt id="icclim.indice_multivar">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x38dc7d0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x25daa28&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -189,7 +189,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-perc-label"></span></span><dl class="function">
 <dt id="icclim.indice_perc">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x38dc7d0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x25daa28&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -244,7 +244,7 @@ to compute its percentile value.</p>
 <li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)</li>
 <li><strong>var</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
 <li><strong>percentile</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; percentile to compute which must be between 0 and 100 inclusive</li>
-<li><strong>window_width</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; window width, must be odd</li>
+<li><strong>window_width</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; window width, must be odd (default: 5)</li>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects: [dt1, dt2]</em>) &#8211; time range of the base period (usually: 1961-1990), if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
 <li><strong>only_leap_years</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; option for February 29th (default: False)</li>
 </ul>
@@ -349,7 +349,7 @@ to compute its percentile value.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">base_dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1961</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">base_dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1990</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">perc_dict</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="p">[</span><span class="n">file_base1</span><span class="p">,</span> <span class="n">file_base2</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">window_width</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">],</span> <span class="n">only_leap_years</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">perc_dict</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="p">[</span><span class="n">file_base1</span><span class="p">,</span> <span class="n">file_base2</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">],</span> <span class="n">only_leap_years</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
