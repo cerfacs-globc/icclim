@@ -1269,7 +1269,7 @@ def get_indices_subset(dt_arr, time_range):
         print 'The time range is not included in the input time steps array.'
 
 
-def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=None, only_leap_years=False, callback=False):
+def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=None, only_leap_years=False, verbose=False):
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
@@ -1289,40 +1289,38 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
     :param only_leap_years: option for February 29th (default: False)
     :type only_leap_years: bool
     
-    :param callback: callback print, if True, the percentage progress will be printed (default: False)
-    :type callback: bool
+    :param verbose: if True, the percentage progress will be printed (default: False)
+    :type verbose: bool
     
     :rtype: dict
-    
+     
     '''
-    
+    # TODO does not work with OPeNDAP datasets ---> "Request too big" ---> chunking in space OR ajuste the maximum request size (http://www.unidata.ucar.edu/software/thredds/v4.5/tds/reference/ThreddsConfigXMLFile.html)
     nc = MFDataset(in_files, 'r')
     
-    var = nc.variables[var]
+    var = nc.variables[var]    
+    var_time = nc.variables['time']
     
-    var_time = nc.variables['time']    
     time_calend = var_time.calendar
     time_units = var_time.units    
-    
-
-    arr = var[:,:,:]        
-    time_arr = var_time[:]
-    dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
 
     if time_range == None:
-        base_arr = arr
-        dt_base_arr = dt_arr
+        base_arr = var[:,:,:]
+        time_base_arr = var_time[:]
+        dt_base_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_base_arr])
         
-    else:        
+    else:
+        time_arr = var_time[:]
+        dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
+
         indices_subset = get_indices_subset(dt_arr, time_range)
 
-        base_arr = arr[indices_subset,:,:].squeeze()
+        base_arr = var[indices_subset,:,:].squeeze()
         dt_base_arr = dt_arr[indices_subset].squeeze()
                 
-    del arr, time_arr, dt_arr  
     
     
-    dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,callback=callback)
+    dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,verbose=verbose)
     
     return dic
 

@@ -146,7 +146,7 @@ def get_year_list(dt_arr):
 ############### utility functions: end ##################
 
 
-def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, callback=False):
+def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, verbose=False):
     '''
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
     Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
@@ -161,8 +161,8 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     :type window_width: int
     :param only_leap_years: option for February 29th (default: False)
     :type only_leap_years: bool
-    :param callback: callback print, if True, the percentage progress will be printed (default: False)
-    :type callback: bool
+    :param verbose: if True, the percentage progress will be printed (default: False)
+    :type verbose: bool
     
     :rtype: dict
 
@@ -204,7 +204,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
             # step6: we add to the dictionnary...
             percentile_dict[month,day] = arr_percentille_current_calday
         
-        if callback==True:
+        if verbose == True:
             percent_current_month =  percent_current_month + percent_one_month
             print '[Creating of daily percentiles dictionary] ', int(round(percent_current_month)), '%'
     
