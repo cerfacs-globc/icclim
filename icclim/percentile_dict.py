@@ -161,7 +161,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     :type window_width: int
     :param only_leap_years: option for February 29th (default: False)
     :type only_leap_years: bool
-    :param callback: callback print (default: False)
+    :param callback: callback print, if True, the percentage progress will be printed (default: False)
     :type callback: bool
     
     :rtype: dict
