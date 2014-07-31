@@ -10,11 +10,11 @@ The output metadata contains at least the following variables:
     - indice 
 
 lat, lon
---------
+---------
 We copy the *lat* and *lon* variables from source file with all their attributes.
 
 time
-----
+-----
 If *slice_mode='year'*, the time steps will be the 1st July of each year ("YYYY-07-01"):
 
 .. code-block:: rest
@@ -41,7 +41,7 @@ If *slice_mode='month'*, the time steps will be the 16th day of each month ("YYY
 
 
 time_bnds
----------
+----------
 
 If *slice_mode='year'*, the *time_bnds* values will be the 1st January of year and the 1st January of next year:
 
@@ -88,7 +88,7 @@ If *slice_mode='month'*, the *time_bnds* values will be the 1st day of month and
     
 
 indice
-------
+-------
      
 The *indice* variable has the same name as indice_name parameter (e.g. "FD").
 It has the following attributes:
@@ -115,7 +115,7 @@ Example:
 
 
 Global attributes
-----------------
+------------------
 
 According to the CF convention, the output NetCDF file contains 6 main global attributes:
     - title 
