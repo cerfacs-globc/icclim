@@ -31,7 +31,7 @@ Below is more detail about input parameters for each function. These functions r
 .. automodule:: icclim
     :members: indice
 
-.. warning:: ``out_file`` parameter: Iclim will overwrite if the file already exists. 
+.. warning:: If ``out_file`` already exists, Icclim will overwrite it! 
     
 To compute the SU indice (annual time series):
 

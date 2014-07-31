@@ -95,7 +95,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <p>Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.</p>
 <span class="target" id="module-icclim"><span id="func-indice-label"></span></span><dl class="function">
 <dt id="icclim.indice">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2697aa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x3aecaa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -122,7 +122,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last"><tt class="docutils literal"><span class="pre">out_file</span></tt> parameter: Iclim will overwrite if the file already exists.</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">out_file</span></tt> already exists, Icclim will overwrite it!</p>
 </div>
 <p>To compute the SU indice (annual time series):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glob</span>
@@ -145,7 +145,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-multivar-label"></span></span><dl class="function">
 <dt id="icclim.indice_multivar">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2697aa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x3aecaa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -189,7 +189,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-perc-label"></span></span><dl class="function">
 <dt id="icclim.indice_perc">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2697aa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x3aecaa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
