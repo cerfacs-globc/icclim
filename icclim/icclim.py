@@ -6,6 +6,8 @@ from netCDF4 import num2date, date2num, Dataset, MFDataset
 from netcdftime import utime
 #from progressbar import ProgressBar,Percentage,Bar
 import time
+import pickle
+import os
 
 from calc_indice import *
 import set_globattr
@@ -1269,7 +1271,7 @@ def get_indices_subset(dt_arr, time_range):
         print 'The time range is not included in the input time steps array.'
 
 
-def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=None, only_leap_years=False, verbose=False):
+def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=None, only_leap_years=False, verbose=False, save_to_file=None):
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
@@ -1292,8 +1294,11 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
     :param verbose: if True, the percentage progress will be printed (default: False)
     :type verbose: bool
     
+    :param save_to_file: output file name which will contain the created daily percentiles dictionary (default: None)
+    :type save_to_file: str
+    
     :rtype: dict
-     
+
     '''
     # TODO does not work with OPeNDAP datasets ---> "Request too big" ---> chunking in space OR ajuste the maximum request size (http://www.unidata.ucar.edu/software/thredds/v4.5/tds/reference/ThreddsConfigXMLFile.html)
     nc = MFDataset(in_files, 'r')
@@ -1321,6 +1326,11 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
     
     
     dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,verbose=verbose)
+    
+    if save_to_file != None:
+        with open(save_to_file, 'wb') as handle:
+            pickle.dump(dic, handle)
+            print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
     
     return dic
 
