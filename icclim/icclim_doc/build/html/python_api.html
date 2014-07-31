@@ -95,7 +95,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <p>Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.</p>
 <span class="target" id="module-icclim"><span id="func-indice-label"></span></span><dl class="function">
 <dt id="icclim.indice">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x26faa28&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2697aa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -145,7 +145,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-multivar-label"></span></span><dl class="function">
 <dt id="icclim.indice_multivar">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x26faa28&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2697aa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -189,7 +189,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-perc-label"></span></span><dl class="function">
 <dt id="icclim.indice_perc">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x26faa28&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2697aa0&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -235,7 +235,7 @@ to compute its percentile value.</p>
 <p>The function <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a> creates a dictionary where each calendar day (key) has a corresponding 2D array with percentile values:</p>
 <span class="target" id="module-icclim"></span><dl class="function">
 <dt id="icclim.get_percentile_dict">
-<tt class="descclassname">icclim.</tt><tt class="descname">get_percentile_dict</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>percentile</em>, <em>window_width=5</em>, <em>time_range=None</em>, <em>only_leap_years=False</em>, <em>verbose=False</em><big>)</big><a class="headerlink" href="#icclim.get_percentile_dict" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">get_percentile_dict</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>percentile</em>, <em>window_width=5</em>, <em>time_range=None</em>, <em>only_leap_years=False</em>, <em>verbose=False</em>, <em>save_to_file=None</em><big>)</big><a class="headerlink" href="#icclim.get_percentile_dict" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -248,6 +248,7 @@ to compute its percentile value.</p>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects: [dt1, dt2]</em>) &#8211; time range of the base period (usually: 1961-1990), if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
 <li><strong>only_leap_years</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; option for February 29th (default: False)</li>
 <li><strong>verbose</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if True, the percentage progress will be printed (default: False)</li>
+<li><strong>save_to_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output file name which will contain the created daily percentiles dictionary (default: None)</li>
 </ul>
 </td>
 </tr>
@@ -262,10 +263,9 @@ to compute its percentile value.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">The function uses the <a class="reference external" href="http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.percentile.html">numpy.percentile</a> function with &#8220;linear&#8221; interpolation method as default.</p>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
 <p>The <tt class="docutils literal"><span class="pre">only_leap_years</span></tt> parameter selects which of two methods to use for calculating a percentile value for the calendar day of <strong>February 29th</strong>:</p>
-<ul>
+<blockquote>
+<div><ul>
 <li><p class="first">if it is <em>True</em>, then we take only leap years, i.e. for example for the base period of 1980-1990 and 5-day window width, we take the values corresponding to the following dates:</p>
 <blockquote>
 <div><p>1980-02-27,
@@ -337,8 +337,8 @@ to compute its percentile value.</p>
 </div></blockquote>
 </li>
 </ul>
-<p class="last">The second way is preferable, because we have more samples.</p>
-</div>
+<p>The second way is preferable, because we have more samples.</p>
+</div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma, i.e. to get for example the 2D percentile array for <em>April 13th</em> it will looks like <em>my_perc_dict[4,13]</em>.</p>
@@ -350,8 +350,22 @@ to compute its percentile value.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">base_dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1961</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">base_dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1990</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">perc_dict</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="p">[</span><span class="n">file_base1</span><span class="p">,</span> <span class="n">file_base2</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">],</span> <span class="n">only_leap_years</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">perc_dict</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="p">[</span><span class="n">file_base1</span><span class="p">,</span> <span class="n">file_base2</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">])</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>The dictionary with daily percentiles can be saved in <a class="reference external" href="https://docs.python.org/2/library/pickle.html#">pickle</a> file (the <tt class="docutils literal"><span class="pre">save_to_file</span></tt> parameter):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">file_name</span> <span class="o">=</span> <span class="s">&#39;my_perc_dict.pkl&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">perc_dict</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="p">[</span><span class="n">file_base1</span><span class="p">,</span> <span class="n">file_base2</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">],</span> <span class="n">save_to_file</span><span class="o">=</span><span class="n">file_name</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To load the dictionary from file just do the following:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pickle</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="nb">dict</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="elementary-functions">

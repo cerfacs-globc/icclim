@@ -25,12 +25,16 @@ Contents:
 
 **NEWS:**
 
+*31/07/2014*
+
+- Possibility to save a dictionary with daily percentiles in file (added the ``save_to_file`` parameter in :func:`icclim.get_percentile_dict()`)
+
 *21/07/2014*
 
-In the functions "icclim.indice()", "icclim.indice_multivar()" and "icclim.indice_perc()":
+In :func:`icclim.indice()`, :func:`icclim.indice_multivar()` and :func:`icclim.indice_perc()`:
 
-- Removed the "project" parameter
-- The "time_range" parameter is not required, i.e. if it is None, then the whole period of input files will be processed
+- Removed the ``project`` parameter
+- The ``time_range`` parameter is not required, i.e. if it is None, then the whole period of input files will be processed
 
 
 *17/07/2014*

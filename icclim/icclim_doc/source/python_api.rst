@@ -103,7 +103,7 @@ The function :func:`icclim.get_percentile_dict` creates a dictionary where each 
 
 .. note:: The function uses the `numpy.percentile <http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.percentile.html>`_ function with "linear" interpolation method as default.
     
-.. note:: The ``only_leap_years`` parameter selects which of two methods to use for calculating a percentile value for the calendar day of **February 29th**:
+The ``only_leap_years`` parameter selects which of two methods to use for calculating a percentile value for the calendar day of **February 29th**:
 
     - if it is *True*, then we take only leap years, i.e. for example for the base period of 1980-1990 and 5-day window width, we take the values corresponding to the following dates:
 
@@ -197,8 +197,18 @@ The function :func:`icclim.get_percentile_dict` creates a dictionary where each 
 >>> base_dt1 = datetime.datetime(1961,01,01)
 >>> base_dt2 = datetime.datetime(1990,12,31)
 >>>
->>> perc_dict = icclim.get_percentile_dict(in_files=[file_base1, file_base2], var='tasmin', percentile=10, time_range=[base_dt1, base_dt2], only_leap_years=False)
+>>> perc_dict = icclim.get_percentile_dict(in_files=[file_base1, file_base2], var='tasmin', percentile=10, time_range=[base_dt1, base_dt2])
 
+.. note:: The dictionary with daily percentiles can be saved in `pickle <https://docs.python.org/2/library/pickle.html#>`_ file (the ``save_to_file`` parameter):
+
+    >>> file_name = 'my_perc_dict.pkl'
+    >>> perc_dict = icclim.get_percentile_dict(in_files=[file_base1, file_base2], var='tasmin', percentile=10, time_range=[base_dt1, base_dt2], save_to_file=file_name)
+    
+    To load the dictionary from file just do the following:
+    
+    >>> import pickle
+    >>> with open(file_name, 'rb') as f:
+    ...     dict = pickle.load(f)
 
 
 
