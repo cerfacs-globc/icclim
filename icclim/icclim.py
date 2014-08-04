@@ -8,6 +8,7 @@ from netcdftime import utime
 import time
 import pickle
 import os
+from collections import OrderedDict
 
 from calc_indice import *
 import set_globattr
@@ -659,6 +660,31 @@ def get_time_range(files, temporal_var_name="time"):
     return [begin_dt, end_dt]
 
 
+def get_year_list(dt_arr):
+    '''
+    Just to get a list of all years conteining in time steps vector (dt_arr).
+    '''
+
+    year_list = []
+    for dt in dt_arr:
+        year_list.append(dt.year)
+        
+    year_list = list(set(year_list))
+    
+    return year_list
+
+
+def get_dict_file_years_glob(files_list):
+    dict_file_years = OrderedDict()
+    
+    for filename in files_list:
+        dates_list_current_file = get_list_dates(filename, 'dt')
+        years_current_file = get_year_list(dates_list_current_file)
+        dict_file_years[filename] = years_current_file
+        del dates_list_current_file, years_current_file
+        
+    #print dict_file_years
+
 
 # GLOBAL FUNCTION       
 def indice(in_files,
@@ -704,9 +730,9 @@ def indice(in_files,
     
     '''
     
-    callback("Init Opening "+in_files[0],0);
+    #callback("Init Opening "+in_files[0],0);
     inc = Dataset(in_files[0], 'r')
-    callback("Finished opening "+in_files[0],0);
+    #callback("Finished opening "+in_files[0],0);
     
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
@@ -775,6 +801,9 @@ def indice(in_files,
     
     total_nb_years_to_process = dt_end.year - dt_begin.year + 1
     
+    dict_glob_file_years = get_dict_file_years_glob(in_files)
+    
+    year_counter = 1.0
     for ifile in in_files:
         
         
@@ -783,7 +812,7 @@ def indice(in_files,
         #pbar_files.update(j+1)
         #j+=1
         
-        callback("Opening "+ifile,0);
+        #callback("Opening "+ifile,0);
         nc = Dataset(ifile, 'r')
         
         time_steps_vect = get_list_dates_from_nc(nc, 'dt') 
@@ -800,20 +829,20 @@ def indice(in_files,
         #pbar = ProgressBar(widgets=['',Percentage(), Bar()], maxval=len(dict_year_chunk.keys())).start()
         #i=0
         
-        currentStep=1
-        totalSteps=len(dict_year_chunk.keys())
+        #currentStep=1
+        #totalSteps=len(dict_year_chunk.keys())
         
-        counter_year = 0
+        
         for year in sorted(dict_year_chunk.keys()):
             
             #pbar.widgets[0]= ' <'+str(year)+' processed> '
             
-            percentageComplete = (currentStep/totalSteps)*100
+            #percentageComplete = (currentStep/totalSteps)*100
             #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
             
             if year>=dt_begin.year and year<=dt_end.year:
                 
-                callback("Processing year %d, step (%d/%d)" % (year,currentStep,totalSteps),percentageComplete)
+                #callback("Processing year %d, step (%d/%d)" % (year,currentStep,totalSteps),percentageComplete)
                 
                 i1 = dict_year_chunk[year][0]
                 i2 = dict_year_chunk[year][1]
@@ -841,10 +870,17 @@ def indice(in_files,
                 #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                 #print status
                 
-            else:
+                #if year in dict_glob_file_years[ifile]:
+                #year_counter = 1
+                #callback("Processing year %d" % , (year_counter/total_nb_years_to_process)*100)
+                callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                year_counter += 1
+                
+                
+            #else:
                 #print "data not processed ", year
-                callback("Skipping year %d" % year,percentageComplete)
-            currentStep+=1.0
+                #callback("Skipping year %d" % year,percentageComplete)
+            #currentStep+=1.0
             #time.sleep(0.01)
         #    #time.sleep(1.01)
         #    pbar.update(i+1)
@@ -996,10 +1032,10 @@ def indice_multivar(in_files1, var1,
 
     '''
     
-    callback("Init Opening "+in_files1[0],0);
+    #callback("Init Opening "+in_files1[0],0);
     inc1 = Dataset(in_files1[0], 'r')
     inc2 = Dataset(in_files2[0], 'r')
-    callback("Finished opening "+in_files1[0],0);
+    #callback("Finished opening "+in_files1[0],0);
     
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
@@ -1043,9 +1079,12 @@ def indice_multivar(in_files1, var1,
 
     total_nb_years_to_process = dt_end.year - dt_begin.year + 1
     
+    dict_glob_file_years = get_dict_file_years_glob(in_files1)
+    
+    year_counter = 1.0
     for in_file1, in_file2  in zip(in_files1, in_files2):
         
-        callback("Opening "+in_file1,0);
+        #callback("Opening "+in_file1,0);
         nc1 = Dataset(in_file1, 'r')
         nc2 = Dataset(in_file2, 'r')
         
@@ -1065,18 +1104,18 @@ def indice_multivar(in_files1, var1,
                 values1 = nc1.variables[var1][:,N_lev,:,:]
                 values2 = nc2.variables[var2][:,N_lev,:,:]
             
-            currentStep=1
-            totalSteps=len(dict_year_chunk1.keys())
+            #currentStep=1
+            #totalSteps=len(dict_year_chunk1.keys())
         
-            counter_year = 0
+            #counter_year = 0
             
             for year in sorted(dict_year_chunk1.keys()):
                 
-                percentageComplete = (currentStep/totalSteps)*100
+                #percentageComplete = (currentStep/totalSteps)*100
                 
                 if year>=dt_begin.year and year<=dt_end.year:
                     
-                    callback("Processing year %d, step (%d/%d)" % (year,currentStep,totalSteps),percentageComplete)
+                    #callback("Processing year %d, step (%d/%d)" % (year,currentStep,totalSteps),percentageComplete)
                     
                     i1 = dict_year_chunk1[year][0]
                     i2 = dict_year_chunk1[year][1]
@@ -1108,10 +1147,13 @@ def indice_multivar(in_files1, var1,
                     #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                     #print status
                     
-                else:
+                    callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                    year_counter += 1
+                    
+                #else:
                     #print "data not processed ", year
-                    callback("Skipping year %d" % year,percentageComplete)
-                currentStep+=1.0
+                    #callback("Skipping year %d" % year,percentageComplete)
+                #currentStep+=1.0
                 #time.sleep(0.01)
             #    #time.sleep(1.01)
             #    pbar.update(i+1)
@@ -1385,9 +1427,9 @@ def indice_perc(in_files,
     
 
        
-    callback("Init Opening "+in_files[0],0);
+    #callback("Init Opening "+in_files[0],0);
     inc = Dataset(in_files[0], 'r')
-    callback("Finished opening "+in_files[0],0);
+    #callback("Finished opening "+in_files[0],0);
     
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
@@ -1435,6 +1477,9 @@ def indice_perc(in_files,
     
     total_nb_years_to_process = dt_end.year -dt_begin.year + 1
     
+    dict_glob_file_years = get_dict_file_years_glob(in_files)
+    
+    year_counter = 1.0
     for ifile in in_files:
         
         
@@ -1443,7 +1488,7 @@ def indice_perc(in_files,
         #pbar_files.update(j+1)
         #j+=1
         
-        callback("Opening "+ifile,0);
+        #callback("Opening "+ifile,0);
         nc = Dataset(ifile, 'r')
         
         time_steps_vect = get_list_dates_from_nc(nc, 'dt') 
@@ -1460,15 +1505,15 @@ def indice_perc(in_files,
         #pbar = ProgressBar(widgets=['',Percentage(), Bar()], maxval=len(dict_year_chunk.keys())).start()
         #i=0
         
-        currentStep=1
-        totalSteps=len(dict_year_chunk.keys())
+        #currentStep=1
+        #totalSteps=len(dict_year_chunk.keys())
         
-        counter_year = 0
+        #counter_year = 0
         for year in sorted(dict_year_chunk.keys()):
 
             #pbar.widgets[0]= ' <'+str(year)+' processed> '
             
-            percentageComplete = (currentStep/totalSteps)*100
+            #percentageComplete = (currentStep/totalSteps)*100
             #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
             
             
@@ -1476,7 +1521,7 @@ def indice_perc(in_files,
             
             if year>=dt_begin.year and year<=dt_end.year:
                 
-                callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
+                #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
                 
                 i1 = dict_year_chunk[year][0]
                 i2 = dict_year_chunk[year][1]
@@ -1501,7 +1546,7 @@ def indice_perc(in_files,
 
                 del values_current_chunk, time_steps_current_chunk
   
-                print "Processed: ", year
+                #print "Processed: ", year
                 
                 #counter_year = counter_year + 1
                 #print counter_year, total_nb_years_to_process
@@ -1509,10 +1554,13 @@ def indice_perc(in_files,
                 #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                 #print status
                 
-            else:
+                callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                year_counter += 1
+                
+            #else:
                 #print "data not processed ", year
-                callback("Skipping year %d" % year,percentageComplete)
-            currentStep+=1.0
+                #callback("Skipping year %d" % year,percentageComplete)
+            #currentStep+=1.0
             #time.sleep(0.01)
         #    #time.sleep(1.01)
         #    pbar.update(i+1)
