@@ -25,6 +25,10 @@ Contents:
 
 **NEWS:**
 
+*4/08/2014*
+
+- Improved callback in :func:`icclim.indice()`, :func:`icclim.indice_multivar()` and :func:`icclim.indice_perc()`
+
 *31/07/2014*
 
 - Possibility to save a dictionary with daily percentiles in file (added the ``save_to_file`` parameter in :func:`icclim.get_percentile_dict()`)
