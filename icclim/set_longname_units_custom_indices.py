@@ -1,3 +1,9 @@
+#  Copyright CERFACS (http://cerfacs.fr/)
+#  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+#
+#  Author: Natalia Tatarinova <tatarinova@cerfacs.fr>
+
+
 # set the attributs "long_name" and "units" of indice variable in output meta data
 # (for indices with user defined thrshold)
 

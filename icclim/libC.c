@@ -1,3 +1,10 @@
+//  Copyright CERFACS (http://cerfacs.fr/)
+//  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+//
+//  Author: Natalia Tatarinova <tatarinova@cerfacs.fr>
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
