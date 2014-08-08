@@ -210,8 +210,13 @@ The ``only_leap_years`` parameter selects which of two methods to use for calcul
     >>> with open(file_name, 'rb') as f:
     ...     dict = pickle.load(f)
 
+.. note:: To process OPeNDAP datasets one needs to set the ``transfer_limit_bytes`` in bytes. To know your maximum request limit, you can try to run the function without ``transfer_limit_bytes``, you will probably get an error message like: 
 
+	**context: Error { code = 403; message = "Request too big=1875.0 Mbytes, max=500.0"^;};**
+	...
+	**RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS**
 
+	That means that your maximum request limit is 500 Mbytes, and then set the ``transfer_limit_bytes`` to 500000000 [bytes]. If that does not work, try to reduce it a bit to let's say 450000000 [bytes].
 
 Elementary functions
 --------------------

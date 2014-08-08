@@ -25,6 +25,10 @@ Contents:
 
 **NEWS:**
 
+*8/08/2014*
+
+- :func:`icclim.get_percentile_dict()` works now with OPeNDAP datasets (added the ``transfer_limit_bytes`` parameter)
+
 *4/08/2014*
 
 - Improved callback in :func:`icclim.indice()`, :func:`icclim.indice_multivar()` and :func:`icclim.indice_perc()`
