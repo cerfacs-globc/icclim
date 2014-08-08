@@ -22,7 +22,7 @@ import set_longname_units_custom_indices
 
 import percentile_dict
 from calc_indice_perc import *
-
+import OCGIS_tile
 
 def test():
     print my_rep
@@ -1304,7 +1304,6 @@ def get_indices_subset(dt_arr, time_range):
     
     dt1 = time_range[0]
     dt2 = time_range[1]
-    
 
     if dt1 >= dt_arr[0] and dt2 <= dt_arr[-1]:
 
@@ -1318,13 +1317,72 @@ def get_indices_subset(dt_arr, time_range):
         print 'The time range is not included in the input time steps array.'
 
 
-def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=None, only_leap_years=False, verbose=False, save_to_file=None):
+
+def get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_limit_bytes, time_range=None):
+    '''
+    Returns the total size of 3D variable array in bytes and the optimal tile dimension for spatial chunking.
+    
+    :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
+    :type in_files: list
+    
+    :param var_name: variable name to process
+    :type var_name: str
+    
+    :param transfer_limit_bytes: maximum OPeNDAP/THREDDS transfer limit in bytes to load OPeNDAP datasets (default: None) 
+    :type transfer_limit_bytes: float
+    
+    :param time_range: time range
+    :type time_range: list of 2 datetime objects: [dt1, dt2]
+    
+    rtype: tuple of float and int
+
+    .. warning:: only for 3D variables
+    
+    '''
+    
+    in_files.sort()
+    mfnc = MFDataset(in_files, 'r')
+    
+    ndim = mfnc.variables[var_name].ndim
+    if ndim != 3:
+        print "ERROR: The variable to process must be 3D"
+        
+    v = mfnc.variables[var_name]
+    v_dtype = v.dtype
+    v_nb_bytes = v_dtype.itemsize 
+    
+    if time_range == None:
+        v_shape = v.shape
+        
+        total_array_size_bytes = v.shape[0] * v.shape[1] * v.shape[2] * v_nb_bytes
+        optimal_tile_dimension = int(   numpy.sqrt( transfer_limit_bytes / (v.shape[0] * v_nb_bytes)  )   )
+        
+    else:
+        var_time =  mfnc.variables['time']
+        time_calend = var_time.calendar
+        time_units = var_time.units
+        time_arr = var_time[:]
+        dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
+        indices_subset = get_indices_subset(dt_arr, time_range)
+        
+        nb_time_steps_after_subset = len(indices_subset)
+        total_array_size_bytes = nb_time_steps_after_subset * v.shape[1] * v.shape[2] * v_nb_bytes
+        
+        optimal_tile_dimension = int(   numpy.sqrt( transfer_limit_bytes / (nb_time_steps_after_subset * v_nb_bytes)  )   )
+    
+    mfnc.close()
+    
+    return (total_array_size_bytes, optimal_tile_dimension)
+
+
+
+def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_range=None, only_leap_years=False, verbose=False, save_to_file=None, transfer_limit_bytes=None):
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
     
-    :param var: variable name to process
-    :type var: str
+    :param var_name: variable name to process
+    :type var_name: str
     
     :param percentile: percentile to compute which must be between 0 and 100 inclusive
     :type percentile: int
@@ -1344,41 +1402,169 @@ def get_percentile_dict(in_files, var, percentile, window_width=5, time_range=No
     :param save_to_file: output file name which will contain the created daily percentiles dictionary (default: None)
     :type save_to_file: str
     
+    :param transfer_limit_bytes: maximum OPeNDAP/THREDDS request limit in bytes (default: None) 
+    :type transfer_limit_bytes: float
+    
     :rtype: dict
 
     '''
-    # TODO does not work with OPeNDAP datasets ---> "Request too big" ---> chunking in space OR ajuste the maximum request size (http://www.unidata.ucar.edu/software/thredds/v4.5/tds/reference/ThreddsConfigXMLFile.html)
-    nc = MFDataset(in_files, 'r')
     
-    var = nc.variables[var]    
-    var_time = nc.variables['time']
     
-    time_calend = var_time.calendar
-    time_units = var_time.units    
-
-    if time_range == None:
-        base_arr = var[:,:,:]
-        time_base_arr = var_time[:]
-        dt_base_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_base_arr])
+    in_files.sort()
+    
+    if transfer_limit_bytes == None: # i.e. we work with local files
+        nc = MFDataset(in_files, 'r')
+    
+        var = nc.variables[var_name]    
+        var_time = nc.variables['time']
         
-    else:
-        time_arr = var_time[:]
-        dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
-
-        indices_subset = get_indices_subset(dt_arr, time_range)
-
-        base_arr = var[indices_subset,:,:].squeeze()
-        dt_base_arr = dt_arr[indices_subset].squeeze()
+        time_calend = var_time.calendar
+        time_units = var_time.units    
+    
+        if time_range == None:
+            base_arr = var[:,:,:]
+            time_base_arr = var_time[:]
+            dt_base_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_base_arr])
+            
+        else:
+            time_arr = var_time[:]
+            dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
+    
+            indices_subset = get_indices_subset(dt_arr, time_range)
+    
+            base_arr = var[indices_subset,:,:].squeeze()
+            dt_base_arr = dt_arr[indices_subset].squeeze()
+                    
+        nc.close()
+        
+        dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,verbose=verbose)
+        
+        if save_to_file != None:
+            with open(save_to_file, 'wb') as handle:
+                pickle.dump(dic, handle)
+                print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
+    
+    
+    
+    else: # i.e. we work with OPeNDAP datasets
+        total_array_size_bytes_and_tile_dimension = get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_limit_bytes, time_range=time_range)
+        array_total_size = total_array_size_bytes_and_tile_dimension[0]
+        
+        #print array_total_size
+        
+        if array_total_size < transfer_limit_bytes: # the same as for the "if transfer_limit_bytes == None" case
+            
+            nc = MFDataset(in_files, 'r')
+        
+            var = nc.variables[var_name]    
+            var_time = nc.variables['time']
+            
+            time_calend = var_time.calendar
+            time_units = var_time.units    
+            
+            print "Data transfer... "
+            
+            if time_range == None:
+                base_arr = var[:,:,:]
+                time_base_arr = var_time[:]
+                dt_base_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_base_arr])
                 
-    
-    
-    dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,verbose=verbose)
-    
-    if save_to_file != None:
-        with open(save_to_file, 'wb') as handle:
-            pickle.dump(dic, handle)
-            print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
-    
+            else:
+                time_arr = var_time[:]
+                dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
+        
+                indices_subset = get_indices_subset(dt_arr, time_range)
+        
+                base_arr = var[indices_subset,:,:].squeeze()
+                dt_base_arr = dt_arr[indices_subset].squeeze()
+                        
+            nc.close()
+            
+            dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,verbose=verbose)
+            
+            del base_arr, dt_base_arr
+            
+            if save_to_file != None:
+                with open(save_to_file, 'wb') as handle:
+                    pickle.dump(dic, handle)
+                    print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
+        
+        
+        
+            
+        else:
+            # then we do chunking in space
+            tile_dimension = total_array_size_bytes_and_tile_dimension[1]
+            #print tile_dimension
+            nc = MFDataset(in_files, 'r')
+            var = nc.variables[var_name]
+            var_shape = var.shape
+            var_shap1 = var_shape[1]
+            var_shap2 = var_shape[2]
+            
+            var_time = nc.variables['time']
+                
+            time_calend = var_time.calendar
+            time_units = var_time.units
+            
+            time_base_arr = var_time[:]
+            dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_base_arr])
+            
+            
+            tile_map = OCGIS_tile.get_tile_schema(nrow=var_shap1, ncol=var_shap2, tdim=tile_dimension, origin=0)
+            print str(len(tile_map)) + " data chunks will be transfered."
+
+            ############## we initialize a glob dict ( i.e. a dict with all calend days (keys) and 2D arrays with zeros)
+            ############# where we will add perc. values of each chunk
+            dic_caldays = percentile_dict.get_dict_caldays(dt_arr)
+            
+            glob_percentile_dict = OrderedDict()
+            for month in dic_caldays.keys():
+                for day in dic_caldays[month]:
+                    glob_percentile_dict[month,day] = numpy.zeros((var_shap1, var_shap2))
+            
+            chunk = 1  # chunk counter
+            for tile_id in tile_map:
+                print "Data transfer: chunk " + str(chunk) + '/'+ str(len(tile_map)) + " ..."
+                
+                i1_row_current_tile = tile_map.get(tile_id).get('row')[0]
+                i2_row_current_tile = tile_map.get(tile_id).get('row')[1]
+                
+                i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
+                i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
+
+                if time_range == None:
+                    base_arr_current_chunk = var[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
+                    dt_base_arr = dt_arr
+                else:
+            
+                    indices_subset = get_indices_subset(dt_arr, time_range)
+                    
+                    base_arr_current_chunk = var[indices_subset, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile].squeeze()
+                    dt_base_arr = dt_arr[indices_subset].squeeze()
+                            
+                
+                
+                dic_current_chunk = percentile_dict.get_percentile_dict(base_arr_current_chunk, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, verbose=verbose)
+                del base_arr_current_chunk
+              
+                ########### we fill our glob_percentile_dict (chunk by chunk)
+                for month in dic_caldays.keys():
+                    for day in dic_caldays[month]:
+                        glob_percentile_dict[month,day][i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = dic_current_chunk[month,day]
+                
+                chunk += 1
+                               
+            nc.close()
+            dic = glob_percentile_dict
+            
+            if save_to_file != None:
+                with open(save_to_file, 'wb') as handle:
+                    pickle.dump(dic, handle)
+                    print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
+            
+            
+            
     return dic
 
 
