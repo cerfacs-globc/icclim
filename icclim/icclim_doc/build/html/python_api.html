@@ -95,7 +95,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <p>Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.</p>
 <span class="target" id="module-icclim"><span id="func-indice-label"></span></span><dl class="function">
 <dt id="icclim.indice">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2db8230&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x33a2398&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -145,7 +145,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-multivar-label"></span></span><dl class="function">
 <dt id="icclim.indice_multivar">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2db8230&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x33a2398&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -189,7 +189,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-perc-label"></span></span><dl class="function">
 <dt id="icclim.indice_perc">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x2db8230&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x33a2398&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -370,11 +370,11 @@ to compute its percentile value.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p>To process OPeNDAP datasets one needs to set the <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt> in bytes. To know your maximum request limit, you can try to run the function without <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt>, you will probably get an error message like:</p>
+<p>To process OPeNDAP datasets one needs to set the <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt> in bytes. This parameter is required to estimate an optimal data chunk size to transfer then data chunk-by-chunk in case if the request is bigger than the maximum OPeNDAP/THREDDS request limit. To know your maximum request limit, you can try to run the function without <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt>, you will probably get an error message like:</p>
 <p><strong>context: Error { code = 403; message = &#8220;Request too big=1875.0 Mbytes, max=500.0&#8221;^;};</strong>
 ...
 <strong>RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS</strong></p>
-<p class="last">That means that your maximum request limit is 500 Mbytes, and then set the <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt> to 500000000 [bytes]. If that does not work, try to reduce it a bit to let&#8217;s say 450000000 [bytes].</p>
+<p class="last">That means that your maximum request limit is 500 Mbytes, so set the <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt> to 500000000 [bytes]. If that does not work, try to reduce it a bit to let&#8217;s say 450000000 [bytes].</p>
 </div>
 </div>
 <div class="section" id="elementary-functions">
