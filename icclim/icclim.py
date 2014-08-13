@@ -642,13 +642,13 @@ def defaultCallback(message,percentage):
     print ("[%s] %d" % (message,percentage))
 
 
-def get_time_range2(files, temporal_var_name='time'):
+def get_time_range(files, temporal_var_name='time'):
     
     '''
     :param files: netCDF file(s) (including OPeNDAP URL(s))
     :type files: list of str
     
-    :param temporal_var_name: name of temporal variable from netCDF file (usually: "time")
+    :param temporal_var_name: name of temporal variable from netCDF file (default: "time")
     :type temporal_var_name: str
     
     :rtype
@@ -815,7 +815,7 @@ def indice(in_files,
     inc.close()
 
     if time_range == None:
-        time_range = get_time_range2(in_files, temporal_var_name=indice_dim[0])
+        time_range = get_time_range(in_files, temporal_var_name=indice_dim[0])
         dt_begin = time_range[0] # datetime object
         dt_end = time_range[1] # datetime object
     else:
