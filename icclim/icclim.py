@@ -46,7 +46,10 @@ def get_list_dates_from_nc(nc, type_dates):
     
     var_time = nc.variables['time']
     time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
-    time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
+    try:
+       time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
+    except:
+        time_calend = 'gregorian'
     
     if type_dates == 'num':
         arr_dt = var_time[:]
@@ -79,7 +82,11 @@ def get_list_dates(ifile, type_dates):
     nc = Dataset(ifile, 'r')
     var_time = nc.variables['time']
     time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
-    time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
+    try:
+       time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
+    except:
+        time_calend = 'gregorian'
+    
     
     if type_dates == 'num':
         arr_dt = var_time[:]
@@ -309,11 +316,13 @@ def copy_var_dim(inc, onc, var):
         for j in range(len(inc_dim2.ncattrs())): # set attributs of current variable       
             onc_dim2.__setattr__(  inc_dim2.__dict__.items()[j][0]  , inc_dim2.__dict__.items()[j][1])
         
-        # for time_bnds, we copy only 2 attributs of time: 'units' and 'calendar' ( => var 'time' must have these 2 attributs)
+        # for time_bnds, we copy only 2 attributes of time: 'units' and 'calendar' ( => var 'time' must have these 2 attributes)
         onc_time_bnds.__setattr__( 'units', inc_dim0.__getattribute__('units') )
-        onc_time_bnds.__setattr__( 'calendar', inc_dim0.__getattribute__('calendar') )
-        
-        
+        try:
+            onc_time_bnds.__setattr__( 'calendar', inc_dim0.__getattribute__('calendar') )
+        except:
+            onc_time_bnds.__setattr__( 'calendar', 'gregorian' )
+ 
         onc_dim1[:] = inc_dim1[:]
         onc_dim2[:] = inc_dim2[:]
         
@@ -633,12 +642,13 @@ def defaultCallback(message,percentage):
     print ("[%s] %d" % (message,percentage))
 
 
-def get_time_range(files, temporal_var_name="time"):    
+def get_time_range2(files, temporal_var_name='time'):
+    
     '''
     :param files: netCDF file(s) (including OPeNDAP URL(s))
-    :type files: str or list of str
+    :type files: list of str
     
-    :param temporal_var_name: name of temporal variable from netCDF file (default: "time")
+    :param temporal_var_name: name of temporal variable from netCDF file (usually: "time")
     :type temporal_var_name: str
     
     :rtype
@@ -647,17 +657,29 @@ def get_time_range(files, temporal_var_name="time"):
     Returns a time range: a list two datetime objects: [begin, end], where "begin" is the first date, and "end" is the last.
     '''
     
-    multi_nc = MFDataset(files,'r')
-    time = multi_nc.variables[temporal_var_name]
-    calend = time.calendar
+    nc = Dataset(files[0],'r')
+    time = nc.variables[temporal_var_name]
+    
+    try:
+        calend = time.calendar
+    except:
+        calend = 'gregorian'
+    
     units = time.units
-    time_arr = time[:]
+    
+    nc.close()
+    
+    time_arr = numpy.array([])
+    for f in files:
+        nc = Dataset(f, 'r')
+        time_arr_f = nc.variables[temporal_var_name][:]
+        time_arr = numpy.concatenate([time_arr, time_arr_f])       
+        nc.close()
     
     begin_num = min(time_arr)
     end_num = max(time_arr)
-    
+        
     del time_arr
-    multi_nc.close()
     
     begin_dt = num2date(begin_num, calend, units)
     end_dt = num2date(end_num, calend, units)
@@ -774,8 +796,11 @@ def indice(in_files,
     nb_rows = inc.variables[indice_dim[index_row]].shape[0]
     nb_columns = inc.variables[indice_dim[index_col]].shape[0]
 
+    try:
+        calend = get_att_value(inc, indice_dim[index_time], 'calendar')
+    except:
+        calend = 'gregorian'
     
-    calend = get_att_value(inc, indice_dim[index_time], 'calendar')
     units = get_att_value(inc, indice_dim[index_time], 'units')
     
     
@@ -790,7 +815,7 @@ def indice(in_files,
     inc.close()
 
     if time_range == None:
-        time_range = get_time_range(in_files, temporal_var_name=indice_dim[0])
+        time_range = get_time_range2(in_files, temporal_var_name=indice_dim[0])
         dt_begin = time_range[0] # datetime object
         dt_end = time_range[1] # datetime object
     else:
@@ -1058,7 +1083,11 @@ def indice_multivar(in_files1, var1,
     nb_rows = inc1.variables[indice_dim[index_row]].shape[0]
     nb_columns = inc1.variables[indice_dim[index_col]].shape[0]
     
-    calend = get_att_value(inc1, indice_dim[index_time], 'calendar')
+    try:
+        calend = get_att_value(inc1, indice_dim[index_time], 'calendar')
+    except:
+        calend = 'gregorian'
+    
     units = get_att_value(inc1, indice_dim[index_time], 'units')
 
     ind_type = 'f'    
@@ -1359,7 +1388,11 @@ def get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_l
         
     else:
         var_time =  mfnc.variables['time']
-        time_calend = var_time.calendar
+        try:
+           time_calend = var_time.calendar
+        except:
+            time_calend = 'gregorian'
+        
         time_units = var_time.units
         time_arr = var_time[:]
         dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
@@ -1418,7 +1451,10 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
         var = nc.variables[var_name]    
         var_time = nc.variables['time']
         
-        time_calend = var_time.calendar
+        try:
+           time_calend = var_time.calendar
+        except:
+            time_calend = 'gregorian'
         time_units = var_time.units    
     
         if time_range == None:
@@ -1459,7 +1495,10 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
             var = nc.variables[var_name]    
             var_time = nc.variables['time']
             
-            time_calend = var_time.calendar
+            try:
+               time_calend = var_time.calendar
+            except:
+                time_calend = 'gregorian'   
             time_units = var_time.units    
             
             print "Data transfer... "
@@ -1504,7 +1543,10 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
             
             var_time = nc.variables['time']
                 
-            time_calend = var_time.calendar
+            try:
+               time_calend = var_time.calendar
+            except:
+                time_calend = 'gregorian'
             time_units = var_time.units
             
             time_base_arr = var_time[:]
@@ -1637,7 +1679,11 @@ def indice_perc(in_files,
     nb_rows = inc.variables[indice_dim[index_row]].shape[0]
     nb_columns = inc.variables[indice_dim[index_col]].shape[0]
     
-    calend = get_att_value(inc, indice_dim[index_time], 'calendar')
+    try:
+        calend = get_att_value(inc, indice_dim[index_time], 'calendar')
+    except:
+        calend = 'gregorian'
+    
     units = get_att_value(inc, indice_dim[index_time], 'units')
     
     
