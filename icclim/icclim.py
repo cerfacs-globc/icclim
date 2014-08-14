@@ -176,7 +176,10 @@ def copy_var_attrs(source, destination):
     '''
     sourceAttrs = source.ncattrs()
     for attr in sourceAttrs:
-      destination.setncattr(attr, source.getncattr(attr))
+        if attr == '_FillValue':
+            pass
+        else:
+            destination.setncattr(attr, source.getncattr(attr))
         
 def copy_var(variableName,sourceDataset, destinationDataset):
     '''
@@ -195,9 +198,9 @@ def copy_var(variableName,sourceDataset, destinationDataset):
     
     # Copy the dims of the variable
     for dimname in sourceVar.dimensions:
-      if destinationDataset.dimensions.has_key(dimname) == False:
-        dim = rootgrp.dimensions.get(dimname)
-        destinationDataset.createDimension(dimname,len(dim))
+        if destinationDataset.dimensions.has_key(dimname) == False:
+            dim = rootgrp.dimensions.get(dimname)
+            destinationDataset.createDimension(dimname,len(dim))
     
     # Create the variable
     destinationVariable = destinationDataset.createVariable(variableName,sourceVar.dtype, sourceVar.dimensions)
@@ -579,7 +582,7 @@ def get_globindice(dict_indice, nb_rows, nb_columns):
     
     return glob_indice
 
-def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, ind, onc, threshold):
+def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, threshold):
     
     '''
     This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
@@ -763,8 +766,8 @@ def indice(in_files,
     
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
-    fill_val = get_att_value(inc, var, '_FillValue')
-
+    fill_val = get_att_value(inc, var, '_FillValue').astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
+    
     indice_dim = copy_var_dim(inc, onc, var) # tuple ('time', 'lat', 'lon')
     
     indice_dim = list(indice_dim)
@@ -806,8 +809,8 @@ def indice(in_files,
     
 
     ind_type = 'f'
-        
-    ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)  
+
+    ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
     
     # Copy attributes from variable to process to indice variable
     copy_var_attrs(inc.variables[var],ind)
@@ -885,13 +888,13 @@ def indice(in_files,
                     mydict_TimeStep_3DArray=get_dict_year_3Darr(values_current_chunk, time_steps_current_chunk)
                 elif (slice_mode=='month'):
                     mydict_TimeStep_3DArray=get_dict_month_3Darr(values_current_chunk, time_steps_current_chunk)
-                    
+  
                 for t in range(0,len(thresholds)):
-                  mydict_indice=get_dict_timeStep_indice(mydict_TimeStep_3DArray, indice_name, fill_val, ind, onc, thresholds[t])
-                  glob_dict_timeStep_indice[t].update(mydict_indice)
+                    mydict_indice=get_dict_timeStep_indice(mydict_TimeStep_3DArray, indice_name, fill_val, thresholds[t])
+                    glob_dict_timeStep_indice[t].update(mydict_indice)
                 
                 del values_current_chunk, time_steps_current_chunk
-  
+                
                 #print "Processed: ", year
                 
                 #counter_year = counter_year + 1
@@ -929,11 +932,12 @@ def indice(in_files,
     #print '---'     
     
     for t in range(0,len(thresholds)):
-      glob_indice = get_globindice(glob_dict_timeStep_indice[t], nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
-      if nb_thresholds > 0:
-        ind[:,t,:,:] = glob_indice[0][:,:,:]
-      else:
-        ind[:,:,:] = glob_indice[0][:,:,:]
+        glob_indice = get_globindice(glob_dict_timeStep_indice[t], nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
+        
+        if nb_thresholds > 0:
+            ind[:,t,:,:] = glob_indice[0][:,:,:]
+        else:
+            ind[:,:,:] = glob_indice[0][:,:,:]
     
     # set global attributs
     #eval(indice_name + '_setglobattr(onc)')
@@ -987,7 +991,7 @@ def indice(in_files,
 
 ####################################################
 
-def get_dict_timeStep_indice_multivar(dict_timeStep_sub3Darr1, dict_timeStep_sub3Darr2, indice_name, fill_val1, fill_val2, ind, onc):
+def get_dict_timeStep_indice_multivar(dict_timeStep_sub3Darr1, dict_timeStep_sub3Darr2, indice_name, fill_val1, fill_val2):
     
     '''
     This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
@@ -1167,7 +1171,7 @@ def indice_multivar(in_files1, var1,
                         mydict_TimeStep_3DArray1=get_dict_month_3Darr(values_current_chunk1, time_steps_current_chunk1)
                         mydict_TimeStep_3DArray2=get_dict_month_3Darr(values_current_chunk2, time_steps_current_chunk1)
                     
-                    mydict_indice=get_dict_timeStep_indice_multivar(mydict_TimeStep_3DArray1, mydict_TimeStep_3DArray2, indice_name, fill_val1, fill_val2, ind, onc)
+                    mydict_indice=get_dict_timeStep_indice_multivar(mydict_TimeStep_3DArray1, mydict_TimeStep_3DArray2, indice_name, fill_val1, fill_val2)
                     
                     glob_dict_timeStep_indice.update(mydict_indice)
       
