@@ -1411,9 +1411,11 @@ def get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_l
     
     return (total_array_size_bytes, optimal_tile_dimension)
 
+def defaultCallback2(message,percentage):
+    print ("[%s] %0.2f" % (message,percentage))
 
-
-def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_range=None, only_leap_years=False, verbose=False, save_to_file=None, transfer_limit_bytes=None):
+# TODO: remove the "verbose" parameter
+def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_range=None, only_leap_years=False, verbose=False, save_to_file=None, transfer_limit_bytes=None, callback=None):
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
@@ -1442,9 +1444,14 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     :param transfer_limit_bytes: maximum OPeNDAP/THREDDS request limit in bytes (default: None) 
     :type transfer_limit_bytes: float
     
+    :param callback: callback print 
+    :type callback: :func:`icclim.defaultCallback`
+    
     :rtype: dict
 
     '''
+    
+    percentage_total_perc_dict = 50.
     
     
     in_files.sort()
@@ -1477,7 +1484,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                     
         nc.close()
         
-        dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,verbose=verbose)
+        dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, verbose=verbose, callback=callback)
         
         if save_to_file != None:
             with open(save_to_file, 'wb') as handle:
@@ -1523,7 +1530,8 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                         
             nc.close()
             
-            dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,verbose=verbose)
+            dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, verbose=verbose, callback=callback)
+
             
             del base_arr, dt_base_arr
             
@@ -1558,7 +1566,8 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
             
             
             tile_map = OCGIS_tile.get_tile_schema(nrow=var_shap1, ncol=var_shap2, tdim=tile_dimension, origin=0)
-            print str(len(tile_map)) + " data chunks will be transfered."
+            nb_chunks = len(tile_map)
+            print str(nb_chunks) + " data chunks will be transfered."
 
             ############## we initialize a glob dict ( i.e. a dict with all calend days (keys) and 2D arrays with zeros)
             ############# where we will add perc. values of each chunk
@@ -1569,9 +1578,12 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                 for day in dic_caldays[month]:
                     glob_percentile_dict[month,day] = numpy.zeros((var_shap1, var_shap2))
             
-            chunk = 1  # chunk counter
+            percentage_per_chunk = percentage_total_perc_dict/nb_chunks
+            
+            chunk = 1.0  # chunk counter
+           
             for tile_id in tile_map:
-                print "Data transfer: chunk " + str(chunk) + '/'+ str(len(tile_map)) + " ..."
+                print "Data transfer: chunk " + str(int(chunk)) + '/'+ str(len(tile_map)) + " ..."
                 
                 i1_row_current_tile = tile_map.get(tile_id).get('row')[0]
                 i2_row_current_tile = tile_map.get(tile_id).get('row')[1]
@@ -1588,18 +1600,24 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                     
                     base_arr_current_chunk = var[indices_subset, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile].squeeze()
                     dt_base_arr = dt_arr[indices_subset].squeeze()
+                
                             
+
                 
+                dic_current_chunk = percentile_dict.get_percentile_dict(base_arr_current_chunk, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, verbose=verbose, callback=callback, percentage_per_chunk=percentage_per_chunk, chunk_counter=chunk)
                 
-                dic_current_chunk = percentile_dict.get_percentile_dict(base_arr_current_chunk, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, verbose=verbose)
                 del base_arr_current_chunk
-              
+                
+
+                
                 ########### we fill our glob_percentile_dict (chunk by chunk)
                 for month in dic_caldays.keys():
                     for day in dic_caldays[month]:
                         glob_percentile_dict[month,day][i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = dic_current_chunk[month,day]
-                
+
                 chunk += 1
+                
+                
                                
             nc.close()
             dic = glob_percentile_dict
@@ -1795,7 +1813,7 @@ def indice_perc(in_files,
                 #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                 #print status
                 
-                callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*50  )    + 50              )
                 year_counter += 1
                 
             #else:

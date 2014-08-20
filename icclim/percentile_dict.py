@@ -150,9 +150,9 @@ def get_year_list(dt_arr):
 
 
 ############### utility functions: end ##################
+percentage_total_perc_dict = 50.
 
-
-def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, verbose=False):
+def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, verbose=False, callback=None, percentage_per_chunk=percentage_total_perc_dict, chunk_counter=1):
     '''
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
     Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
@@ -170,6 +170,15 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     :param verbose: if True, the percentage progress will be printed (default: False)
     :type verbose: bool
     
+    :param callback: callback print
+    :type callback: :func:`icclim.defaultCallback`
+    
+    :param percentage_per_chunk: percentage per chunk 
+    :type percentage_per_chunk: float
+    
+    :param chunk_counter: chunk counter in case of chunking (default: 1, i.e. no chunking)
+    :type chunk_counter: int
+    
     :rtype: dict
 
     
@@ -179,9 +188,15 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     
     # for callback print
     nb_months = 12
-    percent_one_month = 100./nb_months
-    percent_current_month = 0
+    percent_one_month = (percentage_per_chunk)/nb_months ######## computing percentiles is only 50%  (other 50% for computing indice)
     
+    if chunk_counter == 1:
+        percent_current_month = 0
+    else: 
+        percent_current_month = (chunk_counter-1)*percentage_per_chunk
+
+        
+        
     # step1: creation of the dictionary with all calendar days:
     dic_caldays = get_dict_caldays(dt_arr)
 
@@ -213,7 +228,13 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
         if verbose == True:
             percent_current_month =  percent_current_month + percent_one_month
             print '[Creating of daily percentiles dictionary] ', int(round(percent_current_month)), '%'
-    
+        
+        if callback != None:
+            percent_current_month =  percent_current_month + percent_one_month
+            callback("Computing daily percentiles" ,  percent_current_month   )
+        
+        
+        
     return percentile_dict
 
 
