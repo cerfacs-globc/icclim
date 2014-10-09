@@ -293,7 +293,7 @@ For example, we have 2 files with different resolutions:
 See also `more detailed example <https://github.com/tatarinova/icclim/blob/master/icclim/scripts_examples/example_regrid.py>`_.
 
 
-
+.. warning:: The package `ESMF/ESMPy <https://www.earthsystemcog.org/projects/esmpy/>`_ must be installed.
 
 
 Utility functions
