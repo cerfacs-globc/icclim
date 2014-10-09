@@ -3,7 +3,7 @@
 import numpy
 import ESMF
 from netCDF4 import Dataset
-from os.path import basename
+#from os.path import basename
 import icclim
 
 #esmpy = ESMF.Manager(logkind=ESMF.LogKind.MULTI, debug=True)
@@ -50,7 +50,7 @@ def get_regrided_var(f_src, f_dst, varname):
     #------------------------------------------------
     regridSrc2Dst = ESMF.Regrid(field_src, field_dst, 
                                     regrid_method=ESMF.RegridMethod.CONSERVE, 
-                                    unmapped_action=ESMF.UnmappedAction.ERROR, 
+                                    unmapped_action=ESMF.UnmappedAction.IGNORE, 
                                     src_frac_field=srcfracfield, 
                                     dst_frac_field=dstfracfield)
 
@@ -169,7 +169,7 @@ def write2netCDF_after_regridding(arr, f_src, f_dst, f_out, var_src, var_dst=Non
     
     
     
-def get_dst_resolution(file_list, resolution_type=1):
+def get_dst_resolution(file_list, varname, resolution_type=1):
     
     '''
     Search the highest or lowest resolution.
@@ -228,7 +228,7 @@ def get_dst_resolution(file_list, resolution_type=1):
 
 
 
-def get_dst_src_files(file_list, resolution_type):
+def get_dst_src_files(file_list, varname, resolution_type):
     
     '''
     Create a tuple with 2 files lists: ([src_grid_files], [dst_grid_files])
@@ -242,7 +242,7 @@ def get_dst_src_files(file_list, resolution_type):
     :rtype: tuple of 2 lists of files
     '''
     
-    dst_res = get_dst_resolution(file_list, resolution_type=resolution_type) # (nb_rows, nb_columns)
+    dst_res = get_dst_resolution(file_list, varname, resolution_type=resolution_type) # (nb_rows, nb_columns)
     
     
     src_grid_files = []
@@ -270,98 +270,3 @@ def get_dst_src_files(file_list, resolution_type):
     #print dst_grid_files
     return (src_grid_files, dst_grid_files)
 
-'''
-# EXAMPLE
-# WARNING: there will be bugs if "time", "lat", "lon" varibales have no the "bounds" attributes
-# WARNING all files must have the same variable name
-
->>> f1 = '/home/globc/tatarinova/Downloads/tasmax_day_EC-EARTH_rcp26_r8i1p1_2077.nc'                    # 160 x 320
->>> f2 = '/data/tatarinova/CMIP5/tasmax_day/tasmax_day_CNRM-CM5_historical_r1i1p1_18550101-18591231.nc' # 128 x 256
->>> f3 = '/data/tatarinova/CMIP5/tasmax_day/tasmax_day_CNRM-CM5_historical_r1i1p1_20050101-20051231.nc' # 128 x 256
->>> f4 = '/home/globc/tatarinova/Downloads/tasmax_day_EC-EARTH_rcp26_r8i1p1_20770401_20770410.nc'       # 160 x 320
->>> 
->>> varname = 'tasmax'
->>> 
->>> # step 1: we are looking for the files which will be regridded
->>> a = get_dst_src_files(file_list=[f1, f3, f4, f2], resolution_type=1)
->>> 
->>> files_src_grid = a[0] # these files will be regridded (files with source grid)
->>> files_dst_grid = a[1] # these files will not be regridded (files with destination grid)
->>> 
->>> 
->>> # step 2: we regrid each file
->>> 
->>> f_dst = files_dst_grid[0]
->>> 
->>> regridded_files = []
->>> 
->>> for f in files_src_grid:
->>> 
->>>     arr = get_regrided_var(f_src=f, f_dst=f_dst, varname=varname)
->>>     
->>>     
->>>     # Where we will safe the regridded file: for example, in the current directory, and the name of regridded file is the same as source file + "_regridded"
->>>     
->>>     result_file_name = basename(f)+'_regridded'
->>> 
->>>     write2netCDF_after_regridding(arr, f_src=f, f_dst=f_dst, f_out=result_file_name, var_src=varname)
->>> 
->>>     regridded_files.append(result_file_name)
->>>         
->>>     print f, ' regridded !!!'
->>>     
->>> 
->>> # step 3: finally we get the list of files with the same grid
->>> file_list_final = files_dst_grid + regridded_files
->>> 
->>> print file_list_final
-
-'''
-
-
-f1 = '/data/tatarinova/tasmax_day_EC-EARTH_rcp26_r8i1p1_2077.nc'                                    # 160 x 320
-f2 = '/data/tatarinova/CMIP5/tasmax_day/tasmax_day_CNRM-CM5_historical_r1i1p1_18550101-18591231.nc' # 128 x 256
-f3 = '/data/tatarinova/CMIP5/tasmax_day/tasmax_day_CNRM-CM5_historical_r1i1p1_20050101-20051231.nc' # 128 x 256
-f4 = '/data/tatarinova/tasmax_day_EC-EARTH_rcp26_r8i1p1_20770401-20770410.nc'                       # 160 x 320
-f5 = '/home/globc/tatarinova/Downloads/tasmax_Amon_bcc-csm1-1_historical_r1i1p1_185001-201212.nc'   # 64 x 128
-
-varname = 'tasmax'
-
-# step 1: we are looking for the files which will be regridded
-a = get_dst_src_files(file_list=[f1, f3, f4, f5, f2], resolution_type=1)
-
-#a = get_dst_src_files(file_list=[f1, f3, f4, f2], resolution_type=1)
-
-files_src_grid = a[0] # these files will be regridded (files with source grid)
-files_dst_grid = a[1] # these files will not be regridded (files with destination grid)
-
-
-# step 2: we regrid each file
-
-f_dst = files_dst_grid[0]
-
-regridded_files = []
-
-for f in files_src_grid:
-    print "==="
-    print f
-    print "==="
-    
-    arr = get_regrided_var(f_src=f, f_dst=f_dst, varname=varname)
-    
-    
-    # Where we will safe the regridded file: for example, in the current directory, and the name of regridded file is the same as source file + "_regridded"
-    
-    result_file_name = basename(f)+'_regridded'
-
-    write2netCDF_after_regridding(arr, f_src=f, f_dst=f_dst, f_out=result_file_name, var_src=varname)
-
-    regridded_files.append(result_file_name)
-        
-    print f, ' regridded !!!'
-    
-
-# step 3: finally we get the list of files with the same grid
-file_list_final = files_dst_grid + regridded_files
-
-print file_list_final
