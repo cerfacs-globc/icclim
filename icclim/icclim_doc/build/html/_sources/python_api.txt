@@ -269,8 +269,35 @@ Correspondence table "indice - source variable"
 |SD, SD1, SD5cm, SD50cm                                      |  daily snowfall flux (solid phase)          |
 +------------------------------------------------------------+---------------------------------------------+
 
+.. _icclim_regrid:
+
+Regridding
+----------
+It is possible to do simple regridding, using the `regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/regrid.py>`_ module:
+
+.. automodule:: regrid
+    :members: get_regrided_var, write2netCDF_after_regridding
+
+
+>>> from icclim import regrid
+
+
+For example, we have 2 files with different resolutions:
+
+>>> f1 = 'tasmax_Amon_bcc-csm1-1_historical_r1i1p1_185001-201212.nc' # source grid (64 x 128), will be regridded to the destination grid
+>>> f2 = 'tasmax_day_CNRM-CM5_historical_r1i1p1_18500101-20121231.nc' # destination grid (128 x 256)
+>>> arr = regrid.get_regrided_var(f_src=f1, f_dst=f2, varname='tasmax') # numpy array with spatial dimensions (128,256)
+>>> f1_regridded = 'regridded_tasmax_Amon_bcc-csm1-1_historical_r1i1p1_185001-201212.nc' # name of the new netCDF file
+>>> regrid.write2netCDF_after_regridding(arr, f_src=f1, f_dst=f2, f_out=f1_regridded, var_src='tasmax')
+
+See also `more detailed example <https://github.com/tatarinova/icclim/blob/master/icclim/scripts_examples/example_regrid.py>`_.
+
+
+
+
 
 Utility functions
 -----------------
+
 .. automodule:: spatial_stat
     :members: get_weight_matrix, multiply_to_weight_matrix

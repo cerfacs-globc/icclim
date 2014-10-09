@@ -304,6 +304,6 @@ import mock
 
 
 #MOCK_MODULES = ['numpy', 'scipy', 'ctypes', 'numpy.ctypeslib', 'ctypes.cdll', 'libC', 'libC.c', 'libC.so', 'libraryC', 'netCDF4', 'netcdftime']
-MOCK_MODULES = ['numpy', 'scipy', 'ctypes', 'numpy.ctypeslib', 'netCDF4', 'netcdftime']
+MOCK_MODULES = ['numpy', 'scipy', 'ctypes', 'numpy.ctypeslib', 'netCDF4', 'netcdftime', 'numpy.ma']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()

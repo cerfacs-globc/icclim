@@ -95,7 +95,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 <p>Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.</p>
 <span class="target" id="module-icclim"><span id="func-indice-label"></span></span><dl class="function">
 <dt id="icclim.indice">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x329c398&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x39d1668&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -145,7 +145,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-multivar-label"></span></span><dl class="function">
 <dt id="icclim.indice_multivar">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x329c398&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x39d1668&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -189,7 +189,7 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-perc-label"></span></span><dl class="function">
 <dt id="icclim.indice_perc">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x329c398&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x39d1668&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -574,6 +574,74 @@ R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
 </tbody>
 </table>
 </div>
+<div class="section" id="regridding">
+<span id="icclim-regrid"></span><h2>Regridding<a class="headerlink" href="#regridding" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to do simple regridding, using the <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/regrid.py">regrid.py</a> module:</p>
+<span class="target" id="module-regrid"></span><dl class="function">
+<dt id="regrid.get_regrided_var">
+<tt class="descclassname">regrid.</tt><tt class="descname">get_regrided_var</tt><big>(</big><em>f_src</em>, <em>f_dst</em>, <em>varname</em><big>)</big><a class="headerlink" href="#regrid.get_regrided_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a result of regridding.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>f_src</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; netCDF file containing the variable to be regridded</li>
+<li><strong>f_dst</strong> &#8211; netCDF file containing the destination grid</li>
+<li><strong>varname</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; name of variable to process</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray (3D)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the variable has dimensions (a, b, c) and the destination grid is (d, e), then the output array will have the dimensions (a, d, e)</p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">It works only with rectangular &#8220;lat/lon&#8221; grid</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="regrid.write2netCDF_after_regridding">
+<tt class="descclassname">regrid.</tt><tt class="descname">write2netCDF_after_regridding</tt><big>(</big><em>arr</em>, <em>f_src</em>, <em>f_dst</em>, <em>f_out</em>, <em>var_src</em>, <em>var_dst=None</em><big>)</big><a class="headerlink" href="#regrid.write2netCDF_after_regridding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a regridded variable in new netCDF file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>arr</strong> (<em>numpy.ndarray (3D)</em>) &#8211; array containing the result of regridding</li>
+<li><strong>f_src</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; netCDF file containing the variable to be regridded</li>
+<li><strong>f_dst</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; netCDF file containing the destination grid</li>
+<li><strong>f_out</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; new netCDF file name containing the regridded variable</li>
+<li><strong>var_src</strong> &#8211; variable name in <tt class="docutils literal"><span class="pre">f_src</span></tt></li>
+<li><strong>var_dst</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; name of the regridded variable in <tt class="docutils literal"><span class="pre">f_out</span></tt>, if <tt class="docutils literal"><span class="pre">None</span></tt> then it will be the same as <tt class="docutils literal"><span class="pre">var_src</span></tt></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">icclim</span> <span class="kn">import</span> <span class="n">regrid</span>
+</pre></div>
+</div>
+<p>For example, we have 2 files with different resolutions:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">f1</span> <span class="o">=</span> <span class="s">&#39;tasmax_Amon_bcc-csm1-1_historical_r1i1p1_185001-201212.nc&#39;</span> <span class="c"># source grid (64 x 128), will be regridded to the destination grid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f2</span> <span class="o">=</span> <span class="s">&#39;tasmax_day_CNRM-CM5_historical_r1i1p1_18500101-20121231.nc&#39;</span> <span class="c"># destination grid (128 x 256)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">arr</span> <span class="o">=</span> <span class="n">regrid</span><span class="o">.</span><span class="n">get_regrided_var</span><span class="p">(</span><span class="n">f_src</span><span class="o">=</span><span class="n">f1</span><span class="p">,</span> <span class="n">f_dst</span><span class="o">=</span><span class="n">f2</span><span class="p">,</span> <span class="n">varname</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">)</span> <span class="c"># numpy array with spatial dimensions (128,256)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f1_regridded</span> <span class="o">=</span> <span class="s">&#39;regridded_tasmax_Amon_bcc-csm1-1_historical_r1i1p1_185001-201212.nc&#39;</span> <span class="c"># name of the new netCDF file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">regrid</span><span class="o">.</span><span class="n">write2netCDF_after_regridding</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">f_src</span><span class="o">=</span><span class="n">f1</span><span class="p">,</span> <span class="n">f_dst</span><span class="o">=</span><span class="n">f2</span><span class="p">,</span> <span class="n">f_out</span><span class="o">=</span><span class="n">f1_regridded</span><span class="p">,</span> <span class="n">var_src</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>See also <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/scripts_examples/example_regrid.py">more detailed example</a>.</p>
+</div>
 <div class="section" id="module-spatial_stat">
 <span id="utility-functions"></span><h2>Utility functions<a class="headerlink" href="#module-spatial_stat" title="Permalink to this headline">¶</a></h2>
 <p>Utility functions for spatial statistics like computing of spatial average, spatial standard deviation, etc</p>
@@ -649,6 +717,7 @@ if &#8220;arr&#8221; is a 3D array, then arr.shape[1] = weight_matrix.shape[0] a
 <li><a class="reference internal" href="#create-a-daily-percentile-dictionary">Create a daily percentile dictionary</a></li>
 <li><a class="reference internal" href="#elementary-functions">Elementary functions</a></li>
 <li><a class="reference internal" href="#correspondence-table-indice-source-variable">Correspondence table &#8220;indice - source variable&#8221;</a></li>
+<li><a class="reference internal" href="#regridding">Regridding</a></li>
 <li><a class="reference internal" href="#module-spatial_stat">Utility functions</a></li>
 </ul>
 </li>
