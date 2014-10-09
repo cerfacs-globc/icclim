@@ -10,6 +10,8 @@ import icclim
 
 def get_regrided_var(f_src, f_dst, varname):
     '''
+    Returns a result of regridding.    
+
     :param f_src: netCDF file containing the variable to be regridded
     :type f_src: str
     
@@ -22,6 +24,9 @@ def get_regrided_var(f_src, f_dst, varname):
     :rtype: numpy.ndarray (3D)
     
     .. note:: If the variable has dimensions (a, b, c) and the destination grid is (d, e), then the output array will have the dimensions (a, d, e)
+    
+    .. warning:: It works only with rectangular "lat/lon" grid
+    
     '''
 
 
