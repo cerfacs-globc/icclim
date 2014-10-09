@@ -16,7 +16,10 @@ def get_regrided_var(f_src, f_dst, varname):
     :param f_dst: netCDF file containing the destination grid
     :type f_src: str
     
-    :rtype: numpy.ndarra (3D)
+    :param varname: name of variable to process
+    :type varname: str
+    
+    :rtype: numpy.ndarray (3D)
     
     .. note:: If the variable has dimensions (a, b, c) and the destination grid is (d, e), then the output array will have the dimensions (a, d, e)
     '''
@@ -80,7 +83,27 @@ def get_regrided_var(f_src, f_dst, varname):
 def write2netCDF_after_regridding(arr, f_src, f_dst, f_out, var_src, var_dst=None):
 
     '''
-    Creates the f_out netCDF file with the variable "var_src" with "arr" values. 
+    Writes a regridded variable in new netCDF file.
+    
+    :param arr: array containing the result of regridding
+    :type arr: numpy.ndarray (3D)
+    
+    :param f_src: netCDF file containing the variable to be regridded
+    :type f_src: str 
+    
+    :param f_dst: netCDF file containing the destination grid
+    :type f_dst: str
+    
+    :param f_out: new netCDF file name containing the regridded variable
+    :type f_out: str
+    
+    :param var_src: variable name in ``f_src``
+    :type var src: str
+    
+    :param var_dst: name of the regridded variable in ``f_out``, if ``None`` then it will be the same as ``var_src`` 
+    :type var_dst: str
+    
+    
     '''
     
     inc1 = Dataset(f_src, 'r')
@@ -169,15 +192,15 @@ def write2netCDF_after_regridding(arr, f_src, f_dst, f_out, var_src, var_dst=Non
     
     
     
-def get_dst_resolution(file_list, varname, resolution_type=1):
+def get_dst_resolution(file_list, varname, resolution_type):
     
     '''
-    Search the highest or lowest resolution.
+    Returns the destination grid.
     
     :param file_list: input netCDF files
     :type file_list: list of str
     
-    :param resolution_type: if 1, function searchs the file with the highest resolution, if 0 - with the lowest resolution (default: 1)
+    :param resolution_type: if 1, the destination grid will be the highest resolution, if 0 - the lowest resolution
     :type resolution_type: bool
     
     :rtype: tuple (nb_rows, nb_columns)
@@ -228,15 +251,15 @@ def get_dst_resolution(file_list, varname, resolution_type=1):
 
 
 
-def get_dst_src_files(file_list, varname, resolution_type):
+def get_dst_src_files(file_list, varname, resolution_type=1):
     
     '''
-    Create a tuple with 2 files lists: ([src_grid_files], [dst_grid_files])
+    Returns a tuple with 2 files lists: ([src_grid_files], [dst_grid_files])
     
     :param file_list: input netCDF files
     :type file_list: list
     
-    :param resolution_type: if 1, function searchs the file with the highest resolution, if 0 - with the lowest resolution (default: 1)
+    :param resolution_type: if 1, the destination grid will be the highest resolution, if 0 - the lowest resolution (default: 1)
     :type resolution_type: bool
     
     :rtype: tuple of 2 lists of files
