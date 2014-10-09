@@ -26,6 +26,10 @@ Contents:
 
 **NEWS:**
 
+*9/10/2014*
+
+- It is possible now to do :ref:`regridding <icclim_regrid>` (works only with rectangular "lat/lon" grid).
+
 *8/08/2014*
 
 - :func:`icclim.get_percentile_dict()` works now with OPeNDAP datasets (added the ``transfer_limit_bytes`` parameter)
