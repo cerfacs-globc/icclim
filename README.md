@@ -1,6 +1,6 @@
 icclim
 ======
 
-Python library for climate indices calculation
+"icclim" is a short of Index Calculation CLIMate, a Python library for climate indices calculation.
 
-Documentation (in development): http://icclim.readthedocs.org
+For documentation please visit: http://icclim.readthedocs.org
