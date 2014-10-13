@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import regrid
+from icclim import regrid
 from os.path import basename
 
 # Input files of different resolution
