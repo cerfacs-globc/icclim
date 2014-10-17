@@ -215,7 +215,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
             
             # step4: we subset our arr
             arr_subset = arr[indices_non_masked, :, :].squeeze()
-            
+
             # step5: we compute the percentile for current arr_subset
             ############## WARNING: type(arr_subset) = numpy.ndarray. Numpy.percentile does not work with masked arrays,
             ############## so if arr_subset has aberrant values like 999999 or 1e+20, the result will be wrong.
