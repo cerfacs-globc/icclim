@@ -552,9 +552,10 @@ def R75p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     arr_masked = arr_masked*60*60*24            # mm/day
     
     # we need to check only wet days (i.e. days with RR >= 1 mm)
-    # so, we replace values < 1 mm on -99999 not to count them in the following
-    arr_masked[arr_masked<1.0]=-99999
-    
+    # so, we mask all values < 1 mm with the same fill_value
+    mask_arr_masked = arr_masked < 1.0 # mask
+    arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
+      
     i=0
     for dt in dt_arr:
         
@@ -565,7 +566,7 @@ def R75p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
         current_perc_arr = percentile_dict[m,d]
         
         # we are looking for the values which are greater than the 75th percentile  
-        bin_arr = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='gt') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        bin_arr = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation='gt') # bin_arr is a masked array with fill_value=arr_masked.fill_value
         R75p = R75p + bin_arr
         
         i+=1
@@ -603,8 +604,9 @@ def R95p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     arr_masked = arr_masked*60*60*24            # mm/day
     
     # we need to check only wet days (i.e. days with RR >= 1 mm)
-    # so, we replace values < 1 mm on -99999 not to count them in the following
-    arr_masked[arr_masked<1.0]=-99999
+    # so, we mask all values < 1 mm with the same fill_value
+    mask_arr_masked = arr_masked < 1.0 # mask
+    arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
     
     i=0
     for dt in dt_arr:
@@ -616,7 +618,7 @@ def R95p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
         current_perc_arr = percentile_dict[m,d]
         
         # we are looking for the values which are greater than the 95th percentile  
-        bin_arr = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='gt') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        bin_arr = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation='gt') # bin_arr is a masked array with fill_value=arr_masked.fill_value
         R95p = R95p + bin_arr
         
         i+=1
@@ -655,8 +657,9 @@ def R99p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     arr_masked = arr_masked*60*60*24            # mm/day
     
     # we need to check only wet days (i.e. days with RR >= 1 mm)
-    # so, we replace values < 1 mm on -99999 not to count them in the following
-    arr_masked[arr_masked<1.0]=-99999
+    # so, we mask all values < 1 mm with the same fill_value
+    mask_arr_masked = arr_masked < 1.0 # mask
+    arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
     
     i=0
     for dt in dt_arr:
@@ -668,7 +671,7 @@ def R99p_calculation(arr, dt_arr, percentile_dict, fill_val=None):
         current_perc_arr = percentile_dict[m,d]
         
         # we are looking for the values which are greater than the 99th percentile  
-        bin_arr = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='gt') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        bin_arr = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation='gt') # bin_arr is a masked array with fill_value=arr_masked.fill_value
         R99p = R99p + bin_arr
         
         i+=1
@@ -701,11 +704,17 @@ def R75TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
     pr_thresh = 1                               # precipitation threshold = 1 mm
 
+    # we calculate the numerator (see the formula in the doc): sum of all daily precipitation amounts >= 1.O mm
+    numerator = numpy.zeros((arr.shape[1], arr.shape[2]))
+    
     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
     arr_masked = arr_masked*60*60*24            # mm/day
     
-    # we calculate the numerator (see the formula in the doc)
-    numerator = numpy.zeros((arr.shape[1], arr.shape[2]))
+    # we need to check only wet days (i.e. days with RR >= 1 mm)
+    # so, we mask all values < 1 mm with the same fill_value
+    mask_arr_masked = arr_masked < 1.0
+    arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
+    
     i=0
     for dt in dt_arr:
         
@@ -717,11 +726,11 @@ def R75TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
         
         # we are looking for the values which are greater than the 75th percentile
         # so, we need first to mask all values <= 75th percentile
-        mask = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='let') # bin_arr is a masked array with fill_value=arr_masked.fill_value
-        arr_current_slice_masked = numpy.ma.array(arr_masked[i,:,:], mask=mask, fill_value=0.0)
-        arr_current_slice = arr_current_slice_masked.filled() # filled with 0
+        mask = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation='let') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        arr_current_slice_masked = numpy.ma.array(arr_masked_masked[i,:,:], mask=mask, fill_value=0.0) # we mask again the arr_masked_masked 
+        arr_current_slice = arr_current_slice_masked.filled() # filled with 0.0 ==> array with daily precipitation amount >= 1.O mm 
         
-        numerator = numerator + arr_current_slice
+        numerator = numerator + arr_current_slice # sum of all daily precipitation amounts >= 1.O mm
         
         i+=1
     
@@ -764,11 +773,17 @@ def R95TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
     pr_thresh = 1                               # precipitation threshold = 1 mm
 
+    # we calculate the numerator (see the formula in the doc): sum of all daily precipitation amounts >= 1.O mm
+    numerator = numpy.zeros((arr.shape[1], arr.shape[2]))
+    
     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
     arr_masked = arr_masked*60*60*24            # mm/day
     
-    # we calculate the numerator (see the formula in the doc)
-    numerator = numpy.zeros((arr.shape[1], arr.shape[2]))
+    # we need to check only wet days (i.e. days with RR >= 1 mm)
+    # so, we mask all values < 1 mm with the same fill_value
+    mask_arr_masked = arr_masked < 1.0
+    arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
+  
     i=0
     for dt in dt_arr:
         
@@ -778,13 +793,13 @@ def R95TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
         current_perc_arr = percentile_dict[m,d]
         
-        # we are looking for the values which are greater than the 75th percentile
-        # so, we need first to mask all values <= 75th percentile
-        mask = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='let') # bin_arr is a masked array with fill_value=arr_masked.fill_value
-        arr_current_slice_masked = numpy.ma.array(arr_masked[i,:,:], mask=mask, fill_value=0.0)
-        arr_current_slice = arr_current_slice_masked.filled() # filled with 0
+        # we are looking for the values which are greater than the 95th percentile
+        # so, we need first to mask all values <= 95th percentile
+        mask = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation='let') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        arr_current_slice_masked = numpy.ma.array(arr_masked_masked[i,:,:], mask=mask, fill_value=0.0) # we mask again the arr_masked_masked 
+        arr_current_slice = arr_current_slice_masked.filled() # filled with 0.0 ==> array with daily precipitation amount >= 1.O mm 
         
-        numerator = numerator + arr_current_slice
+        numerator = numerator + arr_current_slice # sum of all daily precipitation amounts >= 1.O mm
         
         i+=1
     
@@ -826,11 +841,17 @@ def R99TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
     pr_thresh = 1                               # precipitation threshold = 1 mm
 
+    # we calculate the numerator (see the formula in the doc): sum of all daily precipitation amounts >= 1.O mm
+    numerator = numpy.zeros((arr.shape[1], arr.shape[2]))
+    
     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
     arr_masked = arr_masked*60*60*24            # mm/day
     
-    # we calculate the numerator (see the formula in the doc)
-    numerator = numpy.zeros((arr.shape[1], arr.shape[2]))
+    # we need to check only wet days (i.e. days with RR >= 1 mm)
+    # so, we mask all values < 1 mm with the same fill_value
+    mask_arr_masked = arr_masked < 1.0
+    arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
+  
     i=0
     for dt in dt_arr:
         
@@ -840,13 +861,13 @@ def R99TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
 
         current_perc_arr = percentile_dict[m,d]
         
-        # we are looking for the values which are greater than the 75th percentile
-        # so, we need first to mask all values <= 75th percentile
-        mask = get_binary_arr(arr_masked[i,:,:], current_perc_arr, logical_operation='let') # bin_arr is a masked array with fill_value=arr_masked.fill_value
-        arr_current_slice_masked = numpy.ma.array(arr_masked[i,:,:], mask=mask, fill_value=0.0)
-        arr_current_slice = arr_current_slice_masked.filled() # filled with 0
+        # we are looking for the values which are greater than the 99th percentile
+        # so, we need first to mask all values <= 99th percentile
+        mask = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation='let') # bin_arr is a masked array with fill_value=arr_masked.fill_value
+        arr_current_slice_masked = numpy.ma.array(arr_masked_masked[i,:,:], mask=mask, fill_value=0.0) # we mask again the arr_masked_masked 
+        arr_current_slice = arr_current_slice_masked.filled() # filled with 0.0 ==> array with daily precipitation amount >= 1.O mm 
         
-        numerator = numerator + arr_current_slice
+        numerator = numerator + arr_current_slice # sum of all daily precipitation amounts >= 1.O mm
         
         i+=1
     
@@ -865,3 +886,5 @@ def R99TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     
     
     return R99TOT
+
+
