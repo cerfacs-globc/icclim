@@ -191,3 +191,18 @@ def R99TOT_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Precipitation fraction due to extremely wet days')
     var_nc.setncattr('units', '%')
 
+def CD_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Cold and dry days')
+    var_nc.setncattr('units', 'days')
+    
+def CW_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Cold and wet days')
+    var_nc.setncattr('units', 'days')
+    
+def WD_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Warm and dry days')
+    var_nc.setncattr('units', 'days')
+    
+def WW_setvarattr(var_nc):
+    var_nc.setncattr('long_name', 'Warm and wet days')
+    var_nc.setncattr('units', 'days')
