@@ -888,3 +888,310 @@ def R99TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     return R99TOT
 
 
+def CD_calculation(t_arr, t_25th_percentile_dict, p_arr, p_25th_percentile_dict, dt_arr, fill_val=None):
+    '''
+    Calculate the CD indice: number of cold and dry days.
+    
+    param t_arr: daily mean temperature (e.g. "tas")
+    type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    param t_25th_percentile_dict: 25th percentile of daily min temperature
+    type t_25th_percentile_dict: dict
+    param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    param p_25th_percentile_dict: 25th percentile of daily precipitation amount at wet days in mm/day
+    type p_25th_percentile_dict: dict
+    param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
+    type dt_arr: numpy.ndarray (1D) of datetime objects
+    param fill_val: fill value
+    type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
+    or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    
+    .. note:: Both input array must be the same type.
+    
+    '''
+    # we intitialize the indice array
+    CD = numpy.zeros((t_arr.shape[1], t_arr.shape[2]))
+        
+    
+    # 1) we mask both arrays: t_arr and p_arr
+    t_arr_masked = get_masked_arr(t_arr, fill_val)
+    p_arr_masked = get_masked_arr(p_arr, fill_val)
+
+    # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
+    p_arr_masked = p_arr_masked*60*60*24            # mm/day
+    mask_p_arr = p_arr_masked<1.0
+    p_arr_masked_masked = numpy.ma.array(p_arr_masked, mask=mask_p_arr) # CHECK !
+
+    
+    i=0
+    for dt in dt_arr:
+        
+        # current calendar day
+        m = dt.month
+        d = dt.day
+
+        t_current_perc_arr = t_25th_percentile_dict[m,d]
+        p_current_perc_arr = p_25th_percentile_dict[m,d]
+        
+        # 3) we compare daily mean temperature (t_arr) with its 25th percentile (t_25th_percentile_dict)                    ==> result 1        
+        # temperature: we are looking for the values which are less than the 25th percentile  
+        t_bin_arr = get_binary_arr(t_arr_masked[i,:,:], t_current_perc_arr, logical_operation='lt') # t_bin_arr is a masked array with fill_value=arr_masked.fill_value    
+        
+        # 4) we compare  daily precipitation amount at wet day (p_arr) with its 25th percentile (p_25th_percentile_dict)    ==> result 2        
+        # precipitation (wet days): we are looking for the values which are less than the 25th percentile
+        p_bin_arr = get_binary_arr(p_arr_masked_masked[i,:,:], p_current_perc_arr, logical_operation='lt') # p_bin_arr is a masked array with fill_value=arr_masked.fill_value 
+    
+        # 5) result 1 AND result 2 ==> indice CD        
+        t_bin_arr_AND_p_bin_arr = numpy.logical_and(t_bin_arr, p_bin_arr) # masked array                
+        t_bin_arr_AND_p_bin_arr_filled = t_bin_arr_AND_p_bin_arr.filled(fill_value=0)
+        
+        CD = CD + t_bin_arr_AND_p_bin_arr_filled
+        
+        #print "CD: \n"    
+        #print CD[70:80,70:80]
+        #print "========="        
+        
+        
+        i+=1
+
+
+    #if not isinstance(t_arr, numpy.ma.MaskedArray):
+    #    CD = CD.filled(fill_value=t_arr_masked.fill_value)    
+    
+    return CD
+
+
+def CW_calculation(t_arr, t_25th_percentile_dict, p_arr, p_75th_percentile_dict, dt_arr, fill_val=None):
+    '''
+    Calculate the CW indice: number of cold and wet days.
+    
+    param t_arr: daily mean temperature (e.g. "tas")
+    type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    param t_25th_percentile_dict: 25th percentile of daily min temperature
+    type t_25th_percentile_dict: dict
+    param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    param p_75th_percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
+    type p_75th_percentile_dict: dict
+    param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
+    type dt_arr: numpy.ndarray (1D) of datetime objects
+    param fill_val: fill value
+    type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
+    or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    
+    .. note:: Both input array must be the same type.
+    
+    '''
+    # we intitialize the indice array
+    CW = numpy.zeros((t_arr.shape[1], t_arr.shape[2]))
+        
+    
+    # 1) we mask both arrays: t_arr and p_arr
+    t_arr_masked = get_masked_arr(t_arr, fill_val)
+    p_arr_masked = get_masked_arr(p_arr, fill_val)
+
+    # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
+    p_arr_masked = p_arr_masked*60*60*24            # mm/day
+    mask_p_arr = p_arr_masked<1.0
+    p_arr_masked_masked = numpy.ma.array(p_arr_masked, mask=mask_p_arr) # CHECK !
+
+    
+    i=0
+    for dt in dt_arr:
+        
+        # current calendar day
+        m = dt.month
+        d = dt.day
+
+        t_current_perc_arr = t_25th_percentile_dict[m,d]
+        p_current_perc_arr = p_75th_percentile_dict[m,d]
+        
+        # 3) we compare daily mean temperature (t_arr) with its 25th percentile (t_25th_percentile_dict)                    ==> result 1        
+        # temperature: we are looking for the values which are less than the 25th percentile  
+        t_bin_arr = get_binary_arr(t_arr_masked[i,:,:], t_current_perc_arr, logical_operation='lt') # t_bin_arr is a masked array with fill_value=arr_masked.fill_value    
+        
+        # 4) we compare  daily precipitation amount at wet day (p_arr) with its 75th percentile (p_75th_percentile_dict)    ==> result 2        
+        # precipitation (wet days): we are looking for the values which are greater than the 75th percentile
+        p_bin_arr = get_binary_arr(p_arr_masked_masked[i,:,:], p_current_perc_arr, logical_operation='gt') # p_bin_arr is a masked array with fill_value=arr_masked.fill_value 
+    
+        # 5) result 1 AND result 2 ==> indice CW        
+        t_bin_arr_AND_p_bin_arr = numpy.logical_and(t_bin_arr, p_bin_arr) # masked array                
+        t_bin_arr_AND_p_bin_arr_filled = t_bin_arr_AND_p_bin_arr.filled(fill_value=0)
+        
+        CW = CW + t_bin_arr_AND_p_bin_arr_filled
+        
+        #print "CW: \n"    
+        #print CW[70:80,70:80]
+        #print "========="        
+        
+        
+        i+=1
+
+
+    #if not isinstance(t_arr, numpy.ma.MaskedArray):
+    #    CW = CW.filled(fill_value=t_arr_masked.fill_value)    
+    
+    return CW
+
+
+
+def WD_calculation(t_arr, t_75th_percentile_dict, p_arr, p_25th_percentile_dict, dt_arr, fill_val=None):
+    '''
+    Calculate the WD indice: number of warm and dry days.
+    
+    param t_arr: daily mean temperature (e.g. "tas")
+    type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    param t_75th_percentile_dict: 75th percentile of daily min temperature
+    type t_75th_percentile_dict: dict
+    param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    param p_25th_percentile_dict: 25th percentile of daily precipitation amount at wet days in mm/day
+    type p_25th_percentile_dict: dict
+    param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
+    type dt_arr: numpy.ndarray (1D) of datetime objects
+    param fill_val: fill value
+    type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
+    or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    
+    .. note:: Both input array must be the same type.
+    
+    '''
+    # we intitialize the indice array
+    WD = numpy.zeros((t_arr.shape[1], t_arr.shape[2]))
+        
+    
+    # 1) we mask both arrays: t_arr and p_arr
+    t_arr_masked = get_masked_arr(t_arr, fill_val)
+    p_arr_masked = get_masked_arr(p_arr, fill_val)
+
+    # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
+    p_arr_masked = p_arr_masked*60*60*24            # mm/day
+    mask_p_arr = p_arr_masked<1.0
+    p_arr_masked_masked = numpy.ma.array(p_arr_masked, mask=mask_p_arr) # CHECK !
+
+    
+    i=0
+    for dt in dt_arr:
+        
+        # current calendar day
+        m = dt.month
+        d = dt.day
+
+        t_current_perc_arr = t_75th_percentile_dict[m,d]
+        p_current_perc_arr = p_25th_percentile_dict[m,d]
+        
+        # 3) we compare daily mean temperature (t_arr) with its 75th percentile (t_75th_percentile_dict)                    ==> result 1        
+        # temperature: we are looking for the values which are greater than the 75th percentile  
+        t_bin_arr = get_binary_arr(t_arr_masked[i,:,:], t_current_perc_arr, logical_operation='gt') # t_bin_arr is a masked array with fill_value=arr_masked.fill_value    
+        
+        # 4) we compare  daily precipitation amount at wet day (p_arr) with its 25th percentile (p_25th_percentile_dict)    ==> result 2        
+        # precipitation (wet days): we are looking for the values which are less than the 25th percentile
+        p_bin_arr = get_binary_arr(p_arr_masked_masked[i,:,:], p_current_perc_arr, logical_operation='lt') # p_bin_arr is a masked array with fill_value=arr_masked.fill_value 
+    
+        # 5) result 1 AND result 2 ==> indice WD        
+        t_bin_arr_AND_p_bin_arr = numpy.logical_and(t_bin_arr, p_bin_arr) # masked array                
+        t_bin_arr_AND_p_bin_arr_filled = t_bin_arr_AND_p_bin_arr.filled(fill_value=0)
+        
+        WD = WD + t_bin_arr_AND_p_bin_arr_filled
+        
+        #print "WD: \n"    
+        #print WD[70:80,70:80]
+        #print "========="        
+        
+        
+        i+=1
+
+
+    #if not isinstance(t_arr, numpy.ma.MaskedArray):
+    #    WD = WD.filled(fill_value=t_arr_masked.fill_value)    
+    
+    return WD
+
+
+def WW_calculation(t_arr, t_75th_percentile_dict, p_arr, p_75th_percentile_dict, dt_arr, fill_val=None):
+    '''
+    Calculate the WW indice: number of warm and wet days.
+    
+    param t_arr: daily mean temperature (e.g. "tas")
+    type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    param t_75th_percentile_dict: 75th percentile of daily min temperature
+    type t_75th_percentile_dict: dict
+    param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    param p_75th_percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
+    type p_75th_percentile_dict: dict
+    param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
+    type dt_arr: numpy.ndarray (1D) of datetime objects
+    param fill_val: fill value
+    type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
+    or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    
+    .. note:: Both input array must be the same type.
+    
+    '''
+    # we intitialize the indice array
+    WW = numpy.zeros((t_arr.shape[1], t_arr.shape[2]))
+        
+    
+    # 1) we mask both arrays: t_arr and p_arr
+    t_arr_masked = get_masked_arr(t_arr, fill_val)
+    p_arr_masked = get_masked_arr(p_arr, fill_val)
+
+    # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
+    p_arr_masked = p_arr_masked*60*60*24            # mm/day
+    mask_p_arr = p_arr_masked<1.0
+    p_arr_masked_masked = numpy.ma.array(p_arr_masked, mask=mask_p_arr) # CHECK !
+
+    
+    i=0
+    for dt in dt_arr:
+        
+        # current calendar day
+        m = dt.month
+        d = dt.day
+
+        t_current_perc_arr = t_75th_percentile_dict[m,d]
+        p_current_perc_arr = p_75th_percentile_dict[m,d]
+        
+        # 3) we compare daily mean temperature (t_arr) with its 75th percentile (t_75th_percentile_dict)                    ==> result 1        
+        # temperature: we are looking for the values which are greater than the 75th percentile  
+        t_bin_arr = get_binary_arr(t_arr_masked[i,:,:], t_current_perc_arr, logical_operation='gt') # t_bin_arr is a masked array with fill_value=arr_masked.fill_value    
+        
+        # 4) we compare  daily precipitation amount at wet day (p_arr) with its 75th percentile (p_75th_percentile_dict)    ==> result 2        
+        # precipitation (wet days): we are looking for the values which are greater than the 75th percentile
+        p_bin_arr = get_binary_arr(p_arr_masked_masked[i,:,:], p_current_perc_arr, logical_operation='gt') # p_bin_arr is a masked array with fill_value=arr_masked.fill_value 
+    
+        # 5) result 1 AND result 2 ==> indice WW        
+        t_bin_arr_AND_p_bin_arr = numpy.logical_and(t_bin_arr, p_bin_arr) # masked array                
+        t_bin_arr_AND_p_bin_arr_filled = t_bin_arr_AND_p_bin_arr.filled(fill_value=0)
+        
+        WW = WW + t_bin_arr_AND_p_bin_arr_filled
+        
+        #print "WW: \n"    
+        #print WW[70:80,70:80]
+        #print "========="        
+        
+        
+        i+=1
+
+
+    #if not isinstance(t_arr, numpy.ma.MaskedArray):
+    #    WW = WW.filled(fill_value=t_arr_masked.fill_value)    
+    
+    return WW
