@@ -11,6 +11,19 @@ from time import time
 import calendar
 from netcdftime import utime
 
+import ctypes
+from numpy.ctypeslib import ndpointer
+import os
+my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
+libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
+
+# BUG: Segmentation fault (core dumped)
+# https://bugzilla.redhat.com/show_bug.cgi?id=674206#c5 ----> comment 4
+libraryC.malloc.restype = ctypes.c_void_p
+libraryC.malloc.argtypes = [ctypes.c_size_t]
+memarr = libraryC.malloc(1024)
+libraryC.free(memarr)
+
 ############### utility functions: begin ################## 
 
 def num2date(num, calend, units):
@@ -148,17 +161,32 @@ def get_year_list(dt_arr):
     
     return year_list
 
+def get_masked_arr(arr, fill_val):
+    '''
+    If a masked array is passed, this function does nothing.
+    If a filled array is passed (fill_value must be passed also), it will be transformed into a masked array.
+    
+    '''
+    if isinstance(arr, numpy.ma.MaskedArray):               # numpy.ma.MaskedArray
+        masked_arr = arr
+    else:                                                   # numpy.ndarray
+        if (fill_val==None):
+            raise(ValueError('If input array is not a masked array, a "fill_value" must be provided.'))
+        mask_arr = (arr==fill_val)
+        masked_arr = numpy.ma.masked_array(arr, mask=mask_arr, fill_value=fill_val)
+    
+    return masked_arr
 
 ############### utility functions: end ##################
 percentage_total_perc_dict = 50.
 
-def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, verbose=False, callback=None, percentage_per_chunk=percentage_total_perc_dict, chunk_counter=1):
+def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, verbose=False, callback=None, percentage_per_chunk=percentage_total_perc_dict, chunk_counter=1, precipitation=False, fill_val=None):
     '''
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
     Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
     
-    :param arr: array of values
-    :type arr: numpy.ndarray (3D) of float
+    :param arr: array of values (in case of precipitation, units must be `mm/s`)
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) of float
     :param dt_arr: corresponding time steps vector (base period: usually 1961-1990)
     :type dt_arr: numpy.ndarray (1D) of datetime objects
     :param percentile: percentile to compute which must be between 0 and 100 inclusive
@@ -179,8 +207,15 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     :param chunk_counter: chunk counter in case of chunking (default: 1, i.e. no chunking)
     :type chunk_counter: int
     
+    :param precipitation: just to inticate if ``arr`` is precipitation (`True`) or other variable (`False`) to process data differently (default: False) 
+    :type precipitation: bool
+    
+    :param fill_val: fill value of ``arr``
+    :type fill_val: float
+    
     :rtype: dict
 
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     
     '''
     
@@ -204,27 +239,83 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     
     dt_hour = dt_arr[0].hour # (we get hour of a date only one time, because usually the hour is the same for all dates in input dt_arr)
     
+    # we mask our array in case it has fill_values
+    arr_masked = get_masked_arr(arr, fill_val)
+            
+    if precipitation == True:
+        # 1) we convert mm/s to mm/day
+        arr_masked = arr_masked*60*60*24 # mm/day
+        
+        # 2) we need to process only wet days (i.e. days with RR >= 1 mm)
+        # so, we mask values < 1 mm 
+        mask_arr_masked = arr_masked < 1.0 # new mask of already masked array :-)
+        arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked)
+        
+        # 3) we fill all masked values with fill_val to pass the filled array to the C function
+        arr_filled = arr_masked_masked.filled(fill_val)
+
+        del arr_masked, mask_arr_masked, arr_masked_masked
+        
+    else:
+        arr_filled = arr_masked.filled(fill_val)
+        del arr_masked
+    
+    
+    ############################## prepare calling C function   
+    # data type should be 'float32' to pass it to C function
+    if arr_filled.dtype != 'float32':
+        arr_filled = numpy.array(arr_filled, dtype='float32')
+        
+        
+    C_percentile = libraryC.percentile_3d
+    C_percentile.restype = None    
+    
+    C_percentile.argtypes = [ndpointer(ctypes.c_float),
+                                        ctypes.c_int,
+                                        ctypes.c_int,
+                                        ctypes.c_int,
+                                        ndpointer(ctypes.c_double),
+                                        ctypes.c_int,
+                                        ctypes.c_float]
+                                                
+        
+    #############################
+    
+        
+        
+    
     for month in dic_caldays.keys():
         for day in dic_caldays[month]:
+            
+            arr_percentille_current_calday = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
+            
+            #print arr_percentille_current_calday.dtype #float64, i.e. double ----> OK
             
             # step2: we do a mask for the datetime vector for current calendar day (day/month)
             dt_arr_mask = get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years)
 
             # step3: we are looking for the indices of non-masked dates (i.e. where dt_arr_mask==False) 
             indices_non_masked = numpy.where(dt_arr_mask==False)[0]
-            
-            # step4: we subset our arr
-            arr_subset = arr[indices_non_masked, :, :].squeeze()
 
-            # step5: we compute the percentile for current arr_subset
-            ############## WARNING: type(arr_subset) = numpy.ndarray. Numpy.percentile does not work with masked arrays,
-            ############## so if arr_subset has aberrant values like 999999 or 1e+20, the result will be wrong.
-            ############## Check with numpy.nanpercentile (Numpy version 1.9) !!!            
-            arr_percentille_current_calday = numpy.percentile(arr_subset, percentile, axis=0)
+            # step4: we subset our arr
+            arr_subset = arr_filled[indices_non_masked, :, :].squeeze()
+           
+            #start = time()
+            #print day
+            
+            # step5: we compute the percentile for current arr_subset           
+            C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentille_current_calday, percentile, fill_val)
+            arr_percentille_current_calday = arr_percentille_current_calday.reshape(arr.shape[1], arr.shape[2])
+            
+            #stop = time()
+            #t = stop - start
+            #print t, '=========================================='
             
             # step6: we add to the dictionnary...
             percentile_dict[month,day] = arr_percentille_current_calday
-        
+
+
+            
         if verbose == True:
             percent_current_month =  percent_current_month + percent_one_month
             print '[Creating of daily percentiles dictionary] ', int(round(percent_current_month)), '%'
