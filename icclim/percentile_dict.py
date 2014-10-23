@@ -17,12 +17,12 @@ import os
 my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
 libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
-# BUG: Segmentation fault (core dumped)
-# https://bugzilla.redhat.com/show_bug.cgi?id=674206#c5 ----> comment 4
-libraryC.malloc.restype = ctypes.c_void_p
-libraryC.malloc.argtypes = [ctypes.c_size_t]
-memarr = libraryC.malloc(1024)
-libraryC.free(memarr)
+## BUG: Segmentation fault (core dumped)
+## https://bugzilla.redhat.com/show_bug.cgi?id=674206#c5 ----> comment 4
+#libraryC.malloc.restype = ctypes.c_void_p
+#libraryC.malloc.argtypes = [ctypes.c_size_t]
+#memarr = libraryC.malloc(1024)
+#libraryC.free(memarr)
 
 ############### utility functions: begin ################## 
 
