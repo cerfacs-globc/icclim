@@ -2133,37 +2133,16 @@ def indice_compound(in_files_t,
     
                     del values_current_chunk_t, values_current_chunk_p, time_steps_current_chunk
       
-                    #print "Processed: ", year
-                    
-                    #counter_year = counter_year + 1
-                    #print counter_year, total_nb_years_to_process
-    
-                    #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
-                    #print status
                     
                     callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*50  )    + 50              )
+                    #callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*100  )   ) 
                     year_counter += 1
                     
-                #else:
-                    #print "data not processed ", year
-                    #callback("Skipping year %d" % year,percentageComplete)
-                #currentStep+=1.0
-                #time.sleep(0.01)
-            #    #time.sleep(1.01)
-            #    pbar.update(i+1)
-            #    i+=1
-            #
-            #pbar.finish()
+
             
         nc_t.close()
         nc_p.close()   
-            
-    
-        #pbar_files.finish()
-            
-        #print '---'    
-        #print sorted(glob_dict_timeStep_indice.keys())
-        #print '---'     
+               
         
         glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
         
