@@ -32,7 +32,7 @@ setup(
  
     # la version du code
     
-    version="2.1",
+    version="2.2",
  
     # Liste les packages a inserer dans la distribution
     # plutot que de le faire a la main, on utilise la foncton
@@ -104,7 +104,7 @@ setup(
     #
     # A fournir uniquement si votre licence n'est pas listee dans "classifiers"
     # ce qui est notre cas
-    license="WTFPL",
+    #license="WTFPL",
  
     # Il y a encore une chiee de parametres possibles, mais avec ca vous
     # couvrez 90% des besoins
