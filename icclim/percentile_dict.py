@@ -299,17 +299,10 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
 
             # step4: we subset our arr
             arr_subset = arr_filled[indices_non_masked, :, :].squeeze()
-           
-            #start = time()
-            #print day
             
             # step5: we compute the percentile for current arr_subset           
             C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentille_current_calday, percentile, fill_val)
             arr_percentille_current_calday = arr_percentille_current_calday.reshape(arr.shape[1], arr.shape[2])
-            
-            #stop = time()
-            #t = stop - start
-            #print t, '=========================================='
             
             # step6: we add to the dictionnary...
             percentile_dict[month,day] = arr_percentille_current_calday
