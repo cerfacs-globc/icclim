@@ -24,6 +24,9 @@ Depending on the type of climate indice, use the appropriate function:
 | percentile-based indice  | TG10p, TX10p, TN10p, TG90p, TX90p, TN90p, WSDI, CSDI,      | :ref:`indice_perc(...) <func_indice_perc_label>`          |
 |                          | R75p, R75TOT, R95p, R95TOT, R99p, R99TOT                   |                                                           |
 +--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
+| compound                 | CD, CW, WD, WW                                             | :ref:`indice_compound(...) <func_indice_compound_label>`  |
+| percentile-based indice  |                                                            |                                                           |
++--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
 
 Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.
 
@@ -78,7 +81,9 @@ To get a derived indice from SU, CSU or TR indices, set the ``threshold`` parame
 .. automodule:: icclim
     :members: indice_perc
 
-
+.. _func_indice_compound_label:
+.. automodule:: icclim
+    :members: indice_compound
 
 
 .. _creation_daily_percentile_dictionary_label:
@@ -208,7 +213,7 @@ The ``only_leap_years`` parameter selects which of two methods to use for calcul
     
     >>> import pickle
     >>> with open(file_name, 'rb') as f:
-    ...     dict = pickle.load(f)
+    ...     pd = pickle.load(f)
 
 .. note:: To process OPeNDAP datasets one needs to set the ``transfer_limit_bytes`` in bytes. This parameter is required to estimate an optimal data chunk size to transfer then data chunk-by-chunk in case if the request is bigger than the maximum OPeNDAP/THREDDS request limit. To know your maximum request limit, you can try to run the function without ``transfer_limit_bytes``, you will probably get an error message like: 
 
@@ -267,6 +272,9 @@ Correspondence table "indice - source variable"
 |R75p, R75TOT, R95p, R95TOT, R99p, R99TOT                    |                                             |
 +------------------------------------------------------------+---------------------------------------------+
 |SD, SD1, SD5cm, SD50cm                                      |  daily snowfall flux (solid phase)          |
++------------------------------------------------------------+---------------------------------------------+
+|CD, CW, WD, WW                                              |  daily mean temperature +                   |
+|                                                            |  daily precipitation flux (liquide phase)   |
 +------------------------------------------------------------+---------------------------------------------+
 
 .. _icclim_regrid:

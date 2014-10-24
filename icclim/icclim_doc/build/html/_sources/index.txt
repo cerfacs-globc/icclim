@@ -26,6 +26,12 @@ Contents:
 
 **NEWS:**
 
+*24/10/2014*
+
+- New version: 2.2
+- Added compound percentile-based indices: CD, CW, WD and WW
+- Percentiles are now computed by C function to take into account fill_values
+
 *9/10/2014*
 
 - It is possible now to do :ref:`regridding <icclim_regrid>` (works only with rectangular "lat/lon" grid).

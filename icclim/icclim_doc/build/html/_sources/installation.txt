@@ -40,7 +40,7 @@ To get the version of installed library, do the following:
 .. code-block:: sh
 
     >>> icclim.__version__
-    0.0.1
+    2.2
 
 
 .. note:: ICCLIM was not tested on Windows and Mac platforms...

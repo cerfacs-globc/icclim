@@ -48,7 +48,7 @@ Important to know
 5. To use ICCLIM indices in OpenClimateGIS you need to do the following:
 
     1. Install all `dependencies of OpenClimateGIS <https://www.earthsystemcog.org/projects/openclimategis/dependencies>`_ 
-    2. Go to `https://github.com/NCPP/ocgis`_.
+    2. Go to `<https://github.com/NCPP/ocgis>`_.
     3. Download the current version: click to **Download ZIP**.
     4. Extract the file.
     5. Go to extracted directory.
