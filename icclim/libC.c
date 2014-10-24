@@ -43,9 +43,8 @@ int WSDI_CSDI_1d(const float *indata,int i, int j, int N);
 void WSDI_CSDI_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, int N);
 void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int percentile, float fill_value);
 double percentile_1d(const float *indata, int i, int j);
-int get_new_size(const float *indata, int i, int j);
-float* filter_fill_value(const float *indata, int i, int j, int new_size);
-double get_percentile(float* tab, int len_tab);
+float* get_tab_1d(const float *indata, int i, int j, int* new_size);
+double get_percentile(float* tab_1d, int len_tab_1d);
 void swap(float* a, float* b);
 void qs(float* s_arr, int first, int last);
 
@@ -490,76 +489,57 @@ void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, doub
 // for 1D array 
 double percentile_1d(const float *indata, int i, int j)
 {
-    int new_size = get_new_size(indata,i,j);
-
-    float* new_tab =  filter_fill_value(indata, i,j,new_size);
-
-    qs(new_tab, 0, new_size-1);
-
-    double perc =  get_percentile(new_tab, new_size);
-
-    free(new_tab);
+    int new_size = 0;
     
-    return perc;
+    float* new_tab =  get_tab_1d(indata, i,j,&new_size);
+    
+    qs(new_tab, 0, sizeT-1);
+    
+    double perc =  get_percentile(new_tab, new_size);
+      
+    free(new_tab);
+
+    return  perc;
 }
 
 
-int get_new_size(const float *indata, int i, int j)
+// indata is actually a 3D array represented in one big 1D array
+float* get_tab_1d(const float *indata, int i, int j, int* new_size)
 {
-    int t,nb_fill_values, new_size;
+    float* tab_1d;
     float val;
+    int nb_fill_values = 0;
     
-    nb_fill_values = 0;
+    // we reserve memory for tab_1d
+    tab_1d = (float *) malloc (sizeT*sizeof(float));
     
+    // we copy values from indata at (i,j) to tab_1d
+    int t;
     for(t=0; t<sizeT; t++)
     {
         val = getElementAt(indata,t,i,j);
+        tab_1d[t]=val;
         if (val == fill_value)
-        {
+        {  
             nb_fill_values++;
         }
     }
-        
-    new_size = sizeT-nb_fill_values;
     
-    return new_size;
-}
-
-
-float* filter_fill_value(const float *indata, int i, int j, int new_size)
-{
-    float* new_tab;
-    float val;
+    *new_size = sizeT-nb_fill_values;
     
-    // we reserve memory for new_tab
-    new_tab = (float *) malloc (new_size*sizeof(float));
-    
-    // we copy values from tab to new_tab, filtering fill_values
-    int index_new_tab=0;
-    int t;
-    
-    for(t=0; t<sizeT; t++)
-    {
-        val = getElementAt(indata,t,i,j);
-        
-        if (val != fill_value)
-        {
-        new_tab[index_new_tab++]=val;
-        }
-    }
-    
-    return new_tab;
+    return tab_1d;
     
 }
 
 
-double get_percentile(float* tab, int len_tab)
+
+double get_percentile(float* tab_1d, int len_tab_1d)
 {
-    if (len_tab==0) return fill_value;
-    if (len_tab==1) return tab[0];
+    if (len_tab_1d==0) return fill_value;
+    if (len_tab_1d==1) return tab_1d[0];
     
     double p = percentile * 0.01;
-    double index = p * (len_tab-1);
+    double index = p * (len_tab_1d-1);
     double index_integer_part, index_fractional_part;        
     double perc;
     int  i, j;
@@ -570,7 +550,7 @@ double get_percentile(float* tab, int len_tab)
     i = index_integer_part;
     j = i + 1;
     
-    perc = index_fractional_part * (tab[j] - tab[i]) + tab[i];
+    perc = index_fractional_part * (tab_1d[j] - tab_1d[i]) + tab_1d[i];
     return perc;
     
 }
