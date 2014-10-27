@@ -466,7 +466,7 @@ void WSDI_CSDI_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double 
 
 
 
-// fonction appelee depus python 
+// function called from Python 
 void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int percentile, float fill_value) 
 {
 
