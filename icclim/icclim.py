@@ -1444,7 +1444,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     :type transfer_limit_bytes: float
     
     :param callback: progress bar, if ``None`` progress bar will not be printed 
-    :type callback: :func:`callback.defaultCallback2`
+    :type callback: :func:`callback.defaultCallback`
 
     :param callback_percentage_total: default 100 
     :type callback_percentage_total: int
