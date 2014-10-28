@@ -11,6 +11,8 @@ from time import time
 import calendar
 from netcdftime import utime
 
+import callback
+
 import ctypes
 from numpy.ctypeslib import ndpointer
 import os
@@ -178,9 +180,8 @@ def get_masked_arr(arr, fill_val):
     return masked_arr
 
 ############### utility functions: end ##################
-percentage_total_perc_dict = 50.
 
-def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, verbose=False, callback=None, percentage_per_chunk=percentage_total_perc_dict, chunk_counter=1, precipitation=False, fill_val=None):
+def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, callback=None, percentage_per_chunk=100, chunk_counter=1, precipitation=False, fill_val=None):
     '''
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
     Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
@@ -195,16 +196,11 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     :type window_width: int
     :param only_leap_years: option for February 29th (default: False)
     :type only_leap_years: bool
-    :param verbose: if True, the percentage progress will be printed (default: False)
-    :type verbose: bool
     
-    :param callback: callback print
-    :type callback: :func:`icclim.defaultCallback`
-    
-    :param percentage_per_chunk: percentage per chunk 
-    :type percentage_per_chunk: float
-    
-    :param chunk_counter: chunk counter in case of chunking (default: 1, i.e. no chunking)
+    :param callback: progress bar, if ``None`` progress bar will not be printed
+    :type callback: :func:`callback.defaultCallback2`
+        
+    :param chunk_counter: chunk counter in case of chunking 
     :type chunk_counter: int
     
     :param precipitation: just to inticate if ``arr`` is precipitation (`True`) or other variable (`False`) to process data differently (default: False) 
@@ -222,13 +218,11 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     assert(arr.ndim == 3)
     
     # for callback print
-    nb_months = 12
-    percent_one_month = (percentage_per_chunk)/nb_months ######## computing percentiles is only 50%  (other 50% for computing indice)
+    nb_months = 12*1.0
+    percent_one_month = ((percentage_per_chunk)/nb_months) ######## percentage_per_chunk default value = 100 %; set percentage_per_chunk=50% for WPS: computing percentiles will be 50%  (other 50% for computing indice)
     
-    if chunk_counter == 1:
-        percent_current_month = 0
-    else: 
-        percent_current_month = (chunk_counter-1)*percentage_per_chunk
+
+    percent_current_month = (chunk_counter-1)*percentage_per_chunk
 
         
         
@@ -307,11 +301,6 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
             # step6: we add to the dictionnary...
             percentile_dict[month,day] = arr_percentille_current_calday
 
-
-            
-        if verbose == True:
-            percent_current_month =  percent_current_month + percent_one_month
-            print '[Creating of daily percentiles dictionary] ', int(round(percent_current_month)), '%'
         
         if callback != None:
             percent_current_month =  percent_current_month + percent_one_month

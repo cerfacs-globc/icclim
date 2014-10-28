@@ -24,6 +24,8 @@ import percentile_dict
 from calc_indice_perc import *
 import OCGIS_tile
 
+import callback
+
 def test():
     print my_rep
 
@@ -253,7 +255,7 @@ def set_time_values(nc, time_steps_arr_dt, calend, units):
     nc.variables['time'][:] = time_steps_num[:]
 
 
-def set_timebnds_values(nc, time_bnds_dt, calend, units):    
+def set_timebnds_values(nc, time_bnds_dt, calend, units):
     time_bnds_num = numpy.array([date2num(i, calend, units) for i in time_bnds_dt])
     nc.variables['time_bnds'][:,:] = time_bnds_num[:,:] 
 
@@ -640,10 +642,6 @@ def get_dict_year_chunk(time_steps_vect):
         i+=1
     return mydict
 
-    
-def defaultCallback(message,percentage):
-    print ("[%s] %d" % (message,percentage))
-
 
 def get_time_range(files, temporal_var_name='time'):
     
@@ -712,7 +710,7 @@ def get_dict_file_years_glob(files_list):
         years_current_file = get_year_list(dates_list_current_file)
         dict_file_years[filename] = years_current_file
         del dates_list_current_file, years_current_file
-        
+
     #print dict_file_years
 
 
@@ -725,7 +723,7 @@ def indice(in_files,
            out_file="./icclim_out.nc",
            threshold=None,
            N_lev=None,
-           callback=defaultCallback):
+           callback=None):
     
     '''
 
@@ -753,8 +751,8 @@ def indice(in_files,
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
-    :param callback: callback print
-    :type callback: :func:`icclim.defaultCallback`
+    :param callback: progress bar, if ``None`` progress bar will not be printed
+    :type callback: :func:`callback.defaultCallback`
 
     :rtype: path to NetCDF file
     
@@ -834,7 +832,7 @@ def indice(in_files,
     
     total_nb_years_to_process = dt_end.year - dt_begin.year + 1
     
-    dict_glob_file_years = get_dict_file_years_glob(in_files)
+    ###########dict_glob_file_years = get_dict_file_years_glob(in_files)
     
     year_counter = 1.0
     for ifile in in_files:
@@ -906,7 +904,10 @@ def indice(in_files,
                 #if year in dict_glob_file_years[ifile]:
                 #year_counter = 1
                 #callback("Processing year %d" % , (year_counter/total_nb_years_to_process)*100)
-                callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                
+                if callback != None:
+                    callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                    
                 year_counter += 1
                 
                 
@@ -988,7 +989,6 @@ def indice(in_files,
     return out_file
 
 
-
 ####################################################
 
 def get_dict_timeStep_indice_multivar(dict_timeStep_sub3Darr1, dict_timeStep_sub3Darr2, indice_name, fill_val1, fill_val2):
@@ -1026,7 +1026,7 @@ def indice_multivar(in_files1, var1,
                     time_range=None,
                     out_file="./icclim_out.nc",
                     N_lev=None,
-                    callback=defaultCallback):
+                    callback=None):
     
     '''
     :param in_files1: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the "var1"
@@ -1056,8 +1056,8 @@ def indice_multivar(in_files1, var1,
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
-    :param callback: callback print
-    :type callback: :func:`icclim.defaultCallback`
+    :param callback: progress bar, if ``None`` progress bar will not be printed
+    :type callback: :func:`callback.defaultCallback`
     
     :rtype: path to NetCDF file
 
@@ -1117,7 +1117,7 @@ def indice_multivar(in_files1, var1,
 
     total_nb_years_to_process = dt_end.year - dt_begin.year + 1
     
-    dict_glob_file_years = get_dict_file_years_glob(in_files1)
+    ###########dict_glob_file_years = get_dict_file_years_glob(in_files1)
     
     year_counter = 1.0
     for in_file1, in_file2  in zip(in_files1, in_files2):
@@ -1185,7 +1185,12 @@ def indice_multivar(in_files1, var1,
                     #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                     #print status
                     
-                    callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                    #callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                    
+                    
+                    if callback != None:
+                        callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+                    
                     year_counter += 1
                     
                 #else:
@@ -1408,11 +1413,11 @@ def get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_l
     
     return (total_array_size_bytes, optimal_tile_dimension)
 
-def defaultCallback2(message,percentage):
-    print ("[%s] %0.2f" % (message,percentage))
 
-# TODO: remove the "verbose" parameter
-def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_range=None, only_leap_years=False, verbose=False, save_to_file=None, transfer_limit_bytes=None, callback=None, precipitation=False):
+
+
+def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_range=None, only_leap_years=False, save_to_file=None, transfer_limit_bytes=None, callback=None,
+                        callback_percentage_total=100, precipitation=False):
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
@@ -1432,17 +1437,17 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     :param only_leap_years: option for February 29th (default: False)
     :type only_leap_years: bool
     
-    :param verbose: if True, the percentage progress will be printed (default: False)
-    :type verbose: bool
-    
     :param save_to_file: output file name which will contain the created daily percentiles dictionary (default: None)
     :type save_to_file: str
     
     :param transfer_limit_bytes: maximum OPeNDAP/THREDDS request limit in bytes (default: None) 
     :type transfer_limit_bytes: float
     
-    :param callback: callback print 
-    :type callback: :func:`icclim.defaultCallback`
+    :param callback: progress bar, if ``None`` progress bar will not be printed 
+    :type callback: :func:`callback.defaultCallback2`
+
+    :param callback_percentage_total: default 100 
+    :type callback_percentage_total: int
     
     :param precipitation: just to inticate if ``arr`` is precipitation (`True`) or other variable (`False`) to process data differently (default: False) 
     :type precipitation: bool
@@ -1450,9 +1455,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     :rtype: dict
 
     '''
-    
-    percentage_total_perc_dict = 50.
-    
+   
     
     in_files.sort()
     
@@ -1489,8 +1492,8 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                     
         nc.close()
         
-        dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, verbose=verbose, callback=callback,
-                                                  precipitation=precipitation, fill_val=fill_val)
+        dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
+                                                  percentage_per_chunk = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
         
         if save_to_file != None:
             with open(save_to_file, 'wb') as handle:
@@ -1536,8 +1539,8 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                         
             nc.close()
             
-            dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, verbose=verbose, callback=callback,
-                                                      precipitation=precipitation, fill_val=fill_val)
+            dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
+                                                      percentage_per_chunk = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
 
             
             del base_arr, dt_base_arr
@@ -1585,7 +1588,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                 for day in dic_caldays[month]:
                     glob_percentile_dict[month,day] = numpy.zeros((var_shap1, var_shap2))
             
-            percentage_per_chunk = percentage_total_perc_dict/nb_chunks
+            percentage_per_chunk = callback_percentage_total/(nb_chunks*1.0)
             
             chunk = 1.0  # chunk counter
            
@@ -1611,7 +1614,8 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                             
 
                 
-                dic_current_chunk = percentile_dict.get_percentile_dict(base_arr_current_chunk, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, verbose=verbose, callback=callback, percentage_per_chunk=percentage_per_chunk, chunk_counter=chunk,
+                dic_current_chunk = percentile_dict.get_percentile_dict(base_arr_current_chunk, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,
+                                                                        callback=callback, percentage_per_chunk=percentage_per_chunk, chunk_counter=chunk,
                                                                         precipitation=precipitation, fill_val=fill_val)
                 
                 del base_arr_current_chunk
@@ -1654,7 +1658,8 @@ def indice_perc(in_files,
                 time_range=None,
                 out_file="./icclim_out.nc",
                 N_lev=None,
-                callback=defaultCallback):
+                callback=None,
+                callback_percentage_total=100):
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
     :type in_files: list of str
@@ -1680,8 +1685,11 @@ def indice_perc(in_files,
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
-    :param callback: callback print
-    :type callback: :func:`icclim.defaultCallback`
+    :param callback: progress bar, if ``None`` progress bar will not be printed 
+    :type callback: :func:`callback.defaultCallback`
+    
+    :param callback_percentage_total: default 100 
+    :type callback_percentage_total: int
     
     :rtype: path to NetCDF file
 
@@ -1744,7 +1752,7 @@ def indice_perc(in_files,
     
     total_nb_years_to_process = dt_end.year -dt_begin.year + 1
     
-    dict_glob_file_years = get_dict_file_years_glob(in_files)
+    ###########dict_glob_file_years = get_dict_file_years_glob(in_files)
     
     year_counter = 1.0
     for ifile in in_files:
@@ -1821,7 +1829,13 @@ def indice_perc(in_files,
                 #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
                 #print status
                 
-                callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*50  )    + 50              )
+                
+                if callback_percentage_total == 100 and callback != None:
+                    callback("Processing year %d" % (year),         (  year_counter/total_nb_years_to_process)*callback_percentage_total  )
+                    
+                elif callback_percentage_total == 50 and callback != None:
+                    callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*callback_percentage_total  )    + callback_percentage_total              )
+                
                 year_counter += 1
                 
             #else:
@@ -1940,7 +1954,8 @@ def indice_compound(in_files_t,
                 time_range=None,
                 out_file="./icclim_out.nc",
                 N_lev=None,
-                callback=defaultCallback):
+                callback=None,
+                callback_percentage_total=100):
     '''
     :param in_files_t: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to daily mean temperature
     :type in_files_t: list of str
@@ -1950,9 +1965,6 @@ def indice_compound(in_files_t,
     
     :param percentile_dict_t: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict` corresponding to daily mean temperature
     :type percentile_dict_t: dict
-    
-
-
     
     :param in_files_p: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to daily precipitation flux (liquid form)
     :type in_files_p: list of str
@@ -1978,8 +1990,11 @@ def indice_compound(in_files_t,
     :param N_lev: level number if 4D variable
     :type N_lev: int
     
-    :param callback: callback print
-    :type callback: :func:`icclim.defaultCallback`
+    :param callback: progress bar, if ``None`` progress bar will not be printed 
+    :type callback: :func:`callback.defaultCallback`
+
+    :param callback_percentage_total: default 100 
+    :type callback_percentage_total: int
     
     :rtype: path to NetCDF file
 
@@ -2032,7 +2047,7 @@ def indice_compound(in_files_t,
     else:
         dt_begin = time_range[0] # datetime object
         dt_end = time_range[1] # datetime object
-    
+
     ############################
     glob_dict_timeStep_indice = {}
     ############################
@@ -2042,7 +2057,7 @@ def indice_compound(in_files_t,
     
     total_nb_years_to_process = dt_end.year -dt_begin.year + 1
     
-    dict_glob_file_years = get_dict_file_years_glob(in_files_t)
+    ###########dict_glob_file_years = get_dict_file_years_glob(in_files_t)
     
     year_counter = 1.0
     for ifile_t, ifile_p  in zip(in_files_t, in_files_p):
@@ -2067,10 +2082,7 @@ def indice_compound(in_files_t,
         
             time_steps_vect = time_steps_vect_t
                     
-            dict_year_chunk = get_dict_year_chunk(time_steps_vect)
-    
-            
-            #print dict_year_chunk
+            dict_year_chunk = get_dict_year_chunk(time_steps_vect)                       
             
             if N_lev==None:
                 values_t = nc_t.variables[var_t]
@@ -2092,8 +2104,6 @@ def indice_compound(in_files_t,
                 
                 #percentageComplete = (currentStep/totalSteps)*100
                 #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
-                
-                
     
                 
                 if year>=dt_begin.year and year<=dt_end.year:
@@ -2126,6 +2136,7 @@ def indice_compound(in_files_t,
                     
                     
                     mydict_indice=get_dict_timeStep_indice_compound(mydict_TimeStep_3DArray_t, mydict_TimeStep_3DArray_p, percentile_dict_t, percentile_dict_p, mydict_TimeStep_dtarr, indice_name, fill_val)
+                                       
                     
                     glob_dict_timeStep_indice.update(mydict_indice)
                     
@@ -2134,47 +2145,52 @@ def indice_compound(in_files_t,
                     del values_current_chunk_t, values_current_chunk_p, time_steps_current_chunk
       
                     
-                    callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*50  )    + 50              )
-                    #callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*100  )   ) 
+                    if callback_percentage_total == 100 and callback != None:
+                        callback("Processing year %d" % (year),         (  year_counter/total_nb_years_to_process)*callback_percentage_total  )
+                        
+                    elif callback_percentage_total == 50 and callback != None:
+                        callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*callback_percentage_total  )    + callback_percentage_total              )
+                    
                     year_counter += 1
                     
-
-            
+   
         nc_t.close()
         nc_p.close()   
                
         
-        glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
         
-        ind[:,:,:] = glob_indice[0][:,:,:]
-        
+    glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
     
-        onc.setncattr('source', '') 
-        # set global attributs
-        set_globattr.title(onc, indice_name)        
-        set_globattr.references(onc)
-        set_globattr.comment(onc, indice_name)
-        set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
-        set_globattr.history2(onc, slice_mode, indice_name, time_range)
+    ind[:,:,:] = glob_indice[0][:,:,:]
     
-        # set variable attributs
+
+    onc.setncattr('source', '') 
+    # set global attributs
+    set_globattr.title(onc, indice_name)        
+    set_globattr.references(onc)
+    set_globattr.comment(onc, indice_name)
+    set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
+    set_globattr.history2(onc, slice_mode, indice_name, time_range)
+
+    # set variable attributs
+
+    eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
+    ind.setncattr('standard_name', 'ECA_indice')
+    # for all:
+    ind.missing_value = fill_val
     
-        eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-        ind.setncattr('standard_name', 'ECA_indice')
-        # for all:
-        ind.missing_value = fill_val
-        
-        #print indice[1][:] # must be float or str!    
-        #time_steps = [str(i) for i in indice[1][:]]
-        
-        time_steps_indice_dt = glob_indice[1][:]
-        time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
-        
-        set_time_values(onc, time_steps_indice_dt, calend, units)
-        set_timebnds_values(onc, time_bnds_dt, calend, units)
-        
-        onc.close()
-        
-        #print "Indice " + indice_name + ": OK"
-        
-        return out_file
+    #print indice[1][:] # must be float or str!    
+    #time_steps = [str(i) for i in indice[1][:]]
+    
+    time_steps_indice_dt = glob_indice[1][:]
+    
+    time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
+    
+    set_time_values(onc, time_steps_indice_dt, calend, units)
+    set_timebnds_values(onc, time_bnds_dt, calend, units)
+    
+    onc.close()
+    
+    #print "Indice " + indice_name + ": OK"
+    
+    return out_file
