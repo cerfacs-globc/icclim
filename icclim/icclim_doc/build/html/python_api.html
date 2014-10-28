@@ -100,7 +100,7 @@ percentile-based indice</td>
 <p>Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.</p>
 <span class="target" id="module-icclim"><span id="func-indice-label"></span></span><dl class="function">
 <dt id="icclim.indice">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x282ce60&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=None</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -114,7 +114,7 @@ percentile-based indice</td>
 <li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file name (defaut: &#8220;icclim_out.nc&#8221; in the current directory)</li>
 <li><strong>threshold</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; user defined threshold for certain indices</li>
 <li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">icclim.defaultCallback()</span></tt>) &#8211; callback print</li>
+<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
 </ul>
 </td>
 </tr>
@@ -150,7 +150,7 @@ percentile-based indice</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-multivar-label"></span></span><dl class="function">
 <dt id="icclim.indice_multivar">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x282ce60&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=None</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -165,7 +165,7 @@ percentile-based indice</td>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range, if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
 <li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file name (defaut: &#8220;icclim_out.nc&#8221; in the current directory)</li>
 <li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">icclim.defaultCallback()</span></tt>) &#8211; callback print</li>
+<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
 </ul>
 </td>
 </tr>
@@ -194,7 +194,7 @@ percentile-based indice</td>
 </div>
 <span class="target" id="module-icclim"><span id="func-indice-perc-label"></span></span><dl class="function">
 <dt id="icclim.indice_perc">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x282ce60&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=None</em>, <em>callback_percentage_total=100</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -208,7 +208,8 @@ percentile-based indice</td>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range, if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
 <li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file name (defaut: &#8220;icclim_out.nc&#8221; in the current directory)</li>
 <li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">icclim.defaultCallback()</span></tt>) &#8211; callback print</li>
+<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
+<li><strong>callback_percentage_total</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; default 100</li>
 </ul>
 </td>
 </tr>
@@ -225,7 +226,7 @@ percentile-based indice</td>
 
 <span class="target" id="module-icclim"><span id="func-indice-compound-label"></span></span><dl class="function">
 <dt id="icclim.indice_compound">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_compound</tt><big>(</big><em>in_files_t</em>, <em>var_t</em>, <em>percentile_dict_t</em>, <em>in_files_p</em>, <em>var_p</em>, <em>percentile_dict_p</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=&lt;function defaultCallback at 0x282ce60&gt;</em><big>)</big><a class="headerlink" href="#icclim.indice_compound" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">indice_compound</tt><big>(</big><em>in_files_t</em>, <em>var_t</em>, <em>percentile_dict_t</em>, <em>in_files_p</em>, <em>var_p</em>, <em>percentile_dict_p</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=None</em>, <em>callback_percentage_total=100</em><big>)</big><a class="headerlink" href="#icclim.indice_compound" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -242,7 +243,8 @@ percentile-based indice</td>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range, if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
 <li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file name (defaut: &#8220;icclim_out.nc&#8221; in the current directory)</li>
 <li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">icclim.defaultCallback()</span></tt>) &#8211; callback print</li>
+<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
+<li><strong>callback_percentage_total</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; default 100</li>
 </ul>
 </td>
 </tr>
@@ -274,7 +276,7 @@ to compute its percentile value.</p>
 <p>The function <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a> creates a dictionary where each calendar day (key) has a corresponding 2D array with percentile values:</p>
 <span class="target" id="module-icclim"></span><dl class="function">
 <dt id="icclim.get_percentile_dict">
-<tt class="descclassname">icclim.</tt><tt class="descname">get_percentile_dict</tt><big>(</big><em>in_files</em>, <em>var_name</em>, <em>percentile</em>, <em>window_width=5</em>, <em>time_range=None</em>, <em>only_leap_years=False</em>, <em>verbose=False</em>, <em>save_to_file=None</em>, <em>transfer_limit_bytes=None</em>, <em>callback=None</em>, <em>precipitation=False</em><big>)</big><a class="headerlink" href="#icclim.get_percentile_dict" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">get_percentile_dict</tt><big>(</big><em>in_files</em>, <em>var_name</em>, <em>percentile</em>, <em>window_width=5</em>, <em>time_range=None</em>, <em>only_leap_years=False</em>, <em>save_to_file=None</em>, <em>transfer_limit_bytes=None</em>, <em>callback=None</em>, <em>callback_percentage_total=100</em>, <em>precipitation=False</em><big>)</big><a class="headerlink" href="#icclim.get_percentile_dict" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -286,10 +288,10 @@ to compute its percentile value.</p>
 <li><strong>window_width</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; window width, must be odd (default: 5)</li>
 <li><strong>time_range</strong> (<em>list of 2 datetime objects: [dt1, dt2]</em>) &#8211; time range of the base period (usually: 1961-1990), if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
 <li><strong>only_leap_years</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; option for February 29th (default: False)</li>
-<li><strong>verbose</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if True, the percentage progress will be printed (default: False)</li>
 <li><strong>save_to_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output file name which will contain the created daily percentiles dictionary (default: None)</li>
 <li><strong>transfer_limit_bytes</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; maximum OPeNDAP/THREDDS request limit in bytes (default: None)</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">icclim.defaultCallback()</span></tt>) &#8211; callback print</li>
+<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
+<li><strong>callback_percentage_total</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; default 100</li>
 <li><strong>precipitation</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; just to inticate if <tt class="docutils literal"><span class="pre">arr</span></tt> is precipitation (<cite>True</cite>) or other variable (<cite>False</cite>) to process data differently (default: False)</li>
 </ul>
 </td>
@@ -417,6 +419,11 @@ to compute its percentile value.</p>
 <strong>RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS</strong></p>
 <p class="last">That means that your maximum request limit is 500 Mbytes, so set the <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt> to 500000000 [bytes]. If that does not work, try to reduce it a bit to let&#8217;s say 450000000 [bytes].</p>
 </div>
+</div>
+<div class="section" id="callback">
+<h2>Callback<a class="headerlink" href="#callback" title="Permalink to this headline">¶</a></h2>
+<p>If you want the progress bar to be printed, use the default callback function from the <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/callback.py">callback</a> module, i.e.
+set the <tt class="docutils literal"><span class="pre">callback</span></tt> parameter to <tt class="docutils literal"><span class="pre">icclim.callback.defaultCallback</span></tt>. (By default it is set to <tt class="docutils literal"><span class="pre">None</span></tt>, i.e. the progress bar will not be printed.)</p>
 </div>
 <div class="section" id="elementary-functions">
 <h2>Elementary functions<a class="headerlink" href="#elementary-functions" title="Permalink to this headline">¶</a></h2>
@@ -763,6 +770,7 @@ if &#8220;arr&#8221; is a 3D array, then arr.shape[1] = weight_matrix.shape[0] a
 <li><a class="reference internal" href="#">Python API</a><ul>
 <li><a class="reference internal" href="#main-functions-to-compute-climate-indices">Main functions to compute climate indices</a></li>
 <li><a class="reference internal" href="#create-a-daily-percentile-dictionary">Create a daily percentile dictionary</a></li>
+<li><a class="reference internal" href="#callback">Callback</a></li>
 <li><a class="reference internal" href="#elementary-functions">Elementary functions</a></li>
 <li><a class="reference internal" href="#correspondence-table-indice-source-variable">Correspondence table &#8220;indice - source variable&#8221;</a></li>
 <li><a class="reference internal" href="#regridding">Regridding</a></li>

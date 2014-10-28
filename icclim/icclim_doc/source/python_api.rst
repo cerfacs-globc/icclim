@@ -223,6 +223,13 @@ The ``only_leap_years`` parameter selects which of two methods to use for calcul
 
 	That means that your maximum request limit is 500 Mbytes, so set the ``transfer_limit_bytes`` to 500000000 [bytes]. If that does not work, try to reduce it a bit to let's say 450000000 [bytes].
 
+Callback
+--------
+
+If you want the progress bar to be printed, use the default callback function from the `callback <https://github.com/tatarinova/icclim/blob/master/icclim/callback.py>`_ module, i.e.
+set the ``callback`` parameter to ``icclim.callback.defaultCallback``. (By default it is set to ``None``, i.e. the progress bar will not be printed.)
+
+
 Elementary functions
 --------------------
 
