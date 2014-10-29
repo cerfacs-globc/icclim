@@ -1492,6 +1492,9 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                     
         nc.close()
         
+        if not isinstance(dt_base_arr[0], datetime):
+            dt_base_arr = numpy.array([datetime(year = dt.year, month = dt.month, day = dt.day, hour = dt.hour) for dt in dt_base_arr])
+        
         dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
                                                   percentage_per_chunk = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
         
