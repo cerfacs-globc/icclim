@@ -253,8 +253,9 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     else:
         arr_filled = arr_masked.filled(fill_val)
         del arr_masked
+          
     
-    
+
     ############################## prepare calling C function   
     # data type should be 'float32' to pass it to C function
     if arr_filled.dtype != 'float32':
@@ -272,6 +273,16 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
                                         ctypes.c_int,
                                         ctypes.c_float]
                                                 
+    
+    
+    ## we check the fill_value (we need it to be the maximum value in the array)
+        
+    if fill_val == arr_filled.max():
+        pass
+    else:
+        fill_val_new = 1e20 
+        arr_filled[arr_filled==fill_val] = fill_val_new 
+        fill_val = fill_val_new
         
     #############################
     
