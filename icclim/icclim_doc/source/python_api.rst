@@ -291,7 +291,7 @@ Regridding
 It is possible to do simple regridding, using the `regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/regrid.py>`_ module:
 
 .. automodule:: regrid
-    :members: get_regrided_var, write2netCDF_after_regridding
+    :members: get_regridded_var, write2netCDF_after_regridding
 
 
 >>> from icclim import regrid
