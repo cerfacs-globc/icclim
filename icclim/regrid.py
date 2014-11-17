@@ -8,7 +8,7 @@ import icclim
 
 #esmpy = ESMF.Manager(logkind=ESMF.LogKind.MULTI, debug=True)
 
-def get_regrided_var(f_src, f_dst, varname):
+def get_regridded_var(f_src, f_dst, varname):
     '''
     Returns a result of regridding.    
 
