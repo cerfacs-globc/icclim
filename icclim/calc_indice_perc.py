@@ -911,8 +911,7 @@ def CD_calculation(t_arr, t_25th_percentile_dict, p_arr, p_25th_percentile_dict,
     :param fill_val2: fill value of p_arr
     :type fill_val2: float   
     
-    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
-    or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
+    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray) or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
     
     .. warning:: If "t_arr" and "p_arr" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
@@ -990,8 +989,7 @@ def CW_calculation(t_arr, t_25th_percentile_dict, p_arr, p_75th_percentile_dict,
     :param fill_val2: fill value of p_arr
     :type fill_val2: float 
     
-    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
-    or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
+    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray) or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
     
     .. warning:: If "t_arr" and "p_arr" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
@@ -1070,8 +1068,7 @@ def WD_calculation(t_arr, t_75th_percentile_dict, p_arr, p_25th_percentile_dict,
     :param fill_val2: fill value of p_arr
     :type fill_val2: float 
     
-    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
-    or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
+    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray) or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
     
     .. warning:: If "t_arr" and "p_arr" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
@@ -1149,8 +1146,7 @@ def WW_calculation(t_arr, t_75th_percentile_dict, p_arr, p_75th_percentile_dict,
     :param fill_val2: fill value of p_arr
     :type fill_val2: float 
     
-    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
-    or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
+    :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray) or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
     
     .. warning:: If "t_arr" and "p_arr" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
