@@ -1,5 +1,5 @@
 import numpy
-import util.util_dt as util_dt
+import util_dt
 
 def check_att(nc, att):
     

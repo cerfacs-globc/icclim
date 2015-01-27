@@ -4,7 +4,7 @@ import numpy
 import ESMF
 from netCDF4 import Dataset
 #from os.path import basename
-import icclim
+import util_nc 
 
 #esmpy = ESMF.Manager(logkind=ESMF.LogKind.MULTI, debug=True)
 
@@ -164,31 +164,31 @@ def write2netCDF_after_regridding(arr, f_src, f_dst, f_out, var_src, var_dst=Non
     list_var_lat_lon = [onc_dim_lat, onc_dim_lon, onc_bnds_lat, onc_bnds_lon] # will be copied from the destination dataset ( after regridding )
 
     
-    icclim.copy_var_attrs(inc1_temporal, onc_dim_temporal)
+    util_nc.copy_var_attrs(inc1_temporal, onc_dim_temporal)
     onc_dim_temporal[:] = inc1_temporal[:]
     
-    icclim.copy_var_attrs(inc1_time_bnds, onc_bnds_temporal)
+    util_nc.copy_var_attrs(inc1_time_bnds, onc_bnds_temporal)
     onc_bnds_temporal[:,:] = inc1_time_bnds[:,:]
     
-    icclim.copy_var_attrs(inc2_lat, onc_dim_lat)
+    util_nc.copy_var_attrs(inc2_lat, onc_dim_lat)
     onc_dim_lat[:] = inc2_lat[:]
     
-    icclim.copy_var_attrs(inc2_lon, onc_dim_lon)
+    util_nc.copy_var_attrs(inc2_lon, onc_dim_lon)
     onc_dim_lon[:] = inc2_lon[:]
     
-    icclim.copy_var_attrs(inc2_lat_bnds, onc_bnds_lat)
+    util_nc.copy_var_attrs(inc2_lat_bnds, onc_bnds_lat)
     onc_bnds_lat[:,:] = inc2_lat_bnds[:,:]
     
-    icclim.copy_var_attrs(inc2_lon_bnds, onc_bnds_lon)
+    util_nc.copy_var_attrs(inc2_lon_bnds, onc_bnds_lon)
     onc_bnds_lon[:,:] = inc2_lon_bnds[:,:]
     
-    icclim.copy_var_attrs(var_f1, onc_var)
+    util_nc.copy_var_attrs(var_f1, onc_var)
     onc_var[:,:,:] = arr
     
     
     #copy global attributes
     for att in inc1.ncattrs():
-        icclim.copy_att(inc1, onc, att)
+        util_nc.copy_att(inc1, onc, att)
     
     
     onc.close()

@@ -1,5 +1,5 @@
 from collections import OrderedDict
-import util.util_dt as util_dt
+import util_dt
 
 
 def get_dict_file_years_glob(files_list):
