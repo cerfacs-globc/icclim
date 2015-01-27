@@ -13,7 +13,7 @@ This is the main function to compute an indice:
     :members: indice
 
 
-Set of required parameters varies depending on indice's type. (The table below shows necessary parameters depending on ind.)
+Set of required parameters varies depending on indice's type:
 
 +----------------------+------------------------------------------------------------+----------------------------+
 |                      |   Indice                                                   |   Required parameters      |
@@ -45,10 +45,11 @@ Set of required parameters varies depending on indice's type. (The table below s
 
 .. note:: For the variable names see the :ref:`correspondence table "indice - source variable" <table_indice_sourceVar_label>` 
 
-For examples see the :ref:`example section <examples_label>`.
+See detailed examples in the :ref:`example section <examples_label>`.
+
+
 
 Below some additionnal information about input parameters.
-
 
 
 slice_mode
