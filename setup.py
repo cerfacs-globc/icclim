@@ -32,7 +32,7 @@ setup(
  
     # la version du code
     
-    version="2.2",
+    version="3.0",
  
     # Liste les packages a inserer dans la distribution
     # plutot que de le faire a la main, on utilise la foncton
