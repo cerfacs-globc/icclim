@@ -290,20 +290,10 @@ def copy_var_dim(inc, onc, var):
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
 
 
-import icclim # to use global variables 'calend' and 'units' defined in icclim in 'indice' and 'get_percentile_dict' functions
-######## global variables is a bad idea => ToDo: do 'calend' and 'units' as local variables
-
-def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_lev=None, spatial_chunking=False):
+def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_lev=None, spatial_chunking=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None):
     
-    calend = icclim.calend
-    units=icclim.units
-    
-    if spatial_chunking == True:
-        i1_row_current_tile = icclim.i1_row_current_tile
-        i2_row_current_tile = icclim.i2_row_current_tile
-        i1_col_current_tile = icclim.i1_col_current_tile
-        i2_col_current_tile = icclim.i2_col_current_tile
-    
+    calend = ncVar_temporal.calendar
+    units=ncVar_temporal.units
     
     time_arr = ncVar_temporal[:]
     

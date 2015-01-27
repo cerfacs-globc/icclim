@@ -193,7 +193,7 @@ def indice(indice_name,
     nb_rows = inc.variables[indice_dim[index_row]].shape[0]
     nb_columns = inc.variables[indice_dim[index_col]].shape[0]
     
-    global calend, units
+    #global calend, units
     
     try:
         calend = util_nc.get_att_value(inc, indice_dim[index_time], 'calendar')
@@ -416,12 +416,20 @@ def indice(indice_name,
                 i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
                 i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
                 
-                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True)
+                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True,
+                                                                       i1_row_current_tile=i1_row_current_tile,
+                                                                       i2_row_current_tile=i2_row_current_tile,
+                                                                       i1_col_current_tile=i1_col_current_tile,
+                                                                       i2_col_current_tile=i2_col_current_tile)
                 dt_arr = arrs_current_chunk[0]
                 values_arr_current_chunk = arrs_current_chunk[1]
                 
                 if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev, spatial_chunking=True)
+                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev, spatial_chunking=True,
+                                                                            i1_row_current_tile=i1_row_current_tile,
+                                                                            i2_row_current_tile=i2_row_current_tile,
+                                                                            i1_col_current_tile=i1_col_current_tile,
+                                                                            i2_col_current_tile=i2_col_current_tile)
                     dt_arr2 = arrs_current_chunk2[0]
                     values_arr_current_chunk2 = arrs_current_chunk2[1]  
                 
@@ -714,7 +722,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     
     var_time =  nc0.variables[temporal_variable]
     
-    global calend, units
+    #global calend, units
     try:
        calend = var_time.calendar
     except:
@@ -835,7 +843,11 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                 i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
                 i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
                 
-                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True)
+                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True,
+                                                                       i1_row_current_tile=i1_row_current_tile,
+                                                                       i2_row_current_tile=i2_row_current_tile,
+                                                                       i1_col_current_tile=i1_col_current_tile,
+                                                                       i2_col_current_tile=i2_col_current_tile)
                 values_base_arr_current_chunk = arrs_current_chunk[1]
                 dt_base_arr = arrs_current_chunk[0] # alwayse the same for each chunk
                 
