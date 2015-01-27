@@ -11,7 +11,7 @@ from time import time
 import calendar
 from netcdftime import utime
 
-import callback
+#import util.callback as callback
 
 import ctypes
 from numpy.ctypeslib import ndpointer
@@ -28,22 +28,6 @@ libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
 ############### utility functions: begin ################## 
 
-def num2date(num, calend, units):
-    '''
-    Converts numerical date to datetime object.    
-    
-    :param num: numerical date
-    :type num: float
-    :param calend: calendar attribute of variable "time" in netCDF file
-    :type calend: str
-    :param units: units of variable "time" in netCDF file
-    :type units: str
-    
-    :rtype: datetime object
-    '''   
-    t = utime(units, calend) 
-    dt = t.num2date(num) 
-    return dt
 
 
 def get_dict_caldays(dt_arr):
@@ -181,24 +165,34 @@ def get_masked_arr(arr, fill_val):
 
 ############### utility functions: end ##################
 
-def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, callback=None, percentage_per_chunk=100, chunk_counter=1, precipitation=False, fill_val=None):
+def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, callback=None, callback_percentage_start_value=0, callback_percentage_total=100, chunk_counter=1, precipitation=False, fill_val=None):
     '''
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
     Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
     
     :param arr: array of values (in case of precipitation, units must be `mm/s`)
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) of float
+    
     :param dt_arr: corresponding time steps vector (base period: usually 1961-1990)
     :type dt_arr: numpy.ndarray (1D) of datetime objects
+    
     :param percentile: percentile to compute which must be between 0 and 100 inclusive
     :type percentile: int
+    
     :param window_width: window width, must be odd
     :type window_width: int
+    
     :param only_leap_years: option for February 29th (default: False)
     :type only_leap_years: bool
     
     :param callback: progress bar, if ``None`` progress bar will not be printed
     :type callback: :func:`callback.defaultCallback2`
+    
+    :param callback_percentage_start_value: init value for percentage of progress bar (default: 0)
+    :type callback_percentage_start_value: int
+    
+    :param callback_percentage_total: final value for percentage of progress bar (default: 100)   
+    :type callback_percentage_total: int
         
     :param chunk_counter: chunk counter in case of chunking 
     :type chunk_counter: int
@@ -219,10 +213,10 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     
     # for callback print
     nb_months = 12*1.0
-    percent_one_month = ((percentage_per_chunk)/nb_months) ######## percentage_per_chunk default value = 100 %; set percentage_per_chunk=50% for WPS: computing percentiles will be 50%  (other 50% for computing indice)
+    percent_one_month = ((callback_percentage_total)/nb_months) ######## callback_percentage_total default value = 100 %; set callback_percentage_total=50% for WPS: computing percentiles will be 50%  (other 50% for computing indice)
     
 
-    percent_current_month = (chunk_counter-1)*percentage_per_chunk
+    percent_current_month = callback_percentage_start_value + (chunk_counter-1)*callback_percentage_total
 
         
         
@@ -315,7 +309,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
         
         if callback != None:
             percent_current_month =  percent_current_month + percent_one_month
-            callback("Computing daily percentiles" ,  percent_current_month   )
+            callback(percent_current_month)
         
         
         

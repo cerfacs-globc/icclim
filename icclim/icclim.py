@@ -8,787 +8,183 @@
 import numpy
 from datetime import datetime, timedelta
 from netCDF4 import num2date, date2num, Dataset, MFDataset
-from netcdftime import utime
-#from progressbar import ProgressBar,Percentage,Bar
+#from netcdftime import utime
+
 import time
 import pickle
 import os
 from collections import OrderedDict
 
 from calc_indice import *
+from calc_indice_perc import *
+
 import set_globattr
 import set_longname_units
 import set_longname_units_custom_indices
-
 import percentile_dict
-from calc_indice_perc import *
-import OCGIS_tile
 
-import callback
+#import util.callback as callback
+import util.util_dt as util_dt
+import util.util_nc as util_nc
+import util.arr_size as arr_size
+import util.OCGIS_tile as OCGIS_tile
+import util.files_order as files_order
+import time_subset
 
-def test():
-    print my_rep
+import sys
 
+   
 
+map_indice_type =   {
+                        'simple': ['TG', 'TX', 'TN', 'TXx', 'TXn', 'TNx', 'TNn', 'SU', 'TR', 'CSU', 'GD4', 'FD', 'CFD',
+                                   'ID', 'HD17', 'CDD', 'CWD', 'RR', 'RR1', 'SDII', 'R10mm', 'R20mm', 'RX1day', 'RX5day',
+                                   'SD', 'SD1', 'SD5cm', 'SD50cm'],
+                            
+                        'multivariable': ['DTR', 'ETR', 'vDTR'],
+                            
+                        'percentile_based': ['TG10p', 'TX10p', 'TN10p', 'TG90p', 'TX90p', 'TN90p', 'WSDI', 'CSDI',
+                                             'R75p', 'R75TOT', 'R95p', 'R95TOT', 'R99p', 'R99TOT'],
+                            
+                        'percentile_based_multivariable': ['CD', 'CW', 'WD', 'WW']
+                    }
 
-
-def get_list_dates_from_nc(nc, type_dates):
-    
-    '''
-    Returns list of dates from NetCDF dataset.
-    
-    :param nc: NetCDF dataset
-    :type nc: netCDF4.Dataset
-    :param type_dates: type of dates ('dt' for datetime objects, 'num' for float objects) 
-    :type type_dates: str
-
-    :rtype: list of datetime/float 
-    
-    '''
-    
-    var_time = nc.variables['time']
-    time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
-    try:
-       time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
-    except:
-        time_calend = 'gregorian'
-    
-    if type_dates == 'num':
-        arr_dt = var_time[:]
-        list_dt = arr_dt.tolist() # numpy array -> list
-        
-    if type_dates == 'dt':
-        t = utime(time_units, time_calend) # <netcdftime.utime instance at 0xecae18>
-        arr_dt = t.num2date(var_time[:]) # arr_dt: numpy array of dates datetime; var_time[:]: time values (ex.: [49323.5, 49353, 49382.5, ...])
-        list_dt = arr_dt.tolist() # numpy array -> list
-    del arr_dt
-    
-    return list_dt
+def get_key_by_value_from_dict(my_map, my_value):
+    for key in my_map.keys():
+        if my_value in my_map[key]:
+            return key
 
 
-
-def get_list_dates(ifile, type_dates):
-    
-    '''
-    Returns list of dates from one file.
-    
-    :param ifile: NetCDF file
-    :type ifile: str
-    :param type_dates: type of dates ('dt' for datetime objects, 'num' for float objects) 
-    :type type_dates: str
-
-    :rtype: list of datetime/float 
-    
-    '''
-    
-    nc = Dataset(ifile, 'r')
-    var_time = nc.variables['time']
-    time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
-    try:
-       time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
-    except:
-        time_calend = 'gregorian'
-    
-    
-    if type_dates == 'num':
-        arr_dt = var_time[:]
-        list_dt = arr_dt.tolist() # numpy array -> list
-        
-    if type_dates == 'dt':
-        t = utime(time_units, time_calend) # <netcdftime.utime instance at 0xecae18>
-        arr_dt = t.num2date(var_time[:]) # arr_dt: numpy array of dates datetime; var_time[:]: time values (ex.: [49323.5, 49353, 49382.5, ...])
-        list_dt = arr_dt.tolist() # numpy array -> list
-    del arr_dt
-    
-    nc.close()
-    
-    return list_dt
-
-
-def get_list_dates2(ifile_list, type_dates):
-    
-    '''
-    Returns list of dates from a list of files.
-    
-    :param ifile_list: list of NetCDF files
-    :type ifile: list of str
-    :param type_dates: type of dates ('dt' for datetime objects, 'num' for float objects) 
-    :type type_dates: str
-
-    :rtype: list of datetime/float 
-    
-    '''
-    
-    list_dates_glob = []
-    for filename in ifile_list:
-        list_dates_current = get_list_dates(filename, type_dates)
-        list_dates_glob = list_dates_glob + list_dates_current
-    list_dates_glob.sort()
-    
-    return list_dates_glob
-
-
-def check_att(nc, att):
-    
-    '''    
-    Checks if a global attribut exists in a dataset.
-    
-    :param nc: NetCDF dataset
-    :type nc: netCDF4.Dataset 
-    :param att: attribut name
-    :type att: str
-    
-    :rtype: int (1 if attribut exists, 0 else)
-    
-    '''
-    
-    try:
-        nc.__getattribute__(att)
-        a = 1 # attribut exists
-    except AttributeError:
-        a = 0 # attribut doesn't exist
-    return a
-
-
-def copy_att(nc1, nc2, att):
-    
-    '''
-    Copies a global attribute from one dataset (nc1) to another (nc2).
-    
-    :param nc1: from
-    :type nc1: netCDF4.Dataset
-    :param nc2: to
-    :type nc2: netCDF4.Dataset
-
-    '''
-    
-    nc2.__setattr__(att, '')
-    if (check_att(nc1,att)==1):
-        nc2.__setattr__(att, nc1.__getattribute__(att))
-        
-def copy_var_attrs(source, destination):
-    '''
-    Copies all attributes from one variable (source) to another (destination).
-    
-    :param source: from
-    :type source: netCDF4.Variable
-    :param destination: to
-    :type destination: netCDF4.Variable
-
-    '''
-    sourceAttrs = source.ncattrs()
-    for attr in sourceAttrs:
-        if attr == '_FillValue':
-            pass
-        else:
-            destination.setncattr(attr, source.getncattr(attr))
-        
-def copy_var(variableName,sourceDataset, destinationDataset):
-    '''
-    Copies a variable from one dataset(sourceDataset) to another(destinationDataset) by name(variableName).
-    
-    :param variableName: name of variable to write
-    :type variableName: str
-    :param sourceDataset: from
-    :type sourceDataset: netCDF4.Dataset
-    :param destinationDataset: to
-    :type destinationDataset: netCDF4.Dataset
-
-    '''
-    # Get the variable to copy
-    sourceVar = sourceDataset.variables[variableName];
-    
-    # Copy the dims of the variable
-    for dimname in sourceVar.dimensions:
-        if destinationDataset.dimensions.has_key(dimname) == False:
-            dim = rootgrp.dimensions.get(dimname)
-            destinationDataset.createDimension(dimname,len(dim))
-    
-    # Create the variable
-    destinationVariable = destinationDataset.createVariable(variableName,sourceVar.dtype, sourceVar.dimensions)
-    
-    #Copy its attributes
-    copy_var_attrs(sourceVar,destinationVariable);
-    destinationVariable[:] = sourceVar[:]
-    
-def get_att_value(nc, var, att):
-    '''
-    Returns an attribut value of a variable in dataset.
-    
-    :param nc: NetCDF dataset
-    :type nc: netCDF4.Dataset
-    :param var: variable name
-    :type var: str
-    :param att: attribut name
-    :type var: str
-    
-    '''
-    v = nc.variables[var]
-    att_val = v.getncattr(att)
-    return att_val
-
-
-
-def date2num(dt, calend, units):
-    '''
-    type dt: datetime object
-    '''
-    t = utime(units, calend)
-    dt_num = t.date2num(dt)
-    return dt_num
-
-def num2date(num, calend, units):
-    '''
-    type num: float date
-    '''   
-    t = utime(units, calend) 
-    dt = t.num2date(num) 
-    return dt
-
-
-
-def set_time_values(nc, time_steps_arr_dt, calend, units):
-    '''
-    param time_steps_arr_dt: numpy array of datetime objects
-    '''
-    time_steps_num = numpy.array([date2num(i, calend, units) for i in time_steps_arr_dt])
-    nc.variables['time'][:] = time_steps_num[:]
-
-
-def set_timebnds_values(nc, time_bnds_dt, calend, units):
-    time_bnds_num = numpy.array([date2num(i, calend, units) for i in time_bnds_dt])
-    nc.variables['time_bnds'][:,:] = time_bnds_num[:,:] 
-
-
-#############
-def copy_var_dim(inc, onc, var): 
-    '''
-    Copies the spatial coordinate variables (e.g.: lat, lon) of a variable (var) from one NetCDF file (ifile) to another (out_file)
-    and returns list of coordinates variables.
-    
-    :param inc: input dataset
-    :type inc: netCDF4.Dataset
-    :param onc: output dataset
-    :type onc: netCDF4.Dataset
-    :param var: variable name to process
-    :type var: str
-    :param project: project name ("CMIP5" or "CORDEX")
-    :type project: str
-    
-    :rtype: tuple of str (coordinate variables: 'time', 'lat', 'lon')
-    '''
-
-
-    v = inc.variables[var]
-
-    v_dim = v.dimensions # (e.g.: u'time', u'lat', u'lon')
-
-
-    glob_att = ['title', 'institution', 'source', 'references', 'comment', 'history']
-    
-    # Note: it needs to do it BEFORE the creation of var/dim
-    for att in glob_att:
-        copy_att(inc,onc,att)
        
-    if v.ndim == 3: # (time, lat, lon)
-        
-        inc_dim0 = inc.variables[str(v_dim[0])]
-        inc_dim1 = inc.variables[str(v_dim[1])]
-        inc_dim2 = inc.variables[str(v_dim[2])]
-        
-        onc.createDimension(str(v_dim[0]), 0) # time       
-        onc.createDimension(str(v_dim[1]), v.shape[1]) # lat
-        onc.createDimension(str(v_dim[2]), v.shape[2]) # lon        
-        onc.createDimension('tbnds', 2) # tbnds
-        
-        onc_dim0 = onc.createVariable( str(v_dim[0]), inc.variables[str(v_dim[0])].dtype, (str(v_dim[0])) ) # time
-        onc_dim1 = onc.createVariable( str(v_dim[1]), inc.variables[str(v_dim[1])].dtype, (str(v_dim[1])) ) # lat
-        onc_dim2 = onc.createVariable( str(v_dim[2]), inc.variables[str(v_dim[2])].dtype, (str(v_dim[2])) ) # lon
-        
-        
-        
-        onc_time_bnds = onc.createVariable( 'time_bnds', inc.variables[str(v_dim[0])].dtype, (str(v_dim[0]), 'tbnds') ) # time_bnds
-
-
-
-        # time 
-        for j in range(len(inc_dim0.ncattrs())): # set attributs of current variable       
-            onc_dim0.__setattr__(  inc_dim0.__dict__.items()[j][0]  , inc_dim0.__dict__.items()[j][1])          
-        # lat
-        for j in range(len(inc_dim1.ncattrs())): # set attributs of current variable       
-            onc_dim1.__setattr__(  inc_dim1.__dict__.items()[j][0]  , inc_dim1.__dict__.items()[j][1])  
-        # lon
-        for j in range(len(inc_dim2.ncattrs())): # set attributs of current variable       
-            onc_dim2.__setattr__(  inc_dim2.__dict__.items()[j][0]  , inc_dim2.__dict__.items()[j][1])
-        
-        # for time_bnds, we copy only 2 attributes of time: 'units' and 'calendar' ( => var 'time' must have these 2 attributes)
-        onc_time_bnds.__setattr__( 'units', inc_dim0.__getattribute__('units') )
-        try:
-            onc_time_bnds.__setattr__( 'calendar', inc_dim0.__getattribute__('calendar') )
-        except:
-            onc_time_bnds.__setattr__( 'calendar', 'gregorian' )
- 
-        onc_dim1[:] = inc_dim1[:]
-        onc_dim2[:] = inc_dim2[:]
-        
-        
-        #######################
-        
-        # Copy coordinate variables
-        if check_att(v, 'coordinates')==1:
-          #print "There are coordinate vars"
-          coordinateAttr = v.getncattr("coordinates").split()
-          for coordinate in coordinateAttr:
-            #print "Copying coordidinate"+coordinate
-            copy_var(coordinate,inc,onc)
-        # maartenplieger comments: Is this necessary? Should copy all grid_mapping of the var to write and it will be fine.
-        if check_att(v, 'grid_mapping')==1:
-              c = str(v.__getattribute__('grid_mapping'))
-              inc_c = inc.variables[c]
-              
-              onc_c = onc.createVariable( c, inc.variables[c].dtype )
-              
-              for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
-                  onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
-        
-        ## maartenplieger comments: This could be removed...
-        #if project == 'CORDEX_DEPRECATED':
-        #
-        #  if check_att(v, 'coordinates')==1:
-        #      a = str(v.__getattribute__('coordinates').split()[0])
-        #      b = str(v.__getattribute__('coordinates').split()[1])
-        #      
-        #      inc_a = inc.variables[a]
-        #      inc_b = inc.variables[b]
-        #      
-        #      onc_a = onc.createVariable( a, inc.variables[a].dtype, ( str(v_dim[1]), str(v_dim[2]) ) )
-        #      onc_b = onc.createVariable( b, inc.variables[b].dtype, ( str(v_dim[1]), str(v_dim[2]) ) )
-        #  
-        #      for j in range(len(inc_a.ncattrs())): # set attributs of current variable       
-        #          onc_a.__setattr__(  inc_a.__dict__.items()[j][0]  , inc_a.__dict__.items()[j][1])
-        #          
-        #      for j in range(len(inc_b.ncattrs())): # set attributs of current variable       
-        #          onc_b.__setattr__(  inc_b.__dict__.items()[j][0]  , inc_b.__dict__.items()[j][1])  
-        #  
-        #  if check_att(v, 'grid_mapping')==1:
-        #      c = str(v.__getattribute__('grid_mapping'))
-        #      inc_c = inc.variables[c]
-        #      
-        #      onc_c = onc.createVariable( c, inc.variables[c].dtype )
-        #      
-        #      for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
-        #          onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
-        #          
-        #          
-        #  onc_a[:,:] = inc_a[:,:]
-        #  onc_b[:,:] = inc_b[:,:]
-        #
-        #  onc_c = inc_c # ???
-      
-                    
-            
-                
-    return (str(v_dim[0]), str(v_dim[1]), str(v_dim[2])) # tuple ('time', 'lat', 'lon')
-
-
-def max_sum_window(arr_1d, w_width):
-    max_sum = -1
-    for i in range(len(arr_1d)-w_width+1):
-        w_current = a[i:i+w_width]
-        sum_w_current =  w_current.sum()
-        if sum_w_current >= max_sum:
-            max_sum = sum_w_current
-            
-    return max_sum
-
-
-#####################################################"
-
-
-def get_all_years(time_steps_list):
-    
-    '''
-    This function creates a list of all years from the input list of time steps.
-    
-    :param time_steps_list: time steps vector
-    :type time_steps_list: list of datetime objects
-    
-    :rtype: list of datetime objects (cenroid: 1st July of each year)
-    
-    '''
-    
-    all_years = []
-    for i in range(len(time_steps_list)):
-        #new_date = datetime(time_steps_list[i].year,1,1) # begining of year date: 1st January
-        new_date = datetime(time_steps_list[i].year,7,1) # middle of year date: the 1st July
-        if new_date not in all_years:
-            all_years.append(new_date)
-    return all_years
-
-
-def get_all_months(time_steps_list):
-    
-    '''
-    This function creates a list of all months from the input list of time steps.
-    
-    :param time_steps_list: time steps vector
-    :type time_steps_list: list of datetime objects
-    
-    :rtype: list of datetime objects (cenroid: 16th day of each month)
-    
-    '''
-    
-    all_months = []
-    for i in range(len(time_steps_list)):
-        #new_date = datetime(dates[i].year,dates[i].month,1) # begining of month: 1st day
-        new_date = datetime(time_steps_list[i].year,time_steps_list[i].month,16) # middle of month: 16th day
-        if new_date not in all_months:
-            all_months.append(new_date)
-    return all_months
-
-def get_time_bnds(time_step_dt, mode):
-    
-    '''
-    This function returns an array with 2 time bounds (begin and end dates) of the input time step.
-    
-    :param time_step_dt: time step
-    :type time_step_dt: datetime object
-    :param mode: "year" or "month"
-    :type mode: str
-    
-    :rtype: 1D numpy.ndarray with 2 datetime objects
-    
-    '''
-    
-    if (mode=='year'):
-        time_bnd1= datetime(time_step_dt.year, 1,1) # 1st January
-        #time_bnd2= datetime(time_step_dt.year, 12,31,23,59,59) # 31th December
-        time_bnd2= datetime(time_step_dt.year+1, 1,1) # 1st January next year (this time_bnd will be excluded)
-    elif (mode=='month'):
-        if time_step_dt.month<12:
-            #next_month=datetime(time_step_dt.year, time_step_dt.month+1,1,23,59,59)
-            next_month=datetime(time_step_dt.year, time_step_dt.month+1,1)
-        else:
-            #next_month=datetime(time_step_dt.year.year+1,1,1)
-            #next_month=datetime(time_step_dt.year+1,1,1,23,59,59)
-            next_month=datetime(time_step_dt.year+1,1,1) # i.e. if month = december => next_month = january of next year
-        
-        #DD = timedelta(days=1)
-        #time_bnd1= datetime(time_step_dt.year, time_step_dt.month,1)
-        #time_bnd2= next_month- DD
-        time_bnd1 = datetime(time_step_dt.year, time_step_dt.month,1)
-        time_bnd2 = next_month
-        
-    time_bnds = numpy.array([time_bnd1,time_bnd2])
-    return time_bnds
-
-def get_glob_time_bnds(time_steps_arr, mode):
-    
-    '''
-    This function returns an array with time bounds (begin and end dates) of each time step from time_steps_arr.
-    
-    :param time_step_dt: time step
-    :type time_step_dt: datetime object
-    :param mode: "year" or "month"
-    :type mode: str
-    
-    :rtype: 2D numpy.ndarray with datetime objects
-    
-    '''
-    
-    glob_time_bnds = numpy.array([])
-    
-    if (mode=='year'):
-        for time_step in time_steps_arr:
-            time_bnds_current = get_time_bnds(time_step,'year')
-            glob_time_bnds = numpy.concatenate([glob_time_bnds, time_bnds_current])
-    
-    elif (mode=='month'):
-        for time_step in time_steps_arr:
-            time_bnds_current = get_time_bnds(time_step,'month')
-            glob_time_bnds = numpy.concatenate([glob_time_bnds, time_bnds_current])
-    
-    glob_time_bnds = glob_time_bnds.reshape(-1,2)
-    
-    return glob_time_bnds
-
-# on cree un dictionnaire : (annee -> sous-array3D avec seulement les donnees de cette annee)
-def get_dict_year_3Darr(glob_3Darr, time_steps_list):
-    
-    '''
-    This function returns a dictionary, where keys = years, and values = sub 3D arrays of glob_3Darr.
-    
-    :param glob_3Darr: global 3D array of values
-    :type glob_3Darr: numpy.ndarray
-    :param time_steps_list: global list of time steps
-    :type time_steps_list: list of datetimeobjects
-    
-    :rtype: dictionary (keys: datetime object, values: numpy.ndarray)
-    
-    '''
-    
-    all_years=get_all_years(time_steps_list)
-    mydict_years={}
-    for i in range(len(all_years)):
-        key = all_years[i] 
-        bounds =get_time_bnds(all_years[i],'year')
-        mask = (time_steps_list>=bounds[0]) & (time_steps_list<=bounds[1])
-        value = glob_3Darr[mask,:,:]
-        mydict_years[key]=value
-    return mydict_years
-
-
-# on cree un dictionnaire : (month -> sous-array3D avec seulement les donnees de ce month)
-def get_dict_month_3Darr(glob_3Darr, time_steps_list):
-    
-    '''
-    This function returns a dictionary, where keys = months, and values = sub 3D arrays of glob_3Darr.
-    
-    :param glob_3Darr: global 3D array of values
-    :type glob_3Darr: numpy.ndarray
-    :param time_steps_list: global list of time steps
-    :type time_steps_list: list of datetimeobjects
-    
-    :rtype: dictionary (keys: datetime object, values: numpy.ndarray)
-    
-    '''
-    
-    all_months=get_all_months(time_steps_list)
-    mydict_months={}
-    for i in range(len(all_months)):
-        key = all_months[i] 
-        bounds =get_time_bnds(all_months[i],'month')
-        mask = (time_steps_list>=bounds[0]) & (time_steps_list<=bounds[1])
-        value = glob_3Darr[mask,:,:]
-        mydict_months[key]=value
-    return mydict_months
-
-
-def get_globindice(dict_indice, nb_rows, nb_columns):
-    glob_2Darr_indice = numpy.array([]) # 2D array = result of concatenation 
-    i=0
-    for key in sorted(dict_indice.keys()):
-        #print key.year
-        if i == 0:
-            glob_2Darr_indice = dict_indice[key]
-        else:
-            glob_2Darr_indice = numpy.concatenate([glob_2Darr_indice, dict_indice[key]], axis = 0)    
-        i+=1
-    glob_indice_3Darr= glob_2Darr_indice.reshape(len(dict_indice.keys()), nb_rows, nb_columns)
-        
-    glob_timeSteps_arr = sorted(dict_indice.keys())
-    
-    glob_timeSteps_arr = numpy.array(glob_timeSteps_arr) # list -> numpy array
-    
-    glob_indice = (glob_indice_3Darr,glob_timeSteps_arr) # tuple
-    
-    return glob_indice
-
-def get_dict_timeStep_indice(dict_timeStep_sub3Darr,indice_name, fill_val, threshold):
-    
-    '''
-    This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
-    
-    :param dict_timeStep_sub3Darr: dictionary where a sub 3D array associated for one time step
-    :type dict_timeStep_sub3Darr: dict
-    :param indice_name: name of an indice
-    :type indice_name: str
-    :param threshold: user defined threshold for certain indices 
-    :type threshold: float
-    
-    :rtype: dict (keys: datetime object, values: numpy.ndarray)
-    
-    '''
-  
-    mydict_indice={}
-    
-    for key in dict_timeStep_sub3Darr.keys():
-        if threshold != None:
-            tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr[key], fill_val, threshold)')
-        else:
-            tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr[key], fill_val)')
-            
-        mydict_indice[key]=tab2D
-    
-    return mydict_indice
-
-
-def get_dict_year_chunk(time_steps_vect):
-    
-    '''    
-    This function return a dictionnary with keys = year and tuple = (index1, index2) to chunk a global values array in years.
-    index1 is begin index of chunk 
-    index2 is end index of chunk
-    
-    For example, if we have have a values array for [2056, 2057, ... 2100] years,
-    then the dictionnaly will look like: {2056: (0, 365), 2057: (366, 730), ... 2100: (16071, 16435)}
-    
-     :param time_steps_vect: 1d array
-    :type time_steps_vect: numpy.ndarray    
-    
-    '''
-    
-    
-    mydict = {}
-    i = 0
-    for time_step in time_steps_vect:
-        if time_step.year not in mydict.keys():
-            i1=i2=i
-            mydict[time_step.year]=(i1,i2)
-        else:
-            i1 = mydict[time_step.year][0]
-            i2 = mydict[time_step.year][1]+1
-            mydict[time_step.year]=(i1,i2)
-        i+=1
-    return mydict
-
-
-def get_time_range(files, temporal_var_name='time'):
-    
-    '''
-    :param files: netCDF file(s) (including OPeNDAP URL(s))
-    :type files: list of str
-    
-    :param temporal_var_name: name of temporal variable from netCDF file (default: "time")
-    :type temporal_var_name: str
-    
-    :rtype
-    
-    
-    Returns a time range: a list two datetime objects: [begin, end], where "begin" is the first date, and "end" is the last.
-    '''
-    
-    nc = Dataset(files[0],'r')
-    time = nc.variables[temporal_var_name]
-    
-    try:
-        calend = time.calendar
-    except:
-        calend = 'gregorian'
-    
-    units = time.units
-    
-    nc.close()
-    
-    time_arr = numpy.array([])
-    for f in files:
-        nc = Dataset(f, 'r')
-        time_arr_f = nc.variables[temporal_var_name][:]
-        time_arr = numpy.concatenate([time_arr, time_arr_f])       
-        nc.close()
-    
-    begin_num = min(time_arr)
-    end_num = max(time_arr)
-        
-    del time_arr
-    
-    begin_dt = num2date(begin_num, calend, units)
-    end_dt = num2date(end_num, calend, units)
-    
-    return [begin_dt, end_dt]
-
-
-def get_year_list(dt_arr):
-    '''
-    Just to get a list of all years conteining in time steps vector (dt_arr).
-    '''
-
-    year_list = []
-    for dt in dt_arr:
-        year_list.append(dt.year)
-        
-    year_list = list(set(year_list))
-    
-    return year_list
-
-
-def get_dict_file_years_glob(files_list):
-    dict_file_years = OrderedDict()
-    
-    for filename in files_list:
-        dates_list_current_file = get_list_dates(filename, 'dt')
-        years_current_file = get_year_list(dates_list_current_file)
-        dict_file_years[filename] = years_current_file
-        del dates_list_current_file, years_current_file
-
-    #print dict_file_years
-
-
-# GLOBAL FUNCTION       
-def indice(in_files,
-           var,
-           indice_name,
-           slice_mode,
+def indice(indice_name,
+           in_files,
+           var_name,           
+           slice_mode=None,
            time_range=None,
            out_file="./icclim_out.nc",
            threshold=None,
            N_lev=None,
-           callback=None):
+           transfer_limit_Mbytes=None,
+           callback=None,
+           callback_percentage_start_value=0,
+           callback_percentage_total=100,
+           percentile_dict=None,
+           in_files2=None,
+           var_name2=None,
+           percentile_dict2=None):
+
     
     '''
-
-    :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
+    
+    :param indice_name: Climate indice name. 
+    :type indice_name: str    
+    
+    :param in_files: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
     :type in_files: list of str
 
-    :param var: variable name to process
-    :type var: str
-    
-    :param indice_name: climate indice name
-    :type indice_name: str
-        
-    :param slice_mode: "year" for annual values, "month" for monthly values 
+    :param var_name: Target variable name to process corresponding to ``in_files``.
+    :type var_name: str
+         
+    :param slice_mode: Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the indice will be calculated as monthly values.
     :type slice_mode: str
     
-    :param time_range: time range, if ``None``: whole period of input files will be processed
-    :type time_range: list of 2 datetime objects [dt1, dt2]
+    :param time_range: Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
+    :type time_range: [datetime.datetime, datetime.datetime]
 
-    :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
+    :param out_file: Output NetCDF file name (default: "icclim_out.nc" in the current directory).
     :type out_file: str
+       
+    :param threshold: User defined threshold for certain indices.
+    :type threshold: float or list of floats
     
-    :param threshold: user defined threshold for certain indices 
-    :type threshold: float
-    
-    :param N_lev: level number if 4D variable
+    :param N_lev: Level number if 4D variable.
     :type N_lev: int
     
-    :param callback: progress bar, if ``None`` progress bar will not be printed
-    :type callback: :func:`callback.defaultCallback`
-
-    :rtype: path to NetCDF file
+    :param transfer_limit_Mbytes: Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
+    :type transfer_limit_Mbytes: float
     
+    :param callback: Progress bar printing. If ``None``, progress bar will not be printed. 
+    :type callback: :func:`callback.defaultCallback`
+    
+    :param callback_percentage_start_value: Initial value of percentage of the progress bar (default: 0).
+    :type callback_percentage_start_value: int
+    
+    :param callback_percentage_total: Total persentage value (default: 100).   
+    :type callback_percentage_total: int
+    
+    :param percentile_dict: For percentile-based indices: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict`, corresponding to ``var_name``.
+    :type percentile_dict: dict 
+    
+    :param in_files2: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
+    :type in_files2: list of str
+    
+    :param var_name2: Target variable name to process corresponding to ``in_files2``.
+    :type var_name2: str
+    
+    :param percentile_dict2: For percentile-based indices: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict`, corresponding to ``var_name2``.
+    :type percentile_dict2: dict
+    
+    :rtype: path to NetCDF file
+
+    .. warning:: If ``out_file`` already exists, Icclim will overwrite it!
     '''
     
-    #callback("Init Opening "+in_files[0],0);
+    if slice_mode == None:
+        slice_mode = 'month'
+    
+    indice_type = get_key_by_value_from_dict(map_indice_type, indice_name) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
+    
+    if indice_type == 'multivariable' and (    (in_files2==None or var_name2==None) ): 
+        print "Error: Both parameters 'in_files2' and 'var_name2' must be provided."
+        sys.exit()
+    
+    elif indice_type == 'percentile_based' and percentile_dict==None:
+        print "Error: The parameter 'percentile_dict' must be provided."
+        sys.exit()
+        
+    elif indice_type == 'percentile_based_multivariable' and (percentile_dict==None or in_files2==None or var_name2==None or percentile_dict2==None):
+        print "Error: All following parameters must be provided: 'percentile_dict', 'in_files2', 'var_name2', 'percentile_dict2'."
+        sys.exit()
+
+    
     inc = Dataset(in_files[0], 'r')
-    #callback("Finished opening "+in_files[0],0);
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+        inc2 = Dataset(in_files2[0], 'r')
     
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
-    fill_val = get_att_value(inc, var, '_FillValue').astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
+    global fill_val    
+    fill_val = util_nc.get_att_value(inc, var_name, '_FillValue').astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+        global fill_val2
+        fill_val2 = util_nc.get_att_value(inc2, var_name2, '_FillValue').astype('float32')
     
-    indice_dim = copy_var_dim(inc, onc, var) # tuple ('time', 'lat', 'lon')
+    indice_dim = util_nc.copy_var_dim(inc, onc, var_name) # tuple ('time', 'lat', 'lon')
     
     indice_dim = list(indice_dim)
-
+    
+    global nb_user_thresholds, user_thresholds    
+    
     # As default, no threshold is defined, no threshold dimension is created and added to the indice var
-    nb_thresholds = 0
-    thresholds = [None];
+    if threshold == None :
+        nb_user_thresholds = 0        
     
     # A threshold can be given as a unique value or as a list of values, internally we always use a list
-    if threshold != None:
+    else:
         if(type(threshold)!=list):
-            threshold = [threshold]        
-        thresholds = []
-        for i in threshold:
-            thresholds.append(i)
-        nb_thresholds = len(thresholds)
-        # Create an extra dimension for the indice:
-        indice_dim.insert(1,'threshold')
-        onc.createDimension('threshold',nb_thresholds)
-        thresholdvar = onc.createVariable('threshold','f8',('threshold'))
-        thresholdvar[:] = thresholds
-        thresholdvar.setncattr("units","threshold");
-        thresholdvar.setncattr("standard_name","threshold");
+            user_thresholds = [threshold] 
+        else:
+            user_thresholds = threshold
+        
+        nb_user_thresholds = len(user_thresholds)
+        
+        if nb_user_thresholds > 1:        
+            # Create an extra dimension for the indice:
+            indice_dim.insert(1,'threshold')
+            onc.createDimension('threshold',nb_user_thresholds)
+            thresholdvar = onc.createVariable('threshold','f8',('threshold'))
+            thresholdvar[:] = user_thresholds
+            thresholdvar.setncattr("units","threshold")
+            thresholdvar.setncattr("standard_name","threshold")
     
     index_row = len(indice_dim)-2
     index_col = len(indice_dim)-1
@@ -796,160 +192,333 @@ def indice(in_files,
     
     nb_rows = inc.variables[indice_dim[index_row]].shape[0]
     nb_columns = inc.variables[indice_dim[index_col]].shape[0]
-
+    
+    global calend, units
+    
     try:
-        calend = get_att_value(inc, indice_dim[index_time], 'calendar')
+        calend = util_nc.get_att_value(inc, indice_dim[index_time], 'calendar')
     except:
         calend = 'gregorian'
     
-    units = get_att_value(inc, indice_dim[index_time], 'units')
-    
+    units = util_nc.get_att_value(inc, indice_dim[index_time], 'units')
     
 
     ind_type = 'f'
-
+    
+    #fill_val = get_att_value(inc, var_name, '_FillValue').astype(ind_type) # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
+    
     ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
+
     
     # Copy attributes from variable to process to indice variable
-    copy_var_attrs(inc.variables[var],ind)
+    util_nc.copy_var_attrs(inc.variables[var_name],ind)
+    
+
+    
+    ############## ???????????????????
+    if time_range == None:
+        time_range = util_dt.get_time_range(in_files, temporal_var_name=indice_dim[0])
+        
+    else: # i.e. time_range is selected by user
+        # we adjust datetime.datetime objects from time_range 
+        t_arr = inc.variables[indice_dim[0]][:]
+        dt = util_dt.num2date(t_arr[0], calend, units)
+        del t_arr
+        time_range = util_dt.adjust_time_range(time_range, dt)
+        
+    ############## ???????????????????
+    ######## only to get a time range to pass then it to the next function
     
     inc.close()
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+        inc2.close()
+    
+    
+    
+        
+    dict_files_years_to_process = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files, time_range=time_range)
+    nc = MFDataset(dict_files_years_to_process.keys(), 'r') # dict_files_years_to_process.keys() = in_files
+    var_time = nc.variables[indice_dim[0]]
+    var = nc.variables[var_name]    
+    
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+        dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range)
+        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r') # dict_files_years_to_process.keys() = in_files
+        var_time2 = nc2.variables[indice_dim[0]]
+        var2 = nc2.variables[var_name2]
+    
+    if callback != None:
+        global percentage_current_key        
+        percentage_current_key = callback_percentage_start_value
+    
+    if transfer_limit_Mbytes == None: # i.e. we work with local files
+        
+        arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+        dt_arr = arrs[0]
+        values_arr = arrs[1]
+            
+        if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+            arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev)
+            dt_arr2 = arrs2[0]
+            values_arr2 = arrs2[1]
 
-    if time_range == None:
-        time_range = get_time_range(in_files, temporal_var_name=indice_dim[0])
-        dt_begin = time_range[0] # datetime object
-        dt_end = time_range[1] # datetime object
-    else:
-        dt_begin = time_range[0] # datetime object
-        dt_end = time_range[1] # datetime object
-    
-    ############################
-    glob_dict_timeStep_indice = [dict() for x in thresholds]
-    ############################
-    
-    #j=0
-    #pbar_files = ProgressBar(widgets=[Percentage(),' ', Bar()], maxval=len(in_files)).start()
-    
-    total_nb_years_to_process = dt_end.year - dt_begin.year + 1
-    
-    ###########dict_glob_file_years = get_dict_file_years_glob(in_files)
-    
-    year_counter = 1.0
-    for ifile in in_files:
+            if not numpy.array_equal(dt_arr, dt_arr2):
+                print 'Error: Time step vectors of both file lists must be equal!'
+                sys.exit()
+
+        dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, temporal_subset_mode=slice_mode, time_range=time_range)
+        if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+            dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range)
         
         
-        #pbar_files.widgets[1]= ' processing file ' +str(j+1)
-        #time.sleep(1.01)
-        #pbar_files.update(j+1)
-        #j+=1
-        
-        #callback("Opening "+ifile,0);
-        nc = Dataset(ifile, 'r')
-        
-        time_steps_vect = get_list_dates_from_nc(nc, 'dt') 
-        
-        dict_year_chunk = get_dict_year_chunk(time_steps_vect)   
-        #print dict_year_chunk
-        
-        if N_lev==None:
-            values = nc.variables[var]
+        if nb_user_thresholds == 0:
+                        
+            if indice_type == 'simple':
+                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                    dict_temporal_slices=dict_temporal_slices,
+                                                                    callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+                
+            elif indice_type == 'multivariable':
+                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                    dict_temporal_slices=dict_temporal_slices,
+                                                                    dict_temporal_slices2=dict_temporal_slices2,
+                                                                    callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+            
+            elif indice_type == 'percentile_based':
+                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                    dict_temporal_slices=dict_temporal_slices,
+                                                                    percentile_dict=percentile_dict,
+                                                                    callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+            
+                
+            elif indice_type == 'percentile_based_multivariable':
+                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                    dict_temporal_slices=dict_temporal_slices,
+                                                                    percentile_dict=percentile_dict,
+                                                                    dict_temporal_slices2=dict_temporal_slices2,
+                                                                    percentile_dict2=percentile_dict2,
+                                                                    callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+            
+            
+            indice_arr = indice_tuple[2]
+
         else:
-            values = nc.variables[var][:,N_lev,:,:]
-        
-        
-        #pbar = ProgressBar(widgets=['',Percentage(), Bar()], maxval=len(dict_year_chunk.keys())).start()
-        #i=0
-        
-        #currentStep=1
-        #totalSteps=len(dict_year_chunk.keys())
-        
-        
-        for year in sorted(dict_year_chunk.keys()):
-            
-            #pbar.widgets[0]= ' <'+str(year)+' processed> '
-            
-            #percentageComplete = (currentStep/totalSteps)*100
-            #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
-            
-            if year>=dt_begin.year and year<=dt_end.year:
+            dict_threshold_indice_arr = OrderedDict()
+            for t in user_thresholds:
+                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                    dict_temporal_slices=dict_temporal_slices,
+                                                                    thresh=t,
+                                                                    callback=callback, callback_percentage_total=callback_percentage_total)  ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr)         
+                dict_threshold_indice_arr[t] = indice_tuple[2]
                 
-                #callback("Processing year %d, step (%d/%d)" % (year,currentStep,totalSteps),percentageComplete)
-                
-                i1 = dict_year_chunk[year][0]
-                i2 = dict_year_chunk[year][1]
-                #print i1, i2
-                values_current_chunk = values[i1:i2+1,:,:] # on charge les donnees (pour 1 annee) pour faire le traitement
-                time_steps_current_chunk = numpy.array(time_steps_vect[i1:i2+1])
-                
-                
-                if (slice_mode=='year'):
-                    mydict_TimeStep_3DArray=get_dict_year_3Darr(values_current_chunk, time_steps_current_chunk)
-                elif (slice_mode=='month'):
-                    mydict_TimeStep_3DArray=get_dict_month_3Darr(values_current_chunk, time_steps_current_chunk)
-  
-                for t in range(0,len(thresholds)):
-                    mydict_indice=get_dict_timeStep_indice(mydict_TimeStep_3DArray, indice_name, fill_val, thresholds[t])
-                    glob_dict_timeStep_indice[t].update(mydict_indice)
-                
-                del values_current_chunk, time_steps_current_chunk
-                
-                #print "Processed: ", year
-                
-                #counter_year = counter_year + 1
-                #print counter_year, total_nb_years_to_process
+        dt_centroid_arr = indice_tuple[0]
+        dt_bounds_arr = indice_tuple[1]
 
-                #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
-                #print status
+        
+        
+    else: # i.e. we work with OPeNDAP datasets
+        # we convert Mbytes in bytes (1 Kbyte = 1024 bytes)
+        transfer_limit_bytes = transfer_limit_Mbytes * 1024 * 1024
+        total_array_size_bytes_and_tile_dimension = arr_size.get_total_array_size_bytes_and_tile_dimension(dict_files_years_to_process.keys(), var_name, transfer_limit_bytes, time_range=time_range)
+        array_total_size = total_array_size_bytes_and_tile_dimension[0]
                 
-                #if year in dict_glob_file_years[ifile]:
-                #year_counter = 1
-                #callback("Processing year %d" % , (year_counter/total_nb_years_to_process)*100)
-                
-                if callback != None:
-                    callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
+        
+        if array_total_size < transfer_limit_bytes: # the same as for the "if transfer_limit_Mbytes == None" case
+            
+            print "Data transfer... "
+              
+            arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+            dt_arr = arrs[0]
+            values_arr = arrs[1]
+            
+            if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+                arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev)
+                dt_arr2 = arrs2[0]
+                values_arr2 = arrs2[1]
+    
+                if not numpy.array_equal(dt_arr, dt_arr2):
+                    print 'Error: Time step vectors of both file lists must be equal!'
+                    sys.exit()
+            
+    
+            dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, temporal_subset_mode=slice_mode, time_range=time_range)
+            if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+                dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range)
+            
+            if nb_user_thresholds == 0:
+                if indice_type == 'simple':
+                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                        dict_temporal_slices=dict_temporal_slices,
+                                                                        callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
                     
-                year_counter += 1
+                elif indice_type == 'multivariable':
+                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                        dict_temporal_slices=dict_temporal_slices,
+                                                                        dict_temporal_slices2=dict_temporal_slices2,
+                                                                        callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+                
+                elif indice_type == 'percentile_based':
+                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                        dict_temporal_slices=dict_temporal_slices,
+                                                                        percentile_dict=percentile_dict,
+                                                                        callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+                
+                    
+                elif indice_type == 'percentile_based_multivariable':
+                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                        dict_temporal_slices=dict_temporal_slices,
+                                                                        percentile_dict=percentile_dict,
+                                                                        dict_temporal_slices2=dict_temporal_slices2,
+                                                                        percentile_dict2=percentile_dict2,
+                                                                        callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
                 
                 
-            #else:
-                #print "data not processed ", year
-                #callback("Skipping year %d" % year,percentageComplete)
-            #currentStep+=1.0
-            #time.sleep(0.01)
-        #    #time.sleep(1.01)
-        #    pbar.update(i+1)
-        #    i+=1
-        #
-        #pbar.finish()
-        
-        nc.close()
-        
-        
+                indice_arr = indice_tuple[2]
+                
+            else:
+                dict_threshold_indice_arr = OrderedDict()
+                for t in user_thresholds:
+                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                    dict_temporal_slices=dict_temporal_slices,
+                                                                    thresh=t,
+                                                                    callback=callback, callback_percentage_total=callback_percentage_total)  ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr)         
+                    dict_threshold_indice_arr[t] = indice_tuple[2]
+                
+            dt_centroid_arr = indice_tuple[0]
+            dt_bounds_arr = indice_tuple[1]
+            
 
-    #pbar_files.finish()
+        else:            
+            # then we do chunking in space
+            tile_dimension = total_array_size_bytes_and_tile_dimension[1]
+            var_shape = var.shape
+            var_shape1 = var_shape[1]
+            var_shape2 = var_shape[2]
+
+            
+            tile_map = OCGIS_tile.get_tile_schema(nrow=var_shape1, ncol=var_shape2, tdim=tile_dimension, origin=0)
+            global nb_chunks
+            nb_chunks = len(tile_map)
+            print str(nb_chunks) + " data chunks will be transfered."
+            
+            if nb_user_thresholds != 0:
+                dict_threshold_indice_arr = OrderedDict()
+
+            chunk_counter = 0  # chunk counter           
+            for tile_id in tile_map:
+                print "Data transfer: chunk " + str(int(chunk_counter+1)) + '/'+ str(len(tile_map)) + " ..."
+                
+                global i1_row_current_tile, i2_row_current_tile, i1_col_current_tile, i2_col_current_tile
+                
+                i1_row_current_tile = tile_map.get(tile_id).get('row')[0]
+                i2_row_current_tile = tile_map.get(tile_id).get('row')[1]
+                
+                i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
+                i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
+                
+                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True)
+                dt_arr = arrs_current_chunk[0]
+                values_arr_current_chunk = arrs_current_chunk[1]
+                
+                if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev, spatial_chunking=True)
+                    dt_arr2 = arrs_current_chunk2[0]
+                    values_arr_current_chunk2 = arrs_current_chunk2[1]  
+                
+                
+                
+                if indice_type == 'percentile_based':
+                    percentile_dict_current_chunk = get_subset_percentile_dict(percentile_dict)
+
+                elif indice_type == 'percentile_based_multivariable':
+                    percentile_dict_current_chunk = get_subset_percentile_dict(percentile_dict)
+                    percentile_dict_current_chunk2 = get_subset_percentile_dict(percentile_dict2)
+                    
         
-    #print '---'    
-    #print sorted(glob_dict_timeStep_indice.keys())
-    #print '---'     
+                dict_temporal_slices_current_chunk = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr_current_chunk, temporal_subset_mode=slice_mode, time_range=time_range)
+                if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+                    dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, temporal_subset_mode=slice_mode, time_range=time_range)
+                
+                
+                
+                
+                if nb_user_thresholds == 0:
+                    
+                    if chunk_counter == 0:
+                        indice_arr = numpy.zeros( (len(dict_temporal_slices_current_chunk),var_shape1, var_shape2), dtype=ind_type )
+
+                    
+                    if indice_type == 'simple':
+                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                            dict_temporal_slices=dict_temporal_slices_current_chunk,
+                                                                            chunking=True,
+                                                                            callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+                        
+                    elif indice_type == 'multivariable':
+                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                            dict_temporal_slices=dict_temporal_slices_current_chunk,
+                                                                            dict_temporal_slices2=dict_temporal_slices_current_chunk2,
+                                                                            chunking=True,
+                                                                            callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+                    
+                    elif indice_type == 'percentile_based':
+                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                            dict_temporal_slices=dict_temporal_slices_current_chunk,
+                                                                            percentile_dict=percentile_dict_current_chunk, ####### ??????????
+                                                                            chunking=True,
+                                                                            callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+                    
+                        
+                    elif indice_type == 'percentile_based_multivariable':
+                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                            dict_temporal_slices=dict_temporal_slices_current_chunk,
+                                                                            percentile_dict=percentile_dict_current_chunk,
+                                                                            dict_temporal_slices2=dict_temporal_slices_current_chunk2,
+                                                                            percentile_dict2=percentile_dict_current_chunk2,
+                                                                            chunking=True,
+                                                                            callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+                    
+
+                    
+                    indice_arr_current_chunk = indice_tuple_current_chunk[2]
+                    # we concatenate
+                    indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
+                                    
+                else:                     
+                    for t in user_thresholds:
+                        if chunk_counter == 0:		      
+                            dict_threshold_indice_arr[t] = numpy.zeros( (len(dict_temporal_slices_current_chunk),var_shape1, var_shape2), dtype=ind_type )
+                
+                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(dict_temporal_slices = dict_temporal_slices_current_chunk, indice_name=indice_name, thresh=t, chunking=True, callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, dict_indice_arr_current_chunk)                        
+                        indice_arr_current_chunk = indice_tuple_current_chunk[2]
+                        # we concatenate
+                        dict_threshold_indice_arr[t][:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
+
+                if chunk_counter == 0:
+                    dt_centroid_arr = indice_tuple_current_chunk[0]
+                    dt_bounds_arr = indice_tuple_current_chunk[1]
+                
+                chunk_counter +=1
+
+            
     
-    for t in range(0,len(thresholds)):
-        glob_indice = get_globindice(glob_dict_timeStep_indice[t], nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
+    nc.close()
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+        nc2.close()
+    
+    # we copy data to the nc variable 
+    if  nb_user_thresholds == 0:
+        ind[:,:,:] = indice_arr
         
-        if nb_thresholds > 0:
-            ind[:,t,:,:] = glob_indice[0][:,:,:]
-        else:
-            ind[:,:,:] = glob_indice[0][:,:,:]
+    elif nb_user_thresholds == 1:
+        ind[:,:,:] = dict_threshold_indice_arr[t]
     
-    # set global attributs
-    #eval(indice_name + '_setglobattr(onc)')
-    ## for all:
-    #setglobattr_history(onc, indice_name, slice_mode, dt_begin, dt_end)
-    #onc.setncattr('institution', '')
-    onc.setncattr('source', '') 
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
-       
-    
+    elif nb_user_thresholds > 1:
+        for t,key in zip(range(nb_user_thresholds),dict_threshold_indice_arr.keys()):               
+                ind[:,t,:,:] = dict_threshold_indice_arr[key][:,:,:]
+
+
+
     # set global attributs
     
     # title
@@ -962,541 +531,231 @@ def indice(in_files,
     set_globattr.comment(onc, indice_name)
     set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
     set_globattr.history2(onc, slice_mode, indice_name, time_range)
-
+    onc.setncattr('source', '')
+    onc.setncattr('Conventions','CF-1.0') # onc.setncattr('Conventions','CF-1.6') ????????????????
+    
+    
     # set variable attributs
-    if threshold != None:
-        eval('set_longname_units_custom_indices.' + indice_name + '_setvarattr(ind, threshold)')
-        eval('set_longname_units_custom_indices.' + indice_name + '_setthresholdattr(thresholdvar)')
-    else:
+    if threshold == None:
         eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-        ind.setncattr('standard_name', 'ECA_indice')
+        ind.setncattr('standard_name', 'ECA_indice')         
+    else:
+        eval('set_longname_units_custom_indices.' + indice_name + '_setvarattr(ind, threshold)')
+        ind.setncattr('standard_name', 'ECA_indice with user defined threshold')
+        
+        if nb_user_thresholds > 1:
+            eval('set_longname_units_custom_indices.' + indice_name + '_setthresholdattr(thresholdvar)')
+        
+        
     # for all:
     ind.missing_value = fill_val
     
-    #print indice[1][:] # must be float or str!    
-    #time_steps = [str(i) for i in indice[1][:]]
-    
-    time_steps_indice_dt = glob_indice[1][:]
-    time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
-    
-    set_time_values(onc, time_steps_indice_dt, calend, units)
-    set_timebnds_values(onc, time_bnds_dt, calend, units)
+        
+    util_nc.set_time_values(onc, dt_centroid_arr, calend, units)
+    util_nc.set_timebnds_values(onc, dt_bounds_arr, calend, units)
     
     onc.close()
-    
-    #print "Indice " + indice_name + ": OK"
+
     
     return out_file
 
 
-####################################################
-
-def get_dict_timeStep_indice_multivar(dict_timeStep_sub3Darr1, dict_timeStep_sub3Darr2, indice_name, fill_val1, fill_val2):
-    
-    '''
-    This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
-    
-    :param dict_timeStep_sub3Darr1: dictionary where a sub 3D array associated for one time step
-    :type dict_timeStep_sub3Darr1: dict
-    :param dict_timeStep_sub3Darr2: dictionary where a sub 3D array associated for one time step
-    :type dict_timeStep_sub3Darr2: dict
-    :param indice_name: climate indice name
-    :type indice_name: str
-    
-    :rtype: dict (keys: datetime object, values: numpy.ndarray)
-    
-    '''
-  
-    mydict_indice={}
-    
-    for key in dict_timeStep_sub3Darr1.keys():
-        #tab2D = eval('calc_indice.' + indice_name + '_calculation(dict_timeStep_sub3Darr1[key], dict_timeStep_sub3Darr2[key], fill_val1, fill_val2)')
-        tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr1[key], dict_timeStep_sub3Darr2[key], fill_val1, fill_val2)')
-        mydict_indice[key]=tab2D
-    
-    return mydict_indice
 
 
-# GLOBAL FUNCTION       
-def indice_multivar(in_files1, var1,
-                    in_files2, var2,                    
-                    indice_name,                    
-                    slice_mode,
-                    #project,
-                    time_range=None,
-                    out_file="./icclim_out.nc",
-                    N_lev=None,
-                    callback=None):
-    
-    '''
-    :param in_files1: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the "var1"
-    :type in_files1: list of str
-    
-    :param var1: daily max temperature (e.g. "tasmax")
-    :type var1: str
-    
-    :param in_files2: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the "var2"
-    :type in_files2: list of str
-    
-    :param var2: daily min temperature (e.g. "tasmin")
-    :type var2: str
-    
-    :param indice_name: climate indice name
-    :type indice_name: str
-    
-    :param slice_mode: "year" for annual values, "month" for monthly values 
-    :type slice_mode: str
-    
-    :param time_range: time range, if ``None``: whole period of input files will be processed
-    :type time_range: list of 2 datetime objects [dt1, dt2]
-    
-    :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
-    :type out_file: str
-    
-    :param N_lev: level number if 4D variable
-    :type N_lev: int
-    
-    :param callback: progress bar, if ``None`` progress bar will not be printed
-    :type callback: :func:`callback.defaultCallback`
-    
-    :rtype: path to NetCDF file
 
+def get_subset_percentile_dict(percentile_dict):
+    subsetted_percentile_dict = OrderedDict()
+    # we subset each 2D array and write in new dictionary
+    for key in percentile_dict.keys():
+        subsetted_percentile_dict[key] = percentile_dict[key][i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
     
-    .. warning:: The both file lists must be identical, i.e. each corresponding file must contain the same time step vector.
+    return subsetted_percentile_dict
 
-    '''
-    
-    #callback("Init Opening "+in_files1[0],0);
-    inc1 = Dataset(in_files1[0], 'r')
-    inc2 = Dataset(in_files2[0], 'r')
-    #callback("Finished opening "+in_files1[0],0);
-    
-    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
-    
-    fill_val1 = get_att_value(inc1, var1, '_FillValue')
-    fill_val2 = get_att_value(inc2, var2, '_FillValue')
-    
-    indice_dim = copy_var_dim(inc1, onc, var1) # tuple ('time', 'lat', 'lon')
-    
-    indice_dim = list(indice_dim)
-    
-    index_row = len(indice_dim)-2
-    index_col = len(indice_dim)-1
-    index_time = 0
-    
-    nb_rows = inc1.variables[indice_dim[index_row]].shape[0]
-    nb_columns = inc1.variables[indice_dim[index_col]].shape[0]
-    
-    try:
-        calend = get_att_value(inc1, indice_dim[index_time], 'calendar')
-    except:
-        calend = 'gregorian'
-    
-    units = get_att_value(inc1, indice_dim[index_time], 'units')
 
-    ind_type = 'f'    
-    ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val1)
-    
-    # Copy attributes from variable to process to indice variable
-    copy_var_attrs(inc1.variables[var1],ind)   
-    
-    inc1.close()
-    inc2.close()
-    
-    if time_range == None:
-        time_range = get_time_range(in_files1, temporal_var_name=indice_dim[0])
-        dt_begin = time_range[0] # datetime object
-        dt_end = time_range[1] # datetime object
-    else:
-        dt_begin = time_range[0] # datetime object
-        dt_end = time_range[1] # datetime object
-    
-    ############################
-    glob_dict_timeStep_indice = {}
-    ############################
 
-    total_nb_years_to_process = dt_end.year - dt_begin.year + 1
+
+def get_indice_from_dict_temporal_slices(indice_name, dict_temporal_slices, percentile_dict=None, dict_temporal_slices2=None, percentile_dict2=None, thresh=None, chunking=False, callback=None, callback_percentage_start_value=0, callback_percentage_total=100):
     
-    ###########dict_glob_file_years = get_dict_file_years_glob(in_files1)
+    indice_type = get_key_by_value_from_dict(map_indice_type, indice_name)
     
-    year_counter = 1.0
-    for in_file1, in_file2  in zip(in_files1, in_files2):
+    
+    if callback != None:    
+        global percentage_current_key
         
-        #callback("Opening "+in_file1,0);
-        nc1 = Dataset(in_file1, 'r')
-        nc2 = Dataset(in_file2, 'r')
+        if thresh == None and chunking == False:
+            percentage_key = (callback_percentage_total*1.0)/(len(dict_temporal_slices))
+        elif thresh != None and chunking == False:
+            percentage_key = (callback_percentage_total*1.0)/(len(dict_temporal_slices)*nb_user_thresholds)
+        elif thresh == None and chunking == True:
+            percentage_key = (callback_percentage_total*1.0)/(len(dict_temporal_slices)*nb_chunks)
+        elif thresh != None and chunking == True:
+            percentage_key = (callback_percentage_total*1.0)/(len(dict_temporal_slices)*nb_user_thresholds*nb_chunks)
+    
+    dt_centroid_arr = numpy.array([])
+    dt_bounds_arr = numpy.array([])
+    
+    key_counter = 0
+    for key in dict_temporal_slices.keys(): # key = temporal_slice_mode      
         
-        time_steps_vect1 = get_list_dates_from_nc(nc1, 'dt')
-        time_steps_vect2 = get_list_dates_from_nc(nc2, 'dt') 
+        dt_centroid_key = dict_temporal_slices[key][0]
+        dt_bounds_key = dict_temporal_slices[key][1]
+        #dt_arr_key = dict_temporal_slices[key][2]
 
-        if time_steps_vect1 != time_steps_vect2:
-            print 'Error: ...........'
-        else:     
-        
-            dict_year_chunk1 = get_dict_year_chunk(time_steps_vect1)   
+        values_arr_key = dict_temporal_slices[key][3]
             
-            if N_lev==None:
-                values1 = nc1.variables[var1]
-                values2 = nc2.variables[var2]
+        if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+            values_arr_key2 = dict_temporal_slices2[key][3]
+        
+        # indice computing for current key
+        
+        if indice_type == 'simple':        
+            if nb_user_thresholds == 0:
+                indice_key = eval(indice_name + '_calculation(values_arr_key, fill_val)')
             else:
-                values1 = nc1.variables[var1][:,N_lev,:,:]
-                values2 = nc2.variables[var2][:,N_lev,:,:]
-            
-            #currentStep=1
-            #totalSteps=len(dict_year_chunk1.keys())
+                indice_key = eval(indice_name + '_calculation(values_arr_key, fill_val, threshold=thresh)')
         
-            #counter_year = 0
+        elif indice_type == 'multivariable':
+            indice_key = eval(indice_name + '_calculation(values_arr_key, values_arr_key2, fill_val, fill_val2)')
             
-            for year in sorted(dict_year_chunk1.keys()):
-                
-                #percentageComplete = (currentStep/totalSteps)*100
-                
-                if year>=dt_begin.year and year<=dt_end.year:
-                    
-                    #callback("Processing year %d, step (%d/%d)" % (year,currentStep,totalSteps),percentageComplete)
-                    
-                    i1 = dict_year_chunk1[year][0]
-                    i2 = dict_year_chunk1[year][1]
-    
-                    values_current_chunk1 = values1[i1:i2+1,:,:] # on charge les donnees (pour 1 annee) pour faire le traitement
-                    values_current_chunk2 = values2[i1:i2+1,:,:]
-                    
-                    time_steps_current_chunk1 = numpy.array(time_steps_vect1[i1:i2+1])
-                       
-                    
-                    if (slice_mode=='year'):
-                        mydict_TimeStep_3DArray1=get_dict_year_3Darr(values_current_chunk1, time_steps_current_chunk1)
-                        mydict_TimeStep_3DArray2=get_dict_year_3Darr(values_current_chunk2, time_steps_current_chunk1)
-                    elif (slice_mode=='month'):
-                        mydict_TimeStep_3DArray1=get_dict_month_3Darr(values_current_chunk1, time_steps_current_chunk1)
-                        mydict_TimeStep_3DArray2=get_dict_month_3Darr(values_current_chunk2, time_steps_current_chunk1)
-                    
-                    mydict_indice=get_dict_timeStep_indice_multivar(mydict_TimeStep_3DArray1, mydict_TimeStep_3DArray2, indice_name, fill_val1, fill_val2)
-                    
-                    glob_dict_timeStep_indice.update(mydict_indice)
-      
-                    del values_current_chunk1, values_current_chunk2, time_steps_current_chunk1
-      
-                    #print "Processed: ", year
-                    
-                    #counter_year = counter_year + 1
-                    #print counter_year, total_nb_years_to_process
-    
-                    #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
-                    #print status
-                    
-                    #callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
-                    
-                    
-                    if callback != None:
-                        callback("Processing year %d" % (year),(year_counter/total_nb_years_to_process)*100)
-                    
-                    year_counter += 1
-                    
-                #else:
-                    #print "data not processed ", year
-                    #callback("Skipping year %d" % year,percentageComplete)
-                #currentStep+=1.0
-                #time.sleep(0.01)
-            #    #time.sleep(1.01)
-            #    pbar.update(i+1)
-            #    i+=1
-            #
-            #pbar.finish()
+        elif indice_type == 'percentile_based':
+            dt_arr_key = dict_temporal_slices[key][2]
+            indice_key = eval(indice_name + '_calculation(values_arr_key, dt_arr_key, percentile_dict, fill_val)')
             
-
-            nc1.close()
-            nc2.close()
-    
-        #pbar_files.finish()
-            
-        #print '---'    
-        #print sorted(glob_dict_timeStep_indice.keys())
-        #print '---'     
+        elif indice_type == 'percentile_based_multivariable':
+            dt_arr_key = dict_temporal_slices[key][2]
+            indice_key = eval(indice_name + '_calculation(values_arr_key, percentile_dict, values_arr_key2, percentile_dict2, dt_arr_key, fill_val, fill_val2)')
         
-    glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
-    
-    ind[:,:,:] = glob_indice[0][:,:,:]
-    
-    # set global attributs
-    #eval(indice_name + '_setglobattr(onc)')
-    ## for all:
-    #setglobattr_history(onc, indice_name, slice_mode, dt_begin, dt_end)
-    #onc.setncattr('institution', '')
-    onc.setncattr('source', '') # Here soon will be source meta data
-    #onc.setncattr('comment', '')   
-    #onc.setncattr('reference', '')
-    
-    # set global attributs
-    set_globattr.title(onc, indice_name)
-    set_globattr.references(onc)
-    set_globattr.comment(onc, indice_name)
-    set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
-    set_globattr.history2(onc, slice_mode, indice_name, time_range)
-
-    # set variable attributs
-    eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-    # for all:
-    ind.missing_value = fill_val1
-    ind.setncattr('standard_name', 'ECA_indice')
-
-    #print indice[1][:] # must be float or str!    
-    #time_steps = [str(i) for i in indice[1][:]]
-    
-    time_steps_indice_dt = glob_indice[1][:]
-    time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
-    
-    set_time_values(onc, time_steps_indice_dt, calend, units)
-    set_timebnds_values(onc, time_bnds_dt, calend, units)
-    
-    onc.close()
-    
-    #print "Indice " + indice_name + ": OK"
-    
-    return out_file
-
-
-
-
-
-def get_dict_year_dtarr(dt_arr):
-    '''
-    This function returns a dictionary, where keys = years, and values = sub dt array.
-    
-    '''
-    
-    all_years=get_all_years(dt_arr)
-    mydict_years={}
-    for i in range(len(all_years)):
-        key = all_years[i]
-        bounds =get_time_bnds(all_years[i],'year')
-        mask = (dt_arr>=bounds[0]) & (dt_arr<=bounds[1])
-        sub_dtarr = dt_arr[mask]
-        mydict_years[key]=sub_dtarr
+        #############
         
-    return mydict_years    
-
-
-def get_dict_month_dtarr(dt_arr):
-    '''
-    This function returns a dictionary, where keys = months, and values = sub dt array.
-    
-    '''
-    
-    all_months=get_all_months(dt_arr)
-    mydict_months={}
-    for i in range(len(all_months)):
-        key = all_months[i] 
-        bounds =get_time_bnds(all_months[i],'month')
-        mask = (dt_arr>=bounds[0]) & (dt_arr<=bounds[1])
-        sub_dtarr = dt_arr[mask]
-        mydict_months[key]=sub_dtarr
         
-    return mydict_months  
-
-
-def get_dict_timeStep_indice_perc(dict_timeStep_sub3Darr, dict_timeStep_dtarr, percentile_dict, indice_name, fill_val):
-
-    '''
-    This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
-    
-    :param dict_timeStep_sub3Darr: dictionary where a sub 3D array associated for one time step
-    :type dict_timeStep_sub3Darr: dict
-    :param dict_timeStep_dtarr: dictionary where a sub datetime array associated for one time step (the same time step as in "dict_timeStep_sub3Darr")
-    :type dict_timeStep_dtarr: dict
-    
-    ....
-    
-    :rtype: dict (keys: datetime object, values: numpy.ndarray)
-    
-    '''
-  
-    mydict_indice={}
-    
-    for key in dict_timeStep_sub3Darr.keys():
+        indice_key = indice_key.reshape(-1, indice_key.shape[0], indice_key.shape[1]) # 2D --> 3D
+        
+        if key_counter == 0:
+            indice_arr = indice_key
+        else:
+            indice_arr = numpy.concatenate((indice_arr, indice_key), axis=0)
        
-        tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr[key], dict_timeStep_dtarr[key], percentile_dict, fill_val)')
+          
+        dt_centroid_arr = numpy.append(dt_centroid_arr, dt_centroid_key) # 1D
+        dt_bounds_arr = numpy.concatenate((dt_bounds_arr, dt_bounds_key)) # 1D
+        
+        if callback != None:
+            percentage_current_key = percentage_current_key + percentage_key
+            callback(percentage_current_key)
             
-        mydict_indice[key]=tab2D
-    
-    return mydict_indice
+        key_counter += 1
+
+  
+    dt_bounds_arr = dt_bounds_arr.reshape(-1,2) # 1D --> 2D   
+        
+    return (dt_centroid_arr, dt_bounds_arr, indice_arr)
 
 
 
 
 
 
-def get_indices_subset(dt_arr, time_range):
+def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_range=None, only_leap_years=False, save_to_file=None, transfer_limit_Mbytes=None, callback=None,
+                        callback_percentage_start_value=0, callback_percentage_total=100, precipitation=False, N_lev=None):
     '''
-    Returns indices for time subset.
-    
-    :param dt_arr: time steps vector
-    :type dt_arr: numpy.ndarray of datetime objects
-    :param time_range: time range
-    :type time_range: [datetime1, datetime2]
-    
-    '''
-    
-    dt1 = time_range[0]
-    dt2 = time_range[1]
-
-    if dt1 >= dt_arr[0] and dt2 <= dt_arr[-1]:
-
-        mask_dt_arr = numpy.logical_or(dt_arr<dt1, dt_arr>dt2)
-        
-        indices_non_masked = numpy.where(mask_dt_arr==False)[0]
-
-        return indices_non_masked
-        
-    else:    
-        print 'The time range is not included in the input time steps array.'
-
-
-
-def get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_limit_bytes, time_range=None):
-    '''
-    Returns the total size of 3D variable array in bytes and the optimal tile dimension for spatial chunking.
-    
-    :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
-    :type in_files: list
-    
-    :param var_name: variable name to process
-    :type var_name: str
-    
-    :param transfer_limit_bytes: maximum OPeNDAP/THREDDS transfer limit in bytes to load OPeNDAP datasets (default: None) 
-    :type transfer_limit_bytes: float
-    
-    :param time_range: time range
-    :type time_range: list of 2 datetime objects: [dt1, dt2]
-    
-    rtype: tuple of float and int
-
-    .. warning:: only for 3D variables
-    
-    '''
-    
-    in_files.sort()
-    mfnc = MFDataset(in_files, 'r')
-    
-    ndim = mfnc.variables[var_name].ndim
-    if ndim != 3:
-        print "ERROR: The variable to process must be 3D"
-        
-    v = mfnc.variables[var_name]
-    v_dtype = v.dtype
-    v_nb_bytes = v_dtype.itemsize 
-    
-    if time_range == None:
-        v_shape = v.shape
-        
-        total_array_size_bytes = v.shape[0] * v.shape[1] * v.shape[2] * v_nb_bytes
-        optimal_tile_dimension = int(   numpy.sqrt( transfer_limit_bytes / (v.shape[0] * v_nb_bytes)  )   )
-        
-    else:
-        var_time =  mfnc.variables['time']
-        try:
-           time_calend = var_time.calendar
-        except:
-            time_calend = 'gregorian'
-        
-        time_units = var_time.units
-        time_arr = var_time[:]
-        dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
-        indices_subset = get_indices_subset(dt_arr, time_range)
-        
-        nb_time_steps_after_subset = len(indices_subset)
-        total_array_size_bytes = nb_time_steps_after_subset * v.shape[1] * v.shape[2] * v_nb_bytes
-        
-        optimal_tile_dimension = int(   numpy.sqrt( transfer_limit_bytes / (nb_time_steps_after_subset * v_nb_bytes)  )   )
-    
-    mfnc.close()
-    
-    return (total_array_size_bytes, optimal_tile_dimension)
-
-
-
-
-def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_range=None, only_leap_years=False, save_to_file=None, transfer_limit_bytes=None, callback=None,
-                        callback_percentage_total=100, precipitation=False):
-    '''
-    :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
+    :param in_files: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
     :type in_files: list of str
     
-    :param var_name: variable name to process
+    :param var_name: Target variable name to process.
     :type var_name: str
     
-    :param percentile: percentile to compute which must be between 0 and 100 inclusive
+    :param percentile: Percentile value to compute which must be between 0 and 100 inclusive.
     :type percentile: int
     
-    :param window_width: window width, must be odd (default: 5)
+    :param window_width: Window width, must be odd (default: 5).
     :type window_width: int
     
-    :param time_range: time range of the base period (usually: 1961-1990), if ``None``: whole period of input files will be processed
-    :type time_range: list of 2 datetime objects: [dt1, dt2]
+    :param time_range: Temporal range of the base period (usually: 1961-1990). If ``None``: whole period of input files will be processed.
+    :type time_range: [datetime.datetime, datetime.datetime]
     
-    :param only_leap_years: option for February 29th (default: False)
+    :param only_leap_years: Option for February 29th (default: False).
     :type only_leap_years: bool
     
-    :param save_to_file: output file name which will contain the created daily percentiles dictionary (default: None)
+    :param save_to_file: Output file name which will contain the created daily percentiles dictionary.
     :type save_to_file: str
     
-    :param transfer_limit_bytes: maximum OPeNDAP/THREDDS request limit in bytes (default: None) 
-    :type transfer_limit_bytes: float
+    :param transfer_limit_Mbytes: Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
+    :type transfer_limit_Mbytes: float
     
-    :param callback: progress bar, if ``None`` progress bar will not be printed 
+    :param callback: Progress bar printing. If ``None``, progress bar will not be printed.  
     :type callback: :func:`callback.defaultCallback`
 
-    :param callback_percentage_total: default 100 
+    :param callback_percentage_start_value: Initial value of percentage of the progress bar (default: 0).
+    :type callback_percentage_start_value: int
+
+    :param callback_percentage_total: Total persentage value (default: 100).
     :type callback_percentage_total: int
     
-    :param precipitation: just to inticate if ``arr`` is precipitation (`True`) or other variable (`False`) to process data differently (default: False) 
+    :param precipitation: Parameter to inticate if the variable to process is precipitation (`True`) or not (`False`) to process data differently (default: False). 
     :type precipitation: bool
     
+    :param N_lev: Level number if 4D variable.
+    :type N_lev: int
+    
     :rtype: dict
-
+    
+    
+    .. warning:: Precipitation variable must be in mm/s !
     '''
-   
+    
+    temporal_variable = 'time'
     
     in_files.sort()
     
-    nc = Dataset(in_files[0], 'r')
-    fill_val = get_att_value(nc, var_name, '_FillValue')
-    nc.close()
+    nc0 = Dataset(in_files[0], 'r')
+    fill_val = util_nc.get_att_value(nc0, var_name, '_FillValue')
     
+    var = nc0.variables[var_name]
     
-    if transfer_limit_bytes == None: # i.e. we work with local files
-        nc = MFDataset(in_files, 'r')
+    var_time =  nc0.variables[temporal_variable]
     
-        var = nc.variables[var_name]    
-        var_time = nc.variables['time']
+    global calend, units
+    try:
+       calend = var_time.calendar
+    except:
+        calend = 'gregorian'
         
-        try:
-           time_calend = var_time.calendar
-        except:
-            time_calend = 'gregorian'
-        time_units = var_time.units    
+    units = var_time.units
     
-        if time_range == None:
-            base_arr = var[:,:,:]
-            time_base_arr = var_time[:]
-            dt_base_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_base_arr])
-            
-        else:
-            time_arr = var_time[:]
-            dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
     
-            indices_subset = get_indices_subset(dt_arr, time_range)
     
-            base_arr = var[indices_subset,:,:].squeeze()
-            dt_base_arr = dt_arr[indices_subset].squeeze()
-                    
-        nc.close()
+    ############## ???????????????????
+    if time_range == None:
+        time_range = util_dt.get_time_range(in_files, temporal_var_name=temporal_variable)
         
+    else: # i.e. time_range is selected by user
+        # we adjust datetime.datetime objects from time_range 
+        t_arr = nc0.variables[temporal_variable][:]
+        dt = util_dt.num2date(t_arr[0], calend, units)
+        del t_arr
+        time_range = util_dt.adjust_time_range(time_range, dt)
+        
+    ############## ???????????????????
+    ######## only to get a time range to pass then it to the next function
+    
+    nc0.close()
+    
+    
+    nc = MFDataset(in_files, 'r')
+    
+    if transfer_limit_Mbytes == None: # i.e. we work with local files
+        
+        arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+        dt_base_arr = arrs[0]
+        values_base_arr = arrs[1]
+
         if not isinstance(dt_base_arr[0], datetime):
             dt_base_arr = numpy.array([datetime(year = dt.year, month = dt.month, day = dt.day, hour = dt.hour) for dt in dt_base_arr])
         
-        dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
-                                                  percentage_per_chunk = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
+        dic = percentile_dict.get_percentile_dict(values_base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
+                                                  callback_percentage_start_value = callback_percentage_start_value, callback_percentage_total = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
+        
+        del values_base_arr, dt_base_arr, arrs
         
         if save_to_file != None:
             with open(save_to_file, 'wb') as handle:
@@ -1506,85 +765,55 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     
     
     else: # i.e. we work with OPeNDAP datasets
-        total_array_size_bytes_and_tile_dimension = get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_limit_bytes, time_range=time_range)
+        transfer_limit_bytes = transfer_limit_Mbytes * 1024 * 1024
+        total_array_size_bytes_and_tile_dimension = arr_size.get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_limit_bytes, time_range=time_range)
         array_total_size = total_array_size_bytes_and_tile_dimension[0]
         
         #print array_total_size
         
         if array_total_size < transfer_limit_bytes: # the same as for the "if transfer_limit_bytes == None" case
-            
-            nc = MFDataset(in_files, 'r')
-        
-            var = nc.variables[var_name]    
-            var_time = nc.variables['time']
-            
-            try:
-               time_calend = var_time.calendar
-            except:
-                time_calend = 'gregorian'   
-            time_units = var_time.units    
-            
+
             print "Data transfer... "
             
-            if time_range == None:
-                base_arr = var[:,:,:]
-                time_base_arr = var_time[:]
-                dt_base_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_base_arr])
-                
-            else:
-                time_arr = var_time[:]
-                dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
-        
-                indices_subset = get_indices_subset(dt_arr, time_range)
-        
-                base_arr = var[indices_subset,:,:].squeeze()
-                dt_base_arr = dt_arr[indices_subset].squeeze()
-                        
-            nc.close()
-            
-            dic = percentile_dict.get_percentile_dict(base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
-                                                      percentage_per_chunk = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
+            arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+            dt_base_arr = arrs[0]
+            values_base_arr = arrs[1]
 
-            
-            del base_arr, dt_base_arr
+            dic = percentile_dict.get_percentile_dict(values_base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
+                                                      callback_percentage_start_value = callback_percentage_start_value, callback_percentage_total = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
+
+            del values_base_arr, dt_base_arr, arrs
             
             if save_to_file != None:
                 with open(save_to_file, 'wb') as handle:
                     pickle.dump(dic, handle)
                     print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
         
-        
-        
+
             
         else:
             # then we do chunking in space
             tile_dimension = total_array_size_bytes_and_tile_dimension[1]
             #print tile_dimension
-            nc = MFDataset(in_files, 'r')
-            var = nc.variables[var_name]
+            
             var_shape = var.shape
             var_shap1 = var_shape[1]
             var_shap2 = var_shape[2]
-            
-            var_time = nc.variables['time']
-                
-            try:
-               time_calend = var_time.calendar
-            except:
-                time_calend = 'gregorian'
-            time_units = var_time.units
-            
-            time_base_arr = var_time[:]
-            dt_arr = numpy.array([num2date(dt, calend=time_calend, units=time_units) for dt in time_base_arr])
-            
-            
+
             tile_map = OCGIS_tile.get_tile_schema(nrow=var_shap1, ncol=var_shap2, tdim=tile_dimension, origin=0)
+            #global nb_chunks
             nb_chunks = len(tile_map)
             print str(nb_chunks) + " data chunks will be transfered."
-
+            
+            
+            time_arr = var_time[:]
+            dt_arr = numpy.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
+            indices_base_period = util_dt.get_indices_subset(dt_arr, time_range)
+            dt_base_arr = dt_arr[indices_base_period].squeeze()
+            del time_arr, dt_arr, indices_base_period
             ############## we initialize a glob dict ( i.e. a dict with all calend days (keys) and 2D arrays with zeros)
             ############# where we will add perc. values of each chunk
-            dic_caldays = percentile_dict.get_dict_caldays(dt_arr)
+            dic_caldays = percentile_dict.get_dict_caldays(dt_base_arr)
             
             glob_percentile_dict = OrderedDict()
             for month in dic_caldays.keys():
@@ -1593,48 +822,40 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
             
             percentage_per_chunk = callback_percentage_total/(nb_chunks*1.0)
             
-            chunk = 1.0  # chunk counter
+            chunk_counter = 1  # chunk counter
            
             for tile_id in tile_map:
-                print "Data transfer: chunk " + str(int(chunk)) + '/'+ str(len(tile_map)) + " ..."
+                print "Data transfer: chunk " + str(int(chunk_counter)) + '/'+ str(len(tile_map)) + " ..."
+                
+                global i1_row_current_tile, i2_row_current_tile, i1_col_current_tile, i2_col_current_tile
                 
                 i1_row_current_tile = tile_map.get(tile_id).get('row')[0]
                 i2_row_current_tile = tile_map.get(tile_id).get('row')[1]
                 
                 i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
                 i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
-
-                if time_range == None:
-                    base_arr_current_chunk = var[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
-                    dt_base_arr = dt_arr
-                else:
-            
-                    indices_subset = get_indices_subset(dt_arr, time_range)
-                    
-                    base_arr_current_chunk = var[indices_subset, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile].squeeze()
-                    dt_base_arr = dt_arr[indices_subset].squeeze()
                 
-                            
-
+                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True)
+                values_base_arr_current_chunk = arrs_current_chunk[1]
+                dt_base_arr = arrs_current_chunk[0] # alwayse the same for each chunk
                 
-                dic_current_chunk = percentile_dict.get_percentile_dict(base_arr_current_chunk, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,
-                                                                        callback=callback, percentage_per_chunk=percentage_per_chunk, chunk_counter=chunk,
+                dic_current_chunk = percentile_dict.get_percentile_dict(values_base_arr_current_chunk, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,
+                                                                        callback=callback, callback_percentage_start_value = callback_percentage_start_value, callback_percentage_total=percentage_per_chunk, chunk_counter=chunk_counter,
                                                                         precipitation=precipitation, fill_val=fill_val)
                 
-                del base_arr_current_chunk
+                del arrs_current_chunk, values_base_arr_current_chunk, dt_base_arr
                 
 
-                
                 ########### we fill our glob_percentile_dict (chunk by chunk)
                 for month in dic_caldays.keys():
                     for day in dic_caldays[month]:
                         glob_percentile_dict[month,day][i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = dic_current_chunk[month,day]
 
-                chunk += 1
+                chunk_counter += 1
                 
                 
                                
-            nc.close()
+            
             dic = glob_percentile_dict
             
             if save_to_file != None:
@@ -1642,7 +863,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                     pickle.dump(dic, handle)
                     print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
             
-            
+    nc.close()        
             
     return dic
 
@@ -1652,548 +873,3 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
 
 
 
-
-def indice_perc(in_files,
-                var,
-                indice_name,
-                percentile_dict,
-                slice_mode,
-                time_range=None,
-                out_file="./icclim_out.nc",
-                N_lev=None,
-                callback=None,
-                callback_percentage_total=100):
-    '''
-    :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
-    :type in_files: list of str
-    
-    :param var: variable name to process
-    :type var: str
-    
-    :param indice_name: climate indice name
-    :type indice_name: str
-    
-    :param percentile_dict: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict`
-    :type percentile_dict: dict
-    
-    :param slice_mode: "year" for annual values, "month" for monthly values (default: "year")
-    :type slice_mode: str
-    
-    :param time_range: time range, if ``None``: whole period of input files will be processed
-    :type time_range: list of 2 datetime objects [dt1, dt2]
-    
-    :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
-    :type out_file: str
-
-    :param N_lev: level number if 4D variable
-    :type N_lev: int
-    
-    :param callback: progress bar, if ``None`` progress bar will not be printed 
-    :type callback: :func:`callback.defaultCallback`
-    
-    :param callback_percentage_total: default 100 
-    :type callback_percentage_total: int
-    
-    :rtype: path to NetCDF file
-
-    .. warning:: Before using this function, create first a :ref:`daily percentile dictionary <creation_daily_percentile_dictionary_label>` to pass it then to the ``percentile_dict`` parameter.
-    '''
-    
-
-       
-    #callback("Init Opening "+in_files[0],0);
-    inc = Dataset(in_files[0], 'r')
-    #callback("Finished opening "+in_files[0],0);
-    
-    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
-    
-    fill_val = get_att_value(inc, var, '_FillValue')
-
-    indice_dim = copy_var_dim(inc, onc, var) # tuple ('time', 'lat', 'lon')
-    
-    indice_dim = list(indice_dim)
-    
-    index_row = len(indice_dim)-2
-    index_col = len(indice_dim)-1
-    index_time = 0
-    
-    nb_rows = inc.variables[indice_dim[index_row]].shape[0]
-    nb_columns = inc.variables[indice_dim[index_col]].shape[0]
-    
-    try:
-        calend = get_att_value(inc, indice_dim[index_time], 'calendar')
-    except:
-        calend = 'gregorian'
-    
-    units = get_att_value(inc, indice_dim[index_time], 'units')
-    
-    
-
-    ind_type = 'f'
-        
-    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)  
-    
-    # Copy attributes from variable to process to indice variable
-    copy_var_attrs(inc.variables[var],ind)
-    
-    inc.close()
-    
-    if time_range == None:
-        time_range = get_time_range(in_files, temporal_var_name=indice_dim[0])
-        dt_begin = time_range[0] # datetime object
-        dt_end = time_range[1] # datetime object
-    else:
-        dt_begin = time_range[0] # datetime object
-        dt_end = time_range[1] # datetime object
-    
-    ############################
-    glob_dict_timeStep_indice = {}
-    ############################
-    
-    #j=0
-    #pbar_files = ProgressBar(widgets=[Percentage(),' ', Bar()], maxval=len(in_files)).start()
-    
-    total_nb_years_to_process = dt_end.year -dt_begin.year + 1
-    
-    ###########dict_glob_file_years = get_dict_file_years_glob(in_files)
-    
-    year_counter = 1.0
-    for ifile in in_files:
-        
-        
-        #pbar_files.widgets[1]= ' processing file ' +str(j+1)
-        #time.sleep(1.01)
-        #pbar_files.update(j+1)
-        #j+=1
-        
-        #callback("Opening "+ifile,0);
-        nc = Dataset(ifile, 'r')
-        
-        time_steps_vect = get_list_dates_from_nc(nc, 'dt') 
-        
-        dict_year_chunk = get_dict_year_chunk(time_steps_vect)   
-        #print dict_year_chunk
-        
-        if N_lev==None:
-            values = nc.variables[var]
-        else:
-            values = nc.variables[var][:,N_lev,:,:]
-        
-        
-        #pbar = ProgressBar(widgets=['',Percentage(), Bar()], maxval=len(dict_year_chunk.keys())).start()
-        #i=0
-        
-        #currentStep=1
-        #totalSteps=len(dict_year_chunk.keys())
-        
-        #counter_year = 0
-        for year in sorted(dict_year_chunk.keys()):
-
-            #pbar.widgets[0]= ' <'+str(year)+' processed> '
-            
-            #percentageComplete = (currentStep/totalSteps)*100
-            #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
-            
-            
-
-            
-            if year>=dt_begin.year and year<=dt_end.year:
-                
-                #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
-                
-                i1 = dict_year_chunk[year][0]
-                i2 = dict_year_chunk[year][1]
-                #print i1, i2
-                values_current_chunk = values[i1:i2+1,:,:] # on charge les donnees (pour 1 annee) pour faire le traitement
-                time_steps_current_chunk = numpy.array(time_steps_vect[i1:i2+1])
-                
-               
-                
-                if (slice_mode=='year'):
-                    mydict_TimeStep_3DArray=get_dict_year_3Darr(values_current_chunk, time_steps_current_chunk)
-                    mydict_TimeStep_dtarr = get_dict_year_dtarr(time_steps_current_chunk)
-                elif (slice_mode=='month'):
-                    mydict_TimeStep_3DArray=get_dict_month_3Darr(values_current_chunk, time_steps_current_chunk)
-                    mydict_TimeStep_dtarr = get_dict_month_dtarr(time_steps_current_chunk)
-                
-                mydict_indice=get_dict_timeStep_indice_perc(mydict_TimeStep_3DArray, mydict_TimeStep_dtarr, percentile_dict, indice_name, fill_val)
-                
-                glob_dict_timeStep_indice.update(mydict_indice)
-                
-
-
-                del values_current_chunk, time_steps_current_chunk
-  
-                #print "Processed: ", year
-                
-                #counter_year = counter_year + 1
-                #print counter_year, total_nb_years_to_process
-
-                #status = "Year processed {0}/{1} ({3})".format(counter_year, total_nb_years_to_process, year)
-                #print status
-                
-                
-                if callback_percentage_total == 100 and callback != None:
-                    callback("Processing year %d" % (year),         (  year_counter/total_nb_years_to_process)*callback_percentage_total  )
-                    
-                elif callback_percentage_total == 50 and callback != None:
-                    callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*callback_percentage_total  )    + callback_percentage_total              )
-                
-                year_counter += 1
-                
-            #else:
-                #print "data not processed ", year
-                #callback("Skipping year %d" % year,percentageComplete)
-            #currentStep+=1.0
-            #time.sleep(0.01)
-        #    #time.sleep(1.01)
-        #    pbar.update(i+1)
-        #    i+=1
-        #
-        #pbar.finish()
-        
-        nc.close()
-        
-        
-
-    #pbar_files.finish()
-        
-    #print '---'    
-    #print sorted(glob_dict_timeStep_indice.keys())
-    #print '---'     
-    
-    glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
-    
-    ind[:,:,:] = glob_indice[0][:,:,:]
-    
-
-    onc.setncattr('source', '') 
-    # set global attributs
-    set_globattr.title(onc, indice_name)        
-    set_globattr.references(onc)
-    set_globattr.comment(onc, indice_name)
-    set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
-    set_globattr.history2(onc, slice_mode, indice_name, time_range)
-
-    # set variable attributs
-
-    eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-    ind.setncattr('standard_name', 'ECA_indice')
-    # for all:
-    ind.missing_value = fill_val
-    
-    #print indice[1][:] # must be float or str!    
-    #time_steps = [str(i) for i in indice[1][:]]
-    
-    time_steps_indice_dt = glob_indice[1][:]
-    time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
-    
-    set_time_values(onc, time_steps_indice_dt, calend, units)
-    set_timebnds_values(onc, time_bnds_dt, calend, units)
-    
-    onc.close()
-    
-    #print "Indice " + indice_name + ": OK"
-    
-    return out_file
-
-
-
-###############################
-##############################
-
-def get_dict_timeStep_indice_compound(dict_timeStep_sub3Darr_t, dict_timeStep_sub3Darr_p, percentile_dict_t, percentile_dict_p, dict_timeStep_dtarr, indice_name, fill_val):
-    
-    '''
-    This function returns a dictionary, where keys = time step, and values = calculated indice (2D array).
-    
-    :param dict_timeStep_sub3Darr_t: dictionary where a sub 3D array associated for one time step
-    :type dict_timeStep_sub3Darr1_t: dict
-    
-    :param dict_timeStep_sub3Darr_p: dictionary where a sub 3D array associated for one time step
-    :type dict_timeStep_sub3Darr1_p: dict    
-    
-    :param percentile_dict_t: input percentile dictionary corresponding to daily mean temperature
-    :type percentile_dict_t: dict    
-    
-    :param percentile_dict_p: input percentile dictionary corresponding to daily precipitation flux (liquid form)
-    :type percentile_dict_p: dict
-
-    :param dict_timeStep_dtarr: dictionary where a sub datetime array associated for one time step (the same time step as in "dict_timeStep_sub3Darr")
-    :type dict_timeStep_dtarr: dict
-
-    :param indice_name: climate indice name
-    :type indice_name: str
-    
-    ....
-    
-    :rtype: dict (keys: datetime object, values: numpy.ndarray)
-    
-    '''
-  
-    mydict_indice={}
-    
-    for key in dict_timeStep_sub3Darr_t.keys():
-        #tab2D = eval('calc_indice.' + indice_name + '_calculation(dict_timeStep_sub3Darr1[key], dict_timeStep_sub3Darr2[key], fill_val1, fill_val2)')
-        tab2D = eval(indice_name + '_calculation(dict_timeStep_sub3Darr_t[key], percentile_dict_t, dict_timeStep_sub3Darr_p[key], percentile_dict_p, dict_timeStep_dtarr[key], fill_val)')
-        mydict_indice[key]=tab2D
-    
-    return mydict_indice
-
-
-
-
-def indice_compound(in_files_t,
-                var_t,
-                percentile_dict_t,
-                
-                in_files_p,
-                var_p,
-                percentile_dict_p,
-                
-                indice_name,
-
-                slice_mode,
-                time_range=None,
-                out_file="./icclim_out.nc",
-                N_lev=None,
-                callback=None,
-                callback_percentage_total=100):
-    '''
-    :param in_files_t: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to daily mean temperature
-    :type in_files_t: list of str
-    
-    :param var_t: variable name corresponding to ``in_files_t`` (e.g. "tas")
-    :type var_t: str
-    
-    :param percentile_dict_t: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict` corresponding to daily mean temperature
-    :type percentile_dict_t: dict
-    
-    :param in_files_p: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to daily precipitation flux (liquid form)
-    :type in_files_p: list of str
-    
-    :param var_p: variable name corresponding to ``in_files_p`` (e.g. "pr")
-    :type var_p: str
-    
-    :param percentile_dict_p: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict` corresponding to daily precipitation flux (liquid form)
-    :type percentile_dict_p: dict
-    
-    :param indice_name: climate indice name
-    :type indice_name: str
-        
-    :param slice_mode: "year" for annual values, "month" for monthly values (default: "year")
-    :type slice_mode: str
-    
-    :param time_range: time range, if ``None``: whole period of input files will be processed
-    :type time_range: list of 2 datetime objects [dt1, dt2]
-    
-    :param out_file: output NetCDF file name (defaut: "icclim_out.nc" in the current directory)
-    :type out_file: str
-
-    :param N_lev: level number if 4D variable
-    :type N_lev: int
-    
-    :param callback: progress bar, if ``None`` progress bar will not be printed 
-    :type callback: :func:`callback.defaultCallback`
-
-    :param callback_percentage_total: default 100 
-    :type callback_percentage_total: int
-    
-    :rtype: path to NetCDF file
-
-    .. warning:: Before using this function, create first two :ref:`daily percentile dictionaries <creation_daily_percentile_dictionary_label>` to pass them to the ``percentile_dict_t`` and ``percentile_dict_p`` parameters.
-    '''
-    
-
-       
-    #callback("Init Opening "+in_files[0],0);
-    inc = Dataset(in_files_t[0], 'r')
-    #callback("Finished opening "+in_files[0],0);
-    
-    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
-    
-    fill_val = get_att_value(inc, var_t, '_FillValue') # we consider that both variables have the same fill_value
-
-    indice_dim = copy_var_dim(inc, onc, var_t) # tuple ('time', 'lat', 'lon')
-    
-    indice_dim = list(indice_dim)
-    
-    index_row = len(indice_dim)-2
-    index_col = len(indice_dim)-1
-    index_time = 0
-    
-    nb_rows = inc.variables[indice_dim[index_row]].shape[0]
-    nb_columns = inc.variables[indice_dim[index_col]].shape[0]
-    
-    try:
-        calend = get_att_value(inc, indice_dim[index_time], 'calendar')
-    except:
-        calend = 'gregorian'
-    
-    units = get_att_value(inc, indice_dim[index_time], 'units')
-    
-    
-
-    ind_type = 'f'
-        
-    ind = onc.createVariable(indice_name, ind_type, (indice_dim[0], indice_dim[1], indice_dim[2]), fill_value = fill_val)  
-    
-    # Copy attributes from variable to process to indice variable
-    copy_var_attrs(inc.variables[var_t],ind)
-    
-    inc.close()
-    
-    if time_range == None:
-        time_range = get_time_range(in_files_t, temporal_var_name=indice_dim[0])
-        dt_begin = time_range[0] # datetime object
-        dt_end = time_range[1] # datetime object
-    else:
-        dt_begin = time_range[0] # datetime object
-        dt_end = time_range[1] # datetime object
-
-    ############################
-    glob_dict_timeStep_indice = {}
-    ############################
-    
-    #j=0
-    #pbar_files = ProgressBar(widgets=[Percentage(),' ', Bar()], maxval=len(in_files)).start()
-    
-    total_nb_years_to_process = dt_end.year -dt_begin.year + 1
-    
-    ###########dict_glob_file_years = get_dict_file_years_glob(in_files_t)
-    
-    year_counter = 1.0
-    for ifile_t, ifile_p  in zip(in_files_t, in_files_p):
-        
-        
-        #pbar_files.widgets[1]= ' processing file ' +str(j+1)
-        #time.sleep(1.01)
-        #pbar_files.update(j+1)
-        #j+=1
-        
-        #callback("Opening "+ifile,0);
-        nc_t = Dataset(ifile_t, 'r')
-        nc_p = Dataset(ifile_p, 'r')
-        
-        
-        time_steps_vect_t = get_list_dates_from_nc(nc_t, 'dt') 
-        time_steps_vect_p = get_list_dates_from_nc(nc_p, 'dt')
-        
-        if time_steps_vect_t != time_steps_vect_p:
-            print 'Error: ...........'
-        else: 
-        
-            time_steps_vect = time_steps_vect_t
-                    
-            dict_year_chunk = get_dict_year_chunk(time_steps_vect)                       
-            
-            if N_lev==None:
-                values_t = nc_t.variables[var_t]
-                values_p = nc_p.variables[var_p]
-            else:
-                values_t = nc_t.variables[var_t][:,N_lev,:,:]
-                values_p = nc_p.variables[var_p][:,N_lev,:,:]
-            
-            #pbar = ProgressBar(widgets=['',Percentage(), Bar()], maxval=len(dict_year_chunk.keys())).start()
-            #i=0
-            
-            #currentStep=1
-            #totalSteps=len(dict_year_chunk.keys())
-            
-            #counter_year = 0
-            for year in sorted(dict_year_chunk.keys()):
-                
-                #pbar.widgets[0]= ' <'+str(year)+' processed> '
-                
-                #percentageComplete = (currentStep/totalSteps)*100
-                #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
-    
-                
-                if year>=dt_begin.year and year<=dt_end.year:
-
-                    #callback("Processing year %d/%d %d" % (currentStep,totalSteps,year),percentageComplete)
-                    
-                    i1 = dict_year_chunk[year][0]
-                    i2 = dict_year_chunk[year][1]
-                    #print i1, i2
-                    
-                    # on charge les donnees (pour 1 annee) pour faire le traitement
-                    values_current_chunk_t = values_t[i1:i2+1,:,:] 
-                    values_current_chunk_p = values_p[i1:i2+1,:,:] 
-                    
-                    time_steps_current_chunk = numpy.array(time_steps_vect[i1:i2+1])
-                    
-                   
-                    
-                    if (slice_mode=='year'):
-                        mydict_TimeStep_3DArray_t = get_dict_year_3Darr(values_current_chunk_t, time_steps_current_chunk)
-                        mydict_TimeStep_3DArray_p = get_dict_year_3Darr(values_current_chunk_p, time_steps_current_chunk)                        
-                        
-                        mydict_TimeStep_dtarr = get_dict_year_dtarr(time_steps_current_chunk)
-                        
-                    elif (slice_mode=='month'):
-                        mydict_TimeStep_3DArray_t = get_dict_month_3Darr(values_current_chunk_t, time_steps_current_chunk)
-                        mydict_TimeStep_3DArray_p = get_dict_month_3Darr(values_current_chunk_p, time_steps_current_chunk)
-                        
-                        mydict_TimeStep_dtarr = get_dict_month_dtarr(time_steps_current_chunk)
-                    
-                    
-                    mydict_indice=get_dict_timeStep_indice_compound(mydict_TimeStep_3DArray_t, mydict_TimeStep_3DArray_p, percentile_dict_t, percentile_dict_p, mydict_TimeStep_dtarr, indice_name, fill_val)
-                                       
-                    
-                    glob_dict_timeStep_indice.update(mydict_indice)
-                    
-    
-    
-                    del values_current_chunk_t, values_current_chunk_p, time_steps_current_chunk
-      
-                    
-                    if callback_percentage_total == 100 and callback != None:
-                        callback("Processing year %d" % (year),         (  year_counter/total_nb_years_to_process)*callback_percentage_total  )
-                        
-                    elif callback_percentage_total == 50 and callback != None:
-                        callback("Processing year %d" % (year),      (   (  year_counter/total_nb_years_to_process)*callback_percentage_total  )    + callback_percentage_total              )
-                    
-                    year_counter += 1
-                    
-   
-        nc_t.close()
-        nc_p.close()   
-               
-        
-        
-    glob_indice = get_globindice(glob_dict_timeStep_indice, nb_rows, nb_columns) # tuple (time_step_vect, indice_2D_arr)
-    
-    ind[:,:,:] = glob_indice[0][:,:,:]
-    
-
-    onc.setncattr('source', '') 
-    # set global attributs
-    set_globattr.title(onc, indice_name)        
-    set_globattr.references(onc)
-    set_globattr.comment(onc, indice_name)
-    set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
-    set_globattr.history2(onc, slice_mode, indice_name, time_range)
-
-    # set variable attributs
-
-    eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-    ind.setncattr('standard_name', 'ECA_indice')
-    # for all:
-    ind.missing_value = fill_val
-    
-    #print indice[1][:] # must be float or str!    
-    #time_steps = [str(i) for i in indice[1][:]]
-    
-    time_steps_indice_dt = glob_indice[1][:]
-    
-    time_bnds_dt = get_glob_time_bnds(time_steps_indice_dt, slice_mode)
-    
-    set_time_values(onc, time_steps_indice_dt, calend, units)
-    set_timebnds_values(onc, time_bnds_dt, calend, units)
-    
-    onc.close()
-    
-    #print "Indice " + indice_name + ": OK"
-    
-    return out_file

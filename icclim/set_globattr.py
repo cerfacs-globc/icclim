@@ -107,6 +107,21 @@ def history2(out_nc, calc_grouping, indice_name, time_range):
         mode = 'annual time series'
     elif calc_grouping == 'month':
         mode = 'monthly time series'
+    elif calc_grouping == 'DJF':
+        mode = 'winter time series'
+    elif calc_grouping == 'MAM':
+        mode = 'spring time series'
+    elif calc_grouping == 'JJA':
+        mode = 'summer time series'
+    elif calc_grouping == 'SON':
+        mode = 'autumn time series'
+    elif calc_grouping == 'ONDJFM':
+        mode = 'winter half-year time series'
+    elif calc_grouping == 'AMJJAS':
+        mode = 'summer half-year time series'
+        
+        
+        
     else:
         raise(NotImplementedError(calc_grouping))
     # etc ...

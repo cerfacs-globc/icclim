@@ -32,6 +32,10 @@ Elementary functions computing percentile based indices:
 - R95TOT
 - R99p
 - R99TOT
+- CD
+- CW
+- WD
+- WW
 '''
 
 ############# utility functions: begin #############
@@ -888,27 +892,29 @@ def R99TOT_calculation(arr, dt_arr, percentile_dict, fill_val=None):
     return R99TOT
 
 
-def CD_calculation(t_arr, t_25th_percentile_dict, p_arr, p_25th_percentile_dict, dt_arr, fill_val=None):
+def CD_calculation(t_arr, t_25th_percentile_dict, p_arr, p_25th_percentile_dict, dt_arr, fill_val1=None, fill_val2=None):
     '''
     Calculate the CD indice: number of cold and dry days.
     
-    param t_arr: daily mean temperature (e.g. "tas")
-    type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    param t_25th_percentile_dict: 25th percentile of daily min temperature
-    type t_25th_percentile_dict: dict
-    param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
-    type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    param p_25th_percentile_dict: 25th percentile of daily precipitation amount at wet days in mm/day
-    type p_25th_percentile_dict: dict
-    param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
-    type dt_arr: numpy.ndarray (1D) of datetime objects
-    param fill_val: fill value
-    type fill_val: float
+    :param t_arr: daily mean temperature (e.g. "tas")
+    :type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param t_25th_percentile_dict: 25th percentile of daily min temperature
+    :type t_25th_percentile_dict: dict
+    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    :type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param p_25th_percentile_dict: 25th percentile of daily precipitation amount at wet days in mm/day
+    :type p_25th_percentile_dict: dict
+    :param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param fill_val1: fill value of t_arr
+    :type fill_val1: float
+    :param fill_val2: fill value of p_arr
+    :type fill_val2: float   
     
     :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
     or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
     
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    .. warning:: If "t_arr" and "p_arr" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
     .. note:: Both input array must be the same type.
     
@@ -918,8 +924,8 @@ def CD_calculation(t_arr, t_25th_percentile_dict, p_arr, p_25th_percentile_dict,
         
     
     # 1) we mask both arrays: t_arr and p_arr
-    t_arr_masked = get_masked_arr(t_arr, fill_val)
-    p_arr_masked = get_masked_arr(p_arr, fill_val)
+    t_arr_masked = get_masked_arr(t_arr, fill_val1)
+    p_arr_masked = get_masked_arr(p_arr, fill_val2)
 
     # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
     p_arr_masked = p_arr_masked*60*60*24            # mm/day
@@ -965,27 +971,29 @@ def CD_calculation(t_arr, t_25th_percentile_dict, p_arr, p_25th_percentile_dict,
     return CD
 
 
-def CW_calculation(t_arr, t_25th_percentile_dict, p_arr, p_75th_percentile_dict, dt_arr, fill_val=None):
+def CW_calculation(t_arr, t_25th_percentile_dict, p_arr, p_75th_percentile_dict, dt_arr, fill_val1=None, fill_val2=None):
     '''
     Calculate the CW indice: number of cold and wet days.
     
-    param t_arr: daily mean temperature (e.g. "tas")
-    type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    param t_25th_percentile_dict: 25th percentile of daily min temperature
-    type t_25th_percentile_dict: dict
-    param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
-    type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    param p_75th_percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
-    type p_75th_percentile_dict: dict
-    param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
-    type dt_arr: numpy.ndarray (1D) of datetime objects
-    param fill_val: fill value
-    type fill_val: float
+    :param t_arr: daily mean temperature (e.g. "tas")
+    :type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param t_25th_percentile_dict: 25th percentile of daily min temperature
+    :type t_25th_percentile_dict: dict
+    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    :type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param p_75th_percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
+    :type p_75th_percentile_dict: dict
+    :param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param fill_val1: fill value of t_arr
+    :type fill_val1: float
+    :param fill_val2: fill value of p_arr
+    :type fill_val2: float 
     
     :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
     or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
     
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    .. warning:: If "t_arr" and "p_arr" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
     .. note:: Both input array must be the same type.
     
@@ -995,8 +1003,8 @@ def CW_calculation(t_arr, t_25th_percentile_dict, p_arr, p_75th_percentile_dict,
         
     
     # 1) we mask both arrays: t_arr and p_arr
-    t_arr_masked = get_masked_arr(t_arr, fill_val)
-    p_arr_masked = get_masked_arr(p_arr, fill_val)
+    t_arr_masked = get_masked_arr(t_arr, fill_val1)
+    p_arr_masked = get_masked_arr(p_arr, fill_val2)
 
     # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
     p_arr_masked = p_arr_masked*60*60*24            # mm/day
@@ -1043,27 +1051,29 @@ def CW_calculation(t_arr, t_25th_percentile_dict, p_arr, p_75th_percentile_dict,
 
 
 
-def WD_calculation(t_arr, t_75th_percentile_dict, p_arr, p_25th_percentile_dict, dt_arr, fill_val=None):
+def WD_calculation(t_arr, t_75th_percentile_dict, p_arr, p_25th_percentile_dict, dt_arr, fill_val1=None, fill_val2=None):
     '''
     Calculate the WD indice: number of warm and dry days.
     
-    param t_arr: daily mean temperature (e.g. "tas")
-    type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    param t_75th_percentile_dict: 75th percentile of daily min temperature
-    type t_75th_percentile_dict: dict
-    param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
-    type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    param p_25th_percentile_dict: 25th percentile of daily precipitation amount at wet days in mm/day
-    type p_25th_percentile_dict: dict
-    param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
-    type dt_arr: numpy.ndarray (1D) of datetime objects
-    param fill_val: fill value
-    type fill_val: float
+    :param t_arr: daily mean temperature (e.g. "tas")
+    :type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param t_75th_percentile_dict: 75th percentile of daily min temperature
+    :type t_75th_percentile_dict: dict
+    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    :type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param p_25th_percentile_dict: 25th percentile of daily precipitation amount at wet days in mm/day
+    :type p_25th_percentile_dict: dict
+    :param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param fill_val1: fill value of t_arr
+    :type fill_val1: float
+    :param fill_val2: fill value of p_arr
+    :type fill_val2: float 
     
     :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
     or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
     
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    .. warning:: If "t_arr" and "p_arr" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
     .. note:: Both input array must be the same type.
     
@@ -1073,8 +1083,8 @@ def WD_calculation(t_arr, t_75th_percentile_dict, p_arr, p_25th_percentile_dict,
         
     
     # 1) we mask both arrays: t_arr and p_arr
-    t_arr_masked = get_masked_arr(t_arr, fill_val)
-    p_arr_masked = get_masked_arr(p_arr, fill_val)
+    t_arr_masked = get_masked_arr(t_arr, fill_val1)
+    p_arr_masked = get_masked_arr(p_arr, fill_val2)
 
     # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
     p_arr_masked = p_arr_masked*60*60*24            # mm/day
@@ -1120,27 +1130,29 @@ def WD_calculation(t_arr, t_75th_percentile_dict, p_arr, p_25th_percentile_dict,
     return WD
 
 
-def WW_calculation(t_arr, t_75th_percentile_dict, p_arr, p_75th_percentile_dict, dt_arr, fill_val=None):
+def WW_calculation(t_arr, t_75th_percentile_dict, p_arr, p_75th_percentile_dict, dt_arr, fill_val1=None, fill_val2=None):
     '''
     Calculate the WW indice: number of warm and wet days.
     
-    param t_arr: daily mean temperature (e.g. "tas")
-    type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    param t_75th_percentile_dict: 75th percentile of daily min temperature
-    type t_75th_percentile_dict: dict
-    param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
-    type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    param p_75th_percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
-    type p_75th_percentile_dict: dict
-    param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
-    type dt_arr: numpy.ndarray (1D) of datetime objects
-    param fill_val: fill value
-    type fill_val: float
+    :param t_arr: daily mean temperature (e.g. "tas")
+    :type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param t_75th_percentile_dict: 75th percentile of daily min temperature
+    :type t_75th_percentile_dict: dict
+    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    :type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param p_75th_percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
+    :type p_75th_percentile_dict: dict
+    :param dt_arr: time steps vector corresponding to both input arrays (``t_arr`` and ``dt_arr``) 
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param fill_val1: fill value of t_arr
+    :type fill_val1: float
+    :param fill_val2: fill value of p_arr
+    :type fill_val2: float 
     
     :rtype: numpy.ndarray (2D)        (if ``t_arr`` and ``p_arr`` is numpy.ndarray)
     or numpy.ma.MaskedArray (2D) (if ``t_arr`` and ``p_arr`` is numpy.ma.MaskedArray)
     
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    .. warning:: If "t_arr" and "p_arr" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
     .. note:: Both input array must be the same type.
     
@@ -1150,8 +1162,8 @@ def WW_calculation(t_arr, t_75th_percentile_dict, p_arr, p_75th_percentile_dict,
         
     
     # 1) we mask both arrays: t_arr and p_arr
-    t_arr_masked = get_masked_arr(t_arr, fill_val)
-    p_arr_masked = get_masked_arr(p_arr, fill_val)
+    t_arr_masked = get_masked_arr(t_arr, fill_val1)
+    p_arr_masked = get_masked_arr(p_arr, fill_val2)
 
     # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
     p_arr_masked = p_arr_masked*60*60*24            # mm/day
