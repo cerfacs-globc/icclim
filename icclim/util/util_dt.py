@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 #from netCDF4 import num2date, date2num, Dataset, MFDataset
 from netCDF4 import Dataset
 import numpy
+import sys
 
 
 def get_list_dates_from_nc(nc, type_dates):
