@@ -77,7 +77,7 @@ summer, autumn and monthly values:
 |  ``SON``             |    autumn             |
 +----------------------+-----------------------+
 
-.. note:: Example: The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
+.. note:: The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
             Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001. 
 
 

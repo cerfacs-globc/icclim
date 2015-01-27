@@ -195,12 +195,21 @@ def indice(indice_name,
     
     #global calend, units
     
+    ncVar_time = inc.variables[indice_dim[index_time]]
+    
     try:
-        calend = util_nc.get_att_value(inc, indice_dim[index_time], 'calendar')
+       calend = ncVar_time.calendar
     except:
         calend = 'gregorian'
+        
+    units = ncVar_time.units
     
-    units = util_nc.get_att_value(inc, indice_dim[index_time], 'units')
+    #try:
+    #    calend = util_nc.get_att_value(inc, indice_dim[index_time], 'calendar')
+    #except:
+    #    calend = 'gregorian'
+    #
+    #units = util_nc.get_att_value(inc, indice_dim[index_time], 'units')
     
 
     ind_type = 'f'
@@ -215,7 +224,7 @@ def indice(indice_name,
     
 
     
-    ############## ???????????????????
+
     if time_range == None:
         time_range = util_dt.get_time_range(in_files, temporal_var_name=indice_dim[0])
         
@@ -225,9 +234,7 @@ def indice(indice_name,
         dt = util_dt.num2date(t_arr[0], calend, units)
         del t_arr
         time_range = util_dt.adjust_time_range(time_range, dt)
-        
-    ############## ???????????????????
-    ######## only to get a time range to pass then it to the next function
+
     
     inc.close()
     if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
@@ -731,8 +738,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     units = var_time.units
     
     
-    
-    ############## ???????????????????
+
     if time_range == None:
         time_range = util_dt.get_time_range(in_files, temporal_var_name=temporal_variable)
         
@@ -742,9 +748,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
         dt = util_dt.num2date(t_arr[0], calend, units)
         del t_arr
         time_range = util_dt.adjust_time_range(time_range, dt)
-        
-    ############## ???????????????????
-    ######## only to get a time range to pass then it to the next function
+
     
     nc0.close()
     
