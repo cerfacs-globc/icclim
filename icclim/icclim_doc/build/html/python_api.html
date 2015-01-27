@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Python API &mdash; ICCLIM 2.2 documentation</title>
+    <title>Python API &mdash; ICCLIM 3.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.2',
+        VERSION:     '3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="ICCLIM 2.2 documentation" href="index.html" />
+    <link rel="top" title="ICCLIM 3.0 documentation" href="index.html" />
     <link rel="next" title="Output metadata" href="output_metadata.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
   </head>
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="installation.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">ICCLIM 2.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">ICCLIM 3.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,23 +54,58 @@
             
   <div class="section" id="python-api">
 <h1>Python API<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h1>
-<p>First, import the ICCLIM library:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">icclim</span>
-</pre></div>
+<div class="section" id="icclim-indice-compute-indice">
+<h2><a class="reference internal" href="#icclim.indice" title="icclim.indice"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice()</span></tt></a> &#8211; Compute indice<a class="headerlink" href="#icclim-indice-compute-indice" title="Permalink to this headline">¶</a></h2>
+<p>This is the main function to compute an indice:</p>
+<span class="target" id="module-icclim"></span><dl class="function">
+<dt id="icclim.indice">
+<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>indice_name</em>, <em>in_files</em>, <em>var_name</em>, <em>slice_mode=None</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>transfer_limit_Mbytes=None</em>, <em>callback=None</em>, <em>callback_percentage_start_value=0</em>, <em>callback_percentage_total=100</em>, <em>percentile_dict=None</em>, <em>in_files2=None</em>, <em>var_name2=None</em>, <em>percentile_dict2=None</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Climate indice name.</li>
+<li><strong>in_files</strong> (<em>list of str</em>) &#8211; Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).</li>
+<li><strong>var_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Target variable name to process corresponding to <tt class="docutils literal"><span class="pre">in_files</span></tt>.</li>
+<li><strong>slice_mode</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Type of temporal aggregation: &#8220;year&#8221;, &#8220;month&#8221;, &#8220;DJF&#8221;, &#8220;MAM&#8221;, &#8220;JJA&#8221;, &#8220;SON&#8221;, &#8220;ONDJFM&#8221; or &#8220;AMJJAS&#8221;. If <tt class="docutils literal"><span class="pre">None</span></tt>, the indice will be calculated as monthly values.</li>
+<li><strong>time_range</strong> (<em>[datetime.datetime, datetime.datetime]</em>) &#8211; Temporal range: upper and lower bounds for temporal subsetting. If <tt class="docutils literal"><span class="pre">None</span></tt>, whole period of input files will be processed.</li>
+<li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Output NetCDF file name (default: &#8220;icclim_out.nc&#8221; in the current directory).</li>
+<li><strong>threshold</strong> (<em>float or list of floats</em>) &#8211; User defined threshold for certain indices.</li>
+<li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Level number if 4D variable.</li>
+<li><strong>transfer_limit_Mbytes</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.</li>
+<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; Progress bar printing. If <tt class="docutils literal"><span class="pre">None</span></tt>, progress bar will not be printed.</li>
+<li><strong>callback_percentage_start_value</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Initial value of percentage of the progress bar (default: 0).</li>
+<li><strong>callback_percentage_total</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Total persentage value (default: 100).</li>
+<li><strong>percentile_dict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; For percentile-based indices: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a>, corresponding to <tt class="docutils literal"><span class="pre">var_name</span></tt>.</li>
+<li><strong>in_files2</strong> (<em>list of str</em>) &#8211; Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).</li>
+<li><strong>var_name2</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Target variable name to process corresponding to <tt class="docutils literal"><span class="pre">in_files2</span></tt>.</li>
+<li><strong>percentile_dict2</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; For percentile-based indices: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a>, corresponding to <tt class="docutils literal"><span class="pre">var_name2</span></tt>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">path to NetCDF file</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If <tt class="docutils literal"><span class="pre">out_file</span></tt> already exists, Icclim will overwrite it!</p>
 </div>
-<div class="section" id="main-functions-to-compute-climate-indices">
-<h2>Main functions to compute climate indices<a class="headerlink" href="#main-functions-to-compute-climate-indices" title="Permalink to this headline">¶</a></h2>
-<p>Depending on the type of climate indice, use the appropriate function:</p>
+</dd></dl>
+
+<p>Set of required parameters varies depending on indice&#8217;s type. (The table below shows necessary parameters depending on ind.)</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="18%" />
-<col width="41%" />
-<col width="41%" />
+<col width="20%" />
+<col width="55%" />
+<col width="25%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">&nbsp;</th>
 <th class="head">Indice</th>
-<th class="head">Function</th>
+<th class="head">Required parameters</th>
 </tr>
 </thead>
 <tbody valign="top">
@@ -79,189 +114,159 @@
 ID, HD17,
 CDD, CWD, RR, RR1, SDII, R10mm, R20mm, RX1day, RX5day,
 SD, SD1, SD5cm, SD50cm</td>
-<td><a class="reference internal" href="#func-indice-label"><em>indice(...)</em></a></td>
+<td><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">indice_name</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">in_files</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">var_name</span></tt></li>
+</ul>
+</td>
 </tr>
-<tr class="row-odd"><td>multivariate indice</td>
+<tr class="row-odd"><td>multivariable-based
+indice</td>
 <td>DTR, ETR, vDTR</td>
-<td><a class="reference internal" href="#func-indice-multivar-label"><em>indice_multivar(...)</em></a></td>
+<td><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">indice_name</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">in_files</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">var_name</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">in_files2</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">var_name2</span></tt></li>
+</ul>
+</td>
 </tr>
-<tr class="row-even"><td>percentile-based indice</td>
+<tr class="row-even"><td>percentile-based
+indice</td>
 <td>TG10p, TX10p, TN10p, TG90p, TX90p, TN90p, WSDI, CSDI,
 R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
-<td><a class="reference internal" href="#func-indice-perc-label"><em>indice_perc(...)</em></a></td>
+<td><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">indice_name</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">in_files</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">var_name</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">percentile_dict</span></tt></li>
+</ul>
+</td>
 </tr>
-<tr class="row-odd"><td>compound
-percentile-based indice</td>
+<tr class="row-odd"><td>multivariable
+percentile-based
+indice</td>
 <td>CD, CW, WD, WW</td>
-<td><a class="reference internal" href="#func-indice-compound-label"><em>indice_compound(...)</em></a></td>
-</tr>
-</tbody>
-</table>
-<p>Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.</p>
-<span class="target" id="module-icclim"><span id="func-indice-label"></span></span><dl class="function">
-<dt id="icclim.indice">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>threshold=None</em>, <em>N_lev=None</em>, <em>callback=None</em><big>)</big><a class="headerlink" href="#icclim.indice" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)</li>
-<li><strong>var</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
-<li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
-<li><strong>slice_mode</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;year&#8221; for annual values, &#8220;month&#8221; for monthly values</li>
-<li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range, if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
-<li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file name (defaut: &#8220;icclim_out.nc&#8221; in the current directory)</li>
-<li><strong>threshold</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; user defined threshold for certain indices</li>
-<li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
+<td><ul class="first last simple">
+<li><tt class="docutils literal"><span class="pre">indice_name</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">in_files</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">var_name</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">percentile_dict</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">in_files2</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">var_name2</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">percentile_dict2</span></tt></li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">path to NetCDF file</p>
-</td>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For the variable names see the <a class="reference internal" href="#table-indice-sourcevar-label"><em>correspondence table &#8220;indice - source variable&#8221;</em></a></p>
+</div>
+<p>For examples see the <a class="reference internal" href="#examples-label"><em>example section</em></a>.</p>
+<p>Below some additionnal information about input parameters.</p>
+<div class="section" id="slice-mode">
+<h3>slice_mode<a class="headerlink" href="#slice-mode" title="Permalink to this headline">¶</a></h3>
+<p>The <tt class="docutils literal"><span class="pre">slice_mode</span></tt> parameter defines a desired temporal aggregation. Thus, each indice can be calculated as annual, winter half-year, summer half-year, winter, spring,
+summer, autumn and monthly values:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="49%" />
+<col width="51%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Value (string)</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">year</span></tt> (default)</td>
+<td>annual</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">month</span></tt></td>
+<td>monthly</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">ONDJFM</span></tt></td>
+<td>winter half-year</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">AMJJAS</span></tt></td>
+<td>summer half-year</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">DJF</span></tt></td>
+<td>winter</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">MAM</span></tt></td>
+<td>spring</td>
+</tr>
+<tr class="row-even"><td><tt class="docutils literal"><span class="pre">JJA</span></tt></td>
+<td>summer</td>
+</tr>
+<tr class="row-odd"><td><tt class="docutils literal"><span class="pre">SON</span></tt></td>
+<td>autumn</td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">If <tt class="docutils literal"><span class="pre">out_file</span></tt> already exists, Icclim will overwrite it!</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Example: The winter season (<tt class="docutils literal"><span class="pre">DJF</span></tt>) of 2000 is composed of December 2000, January 2001 and February 2001.
+Likewise, the winter half-year (<tt class="docutils literal"><span class="pre">ONDJFM</span></tt>) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001.</p>
 </div>
-<p>To compute the SU indice (annual time series):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">glob</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_path</span> <span class="o">=</span> <span class="s">&#39;/data/tatarinova/CMIP5/tasmax_day/&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">input_path</span> <span class="o">+</span> <span class="s">&#39;*.nc&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out_file</span> <span class="o">=</span> <span class="s">&#39;/data/tatarinova/tmp/indice_SU_year_1860-1890.nc&#39;</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1860</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1890</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">icclim</span><span class="o">.</span><span class="n">indice</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;SU&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">],</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;year&#39;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="s">&#39;CMIP5&#39;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span><span class="p">)</span>
+</div>
+<div class="section" id="threshold">
+<h3>threshold<a class="headerlink" href="#threshold" title="Permalink to this headline">¶</a></h3>
+<p>It is possible to set a user define threshold for indices <strong>SU</strong> (default threshold: 25), <strong>CSU</strong> (default threshold: 25), <strong>TR</strong> (default threshold: 20).
+The threshold could be one value:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">threshold</span> <span class="o">=</span> <span class="mi">30</span>
 </pre></div>
 </div>
-<p>The output dataset will contain the SU indice (3D array) of 31 time steps (31 years).</p>
-<p>To get a derived indice from SU, CSU or TR indices, set the <tt class="docutils literal"><span class="pre">threshold</span></tt> parameter (in Celsius):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">iicclim</span><span class="o">.</span><span class="n">indice</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;SU&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">],</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;year&#39;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="s">&#39;CMIP5&#39;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_file</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<p>or a list of values:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">threshold</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span><span class="mi">25</span><span class="p">,</span><span class="mi">30</span><span class="p">]</span>
 </pre></div>
 </div>
-<span class="target" id="module-icclim"><span id="func-indice-multivar-label"></span></span><dl class="function">
-<dt id="icclim.indice_multivar">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_multivar</tt><big>(</big><em>in_files1</em>, <em>var1</em>, <em>in_files2</em>, <em>var2</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=None</em><big>)</big><a class="headerlink" href="#icclim.indice_multivar" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files1</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the &#8220;var1&#8221;</li>
-<li><strong>var1</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; daily max temperature (e.g. &#8220;tasmax&#8221;)</li>
-<li><strong>in_files2</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to the &#8220;var2&#8221;</li>
-<li><strong>var2</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; daily min temperature (e.g. &#8220;tasmin&#8221;)</li>
-<li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
-<li><strong>slice_mode</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;year&#8221; for annual values, &#8220;month&#8221; for monthly values</li>
-<li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range, if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
-<li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file name (defaut: &#8220;icclim_out.nc&#8221; in the current directory)</li>
-<li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">path to NetCDF file</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">The both file lists must be identical, i.e. each corresponding file must contain the same time step vector.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Units of <tt class="docutils literal"><span class="pre">threshold</span></tt> must be in degrees Celsius.</p>
 </div>
-</dd></dl>
+</div>
+<div class="section" id="transfer-limit-mbytes">
+<h3>transfer_limit_Mbytes<a class="headerlink" href="#transfer-limit-mbytes" title="Permalink to this headline">¶</a></h3>
+<p>In case of OPeNDAP datasets, if the request is bigger than the maximum OPeNDAP/THREDDS request limit, you will probably get an error message like:</p>
+<blockquote>
+<div><div class="highlight-rest"><div class="highlight"><pre>context: Error { code = 403; message = &quot;Request too big=1875.0 Mbytes, max=500.0&quot;^;};
 
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">file_tasmax1</span> <span class="o">=</span> <span class="s">&#39;tasmax_day_CNRM-CM5_historical_r1i1p1_19050101-19091231.nc&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">file_tasmax2</span> <span class="o">=</span> <span class="s">&#39;tasmax_day_CNRM-CM5_historical_r1i1p1_19100101-19141231.nc&#39;</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">file_tasmin1</span> <span class="o">=</span> <span class="s">&#39;tasmin_day_CNRM-CM5_historical_r1i1p1_19050101-19091231.nc&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">file_tasmin2</span> <span class="o">=</span> <span class="s">&#39;tasmin_day_CNRM-CM5_historical_r1i1p1_19100101-19141231.nc&#39;</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1905</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1912</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
-<span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">icclim</span><span class="o">.</span><span class="n">indice_multivar</span><span class="p">(</span><span class="n">in_files1</span><span class="o">=</span><span class="p">[</span><span class="n">file_tasmax1</span><span class="p">,</span> <span class="n">file_tasmax2</span><span class="p">],</span> <span class="n">var1</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">in_files2</span><span class="o">=</span><span class="p">[</span><span class="n">file_tasmin1</span><span class="p">,</span> <span class="n">file_tasmin2</span><span class="p">],</span> <span class="n">var2</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;ETR&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">],</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;year&#39;</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="s">&#39;CMIP5&#39;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="s">&#39;indice_ETR_year_1905_1912.nc&#39;</span><span class="p">)</span>
+<span class="cp">...</span>
+
+RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS
 </pre></div>
 </div>
-<span class="target" id="module-icclim"><span id="func-indice-perc-label"></span></span><dl class="function">
-<dt id="icclim.indice_perc">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_perc</tt><big>(</big><em>in_files</em>, <em>var</em>, <em>indice_name</em>, <em>percentile_dict</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=None</em>, <em>callback_percentage_total=100</em><big>)</big><a class="headerlink" href="#icclim.indice_perc" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)</li>
-<li><strong>var</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
-<li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
-<li><strong>percentile_dict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a></li>
-<li><strong>slice_mode</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;year&#8221; for annual values, &#8220;month&#8221; for monthly values (default: &#8220;year&#8221;)</li>
-<li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range, if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
-<li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file name (defaut: &#8220;icclim_out.nc&#8221; in the current directory)</li>
-<li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
-<li><strong>callback_percentage_total</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; default 100</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">path to NetCDF file</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Before using this function, create first a <a class="reference internal" href="#creation-daily-percentile-dictionary-label"><em>daily percentile dictionary</em></a> to pass it then to the <tt class="docutils literal"><span class="pre">percentile_dict</span></tt> parameter.</p>
+</div></blockquote>
+<p>That means that your transfer limit is fixed to 500 Mbytes.</p>
+<p>It is possible to realize spatial chunking (i.e. cut data spacially into chunks, where each one does not exceed the request limit)
+to transfer then data chunk-by-chunk.
+The <tt class="docutils literal"><span class="pre">transfer_limit_Mbytes</span></tt> parameter, required to estimate an optimal data chunk size, should be set to the request limit:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">transfer_limit_Mbytes</span> <span class="o">=</span> <span class="mi">500</span>
+</pre></div>
 </div>
-</dd></dl>
-
-<span class="target" id="module-icclim"><span id="func-indice-compound-label"></span></span><dl class="function">
-<dt id="icclim.indice_compound">
-<tt class="descclassname">icclim.</tt><tt class="descname">indice_compound</tt><big>(</big><em>in_files_t</em>, <em>var_t</em>, <em>percentile_dict_t</em>, <em>in_files_p</em>, <em>var_p</em>, <em>percentile_dict_p</em>, <em>indice_name</em>, <em>slice_mode</em>, <em>time_range=None</em>, <em>out_file='./icclim_out.nc'</em>, <em>N_lev=None</em>, <em>callback=None</em>, <em>callback_percentage_total=100</em><big>)</big><a class="headerlink" href="#icclim.indice_compound" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files_t</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to daily mean temperature</li>
-<li><strong>var_t</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name corresponding to <tt class="docutils literal"><span class="pre">in_files_t</span></tt> (e.g. &#8220;tas&#8221;)</li>
-<li><strong>percentile_dict_t</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a> corresponding to daily mean temperature</li>
-<li><strong>in_files_p</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs) corresponding to daily precipitation flux (liquid form)</li>
-<li><strong>var_p</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name corresponding to <tt class="docutils literal"><span class="pre">in_files_p</span></tt> (e.g. &#8220;pr&#8221;)</li>
-<li><strong>percentile_dict_p</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a> corresponding to daily precipitation flux (liquid form)</li>
-<li><strong>indice_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; climate indice name</li>
-<li><strong>slice_mode</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;year&#8221; for annual values, &#8220;month&#8221; for monthly values (default: &#8220;year&#8221;)</li>
-<li><strong>time_range</strong> (<em>list of 2 datetime objects [dt1, dt2]</em>) &#8211; time range, if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
-<li><strong>out_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output NetCDF file name (defaut: &#8220;icclim_out.nc&#8221; in the current directory)</li>
-<li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; level number if 4D variable</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
-<li><strong>callback_percentage_total</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; default 100</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">path to NetCDF file</p>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Before using this function, create first two <a class="reference internal" href="#creation-daily-percentile-dictionary-label"><em>daily percentile dictionaries</em></a> to pass them to the <tt class="docutils literal"><span class="pre">percentile_dict_t</span></tt> and <tt class="docutils literal"><span class="pre">percentile_dict_p</span></tt> parameters.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If that does not work, try to reduce the <tt class="docutils literal"><span class="pre">transfer_limit_Mbytes</span></tt> value.</p>
 </div>
-</dd></dl>
-
 </div>
-<div class="section" id="create-a-daily-percentile-dictionary">
-<span id="creation-daily-percentile-dictionary-label"></span><h2>Create a daily percentile dictionary<a class="headerlink" href="#create-a-daily-percentile-dictionary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="callback">
+<h3>callback<a class="headerlink" href="#callback" title="Permalink to this headline">¶</a></h3>
+<p>The percentage progress bar is printed if the <tt class="docutils literal"><span class="pre">callback</span></tt> parameter is set to a callback function.
+The dafault callback functions are defined in <a class="reference external" href="link">util.callback.py</a>. (They both displays the same message: Processing.)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">util.callback</span> <span class="kn">as</span> <span class="nn">callback</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cb</span> <span class="o">=</span> <span class="n">callback</span><span class="o">.</span><span class="n">defaultCallback</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="icclim-get-percentile-dict-compute-daily-percentiles">
+<span id="creation-daily-percentile-dictionary-label"></span><h2><a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a> &#8211; Compute daily percentiles<a class="headerlink" href="#icclim-get-percentile-dict-compute-daily-percentiles" title="Permalink to this headline">¶</a></h2>
 <p>Daily percentile values are computed from values inside a reference period, named <em>base period</em> which is usually 30 years (i.e. 1961-1990).</p>
 <dl class="docutils">
 <dt>The <em>window width</em> is an odd number of days (usually 5) which will be extracted from all years in the base period; the window is centred on a certain calendar day, for example:</dt>
@@ -276,23 +281,25 @@ to compute its percentile value.</p>
 <p>The function <a class="reference internal" href="#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a> creates a dictionary where each calendar day (key) has a corresponding 2D array with percentile values:</p>
 <span class="target" id="module-icclim"></span><dl class="function">
 <dt id="icclim.get_percentile_dict">
-<tt class="descclassname">icclim.</tt><tt class="descname">get_percentile_dict</tt><big>(</big><em>in_files</em>, <em>var_name</em>, <em>percentile</em>, <em>window_width=5</em>, <em>time_range=None</em>, <em>only_leap_years=False</em>, <em>save_to_file=None</em>, <em>transfer_limit_bytes=None</em>, <em>callback=None</em>, <em>callback_percentage_total=100</em>, <em>precipitation=False</em><big>)</big><a class="headerlink" href="#icclim.get_percentile_dict" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">icclim.</tt><tt class="descname">get_percentile_dict</tt><big>(</big><em>in_files</em>, <em>var_name</em>, <em>percentile</em>, <em>window_width=5</em>, <em>time_range=None</em>, <em>only_leap_years=False</em>, <em>save_to_file=None</em>, <em>transfer_limit_Mbytes=None</em>, <em>callback=None</em>, <em>callback_percentage_start_value=0</em>, <em>callback_percentage_total=100</em>, <em>precipitation=False</em>, <em>N_lev=None</em><big>)</big><a class="headerlink" href="#icclim.get_percentile_dict" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>in_files</strong> (<em>list of str</em>) &#8211; absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)</li>
-<li><strong>var_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; variable name to process</li>
-<li><strong>percentile</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; percentile to compute which must be between 0 and 100 inclusive</li>
-<li><strong>window_width</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; window width, must be odd (default: 5)</li>
-<li><strong>time_range</strong> (<em>list of 2 datetime objects: [dt1, dt2]</em>) &#8211; time range of the base period (usually: 1961-1990), if <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed</li>
-<li><strong>only_leap_years</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; option for February 29th (default: False)</li>
-<li><strong>save_to_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; output file name which will contain the created daily percentiles dictionary (default: None)</li>
-<li><strong>transfer_limit_bytes</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; maximum OPeNDAP/THREDDS request limit in bytes (default: None)</li>
-<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; progress bar, if <tt class="docutils literal"><span class="pre">None</span></tt> progress bar will not be printed</li>
-<li><strong>callback_percentage_total</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; default 100</li>
-<li><strong>precipitation</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; just to inticate if <tt class="docutils literal"><span class="pre">arr</span></tt> is precipitation (<cite>True</cite>) or other variable (<cite>False</cite>) to process data differently (default: False)</li>
+<li><strong>in_files</strong> (<em>list of str</em>) &#8211; Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).</li>
+<li><strong>var_name</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Target variable name to process.</li>
+<li><strong>percentile</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Percentile value to compute which must be between 0 and 100 inclusive.</li>
+<li><strong>window_width</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Window width, must be odd (default: 5).</li>
+<li><strong>time_range</strong> (<em>[datetime.datetime, datetime.datetime]</em>) &#8211; Temporal range of the base period (usually: 1961-1990). If <tt class="docutils literal"><span class="pre">None</span></tt>: whole period of input files will be processed.</li>
+<li><strong>only_leap_years</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Option for February 29th (default: False).</li>
+<li><strong>save_to_file</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Output file name which will contain the created daily percentiles dictionary.</li>
+<li><strong>transfer_limit_Mbytes</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.</li>
+<li><strong>callback</strong> (<tt class="xref py py-func docutils literal"><span class="pre">callback.defaultCallback()</span></tt>) &#8211; Progress bar printing. If <tt class="docutils literal"><span class="pre">None</span></tt>, progress bar will not be printed.</li>
+<li><strong>callback_percentage_start_value</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Initial value of percentage of the progress bar (default: 0).</li>
+<li><strong>callback_percentage_total</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Total persentage value (default: 100).</li>
+<li><strong>precipitation</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; Parameter to inticate if the variable to process is precipitation (<cite>True</cite>) or not (<cite>False</cite>) to process data differently (default: False).</li>
+<li><strong>N_lev</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Level number if 4D variable.</li>
 </ul>
 </td>
 </tr>
@@ -301,12 +308,22 @@ to compute its percentile value.</p>
 </tr>
 </tbody>
 </table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Precipitation variable must be in mm/s !</p>
+</div>
 </dd></dl>
 
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The function uses the <a class="reference external" href="http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.percentile.html">numpy.percentile</a> function with &#8220;linear&#8221; interpolation method as default.</p>
+<p class="last">The function computed percentiles uses linear interpolation method.</p>
 </div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma, i.e. to get for example the 2D percentile array for <em>April 13th</em> it will looks like <em>my_perc_dict[4,13]</em>.</p>
+</div>
+<div class="section" id="only-leap-years">
+<h3>only_leap_years<a class="headerlink" href="#only-leap-years" title="Permalink to this headline">¶</a></h3>
 <p>The <tt class="docutils literal"><span class="pre">only_leap_years</span></tt> parameter selects which of two methods to use for calculating a percentile value for the calendar day of <strong>February 29th</strong>:</p>
 <blockquote>
 <div><ul>
@@ -383,50 +400,149 @@ to compute its percentile value.</p>
 </ul>
 <p>The second way is preferable, because we have more samples.</p>
 </div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma, i.e. to get for example the 2D percentile array for <em>April 13th</em> it will looks like <em>my_perc_dict[4,13]</em>.</p>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">file_base1</span> <span class="o">=</span> <span class="s">&#39;tasmin_day_CNRM-CM5_historical_r1i1p1_19510101-19701231.nc&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">file_base2</span> <span class="o">=</span> <span class="s">&#39;tasmin_day_CNRM-CM5_historical_r1i1p1_19710101-19901231.nc&#39;</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;tasmin_day_CNRM-CM5_historical_r1i1p1_19510101-19701231.nc&#39;</span><span class="p">,</span> <span class="s">&#39;tasmin_day_CNRM-CM5_historical_r1i1p1_19710101-19901231.nc&#39;</span><span class="p">]</span>
 <span class="go">&gt;&gt;&gt;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c"># time range for base period</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">base_dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1961</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">base_dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1990</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
 <span class="go">&gt;&gt;&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">perc_dict</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="p">[</span><span class="n">file_base1</span><span class="p">,</span> <span class="n">file_base2</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">perc_dict</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">])</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>The dictionary with daily percentiles can be saved in <a class="reference external" href="https://docs.python.org/2/library/pickle.html#">pickle</a> file (the <tt class="docutils literal"><span class="pre">save_to_file</span></tt> parameter):</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">file_name</span> <span class="o">=</span> <span class="s">&#39;my_perc_dict.pkl&#39;</span>
+<p>To get 2D numpy array with percentiles for <em>31th November</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="mi">10</span><span class="n">th_perc_31November</span> <span class="o">=</span>  <span class="n">perc_dict</span><span class="p">[</span><span class="mi">11</span><span class="p">,</span><span class="mi">31</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="save-to-file">
+<h3>save_to_file<a class="headerlink" href="#save-to-file" title="Permalink to this headline">¶</a></h3>
+<p>The dictionary with daily percentiles can be saved in <a class="reference external" href="https://docs.python.org/2/library/pickle.html#">pickle</a> file:</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">file_name</span> <span class="o">=</span> <span class="s">&#39;my_perc_dict.pkl&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">perc_dict</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="p">[</span><span class="n">file_base1</span><span class="p">,</span> <span class="n">file_base2</span><span class="p">],</span> <span class="n">var</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">],</span> <span class="n">save_to_file</span><span class="o">=</span><span class="n">file_name</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>To load the dictionary from file just do the following:</p>
-<div class="last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pickle</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pickle</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="n">pd</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p>To process OPeNDAP datasets one needs to set the <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt> in bytes. This parameter is required to estimate an optimal data chunk size to transfer then data chunk-by-chunk in case if the request is bigger than the maximum OPeNDAP/THREDDS request limit. To know your maximum request limit, you can try to run the function without <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt>, you will probably get an error message like:</p>
-<p><strong>context: Error { code = 403; message = &#8220;Request too big=1875.0 Mbytes, max=500.0&#8221;^;};</strong>
-...
-<strong>RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS</strong></p>
-<p class="last">That means that your maximum request limit is 500 Mbytes, so set the <tt class="docutils literal"><span class="pre">transfer_limit_bytes</span></tt> to 500000000 [bytes]. If that does not work, try to reduce it a bit to let&#8217;s say 450000000 [bytes].</p>
+</div></blockquote>
 </div>
 </div>
-<div class="section" id="callback">
-<h2>Callback<a class="headerlink" href="#callback" title="Permalink to this headline">¶</a></h2>
-<p>If you want the progress bar to be printed, use the default callback function from the <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/callback.py">callback</a> module, i.e.
-set the <tt class="docutils literal"><span class="pre">callback</span></tt> parameter to <tt class="docutils literal"><span class="pre">icclim.callback.defaultCallback</span></tt>. (By default it is set to <tt class="docutils literal"><span class="pre">None</span></tt>, i.e. the progress bar will not be printed.)</p>
+<div class="section" id="examples">
+<span id="examples-label"></span><h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">icclim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
+</pre></div>
 </div>
-<div class="section" id="elementary-functions">
-<h2>Elementary functions<a class="headerlink" href="#elementary-functions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="example-1-indice-su">
+<h3>Example 1: indice SU<a class="headerlink" href="#example-1-indice-su" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;tasmax_day_CNRM-CM5_historical_r1i1p1_19950101-19991231.nc&#39;</span><span class="p">,</span> <span class="s">&#39;tasmax_day_CNRM-CM5_historical_r1i1p1_20000101-20041231.nc&#39;</span><span class="p">,</span> <span class="s">&#39;tasmax_day_CNRM-CM5_historical_r1i1p1_20050101-20051231.nc&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1998</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2005</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_f</span> <span class="o">=</span> <span class="s">&#39;SU_JJA_CNRM-CM5_historical_r1i1p1_1998-2005.nc&#39;</span> <span class="c"># summer season values of SU</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">icclim</span><span class="o">.</span><span class="n">indice</span><span class="p">(</span><span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;SU&#39;</span><span class="p">,</span> <span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;JJA&#39;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-2-indice-etr">
+<h3>Example 2: indice ETR<a class="headerlink" href="#example-2-indice-etr" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">files_tasmax</span> <span class="o">=</span> <span class="p">[</span><span class="n">tasmax_day_CNRM</span><span class="o">-</span><span class="n">CM5_historical_r1i1p1_19300101</span><span class="o">-</span><span class="mf">19341231.</span><span class="n">nc</span><span class="p">,</span> <span class="n">tasmax_day_CNRM</span><span class="o">-</span><span class="n">CM5_historical_r1i1p1_19350101</span><span class="o">-</span><span class="mf">19391231.</span><span class="n">nc</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">files_tasmin</span> <span class="o">=</span> <span class="p">[</span><span class="n">tasmin_day_CNRM</span><span class="o">-</span><span class="n">CM5_historical_r1i1p1_19300101</span><span class="o">-</span><span class="mf">19341231.</span><span class="n">nc</span><span class="p">,</span> <span class="n">tasmin_day_CNRM</span><span class="o">-</span><span class="n">CM5_historical_r1i1p1_19350101</span><span class="o">-</span><span class="mf">19391231.</span><span class="n">nc</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_f</span> <span class="o">=</span> <span class="s">&#39;ETR_month_CNRM-CM5_historical_r1i1p1_1930-1939.nc&#39;</span> <span class="c"># monthly values of ETR</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">icclim</span><span class="o">.</span><span class="n">indice</span><span class="p">(</span><span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;ETR&#39;</span><span class="p">,</span> <span class="n">in_files</span><span class="o">=</span><span class="n">files_tasmax</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s">&#39;tasmax&#39;</span><span class="p">,</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;month&#39;</span><span class="p">,</span> <span class="n">in_files2</span><span class="o">=</span><span class="n">files_tasmin</span><span class="p">,</span> <span class="n">var_name2</span><span class="o">=</span><span class="s">&#39;tasmin&#39;</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_f</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The couple of parameters <tt class="docutils literal"><span class="pre">in_files</span></tt> and <tt class="docutils literal"><span class="pre">var_name</span></tt> corresponds to daily maximum temperature. Likewise, <tt class="docutils literal"><span class="pre">in_files2</span></tt> and <tt class="docutils literal"><span class="pre">var_name2</span></tt> &#8211; to daily minimum temperature.</p>
+</div>
+</div>
+<div class="section" id="example-3-indice-tg90p">
+<h3>Example 3: indice TG90p<a class="headerlink" href="#example-3-indice-tg90p" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">tas_day_CNRM</span><span class="o">-</span><span class="n">CM5_historical_r1i1p1_19010101</span><span class="o">-</span><span class="mf">20001231.</span><span class="n">nc</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">## step 1: we compute the 90th daily percetile for the base period</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">base_dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1961</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">base_dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1990</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pd90</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">base_dt1</span><span class="p">,</span> <span class="n">base_dt2</span><span class="p">])</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">## step 2: we compute the indice</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1980</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_f</span> <span class="o">=</span> <span class="s">&#39;TG90p_AMJJAS_CNRM-CM5_historical_r1i1p1_1980-2000.nc&#39;</span> <span class="c"># summer half-year values of TG90p</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">icclim</span><span class="o">.</span><span class="n">indice</span><span class="p">(</span><span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;TG90p&#39;</span><span class="p">,</span> <span class="n">in_files</span><span class="o">=</span><span class="n">files</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">slice_mode</span><span class="o">=</span><span class="s">&#39;AMJJAS&#39;</span><span class="p">,</span> <span class="n">percentile_dict</span><span class="o">=</span><span class="n">pd90</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_f</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-4-indice-cw">
+<h3>Example 4: indice CW<a class="headerlink" href="#example-4-indice-cw" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">files_tas</span> <span class="o">=</span> <span class="p">[</span><span class="n">tas_day_CNRM</span><span class="o">-</span><span class="n">CM5_historical_r1i1p1_19010101</span><span class="o">-</span><span class="mf">20001231.</span><span class="n">nc</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">files_pr</span> <span class="o">=</span> <span class="p">[</span><span class="n">pr_day_CNRM</span><span class="o">-</span><span class="n">CM5_historical_r1i1p1_19010101</span><span class="o">-</span><span class="mf">20001231.</span><span class="n">nc</span><span class="p">]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">base_period</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1961</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1990</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)]</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">## step 1: we compute 25th daily percentile of &#39;tas&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pd25_tas</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files_tas</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="n">base_period</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">## step 2: we compute 75th daily percentile of &#39;pr&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pd75_pr</span> <span class="o">=</span> <span class="n">icclim</span><span class="o">.</span><span class="n">get_percentile_dict</span><span class="p">(</span><span class="n">in_files</span><span class="o">=</span><span class="n">files_pr</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s">&#39;pr&#39;</span><span class="p">,</span> <span class="n">percentile</span><span class="o">=</span><span class="mi">75</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="n">base_period</span><span class="p">,</span> <span class="n">precipitation</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c">## step 3: we compute the indice</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tr</span> <span class="o">=</span> <span class="p">[</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1939</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1945</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)]</span> <span class="c"># monthly values of CW</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out_f</span> <span class="o">=</span> <span class="s">&#39;CW_month_CNRM-CM5_historical_r1i1p1_1930-1945&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">icclim</span><span class="o">.</span><span class="n">indice</span><span class="p">(</span><span class="n">indice_name</span><span class="o">=</span><span class="s">&#39;CW&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="n">tr</span><span class="p">,</span> <span class="n">in_files</span><span class="o">=</span><span class="n">files_tas</span><span class="p">,</span> <span class="n">var_name</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">percentile_dict</span><span class="o">=</span><span class="n">pd25_tas</span><span class="p">,</span> <span class="n">in_files2</span><span class="o">=</span><span class="n">files_pr</span><span class="p">,</span> <span class="n">var_name2</span><span class="o">=</span><span class="s">&#39;pr&#39;</span><span class="p">,</span> <span class="n">percentile_dict2</span><span class="o">=</span><span class="n">pd75_pr</span><span class="p">,</span> <span class="n">out_file</span><span class="o">=</span><span class="n">out_f</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The set of parameters <tt class="docutils literal"><span class="pre">in_files</span></tt>, <tt class="docutils literal"><span class="pre">var_name</span></tt> and <tt class="docutils literal"><span class="pre">percentile_dict</span></tt> corresponds to daily mean temperature. Likewise, <tt class="docutils literal"><span class="pre">in_files2</span></tt>, <tt class="docutils literal"><span class="pre">var_name2</span></tt>, <tt class="docutils literal"><span class="pre">percentile_dict2</span></tt> &#8211; to daily precipitation flux (liquide phase).</p>
+</div>
+</div>
+</div>
+<div class="section" id="correspondence-table-indice-source-variable">
+<span id="table-indice-sourcevar-label"></span><h2>Correspondence table &#8220;indice - source variable&#8221;<a class="headerlink" href="#correspondence-table-indice-source-variable" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="57%" />
+<col width="43%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Indice</th>
+<th class="head">Source variable</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>TG, GD4, HD17, TG10p, TG90p</td>
+<td>daily mean temperature</td>
+</tr>
+<tr class="row-odd"><td>TN, TNx, TNn, TR, FD, CFD, TN10p, TN90p, CSDI</td>
+<td>daily minimum temperature</td>
+</tr>
+<tr class="row-even"><td>TX, TXx, TXn, SU, CSU, ID, TX10p, TX90p, WSDI</td>
+<td>daily maximum temperature</td>
+</tr>
+<tr class="row-odd"><td>DTR, ETR, vDTR</td>
+<td>daily minimum + daily maimum temperature</td>
+</tr>
+<tr class="row-even"><td>RR, RR1, SDII, CWD, CDD, R10mm, R20mm, RX1day, RX5day,
+R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
+<td>daily precipitation flux (liquide phase)</td>
+</tr>
+<tr class="row-odd"><td>SD, SD1, SD5cm, SD50cm</td>
+<td>daily snowfall flux (solid phase)</td>
+</tr>
+<tr class="row-even"><td>CD, CW, WD, WW</td>
+<td>daily mean temperature +
+daily precipitation flux (liquide phase)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="elementary-functions-for-computing-indices">
+<h2>Elementary functions for computing indices<a class="headerlink" href="#elementary-functions-for-computing-indices" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py">calc_indice.py</a> and <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py">calc_indice_perc.py</a> modules contain the elementary functions for computing indices.
 These functions could be reused in other environments. Below are some of them.</p>
 <div class="admonition note">
@@ -581,56 +697,53 @@ or numpy.ma.MaskedArray (2D) (if &#8220;arr&#8221; is numpy.ma.MaskedArray)</p>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="calc_indice_perc.CW_calculation">
+<tt class="descclassname">calc_indice_perc.</tt><tt class="descname">CW_calculation</tt><big>(</big><em>t_arr</em>, <em>t_25th_percentile_dict</em>, <em>p_arr</em>, <em>p_75th_percentile_dict</em>, <em>dt_arr</em>, <em>fill_val1=None</em>, <em>fill_val2=None</em><big>)</big><a class="headerlink" href="#calc_indice_perc.CW_calculation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the CW indice: number of cold and wet days.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t_arr</strong> (<em>numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)</em>) &#8211; daily mean temperature (e.g. &#8220;tas&#8221;)</li>
+<li><strong>t_25th_percentile_dict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; 25th percentile of daily min temperature</li>
+<li><strong>p_arr</strong> (<em>numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)</em>) &#8211; daily precipitation amount at wet day (RR &gt;= 1.0 mm) (e.g. &#8220;pr&#8221;) in mm/s</li>
+<li><strong>p_75th_percentile_dict</strong> (<a class="reference external" href="http://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; 75th percentile of daily precipitation amount at wet days in mm/day</li>
+<li><strong>dt_arr</strong> (<em>numpy.ndarray (1D) of datetime objects</em>) &#8211; time steps vector corresponding to both input arrays (<tt class="docutils literal"><span class="pre">t_arr</span></tt> and <tt class="docutils literal"><span class="pre">dt_arr</span></tt>)</li>
+<li><strong>fill_val1</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; fill value of t_arr</li>
+<li><strong>fill_val2</strong> (<a class="reference external" href="http://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; fill value of p_arr</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">numpy.ndarray (2D)        (if <tt class="docutils literal"><span class="pre">t_arr</span></tt> and <tt class="docutils literal"><span class="pre">p_arr</span></tt> is numpy.ndarray) or numpy.ma.MaskedArray (2D) (if <tt class="docutils literal"><span class="pre">t_arr</span></tt> and <tt class="docutils literal"><span class="pre">p_arr</span></tt> is numpy.ma.MaskedArray)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If &#8220;t_arr&#8221; and &#8220;p_arr&#8221; are masked arrays, the parameters &#8220;fill_val1&#8221; and &#8220;fill_val2&#8221; are ignored, because they have no sense in this case.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Both input array must be the same type.</p>
+</div>
+</dd></dl>
+
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
 <p class="last">Units of &#8220;arr&#8221; and percentile values of &#8220;percentile_dict&#8221; must be the same.</p>
 </div>
 </div>
-<div class="section" id="correspondence-table-indice-source-variable">
-<h2>Correspondence table &#8220;indice - source variable&#8221;<a class="headerlink" href="#correspondence-table-indice-source-variable" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="docutils">
-<colgroup>
-<col width="57%" />
-<col width="43%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Indice</th>
-<th class="head">Source variable</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>TG, GD4, HD17, TG10p, TG90p</td>
-<td>daily mean temperature</td>
-</tr>
-<tr class="row-odd"><td>TN, TNx, TNn, TR, FD, CFD, TN10p, TN90p, CSDI</td>
-<td>daily minimum temperature</td>
-</tr>
-<tr class="row-even"><td>TX, TXx, TXn, SU, CSU, ID, TX10p, TX90p, WSDI</td>
-<td>daily maximum temperature</td>
-</tr>
-<tr class="row-odd"><td>DTR, ETR, vDTR</td>
-<td>daily minimum + daily maimum temperature</td>
-</tr>
-<tr class="row-even"><td>RR, RR1, SDII, CWD, CDD, R10mm, R20mm, RX1day, RX5day,
-R75p, R75TOT, R95p, R95TOT, R99p, R99TOT</td>
-<td>daily precipitation flux (liquide phase)</td>
-</tr>
-<tr class="row-odd"><td>SD, SD1, SD5cm, SD50cm</td>
-<td>daily snowfall flux (solid phase)</td>
-</tr>
-<tr class="row-even"><td>CD, CW, WD, WW</td>
-<td>daily mean temperature +
-daily precipitation flux (liquide phase)</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section" id="regridding">
-<span id="icclim-regrid"></span><h2>Regridding<a class="headerlink" href="#regridding" title="Permalink to this headline">¶</a></h2>
-<p>It is possible to do simple regridding, using the <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/regrid.py">regrid.py</a> module:</p>
-<span class="target" id="module-regrid"></span><dl class="function">
-<dt id="regrid.get_regridded_var">
-<tt class="descclassname">regrid.</tt><tt class="descname">get_regridded_var</tt><big>(</big><em>f_src</em>, <em>f_dst</em>, <em>varname</em><big>)</big><a class="headerlink" href="#regrid.get_regridded_var" title="Permalink to this definition">¶</a></dt>
+<div class="section" id="utility-functions">
+<h2>Utility functions<a class="headerlink" href="#utility-functions" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="util-regrid-regridding">
+<span id="icclim-regrid"></span><h3><a class="reference internal" href="#module-util.regrid" title="util.regrid"><tt class="xref py py-mod docutils literal"><span class="pre">util.regrid</span></tt></a> &#8211; Regridding<a class="headerlink" href="#util-regrid-regridding" title="Permalink to this headline">¶</a></h3>
+<p>It is possible to do simple regridding, using the <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/util/regrid.py">util.regrid.py</a> module:</p>
+<span class="target" id="module-util.regrid"></span><dl class="function">
+<dt id="util.regrid.get_regridded_var">
+<tt class="descclassname">util.regrid.</tt><tt class="descname">get_regridded_var</tt><big>(</big><em>f_src</em>, <em>f_dst</em>, <em>varname</em><big>)</big><a class="headerlink" href="#util.regrid.get_regridded_var" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a result of regridding.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -654,13 +767,13 @@ daily precipitation flux (liquide phase)</td>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">It works only with rectangular &#8220;lat/lon&#8221; grid</p>
+<p class="last">Works only with rectangular &#8220;lat/lon&#8221; grid</p>
 </div>
 </dd></dl>
 
 <dl class="function">
-<dt id="regrid.write2netCDF_after_regridding">
-<tt class="descclassname">regrid.</tt><tt class="descname">write2netCDF_after_regridding</tt><big>(</big><em>arr</em>, <em>f_src</em>, <em>f_dst</em>, <em>f_out</em>, <em>var_src</em>, <em>var_dst=None</em><big>)</big><a class="headerlink" href="#regrid.write2netCDF_after_regridding" title="Permalink to this definition">¶</a></dt>
+<dt id="util.regrid.write2netCDF_after_regridding">
+<tt class="descclassname">util.regrid.</tt><tt class="descname">write2netCDF_after_regridding</tt><big>(</big><em>arr</em>, <em>f_src</em>, <em>f_dst</em>, <em>f_out</em>, <em>var_src</em>, <em>var_dst=None</em><big>)</big><a class="headerlink" href="#util.regrid.write2netCDF_after_regridding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a regridded variable in new netCDF file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -680,7 +793,7 @@ daily precipitation flux (liquide phase)</td>
 </table>
 </dd></dl>
 
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">icclim</span> <span class="kn">import</span> <span class="n">regrid</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">util.regrid</span> <span class="kn">as</span> <span class="nn">regrid</span>
 </pre></div>
 </div>
 <p>For example, we have 2 files with different resolutions:</p>
@@ -697,17 +810,16 @@ daily precipitation flux (liquide phase)</td>
 <p class="last">The package <a class="reference external" href="https://www.earthsystemcog.org/projects/esmpy/">ESMF/ESMPy</a> must be installed.</p>
 </div>
 </div>
-<div class="section" id="module-spatial_stat">
-<span id="utility-functions"></span><h2>Utility functions<a class="headerlink" href="#module-spatial_stat" title="Permalink to this headline">¶</a></h2>
-<p>Utility functions for spatial statistics like computing of spatial average, spatial standard deviation, etc</p>
-<p>We use these functions if model grid is rectilinear, for example grid &#8220;lat/lon&#8221;:</p>
+<div class="section" id="util-spatial-stat-spatial-statistics">
+<h3><a class="reference internal" href="#module-util.spatial_stat" title="util.spatial_stat"><tt class="xref py py-mod docutils literal"><span class="pre">util.spatial_stat</span></tt></a> &#8211; Spatial statistics<a class="headerlink" href="#util-spatial-stat-spatial-statistics" title="Permalink to this headline">¶</a></h3>
+<p>Utility functions for spatial statistics like computing of spatial average, spatial standard deviation, etc:</p>
 <ol class="arabic simple">
-<li>&#8220;get_weight_matrix&#8221; computes weights, giving more weight to the pixels on the poles</li>
-<li>&#8220;multiply_to_weight_matrix&#8221; returns new values to be used for spatial statistics</li>
+<li><a class="reference internal" href="#util.spatial_stat.get_weight_matrix" title="util.spatial_stat.get_weight_matrix"><tt class="xref py py-func docutils literal"><span class="pre">util.spatial_stat.get_weight_matrix()</span></tt></a> computes weights, giving more weight to the pixels on the poles</li>
+<li><a class="reference internal" href="#util.spatial_stat.multiply_to_weight_matrix" title="util.spatial_stat.multiply_to_weight_matrix"><tt class="xref py py-func docutils literal"><span class="pre">util.spatial_stat.multiply_to_weight_matrix()</span></tt></a> returns new values to be used for spatial statistics</li>
 </ol>
-<dl class="function">
-<dt id="spatial_stat.get_weight_matrix">
-<tt class="descclassname">spatial_stat.</tt><tt class="descname">get_weight_matrix</tt><big>(</big><em>lat_arr</em>, <em>lon_arr</em><big>)</big><a class="headerlink" href="#spatial_stat.get_weight_matrix" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="module-util.spatial_stat"></span><dl class="function">
+<dt id="util.spatial_stat.get_weight_matrix">
+<tt class="descclassname">util.spatial_stat.</tt><tt class="descname">get_weight_matrix</tt><big>(</big><em>lat_arr</em>, <em>lon_arr</em><big>)</big><a class="headerlink" href="#util.spatial_stat.get_weight_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes a weight matrix for reclilinear grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -731,8 +843,8 @@ daily precipitation flux (liquide phase)</td>
 </dd></dl>
 
 <dl class="function">
-<dt id="spatial_stat.multiply_to_weight_matrix">
-<tt class="descclassname">spatial_stat.</tt><tt class="descname">multiply_to_weight_matrix</tt><big>(</big><em>arr</em>, <em>weight_matrix</em><big>)</big><a class="headerlink" href="#spatial_stat.multiply_to_weight_matrix" title="Permalink to this definition">¶</a></dt>
+<dt id="util.spatial_stat.multiply_to_weight_matrix">
+<tt class="descclassname">util.spatial_stat.</tt><tt class="descname">multiply_to_weight_matrix</tt><big>(</big><em>arr</em>, <em>weight_matrix</em><big>)</big><a class="headerlink" href="#util.spatial_stat.multiply_to_weight_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the result of the multiplacation of &#8220;arr&#8221; by &#8220;weight_matrix&#8221;.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -756,6 +868,11 @@ if &#8220;arr&#8221; is a 3D array, then arr.shape[1] = weight_matrix.shape[0] a
 </div>
 </dd></dl>
 
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Only for rectangular &#8220;lat/lon&#8221; grid.</p>
+</div>
+</div>
 </div>
 </div>
 
@@ -768,13 +885,32 @@ if &#8220;arr&#8221; is a 3D array, then arr.shape[1] = weight_matrix.shape[0] a
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Python API</a><ul>
-<li><a class="reference internal" href="#main-functions-to-compute-climate-indices">Main functions to compute climate indices</a></li>
-<li><a class="reference internal" href="#create-a-daily-percentile-dictionary">Create a daily percentile dictionary</a></li>
-<li><a class="reference internal" href="#callback">Callback</a></li>
-<li><a class="reference internal" href="#elementary-functions">Elementary functions</a></li>
+<li><a class="reference internal" href="#icclim-indice-compute-indice"><tt class="docutils literal"><span class="pre">icclim.indice()</span></tt> &#8211; Compute indice</a><ul>
+<li><a class="reference internal" href="#slice-mode">slice_mode</a></li>
+<li><a class="reference internal" href="#threshold">threshold</a></li>
+<li><a class="reference internal" href="#transfer-limit-mbytes">transfer_limit_Mbytes</a></li>
+<li><a class="reference internal" href="#callback">callback</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#icclim-get-percentile-dict-compute-daily-percentiles"><tt class="docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt> &#8211; Compute daily percentiles</a><ul>
+<li><a class="reference internal" href="#only-leap-years">only_leap_years</a></li>
+<li><a class="reference internal" href="#save-to-file">save_to_file</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#examples">Examples</a><ul>
+<li><a class="reference internal" href="#example-1-indice-su">Example 1: indice SU</a></li>
+<li><a class="reference internal" href="#example-2-indice-etr">Example 2: indice ETR</a></li>
+<li><a class="reference internal" href="#example-3-indice-tg90p">Example 3: indice TG90p</a></li>
+<li><a class="reference internal" href="#example-4-indice-cw">Example 4: indice CW</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#correspondence-table-indice-source-variable">Correspondence table &#8220;indice - source variable&#8221;</a></li>
-<li><a class="reference internal" href="#regridding">Regridding</a></li>
-<li><a class="reference internal" href="#module-spatial_stat">Utility functions</a></li>
+<li><a class="reference internal" href="#elementary-functions-for-computing-indices">Elementary functions for computing indices</a></li>
+<li><a class="reference internal" href="#utility-functions">Utility functions</a><ul>
+<li><a class="reference internal" href="#util-regrid-regridding"><tt class="docutils literal"><span class="pre">util.regrid</span></tt> &#8211; Regridding</a></li>
+<li><a class="reference internal" href="#util-spatial-stat-spatial-statistics"><tt class="docutils literal"><span class="pre">util.spatial_stat</span></tt> &#8211; Spatial statistics</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -822,7 +958,7 @@ if &#8220;arr&#8221; is a 3D array, then arr.shape[1] = weight_matrix.shape[0] a
         <li class="right" >
           <a href="installation.html" title="Installation"
              >previous</a> |</li>
-        <li><a href="index.html">ICCLIM 2.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">ICCLIM 3.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -4,94 +4,132 @@ Output metadata
 
 The output metadata contains at least the following variables:
     - lat
+    - lat_bounds
+    - lon_bounds
     - lon
     - time
-    - time_bnds
+    - time_bounds
     - indice 
 
-lat, lon
----------
-We copy the *lat* and *lon* variables from source file with all their attributes.
-
-time
------
-If *slice_mode='year'*, the time steps will be the 1st July of each year ("YYYY-07-01"):
-
-.. code-block:: rest
-
-    $ ncdump -v time indice_FD_year_19860101_19901231.nc -t
-    
-    [...]
-    
-    time = "1986-07-01", "1987-07-01", "1988-07-01", "1989-07-01", "1990-07-01" ;
-
-If *slice_mode='month'*, the time steps will be the 16th day of each month ("YYYY-MM-16"):
-
-.. code-block:: rest
-
-    $ ncdump -v time indice_FD_month_19860101_19901231.nc -t
-    
-    [...]
-    
-    time = "1986-01-16", "1986-02-16", "1986-03-16", "1986-04-16", "1986-05-16", 
-        "1986-06-16", "1986-07-16", "1986-08-16", "1986-09-16", "1986-10-16", 
-        "1986-11-16", "1986-12-16", "1987-01-16", "1987-02-16", "1987-03-16", 
-        "1987-04-16", "1987-05-16", "1987-06-16", "1987-07-16", "1987-08-16",
-        ...
+lat, lon, lat_bounds, lon_bounds
+---------------------------------
+They are copied from source file with all their attributes.
 
 
-time_bnds
-----------
+time and time_bounds
+--------------------
 
-If *slice_mode='year'*, the *time_bnds* values will be the 1st January of year and the 1st January of next year:
++----------------------+-----------------------+------------------------------------+
+| Slice_mode           |  *time*               |  *time_bounds*                     |
++======================+=======================+=================+==================+
+|  ``year``            |    YYYY-07-01         |    YYYY-01-01   | (YYYY+1)-01-01   |
++----------------------+-----------------------+-----------------+------------------+
+|  ``month``           |    YYYY-MM-16         |    YYYY-MM-01   |  YYYY-(MM+1)     |
++----------------------+-----------------------+-----------------+------------------+
+|  ``ONDJFM``          |    YYYY-01-01         |     YYYY-10-01  | (YYYY+1)-04-01   |
++----------------------+-----------------------+-----------------+------------------+
+|  ``AMJJAS``          |    YYYY-07-01         |    YYYY-04-01   |  YYYY-10-01      |
++----------------------+-----------------------+-----------------+------------------+
+|  ``DJF``             |    YYYY-01-16         |    YYYY-12-01   | (YYYY+1)-03-01   |
++----------------------+-----------------------+-----------------+------------------+
+|  ``MAM``             |    YYYY-04-16         |    YYYY-03-01   |  YYYY-06-01      |
++----------------------+-----------------------+-----------------+------------------+
+|  ``JJA``             |    YYYY-07-16         |    YYYY-06-01   |  YYYY-09-01      |
++----------------------+-----------------------+-----------------+------------------+
+|  ``SON``             |    YYYY-10-16         |    YYYY-09-01   |  YYYY-12-01      |
++----------------------+-----------------------+-----------------+------------------+
+
+.. note:: The second band in time_bnds is excluded! 
+
+Example: annual time steps
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: rest
 
-    $ ncdump -v time_bnds indice_FD_year_19860101_19901231.nc -t
-
-    [...]
+    $ ncdump -v time indice_FD_year_1950-1955.nc -t
     
-    time_bnds =
-      "1986-01-01", "1987-01-01",
-      "1987-01-01", "1988-01-01",
-      "1988-01-01", "1989-01-01",
-      "1989-01-01", "1990-01-01",
-      "1990-01-01", "1991-01-01" ;    
-
-
-If *slice_mode='month'*, the *time_bnds* values will be the 1st day of month and the 1st day of next month:
+    time = "1950-07-01", "1951-07-01", "1952-07-01", "1953-07-01",
+        "1954-07-01", "1955-07-01" ;
+        
+    $ ncdump -v time_bounds indice_FD_year_1950-1955.nc -t    
+    
+    time_bounds =
+        "1950-01-01 12", "1951-01-01 12",
+        "1951-01-01 12", "1952-01-01 12",    
+        "1952-01-01 12", "1953-01-01 12",
+        "1953-01-01 12", "1954-01-01 12",
+        "1954-01-01 12", "1955-01-01 12",
+        "1955-01-01 12", "1956-01-01 12" ;
+        
+        
+Example: monthly time steps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: rest
 
-    $ ncdump -v time_bnds indice_FD_month_19860101_19901231.nc -t
+    $ ncdump -v time indice_FD_month_1950-1955.nc -t
     
-    [...]
+    time = "1950-01-16", "1950-02-16", "1950-03-16", "1950-04-16",
+        "1950-05-16", "1950-06-16", "1950-07-16", "1950-08-16",
+        "1950-05-16", "1950-06-16", "1950-07-16", "1950-08-16",
+        [...]
+        
+    $ ncdump -v time_bounds indice_FD_month_1950-1955.nc -t    
     
-    time_bnds =
-        "1986-01-01", "1986-02-01",
-        "1986-02-01", "1986-03-01",
-        "1986-03-01", "1986-04-01",
-        "1986-04-01", "1986-05-01",
-        "1986-05-01", "1986-06-01",
-        "1986-06-01", "1986-07-01",
-        "1986-07-01", "1986-08-01",
-        "1986-08-01", "1986-09-01",
-        "1986-09-01", "1986-10-01",
-        ...
+    time_bounds =
+        "1950-01-01 12", "1950-02-01 12",
+        "1950-02-01 12", "1950-03-01 12",    
+        "1950-03-01 12", "1950-04-01 12",
+        "1950-04-01 12", "1950-05-01 12",
+        [...]
+
+Example: seasonal time steps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: rest
+
+    $ ncdump -v time indice_FD_DJF_1950-1955.nc -t
+    
+    time = "1951-01-16", "1952-01-16", "1953-01-16", "1954-01-16",
+        "1955-01-16" ;
+        
+    $ ncdump -v time_bounds indice_FD_DJF_1950-1955.nc -t    
+    
+    time_bounds =
+        "1950-12-01 12", "1951-03-01 12",
+        "1951-12-01 12", "1952-03-01 12",
+        "1952-12-01 12", "1953-03-01 12",
+        "1953-12-01 12", "1954-03-01 12",
+        "1954-12-01 12", "1955-03-01 12" ;
 
 
 
-.. note:: The second band in time_bnds is excluded!    
+.. code-block:: rest
+
+    $ ncdump -v time indice_FD_SON_1950-1955.nc -t
     
+    time = "1950-10-16", "1951-10-16", "1952-10-16", "1953-10-16",
+        "1954-10-16", "1955-10-16" ; 
+        
+    $ ncdump -v time_bounds indice_FD_SON_1950-1955.nc -t    
     
-    
-    
+    time_bounds =
+        "1950-09-01 12", "1950-12-01 12",
+        "1951-09-01 12", "1951-12-01 12",
+        "1952-09-01 12", "1952-12-01 12",
+        "1953-09-01 12", "1953-12-01 12",
+        "1954-09-01 12", "1954-12-01 12",
+        "1955-09-01 12", "1955-12-01 12" ;
+
+                       
+
 
 indice
 -------
      
 The *indice* variable has the same name as indice_name parameter (e.g. "FD").
 It has the following attributes:
+
     - long_name
     - units 
     - _FillValue
@@ -136,10 +174,6 @@ Example:
 		:references = "ATBD of the ECA indices calculation (http://eca.knmi.nl/documents/atbd.pdf)" ;
 		:comment = " " ;
 		:history = "2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements. \n",
-                        "2014-04-01 12:16:03 Calculation of FD indice (monthly time series) from 1986-1-1 to 1990-12-31." ;
+                        "2014-04-01 12:16:03 Calculation of FD indice (monthly time series) from 1950-1-1 to 1955-12-31." ;
 
-
-
-
-However other global attributes can be added.
 

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to ICCLIM’s documentation! &mdash; ICCLIM 2.2 documentation</title>
+    <title>Welcome to ICCLIM’s documentation! &mdash; ICCLIM 3.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.2',
+        VERSION:     '3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="ICCLIM 2.2 documentation" href="#" />
+    <link rel="top" title="ICCLIM 3.0 documentation" href="#" />
     <link rel="next" title="Intro" href="intro.html" /> 
   </head>
   <body>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="intro.html" title="Intro"
              accesskey="N">next</a> |</li>
-        <li><a href="#">ICCLIM 2.2 documentation</a> &raquo;</li> 
+        <li><a href="#">ICCLIM 3.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -51,8 +51,8 @@
   <div class="section" id="welcome-to-icclim-s-documentation">
 <h1>Welcome to ICCLIM&#8217;s documentation!<a class="headerlink" href="#welcome-to-icclim-s-documentation" title="Permalink to this headline">¶</a></h1>
 <p><em>Index Calculation CLIMate</em> is a Python libary designed for calculation of climate indices and indicators.
-<em>ICCLIM</em> calculates <a class="reference external" href="http://eca.knmi.nl/documents/atbd.pdf">ECA&amp;D climate indices</a>.
-But other climate indices and indicators could be added.</p>
+<em>ICCLIM</em> calculates currently the <a class="reference external" href="http://eca.knmi.nl/documents/atbd.pdf">ECA&amp;D climate indices</a>.
+Other climate indices and indicators could be added also.</p>
 <p>Contents:</p>
 <div class="toctree-wrapper compound">
 <ul>
@@ -67,19 +67,42 @@ But other climate indices and indicators could be added.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="python_api.html#main-functions-to-compute-climate-indices">Main functions to compute climate indices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python_api.html#create-a-daily-percentile-dictionary">Create a daily percentile dictionary</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python_api.html#callback">Callback</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python_api.html#elementary-functions">Elementary functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#icclim-indice-compute-indice"><tt class="docutils literal"><span class="pre">icclim.indice()</span></tt> &#8211; Compute indice</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#slice-mode">slice_mode</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#threshold">threshold</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#transfer-limit-mbytes">transfer_limit_Mbytes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#callback">callback</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#icclim-get-percentile-dict-compute-daily-percentiles"><tt class="docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt> &#8211; Compute daily percentiles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#only-leap-years">only_leap_years</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#save-to-file">save_to_file</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#examples">Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#example-1-indice-su">Example 1: indice SU</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#example-2-indice-etr">Example 2: indice ETR</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#example-3-indice-tg90p">Example 3: indice TG90p</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#example-4-indice-cw">Example 4: indice CW</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="python_api.html#correspondence-table-indice-source-variable">Correspondence table &#8220;indice - source variable&#8221;</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python_api.html#regridding">Regridding</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python_api.html#module-spatial_stat">Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#elementary-functions-for-computing-indices">Elementary functions for computing indices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#utility-functions">Utility functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#util-regrid-regridding"><tt class="docutils literal"><span class="pre">util.regrid</span></tt> &#8211; Regridding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="python_api.html#util-spatial-stat-spatial-statistics"><tt class="docutils literal"><span class="pre">util.spatial_stat</span></tt> &#8211; Spatial statistics</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="output_metadata.html">Output metadata</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="output_metadata.html#lat-lon">lat, lon</a></li>
-<li class="toctree-l2"><a class="reference internal" href="output_metadata.html#time">time</a></li>
-<li class="toctree-l2"><a class="reference internal" href="output_metadata.html#time-bnds">time_bnds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_metadata.html#lat-lon-lat-bounds-lon-bounds">lat, lon, lat_bounds, lon_bounds</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_metadata.html#time-and-time-bounds">time and time_bounds</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="output_metadata.html#example-annual-time-steps">Example: annual time steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="output_metadata.html#example-monthly-time-steps">Example: monthly time steps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="output_metadata.html#example-seasonal-time-steps">Example: seasonal time steps</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="output_metadata.html#indice">indice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="output_metadata.html#global-attributes">Global attributes</a></li>
 </ul>
@@ -97,6 +120,12 @@ But other climate indices and indicators could be added.</p>
 </ul>
 </div>
 <p><strong>NEWS:</strong></p>
+<p><em>27/01/2015</em></p>
+<ul class="simple">
+<li>New version: 3.0</li>
+<li><a class="reference internal" href="python_api.html#icclim.indice" title="icclim.indice"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice()</span></tt></a> is now used for all indices (simple, multivariable, percentile-based, etc)</li>
+<li>Added seasonal temporal aggregations: &#8220;ONDJFM&#8221;, &#8220;AMJJAS&#8221;, &#8220;DJF&#8221;, &#8220;MAM&#8221;, &#8220;JJA&#8221; and &#8220;SON&#8221;.</li>
+</ul>
 <p><em>24/10/2014</em></p>
 <ul class="simple">
 <li>New version: 2.2</li>
@@ -113,14 +142,14 @@ But other climate indices and indicators could be added.</p>
 </ul>
 <p><em>4/08/2014</em></p>
 <ul class="simple">
-<li>Improved callback in <a class="reference internal" href="python_api.html#icclim.indice" title="icclim.indice"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice()</span></tt></a>, <a class="reference internal" href="python_api.html#icclim.indice_multivar" title="icclim.indice_multivar"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice_multivar()</span></tt></a> and <a class="reference internal" href="python_api.html#icclim.indice_perc" title="icclim.indice_perc"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice_perc()</span></tt></a></li>
+<li>Improved callback in <a class="reference internal" href="python_api.html#icclim.indice" title="icclim.indice"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice()</span></tt></a>, <tt class="xref py py-func docutils literal"><span class="pre">icclim.indice_multivar()</span></tt> and <tt class="xref py py-func docutils literal"><span class="pre">icclim.indice_perc()</span></tt></li>
 </ul>
 <p><em>31/07/2014</em></p>
 <ul class="simple">
 <li>Possibility to save a dictionary with daily percentiles in file (added the <tt class="docutils literal"><span class="pre">save_to_file</span></tt> parameter in <a class="reference internal" href="python_api.html#icclim.get_percentile_dict" title="icclim.get_percentile_dict"><tt class="xref py py-func docutils literal"><span class="pre">icclim.get_percentile_dict()</span></tt></a>)</li>
 </ul>
 <p><em>21/07/2014</em></p>
-<p>In <a class="reference internal" href="python_api.html#icclim.indice" title="icclim.indice"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice()</span></tt></a>, <a class="reference internal" href="python_api.html#icclim.indice_multivar" title="icclim.indice_multivar"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice_multivar()</span></tt></a> and <a class="reference internal" href="python_api.html#icclim.indice_perc" title="icclim.indice_perc"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice_perc()</span></tt></a>:</p>
+<p>In <a class="reference internal" href="python_api.html#icclim.indice" title="icclim.indice"><tt class="xref py py-func docutils literal"><span class="pre">icclim.indice()</span></tt></a>, <tt class="xref py py-func docutils literal"><span class="pre">icclim.indice_multivar()</span></tt> and <tt class="xref py py-func docutils literal"><span class="pre">icclim.indice_perc()</span></tt>:</p>
 <ul class="simple">
 <li>Removed the <tt class="docutils literal"><span class="pre">project</span></tt> parameter</li>
 <li>The <tt class="docutils literal"><span class="pre">time_range</span></tt> parameter is not required, i.e. if it is None, then the whole period of input files will be processed</li>
@@ -192,7 +221,7 @@ But other climate indices and indicators could be added.</p>
         <li class="right" >
           <a href="intro.html" title="Intro"
              >next</a> |</li>
-        <li><a href="#">ICCLIM 2.2 documentation</a> &raquo;</li> 
+        <li><a href="#">ICCLIM 3.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

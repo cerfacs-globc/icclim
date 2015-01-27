@@ -1,95 +1,139 @@
 Python API
 ==========
 
-First, import the ICCLIM library:
-
->>> import icclim
 
 
-Main functions to compute climate indices
------------------------------------------
+:func:`icclim.indice` -- Compute indice
+----------------------------------------
 
-Depending on the type of climate indice, use the appropriate function: 
 
-+--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
-|                          |   Indice                                                   |   Function                                                |
-+==========================+============================================================+===========================================================+
-| simple indice            | TG, TX, TN, TXx, TXn, TNx, TNn, SU, TR, CSU, GD4, FD, CFD, | :ref:`indice(...) <func_indice_label>`                    |
-|                          | ID, HD17,                                                  |                                                           |
-|                          | CDD, CWD, RR, RR1, SDII, R10mm, R20mm, RX1day, RX5day,     |                                                           |
-|                          | SD, SD1, SD5cm, SD50cm                                     |                                                           |
-+--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
-| multivariate indice      | DTR, ETR, vDTR                                             | :ref:`indice_multivar(...) <func_indice_multivar_label>`  |
-+--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
-| percentile-based indice  | TG10p, TX10p, TN10p, TG90p, TX90p, TN90p, WSDI, CSDI,      | :ref:`indice_perc(...) <func_indice_perc_label>`          |
-|                          | R75p, R75TOT, R95p, R95TOT, R99p, R99TOT                   |                                                           |
-+--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
-| compound                 | CD, CW, WD, WW                                             | :ref:`indice_compound(...) <func_indice_compound_label>`  |
-| percentile-based indice  |                                                            |                                                           |
-+--------------------------+------------------------------------------------------------+-----------------------------------------------------------+
+This is the main function to compute an indice:
 
-Below is more detail about input parameters for each function. These functions return a netCDF file containing the calculated climate indice.
-
-.. _func_indice_label:
 .. automodule:: icclim
     :members: indice
 
-.. warning:: If ``out_file`` already exists, Icclim will overwrite it! 
+
+Set of required parameters varies depending on indice's type. (The table below shows necessary parameters depending on ind.)
+
++----------------------+------------------------------------------------------------+----------------------------+
+|                      |   Indice                                                   |   Required parameters      |
++======================+============================================================+============================+
+| simple indice        | TG, TX, TN, TXx, TXn, TNx, TNn, SU, TR, CSU, GD4, FD, CFD, |  - ``indice_name``         |
+|                      | ID, HD17,                                                  |  - ``in_files``            |
+|                      | CDD, CWD, RR, RR1, SDII, R10mm, R20mm, RX1day, RX5day,     |  - ``var_name``            |
+|                      | SD, SD1, SD5cm, SD50cm                                     |                            |
++----------------------+------------------------------------------------------------+----------------------------+
+| multivariable-based  |                                                            |  - ``indice_name``         |
+| indice               | DTR, ETR, vDTR                                             |  - ``in_files``            |
+|                      |                                                            |  - ``var_name``            |  
+|                      |                                                            |  - ``in_files2``           |
+|                      |                                                            |  - ``var_name2``           |
++----------------------+------------------------------------------------------------+----------------------------+
+| percentile-based     | TG10p, TX10p, TN10p, TG90p, TX90p, TN90p, WSDI, CSDI,      |  - ``indice_name``         |
+| indice               | R75p, R75TOT, R95p, R95TOT, R99p, R99TOT                   |  - ``in_files``            |
+|                      |                                                            |  - ``var_name``            |
+|                      |                                                            |  - ``percentile_dict``     |
++----------------------+------------------------------------------------------------+----------------------------+
+| multivariable        | CD, CW, WD, WW                                             |  - ``indice_name``         |
+| percentile-based     |                                                            |  - ``in_files``            |
+| indice               |                                                            |  - ``var_name``            |
+|                      |                                                            |  - ``percentile_dict``     |
+|                      |                                                            |  - ``in_files2``           |
+|                      |                                                            |  - ``var_name2``           |
+|                      |                                                            |  - ``percentile_dict2``    |
++----------------------+------------------------------------------------------------+----------------------------+
+
+.. note:: For the variable names see the :ref:`correspondence table "indice - source variable" <table_indice_sourceVar_label>` 
+
+For examples see the :ref:`example section <examples_label>`.
+
+Below some additionnal information about input parameters.
+
+
+
+slice_mode
+~~~~~~~~~~
+The ``slice_mode`` parameter defines a desired temporal aggregation. Thus, each indice can be calculated as annual, winter half-year, summer half-year, winter, spring,
+summer, autumn and monthly values: 
+
++----------------------+-----------------------+
+| Value (string)       | Description           |
++======================+=======================+
+|  ``year`` (default)  |    annual             |
++----------------------+-----------------------+
+|  ``month``           |    monthly            |
++----------------------+-----------------------+
+|  ``ONDJFM``          |    winter half-year   |
++----------------------+-----------------------+
+|  ``AMJJAS``          |    summer half-year   |
++----------------------+-----------------------+
+|  ``DJF``             |    winter             |
++----------------------+-----------------------+
+|  ``MAM``             |    spring             |
++----------------------+-----------------------+
+|  ``JJA``             |    summer             |
++----------------------+-----------------------+
+|  ``SON``             |    autumn             |
++----------------------+-----------------------+
+
+.. note:: Example: The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
+            Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001. 
+
+
+threshold
+~~~~~~~~~
+It is possible to set a user define threshold for indices **SU** (default threshold: 25), **CSU** (default threshold: 25), **TR** (default threshold: 20).
+The threshold could be one value:
+
+>>> threshold = 30
+
+or a list of values:
+
+>>> threshold = [20,25,30]
+
+.. note:: Units of ``threshold`` must be in degrees Celsius. 
+
+transfer_limit_Mbytes
+~~~~~~~~~~~~~~~~~~~~~
+
+In case of OPeNDAP datasets, if the request is bigger than the maximum OPeNDAP/THREDDS request limit, you will probably get an error message like:
     
-To compute the SU indice (annual time series):
-
->>> import glob
->>> import datetime
->>> 
->>> input_path = '/data/tatarinova/CMIP5/tasmax_day/'
->>> files = glob.glob(input_path + '*.nc')
->>> out_file = '/data/tatarinova/tmp/indice_SU_year_1860-1890.nc'
->>> 
->>> dt1 = datetime.datetime(1860,01,01)
->>> dt2 = datetime.datetime(1890,12,31)
->>> 
->>> icclim.indice(in_files=files, var='tasmax', indice_name='SU', time_range=[dt1, dt2], slice_mode='year', project='CMIP5', out_file=out_file)
-
-The output dataset will contain the SU indice (3D array) of 31 time steps (31 years).
-
-
-To get a derived indice from SU, CSU or TR indices, set the ``threshold`` parameter (in Celsius):
-
->>> iicclim.indice(in_files=files, var='tasmax', indice_name='SU', time_range=[dt1, dt2], slice_mode='year', project='CMIP5', out_file=out_file, threshold=30)
-
+        
+    .. code-block:: rest
     
-.. _func_indice_multivar_label:
-.. automodule:: icclim
-    :members: indice_multivar
-    
+	context: Error { code = 403; message = "Request too big=1875.0 Mbytes, max=500.0"^;};
+        
+	...
+        
+	RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS
+
+That means that your transfer limit is fixed to 500 Mbytes.
+
+It is possible to realize spatial chunking (i.e. cut data spacially into chunks, where each one does not exceed the request limit)
+to transfer then data chunk-by-chunk. 
+The ``transfer_limit_Mbytes`` parameter, required to estimate an optimal data chunk size, should be set to the request limit:
+
+>>> transfer_limit_Mbytes = 500
+
+.. note:: If that does not work, try to reduce the ``transfer_limit_Mbytes`` value.
 
 
->>> file_tasmax1 = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19050101-19091231.nc'
->>> file_tasmax2 = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19100101-19141231.nc'
->>> 
->>> file_tasmin1 = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19050101-19091231.nc'
->>> file_tasmin2 = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19100101-19141231.nc'
->>>
->>> dt1 = datetime.datetime(1905,01,01)
->>> dt2 = datetime.datetime(1912,12,31)
->>> 
->>> icclim.indice_multivar(in_files1=[file_tasmax1, file_tasmax2], var1='tasmax', in_files2=[file_tasmin1, file_tasmin2], var2='tasmin', indice_name='ETR', time_range=[dt1, dt2], slice_mode='year', project='CMIP5', out_file='indice_ETR_year_1905_1912.nc')    
-    
+callback
+~~~~~~~~
+The percentage progress bar is printed if the ``callback`` parameter is set to a callback function.
+The dafault callback functions are defined in `util.callback.py <link>`_. (They both displays the same message: Processing.)
 
-    
-.. _func_indice_perc_label:
-.. automodule:: icclim
-    :members: indice_perc
+>>> import util.callback as callback
+>>> cb = callback.defaultCallback
+ 
 
-.. _func_indice_compound_label:
-.. automodule:: icclim
-    :members: indice_compound
+
 
 
 .. _creation_daily_percentile_dictionary_label:
 
-Create a daily percentile dictionary
-------------------------------------
+:func:`icclim.get_percentile_dict` -- Compute daily percentiles 
+-----------------------------------------------------------------
 
 Daily percentile values are computed from values inside a reference period, named *base period* which is usually 30 years (i.e. 1961-1990).
 
@@ -106,7 +150,12 @@ The function :func:`icclim.get_percentile_dict` creates a dictionary where each 
     :members: get_percentile_dict
 
 
-.. note:: The function uses the `numpy.percentile <http://docs.scipy.org/doc/numpy-dev/reference/generated/numpy.percentile.html>`_ function with "linear" interpolation method as default.
+.. note:: The function computed percentiles uses linear interpolation method.
+
+.. note:: A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma, i.e. to get for example the 2D percentile array for *April 13th* it will looks like *my_perc_dict[4,13]*.
+
+only_leap_years
+~~~~~~~~~~~~~~~
     
 The ``only_leap_years`` parameter selects which of two methods to use for calculating a percentile value for the calendar day of **February 29th**:
 
@@ -193,18 +242,25 @@ The ``only_leap_years`` parameter selects which of two methods to use for calcul
     
     The second way is preferable, because we have more samples.
 
-.. note:: A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma, i.e. to get for example the 2D percentile array for *April 13th* it will looks like *my_perc_dict[4,13]*.
 
->>> file_base1 = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19510101-19701231.nc'
->>> file_base2 = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19710101-19901231.nc'
+
+>>> files = ['tasmin_day_CNRM-CM5_historical_r1i1p1_19510101-19701231.nc', 'tasmin_day_CNRM-CM5_historical_r1i1p1_19710101-19901231.nc']
 >>>
 >>> # time range for base period
 >>> base_dt1 = datetime.datetime(1961,01,01)
 >>> base_dt2 = datetime.datetime(1990,12,31)
 >>>
->>> perc_dict = icclim.get_percentile_dict(in_files=[file_base1, file_base2], var='tasmin', percentile=10, time_range=[base_dt1, base_dt2])
+>>> perc_dict = icclim.get_percentile_dict(in_files=files, var='tasmin', percentile=10, time_range=[base_dt1, base_dt2])
 
-.. note:: The dictionary with daily percentiles can be saved in `pickle <https://docs.python.org/2/library/pickle.html#>`_ file (the ``save_to_file`` parameter):
+To get 2D numpy array with percentiles for *31th November*:
+
+>>> 10th_perc_31November =  perc_dict[11,31]
+
+
+save_to_file
+~~~~~~~~~~~~
+
+The dictionary with daily percentiles can be saved in `pickle <https://docs.python.org/2/library/pickle.html#>`_ file:
 
     >>> file_name = 'my_perc_dict.pkl'
     >>> perc_dict = icclim.get_percentile_dict(in_files=[file_base1, file_base2], var='tasmin', percentile=10, time_range=[base_dt1, base_dt2], save_to_file=file_name)
@@ -215,51 +271,67 @@ The ``only_leap_years`` parameter selects which of two methods to use for calcul
     >>> with open(file_name, 'rb') as f:
     ...     pd = pickle.load(f)
 
-.. note:: To process OPeNDAP datasets one needs to set the ``transfer_limit_bytes`` in bytes. This parameter is required to estimate an optimal data chunk size to transfer then data chunk-by-chunk in case if the request is bigger than the maximum OPeNDAP/THREDDS request limit. To know your maximum request limit, you can try to run the function without ``transfer_limit_bytes``, you will probably get an error message like: 
+.. _examples_label:
 
-	**context: Error { code = 403; message = "Request too big=1875.0 Mbytes, max=500.0"^;};**
-	...
-	**RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS**
+Examples
+---------
+>>> import icclim
+>>> import datetime
 
-	That means that your maximum request limit is 500 Mbytes, so set the ``transfer_limit_bytes`` to 500000000 [bytes]. If that does not work, try to reduce it a bit to let's say 450000000 [bytes].
+Example 1: indice SU
+~~~~~~~~~~~~~~~~~~~~~
+>>> files = ['tasmax_day_CNRM-CM5_historical_r1i1p1_19950101-19991231.nc', 'tasmax_day_CNRM-CM5_historical_r1i1p1_20000101-20041231.nc', 'tasmax_day_CNRM-CM5_historical_r1i1p1_20050101-20051231.nc']
+>>> dt1 = datetime.datetime(1998,1,1)
+>>> dt1 = datetime.datetime(2005,12,31)
+>>> out_f = 'SU_JJA_CNRM-CM5_historical_r1i1p1_1998-2005.nc' # summer season values of SU
+>>> icclim.indice(indice_name='SU', in_files=files, var_name='tasmax', slice_mode='JJA', out_file=out_f)
 
-Callback
---------
+Example 2: indice ETR
+~~~~~~~~~~~~~~~~~~~~~~
+>>> files_tasmax = [tasmax_day_CNRM-CM5_historical_r1i1p1_19300101-19341231.nc, tasmax_day_CNRM-CM5_historical_r1i1p1_19350101-19391231.nc]
+>>> files_tasmin = [tasmin_day_CNRM-CM5_historical_r1i1p1_19300101-19341231.nc, tasmin_day_CNRM-CM5_historical_r1i1p1_19350101-19391231.nc]
+>>> out_f = 'ETR_month_CNRM-CM5_historical_r1i1p1_1930-1939.nc' # monthly values of ETR
+>>> icclim.indice(indice_name='ETR', in_files=files_tasmax, var_name='tasmax', slice_mode='month', in_files2=files_tasmin, var_name2='tasmin', out_file=out_f)
 
-If you want the progress bar to be printed, use the default callback function from the `callback <https://github.com/tatarinova/icclim/blob/master/icclim/callback.py>`_ module, i.e.
-set the ``callback`` parameter to ``icclim.callback.defaultCallback``. (By default it is set to ``None``, i.e. the progress bar will not be printed.)
+.. warning:: The couple of parameters ``in_files`` and ``var_name`` corresponds to daily maximum temperature. Likewise, ``in_files2`` and ``var_name2`` -- to daily minimum temperature.
+
+Example 3: indice TG90p
+~~~~~~~~~~~~~~~~~~~~~~~
+>>> files = [tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc]
+>>>
+>>> ## step 1: we compute the 90th daily percetile for the base period
+>>> base_dt1 = datetime.datetime(1961,01,01)
+>>> base_dt2 = datetime.datetime(1990,12,31)
+>>> pd90 = icclim.get_percentile_dict(in_files=files, var_name='tas', percentile=90, time_range=[base_dt1, base_dt2])
+>>>
+>>> ## step 2: we compute the indice
+>>> dt1 = datetime.datetime(1980,01,01)
+>>> dt2 = datetime.datetime(2000,12,31)
+>>> out_f = 'TG90p_AMJJAS_CNRM-CM5_historical_r1i1p1_1980-2000.nc' # summer half-year values of TG90p
+>>> icclim.indice(indice_name='TG90p', in_files=files, var_name='tas', slice_mode='AMJJAS', percentile_dict=pd90, out_file=out_f)
+
+Example 4: indice CW
+~~~~~~~~~~~~~~~~~~~~
+>>> files_tas = [tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc]
+>>> files_pr = [pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc]
+>>> 
+>>> base_period = [datetime.datetime(1961,01,01), datetime.datetime(1990,12,31)]
+>>> 
+>>> ## step 1: we compute 25th daily percentile of 'tas'
+>>> pd25_tas = icclim.get_percentile_dict(in_files=files_tas, var_name='tas', percentile=25, time_range=base_period)
+>>> 
+>>> ## step 2: we compute 75th daily percentile of 'pr'
+>>> pd75_pr = icclim.get_percentile_dict(in_files=files_pr, var_name='pr', percentile=75, time_range=base_period, precipitation=True)
+>>> 
+>>> ## step 3: we compute the indice
+>>> tr = [datetime.datetime(1939,01,01), datetime.datetime(1945,12,31)] # monthly values of CW
+>>> out_f = 'CW_month_CNRM-CM5_historical_r1i1p1_1930-1945'
+>>> icclim.indice(indice_name='CW', time_range=tr, in_files=files_tas, var_name='tas', percentile_dict=pd25_tas, in_files2=files_pr, var_name2='pr', percentile_dict2=pd75_pr, out_file=out_f)
+
+.. warning:: The set of parameters ``in_files``, ``var_name`` and ``percentile_dict`` corresponds to daily mean temperature. Likewise, ``in_files2``, ``var_name2``, ``percentile_dict2`` -- to daily precipitation flux (liquide phase).
 
 
-Elementary functions
---------------------
-
-
-The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ and `calc_indice_perc.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py>`_ modules contain the elementary functions for computing indices.
-These functions could be reused in other environments. Below are some of them.
-
-.. note:: A function name is composed of an indice name and "_calculation" (example: FD_calculation).
-
-.. note:: Input array(s) could be filled (numpy.ndarray) or masked (numpy.ma.MaskedArray). The output array type corresponds to the input array type.
-
-.. warning::
-    If input array is filled, a fill_value (parameter "fill_val") must be provided:
-    
-    >>> FD_calculation(my_3D_array, fill_val=99999)
-    
-    If input array is masked, the "fill_val" is ignored:
-    
-    >>> FD_calculation(my_3D_masked_array)
-
-
-
-.. automodule:: calc_indice
-    :members: TNx_calculation, CSU_calculation, DTR_calculation
-   
-.. automodule:: calc_indice_perc
-    :members: TN10p_calculation, WSDI_calculation
-
-.. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
-
+.. _table_indice_sourceVar_label:
 
 Correspondence table "indice - source variable"
 -----------------------------------------------
@@ -284,17 +356,55 @@ Correspondence table "indice - source variable"
 |                                                            |  daily precipitation flux (liquide phase)   |
 +------------------------------------------------------------+---------------------------------------------+
 
+
+
+Elementary functions for computing indices
+-------------------------------------------
+
+
+The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ and `calc_indice_perc.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py>`_ modules contain the elementary functions for computing indices.
+These functions could be reused in other environments. Below are some of them.
+
+.. note:: A function name is composed of an indice name and "_calculation" (example: FD_calculation).
+
+.. note:: Input array(s) could be filled (numpy.ndarray) or masked (numpy.ma.MaskedArray). The output array type corresponds to the input array type.
+
+.. warning::
+    If input array is filled, a fill_value (parameter "fill_val") must be provided:
+    
+    >>> FD_calculation(my_3D_array, fill_val=99999)
+    
+    If input array is masked, the "fill_val" is ignored:
+    
+    >>> FD_calculation(my_3D_masked_array)
+
+
+
+.. automodule:: calc_indice
+    :members: TNx_calculation, CSU_calculation, DTR_calculation
+   
+.. automodule:: calc_indice_perc
+    :members: TN10p_calculation, WSDI_calculation, CW_calculation
+
+.. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+
+
+
+
+Utility functions
+-----------------
+
 .. _icclim_regrid:
 
-Regridding
-----------
-It is possible to do simple regridding, using the `regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/regrid.py>`_ module:
+:mod:`util.regrid` -- Regridding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+It is possible to do simple regridding, using the `util.regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/util/regrid.py>`_ module:
 
-.. automodule:: regrid
+.. automodule:: util.regrid
     :members: get_regridded_var, write2netCDF_after_regridding
 
 
->>> from icclim import regrid
+>>> import util.regrid as regrid
 
 
 For example, we have 2 files with different resolutions:
@@ -307,12 +417,18 @@ For example, we have 2 files with different resolutions:
 
 See also `more detailed example <https://github.com/tatarinova/icclim/blob/master/icclim/scripts_examples/example_regrid.py>`_.
 
-
 .. warning:: The package `ESMF/ESMPy <https://www.earthsystemcog.org/projects/esmpy/>`_ must be installed.
 
 
-Utility functions
------------------
+:mod:`util.spatial_stat` -- Spatial statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. automodule:: spatial_stat
+Utility functions for spatial statistics like computing of spatial average, spatial standard deviation, etc:
+
+1. :func:`util.spatial_stat.get_weight_matrix` computes weights, giving more weight to the pixels on the poles
+2. :func:`util.spatial_stat.multiply_to_weight_matrix` returns new values to be used for spatial statistics
+
+.. automodule:: util.spatial_stat
     :members: get_weight_matrix, multiply_to_weight_matrix
+
+.. warning:: Only for rectangular "lat/lon" grid.

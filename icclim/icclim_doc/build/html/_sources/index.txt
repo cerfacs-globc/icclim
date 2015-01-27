@@ -3,8 +3,8 @@ Welcome to ICCLIM's documentation!
 ==================================
 
 *Index Calculation CLIMate* is a Python libary designed for calculation of climate indices and indicators. 
-*ICCLIM* calculates `ECA&D climate indices <http://eca.knmi.nl/documents/atbd.pdf>`_.
-But other climate indices and indicators could be added. 
+*ICCLIM* calculates currently the `ECA&D climate indices <http://eca.knmi.nl/documents/atbd.pdf>`_.
+Other climate indices and indicators could be added also. 
 
 
 
@@ -25,6 +25,13 @@ Contents:
 
 
 **NEWS:**
+
+*27/01/2015*
+
+- New version: 3.0
+- :func:`icclim.indice()` is now used for all indices (simple, multivariable, percentile-based, etc)
+- Added seasonal temporal aggregations: "ONDJFM", "AMJJAS", "DJF", "MAM", "JJA" and "SON".
+
 
 *24/10/2014*
 
