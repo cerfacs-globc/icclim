@@ -398,14 +398,14 @@ Utility functions
 .. _icclim_regrid:
 
 :mod:`util.regrid` -- Regridding
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It is possible to do simple regridding, using the `util.regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/util/regrid.py>`_ module:
 
 .. automodule:: util.regrid
     :members: get_regridded_var, write2netCDF_after_regridding
 
 
->>> import util.regrid as regrid
+>>> import icclim.util.regrid as regrid
 
 
 For example, we have 2 files with different resolutions:
