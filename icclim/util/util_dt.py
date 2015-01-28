@@ -235,7 +235,7 @@ def get_indices_subset(dt_arr, time_range):
     :type time_range: [datetime1, datetime2]
     
     '''
-    
+
     dt1 = time_range[0]
     dt2 = time_range[1]
    

@@ -725,8 +725,6 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     nc0 = Dataset(in_files[0], 'r')
     fill_val = util_nc.get_att_value(nc0, var_name, '_FillValue')
     
-    var = nc0.variables[var_name]
-    
     var_time =  nc0.variables[temporal_variable]
     
     #global calend, units
@@ -754,6 +752,9 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     
     
     nc = MFDataset(in_files, 'r')
+    var_time = nc.variables[temporal_variable]
+    var = nc.variables[var_name]
+    
     
     if transfer_limit_Mbytes == None: # i.e. we work with local files
         
