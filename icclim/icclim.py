@@ -735,6 +735,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
         
     units = var_time.units
     
+    del var_time
     
 
     if time_range == None:
