@@ -131,6 +131,7 @@ def indice(indice_name,
     if slice_mode == None:
         slice_mode = 'month'
     
+    # we define the type of selected indice
     indice_type = get_key_by_value_from_dict(map_indice_type, indice_name) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
     
     if indice_type == 'multivariable' and (    (in_files2==None or var_name2==None) ): 
@@ -145,12 +146,10 @@ def indice(indice_name,
         print "Error: All following parameters must be provided: 'percentile_dict', 'in_files2', 'var_name2', 'percentile_dict2'."
         sys.exit()
 
-    
+    # we open any input file (for example, the first one) of each target variable to get necessary information 
     inc = Dataset(in_files[0], 'r')
     if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
         inc2 = Dataset(in_files2[0], 'r')
-    
-    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
     
     global fill_val    
     fill_val = util_nc.get_att_value(inc, var_name, '_FillValue').astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
@@ -158,10 +157,13 @@ def indice(indice_name,
         global fill_val2
         fill_val2 = util_nc.get_att_value(inc2, var_name2, '_FillValue').astype('float32')
     
+    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
+
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name) # tuple ('time', 'lat', 'lon')
     
     indice_dim = list(indice_dim)
     
+    # in case of user defined thresholds 
     global nb_user_thresholds, user_thresholds    
     
     # As default, no threshold is defined, no threshold dimension is created and added to the indice var
@@ -212,7 +214,7 @@ def indice(indice_name,
     #units = util_nc.get_att_value(inc, indice_dim[index_time], 'units')
     
 
-    ind_type = 'f'
+    ind_type = 'f' # 'float32'
     
     #fill_val = get_att_value(inc, var_name, '_FillValue').astype(ind_type) # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
     
