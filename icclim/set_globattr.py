@@ -77,7 +77,7 @@ def history(out_nc, calc_grouping, indice_name, time_range):
         elif list(calc_grouping) == ['month']:
             mode = 'monthly climatology'
         else:
-            raise NotImplementedError(calc_grouping)
+            mode = str(calc_grouping)
         # etc ...
     
     # example of history_str: 2012-10-02 15:30:20 Calculation of SU indice (monthly) from 1960-01-01 to 1990-12-31.
