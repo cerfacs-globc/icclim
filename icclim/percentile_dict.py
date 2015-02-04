@@ -210,6 +210,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     '''
     
     assert(arr.ndim == 3)
+    assert(arr.shape[0]==dt_arr.shape[0])
     
     # for callback print
     nb_months = 12*1.0
@@ -229,6 +230,8 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     
     # we mask our array in case it has fill_values
     arr_masked = get_masked_arr(arr, fill_val)
+    
+    fill_val = arr_masked.fill_value
             
     if precipitation == True:
         # 1) we convert mm/s to mm/day
@@ -248,7 +251,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
         arr_filled = arr_masked.filled(fill_val)
         del arr_masked
           
-    
+   
 
     ############################## prepare calling C function   
     # data type should be 'float32' to pass it to C function
@@ -297,7 +300,8 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
             indices_non_masked = numpy.where(dt_arr_mask==False)[0]
 
             # step4: we subset our arr
-            arr_subset = arr_filled[indices_non_masked, :, :].squeeze()
+            #arr_subset = arr_filled[indices_non_masked, :, :].squeeze()
+            arr_subset = arr_filled[indices_non_masked, :, :]
             
             # step5: we compute the percentile for current arr_subset           
             C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentille_current_calday, percentile, fill_val)
