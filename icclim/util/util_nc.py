@@ -299,6 +299,7 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
     
     dt_arr = numpy.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
     
+    
     if spatial_chunking==False:
         
         if N_lev == None:
@@ -307,8 +308,8 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
                 values_arr = ncVar_values[:,:,:]                
             else:
                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-                dt_arr = dt_arr[indices_subset].squeeze()                
-                values_arr = ncVar_values[indices_subset,:,:].squeeze()
+                dt_arr = dt_arr[indices_subset]               
+                values_arr = ncVar_values[indices_subset,:,:]
                 
         else:
             assert(ncVar_values.ndim == 4)
@@ -316,8 +317,8 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
                 values_arr = ncVar_values[:,N_lev,:,:]
             else:
                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-                dt_arr = dt_arr[indices_subset].squeeze()
-                values_arr = ncVar_values[indices_subset,N_lev,:,:].squeeze()
+                dt_arr = dt_arr[indices_subset]
+                values_arr = ncVar_values[indices_subset,N_lev,:,:]
 
         
     else: # spatial_chunking==True
@@ -328,8 +329,8 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
                 values_arr = ncVar_values[:,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]                
             else:
                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-                dt_arr = dt_arr[indices_subset].squeeze()
-                values_arr = ncVar_values[indices_subset,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile].squeeze()
+                dt_arr = dt_arr[indices_subset]
+                values_arr = ncVar_values[indices_subset,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
                 
         else:
             assert(ncVar_values.ndim == 4)
@@ -337,9 +338,12 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
                 values_arr = ncVar_values[:,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
             else:
                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-                dt_arr = dt_arr[indices_subset].squeeze()
-                values_arr = ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile].squeeze()
+                dt_arr = dt_arr[indices_subset]
+                values_arr = ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
         
-        
-
+   
+    assert(dt_arr.ndim == 1)    
+    assert(values_arr.ndim == 3)
+    
+    
     return (dt_arr, values_arr)

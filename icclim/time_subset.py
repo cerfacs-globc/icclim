@@ -150,6 +150,8 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
 
     '''
     
+    assert(values_arr.ndim == 3)
+    assert(dt_arr.ndim == 1)
     
     return_dict = OrderedDict()
 
@@ -188,8 +190,8 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
             for m in map_months[temporal_subset_mode]:
             
                 indices_dt_arr_non_masked_i = get_indices_temp_aggregation(dt_arr, month=m, year=y, f=0)
-                dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_i].squeeze()
-                arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :].squeeze()
+                dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_i]
+                arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :]
                 
                 dt_centroid = datetime(  y, m, map_dt_centroid_day[temporal_subset_mode]  )
                 dt_bounds = numpy.array([ dt_arr_subset_i[0], dt_arr_subset_i[-1] + timedelta(days=1) ]) # [ bnd1, bnd2 )
@@ -204,9 +206,9 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
         for y in years:                         
     
             indices_dt_arr_non_masked_year = get_indices_temp_aggregation(dt_arr, month=map_months[temporal_subset_mode], year=y, f=1)
-            dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_year].squeeze()
+            dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_year]
 
-            arr_subset_i = values_arr[indices_dt_arr_non_masked_year, :, :].squeeze()
+            arr_subset_i = values_arr[indices_dt_arr_non_masked_year, :, :]
             
             dt_centroid = datetime(  y, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dt_arr_subset_i[-1] + timedelta(days=1) ]) # [ bnd1, bnd2 )
@@ -230,8 +232,8 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
                 indices_dt_arr_non_masked_current_season = numpy.concatenate((indices_dt_arr_non_masked_first_year, indices_dt_arr_non_masked_next_year))
                 indices_dt_arr_non_masked_current_season.sort()
                 
-                dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_current_season].squeeze()
-                arr_subset_i = values_arr[indices_dt_arr_non_masked_current_season, :, :].squeeze()
+                dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_current_season]
+                arr_subset_i = values_arr[indices_dt_arr_non_masked_current_season, :, :]
                 
                 dt_centroid = datetime(  next_year, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
                 dt_bounds = numpy.array([ dt_arr_subset_i[0], dt_arr_subset_i[-1] + timedelta(days=1) ]) # [ bnd1, bnd2 )
@@ -246,9 +248,9 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
         for y in years:                            
         
             indices_dt_arr_non_masked_i = get_indices_temp_aggregation(dt_arr, month=None, year=y, f=2)
-            dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_i].squeeze()
+            dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_i]
             
-            arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :].squeeze()
+            arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :]
             dt_centroid = datetime(  y, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dt_arr_subset_i[-1] + timedelta(days=1) ]) # [ bnd1, bnd2 )
             

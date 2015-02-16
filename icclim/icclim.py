@@ -824,8 +824,9 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
             
             time_arr = var_time[:]
             dt_arr = numpy.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
+            assert(dt_arr.ndim == 1)
             indices_base_period = util_dt.get_indices_subset(dt_arr, time_range)
-            dt_base_arr = dt_arr[indices_base_period].squeeze()
+            dt_base_arr = dt_arr[indices_base_period]
             del time_arr, dt_arr, indices_base_period
             ############## we initialize a glob dict ( i.e. a dict with all calend days (keys) and 2D arrays with zeros)
             ############# where we will add perc. values of each chunk

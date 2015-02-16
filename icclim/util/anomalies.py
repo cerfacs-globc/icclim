@@ -62,7 +62,8 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
     
             indices_subset = icclim.get_indices_subset(dt_arr, time_range)
     
-            arr = var[indices_subset,:,:].squeeze()
+            #arr = var[indices_subset,:,:].squeeze()
+            arr = var[indices_subset,:,:]
                     
         nc.close()
         
