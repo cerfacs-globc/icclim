@@ -39,7 +39,7 @@ time and time_bounds
 |  ``SON``             |    YYYY-10-16         |    YYYY-09-01   |  YYYY-12-01      |
 +----------------------+-----------------------+-----------------+------------------+
 
-.. note:: The second bound in time_bnds is excluded! 
+.. note:: The second bound in time_bounds is excluded! 
 
 Example: annual time steps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
