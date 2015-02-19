@@ -170,8 +170,8 @@ indice</td>
 <p>Below some additionnal information about input parameters.</p>
 <div class="section" id="slice-mode">
 <h3>slice_mode<a class="headerlink" href="#slice-mode" title="Permalink to this headline">¶</a></h3>
-<p>The <tt class="docutils literal"><span class="pre">slice_mode</span></tt> parameter defines a desired temporal aggregation. Thus, each indice can be calculated as annual, winter half-year, summer half-year, winter, spring,
-summer, autumn and monthly values:</p>
+<p>The <tt class="docutils literal"><span class="pre">slice_mode</span></tt> parameter defines a desired temporal aggregation. Thus, each indice can be calculated at annual, winter half-year, summer half-year, winter, spring,
+summer, autumn and monthly frequency:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="49%" />
@@ -233,26 +233,25 @@ The threshold could be one value:</p>
 </div>
 <div class="section" id="transfer-limit-mbytes">
 <h3>transfer_limit_Mbytes<a class="headerlink" href="#transfer-limit-mbytes" title="Permalink to this headline">¶</a></h3>
-<p>In case of OPeNDAP datasets, if the request is bigger than the maximum OPeNDAP/THREDDS request limit, you will probably get an error message like:</p>
-<blockquote>
-<div><div class="highlight-rest"><div class="highlight"><pre>context: Error { code = 403; message = &quot;Request too big=1875.0 Mbytes, max=500.0&quot;^;};
-
-<span class="cp">...</span>
-
-RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS
-</pre></div>
-</div>
-</div></blockquote>
-<p>That means that your transfer limit is fixed to 500 Mbytes.</p>
-<p>It is possible to realize spatial chunking (i.e. cut data spacially into chunks, where each one does not exceed the request limit)
-to transfer then data chunk-by-chunk.
-The <tt class="docutils literal"><span class="pre">transfer_limit_Mbytes</span></tt> parameter, required to estimate an optimal data chunk size, should be set to the request limit:</p>
+<p>In case of OPeNDAP datasets, if requested datasets exceed the transfer limit, ICCLIM applies chunking method to transfer and process.
+Chunksize is dynamicly adapted to the data maximum transfer size. Data cutting is realized along the time dimension (spatial chunking).</p>
+<p>The <tt class="docutils literal"><span class="pre">transfer_limit_Mbytes</span></tt> parameter, required to estimate the optimal data chunksize, should be set to the request limit value:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">transfer_limit_Mbytes</span> <span class="o">=</span> <span class="mi">500</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If that does not work, try to reduce the <tt class="docutils literal"><span class="pre">transfer_limit_Mbytes</span></tt> value.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>Example of error message, if <tt class="docutils literal"><span class="pre">transfer_limit_Mbytes</span></tt> is not set:
+.. code-block:: rest</p>
+<blockquote class="last">
+<div><p>context: Error { code = 403; message = &#8220;Request too big=1875.0 Mbytes, max=500.0&#8221;^;};</p>
+<p>...</p>
+<p>RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS</p>
+</div></blockquote>
 </div>
 </div>
 <div class="section" id="callback">
@@ -541,10 +540,10 @@ daily precipitation flux (liquide phase)</td>
 </tbody>
 </table>
 </div>
-<div class="section" id="elementary-functions-for-computing-indices">
-<h2>Elementary functions for computing indices<a class="headerlink" href="#elementary-functions-for-computing-indices" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py">calc_indice.py</a> and <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py">calc_indice_perc.py</a> modules contain the elementary functions for computing indices.
-These functions could be reused in other environments. Below are some of them.</p>
+<div class="section" id="basic-functions-for-computing-indices">
+<h2>Basic functions for computing indices<a class="headerlink" href="#basic-functions-for-computing-indices" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py">calc_indice.py</a> and <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py">calc_indice_perc.py</a> modules contain basic routines for manipulating 3D arrays.
+Below are some of them.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">A function name is composed of an indice name and &#8220;_calculation&#8221; (example: FD_calculation).</p>
@@ -905,7 +904,7 @@ if &#8220;arr&#8221; is a 3D array, then arr.shape[1] = weight_matrix.shape[0] a
 </ul>
 </li>
 <li><a class="reference internal" href="#correspondence-table-indice-source-variable">Correspondence table &#8220;indice - source variable&#8221;</a></li>
-<li><a class="reference internal" href="#elementary-functions-for-computing-indices">Elementary functions for computing indices</a></li>
+<li><a class="reference internal" href="#basic-functions-for-computing-indices">Basic functions for computing indices</a></li>
 <li><a class="reference internal" href="#utility-functions">Utility functions</a><ul>
 <li><a class="reference internal" href="#util-regrid-regridding"><tt class="docutils literal"><span class="pre">util.regrid</span></tt> &#8211; Regridding</a></li>
 <li><a class="reference internal" href="#util-spatial-stat-spatial-statistics"><tt class="docutils literal"><span class="pre">util.spatial_stat</span></tt> &#8211; Spatial statistics</a></li>

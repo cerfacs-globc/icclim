@@ -2,7 +2,7 @@
 Output metadata
 ================
 
-The output metadata contains at least the following variables:
+Output metadata contains at least the following variables:
     - lat
     - lat_bounds
     - lon_bounds

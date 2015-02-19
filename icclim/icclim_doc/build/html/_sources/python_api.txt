@@ -54,8 +54,8 @@ Below some additionnal information about input parameters.
 
 slice_mode
 ~~~~~~~~~~
-The ``slice_mode`` parameter defines a desired temporal aggregation. Thus, each indice can be calculated as annual, winter half-year, summer half-year, winter, spring,
-summer, autumn and monthly values: 
+The ``slice_mode`` parameter defines a desired temporal aggregation. Thus, each indice can be calculated at annual, winter half-year, summer half-year, winter, spring,
+summer, autumn and monthly frequency: 
 
 +----------------------+-----------------------+
 | Value (string)       | Description           |
@@ -97,9 +97,17 @@ or a list of values:
 transfer_limit_Mbytes
 ~~~~~~~~~~~~~~~~~~~~~
 
-In case of OPeNDAP datasets, if the request is bigger than the maximum OPeNDAP/THREDDS request limit, you will probably get an error message like:
+In case of OPeNDAP datasets, if requested datasets exceed the transfer limit, ICCLIM applies chunking method to transfer and process.
+Chunksize is dynamicly adapted to the data maximum transfer size. Data cutting is realized along the time dimension (spatial chunking).
     
-        
+The ``transfer_limit_Mbytes`` parameter, required to estimate the optimal data chunksize, should be set to the request limit value:
+
+>>> transfer_limit_Mbytes = 500
+
+.. note:: If that does not work, try to reduce the ``transfer_limit_Mbytes`` value.
+
+
+.. note:: Example of error message, if ``transfer_limit_Mbytes`` is not set:
     .. code-block:: rest
     
 	context: Error { code = 403; message = "Request too big=1875.0 Mbytes, max=500.0"^;};
@@ -107,17 +115,6 @@ In case of OPeNDAP datasets, if the request is bigger than the maximum OPeNDAP/T
 	...
         
 	RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS
-
-That means that your transfer limit is fixed to 500 Mbytes.
-
-It is possible to realize spatial chunking (i.e. cut data spacially into chunks, where each one does not exceed the request limit)
-to transfer then data chunk-by-chunk. 
-The ``transfer_limit_Mbytes`` parameter, required to estimate an optimal data chunk size, should be set to the request limit:
-
->>> transfer_limit_Mbytes = 500
-
-.. note:: If that does not work, try to reduce the ``transfer_limit_Mbytes`` value.
-
 
 callback
 ~~~~~~~~
@@ -359,12 +356,12 @@ Correspondence table "indice - source variable"
 
 
 
-Elementary functions for computing indices
+Basic functions for computing indices
 -------------------------------------------
 
 
-The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ and `calc_indice_perc.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py>`_ modules contain the elementary functions for computing indices.
-These functions could be reused in other environments. Below are some of them.
+The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ and `calc_indice_perc.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice_perc.py>`_ modules contain basic routines for manipulating 3D arrays.
+Below are some of them.
 
 .. note:: A function name is composed of an indice name and "_calculation" (example: FD_calculation).
 
