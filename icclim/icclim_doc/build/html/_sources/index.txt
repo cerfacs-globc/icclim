@@ -14,8 +14,7 @@ Contents:
    installation.rst
    python_api.rst
    output_metadata.rst
-   contact.rst 
-    
+   contact.rst     
    icclim_ocgis.rst
 
 
