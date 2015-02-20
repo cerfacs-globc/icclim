@@ -126,6 +126,8 @@ def indice(indice_name,
     :rtype: path to NetCDF file
 
     .. warning:: If ``out_file`` already exists, Icclim will overwrite it!
+    
+    .. warning:: Precipitation input units are considered to be in [kg m-2 s-1].
     '''
     
     if slice_mode == None:
@@ -687,7 +689,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     :param window_width: Window width, must be odd (default: 5).
     :type window_width: int
     
-    :param time_range: Temporal range of the base period (usually: 1961-1990). If ``None``: whole period of input files will be processed.
+    :param time_range: Temporal range of the base period. If ``None``: whole period of input files will be processed.
     :type time_range: [datetime.datetime, datetime.datetime]
     
     :param only_leap_years: Option for February 29th (default: False).
@@ -717,7 +719,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     :rtype: dict
     
     
-    .. warning:: Precipitation variable must be in mm/s !
+    .. warning:: Precipitation input units are considered to be in [kg m-2 s-1].
     '''
     
     temporal_variable = 'time'

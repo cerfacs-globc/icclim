@@ -92,7 +92,7 @@ or a list of values:
 
 >>> threshold = [20,25,30]
 
-.. note:: Units of ``threshold`` must be in degrees Celsius. 
+.. note:: Currently, temperature thresholds are only avaliable and units of ``threshold`` must be in degrees Celsius. 
 
 transfer_limit_Mbytes
 ~~~~~~~~~~~~~~~~~~~~~
@@ -107,7 +107,8 @@ The ``transfer_limit_Mbytes`` parameter, required to estimate the optimal data c
 .. note:: If that does not work, try to reduce the ``transfer_limit_Mbytes`` value.
 
 
-.. note:: Example of error message, if ``transfer_limit_Mbytes`` is not set:
+.. note:: Example of error message, if ``transfer_limit_Mbytes`` is not set or its value is overvalued:
+
     .. code-block:: rest
     
 	context: Error { code = 403; message = "Request too big=1875.0 Mbytes, max=500.0"^;};
@@ -116,10 +117,13 @@ The ``transfer_limit_Mbytes`` parameter, required to estimate the optimal data c
         
 	RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS
 
+
+.. note:: If ``transfer_limit_Mbytes`` is set, chunking is applied even for local datasets that could be usefull for machines with little RAM.
+
 callback
 ~~~~~~~~
 The percentage progress bar is printed if the ``callback`` parameter is set to a callback function.
-The dafault callback functions are defined in `util.callback.py <link>`_. (They both displays the same message: Processing.)
+The default callback functions are defined in `util.callback.py <link>`_. 
 
 >>> import util.callback as callback
 >>> cb = callback.defaultCallback
@@ -133,7 +137,7 @@ The dafault callback functions are defined in `util.callback.py <link>`_. (They 
 :func:`icclim.get_percentile_dict` -- Compute daily percentiles 
 -----------------------------------------------------------------
 
-Daily percentile values are computed from values inside a reference period, named *base period* which is usually 30 years (i.e. 1961-1990).
+Daily percentile values are computed from values inside a reference period, named *base period* which is usually 30 years (user defined period).
 
 The *window width* is an odd number of days (usually 5) which will be extracted from all years in the base period; the window is centred on a certain calendar day, for example:
     - **April 13th**, we take the values for *April 11th*, *April 12th*, *April 13th*, *April 14th* and *April 15th* of each year of the base period.
@@ -157,7 +161,7 @@ only_leap_years
     
 The ``only_leap_years`` parameter selects which of two methods to use for calculating a percentile value for the calendar day of **February 29th**:
 
-    - if it is *True*, then we take only leap years, i.e. for example for the base period of 1980-1990 and 5-day window width, we take the values corresponding to the following dates:
+    - if ``True``, we take only leap years, i.e. for example for the base period of 1980-1990 and 5-day window width, we take the values corresponding to the following dates:
 
         1980-02-27,
         1980-02-28,
@@ -178,7 +182,7 @@ The ``only_leap_years`` parameter selects which of two methods to use for calcul
         1988-03-02
 
 
-    - if it is *False*, then for the same base period and window width, we have:
+    - if ``False``, for the same base period and window width, we have:
 
         1980-02-27,
         1980-02-28,
@@ -396,7 +400,7 @@ Utility functions
 
 :mod:`util.regrid` -- Regridding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-It is possible to do simple regridding, using the `util.regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/util/regrid.py>`_ module:
+It is possible to do simple regridding (only rectangular "lat/lon" grid), using the `util.regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/util/regrid.py>`_ module:
 
 .. automodule:: util.regrid
     :members: get_regridded_var, write2netCDF_after_regridding
@@ -421,7 +425,7 @@ See also `more detailed example <https://github.com/tatarinova/icclim/blob/maste
 :mod:`util.spatial_stat` -- Spatial statistics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Utility functions for spatial statistics like computing of spatial average, spatial standard deviation, etc:
+Utility functions for spatial statistics such as computing of spatial average, spatial standard deviation, etc:
 
 1. :func:`util.spatial_stat.get_weight_matrix` computes weights, giving more weight to the pixels on the poles
 2. :func:`util.spatial_stat.multiply_to_weight_matrix` returns new values to be used for spatial statistics

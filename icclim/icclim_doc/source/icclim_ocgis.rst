@@ -1,97 +1,35 @@
 .. _icclim_ocgis:
 
-ICCLIM called from OpenClimateGIS
-==================================
-Some ICCLIM indices (`ECA&D climate indices <http://eca.knmi.nl/documents/atbd.pdf>`_) are implemented in the `OpenClimateGIS <http://ncpp.github.io/ocgis/index.html>`_ Python package. OpenClimateGIS uses ICCLIM's
-elementary functions from  the `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ module.
+ICCLIM called from OpenClimateGIS - Examples
+==============================================
+ICCLIM indices (`ECA&D climate indices <http://eca.knmi.nl/documents/atbd.pdf>`_) are implemented in the `OpenClimateGIS <http://ncpp.github.io/ocgis/index.html>`_ (Version 1.1.0) Python package. 
 
-Important to know
------------------
-1. List of ICCLIM indices currently implemented in OpenClimateGIS:
-    - TG
-    - TX
-    - TXx
-    - TXn
-    - TN
-    - TNx
-    - TNn
-    - SU
-    - CSU
-    - FD
-    - CFD
-    - TR
-    - ID
-    - HD17
-    - GD4
-    - RR
-    - RR1
-    - CWD
-    - SDII
-    - R10mm
-    - R20mm
-    - RX1day
-    - RX5day
-    - SD
-    - SD1
-    - SD5cm
-    - SD50cm
-    - CDD
-    
-    - DTR
-    - ETR
-    - vDTR
-
-2. Handling of :ref:`different flavors of temporal aggregation <temp_agregations_label>`: monthly, year or seasonal time series.
-3. Calculation of :ref:`percentile-based indices <percentil_label>`.
-4. Support of unsecured OPeNDAP datasets as well. 
-
-5. To use ICCLIM indices in OpenClimateGIS you need to do the following:
-
-    1. Install all `dependencies of OpenClimateGIS <https://www.earthsystemcog.org/projects/openclimategis/dependencies>`_ 
-    2. Go to `<https://github.com/NCPP/ocgis>`_.
-    3. Download the current version: click to **Download ZIP**.
-    4. Extract the file.
-    5. Go to extracted directory.
-    6. Run the system command:
-
-    .. code-block:: sh
-        
-        [sudo] python setup.py install
-
-Examples
----------
-First, we import the OpenClimateGIS library:
 
 >>> import ocgis
-
-
-Then, we create a `ocgis.RequestDataset <http://ncpp.github.io/ocgis/api.html#ocgis.RequestDataset>`_ object:
-
 >>> rd = ocgis.RequestDataset('tas_19800101_19891231.nc', variable='tas')
 
 It is also possible to pass a list of datasets:
 
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas')
 
-For temporal subsetting we use the *time_range* parameter:
+Subsetting with `time range <http://ncpp.github.io/ocgis/api.html#time-range>`_ and/or `time_region <http://ncpp.github.io/ocgis/api.html#time-region>`_
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+For temporal subsetting we use the ``time_range`` parameter:
 
 >>> import datetime
 >>> dt1 = datetime.datetime(1985,01,01)
 >>> dt2 = datetime.datetime(1995,12,31)
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas', time_range=[dt1, dt2])
 
-or/and the *time_region* parameter:
+or/and the ``time_region`` parameter:
 
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas', time_region={'month':[6,7,8]})
 
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas', time_region={'year':[1989,1990,1991],'month':[6,7,8]})
 
-
-.. _temp_agregations_label:
-
-An indice may be calculated as monthly, annual or seasonal values (depending on kind of indice).
-For this, we need to define the `calc_grouping <http://ncpp.github.io/ocgis/api.html#calc-grouping-headline>`_ parameter
-which will be passed in `ocgis.OcgOperations <http://ncpp.github.io/ocgis/api.html#ocgis.OcgOperations>`_ object.
+Temporal aggregation with `calc_grouping <http://ncpp.github.io/ocgis/api.html#calc-grouping>`_
+---------------------------------------------------------------------------------------------------
 
 Annual values:
 
@@ -117,7 +55,7 @@ Seasonal values:
 
 
 Example 1: simple indice calculation
-------------------------------------
+--------------------------------------
 
 The example below will create a netCDF file "indiceTG_1985_1995.nc" containing TG indice:
 
@@ -127,7 +65,7 @@ The example below will create a netCDF file "indiceTG_1985_1995.nc" containing T
 
 
 Example 2: multivariable indice calculation
--------------------------------------------
+---------------------------------------------
 To calculate an indice based on 2 variables:
 
 >>> rd_tasmin = ocgis.RequestDataset(tasmin_19800101_19891231.nc,'tasmin')
@@ -141,7 +79,7 @@ To calculate an indice based on 2 variables:
 .. _percentil_label:
 
 Example 3: percentile-based indices
------------------------------------
+-------------------------------------
 Calculation of percentile-based indices is more complicated.
 The example below shows how to calculate the TG10p indice.
 

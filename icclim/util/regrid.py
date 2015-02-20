@@ -8,6 +8,13 @@ import util_nc
 
 #esmpy = ESMF.Manager(logkind=ESMF.LogKind.MULTI, debug=True)
 
+'''
+.. warning:: Works only with rectangular "lat/lon" grid
+
+'''
+
+
+
 def get_regridded_var(f_src, f_dst, varname):
     '''
     Returns a result of regridding.    
@@ -23,9 +30,7 @@ def get_regridded_var(f_src, f_dst, varname):
     
     :rtype: numpy.ndarray (3D)
     
-    .. note:: If the variable has dimensions (a, b, c) and the destination grid is (d, e), then the output array will have the dimensions (a, d, e)
-    
-    .. warning:: Works only with rectangular "lat/lon" grid
+    .. note:: If the variable has dimensions (a, b, c) with ``a`` as time dimention and the destination grid is (d, e), then the output array will have the dimensions (a, d, e)
     
     '''
 

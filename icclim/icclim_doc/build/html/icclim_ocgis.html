@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ICCLIM called from OpenClimateGIS &mdash; ICCLIM 3.0 documentation</title>
+    <title>ICCLIM called from OpenClimateGIS - Examples &mdash; ICCLIM 3.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -48,105 +48,36 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="icclim-called-from-openclimategis">
-<span id="icclim-ocgis"></span><h1>ICCLIM called from OpenClimateGIS<a class="headerlink" href="#icclim-called-from-openclimategis" title="Permalink to this headline">¶</a></h1>
-<p>Some ICCLIM indices (<a class="reference external" href="http://eca.knmi.nl/documents/atbd.pdf">ECA&amp;D climate indices</a>) are implemented in the <a class="reference external" href="http://ncpp.github.io/ocgis/index.html">OpenClimateGIS</a> Python package. OpenClimateGIS uses ICCLIM&#8217;s
-elementary functions from  the <a class="reference external" href="https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py">calc_indice.py</a> module.</p>
-<div class="section" id="important-to-know">
-<h2>Important to know<a class="headerlink" href="#important-to-know" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic">
-<li><dl class="first docutils">
-<dt>List of ICCLIM indices currently implemented in OpenClimateGIS:</dt>
-<dd><ul class="first last simple">
-<li>TG</li>
-<li>TX</li>
-<li>TXx</li>
-<li>TXn</li>
-<li>TN</li>
-<li>TNx</li>
-<li>TNn</li>
-<li>SU</li>
-<li>CSU</li>
-<li>FD</li>
-<li>CFD</li>
-<li>TR</li>
-<li>ID</li>
-<li>HD17</li>
-<li>GD4</li>
-<li>RR</li>
-<li>RR1</li>
-<li>CWD</li>
-<li>SDII</li>
-<li>R10mm</li>
-<li>R20mm</li>
-<li>RX1day</li>
-<li>RX5day</li>
-<li>SD</li>
-<li>SD1</li>
-<li>SD5cm</li>
-<li>SD50cm</li>
-<li>CDD</li>
-<li>DTR</li>
-<li>ETR</li>
-<li>vDTR</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p class="first">Handling of <a class="reference internal" href="#temp-agregations-label"><em>different flavors of temporal aggregation</em></a>: monthly, year or seasonal time series.</p>
-</li>
-<li><p class="first">Calculation of <a class="reference internal" href="#percentil-label"><em>percentile-based indices</em></a>.</p>
-</li>
-<li><p class="first">Support of unsecured OPeNDAP datasets as well.</p>
-</li>
-<li><p class="first">To use ICCLIM indices in OpenClimateGIS you need to do the following:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li>Install all <a class="reference external" href="https://www.earthsystemcog.org/projects/openclimategis/dependencies">dependencies of OpenClimateGIS</a></li>
-<li>Go to <a class="reference external" href="https://github.com/NCPP/ocgis">https://github.com/NCPP/ocgis</a>.</li>
-<li>Download the current version: click to <strong>Download ZIP</strong>.</li>
-<li>Extract the file.</li>
-<li>Go to extracted directory.</li>
-<li>Run the system command:</li>
-</ol>
-<div class="highlight-sh"><div class="highlight"><pre><span class="o">[</span>sudo<span class="o">]</span> python setup.py install
-</pre></div>
-</div>
-</div></blockquote>
-</li>
-</ol>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
-<p>First, we import the OpenClimateGIS library:</p>
+  <div class="section" id="icclim-called-from-openclimategis-examples">
+<span id="icclim-ocgis"></span><h1>ICCLIM called from OpenClimateGIS - Examples<a class="headerlink" href="#icclim-called-from-openclimategis-examples" title="Permalink to this headline">¶</a></h1>
+<p>ICCLIM indices (<a class="reference external" href="http://eca.knmi.nl/documents/atbd.pdf">ECA&amp;D climate indices</a>) are implemented in the <a class="reference external" href="http://ncpp.github.io/ocgis/index.html">OpenClimateGIS</a> (Version 1.1.0) Python package.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">ocgis</span>
-</pre></div>
-</div>
-<p>Then, we create a <a class="reference external" href="http://ncpp.github.io/ocgis/api.html#ocgis.RequestDataset">ocgis.RequestDataset</a> object:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">RequestDataset</span><span class="p">(</span><span class="s">&#39;tas_19800101_19891231.nc&#39;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">RequestDataset</span><span class="p">(</span><span class="s">&#39;tas_19800101_19891231.nc&#39;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>It is also possible to pass a list of datasets:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">RequestDataset</span><span class="p">([</span><span class="s">&#39;tas_19800101_19891231.nc&#39;</span><span class="p">,</span> <span class="s">&#39;tas_19900101_19991231.nc&#39;</span><span class="p">],</span> <span class="n">variable</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>For temporal subsetting we use the <em>time_range</em> parameter:</p>
+<div class="section" id="subsetting-with-time-range-and-or-time-region">
+<h2>Subsetting with <a class="reference external" href="http://ncpp.github.io/ocgis/api.html#time-range">time range</a> and/or <a class="reference external" href="http://ncpp.github.io/ocgis/api.html#time-region">time_region</a><a class="headerlink" href="#subsetting-with-time-range-and-or-time-region" title="Permalink to this headline">¶</a></h2>
+<p>For temporal subsetting we use the <tt class="docutils literal"><span class="pre">time_range</span></tt> parameter:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">datetime</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dt1</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1985</span><span class="p">,</span><span class="mo">01</span><span class="p">,</span><span class="mo">01</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dt2</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">1995</span><span class="p">,</span><span class="mi">12</span><span class="p">,</span><span class="mi">31</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">RequestDataset</span><span class="p">([</span><span class="s">&#39;tas_19800101_19891231.nc&#39;</span><span class="p">,</span> <span class="s">&#39;tas_19900101_19991231.nc&#39;</span><span class="p">],</span> <span class="n">variable</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>or/and the <em>time_region</em> parameter:</p>
+<p>or/and the <tt class="docutils literal"><span class="pre">time_region</span></tt> parameter:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">RequestDataset</span><span class="p">([</span><span class="s">&#39;tas_19800101_19891231.nc&#39;</span><span class="p">,</span> <span class="s">&#39;tas_19900101_19991231.nc&#39;</span><span class="p">],</span> <span class="n">variable</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">time_region</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;month&#39;</span><span class="p">:[</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">]})</span>
 </pre></div>
 </div>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">RequestDataset</span><span class="p">([</span><span class="s">&#39;tas_19800101_19891231.nc&#39;</span><span class="p">,</span> <span class="s">&#39;tas_19900101_19991231.nc&#39;</span><span class="p">],</span> <span class="n">variable</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">time_region</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;year&#39;</span><span class="p">:[</span><span class="mi">1989</span><span class="p">,</span><span class="mi">1990</span><span class="p">,</span><span class="mi">1991</span><span class="p">],</span><span class="s">&#39;month&#39;</span><span class="p">:[</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">]})</span>
 </pre></div>
 </div>
-<p id="temp-agregations-label">An indice may be calculated as monthly, annual or seasonal values (depending on kind of indice).
-For this, we need to define the <a class="reference external" href="http://ncpp.github.io/ocgis/api.html#calc-grouping-headline">calc_grouping</a> parameter
-which will be passed in <a class="reference external" href="http://ncpp.github.io/ocgis/api.html#ocgis.OcgOperations">ocgis.OcgOperations</a> object.</p>
+</div>
+<div class="section" id="temporal-aggregation-with-calc-grouping">
+<h2>Temporal aggregation with <a class="reference external" href="http://ncpp.github.io/ocgis/api.html#calc-grouping">calc_grouping</a><a class="headerlink" href="#temporal-aggregation-with-calc-grouping" title="Permalink to this headline">¶</a></h2>
 <p>Annual values:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">calc_grouping</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;year&#39;</span><span class="p">]</span>
 </pre></div>
@@ -277,9 +208,9 @@ so first we need to find an optimal tile dimention (number of pixels) to get a c
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">ICCLIM called from OpenClimateGIS</a><ul>
-<li><a class="reference internal" href="#important-to-know">Important to know</a></li>
-<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#">ICCLIM called from OpenClimateGIS - Examples</a><ul>
+<li><a class="reference internal" href="#subsetting-with-time-range-and-or-time-region">Subsetting with time range and/or time_region</a></li>
+<li><a class="reference internal" href="#temporal-aggregation-with-calc-grouping">Temporal aggregation with calc_grouping</a></li>
 <li><a class="reference internal" href="#example-1-simple-indice-calculation">Example 1: simple indice calculation</a></li>
 <li><a class="reference internal" href="#example-2-multivariable-indice-calculation">Example 2: multivariable indice calculation</a></li>
 <li><a class="reference internal" href="#example-3-percentile-based-indices">Example 3: percentile-based indices</a></li>

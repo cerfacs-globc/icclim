@@ -17,7 +17,7 @@ import numpy
 
 def get_weight_matrix(lat_arr, lon_arr): #, units="rad"):  
     '''
-    Computes a weight matrix for reclilinear grid.
+    Computes a weight matrix for rectilinear grid.
     
     :param lat_arr: vector of latitudes in radians
     :type lat_arr: numpy.ndarray (1D)
@@ -26,7 +26,7 @@ def get_weight_matrix(lat_arr, lon_arr): #, units="rad"):
     
     :rtype:  numpy.ndarray (2D)
     
-    .. warning:: units of latitudes must be in radians
+    .. warning:: Latitudes must be in radians.
     
     '''
     
@@ -64,7 +64,7 @@ def get_weight_matrix(lat_arr, lon_arr): #, units="rad"):
 
 def multiply_to_weight_matrix(arr, weight_matrix):
     '''
-    Returns the result of the multiplacation of "arr" by "weight_matrix".
+    Returns the result of the multiplication of "arr" by "weight_matrix".
     
     :param arr: values
     :type arr: numpy.ndarray

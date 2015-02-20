@@ -306,7 +306,7 @@ def DTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     :rtype: numpy.ndarray (2D)        (if "arr1" and "arr2" are numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr1" and "arr2" are numpy.ma.MaskedArray)
 
-    .. warning:: "arr1" and "arr2" must be both the same type, have the same shape and be corresponding to the same time step vector.
+    .. warning:: "arr1" and "arr2" must be the same type, shape and correspond to the same time step vector.
     
     '''
     #.. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
@@ -344,7 +344,7 @@ def ETR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
          
     .. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
-    .. warning:: "arr1" and "arr2" must be both the same type, have the same shape and be corresponding to the same time step vector.
+    .. warning:: "arr1" and "arr2" must be the same type, shape and correspond to the same time step vector.
     
     '''  
     
@@ -382,7 +382,7 @@ def vDTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
          
     .. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
     
-    .. warning:: "arr1" and "arr2" must be both the same type, have the same shape and be corresponding to the same time step vector.
+    .. warning:: "arr1" and "arr2" must be the same type, shape and correspond to the same time step vector.
     
     '''  
     
