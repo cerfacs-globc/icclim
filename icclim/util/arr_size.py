@@ -1,3 +1,8 @@
+#  Copyright CERFACS (http://cerfacs.fr/)
+#  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+#
+#  Author: Natalia Tatarinova
+
 from netCDF4 import MFDataset
 import numpy
 import util_dt
