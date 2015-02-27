@@ -15,7 +15,7 @@ Installation (Linux)
 --------------------
 .. note:: Make sure that **Python 2.7** and **GCC** are installed.
 
-1. Go to `<https://github.com/tatarinova/icclim>`_.
+1. Go to `<https://github.com/cerfacs-globc/icclim>`_.
 2. Download the current version: click to **Download ZIP**.
 3. Extract the file.
 4. Go to extracted directory.
