@@ -74,6 +74,7 @@ def indice(indice_name,
 
     
     '''
+
     
     :param indice_name: Climate indice name. 
     :type indice_name: str    
