@@ -43,6 +43,7 @@ The climate at a defined place is the average state of the atmosphere over a lon
 
 Climate indices allow a statistical study of variations of the dependent climatological aspects, such as analysis and comparison of time series, means, extremes and trends.
 
+test
 
 .. note:: A good introduction for climate indices is on the website of the `Integrated Climate Data Center (ICDC) <http://icdc.zmaw.de/climate_indices.html?&L=1>`_ of the University of Hamburg.
 
