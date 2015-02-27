@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Intro &mdash; ICCLIM 3.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="ICCLIM 3.0 documentation" href="index.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="Welcome to ICCLIM’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to ICCLIM’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">ICCLIM 3.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="intro">
+<h1>Intro<a class="headerlink" href="#intro" title="Permalink to this headline">¶</a></h1>
+<p>ICCLIM (Indice Calculation CLIMate) is a Python library for computing a number of climate indices.</p>
+<p>Currently, the 49 climate indices as defined by <a class="reference external" href="http://www.ecad.eu/">European Climate Assessment &amp; Dataset</a> based on air temperature and precipitation variables are included:</p>
+<blockquote>
+<div><ul class="simple">
+<li>11 cold indices (GD4, CFD, FD, HD17, ID, CSDI, TG10p, TN10p, TX10p, TXn, TNn)</li>
+<li>1 drought indice (CDD)</li>
+<li>9 heat indices (SU, TR, WSDI, TG90p, TN90p, TX90p, TXx, TNx, CSU)</li>
+<li>14 rain indices (RR, RR1, SDII, CWD, R10mm, R20mm, RX1day, RX5day, R75p, R75pTOT, R95p, R95pTOT, R99p, R99pTOT)</li>
+<li>4 snow indices (SD, SD1, SD5cm, SD50cm)</li>
+<li>6 temperature indices (TG, TN, TX, DTR, ETR, vDTR)</li>
+<li>4 compound indices (CD, CW, WD, WW)</li>
+</ul>
+</div></blockquote>
+<p>Detailed description of each indice is available at <a class="reference external" href="http://eca.knmi.nl/documents/atbd.pdf">http://eca.knmi.nl/documents/atbd.pdf</a>.</p>
+<p>Initialy ICCLIM was designed for online computing of climate indices through the <a class="reference external" href="http://climate4impact.eu">climate4impact portal</a>.
+In spite of existence of other packages able to compute climate indices (<a class="reference external" href="https://code.zmaw.de/projects/cdo">CDO</a>, <a class="reference external" href="http://etccdi.pacificclimate.org/software.shtml">R package</a> ),
+it was decided to develop a new software in Python.
+Python language was first of all choosen to interface with <a class="reference external" href="http://pywps.wald.intevation.org/">PyWPS</a>: Python implementation of Web Proccessing Service
+(WPS) Standard.
+Another reason was to interface eventially with the <a class="reference external" href="https://earthsystemcog.org/projects/openclimategis/">OpenClimateGIS</a>.</p>
+<p>The ICCLIM developer repository can be found here: <a class="reference external" href="https://github.com/tatarinova/icclim">https://github.com/tatarinova/icclim</a></p>
+<div class="section" id="notes-about-icclim">
+<h2>Notes about ICCLIM<a class="headerlink" href="#notes-about-icclim" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Input dataserts must be compliant to the <a class="reference external" href="http://cf-pcmdi.llnl.gov/documents/cf-conventions/">CF convention</a>.</li>
+<li>Currently, <em>ICCLIM</em> doesn&#8217;t support spatial subsetting, i.e. it processes whole spatial area.</li>
+<li><em>ICCLIM</em> works with unsecured OPeNDAP datasets as well.</li>
+</ol>
+</div>
+<div class="section" id="what-is-a-climate-indice">
+<span id="climate-indices-label"></span><h2>What is a climate indice<a class="headerlink" href="#what-is-a-climate-indice" title="Permalink to this headline">¶</a></h2>
+<p>A climate index is a calculated value that can be used to describe the state and the changes in the climate system.</p>
+<p>The climate at a defined place is the average state of the atmosphere over a longer period of, for example, months or years. Changes on climate are much slower than on the weather, that can change strongly day by day.</p>
+<p>Climate indices allow a statistical study of variations of the dependent climatological aspects, such as analysis and comparison of time series, means, extremes and trends.</p>
+<p>test</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A good introduction for climate indices is on the website of the <a class="reference external" href="http://icdc.zmaw.de/climate_indices.html?&amp;L=1">Integrated Climate Data Center (ICDC)</a> of the University of Hamburg.</p>
+</div>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<ul class="last simple">
+<li><a class="reference external" href="http://www.clivar.org/panels-and-working-groups/etccdi/indices-data/indices-data">Climate Variability and Predictability (CLIVAR)</a></li>
+<li><a class="reference external" href="http://etccdi.pacificclimate.org/">Expert Team on Climate Change Detection and Indices (ETCCDI)</a></li>
+<li><a class="reference external" href="http://eca.knmi.nl/indicesextremes/index.php">European Climate Assessment &amp; Dataset (ECA&amp;D)</a></li>
+<li><a class="reference external" href="http://eca.knmi.nl/documents/atbd.pdf">ATBD ECA&amp;D indices</a></li>
+<li><a class="reference external" href="http://etccdi.pacificclimate.org/docs/Zhangetal05JumpPaper.pdf">Article about percentile-based indices</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Intro</a><ul>
+<li><a class="reference internal" href="#notes-about-icclim">Notes about ICCLIM</a></li>
+<li><a class="reference internal" href="#what-is-a-climate-indice">What is a climate indice</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to ICCLIM&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="next chapter">Installation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/intro.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to ICCLIM’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">ICCLIM 3.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, CERFACS.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b3.
+    </div>
+  </body>
+</html>
