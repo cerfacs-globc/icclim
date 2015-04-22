@@ -28,6 +28,8 @@ Installation (Linux)
     gcc -shared -o ./icclim/libC.so ./icclim/libC.o
     
     [sudo] python setup.py install
+    or if you don't have root or sudo access, as a normal user:
+    python setup.py install --user
     
 5. Check if the library is installed correctly:
 
