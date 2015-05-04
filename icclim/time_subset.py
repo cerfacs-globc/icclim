@@ -183,7 +183,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
     
     ## step 2: subset 
     
-    # all months of each year will be prossesed 
+    # all months of each year will be processed 
     if temporal_subset_mode == None or temporal_subset_mode == 'month':
         
         for y in years:                            

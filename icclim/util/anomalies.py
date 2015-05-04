@@ -8,7 +8,7 @@ from netCDF4 import Dataset, MFDataset
 from datetime import datetime
 
 import icclim
-import calc_indice
+import icclim.calc_indice as calc_indice
 
 
 def defaultCallback(message,percentage):

@@ -41,6 +41,10 @@ map_indice_type =   {
                                    'SD', 'SD1', 'SD5cm', 'SD50cm'],
                             
                         'multivariable': ['DTR', 'ETR', 'vDTR'],
+
+                        'multiperiod': ['SUB'],
+                 
+                        'simple_time_aggregation': ['TIMEAVG'],
                             
                         'percentile_based': ['TG10p', 'TX10p', 'TN10p', 'TG90p', 'TX90p', 'TN90p', 'WSDI', 'CSDI',
                                              'R75p', 'R75TOT', 'R95p', 'R95TOT', 'R99p', 'R99TOT'],
@@ -70,6 +74,7 @@ def indice(indice_name,
            percentile_dict=None,
            in_files2=None,
            var_name2=None,
+           time_range2=None,
            percentile_dict2=None):
 
     
@@ -121,6 +126,9 @@ def indice(indice_name,
     :param var_name2: Target variable name to process corresponding to ``in_files2``.
     :type var_name2: str
     
+    :param time_range2: Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
+    :type time_range2: [datetime.datetime, datetime.datetime]
+
     :param percentile_dict2: For percentile-based indices: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict`, corresponding to ``var_name2``.
     :type percentile_dict2: dict
     
@@ -135,10 +143,15 @@ def indice(indice_name,
         slice_mode = 'month'
     
     # we define the type of selected indice
-    indice_type = get_key_by_value_from_dict(map_indice_type, indice_name) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
+    # simple_time_aggregation and multiperiod are statistics and not indices, so threshold is ignored in those cases
+    indice_type = get_key_by_value_from_dict(map_indice_type, indice_name) # 'simple'/'multivariable'/'multiperiod'/'simple_time_aggregation'/'percentile_based'/'percentile_based_multivariable'
     
     if indice_type == 'multivariable' and (    (in_files2==None or var_name2==None) ): 
         print "Error: Both parameters 'in_files2' and 'var_name2' must be provided."
+        sys.exit()
+    
+    elif indice_type == 'multiperiod' and (    (in_files2==None or var_name2==None or time_range2==None) ): 
+        print "Error: Both parameters 'in_files2' 'var_name2' and 'time_range2' must be provided."
         sys.exit()
     
     elif indice_type == 'percentile_based' and percentile_dict==None:
@@ -151,12 +164,12 @@ def indice(indice_name,
 
     # we open any input file (for example, the first one) of each target variable to get necessary information 
     inc = Dataset(in_files[0], 'r')
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
         inc2 = Dataset(in_files2[0], 'r')
     
     global fill_val    
     fill_val = util_nc.get_att_value(inc, var_name, '_FillValue').astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
         global fill_val2
         fill_val2 = util_nc.get_att_value(inc2, var_name2, '_FillValue').astype('float32')
     
@@ -165,12 +178,18 @@ def indice(indice_name,
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name) # tuple ('time', 'lat', 'lon')
     
     indice_dim = list(indice_dim)
+
+    if indice_type == 'multiperiod':
+        indice_dim2 = util_nc.list_var_dim(inc2, var_name2) # tuple ('time', 'lat', 'lon')
     
+        indice_dim2 = list(indice_dim2)
+
     # in case of user defined thresholds 
     global nb_user_thresholds, user_thresholds    
     
     # As default, no threshold is defined, no threshold dimension is created and added to the indice var
-    if threshold == None :
+    # Also the case if we are not calculating an indice
+    if threshold == None or indice_type == 'simple_time_aggregation' or indice_type == 'multiperiod':
         nb_user_thresholds = 0        
     
     # A threshold can be given as a unique value or as a list of values, internally we always use a list
@@ -201,13 +220,23 @@ def indice(indice_name,
     #global calend, units
     
     ncVar_time = inc.variables[indice_dim[index_time]]
-    
+
     try:
        calend = ncVar_time.calendar
     except:
         calend = 'gregorian'
         
     units = ncVar_time.units
+
+    if indice_type == 'multiperiod':
+        ncVar_time2 = inc.variables[indice_dim2[index_time]]
+    
+        try:
+            calend2 = ncVar_time2.calendar
+        except:
+            calend2 = 'gregorian'
+        
+        units2 = ncVar_time2.units
     
     #try:
     #    calend = util_nc.get_att_value(inc, indice_dim[index_time], 'calendar')
@@ -220,15 +249,19 @@ def indice(indice_name,
     ind_type = 'f' # 'float32'
     
     #fill_val = get_att_value(inc, var_name, '_FillValue').astype(ind_type) # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
-    
-    ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
 
+    # Copy info from variable
+    var_longname = getattr(inc.variables[var_name],'long_name')
+    var_units = getattr(inc.variables[var_name],'units')
+    var_standardname = getattr(inc.variables[var_name],'standard_name')
+
+    if indice_type == 'simple_time_aggregation' or indice_type == 'multiperiod':
+        ind = onc.createVariable(var_name, ind_type, indice_dim, fill_value = fill_val)
+    else:
+        ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
     
     # Copy attributes from variable to process to indice variable
     util_nc.copy_var_attrs(inc.variables[var_name],ind)
-    
-
-    
 
     if time_range == None:
         time_range = util_dt.get_time_range(in_files, temporal_var_name=indice_dim[0])
@@ -240,9 +273,19 @@ def indice(indice_name,
         del t_arr
         time_range = util_dt.adjust_time_range(time_range, dt)
 
+    if indice_type == 'multiperiod':
+        if time_range2 == None:
+            time_range2 = util_dt.get_time_range(in_files2, temporal_var_name=indice_dim2[0])
+        
+        else: # i.e. time_range is selected by user
+            # we adjust datetime.datetime objects from time_range 
+            t_arr2 = inc.variables[indice_dim2[0]][:]
+            dt2 = util_dt.num2date(t_arr2[0], calend, units)
+            del t_arr2
+            time_range2 = util_dt.adjust_time_range(time_range2, dt2)
     
     inc.close()
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
         inc2.close()
     
     
@@ -252,11 +295,17 @@ def indice(indice_name,
     nc = MFDataset(dict_files_years_to_process.keys(), 'r') # dict_files_years_to_process.keys() = in_files
     var_time = nc.variables[indice_dim[0]]
     var = nc.variables[var_name]    
-    
+
     if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
         dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range)
         nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r') # dict_files_years_to_process.keys() = in_files
         var_time2 = nc2.variables[indice_dim[0]]
+        var2 = nc2.variables[var_name2]
+
+    elif indice_type == 'multiperiod':
+        dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range2)
+        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r') # dict_files_years_to_process.keys() = in_files
+        var_time2 = nc2.variables[indice_dim2[0]]
         var2 = nc2.variables[var_name2]
     
     if callback != None:
@@ -268,9 +317,18 @@ def indice(indice_name,
         arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
         dt_arr = arrs[0]
         values_arr = arrs[1]
-            
+
         if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
             arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev)
+            dt_arr2 = arrs2[0]
+            values_arr2 = arrs2[1]
+
+            if not numpy.array_equal(dt_arr, dt_arr2):
+                print 'Error: Time step vectors of both file lists must be equal!'
+                sys.exit()
+
+        elif indice_type == 'multiperiod':
+            arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev)
             dt_arr2 = arrs2[0]
             values_arr2 = arrs2[1]
 
@@ -281,16 +339,18 @@ def indice(indice_name,
         dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, temporal_subset_mode=slice_mode, time_range=time_range)
         if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
             dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range)
+        elif indice_type == 'multiperiod':
+            dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range2)
         
         
         if nb_user_thresholds == 0:
                         
-            if indice_type == 'simple':
+            if indice_type == 'simple' or indice_type == 'simple_time_aggregation':
                 indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
                                                                     dict_temporal_slices=dict_temporal_slices,
                                                                     callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
                 
-            elif indice_type == 'multivariable':
+            elif indice_type == 'multivariable' or indice_type == 'multiperiod':
                 indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
                                                                     dict_temporal_slices=dict_temporal_slices,
                                                                     dict_temporal_slices2=dict_temporal_slices2,
@@ -325,7 +385,6 @@ def indice(indice_name,
                 
         dt_centroid_arr = indice_tuple[0]
         dt_bounds_arr = indice_tuple[1]
-
         
         
     else: # i.e. we work with OPeNDAP datasets
@@ -338,7 +397,7 @@ def indice(indice_name,
         if array_total_size < transfer_limit_bytes: # the same as for the "if transfer_limit_Mbytes == None" case
             
             print "Data transfer... "
-              
+
             arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
             dt_arr = arrs[0]
             values_arr = arrs[1]
@@ -351,19 +410,30 @@ def indice(indice_name,
                 if not numpy.array_equal(dt_arr, dt_arr2):
                     print 'Error: Time step vectors of both file lists must be equal!'
                     sys.exit()
+
+            elif indice_type == 'multiperiod':
+                arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev)
+                dt_arr2 = arrs2[0]
+                values_arr2 = arrs2[1]
+    
+                if not numpy.array_equal(dt_arr, dt_arr2):
+                    print 'Error: Time step vectors of both file lists must be equal!'
+                    sys.exit()
             
     
             dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, temporal_subset_mode=slice_mode, time_range=time_range)
             if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
                 dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range)
-            
+            elif indice_type == 'multiperiod':
+                dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range2)
+
             if nb_user_thresholds == 0:
-                if indice_type == 'simple':
+                if indice_type == 'simple' or indice_type == 'simple_time_aggregation':
                     indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
                                                                         dict_temporal_slices=dict_temporal_slices,
                                                                         callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
                     
-                elif indice_type == 'multivariable':
+                elif indice_type == 'multivariable' or indice_type == 'multiperiod':
                     indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
                                                                         dict_temporal_slices=dict_temporal_slices,
                                                                         dict_temporal_slices2=dict_temporal_slices2,
@@ -383,7 +453,6 @@ def indice(indice_name,
                                                                         dict_temporal_slices2=dict_temporal_slices2,
                                                                         percentile_dict2=percentile_dict2,
                                                                         callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                
                 
                 indice_arr = indice_tuple[2]
                 
@@ -412,7 +481,7 @@ def indice(indice_name,
             global nb_chunks
             nb_chunks = len(tile_map)
             print str(nb_chunks) + " data chunks will be transfered."
-            
+
             if nb_user_thresholds != 0:
                 dict_threshold_indice_arr = OrderedDict()
 
@@ -444,6 +513,15 @@ def indice(indice_name,
                                                                             i2_col_current_tile=i2_col_current_tile)
                     dt_arr2 = arrs_current_chunk2[0]
                     values_arr_current_chunk2 = arrs_current_chunk2[1]  
+
+                elif indice_type == 'multiperiod':
+                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev, spatial_chunking=True,
+                                                                            i1_row_current_tile=i1_row_current_tile,
+                                                                            i2_row_current_tile=i2_row_current_tile,
+                                                                            i1_col_current_tile=i1_col_current_tile,
+                                                                            i2_col_current_tile=i2_col_current_tile)
+                    dt_arr2 = arrs_current_chunk2[0]
+                    values_arr_current_chunk2 = arrs_current_chunk2[1]  
                 
                 
                 
@@ -458,6 +536,8 @@ def indice(indice_name,
                 dict_temporal_slices_current_chunk = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr_current_chunk, temporal_subset_mode=slice_mode, time_range=time_range)
                 if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
                     dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, temporal_subset_mode=slice_mode, time_range=time_range)
+                elif indice_type == 'multiperiod':
+                    dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, temporal_subset_mode=slice_mode, time_range=time_range2)
                 
                 
                 
@@ -465,16 +545,18 @@ def indice(indice_name,
                 if nb_user_thresholds == 0:
                     
                     if chunk_counter == 0:
-                        indice_arr = numpy.zeros( (len(dict_temporal_slices_current_chunk),var_shape1, var_shape2), dtype=ind_type )
-
+                        if indice_type == 'simple_time_aggregation':
+                            indice_arr = numpy.zeros( (1,var_shape1, var_shape2), dtype=ind_type )
+                        else:
+                            indice_arr = numpy.zeros( (len(dict_temporal_slices_current_chunk),var_shape1, var_shape2), dtype=ind_type )
                     
-                    if indice_type == 'simple':
+                    if indice_type == 'simple' or indice_type == 'simple_time_aggregation':
                         indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
                                                                             dict_temporal_slices=dict_temporal_slices_current_chunk,
                                                                             chunking=True,
                                                                             callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
                         
-                    elif indice_type == 'multivariable':
+                    elif indice_type == 'multivariable' or indice_type == 'multiperiod':
                         indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
                                                                             dict_temporal_slices=dict_temporal_slices_current_chunk,
                                                                             dict_temporal_slices2=dict_temporal_slices_current_chunk2,
@@ -501,8 +583,11 @@ def indice(indice_name,
 
                     
                     indice_arr_current_chunk = indice_tuple_current_chunk[2]
+                    if indice_type == 'simple_time_aggregation':
+                        indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] += indice_arr_current_chunk
+                    else:
                     # we concatenate
-                    indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
+                        indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
                                     
                 else:                     
                     for t in user_thresholds:
@@ -523,7 +608,7 @@ def indice(indice_name,
             
     
     nc.close()
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
         nc2.close()
     
     # we copy data to the nc variable 
@@ -539,7 +624,7 @@ def indice(indice_name,
 
 
 
-    # set global attributs
+    # set global attributes
     
     # title
     if threshold != None:
@@ -552,20 +637,23 @@ def indice(indice_name,
     set_globattr.institution(onc, institution_str='Climate impact portal (http://climate4impact.eu)')
     set_globattr.history2(onc, slice_mode, indice_name, time_range)
     onc.setncattr('source', '')
-    onc.setncattr('Conventions','CF-1.0') # onc.setncattr('Conventions','CF-1.6') ????????????????
+    onc.setncattr('Conventions','CF-1.6')
     
     
-    # set variable attributs
-    if threshold == None:
-        eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-        ind.setncattr('standard_name', 'ECA_indice')         
+    # set variable attributes
+    if indice_type == 'simple_time_aggregation' or indice_type == 'multiperiod':    
+        eval('set_longname_units.' + indice_name + '_setvarattr(ind, var_longname, var_units)')
+        ind.setncattr('standard_name', var_standardname)         
     else:
-        eval('set_longname_units_custom_indices.' + indice_name + '_setvarattr(ind, threshold)')
-        ind.setncattr('standard_name', 'ECA_indice with user defined threshold')
-        
-        if nb_user_thresholds > 1:
-            eval('set_longname_units_custom_indices.' + indice_name + '_setthresholdattr(thresholdvar)')
-        
+        if threshold == None:
+            eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
+            ind.setncattr('standard_name', 'ECA_indice')         
+        else:
+            eval('set_longname_units_custom_indices.' + indice_name + '_setvarattr(ind, threshold)')
+            ind.setncattr('standard_name', 'ECA_indice with user defined threshold')
+            
+            if nb_user_thresholds > 1:
+                eval('set_longname_units_custom_indices.' + indice_name + '_setthresholdattr(thresholdvar)')
         
     # for all:
     ind.missing_value = fill_val
@@ -619,22 +707,23 @@ def get_indice_from_dict_temporal_slices(indice_name, dict_temporal_slices, perc
         
         dt_centroid_key = dict_temporal_slices[key][0]
         dt_bounds_key = dict_temporal_slices[key][1]
+
         #dt_arr_key = dict_temporal_slices[key][2]
 
         values_arr_key = dict_temporal_slices[key][3]
-            
-        if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
+
+        if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
             values_arr_key2 = dict_temporal_slices2[key][3]
         
         # indice computing for current key
         
-        if indice_type == 'simple':        
+        if indice_type == 'simple' or indice_type == 'simple_time_aggregation':        
             if nb_user_thresholds == 0:
                 indice_key = eval(indice_name + '_calculation(values_arr_key, fill_val)')
             else:
                 indice_key = eval(indice_name + '_calculation(values_arr_key, fill_val, threshold=thresh)')
         
-        elif indice_type == 'multivariable':
+        elif indice_type == 'multivariable' or indice_type == 'multiperiod':
             indice_key = eval(indice_name + '_calculation(values_arr_key, values_arr_key2, fill_val, fill_val2)')
             
         elif indice_type == 'percentile_based':
@@ -650,12 +739,17 @@ def get_indice_from_dict_temporal_slices(indice_name, dict_temporal_slices, perc
         
         indice_key = indice_key.reshape(-1, indice_key.shape[0], indice_key.shape[1]) # 2D --> 3D
         
-        if key_counter == 0:
-            indice_arr = indice_key
+        if indice_type == 'simple_time_aggregation':
+            if key_counter == 0:
+                indice_arr = indice_key
+            else:
+                indice_arr += indice_key
         else:
-            indice_arr = numpy.concatenate((indice_arr, indice_key), axis=0)
+            if key_counter == 0:
+                indice_arr = indice_key
+            else:
+                indice_arr = numpy.concatenate((indice_arr, indice_key), axis=0)
        
-          
         dt_centroid_arr = numpy.append(dt_centroid_arr, dt_centroid_key) # 1D
         dt_bounds_arr = numpy.concatenate((dt_bounds_arr, dt_bounds_key)) # 1D
         
@@ -665,9 +759,13 @@ def get_indice_from_dict_temporal_slices(indice_name, dict_temporal_slices, perc
             
         key_counter += 1
 
-  
+    if indice_type == 'simple_time_aggregation' :
+        indice_arr = indice_arr / key_counter
+        dt_centroid_arr = numpy.asarray([dt_centroid_arr[key_counter/2]])
+        dt_bounds_arr = numpy.asarray([dt_bounds_arr[0],dt_bounds_arr[key_counter*2-1]])
+
     dt_bounds_arr = dt_bounds_arr.reshape(-1,2) # 1D --> 2D   
-        
+
     return (dt_centroid_arr, dt_bounds_arr, indice_arr)
 
 

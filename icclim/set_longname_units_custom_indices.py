@@ -37,4 +37,3 @@ def TR_setvarattr(var_nc, threshold):
     long_name_str = 'Number of days with daily minimum temperature > {0} degrees'.format(threshold)
     var_nc.setncattr('long_name', long_name_str)
     var_nc.setncattr('units', 'days')
-

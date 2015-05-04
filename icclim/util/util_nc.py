@@ -117,7 +117,6 @@ def set_time_values(nc, time_steps_arr_dt, calend, units):
     time_steps_num = numpy.array([util_dt.date2num(i, calend, units) for i in time_steps_arr_dt])
     nc.variables['time'][:] = time_steps_num[:]
 
-
 def set_timebnds_values(nc, time_bnds_dt, calend, units):
     time_bnds_num = numpy.array([util_dt.date2num(i, calend, units) for i in time_bnds_dt])
     nc.variables['time_bounds'][:,:] = time_bnds_num[:,:]
@@ -353,3 +352,35 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
     
     
     return (dt_arr, values_arr)
+
+def list_var_dim(inc, var): 
+    '''
+    Get the spatial coordinate variables (e.g.: lat, lon) of a variable (var) from one NetCDF file (ifile) and returns list of coordinates variables.
+    
+    :param inc: input dataset
+    :type inc: netCDF4.Dataset
+    :param var: variable name to process
+    :type var: str
+    :param project: project name ("CMIP5" or "CORDEX")
+    :type project: str
+    
+    :rtype: tuple of str (coordinate variables: 'time', 'lat', 'lon')
+    '''
+
+
+    v = inc.variables[var]
+
+    v_dim = v.dimensions
+    
+    if v.ndim == 3: # (e.g.: u'time', u'lat', u'lon')
+        time_var = v_dim[0]
+        lat_var = v_dim[1]
+        lon_var = v_dim[2]
+        
+    elif v.ndim == 4: # (e.g.: u'time', u'plev', u'lat', u'lon')
+        time_var = v_dim[0]
+        lat_var = v_dim[-2]
+        lon_var = v_dim[-1]
+
+                
+    return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
