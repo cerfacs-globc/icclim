@@ -259,14 +259,14 @@ def write2netCDF_anomalies(arr, f_src, f_dst, time_range_future, time_range_past
     onc.createDimension(str(dim_var_src[0]), 0) # 'time'
     onc.createDimension(str(dim_var_src[1]), var_src.shape[1]) # 'lat' 
     onc.createDimension(str(dim_var_src[2]), var_src.shape[2]) # 'lon'
-    onc.createDimension('tbnds', 2) # 'tbnds'
+    onc.createDimension('bnds', 2) # 'bnds'
     onc.createDimension('nv', 2) # 'nv'
     
     # create variables 
     onc_dim_temporal    = onc.createVariable(str(dim_var_src[0]), inc_temporal.dtype, (str(dim_var_src[0])))
     onc_dim_lat         = onc.createVariable(str(dim_var_src[1]), inc_lat.dtype, (str(dim_var_src[1])))
     onc_dim_lon         = onc.createVariable(str(dim_var_src[2]), inc_lon.dtype, (str(dim_var_src[2])))
-    onc_bnds_temporal   = onc.createVariable(str(inc_temporal.__getattribute__('bounds')), inc_time_bnds.dtype, (str(dim_var_src[0]), 'tbnds'))
+    onc_bnds_temporal   = onc.createVariable(str(inc_temporal.__getattribute__('bounds')), inc_time_bnds.dtype, (str(dim_var_src[0]), 'bnds'))
     onc_bnds_lat        = onc.createVariable(str(inc_lat.__getattribute__('bounds')), inc_lat_bnds.dtype, (str(dim_var_src[1]), 'nv'))
     onc_bnds_lon        = onc.createVariable(str(inc_lon.__getattribute__('bounds')), inc_lon_bnds.dtype, (str(dim_var_src[2]), 'nv'))
     
@@ -275,7 +275,7 @@ def write2netCDF_anomalies(arr, f_src, f_dst, time_range_future, time_range_past
     
     
     onc_dim_temporal_ref    = onc.createVariable(str(dim_var_src[0])+"_ref", inc_temporal.dtype, (str(dim_var_src[0])))
-    onc_bnds_temporal_ref   = onc.createVariable(str(inc_temporal.__getattribute__('bounds'))+"_ref", inc_time_bnds.dtype, (str(dim_var_src[0]), 'tbnds'))
+    onc_bnds_temporal_ref   = onc.createVariable(str(inc_temporal.__getattribute__('bounds'))+"_ref", inc_time_bnds.dtype, (str(dim_var_src[0]), 'bnds'))
     
     
     

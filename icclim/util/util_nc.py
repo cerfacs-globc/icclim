@@ -119,7 +119,7 @@ def set_time_values(nc, time_steps_arr_dt, calend, units):
 
 def set_timebnds_values(nc, time_bnds_dt, calend, units):
     time_bnds_num = numpy.array([util_dt.date2num(i, calend, units) for i in time_bnds_dt])
-    nc.variables['time_bounds'][:,:] = time_bnds_num[:,:]
+    nc.variables['time_bnds'][:,:] = time_bnds_num[:,:]
     
     
 def copy_var_dim(inc, onc, var): 
@@ -174,11 +174,11 @@ def copy_var_dim(inc, onc, var):
         pass
 
     
-    ### create dimentions
+    ### create dimensions
     onc.createDimension(str(time_var), 0) # time       
     onc.createDimension(str(lat_var), v.shape[1]) # lat
     onc.createDimension(str(lon_var), v.shape[2]) # lon        
-    onc.createDimension('tbnds', 2) # tbnds
+    onc.createDimension('bnds', 2) # bnds
     onc.createDimension('nv', 2) # nv
 
     
@@ -186,11 +186,11 @@ def copy_var_dim(inc, onc, var):
     onc_dim0 = onc.createVariable( str(time_var), inc_dim0.dtype, (str(time_var)) ) # time
     onc_dim1 = onc.createVariable( str(lat_var), inc_dim1.dtype, (str(lat_var)) ) # lat
     onc_dim2 = onc.createVariable( str(lon_var), inc_dim2.dtype, (str(lon_var)) ) # lon
-    onc_time_bnds = onc.createVariable( 'time_bounds', inc_dim0.dtype, (str(time_var), 'tbnds') ) # time_bnds
+    onc_time_bnds = onc.createVariable( 'time_bnds', inc_dim0.dtype, (str(time_var), 'bnds') ) # time_bnds
 
     try:
-        onc_dim1_bounds = onc.createVariable('lat_bounds', inc_dim1_bounds.dtype, (str(lat_var), 'nv'))
-        onc_dim2_bounds = onc.createVariable('lon_bounds', inc_dim2_bounds.dtype, (str(lon_var), 'nv'))
+        onc_dim1_bounds = onc.createVariable('lat_bnds', inc_dim1_bounds.dtype, (str(lat_var), 'nv'))
+        onc_dim2_bounds = onc.createVariable('lon_bnds', inc_dim2_bounds.dtype, (str(lon_var), 'nv'))
     except:
         pass
 
@@ -209,11 +209,11 @@ def copy_var_dim(inc, onc, var):
         onc_dim2.__setattr__(  inc_dim2.__dict__.items()[j][0]  , inc_dim2.__dict__.items()[j][1])
 
     try:
-        # lat_bounds
+        # lat_bnds
         for j in range(len(inc_dim1_bounds.ncattrs())): # set attributs of current variable       
             onc_dim1_bounds.__setattr__(  inc_dim1_bounds.__dict__.items()[j][0]  , inc_dim1_bounds.__dict__.items()[j][1])
     
-        # lon_bounds
+        # lon_bnds
         for j in range(len(inc_dim2_bounds.ncattrs())): # set attributs of current variable       
             onc_dim2_bounds.__setattr__(  inc_dim2_bounds.__dict__.items()[j][0]  , inc_dim2_bounds.__dict__.items()[j][1])
     except:

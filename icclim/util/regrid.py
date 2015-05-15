@@ -156,14 +156,14 @@ def write2netCDF_after_regridding(arr, f_src, f_dst, f_out, var_src, var_dst=Non
     onc.createDimension(str(v1_dim[0]), 0) # 'time': the same as in src
     onc.createDimension(str(v1_dim[1]), var_f2.shape[1]) # 'lat': the same as in dst (after regridding)
     onc.createDimension(str(v1_dim[2]), var_f2.shape[2]) # 'lon': the same as in dst (after regridding)
-    onc.createDimension('tbnds', 2) # tbnds
+    onc.createDimension('bnds', 2) # bnds
     onc.createDimension('nv', 2) # nv
     
     # create variables 
     onc_dim_temporal    = onc.createVariable(str(v1_dim[0]), inc1_temporal.dtype, (str(v1_dim[0])))
     onc_dim_lat         = onc.createVariable(str(v1_dim[1]), inc1_lat.dtype, (str(v1_dim[1])))
     onc_dim_lon         = onc.createVariable(str(v1_dim[2]), inc1_lon.dtype, (str(v1_dim[2])))
-    onc_bnds_temporal   = onc.createVariable(str(inc1_temporal.__getattribute__('bounds')), inc1_time_bnds.dtype, (str(v1_dim[0]), 'tbnds'))
+    onc_bnds_temporal   = onc.createVariable(str(inc1_temporal.__getattribute__('bounds')), inc1_time_bnds.dtype, (str(v1_dim[0]), 'bnds'))
     onc_bnds_lat        = onc.createVariable(str(inc1_lat.__getattribute__('bounds')), inc1_lat_bnds.dtype, (str(v1_dim[1]), 'nv'))
     onc_bnds_lon        = onc.createVariable(str(inc1_lon.__getattribute__('bounds')), inc1_lon_bnds.dtype, (str(v1_dim[2]), 'nv'))
     
