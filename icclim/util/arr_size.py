@@ -30,7 +30,7 @@ def get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_l
     '''
     
     in_files.sort()
-    mfnc = MFDataset(in_files, 'r')
+    mfnc = MFDataset(in_files, 'r', aggdim='time')
     
     ndim = mfnc.variables[var_name].ndim
     if ndim != 3:

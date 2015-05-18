@@ -22,7 +22,7 @@ Note: DJF 2000: December 2000 + January 2001 + February 2001
 
 import numpy
 from netCDF4 import Dataset, MFDataset
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import OrderedDict, defaultdict
 
 import util.util_dt as util_dt
@@ -63,7 +63,7 @@ map_dt_centroid_month = {
                         'year': 7
                         }
 
-def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time_range=None):
+def get_dict_temporal_slices(dt_arr, values_arr, calend='gregorian', temporal_subset_mode=None, time_range=None):
     
     '''
     
@@ -106,7 +106,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
     >>> t_arr = nc.variables['time'][:]
     >>> dt_arr = numpy.array([icclim.num2date(dt, calend='gregorian', units='days since 2006-1-1') for dt in t_arr])
     >>> 
-    >>> dict_temp_subset = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=v_arr, temporal_subset_mode='DJF', time_range=[datetime(2080,01,01), datetime(2085,12,31)])
+    >>> dict_temp_subset = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=v_arr, calend='gregorian', temporal_subset_mode='DJF', time_range=[datetime(2080,01,01), datetime(2085,12,31)])
     >>> 
     >>> for key in dict_temp_subset.keys():
     >>>     print key, '======', dict_temp_subset[key][0], '======', dict_temp_subset[key][1]
@@ -127,7 +127,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
     ('JJA', 2084) ====== 2084-07-16 00:00:00 ====== [datetime.datetime(2084, 6, 1, 12, 0) datetime.datetime(2084, 9, 1, 12, 0)]
     ('JJA', 2085) ====== 2085-07-16 00:00:00 ====== [datetime.datetime(2085, 6, 1, 12, 0) datetime.datetime(2085, 9, 1, 12, 0)]
     
-    >>> dict_temp_subset = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=v_arr, temporal_subset_mode='month', time_range=[datetime(2080,01,01), datetime(2082,12,31)])
+    >>> dict_temp_subset = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=v_arr, calend='gregorian', temporal_subset_mode='month', time_range=[datetime(2080,01,01), datetime(2082,12,31)])
     >>> 
     >>> for key in dict_temp_subset.keys():
     >>>     print key, '======', dict_temp_subset[key][0], '======', dict_temp_subset[key][1]
@@ -194,7 +194,10 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
                 arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :]
                 
                 dt_centroid = datetime(  y, m, map_dt_centroid_day[temporal_subset_mode]  )
-                dt_bounds = numpy.array([ dt_arr_subset_i[0], dt_arr_subset_i[-1] + timedelta(days=1) ]) # [ bnd1, bnd2 )
+                tunits = "seconds since 1600-01-01 00:00:00"
+                dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
+                dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
+                dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
                 
                 return_dict[m, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i)
         
@@ -211,7 +214,10 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
             arr_subset_i = values_arr[indices_dt_arr_non_masked_year, :, :]
             
             dt_centroid = datetime(  y, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
-            dt_bounds = numpy.array([ dt_arr_subset_i[0], dt_arr_subset_i[-1] + timedelta(days=1) ]) # [ bnd1, bnd2 )
+            tunits = "seconds since 1600-01-01 00:00:00"
+            dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
+            dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
+            dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
             
             return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i) 
     
@@ -236,7 +242,10 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
                 arr_subset_i = values_arr[indices_dt_arr_non_masked_current_season, :, :]
                 
                 dt_centroid = datetime(  next_year, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
-                dt_bounds = numpy.array([ dt_arr_subset_i[0], dt_arr_subset_i[-1] + timedelta(days=1) ]) # [ bnd1, bnd2 )
+                tunits = "seconds since 1600-01-01 00:00:00"
+                dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
+                dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
+                dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
                 
                 return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i) 
             else:
@@ -252,7 +261,10 @@ def get_dict_temporal_slices(dt_arr, values_arr, temporal_subset_mode=None, time
             
             arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :]
             dt_centroid = datetime(  y, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
-            dt_bounds = numpy.array([ dt_arr_subset_i[0], dt_arr_subset_i[-1] + timedelta(days=1) ]) # [ bnd1, bnd2 )
+            tunits = "seconds since 1600-01-01 00:00:00"
+            dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
+            dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
+            dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
             
             return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i)
         

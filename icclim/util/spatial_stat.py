@@ -50,7 +50,7 @@ def get_weight_matrix(lat_arr, lon_arr): #, units="rad"):
 #files = ['/home/globc/tatarinova/Downloads/tasmax_day_EC-EARTH_rcp26_r8i1p1_20800101-20841231.nc']
 #
 #import netCDF4
-#nc = netCDF4.MFDataset(files, 'r')
+#nc = netCDF4.MFDataset(files, 'r', aggdim='time')
 #lat_arr = nc.variables['lat'][:]
 #lon_arr = nc.variables['lon'][:]
 #

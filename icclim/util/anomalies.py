@@ -47,7 +47,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
     
     
     if transfer_limit_bytes == None: # i.e. we work with local files
-        nc = MFDataset(in_files, 'r')
+        nc = MFDataset(in_files, 'r', aggdim='time')
     
         var = nc.variables[var_name]    
         var_time = nc.variables['time']
@@ -93,7 +93,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
         
         if array_total_size < transfer_limit_bytes: # the same as for the "if transfer_limit_bytes == None" case
             
-            nc = MFDataset(in_files, 'r')
+            nc = MFDataset(in_files, 'r', aggdim='time')
         
             var = nc.variables[var_name]    
             var_time = nc.variables['time']
@@ -142,7 +142,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
             # then we do chunking in space
             tile_dimension = total_array_size_bytes_and_tile_dimension[1]
             #print tile_dimension
-            nc = MFDataset(in_files, 'r')
+            nc = MFDataset(in_files, 'r', aggdim='time')
             var = nc.variables[var_name]
             var_shape = var.shape
             var_shap1 = var_shape[1]

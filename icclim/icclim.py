@@ -6,7 +6,7 @@
 #  Author: Natalia Tatarinova
 
 import numpy
-from datetime import datetime, timedelta
+from datetime import datetime
 from netCDF4 import num2date, date2num, Dataset, MFDataset
 #from netcdftime import utime
 
@@ -292,19 +292,19 @@ def indice(indice_name,
     
         
     dict_files_years_to_process = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files, time_range=time_range)
-    nc = MFDataset(dict_files_years_to_process.keys(), 'r') # dict_files_years_to_process.keys() = in_files
+    nc = MFDataset(dict_files_years_to_process.keys(), 'r', aggdim='time') # dict_files_years_to_process.keys() = in_files
     var_time = nc.variables[indice_dim[0]]
     var = nc.variables[var_name]    
 
     if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
         dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range)
-        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r') # dict_files_years_to_process.keys() = in_files
+        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim='time') # dict_files_years_to_process.keys() = in_files
         var_time2 = nc2.variables[indice_dim[0]]
         var2 = nc2.variables[var_name2]
 
     elif indice_type == 'multiperiod':
         dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range2)
-        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r') # dict_files_years_to_process.keys() = in_files
+        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim='time') # dict_files_years_to_process.keys() = in_files
         var_time2 = nc2.variables[indice_dim2[0]]
         var2 = nc2.variables[var_name2]
     
@@ -315,11 +315,20 @@ def indice(indice_name,
     if transfer_limit_Mbytes == None: # i.e. we work with local files
         
         arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+
+        try:
+            calend = var_time.calendar
+        except:
+            calend = 'gregorian'
         dt_arr = arrs[0]
         values_arr = arrs[1]
 
         if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
             arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev)
+            try:
+                calend2 = var_time2.calendar
+            except:
+                calend2 = 'gregorian'
             dt_arr2 = arrs2[0]
             values_arr2 = arrs2[1]
 
@@ -329,6 +338,10 @@ def indice(indice_name,
 
         elif indice_type == 'multiperiod':
             arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev)
+            try:
+                calend2 = var_time2.calendar
+            except:
+                calend2 = 'gregorian'
             dt_arr2 = arrs2[0]
             values_arr2 = arrs2[1]
 
@@ -336,11 +349,11 @@ def indice(indice_name,
                 print 'Error: Time step vectors of both file lists must be equal!'
                 sys.exit()
 
-        dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, temporal_subset_mode=slice_mode, time_range=time_range)
+        dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, calend=calend, temporal_subset_mode=slice_mode, time_range=time_range)
         if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-            dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range)
+            dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range)
         elif indice_type == 'multiperiod':
-            dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range2)
+            dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range2)
         
         
         if nb_user_thresholds == 0:
@@ -399,11 +412,19 @@ def indice(indice_name,
             print "Data transfer... "
 
             arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+            try:
+                calend = var_time.calendar
+            except:
+                calend = 'gregorian'
             dt_arr = arrs[0]
             values_arr = arrs[1]
             
             if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
                 arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev)
+                try:
+                    calend2 = var_time2.calendar
+                except:
+                    calend2 = 'gregorian'
                 dt_arr2 = arrs2[0]
                 values_arr2 = arrs2[1]
     
@@ -413,6 +434,10 @@ def indice(indice_name,
 
             elif indice_type == 'multiperiod':
                 arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev)
+                try:
+                    calend2 = var_time2.calendar
+                except:
+                    calend2 = 'gregorian'
                 dt_arr2 = arrs2[0]
                 values_arr2 = arrs2[1]
     
@@ -421,11 +446,11 @@ def indice(indice_name,
                     sys.exit()
             
     
-            dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, temporal_subset_mode=slice_mode, time_range=time_range)
+            dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, calend=calend, temporal_subset_mode=slice_mode, time_range=time_range)
             if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range)
+                dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range)
             elif indice_type == 'multiperiod':
-                dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, temporal_subset_mode=slice_mode, time_range=time_range2)
+                dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range2)
 
             if nb_user_thresholds == 0:
                 if indice_type == 'simple' or indice_type == 'simple_time_aggregation':
@@ -533,11 +558,11 @@ def indice(indice_name,
                     percentile_dict_current_chunk2 = get_subset_percentile_dict(percentile_dict2)
                     
         
-                dict_temporal_slices_current_chunk = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr_current_chunk, temporal_subset_mode=slice_mode, time_range=time_range)
+                dict_temporal_slices_current_chunk = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr_current_chunk, calend=calend, temporal_subset_mode=slice_mode, time_range=time_range)
                 if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                    dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, temporal_subset_mode=slice_mode, time_range=time_range)
+                    dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range)
                 elif indice_type == 'multiperiod':
-                    dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, temporal_subset_mode=slice_mode, time_range=time_range2)
+                    dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range2)
                 
                 
                 
@@ -855,7 +880,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     nc0.close()
     
     
-    nc = MFDataset(in_files, 'r')
+    nc = MFDataset(in_files, 'r', aggdim='time')
     var_time = nc.variables[temporal_variable]
     var = nc.variables[var_name]
     
