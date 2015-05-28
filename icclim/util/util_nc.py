@@ -170,7 +170,9 @@ def copy_var_dim(inc, onc, var):
     try:
         inc_dim1_bounds = inc.variables[str(inc_dim1.__getattribute__('bounds'))]
         inc_dim2_bounds = inc.variables[str(inc_dim2.__getattribute__('bounds'))]
+        boundsvar = 1
     except:
+        boundsvar = 0
         pass
 
     
@@ -179,8 +181,8 @@ def copy_var_dim(inc, onc, var):
     onc.createDimension(str(lat_var), v.shape[1]) # lat
     onc.createDimension(str(lon_var), v.shape[2]) # lon        
     onc.createDimension('bnds', 2) # bnds
-    onc.createDimension('nv', 2) # nv
-
+    if boundsvar == 1:
+      onc.createDimension('nv', 2) # nv
     
     ### create variables 
     onc_dim0 = onc.createVariable( str(time_var), inc_dim0.dtype, (str(time_var)) ) # time
@@ -188,14 +190,13 @@ def copy_var_dim(inc, onc, var):
     onc_dim2 = onc.createVariable( str(lon_var), inc_dim2.dtype, (str(lon_var)) ) # lon
     onc_time_bnds = onc.createVariable( 'time_bnds', inc_dim0.dtype, (str(time_var), 'bnds') ) # time_bnds
 
-    try:
-        onc_dim1_bounds = onc.createVariable('lat_bnds', inc_dim1_bounds.dtype, (str(lat_var), 'nv'))
-        onc_dim2_bounds = onc.createVariable('lon_bnds', inc_dim2_bounds.dtype, (str(lon_var), 'nv'))
-    except:
-        pass
+    if boundsvar == 1:
+      try:
+          onc_dim1_bounds = onc.createVariable('lat_bnds', inc_dim1_bounds.dtype, (str(lat_var), 'nv'))
+          onc_dim2_bounds = onc.createVariable('lon_bnds', inc_dim2_bounds.dtype, (str(lon_var), 'nv'))
+      except:
+          pass
 
-    
-    
 
     ### copy attributes        
     # time 

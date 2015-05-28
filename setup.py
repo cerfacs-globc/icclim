@@ -32,7 +32,7 @@ setup(
  
     # la version du code
     
-    version="3.0",
+    version="3.0.2",
  
     # Liste les packages a inserer dans la distribution
     # plutot que de le faire a la main, on utilise la foncton
@@ -43,11 +43,11 @@ setup(
     packages=find_packages(),
  
     # votre pti nom
-    author="Natalia T.",
+    author="Christian P.",
  
     # Votre email, sachant qu'il sera publique visible, avec tous les risques
     # que ca implique.
-    author_email="tatarinova@cerfacs.fr",
+    author_email="christian.page@cerfacs.fr",
  
     # Une description courte
     description="Python library for climate indices calculation",

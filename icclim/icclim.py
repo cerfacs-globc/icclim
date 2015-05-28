@@ -296,6 +296,13 @@ def indice(indice_name,
     var_time = nc.variables[indice_dim[0]]
     var = nc.variables[var_name]    
 
+#    nfiles = len(in_files)
+#    if nfiles > 1:
+#      timeunlimited = isunlimited(nc.dimensions)
+#      if timeunlimited == False:
+#        print 'Warning: There is no unlimited dimension. File should be fixed if possible to set time as the unlimited dimension.'
+#        print 'Warning: Using time as the aggregation dimension. Hope this is what you want to do...'
+
     if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
         dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range)
         nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim='time') # dict_files_years_to_process.keys() = in_files
