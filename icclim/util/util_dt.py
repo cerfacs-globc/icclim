@@ -255,4 +255,7 @@ def get_indices_subset(dt_arr, time_range):
         
     else:    
         print 'The time range is not included in the input time steps array.'
-        sys.exit()
+        print 'dt1= '+dt1+' dt_arr[0]='+dt_arr[0]+' dt2='+dt2+' dt_arr[-1]='+dt_arr[-1]
+        raise ValueError('The time range is not included in the input time steps array.')
+        return 0
+
