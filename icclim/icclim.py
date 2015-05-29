@@ -4,6 +4,7 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 #  Author: Natalia Tatarinova
+#  Additions from 2015/05/01: Christian Page
 
 import numpy
 from datetime import datetime
@@ -292,26 +293,22 @@ def indice(indice_name,
     
         
     dict_files_years_to_process = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files, time_range=time_range)
-    nc = MFDataset(dict_files_years_to_process.keys(), 'r', aggdim='time') # dict_files_years_to_process.keys() = in_files
+    dim_name = util_nc.check_unlimited(in_files[0])
+    nc = MFDataset(dict_files_years_to_process.keys(), 'r', aggdim=dim_name) # dict_files_years_to_process.keys() = in_files
     var_time = nc.variables[indice_dim[0]]
     var = nc.variables[var_name]    
 
-#    nfiles = len(in_files)
-#    if nfiles > 1:
-#      timeunlimited = isunlimited(nc.dimensions)
-#      if timeunlimited == False:
-#        print 'Warning: There is no unlimited dimension. File should be fixed if possible to set time as the unlimited dimension.'
-#        print 'Warning: Using time as the aggregation dimension. Hope this is what you want to do...'
-
     if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
         dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range)
-        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim='time') # dict_files_years_to_process.keys() = in_files
+        dim_name2 = util_nc.check_unlimited(in_files2[0])
+        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim=dim_name2) # dict_files_years_to_process.keys() = in_files2
         var_time2 = nc2.variables[indice_dim[0]]
         var2 = nc2.variables[var_name2]
 
     elif indice_type == 'multiperiod':
         dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range2)
-        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim='time') # dict_files_years_to_process.keys() = in_files
+        dim_name2 = util_nc.check_unlimited(in_files2[0])
+        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim=dim_name2) # dict_files_years_to_process.keys() = in_files2
         var_time2 = nc2.variables[indice_dim2[0]]
         var2 = nc2.variables[var_name2]
     
@@ -887,7 +884,8 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     nc0.close()
     
     
-    nc = MFDataset(in_files, 'r', aggdim='time')
+    dim_name = util_nc.check_unlimited(in_files[0])
+    nc = MFDataset(in_files, 'r', aggdim=dim_name)
     var_time = nc.variables[temporal_variable]
     var = nc.variables[var_name]
     

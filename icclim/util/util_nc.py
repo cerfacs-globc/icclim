@@ -2,10 +2,11 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 #  Author: Natalia Tatarinova
-
+#  Additions from 2015/05/01: Christian Page
 
 import numpy
 import util_dt
+from netCDF4 import Dataset
 
 def check_att(nc, att):
     
@@ -388,3 +389,36 @@ def list_var_dim(inc, var):
 
                 
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
+
+def check_unlimited(infile):
+    
+    '''    
+    Checks for unlimited dimensions in a NetCDF file.
+    
+    :param infile: name of NetCDF file
+    :type infile: str
+    
+    :rtype: str (name of unlimited dimension, defaulting to time in case there is none)
+    
+    '''
+    
+    dim_name = 'time'
+    num_unlimited = 0
+    dim_unlimited = False
+
+    nc = Dataset(infile, 'r')
+
+    for dim in nc.dimensions:
+      if nc.dimensions[dim].isunlimited():
+        dim_unlimited = True
+        dim_name = dim
+        num_unlimited = num_unlimited + 1
+    if dim_unlimited == False:
+      print 'Warning: There is no unlimited dimension. File should be fixed if possible to set time as the unlimited dimension.'
+      print 'Warning: Using time as the aggregation dimension. Hope this is what you want to do...'
+    if num_unlimited > 1:
+        print 'Warning: There are more than one unlimited dimension to aggregate. Using '+dim_name+' to aggregate.'
+
+    nc.close()
+
+    return dim_name
