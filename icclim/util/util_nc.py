@@ -298,7 +298,10 @@ def copy_var_dim(inc, onc, var):
 
 def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_lev=None, spatial_chunking=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None):
     
-    calend = ncVar_temporal.calendar
+    try:
+        calend = ncVar_temporal.calendar
+    except:
+        calend = 'gregorian'
     units=ncVar_temporal.units
     
     time_arr = ncVar_temporal[:]
