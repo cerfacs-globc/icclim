@@ -180,7 +180,7 @@ def indice(indice_name,
     
     indice_dim = list(indice_dim)
 
-    if indice_type == 'multiperiod':
+    if indice_type == 'multiperiod' or indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
         indice_dim2 = util_nc.list_var_dim(inc2, var_name2) # tuple ('time', 'lat', 'lon')
     
         indice_dim2 = list(indice_dim2)
@@ -229,7 +229,7 @@ def indice(indice_name,
         
     units = ncVar_time.units
 
-    if indice_type == 'multiperiod':
+    if indice_type == 'multiperiod' or indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
         ncVar_time2 = inc.variables[indice_dim2[index_time]]
     
         try:
@@ -281,7 +281,7 @@ def indice(indice_name,
         else: # i.e. time_range is selected by user
             # we adjust datetime.datetime objects from time_range 
             t_arr2 = inc.variables[indice_dim2[0]][:]
-            dt2 = util_dt.num2date(t_arr2[0], calend, units)
+            dt2 = util_dt.num2date(t_arr2[0], calend2, units)
             del t_arr2
             time_range2 = util_dt.adjust_time_range(time_range2, dt2)
     
@@ -422,7 +422,7 @@ def indice(indice_name,
                 calend = 'gregorian'
             dt_arr = arrs[0]
             values_arr = arrs[1]
-            
+
             if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
                 arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev)
                 try:
