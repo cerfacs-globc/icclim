@@ -5,7 +5,7 @@
 
 
 from netcdftime import utime
-from datetime import datetime, timedelta
+from datetime import datetime
 #from netCDF4 import num2date, date2num, Dataset, MFDataset
 from netCDF4 import Dataset
 import numpy
@@ -190,7 +190,7 @@ def get_time_range(files, temporal_var_name='time'):
 
 def get_year_list(dt_arr):
     '''
-    Just to get a list of all years conteining in time steps vector (dt_arr).
+    Just to get a list of all years containing the time steps vector (dt_arr).
     '''
 
     year_list = []

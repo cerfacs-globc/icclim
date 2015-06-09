@@ -230,7 +230,7 @@ def indice(indice_name,
     units = ncVar_time.units
 
     if indice_type == 'multiperiod' or indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-        ncVar_time2 = inc.variables[indice_dim2[index_time]]
+        ncVar_time2 = inc2.variables[indice_dim2[index_time]]
     
         try:
             calend2 = ncVar_time2.calendar
@@ -238,6 +238,16 @@ def indice(indice_name,
             calend2 = 'gregorian'
         
         units2 = ncVar_time2.units
+
+        var_units2 = getattr(inc2.variables[var_name2],'units')
+
+        # Units conversion
+        var_add2 = 0.0
+        var_scale2 = 1.0
+        if var_units2 == 'degC' or var_units2 == 'Celcius': #Kelvin
+            var_add2 = var_add2 + 273.15
+        elif var_units2 == 'mm': # kg m-2 s-1 (mm/s)
+            var_scale2 = var_scale2 / 86400.0
     
     #try:
     #    calend = util_nc.get_att_value(inc, indice_dim[index_time], 'calendar')
@@ -256,12 +266,20 @@ def indice(indice_name,
     var_units = getattr(inc.variables[var_name],'units')
     var_standardname = getattr(inc.variables[var_name],'standard_name')
 
+    # Units conversion
+    var_add = 0.0
+    var_scale = 1.0
+    if var_units == 'degC' or var_units == 'Celsius': #Kelvin
+        var_add = var_add + 273.15
+    elif var_units == 'mm': # kg m-2 s-1 (mm/s)
+        var_scale = var_scale / 86400.0
+
     if indice_type == 'simple_time_aggregation' or indice_type == 'multiperiod':
         ind = onc.createVariable(var_name, ind_type, indice_dim, fill_value = fill_val)
     else:
         ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
     
-    # Copy attributes from variable to process to indice variable
+    # Copy attributes from variable to process to indice variable, except scale_factor and _FillValue
     util_nc.copy_var_attrs(inc.variables[var_name],ind)
 
     if time_range == None:
@@ -296,7 +314,7 @@ def indice(indice_name,
     dim_name = util_nc.check_unlimited(in_files[0])
     nc = MFDataset(dict_files_years_to_process.keys(), 'r', aggdim=dim_name) # dict_files_years_to_process.keys() = in_files
     var_time = nc.variables[indice_dim[0]]
-    var = nc.variables[var_name]    
+    var = nc.variables[var_name]
 
     if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
         dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range)
@@ -318,7 +336,7 @@ def indice(indice_name,
     
     if transfer_limit_Mbytes == None: # i.e. we work with local files
         
-        arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+        arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, scale_factor=var_scale, add_offset=var_add)
 
         try:
             calend = var_time.calendar
@@ -328,7 +346,7 @@ def indice(indice_name,
         values_arr = arrs[1]
 
         if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-            arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev)
+            arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev, scale_factor=var_scale2, add_offset=var_add2)
             try:
                 calend2 = var_time2.calendar
             except:
@@ -341,7 +359,7 @@ def indice(indice_name,
                 sys.exit()
 
         elif indice_type == 'multiperiod':
-            arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev)
+            arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev, scale_factor=var_scale2, add_offset=var_add2)
             try:
                 calend2 = var_time2.calendar
             except:
@@ -358,7 +376,6 @@ def indice(indice_name,
             dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range)
         elif indice_type == 'multiperiod':
             dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range2)
-        
         
         if nb_user_thresholds == 0:
                         
@@ -415,7 +432,7 @@ def indice(indice_name,
             
             print "Data transfer... "
 
-            arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+            arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, scale_factor=var_scale, add_offset=var_add)
             try:
                 calend = var_time.calendar
             except:
@@ -424,7 +441,7 @@ def indice(indice_name,
             values_arr = arrs[1]
 
             if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev)
+                arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev, scale_factor=var_scale2, add_offset=var_add2)
                 try:
                     calend2 = var_time2.calendar
                 except:
@@ -437,7 +454,7 @@ def indice(indice_name,
                     sys.exit()
 
             elif indice_type == 'multiperiod':
-                arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev)
+                arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev, scale_factor=var_scale2, add_offset=var_add2)
                 try:
                     calend2 = var_time2.calendar
                 except:
@@ -526,7 +543,7 @@ def indice(indice_name,
                 i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
                 i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
                 
-                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True,
+                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True, scale_factor=var_scale, add_offset=var_add,
                                                                        i1_row_current_tile=i1_row_current_tile,
                                                                        i2_row_current_tile=i2_row_current_tile,
                                                                        i1_col_current_tile=i1_col_current_tile,
@@ -535,7 +552,7 @@ def indice(indice_name,
                 values_arr_current_chunk = arrs_current_chunk[1]
                 
                 if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev, spatial_chunking=True,
+                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range, N_lev=N_lev, spatial_chunking=True, scale_factor=var_scale2, add_offset=var_add2,
                                                                             i1_row_current_tile=i1_row_current_tile,
                                                                             i2_row_current_tile=i2_row_current_tile,
                                                                             i1_col_current_tile=i1_col_current_tile,
@@ -544,7 +561,7 @@ def indice(indice_name,
                     values_arr_current_chunk2 = arrs_current_chunk2[1]  
 
                 elif indice_type == 'multiperiod':
-                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev, spatial_chunking=True,
+                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, time_range=time_range2, N_lev=N_lev, spatial_chunking=True, scale_factor=var_scale2, add_offset=var_add2,
                                                                             i1_row_current_tile=i1_row_current_tile,
                                                                             i2_row_current_tile=i2_row_current_tile,
                                                                             i1_col_current_tile=i1_col_current_tile,
@@ -672,7 +689,7 @@ def indice(indice_name,
     # set variable attributes
     if indice_type == 'simple_time_aggregation' or indice_type == 'multiperiod':    
         eval('set_longname_units.' + indice_name + '_setvarattr(ind, var_longname, var_units)')
-        ind.setncattr('standard_name', var_standardname)         
+        ind.setncattr('standard_name', var_standardname)
     else:
         if threshold == None:
             eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
@@ -892,7 +909,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     
     if transfer_limit_Mbytes == None: # i.e. we work with local files
         
-        arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+        arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, scale_factor=var_scale, add_offset=var_add)
         dt_base_arr = arrs[0]
         values_base_arr = arrs[1]
 
@@ -922,7 +939,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
 
             print "Data transfer... "
             
-            arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev)
+            arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, scale_factor=var_scale, add_offset=var_add)
             dt_base_arr = arrs[0]
             values_base_arr = arrs[1]
 
@@ -983,7 +1000,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
                 i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
                 i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
                 
-                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True,
+                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, time_range=time_range, N_lev=N_lev, spatial_chunking=True, scale_factor=var_scale, add_offset=var_add,
                                                                        i1_row_current_tile=i1_row_current_tile,
                                                                        i2_row_current_tile=i2_row_current_tile,
                                                                        i1_col_current_tile=i1_col_current_tile,
@@ -1018,10 +1035,3 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     nc.close()        
             
     return dic
-
-
-
-
-
-
-

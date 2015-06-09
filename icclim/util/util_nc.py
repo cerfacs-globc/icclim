@@ -6,6 +6,7 @@
 
 import numpy
 import util_dt
+from datetime import timedelta
 from netCDF4 import Dataset
 
 def check_att(nc, att):
@@ -50,6 +51,7 @@ def copy_att(nc1, nc2, att):
 def copy_var_attrs(source, destination):
     '''
     Copies all attributes from one variable (source) to another (destination).
+    Except scale_factor add_offset and _FillValue...
     
     :param source: from
     :type source: netCDF4.Variable
@@ -59,7 +61,7 @@ def copy_var_attrs(source, destination):
     '''
     sourceAttrs = source.ncattrs()
     for attr in sourceAttrs:
-        if attr == '_FillValue':
+        if attr == '_FillValue' or attr == 'scale_factor' or attr == 'add_offset':
             pass
         else:
             destination.setncattr(attr, source.getncattr(attr))
@@ -257,47 +259,10 @@ def copy_var_dim(inc, onc, var):
           for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
               onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
     
-    ## maartenplieger comments: This could be removed...
-    #if project == 'CORDEX_DEPRECATED':
-    #
-    #  if check_att(v, 'coordinates')==1:
-    #      a = str(v.__getattribute__('coordinates').split()[0])
-    #      b = str(v.__getattribute__('coordinates').split()[1])
-    #      
-    #      inc_a = inc.variables[a]
-    #      inc_b = inc.variables[b]
-    #      
-    #      onc_a = onc.createVariable( a, inc.variables[a].dtype, ( str(lat_var), str(lon_var) ) )
-    #      onc_b = onc.createVariable( b, inc.variables[b].dtype, ( str(lat_var), str(lon_var) ) )
-    #  
-    #      for j in range(len(inc_a.ncattrs())): # set attributs of current variable       
-    #          onc_a.__setattr__(  inc_a.__dict__.items()[j][0]  , inc_a.__dict__.items()[j][1])
-    #          
-    #      for j in range(len(inc_b.ncattrs())): # set attributs of current variable       
-    #          onc_b.__setattr__(  inc_b.__dict__.items()[j][0]  , inc_b.__dict__.items()[j][1])  
-    #  
-    #  if check_att(v, 'grid_mapping')==1:
-    #      c = str(v.__getattribute__('grid_mapping'))
-    #      inc_c = inc.variables[c]
-    #      
-    #      onc_c = onc.createVariable( c, inc.variables[c].dtype )
-    #      
-    #      for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
-    #          onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
-    #          
-    #          
-    #  onc_a[:,:] = inc_a[:,:]
-    #  onc_b[:,:] = inc_b[:,:]
-    #
-    #  onc_c = inc_c # ???
-  
-                    
-            
-                
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
 
 
-def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_lev=None, spatial_chunking=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None):
+def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_lev=None, spatial_chunking=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None, add_offset=0.0, scale_factor=1.0):
     
     try:
         calend = ncVar_temporal.calendar
@@ -308,27 +273,29 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
     time_arr = ncVar_temporal[:]
     
     dt_arr = numpy.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
-    
+
+    deltat = (dt_arr[1]-dt_arr[0]).total_seconds()
+    if deltat != 86400.0:
+        print "WARNING: Time interval of the input file is not daily!! Delta time is: "+str(deltat)
     
     if spatial_chunking==False:
         
         if N_lev == None:
             assert(ncVar_values.ndim == 3)
             if time_range == None:
-                values_arr = ncVar_values[:,:,:]                
+                values_arr = (ncVar_values[:,:,:] * scale_factor) + add_offset
             else:
                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
                 dt_arr = dt_arr[indices_subset]               
-                values_arr = ncVar_values[indices_subset,:,:]
-                
+                values_arr = (ncVar_values[indices_subset,:,:] * scale_factor) + add_offset
         else:
             assert(ncVar_values.ndim == 4)
             if time_range == None:
-                values_arr = ncVar_values[:,N_lev,:,:]
+                values_arr = (ncVar_values[:,N_lev,:,:] * scale_factor) + add_offset
             else:
                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
                 dt_arr = dt_arr[indices_subset]
-                values_arr = ncVar_values[indices_subset,N_lev,:,:]
+                values_arr = (ncVar_values[indices_subset,N_lev,:,:] * scale_factor) + add_offset
 
         
     else: # spatial_chunking==True
@@ -336,20 +303,20 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
         if N_lev == None:
             assert(ncVar_values.ndim == 3)
             if time_range == None:
-                values_arr = ncVar_values[:,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]                
+                values_arr = (ncVar_values[:,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
             else:
                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
                 dt_arr = dt_arr[indices_subset]
-                values_arr = ncVar_values[indices_subset,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
+                values_arr = (ncVar_values[indices_subset,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
                 
         else:
             assert(ncVar_values.ndim == 4)
             if time_range == None:
-                values_arr = ncVar_values[:,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
+                values_arr = (ncVar_values[:,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
             else:
                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
                 dt_arr = dt_arr[indices_subset]
-                values_arr = ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
+                values_arr = (ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
         
    
     assert(dt_arr.ndim == 1)    
