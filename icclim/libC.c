@@ -77,14 +77,15 @@ double getElementAt(const float *table, int t, int i, int j)
 
 int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation)
 {
-// find max length of a consecutif sequence in 1D array in a chosen logical condition ("gt", "get", "lt", "let", "e")
+// find max length of a consecutive sequence in 1D array in a chosen logical condition ("gt", "get", "lt", "let", "e")
     float previous=-999;
     int nb_max=0;
     int nb=0;
     int t;
+    int some_fillval = 0;
     
-    //printf ("AAAAA");
-    
+    /* We do not tolerate any missing value in the whole vector */
+
     ///////////   >
     if (strcmp(operation,"gt")==0)
     {
@@ -99,7 +100,12 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                 if (previous>thresh) nb++;
                 else nb=1;	    
             }
-            else nb=0;
+            else if (val == fill_val) {
+              some_fillval = 1;
+              nb = 0;
+            }
+            else
+              nb=0;
             
             if (nb>nb_max) nb_max=nb;
             
@@ -121,7 +127,12 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                 if (previous>=thresh) nb++;
                 else nb=1;	    
             }
-            else nb=0;
+            else if (val == fill_val) {
+              some_fillval = 1;
+              nb = 0;
+            }
+            else
+              nb=0;
 
             if (nb>nb_max) nb_max=nb;
             
@@ -143,7 +154,12 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                     if (previous<thresh) nb++;
                     else nb=1;	    
                 }
-            else nb=0;
+            else if (val == fill_val) {
+              some_fillval = 1;
+              nb = 0;
+            }
+            else
+              nb=0;
 
             if (nb>nb_max) nb_max=nb;
             
@@ -165,7 +181,12 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                 if (previous<=thresh) nb++;
                 else nb=1;	    
             }
-            else nb=0;
+            else if (val == fill_val) {
+              some_fillval = 1;
+              nb = 0;
+            }
+            else
+              nb=0;
 
             if (nb>nb_max) nb_max=nb;
             
@@ -187,7 +208,12 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                 if (previous==thresh) nb++;
                 else nb=1;	    
             }
-            else nb=0;
+            else if (val == fill_val) {
+              some_fillval = 1;
+              nb = 0;
+            }
+            else
+              nb=0;
 
             if (nb>nb_max) nb_max=nb;
             
@@ -195,22 +221,21 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
         }
     }
 
+    if (some_fillval == 1) nb_max = fill_val;
 
-        
     return nb_max;
-
 }
 
 
-// fonction appelee depus python 
+// fonction appelee depuis python 
 void find_max_len_consec_sequence_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, float temp, float fill_val, char *operation) 
 {
-// find max length of a consecutif sequence in 3D array (along time axis) in a logical condition
+// find max length of a consecutive sequence in 3D array (along time axis) in a logical condition
 
     //outdata = (double *) malloc (_sizeI*_sizeJ*sizeof(double));
     setGlobalVariables(_sizeT,_sizeI,_sizeJ, fill_value, percentile);
     int i,j;
-    //printf("coucou");
+
         for (i = 0; i < sizeI; i++)
         {
             for (j = 0; j < sizeJ; j++)
@@ -228,14 +253,19 @@ float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, floa
     float sum=0.0;
     int t;
     float val, val_to_subtract;
-    
+    int some_fillvall = 0;
+
+    /* We do not tolerate any missing value in the whole vector */
     
     // initialize max_sum [for the first (w_width-1) elements]
     for (t=0; t<w_width; t++)
     {
         val = getElementAt(indata,t,i,j);
         
-        if (val==fill_val) val=0.0;  
+        if (val==fill_val) {
+          val=0.0;  
+          some_fillvall = 1;
+        }
         
         sum += val;
     }
@@ -246,7 +276,10 @@ float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, floa
     for (t=w_width; t<=sizeT-1; t++) 
     {
         val = getElementAt(indata,t,i,j);
-        if (val==fill_val) val=0.0;
+        if (val==fill_val) {
+          val=0.0;
+          some_fillvall = 1;
+        }
         sum += val;                                 // previous sum + following element
         
         val_to_subtract = getElementAt(indata,t-w_width,i,j);
@@ -256,7 +289,8 @@ float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, floa
         if (sum > max_sum) max_sum =  sum;
         
     }    
-    
+
+    if (some_fillvall == 1) max_sum = fill_val;
 
     return max_sum;
 }

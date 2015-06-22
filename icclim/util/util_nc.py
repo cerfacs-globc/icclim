@@ -262,7 +262,7 @@ def copy_var_dim(inc, onc, var):
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
 
 
-def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_lev=None, spatial_chunking=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None, add_offset=0.0, scale_factor=1.0):
+def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_range=None, N_lev=None, spatial_chunking=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None, add_offset=0.0, scale_factor=1.0):
     
     try:
         calend = ncVar_temporal.calendar
@@ -318,6 +318,8 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, time_range=None, N_l
                 dt_arr = dt_arr[indices_subset]
                 values_arr = (ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
         
+    if fill_val != None:
+        numpy.ma.set_fill_value(values_arr, fill_val)
    
     assert(dt_arr.ndim == 1)    
     assert(values_arr.ndim == 3)

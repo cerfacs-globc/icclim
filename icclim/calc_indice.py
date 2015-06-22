@@ -884,7 +884,7 @@ def CWD_calculation(arr, fill_val=None):
     '''
 
     pr_thresh = 1                               # precipitation threshold = 1 mm
-    
+
     arr = arr*60*60*24                          # mm/s --> mm/day
     
     # if "arr" is a masked array, we fill it with its fill_value to transform it into a normal array (to pass after to C function!)
@@ -910,7 +910,7 @@ def CWD_calculation(arr, fill_val=None):
                                                     ctypes.c_char_p] 
     
     CWD = numpy.zeros([arr_demasked.shape[1], arr_demasked.shape[2]]) # reserve memory
-    
+
     C_find_max_len_consec_sequence_3d(arr_demasked, arr_demasked.shape[0], arr_demasked.shape[1], arr_demasked.shape[2], CWD, pr_thresh, fill_val, 'get')
     CWD = CWD.reshape(arr_demasked.shape[1], arr_demasked.shape[2])
     
