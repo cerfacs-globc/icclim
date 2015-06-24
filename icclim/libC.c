@@ -32,14 +32,14 @@ int percentile;
 
 void setGlobalVariables(int _sizeT,int _sizeI,int _sizeJ,float _fill_value, int _percentile);
 double getElementAt(const float *table, int t, int i, int j);
-int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation);
+float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation);
 void find_max_len_consec_sequence_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, float temp, float fill_val, char *operation);
 float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, float fill_val);
 void find_max_sum_slidingwindow_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int w_width, float fill_val);
-int find_GSL_1d(const float *indata,int i, int j, float thresh, float fill_val, int indexMiddleOfYear);
+float find_GSL_1d(const float *indata,int i, int j, float thresh, float fill_val, int indexMiddleOfYear);
 void find_GSL_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, float temp, float fill_val, int indexMiddleOfYear);
 double getElementAt_2(const float *table, int t, int i, int j);
-int WSDI_CSDI_1d(const float *indata,int i, int j, int N);
+float WSDI_CSDI_1d(const float *indata,int i, int j, int N);
 void WSDI_CSDI_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, int N);
 void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int percentile, float fill_value);
 double percentile_1d(const float *indata, int i, int j);
@@ -75,16 +75,14 @@ double getElementAt(const float *table, int t, int i, int j)
 //Segmentation fault (core dumped)
 //http://stackoverflow.com/questions/13654449/error-segmentation-fault-core-dumped
 
-int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation)
+float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation)
 {
 // find max length of a consecutive sequence in 1D array in a chosen logical condition ("gt", "get", "lt", "let", "e")
     float previous=-999;
-    int nb_max=0;
+    float nb_max=0;
     int nb=0;
     int t;
-    int some_fillval = 0;
-    
-    /* We do not tolerate any missing value in the whole vector */
+    int all_fillval = 1;
 
     ///////////   >
     if (strcmp(operation,"gt")==0)
@@ -97,17 +95,15 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
 
             if ((val>thresh) && (val != fill_val))
             {
-                if (previous>thresh) nb++;
+              if (previous>thresh) nb++;
                 else nb=1;	    
-            }
-            else if (val == fill_val) {
-              some_fillval = 1;
-              nb = 0;
             }
             else
               nb=0;
             
-            if (nb>nb_max) nb_max=nb;
+            if (val != fill_val) all_fillval = 0;
+
+            if (nb>nb_max) nb_max=(float)nb;
             
             previous=val;
         }
@@ -127,14 +123,12 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                 if (previous>=thresh) nb++;
                 else nb=1;	    
             }
-            else if (val == fill_val) {
-              some_fillval = 1;
-              nb = 0;
-            }
             else
               nb=0;
 
-            if (nb>nb_max) nb_max=nb;
+            if (val != fill_val) all_fillval = 0;
+
+            if (nb>nb_max) nb_max=(float)nb;
             
             previous=val;
         }
@@ -154,14 +148,12 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                     if (previous<thresh) nb++;
                     else nb=1;	    
                 }
-            else if (val == fill_val) {
-              some_fillval = 1;
-              nb = 0;
-            }
             else
               nb=0;
 
-            if (nb>nb_max) nb_max=nb;
+            if (val != fill_val) all_fillval = 0;
+
+            if (nb>nb_max) nb_max=(float)nb;
             
             previous=val;
         }
@@ -181,14 +173,12 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                 if (previous<=thresh) nb++;
                 else nb=1;	    
             }
-            else if (val == fill_val) {
-              some_fillval = 1;
-              nb = 0;
-            }
             else
               nb=0;
 
-            if (nb>nb_max) nb_max=nb;
+            if (val != fill_val) all_fillval = 0;
+
+            if (nb>nb_max) nb_max=(float)nb;
             
             previous=val;
         }
@@ -208,20 +198,18 @@ int find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thre
                 if (previous==thresh) nb++;
                 else nb=1;	    
             }
-            else if (val == fill_val) {
-              some_fillval = 1;
-              nb = 0;
-            }
             else
               nb=0;
 
-            if (nb>nb_max) nb_max=nb;
+            if (val != fill_val) all_fillval = 0;
+
+            if (nb>nb_max) nb_max=(float)nb;
             
             previous=val;
         }
     }
 
-    if (some_fillval == 1) nb_max = fill_val;
+    if (all_fillval == 1) nb_max = fill_val;
 
     return nb_max;
 }
@@ -253,19 +241,17 @@ float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, floa
     float sum=0.0;
     int t;
     float val, val_to_subtract;
-    int some_fillvall = 0;
+    int all_fillval = 1;
 
-    /* We do not tolerate any missing value in the whole vector */
-    
     // initialize max_sum [for the first (w_width-1) elements]
     for (t=0; t<w_width; t++)
     {
         val = getElementAt(indata,t,i,j);
         
-        if (val==fill_val) {
-          val=0.0;  
-          some_fillvall = 1;
-        }
+        if (val==fill_val)
+          val=0.0;
+        else
+          all_fillval = 0;
         
         sum += val;
     }
@@ -276,10 +262,11 @@ float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, floa
     for (t=w_width; t<=sizeT-1; t++) 
     {
         val = getElementAt(indata,t,i,j);
-        if (val==fill_val) {
+        if (val==fill_val)
           val=0.0;
-          some_fillvall = 1;
-        }
+        else
+          all_fillval = 0;
+
         sum += val;                                 // previous sum + following element
         
         val_to_subtract = getElementAt(indata,t-w_width,i,j);
@@ -290,7 +277,7 @@ float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, floa
         
     }    
 
-    if (some_fillvall == 1) max_sum = fill_val;
+    if (all_fillval == 1) max_sum = fill_val;
 
     return max_sum;
 }
@@ -319,7 +306,7 @@ void find_max_sum_slidingwindow_3d(const float *indata, int _sizeT, int _sizeI, 
 
 // indexMiddleOfYear is the index of the 1st day in the 2nd semester for which we have a value for temperature
 // -> in a complete year, it should be the 1st of july : indexMiddleOfYear = 181 (or 182 in a bissextile year)
-int find_GSL_1d(const float *indata,int i, int j, float thresh, float fill_val, int indexMiddleOfYear)
+float find_GSL_1d(const float *indata,int i, int j, float thresh, float fill_val, int indexMiddleOfYear)
 {
     float previous=-999;
     int nb=0;
@@ -327,7 +314,7 @@ int find_GSL_1d(const float *indata,int i, int j, float thresh, float fill_val, 
     int sequenceLength=6;
     int T1 = -1;
     int T2 = -1;
-    int returnValue;
+    float returnValue;
     
     // - search T1 : beginning of 1st sequence of at least 6 consecutive days with temp > thresh
     // - the search is done from 1st day of year to the last day of year
@@ -382,7 +369,7 @@ int find_GSL_1d(const float *indata,int i, int j, float thresh, float fill_val, 
     // calculate the return value of this function
     if (T1!=-1 && T2!=-1 && T1<T2)  // T1 and T2 were found and T1<T2 : we can calculate a result for find_GSL_1d
     { 
-        returnValue = T2-T1;
+      returnValue = (float) (T2-T1);
     }
     else                            // impossible to return a result for find_GSL_1d, so we return fill_val
     { 
@@ -428,7 +415,7 @@ double getElementAt_2(const float *table, int t, int i, int j)
 
 
 // for a 1D array, find     
-int WSDI_CSDI_1d(const float *indata,int i, int j, int N)
+float WSDI_CSDI_1d(const float *indata,int i, int j, int N)
 // equivalent code in Python:
 /*
 sum_glob = 0
@@ -450,9 +437,9 @@ for i in range(len(a)):
 */
 
 {
-    int sum_portion = 0;
-    int sum_glob = 0;
-    int val;
+    float sum_portion = 0;
+    float sum_glob = 0;
+    float val;
     int t;
   
     for (t = 0; t < sizeT; t++)
