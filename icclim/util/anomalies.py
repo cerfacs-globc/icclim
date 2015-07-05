@@ -9,6 +9,7 @@ from datetime import datetime
 
 import icclim
 import icclim.calc_indice as calc_indice
+import util.util_nc as util_nc
 
 
 def defaultCallback(message,percentage):
@@ -42,7 +43,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
     
     ###### to get fill value
     nc = Dataset(in_files[0], 'r')
-    fill_val = icclim.get_att_value(nc, var_name, '_FillValue').astype('float32')
+    fill_val = util_nc.get_att_value(nc, var_name, '_FillValue').astype('float32')
     nc.close()
     
     
