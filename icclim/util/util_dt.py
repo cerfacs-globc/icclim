@@ -12,6 +12,7 @@ import numpy
 import sys
 
 
+# unused function
 def get_list_dates_from_nc(nc, type_dates):
     
     '''
@@ -26,10 +27,10 @@ def get_list_dates_from_nc(nc, type_dates):
     
     '''
     
-    ncVar_values_time = nc.variables['time']
+    var_time = nc.variables['time']
     time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
     try:
-       time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
+        time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
     except:
         time_calend = 'gregorian'
     
@@ -65,7 +66,7 @@ def get_list_dates(ifile, type_dates):
     var_time = nc.variables['time']
     time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
     try:
-       time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
+        time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
     except:
         time_calend = 'gregorian'
     

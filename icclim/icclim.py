@@ -304,6 +304,7 @@ def indice(indice_name,
             time_range2 = util_dt.adjust_time_range(time_range2, dt2)
     
     inc.close()
+    
     if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
         inc2.close()
     
@@ -877,7 +878,7 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
     
     #global calend, units
     try:
-       calend = var_time.calendar
+        calend = var_time.calendar
     except:
         calend = 'gregorian'
         
@@ -895,7 +896,21 @@ def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_ran
         dt = util_dt.num2date(t_arr[0], calend, units)
         del t_arr
         time_range = util_dt.adjust_time_range(time_range, dt)
+        
+    
+    # Copy info from variable
+    var_longname = getattr(nc0.variables[var_name],'long_name')
+    var_units = getattr(nc0.variables[var_name],'units')
+    var_standardname = getattr(nc0.variables[var_name],'standard_name')
 
+    # Units conversion
+    var_add = 0.0
+    var_scale = 1.0
+    if var_units == 'degC' or var_units == 'Celsius': #Kelvin
+        var_add = var_add + 273.15
+    elif var_units == 'mm': # kg m-2 s-1 (mm/s)
+        var_scale = var_scale / 86400.0
+    
     
     nc0.close()
     
