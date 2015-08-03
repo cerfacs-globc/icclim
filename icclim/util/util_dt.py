@@ -10,7 +10,7 @@ from datetime import datetime
 from netCDF4 import Dataset
 import numpy
 import sys
-
+import netcdftime
 
 def get_list_dates_from_nc(nc, type_dates):
     
@@ -141,6 +141,10 @@ def num2date(num, calend, units):
     '''   
     t = utime(units, calend) 
     dt = t.num2date(num) 
+    
+    if isinstance(dt, netcdftime.datetime):
+        dt = datetime(dt.year, dt.month, dt.day, dt.hour)
+
     return dt
 
 
