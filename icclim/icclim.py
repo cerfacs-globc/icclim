@@ -31,27 +31,11 @@ import util.arr_size as arr_size
 import util.OCGIS_tile as OCGIS_tile
 import util.files_order as files_order
 import time_subset
+import maps
+# import xyz
 
 import sys
 
-   
-
-map_indice_type =   {
-                        'simple': ['TG', 'TX', 'TN', 'TXx', 'TXn', 'TNx', 'TNn', 'SU', 'TR', 'CSU', 'GD4', 'FD', 'CFD',
-                                   'ID', 'HD17', 'CDD', 'CWD', 'RR', 'RR1', 'SDII', 'R10mm', 'R20mm', 'RX1day', 'RX5day',
-                                   'SD', 'SD1', 'SD5cm', 'SD50cm'],
-                            
-                        'multivariable': ['DTR', 'ETR', 'vDTR'],
-
-                        'multiperiod': ['SUB'],
-                 
-                        'simple_time_aggregation': ['TIMEAVG'],
-                            
-                        'percentile_based': ['TG10p', 'TX10p', 'TN10p', 'TG90p', 'TX90p', 'TN90p', 'WSDI', 'CSDI',
-                                             'R75p', 'R75TOT', 'R95p', 'R95TOT', 'R99p', 'R99TOT'],
-                            
-                        'percentile_based_multivariable': ['CD', 'CW', 'WD', 'WW']
-                    }
 
 def get_key_by_value_from_dict(my_map, my_value):
     for key in my_map.keys():
@@ -70,13 +54,17 @@ def indice(indice_name,
            N_lev=None,
            transfer_limit_Mbytes=None,
            callback=None,
-           callback_percentage_start_value=0,
-           callback_percentage_total=100,
-           percentile_dict=None,
-           in_files2=None,
-           var_name2=None,
-           time_range2=None,
-           percentile_dict2=None):
+            callback_percentage_start_value=0,  # ?
+            callback_percentage_total=100,      # ?
+           #time_range2=None,
+            base_period_time_range=None,
+            window_width=5,
+            only_leap_years=False,
+            ignore_Feb29th=True,
+            interpolation='hyndman_fan', 
+            save_percentiles_to_file=None, # [file_name, option], option: 'a', 'b'
+            out_unit='days',
+            ):
 
     
     '''
@@ -86,10 +74,10 @@ def indice(indice_name,
     :type indice_name: str    
     
     :param in_files: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
-    :type in_files: list of str
+    :type in_files: str OR list of str OR list of lists
 
     :param var_name: Target variable name to process corresponding to ``in_files``.
-    :type var_name: str
+    :type var_name: str OR list of str
          
     :param slice_mode: Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the indice will be calculated as monthly values.
     :type slice_mode: str
@@ -117,75 +105,89 @@ def indice(indice_name,
     
     :param callback_percentage_total: Total persentage value (default: 100).   
     :type callback_percentage_total: int
-    
-    :param percentile_dict: For percentile-based indices: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict`, corresponding to ``var_name``.
-    :type percentile_dict: dict 
-    
-    :param in_files2: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
-    :type in_files2: list of str
-    
-    :param var_name2: Target variable name to process corresponding to ``in_files2``.
-    :type var_name2: str
-    
-    :param time_range2: Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
-    :type time_range2: [datetime.datetime, datetime.datetime]
 
-    :param percentile_dict2: For percentile-based indices: dictionary with calendar days as keys and 2D arrays with percentiles as values as returned from :func:`icclim.get_percentile_dict`, corresponding to ``var_name2``.
-    :type percentile_dict2: dict
+    :param base_period_time_range: Temporal range of the base period. 
+    :type base_period_time_range: [datetime.datetime, datetime.datetime]
+    
+    :param window_width: Window width, must be odd (default: 5).
+    :type window_width: int
+   
+    :param only_leap_years: Option for February 29th (default: False).
+    :type only_leap_years: bool
+   
+    :param ignore_Feb29th: Ignoring or not February 29th (default: False).
+    :type ignore_Feb29th: bool
+   
+    :param interpolation: Interpolation method to compute percentile values: "linear" or "hyndman_fan" (default: "hyndman_fan").
+    :type interpolation: str
+    
+    :param save_percentiles_to_file: To save percentile thresholds as a file.
+    :type save_percentiles_to_file: list of str 
+    
+    :param out_unit: Output unit for certain indices: "days" or "%" (default: "days").
+    :type out_unit: str
     
     :rtype: path to NetCDF file
 
     .. warning:: If ``out_file`` already exists, Icclim will overwrite it!
     
-    .. warning:: Precipitation input units are considered to be in [kg m-2 s-1].
+    .. warning:: Precipitation input units are considered to be in [kg m-2 s-1]. i.e. in [mm/s].
     '''
     
+    #####    we define the type of selected indice
+    #####    (simple_time_aggregation and multiperiod are statistics and not indices, so threshold is ignored in those cases)
+    indice_type = get_key_by_value_from_dict(maps.map_indice_type, indice_name) # 'simple'/'multivariable'/'multiperiod'/'simple_time_aggregation'/'percentile_based'/'percentile_based_multivariable'
+    
+    if (indice_type=='percentile_based' or indice_type=='percentile_based_multivariable') and base_period_time_range==None:
+        raise IOError('Time range of base period is required for percentile-based indices! Please, set the "base_period_time_range" parameter.')
+    
+    #####    slice_mode
     if slice_mode == None:
         slice_mode = 'month'
-    
-    # we define the type of selected indice
-    # simple_time_aggregation and multiperiod are statistics and not indices, so threshold is ignored in those cases
-    indice_type = get_key_by_value_from_dict(map_indice_type, indice_name) # 'simple'/'multivariable'/'multiperiod'/'simple_time_aggregation'/'percentile_based'/'percentile_based_multivariable'
-    
-    if indice_type == 'multivariable' and (    (in_files2==None or var_name2==None) ): 
-        print "Error: Both parameters 'in_files2' and 'var_name2' must be provided."
-        sys.exit()
-    
-    elif indice_type == 'multiperiod' and (    (in_files2==None or var_name2==None or time_range2==None) ): 
-        print "Error: Both parameters 'in_files2' 'var_name2' and 'time_range2' must be provided."
-        sys.exit()
-    
-    elif indice_type == 'percentile_based' and percentile_dict==None:
-        print "Error: The parameter 'percentile_dict' must be provided."
-        sys.exit()
-        
-    elif indice_type == 'percentile_based_multivariable' and (percentile_dict==None or in_files2==None or var_name2==None or percentile_dict2==None):
-        print "Error: All following parameters must be provided: 'percentile_dict', 'in_files2', 'var_name2', 'percentile_dict2'."
-        sys.exit()
 
-    # we open any input file (for example, the first one) of each target variable to get necessary information 
-    inc = Dataset(in_files[0], 'r')
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
-        inc2 = Dataset(in_files2[0], 'r')
     
-    global fill_val    
-    fill_val = util_nc.get_att_value(inc, var_name, '_FillValue').astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
-        global fill_val2
-        fill_val2 = util_nc.get_att_value(inc2, var_name2, '_FillValue').astype('float32')
+    #####    input files and target variable names
+    if type(in_files) is not list: 
+        in_files = [in_files] 
+    if type(var_name) is not list:
+        var_name = [var_name]    
+     
+    assert (len(in_files) == len(var_name)) 
     
+    #####    VARS_in_files: dictionary where to each target variable (key of the dictionary) correspond input files list
+    VARS_in_files = OrderedDict()
+    for i in range(len(var_name)):
+        if type(in_files[i]) is not list: 
+            in_files[i] = [in_files[i]]
+        
+        VARS_in_files[var_name[i]] = in_files[i]
+    
+    #####    callback
+    if callback != None:
+        global percentage_current_key        
+        percentage_current_key = callback_percentage_start_value
+    
+    #####    we prepare output file
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
 
-    indice_dim = util_nc.copy_var_dim(inc, onc, var_name) # tuple ('time', 'lat', 'lon')
+    #####    we define type of result indice
+    ind_type = 'f' # 'float32'
     
+    
+    ########################################
+    ################# META: begin
+    ########################################
+    any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
+    inc = Dataset(any_in_file, 'r')
+    indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0]) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
-
-    if indice_type == 'multiperiod' or indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-        indice_dim2 = util_nc.list_var_dim(inc2, var_name2) # tuple ('time', 'lat', 'lon')
+    ncVar = inc.variables[var_name[0]] 
+    fill_val = ncVar._FillValue.astype('float32') # fill_value must be the same type as "ind_type", i.e. 'float32'
+    dimensions_list_var = ncVar.dimensions
+    index_time = 0
+    ncVar_time = inc.variables[dimensions_list_var[index_time]]
     
-        indice_dim2 = list(indice_dim2)
-
-    # in case of user defined thresholds 
+    ############## in case of user defined thresholds 
     global nb_user_thresholds, user_thresholds    
     
     # As default, no threshold is defined, no threshold dimension is created and added to the indice var
@@ -210,453 +212,336 @@ def indice(indice_name,
             thresholdvar[:] = user_thresholds
             thresholdvar.setncattr("units","threshold")
             thresholdvar.setncattr("standard_name","threshold")
+    ##############
     
-    index_row = len(indice_dim)-2
-    index_col = len(indice_dim)-1
-    index_time = 0
     
-    nb_rows = inc.variables[indice_dim[index_row]].shape[0]
-    nb_columns = inc.variables[indice_dim[index_col]].shape[0]
-    
-    #global calend, units
-    
-    ncVar_time = inc.variables[indice_dim[index_time]]
-
-    try:
-       calend = ncVar_time.calendar
-    except:
-        calend = 'gregorian'
-        
-    units = ncVar_time.units
-
-    if indice_type == 'multiperiod' or indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-        ncVar_time2 = inc2.variables[indice_dim2[index_time]]
-    
-        try:
-            calend2 = ncVar_time2.calendar
-        except:
-            calend2 = 'gregorian'
-        
-        units2 = ncVar_time2.units
-
-        var_units2 = getattr(inc2.variables[var_name2],'units')
-
-        # Units conversion
-        var_add2 = 0.0
-        var_scale2 = 1.0
-        if var_units2 == 'degC' or var_units2 == 'Celcius': #Kelvin
-            var_add2 = var_add2 + 273.15
-        elif var_units2 == 'mm': # kg m-2 s-1 (mm/s)
-            var_scale2 = var_scale2 / 86400.0
-    
-    #try:
-    #    calend = util_nc.get_att_value(inc, indice_dim[index_time], 'calendar')
-    #except:
-    #    calend = 'gregorian'
-    #
-    #units = util_nc.get_att_value(inc, indice_dim[index_time], 'units')
-    
-
-    ind_type = 'f' # 'float32'
-    
-    #fill_val = get_att_value(inc, var_name, '_FillValue').astype(ind_type) # fill value (_FillValue) must be the same type as data type: float32 (line below: ind_type = 'f', i.e. float32)
-
-    # Copy info from variable
-    var_longname = getattr(inc.variables[var_name],'long_name')
-    var_units = getattr(inc.variables[var_name],'units')
-    var_standardname = getattr(inc.variables[var_name],'standard_name')
-
-    # Units conversion
-    var_add = 0.0
-    var_scale = 1.0
-    if var_units == 'degC' or var_units == 'Celsius': #Kelvin
-        var_add = var_add + 273.15
-    elif var_units == 'mm': # kg m-2 s-1 (mm/s)
-        var_scale = var_scale / 86400.0
-
+    #####    we create a variable in output dataset (onc)
     if indice_type == 'simple_time_aggregation' or indice_type == 'multiperiod':
-        ind = onc.createVariable(var_name, ind_type, indice_dim, fill_value = fill_val)
-    else:
+        var_longname = getattr(ncVar,'long_name')
+        var_standardname = getattr(ncVar,'standard_name')                              
+        ind = onc.createVariable(var_name[0], ind_type, indice_dim, fill_value = fill_val) 
+    else:                
         ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
-    
-    # Copy attributes from variable to process to indice variable, except scale_factor and _FillValue
-    util_nc.copy_var_attrs(inc.variables[var_name],ind)
 
-    if time_range == None:
-        time_range = util_dt.get_time_range(in_files, temporal_var_name=indice_dim[0])
-        
-    else: # i.e. time_range is selected by user
-        # we adjust datetime.datetime objects from time_range 
-        t_arr = inc.variables[indice_dim[0]][:]
-        dt = util_dt.num2date(t_arr[0], calend, units)
-        del t_arr
-        time_range = util_dt.adjust_time_range(time_range, dt)
+    #####    we copy attributes from variable to process to indice variable, except scale_factor and _FillValue
+    util_nc.copy_var_attrs(ncVar, ind)
 
-    if indice_type == 'multiperiod':
-        if time_range2 == None:
-            time_range2 = util_dt.get_time_range(in_files2, temporal_var_name=indice_dim2[0])
-        
-        else: # i.e. time_range is selected by user
-            # we adjust datetime.datetime objects from time_range 
-            t_arr2 = inc.variables[indice_dim2[0]][:]
-            dt2 = util_dt.num2date(t_arr2[0], calend2, units)
-            del t_arr2
-            time_range2 = util_dt.adjust_time_range(time_range2, dt2)
     
+#     #####    we check for "time_range"
+#     try:
+#         calend = ncVar_time.calendar
+#     except:
+#         calend = 'gregorian'
+#     
+#     units = ncVar_time.units
+# 
+#     
+#     if time_range == None:
+#         time_range = util_dt.get_time_range(VARS_in_files[var_name[0]], temporal_var_name=indice_dim[0])
+#         
+#     else: # i.e. time_range is selected by user
+#         # we adjust datetime.datetime objects from time_range 
+#         t_arr = inc.variables[indice_dim[0]][:]
+#         dt = util_dt.num2date(t_arr[0], calend, units)
+#         time_range = util_dt.adjust_time_range(time_range, dt)
+    
+    
+    time_range = util_dt.get_time_range(files=VARS_in_files[var_name[0]], time_range=time_range, temporal_var_name=indice_dim[0])
+# 
+#     if indice_type == 'multiperiod':            
+#         time_range2 = util_dt.get_time_range(files=VARS_in_files[var_name[1]], time_range=time_range2, temporal_var_name=indice_dim[0])
+
+    
+    # we get nb_rows (var_shape1) and nb_cols (var_shape2) to compute in the following optimal tile_dimension 
+    var_shape = ncVar.shape
+    var_shape1 = var_shape[-2]
+    var_shape2 = var_shape[-1]
+
     inc.close()
+    ########################################
+    ################# META: end
+    ########################################
     
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
-        inc2.close()
     
     
+    # the dictionary to keep all necessary information about each target variable
+    VARS = OrderedDict()
     
+
+
+    
+# # # # #     if indice_type == "percentile_based" or indice_type == "percentile_based_multivariable": 
+# # # # #         intersecting_years = util_dt.get_intersecting_years(time_range1=time_range, time_range2=base_period_time_range)
+# # # # #         VARS_base = OrderedDict()
+# # # # #     else:
+# # # # #         VARS_base=None
+    
+    
+    vars_tile_dimension = []
+
+    for v in var_name:
         
-    dict_files_years_to_process = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files, time_range=time_range)
-    dim_name = util_nc.check_unlimited(in_files[0])
-    nc = MFDataset(dict_files_years_to_process.keys(), 'r', aggdim=dim_name) # dict_files_years_to_process.keys() = in_files
-    var_time = nc.variables[indice_dim[0]]
-    var = nc.variables[var_name]
-
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-        dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range)
-        dim_name2 = util_nc.check_unlimited(in_files2[0])
-        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim=dim_name2) # dict_files_years_to_process.keys() = in_files2
-        var_time2 = nc2.variables[indice_dim[0]]
-        var2 = nc2.variables[var_name2]
-
-    elif indice_type == 'multiperiod':
-        dict_files_years_to_process2 = files_order.get_dict_files_years_to_process_in_correct_order(files_list=in_files2, time_range=time_range2)
-        dim_name2 = util_nc.check_unlimited(in_files2[0])
-        nc2 = MFDataset(dict_files_years_to_process2.keys(), 'r', aggdim=dim_name2) # dict_files_years_to_process.keys() = in_files2
-        var_time2 = nc2.variables[indice_dim2[0]]
-        var2 = nc2.variables[var_name2]
-    
-    if callback != None:
-        global percentage_current_key        
-        percentage_current_key = callback_percentage_start_value
-    
-    if transfer_limit_Mbytes == None: # i.e. we work with local files
+        current_var_dict = OrderedDict({
+                                'files_years': OrderedDict(), 
+                                'time_calendar': [],
+                                'time_units': [],
+                                'fill_value': [],
+                                'dt_arr': [],
+                                'values_arr': [], 
+                                'unit_conversion_var_add':[],
+                                'unit_conversion_var_scale':[],
+                                'temporal_slices': OrderedDict(), 
+                                'base': OrderedDict(), 
+#                                     'threshold': OrderedDict(),                                    
+                                })
         
-        arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, fill_val=fill_val, time_range=time_range, N_lev=N_lev, scale_factor=var_scale, add_offset=var_add)
+        
+        
+        VARS[v] = current_var_dict        
+        
+        dict_files_years_to_process = files_order.get_dict_files_years_to_process_in_correct_order(files_list=VARS_in_files[v], time_range=time_range)  
+        
+        VARS[v]['files_years'] = dict_files_years_to_process 
 
-        try:
-            calend = var_time.calendar
-        except:
-            calend = 'gregorian'
-        dt_arr = arrs[0]
-        values_arr = arrs[1]
+        dim_name = util_nc.check_unlimited(VARS_in_files[v][0])
+        tile_dimension = arr_size.get_tile_dimension(in_files=dict_files_years_to_process.keys(), 
+                                             var_name=v, 
+                                             transfer_limit_Mbytes=transfer_limit_Mbytes, 
+                                             time_range=time_range)
 
-        if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-            arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, fill_val=fill_val2, time_range=time_range, N_lev=N_lev, scale_factor=var_scale2, add_offset=var_add2)
-            try:
-                calend2 = var_time2.calendar
-            except:
-                calend2 = 'gregorian'
-            dt_arr2 = arrs2[0]
-            values_arr2 = arrs2[1]
+        vars_tile_dimension.append(tile_dimension)
 
-            if not numpy.array_equal(dt_arr, dt_arr2):
-                print 'Error: Time step vectors of both file lists must be equal!'
-                sys.exit()
+    tile_dimension = min(vars_tile_dimension)
 
-        elif indice_type == 'multiperiod':
-            arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, fill_val=fill_val2, time_range=time_range2, N_lev=N_lev, scale_factor=var_scale2, add_offset=var_add2)
-            try:
-                calend2 = var_time2.calendar
-            except:
-                calend2 = 'gregorian'
-            dt_arr2 = arrs2[0]
-            values_arr2 = arrs2[1]
+    
+# #### REMOVE ??? proverit' v drugom meste            
+#     # we check if dt_arr of all variables are equal!!
+#     if len(var_name)>1:
+#         for i in range(len(var_name)-1):                                       
+#             if not numpy.array_equal( VARS[var_name[i]]['arrs'][0], VARS[var_name[i+1]]['arrs'][0] ):
+#                 print 'Error: Time step vectors must be equal for all variables!'
+#                 sys.exit()
+# #             if indice_type == 'multiperiod': only len(dt_arr) must be equal
 
-            if not numpy.array_equal(dt_arr, dt_arr2):
-                print 'Error: Time step vectors of both file lists must be equal!'
-                sys.exit()
 
-        dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, calend=calend, temporal_subset_mode=slice_mode, time_range=time_range)
-        if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-            dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range)
-        elif indice_type == 'multiperiod':
-            dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range2)
+
+     
+    global nb_chunks
+#     global i1_row_current_tile, i2_row_current_tile, i1_col_current_tile, i2_col_current_tile
+    
+    # chunk tiles    
+    tile_map = OCGIS_tile.get_tile_schema(nrow=var_shape1, ncol=var_shape2, tdim=tile_dimension, origin=0)
+        
+    nb_chunks = len(tile_map)
+
+    global chunk_counter
+    chunk_counter = 0
+    #####    for each chunk
+    for tile_id in tile_map:
+        
+        if len(tile_map)>1:
+            print "Loading data: chunk " + str(int(chunk_counter+1)) + '/'+ str(len(tile_map)) + " ..."
+        else:
+            print "Loading data..."
+        
+        #####    for each target variable
+        for v in var_name:
+            
+            if chunk_counter == 0:
+
+                inc = Dataset(VARS[v]['files_years'].keys()[0], 'r')     
+                ncVar = inc.variables[v]    
+                dimensions_list_current_var = ncVar.dimensions
+            
+ 
+                fill_val = ncVar._FillValue.astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
+                VARS[v]['fill_value']=fill_val
+    
+                #global calend, units
+                
+                ncVar_time = inc.variables[dimensions_list_current_var[index_time]]
+             
+                try:
+                    calend = ncVar_time.calendar
+                except:
+                    calend = 'gregorian'
+                 
+                units = ncVar_time.units
+                
+                VARS[v]['time_calendar']=calend
+                VARS[v]['time_units']=units
+#                 current_var_dict['meta'].append(calend)
+#                 current_var_dict['meta'].append(units)
+                
+               
+               
+                var_units = getattr(inc.variables[v],'units')
+
+                # Units conversion
+                var_add = 0.0
+                var_scale = 1.0
+                if var_units == 'degC' or var_units == 'Celcius': #Kelvin
+                    var_add = var_add + 273.15
+                elif var_units == 'mm': # kg m-2 s-1 (mm/s)
+                    var_scale = var_scale / 86400.0
+                    
+                VARS[v]['unit_conversion_var_add']=var_add
+                VARS[v]['unit_conversion_var_scale']=var_scale
+#                 current_var_dict['unit_conversion'].append(var_add)    
+#                 current_var_dict['unit_conversion'].append(var_scale)
+                
+#                 VARS[v]=current_var_dict
+        
+
+            nc = MFDataset(VARS[v]['files_years'].keys(), 'r', aggdim=dim_name) # VARS[v]['files_years'].keys(): files of current variable
+            var_time = nc.variables[indice_dim[0]]
+            var = nc.variables[v]
+
+            i1_row_current_tile = tile_map.get(tile_id).get('row')[0]
+            i2_row_current_tile = tile_map.get(tile_id).get('row')[1]
+            
+            i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
+            i2_col_current_tile = tile_map.get(tile_id).get('col')[1]  
+                        
+
+            arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
+                                                                     fill_val=VARS[v]['fill_value'], 
+                                                                     time_range=time_range, 
+                                                                     N_lev=N_lev, 
+                                                                     scale_factor=VARS[v]['unit_conversion_var_scale'], 
+                                                                     add_offset=VARS[v]['unit_conversion_var_add'],
+                                                                     ignore_Feb29th=ignore_Feb29th, 
+                                                                     i1_row_current_tile=i1_row_current_tile,
+                                                                     i2_row_current_tile=i2_row_current_tile,
+                                                                     i1_col_current_tile=i1_col_current_tile,
+                                                                     i2_col_current_tile=i2_col_current_tile)
+
+            VARS[v]['dt_arr']=arrs_current_chunk[0]
+            VARS[v]['values_arr']=arrs_current_chunk[1] 
+
+            if indice_type == "percentile_based" or indice_type == "percentile_based_multivariable":
+
+                arrs_base_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
+                                                                            fill_val=VARS[v]['fill_value'], 
+                                                                            time_range=base_period_time_range, 
+                                                                              N_lev=N_lev, 
+                                                                              scale_factor=VARS[v]['unit_conversion_var_scale'], 
+                                                                              add_offset=VARS[v]['unit_conversion_var_add'],
+                                                                              ignore_Feb29th=ignore_Feb29th,
+                                                                              i1_row_current_tile=i1_row_current_tile,
+                                                                             i2_row_current_tile=i2_row_current_tile,
+                                                                             i1_col_current_tile=i1_col_current_tile,
+                                                                             i2_col_current_tile=i2_col_current_tile)
+                                                        
+#                 dt_arr_base = arrs_base_current_chunk[0]    
+#                 values_arr_base = arrs_base_current_chunk[1]
+
+            
+                VARS[v]['base']['dt_arr']=arrs_base_current_chunk[0]
+                VARS[v]['base']['values_arr']=arrs_base_current_chunk[1]
+
+        
+            
+###### REMOVE ??? proverit' v drugom meste            
+#     # we check if dt_arr of all variables are equal!!
+#     if len(var_name)>1:
+#         for i in range(len(var_name)-1):                                       
+#             if not numpy.array_equal( VARS[var_name[i]]['arrs'][0], VARS[var_name[i+1]]['arrs'][0] ):
+#                 print 'Error: Time step vectors must be equal for all variables!'
+#                 sys.exit()
+# #             if indice_type == 'multiperiod': only len(dt_arr) must be equal
+            
+            
+            
+            
+            dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=VARS[v]['dt_arr'], 
+                                                                        values_arr=VARS[v]['values_arr'],
+                                                                        fill_value=VARS[v]['fill_value'],                                                                      
+                                                                        calend=VARS[v]['time_calendar'], 
+                                                                        temporal_subset_mode=slice_mode, 
+                                                                        time_range=time_range)
+            
+            
+            VARS[v]['temporal_slices']=dict_temporal_slices
+
+            nc.close()
+
+        
+        
         
         if nb_user_thresholds == 0:
-                        
-            if indice_type == 'simple' or indice_type == 'simple_time_aggregation':
-                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                    dict_temporal_slices=dict_temporal_slices,
-                                                                    callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                
-            elif indice_type == 'multivariable' or indice_type == 'multiperiod':
-                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                    dict_temporal_slices=dict_temporal_slices,
-                                                                    dict_temporal_slices2=dict_temporal_slices2,
-                                                                    callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
             
-            elif indice_type == 'percentile_based':
-                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                    dict_temporal_slices=dict_temporal_slices,
-                                                                    percentile_dict=percentile_dict,
-                                                                    callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-            
-                
-            elif indice_type == 'percentile_based_multivariable':
-                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                    dict_temporal_slices=dict_temporal_slices,
-                                                                    percentile_dict=percentile_dict,
-                                                                    dict_temporal_slices2=dict_temporal_slices2,
-                                                                    percentile_dict2=percentile_dict2,
-                                                                    callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-            
-            
-            indice_arr = indice_tuple[2]
-
-        else:
-            dict_threshold_indice_arr = OrderedDict()
-            for t in user_thresholds:
-                indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                    dict_temporal_slices=dict_temporal_slices,
-                                                                    thresh=t,
-                                                                    callback=callback, callback_percentage_total=callback_percentage_total)  ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr)         
-                dict_threshold_indice_arr[t] = indice_tuple[2]
-                
-        dt_centroid_arr = indice_tuple[0]
-        dt_bounds_arr = indice_tuple[1]
-        
-        
-    else: # i.e. we work with OPeNDAP datasets
-        # we convert Mbytes in bytes (1 Kbyte = 1024 bytes)
-        transfer_limit_bytes = transfer_limit_Mbytes * 1024 * 1024
-        total_array_size_bytes_and_tile_dimension = arr_size.get_total_array_size_bytes_and_tile_dimension(dict_files_years_to_process.keys(), var_name, transfer_limit_bytes, time_range=time_range)
-        array_total_size = total_array_size_bytes_and_tile_dimension[0]
-                
-        
-        if array_total_size < transfer_limit_bytes: # the same as for the "if transfer_limit_Mbytes == None" case
-            
-            print "Data transfer... "
-
-            arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, fill_val=fill_val, time_range=time_range, N_lev=N_lev, scale_factor=var_scale, add_offset=var_add)
-            try:
-                calend = var_time.calendar
-            except:
-                calend = 'gregorian'
-            dt_arr = arrs[0]
-            values_arr = arrs[1]
-
-            if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, fill_val=fill_val2, time_range=time_range, N_lev=N_lev, scale_factor=var_scale2, add_offset=var_add2)
-                try:
-                    calend2 = var_time2.calendar
-                except:
-                    calend2 = 'gregorian'
-                dt_arr2 = arrs2[0]
-                values_arr2 = arrs2[1]
+            if chunk_counter == 0:
+                if indice_type == 'simple_time_aggregation':
+                    indice_arr = numpy.zeros( (1,var_shape1, var_shape2), dtype=ind_type )
+                else:
+                    indice_arr = numpy.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
     
-                if not numpy.array_equal(dt_arr, dt_arr2):
-                    print 'Error: Time step vectors of both file lists must be equal!'
-                    sys.exit()
-
-            elif indice_type == 'multiperiod':
-                arrs2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, fill_val=fill_val2, time_range=time_range2, N_lev=N_lev, scale_factor=var_scale2, add_offset=var_add2)
-                try:
-                    calend2 = var_time2.calendar
-                except:
-                    calend2 = 'gregorian'
-                dt_arr2 = arrs2[0]
-                values_arr2 = arrs2[1]
-    
-                if not numpy.array_equal(dt_arr, dt_arr2):
-                    print 'Error: Time step vectors of both file lists must be equal!'
-                    sys.exit()
             
+            
+            
+            ######################################
+            ###################################### VARS_dict_temporal_slices, VARS_base ----> to one parameter "VARS"
+            indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+#                                                         VARS_dict_temporal_slices=VARS_temporal_slices,
+#                                                         VARS_base=VARS_base,
+                                                        vars_dict=VARS,
+                                                        window_width=window_width,
+                                                        only_leap_years=only_leap_years,
+                                                        callback=callback, callback_percentage_total=callback_percentage_total,
+                                                        ignore_Feb29th=ignore_Feb29th, interpolation=interpolation,
+                                                        percentiles_to_file=save_percentiles_to_file,
+                                                        out_unit=out_unit) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
     
-            dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr, calend=calend, temporal_subset_mode=slice_mode, time_range=time_range)
-            if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range)
-            elif indice_type == 'multiperiod':
-                dict_temporal_slices2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range2)
-
-            if nb_user_thresholds == 0:
-                if indice_type == 'simple' or indice_type == 'simple_time_aggregation':
-                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                        dict_temporal_slices=dict_temporal_slices,
-                                                                        callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                    
-                elif indice_type == 'multivariable' or indice_type == 'multiperiod':
-                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                        dict_temporal_slices=dict_temporal_slices,
-                                                                        dict_temporal_slices2=dict_temporal_slices2,
-                                                                        callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                
-                elif indice_type == 'percentile_based':
-                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                        dict_temporal_slices=dict_temporal_slices,
-                                                                        percentile_dict=percentile_dict,
-                                                                        callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                
-                    
-                elif indice_type == 'percentile_based_multivariable':
-                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                        dict_temporal_slices=dict_temporal_slices,
-                                                                        percentile_dict=percentile_dict,
-                                                                        dict_temporal_slices2=dict_temporal_slices2,
-                                                                        percentile_dict2=percentile_dict2,
-                                                                        callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                
-                indice_arr = indice_tuple[2]
-                
+            indice_arr_current_chunk = indice_tuple_current_chunk[2]
+            
+            
+            if indice_type == 'simple_time_aggregation':
+                indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] += indice_arr_current_chunk
             else:
-                dict_threshold_indice_arr = OrderedDict()
-                for t in user_thresholds:
-                    indice_tuple = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                    dict_temporal_slices=dict_temporal_slices,
+                # we concatenate
+                indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
+                     
+            
+            
+        
+        else:
+            
+            dict_threshold_indice_arr = OrderedDict()
+            for t in user_thresholds:                    
+                if chunk_counter == 0:              
+                    dict_threshold_indice_arr[t] = numpy.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
+            
+                
+                indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+#                                                                     VARS_dict_temporal_slices=VARS_temporal_slices,
+                                                                    vars_dict=VARS,
                                                                     thresh=t,
                                                                     callback=callback, callback_percentage_total=callback_percentage_total)  ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr)         
-                    dict_threshold_indice_arr[t] = indice_tuple[2]
-                
-            dt_centroid_arr = indice_tuple[0]
-            dt_bounds_arr = indice_tuple[1]
-            
-
-        else:            
-            # then we do chunking in space
-            tile_dimension = total_array_size_bytes_and_tile_dimension[1]
-            var_shape = var.shape
-            var_shape1 = var_shape[1]
-            var_shape2 = var_shape[2]
-
-            
-            tile_map = OCGIS_tile.get_tile_schema(nrow=var_shape1, ncol=var_shape2, tdim=tile_dimension, origin=0)
-            global nb_chunks
-            nb_chunks = len(tile_map)
-            print str(nb_chunks) + " data chunks will be transfered."
-
-            if nb_user_thresholds != 0:
-                dict_threshold_indice_arr = OrderedDict()
-
-            chunk_counter = 0  # chunk counter           
-            for tile_id in tile_map:
-                print "Data transfer: chunk " + str(int(chunk_counter+1)) + '/'+ str(len(tile_map)) + " ..."
-                
-                global i1_row_current_tile, i2_row_current_tile, i1_col_current_tile, i2_col_current_tile
-                
-                i1_row_current_tile = tile_map.get(tile_id).get('row')[0]
-                i2_row_current_tile = tile_map.get(tile_id).get('row')[1]
-                
-                i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
-                i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
-                
-                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, fill_val=fill_val, time_range=time_range, N_lev=N_lev, spatial_chunking=True, scale_factor=var_scale, add_offset=var_add,
-                                                                       i1_row_current_tile=i1_row_current_tile,
-                                                                       i2_row_current_tile=i2_row_current_tile,
-                                                                       i1_col_current_tile=i1_col_current_tile,
-                                                                       i2_col_current_tile=i2_col_current_tile)
-                dt_arr = arrs_current_chunk[0]
-                values_arr_current_chunk = arrs_current_chunk[1]
-                
-                if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, fill_val=fill_val2, time_range=time_range, N_lev=N_lev, spatial_chunking=True, scale_factor=var_scale2, add_offset=var_add2,
-                                                                            i1_row_current_tile=i1_row_current_tile,
-                                                                            i2_row_current_tile=i2_row_current_tile,
-                                                                            i1_col_current_tile=i1_col_current_tile,
-                                                                            i2_col_current_tile=i2_col_current_tile)
-                    dt_arr2 = arrs_current_chunk2[0]
-                    values_arr_current_chunk2 = arrs_current_chunk2[1]  
-
-                elif indice_type == 'multiperiod':
-                    arrs_current_chunk2 = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time2, ncVar_values=var2, fill_val=fill_val2, time_range=time_range2, N_lev=N_lev, spatial_chunking=True, scale_factor=var_scale2, add_offset=var_add2,
-                                                                            i1_row_current_tile=i1_row_current_tile,
-                                                                            i2_row_current_tile=i2_row_current_tile,
-                                                                            i1_col_current_tile=i1_col_current_tile,
-                                                                            i2_col_current_tile=i2_col_current_tile)
-                    dt_arr2 = arrs_current_chunk2[0]
-                    values_arr_current_chunk2 = arrs_current_chunk2[1]  
                 
                 
-                
-                if indice_type == 'percentile_based':
-                    percentile_dict_current_chunk = get_subset_percentile_dict(percentile_dict)
-
-                elif indice_type == 'percentile_based_multivariable':
-                    percentile_dict_current_chunk = get_subset_percentile_dict(percentile_dict)
-                    percentile_dict_current_chunk2 = get_subset_percentile_dict(percentile_dict2)
-                    
+                indice_arr_current_chunk = indice_tuple_current_chunk[2]
+                # we concatenate
+                dict_threshold_indice_arr[t][:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
+    
         
-                dict_temporal_slices_current_chunk = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=values_arr_current_chunk, calend=calend, temporal_subset_mode=slice_mode, time_range=time_range)
-                if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable':
-                    dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range)
-                elif indice_type == 'multiperiod':
-                    dict_temporal_slices_current_chunk2 = time_subset.get_dict_temporal_slices(dt_arr=dt_arr2, values_arr=values_arr_current_chunk2, calend=calend2, temporal_subset_mode=slice_mode, time_range=time_range2)
-                
-                
-                
-                
-                if nb_user_thresholds == 0:
-                    
-                    if chunk_counter == 0:
-                        if indice_type == 'simple_time_aggregation':
-                            indice_arr = numpy.zeros( (1,var_shape1, var_shape2), dtype=ind_type )
-                        else:
-                            indice_arr = numpy.zeros( (len(dict_temporal_slices_current_chunk),var_shape1, var_shape2), dtype=ind_type )
-                    
-                    if indice_type == 'simple' or indice_type == 'simple_time_aggregation':
-                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                            dict_temporal_slices=dict_temporal_slices_current_chunk,
-                                                                            chunking=True,
-                                                                            callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                        
-                    elif indice_type == 'multivariable' or indice_type == 'multiperiod':
-                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                            dict_temporal_slices=dict_temporal_slices_current_chunk,
-                                                                            dict_temporal_slices2=dict_temporal_slices_current_chunk2,
-                                                                            chunking=True,
-                                                                            callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                    
-                    elif indice_type == 'percentile_based':
-                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                            dict_temporal_slices=dict_temporal_slices_current_chunk,
-                                                                            percentile_dict=percentile_dict_current_chunk, ####### ??????????
-                                                                            chunking=True,
-                                                                            callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                    
-                        
-                    elif indice_type == 'percentile_based_multivariable':
-                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                            dict_temporal_slices=dict_temporal_slices_current_chunk,
-                                                                            percentile_dict=percentile_dict_current_chunk,
-                                                                            dict_temporal_slices2=dict_temporal_slices_current_chunk2,
-                                                                            percentile_dict2=percentile_dict_current_chunk2,
-                                                                            chunking=True,
-                                                                            callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-                    
+        if chunk_counter == 0:
+                dt_centroid_arr = indice_tuple_current_chunk[0]
+                dt_bounds_arr = indice_tuple_current_chunk[1]
+        
+        
+        
+        
 
-                    
-                    indice_arr_current_chunk = indice_tuple_current_chunk[2]
-                    if indice_type == 'simple_time_aggregation':
-                        indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] += indice_arr_current_chunk
-                    else:
-                    # we concatenate
-                        indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
-                                    
-                else:                     
-                    for t in user_thresholds:
-                        if chunk_counter == 0:		      
-                            dict_threshold_indice_arr[t] = numpy.zeros( (len(dict_temporal_slices_current_chunk),var_shape1, var_shape2), dtype=ind_type )
-                
-                        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(dict_temporal_slices = dict_temporal_slices_current_chunk, indice_name=indice_name, thresh=t, chunking=True, callback=callback, callback_percentage_total=callback_percentage_total) ## tuple: (dt_centroid_arr, dt_bounds_arr, dict_indice_arr_current_chunk)                        
-                        indice_arr_current_chunk = indice_tuple_current_chunk[2]
-                        # we concatenate
-                        dict_threshold_indice_arr[t][:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
+            
+        chunk_counter +=1
 
-                if chunk_counter == 0:
-                    dt_centroid_arr = indice_tuple_current_chunk[0]
-                    dt_bounds_arr = indice_tuple_current_chunk[1]
-                
-                chunk_counter +=1
+            
+            
 
             
     
-    nc.close()
-    if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
-        nc2.close()
+
     
     # we copy data to the nc variable 
     if  nb_user_thresholds == 0:
@@ -718,73 +603,308 @@ def indice(indice_name,
 
 
 
-def get_subset_percentile_dict(percentile_dict):
-    subsetted_percentile_dict = OrderedDict()
-    # we subset each 2D array and write in new dictionary
-    for key in percentile_dict.keys():
-        subsetted_percentile_dict[key] = percentile_dict[key][i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
-    
-    return subsetted_percentile_dict
+# def get_subset_percentile_dict(percentile_dict):
+#     subsetted_percentile_dict = OrderedDict()
+#     # we subset each 2D array and write in new dictionary
+#     for key in percentile_dict.keys():
+#         subsetted_percentile_dict[key] = percentile_dict[key][i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile]
+#     
+#     return subsetted_percentile_dict
 
 
 
 
-def get_indice_from_dict_temporal_slices(indice_name, dict_temporal_slices, percentile_dict=None, dict_temporal_slices2=None, percentile_dict2=None, thresh=None, chunking=False, callback=None, callback_percentage_start_value=0, callback_percentage_total=100):
-    
-    indice_type = get_key_by_value_from_dict(map_indice_type, indice_name)
-    
-    
+
+##################################################################
+##################################################################
+
+def get_indice_from_dict_temporal_slices(indice_name, 
+                                         vars_dict,
+#                                          VARS_dict_temporal_slices, 
+#                                          VARS_base=None, 
+                                         thresh=None,
+                                          window_width=None, only_leap_years=None, 
+#                                           chunking=False, 
+                                          callback=None, callback_percentage_start_value=0, callback_percentage_total=100,
+                                          ignore_Feb29th=False, interpolation="hyndman_fan", 
+                                          percentiles_to_file=None,
+                                          out_unit="days"):
+      
+  
+      
+    indice_type = get_key_by_value_from_dict(maps.map_indice_type, indice_name)
+         
+    d = vars_dict[vars_dict.keys()[0]]['temporal_slices'] # d is any temporal slices dictionary, for ex. the first one
+    t_slices = d.keys() # list of temporal slices: [(1980,'year'), (1981, 'year'), (1982, 'year'), ...]
+      
+      
+    if indice_type == "percentile_based" or indice_type == 'percentile_based_multivariable':
+        
+        dt_arr_base = vars_dict[vars_dict.keys()[0]]['base']['dt_arr']
+        years_base =  util_dt.get_year_list(dt_arr_base)
+        years_study = [i[1] for i in t_slices]
+        years_study = list(set(years_study)) # we remove duplicate years
+        intersecting_years = list( set(years_base).intersection(years_study) )
+      
     if callback != None:    
         global percentage_current_key
         
-        if thresh == None and chunking == False:
-            percentage_key = (callback_percentage_total*1.0)/(len(dict_temporal_slices))
-        elif thresh != None and chunking == False:
-            percentage_key = (callback_percentage_total*1.0)/(len(dict_temporal_slices)*nb_user_thresholds)
-        elif thresh == None and chunking == True:
-            percentage_key = (callback_percentage_total*1.0)/(len(dict_temporal_slices)*nb_chunks)
-        elif thresh != None and chunking == True:
-            percentage_key = (callback_percentage_total*1.0)/(len(dict_temporal_slices)*nb_user_thresholds*nb_chunks)
-    
+        nb_vars = len(vars_dict)
+        nb_t_slices = len(t_slices)
+        if thresh == None:
+            percentage_key = (callback_percentage_total*1.0)/(nb_vars*nb_t_slices*nb_chunks)
+        elif thresh != None:
+            percentage_key = (callback_percentage_total*1.0)/(nb_vars*nb_t_slices*nb_user_thresholds*nb_chunks)
+
+
+      
+      
     dt_centroid_arr = numpy.array([])
     dt_bounds_arr = numpy.array([])
-    
+      
     key_counter = 0
-    for key in dict_temporal_slices.keys(): # key = temporal_slice_mode      
+      
+    cnt = 0
+    
+    vars_percentiles = OrderedDict()
+    percentiles_calc_method = OrderedDict()
+
+    
+    
+    arr_shape = d[d.keys()[0]][3].shape 
+    nb_rows = arr_shape[-2]
+    nb_columns = arr_shape[-1]  
+    
+    
+    if percentiles_to_file != None:
+        file_path = percentiles_to_file[0]
+        opt = percentiles_to_file[1] # 'all', 'only_without_bootstrapping'
         
-        dt_centroid_key = dict_temporal_slices[key][0]
-        dt_bounds_key = dict_temporal_slices[key][1]
-
-        #dt_arr_key = dict_temporal_slices[key][2]
-
-        values_arr_key = dict_temporal_slices[key][3]
-
-        if indice_type == 'multivariable' or indice_type == 'percentile_based_multivariable' or indice_type == 'multiperiod':
-            values_arr_key2 = dict_temporal_slices2[key][3]
+        BIG_PD = OrderedDict()
+        BIG_PD['param_ignore_Feb29th']=ignore_Feb29th
+        BIG_PD['param_only_leap_years']=only_leap_years
+        BIG_PD['param_interpolation']=interpolation
+        BIG_PD['param_window_width']=window_width
         
+        if opt == 'b': 
+            sub_BIG_PD_inb = OrderedDict()
+            
+            
+    for key in t_slices: # key = temporal_slice_mode
+          
+        
+          
+        dt_centroid_key = d[key][0]
+        dt_bounds_key = d[key][1]
+  
+
+          
         # indice computing for current key
-        if indice_type == 'simple' or indice_type == 'simple_time_aggregation':        
+        if indice_type == 'simple' or indice_type == 'simple_time_aggregation':   
+              
+            # one variable --> we have only one key in the dictionary
+            values_arr_key = d[key][3]                        
+            fill_val = d[key][4]
+              
             if nb_user_thresholds == 0:
                 indice_key = eval(indice_name + '_calculation(values_arr_key, fill_val)')
+#                 indice_key = zzz(indice_name, arr=values_arr_key, fill_val=fill_val)
+                
             else:
                 indice_key = eval(indice_name + '_calculation(values_arr_key, fill_val, threshold=thresh)')
-        
+          
         elif indice_type == 'multivariable' or indice_type == 'multiperiod':
-            indice_key = eval(indice_name + '_calculation(values_arr_key, values_arr_key2, fill_val, fill_val2)')
+
+            ############ TODO: 'tasmin' and 'tasmax' to generic names
+            values_arr_tasmax_key = vars_dict['tasmax']['temporal_slices'][key][3]
+            values_arr_tasmin_key = vars_dict['tasmin']['temporal_slices'][key][3]
+
             
-        elif indice_type == 'percentile_based':
-            dt_arr_key = dict_temporal_slices[key][2]
-            indice_key = eval(indice_name + '_calculation(values_arr_key, dt_arr_key, percentile_dict, fill_val)')
+            fill_val = vars_dict['tasmax']['temporal_slices'][key][4]
+            fill_val2 = vars_dict['tasmin']['temporal_slices'][key][4]
+
+
+            indice_key = eval(indice_name + '_calculation(values_arr_tasmax_key, values_arr_tasmin_key, fill_val, fill_val2)')
+#             indice_key = zzz(indice_name, arr1=values_arr_tasmax_key, arr2=values_arr_tasmin_key, fill_val1=fill_val, fill_val2=fill_val2)
+              
+          
+        elif indice_type == 'percentile_based' or indice_type == 'percentile_based_multivariable': 
+              
+            if key[1] not in intersecting_years: # key[1] --> year  
+                current_intersecting_year = -9999
+                reduced_base_years_list = [-9999]
+                cnt += 1
+            else:
+                current_intersecting_year = key[1]
+                reduced_base_years_list = years_base[:]
+                reduced_base_years_list.remove(current_intersecting_year)
+
             
-        elif indice_type == 'percentile_based_multivariable':
-            dt_arr_key = dict_temporal_slices[key][2]
-            indice_key = eval(indice_name + '_calculation(values_arr_key, percentile_dict, values_arr_key2, percentile_dict2, dt_arr_key, fill_val, fill_val2)')
-        
+            
+
+            
+            
+            
+            indice_arr_y = numpy.zeros(( len(reduced_base_years_list), nb_rows, nb_columns))
+
+              
+            i=0
+            
+            percentage_current_key1 = percentage_current_key
+            
+            for ytd in reduced_base_years_list:
+                
+  
+                g=0
+                for v in vars_dict.keys():
+                    vars_percentiles[v] = percentiles_calc_method
+      
+                    dt_arr_key = vars_dict[v]['temporal_slices'][key][2]
+                    values_arr_key = vars_dict[v]['temporal_slices'][key][3]                        
+                    fill_val = vars_dict[v]['temporal_slices'][key][4]
+
+                      
+
+  
+                    new_arrs_base = time_subset.get_resampled_arrs(dt_arr=vars_dict[v]['base']['dt_arr'],
+                                                                   values_arr=vars_dict[v]['base']['values_arr'],
+                                                                   year_to_eliminate=current_intersecting_year, 
+                                                                   year_to_duplicate=ytd)
+                    
+                    
+                    
+                    if percentiles_to_file != None and cnt==1:
+                        sub_BIG_PD_v = OrderedDict()
+                        BIG_PD[v] = sub_BIG_PD_v
+                        
+                        
+                    # for not "in-base" years we compute pd ONLY one time (i.e. when cnt=1)
+                    if current_intersecting_year != -9999 or cnt == 1:
+                          
+                        pd = percentile_dict.get_percentile_dict(arr=new_arrs_base[1], 
+                                                                        dt_arr=new_arrs_base[0], 
+                                                                        percentile=maps.map_indice_percentile_value[indice_name][g], 
+                                                                        window_width=window_width, 
+                                                                        only_leap_years=only_leap_years, 
+                                                                        callback=None, callback_percentage_start_value=0, callback_percentage_total=100, 
+                                                                        chunk_counter=1, 
+                                                                        precipitation=maps.map_variable_precipitation[v],
+                                                                        fill_val=fill_val,
+                                                                        ignore_Feb29th=ignore_Feb29th,
+                                                                        interpolation=interpolation)
+  
+                       
+
+                          
+                        if current_intersecting_year == -9999 and cnt==1:
+#                             VARS_key_pd_whole[k] = pd   
+                            vars_percentiles[v]['without_bootstrapping'] = pd
+                            
+                            
+                            
+                            if percentiles_to_file != None:
+                                
+                                BIG_PD[v]['out_of_base']=pd
+                                
+                                if opt=='a':
+                                    with open(file_path, 'wb') as handle:
+                                        pickle.dump(BIG_PD, handle)
+                                    print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(file_path)
+                            
+                                                
+                        else:
+#                             VARS_key_pd[k] = pd
+                            vars_percentiles[v]['bootstrapping'] = pd
+                            
+                            if percentiles_to_file != None and opt=='b':
+                                
+                                BIG_PD[v]['in_base']=sub_BIG_PD_inb
+                                BIG_PD[v]['in_base'][current_intersecting_year, ytd]=pd
+                                
+                    g+=1
+                    
+
+    
+                
+#                 if current_intersecting_year != -9999:
+#                     if indice_type == 'percentile_based':
+#                         indice_arr_y[i,:,:] = eval(indice_name + '_calculation(VARS_key_values_arr[VARS_key_values_arr.keys()[0]], dt_arr_key, VARS_key_pd[VARS_key_pd.keys()[0]], fill_val=fill_values[0], out_unit=out_unit)') 
+#                     elif indice_type == 'percentile_based_multivariable':   
+#                         indice_arr_y[i,:,:] = eval(indice_name + '_calculation(VARS_key_values_arr[VARS_key_values_arr.keys()[0]], VARS_key_pd[VARS_key_pd.keys()[0]], VARS_key_values_arr[VARS_key_values_arr.keys()[1]], VARS_key_pd[VARS_key_pd.keys()[1]], dt_arr_key, fill_values[0], fill_values[1], out_unit=out_unit)')
+#                     
+#                     
+#                     if callback != None:
+#                         percentage_current_key_intersect_year = percentage_current_key1 + percentage_key/((len(intersecting_years)-1)*1.0)
+#                         callback(percentage_current_key_intersect_year)
+#                         percentage_current_key1 = percentage_current_key_intersect_year
+#                 else:
+#                     if indice_type == 'percentile_based':
+#                         indice_arr_y[i,:,:] = eval(indice_name + '_calculation(VARS_key_values_arr[VARS_key_values_arr.keys()[0]], dt_arr_key, VARS_key_pd_whole[VARS_key_pd_whole.keys()[0]], fill_val=fill_values[0], out_unit=out_unit)') 
+#                     elif indice_type == 'percentile_based_multivariable':             
+#                         indice_arr_y[i,:,:] = eval(indice_name + '_calculation(VARS_key_values_arr[VARS_key_values_arr.keys()[0]], VARS_key_pd_whole[VARS_key_pd_whole.keys()[0]], VARS_key_values_arr[VARS_key_values_arr.keys()[1]], VARS_key_pd_whole[VARS_key_pd_whole.keys()[1]], dt_arr_key, fill_values[0], fill_values[1], out_unit=out_unit)')
+#               
+                vars = vars_dict.keys()
+                p1 = vars_dict[vars[0]]['temporal_slices'][key][3]
+
+
+                p3 = vars_dict[vars[0]]['temporal_slices'][key][4]
+                
+
+                
+                
+                if current_intersecting_year != -9999:
+                    p2 = vars_percentiles[vars[0]]['bootstrapping']
+                    
+                    if indice_type == 'percentile_based':
+                        indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, dt_arr_key, p2, fill_val=p3, out_unit=out_unit)') 
+                    elif indice_type == 'percentile_based_multivariable':  
+                        p4 = vars_dict[vars[1]]['temporal_slices'][key][3] 
+                        p6 = vars_dict[vars[1]]['temporal_slices'][key][4]
+                        p5 = vars_percentiles[vars[1]]['bootstrapping']
+                        indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, p2, p4, p5, dt_arr_key, fill_val1=p3, fill_val2=p6, out_unit=out_unit)')
+                    
+                    
+                    if callback != None:
+                        percentage_current_key_intersect_year = percentage_current_key1 + percentage_key/((len(intersecting_years)-1)*1.0)
+                        callback(percentage_current_key_intersect_year)
+                        percentage_current_key1 = percentage_current_key_intersect_year
+                else:
+                    p2_ = vars_percentiles[vars[0]]['without_bootstrapping']
+                    
+                    if indice_type == 'percentile_based':
+                        indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, dt_arr_key, p2_, fill_val=p3, out_unit=out_unit)') 
+                    elif indice_type == 'percentile_based_multivariable':  
+                        p4 = vars_dict[vars[1]]['temporal_slices'][key][3] 
+                        p6 = vars_dict[vars[1]]['temporal_slices'][key][4]
+                        p5_ = vars_percentiles[vars[1]]['without_bootstrapping']
+                        indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, p2_, p4, p5_, dt_arr_key, fill_val1=p3, fill_val2=p6, out_unit=out_unit)')
+
+                
+                      
+                i+=1
+              
+            if  current_intersecting_year == -9999:  
+                indice_key = indice_arr_y
+                indice_key = indice_key.reshape(indice_key.shape[1], indice_key.shape[2]) # 3D --> 2D
+                
+            else:  
+                indice_key = numpy.mean(indice_arr_y, axis=0)
+    
+    
+
+    
+#                 
+#         elif indice_type == 'percentile_based_multivariable':
+#             dt_arr_key = dict_temporal_slices[key][2]
+#             indice_key = eval(indice_name + '_calculation(values_arr_key, percentile_dict, values_arr_key2, percentile_dict2, dt_arr_key, fill_val, fill_val2)')
+#         
         #############
-        
-        
+          
+          
         indice_key = indice_key.reshape(-1, indice_key.shape[0], indice_key.shape[1]) # 2D --> 3D
+          
         
+          
         if indice_type == 'simple_time_aggregation':
             if key_counter == 0:
                 indice_arr = indice_key
@@ -795,257 +915,37 @@ def get_indice_from_dict_temporal_slices(indice_name, dict_temporal_slices, perc
                 indice_arr = indice_key
             else:
                 indice_arr = numpy.concatenate((indice_arr, indice_key), axis=0)
-       
+         
         dt_centroid_arr = numpy.append(dt_centroid_arr, dt_centroid_key) # 1D
         dt_bounds_arr = numpy.concatenate((dt_bounds_arr, dt_bounds_key)) # 1D
-        
+          
+  
+          
         if callback != None:
             percentage_current_key = percentage_current_key + percentage_key
-            callback(percentage_current_key)
+            if indice_type == 'percentile_based' or indice_type == 'percentile_based_multivariable':
+                if  current_intersecting_year == -9999:
+                    callback(percentage_current_key)
             
+            else:
+                callback(percentage_current_key)
+              
         key_counter += 1
-
+    
+    
+    if percentiles_to_file != None and opt=='b':
+         
+        with open(file_path, 'wb') as handle:
+            pickle.dump(BIG_PD, handle)
+            print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(file_path)
+    
+    
+    
     if indice_type == 'simple_time_aggregation' :
         indice_arr = indice_arr / key_counter
         dt_centroid_arr = numpy.asarray([dt_centroid_arr[key_counter/2]])
         dt_bounds_arr = numpy.asarray([dt_bounds_arr[0],dt_bounds_arr[key_counter*2-1]])
-
+  
     dt_bounds_arr = dt_bounds_arr.reshape(-1,2) # 1D --> 2D   
-
+  
     return (dt_centroid_arr, dt_bounds_arr, indice_arr)
-
-
-
-
-
-
-def get_percentile_dict(in_files, var_name, percentile, window_width=5, time_range=None, only_leap_years=False, save_to_file=None, transfer_limit_Mbytes=None, callback=None,
-                        callback_percentage_start_value=0, callback_percentage_total=100, precipitation=False, N_lev=None):
-    '''
-    :param in_files: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
-    :type in_files: list of str
-    
-    :param var_name: Target variable name to process.
-    :type var_name: str
-    
-    :param percentile: Percentile value to compute which must be between 0 and 100 inclusive.
-    :type percentile: int
-    
-    :param window_width: Window width, must be odd (default: 5).
-    :type window_width: int
-    
-    :param time_range: Temporal range of the base period. If ``None``: whole period of input files will be processed.
-    :type time_range: [datetime.datetime, datetime.datetime]
-    
-    :param only_leap_years: Option for February 29th (default: False).
-    :type only_leap_years: bool
-    
-    :param save_to_file: Output file name which will contain the created daily percentiles dictionary.
-    :type save_to_file: str
-    
-    :param transfer_limit_Mbytes: Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
-    :type transfer_limit_Mbytes: float
-    
-    :param callback: Progress bar printing. If ``None``, progress bar will not be printed.  
-    :type callback: :func:`callback.defaultCallback`
-
-    :param callback_percentage_start_value: Initial value of percentage of the progress bar (default: 0).
-    :type callback_percentage_start_value: int
-
-    :param callback_percentage_total: Total persentage value (default: 100).
-    :type callback_percentage_total: int
-    
-    :param precipitation: Parameter to inticate if the variable to process is precipitation (`True`) or not (`False`) to process data differently (default: False). 
-    :type precipitation: bool
-    
-    :param N_lev: Level number if 4D variable.
-    :type N_lev: int
-    
-    :rtype: dict
-    
-    
-    .. warning:: Precipitation input units are considered to be in [kg m-2 s-1].
-    '''
-    
-    temporal_variable = 'time'
-    
-    in_files.sort()
-    
-    nc0 = Dataset(in_files[0], 'r')
-    fill_val = util_nc.get_att_value(nc0, var_name, '_FillValue')
-    
-    var_time =  nc0.variables[temporal_variable]
-    
-    #global calend, units
-    try:
-        calend = var_time.calendar
-    except:
-        calend = 'gregorian'
-        
-    units = var_time.units
-    
-    del var_time
-    
-
-    if time_range == None:
-        time_range = util_dt.get_time_range(in_files, temporal_var_name=temporal_variable)
-        
-    else: # i.e. time_range is selected by user
-        # we adjust datetime.datetime objects from time_range 
-        t_arr = nc0.variables[temporal_variable][:]
-        dt = util_dt.num2date(t_arr[0], calend, units)
-        del t_arr
-        time_range = util_dt.adjust_time_range(time_range, dt)
-        
-    
-    # Copy info from variable
-    var_longname = getattr(nc0.variables[var_name],'long_name')
-    var_units = getattr(nc0.variables[var_name],'units')
-    var_standardname = getattr(nc0.variables[var_name],'standard_name')
-
-    # Units conversion
-    var_add = 0.0
-    var_scale = 1.0
-    if var_units == 'degC' or var_units == 'Celsius': #Kelvin
-        var_add = var_add + 273.15
-    elif var_units == 'mm': # kg m-2 s-1 (mm/s)
-        var_scale = var_scale / 86400.0
-    
-    
-    nc0.close()
-    
-    
-    dim_name = util_nc.check_unlimited(in_files[0])
-    nc = MFDataset(in_files, 'r', aggdim=dim_name)
-    var_time = nc.variables[temporal_variable]
-    var = nc.variables[var_name]
-    
-    
-    if transfer_limit_Mbytes == None: # i.e. we work with local files
-        
-        arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, fill_val=fill_val, time_range=time_range, N_lev=N_lev, scale_factor=var_scale, add_offset=var_add)
-        dt_base_arr = arrs[0]
-        values_base_arr = arrs[1]
-
-        if not isinstance(dt_base_arr[0], datetime):
-            dt_base_arr = numpy.array([datetime(year = dt.year, month = dt.month, day = dt.day, hour = dt.hour) for dt in dt_base_arr])
-        
-        dic = percentile_dict.get_percentile_dict(values_base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
-                                                  callback_percentage_start_value = callback_percentage_start_value, callback_percentage_total = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
-        
-        del values_base_arr, dt_base_arr, arrs
-        
-        if save_to_file != None:
-            with open(save_to_file, 'wb') as handle:
-                pickle.dump(dic, handle)
-                print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
-    
-    
-    
-    else: # i.e. we work with OPeNDAP datasets
-        transfer_limit_bytes = transfer_limit_Mbytes * 1024 * 1024
-        total_array_size_bytes_and_tile_dimension = arr_size.get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_limit_bytes, time_range=time_range)
-        array_total_size = total_array_size_bytes_and_tile_dimension[0]
-        
-        #print array_total_size
-        
-        if array_total_size < transfer_limit_bytes: # the same as for the "if transfer_limit_bytes == None" case
-
-            print "Data transfer... "
-            
-            arrs = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, fill_val=fill_val, time_range=time_range, N_lev=N_lev, scale_factor=var_scale, add_offset=var_add)
-            dt_base_arr = arrs[0]
-            values_base_arr = arrs[1]
-
-            dic = percentile_dict.get_percentile_dict(values_base_arr, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years, callback=callback,
-                                                      callback_percentage_start_value = callback_percentage_start_value, callback_percentage_total = callback_percentage_total, precipitation=precipitation, fill_val=fill_val)
-
-            del values_base_arr, dt_base_arr, arrs
-            
-            if save_to_file != None:
-                with open(save_to_file, 'wb') as handle:
-                    pickle.dump(dic, handle)
-                    print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
-        
-
-            
-        else:
-            # then we do chunking in space
-            tile_dimension = total_array_size_bytes_and_tile_dimension[1]
-            #print tile_dimension
-            
-            var_shape = var.shape
-            var_shap1 = var_shape[1]
-            var_shap2 = var_shape[2]
-
-            tile_map = OCGIS_tile.get_tile_schema(nrow=var_shap1, ncol=var_shap2, tdim=tile_dimension, origin=0)
-            #global nb_chunks
-            nb_chunks = len(tile_map)
-            print str(nb_chunks) + " data chunks will be transfered."
-            
-            
-            time_arr = var_time[:]
-            dt_arr = numpy.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
-            assert(dt_arr.ndim == 1)
-            indices_base_period = util_dt.get_indices_subset(dt_arr, time_range)
-            dt_base_arr = dt_arr[indices_base_period]
-            del time_arr, dt_arr, indices_base_period
-            ############## we initialize a glob dict ( i.e. a dict with all calend days (keys) and 2D arrays with zeros)
-            ############# where we will add perc. values of each chunk
-            dic_caldays = percentile_dict.get_dict_caldays(dt_base_arr)
-            
-            glob_percentile_dict = OrderedDict()
-            for month in dic_caldays.keys():
-                for day in dic_caldays[month]:
-                    glob_percentile_dict[month,day] = numpy.zeros((var_shap1, var_shap2))
-            
-            percentage_per_chunk = callback_percentage_total/(nb_chunks*1.0)
-            
-            chunk_counter = 1  # chunk counter
-           
-            for tile_id in tile_map:
-                print "Data transfer: chunk " + str(int(chunk_counter)) + '/'+ str(len(tile_map)) + " ..."
-                
-                global i1_row_current_tile, i2_row_current_tile, i1_col_current_tile, i2_col_current_tile
-                
-                i1_row_current_tile = tile_map.get(tile_id).get('row')[0]
-                i2_row_current_tile = tile_map.get(tile_id).get('row')[1]
-                
-                i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
-                i2_col_current_tile = tile_map.get(tile_id).get('col')[1]
-                
-                arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, fill_val=fill_val, time_range=time_range, N_lev=N_lev, spatial_chunking=True, scale_factor=var_scale, add_offset=var_add,
-                                                                       i1_row_current_tile=i1_row_current_tile,
-                                                                       i2_row_current_tile=i2_row_current_tile,
-                                                                       i1_col_current_tile=i1_col_current_tile,
-                                                                       i2_col_current_tile=i2_col_current_tile)
-                values_base_arr_current_chunk = arrs_current_chunk[1]
-                dt_base_arr = arrs_current_chunk[0] # alwayse the same for each chunk
-                
-                dic_current_chunk = percentile_dict.get_percentile_dict(values_base_arr_current_chunk, dt_base_arr, percentile=percentile, window_width=window_width, only_leap_years=only_leap_years,
-                                                                        callback=callback, callback_percentage_start_value = callback_percentage_start_value, callback_percentage_total=percentage_per_chunk, chunk_counter=chunk_counter,
-                                                                        precipitation=precipitation, fill_val=fill_val)
-                
-                del arrs_current_chunk, values_base_arr_current_chunk, dt_base_arr
-                
-
-                ########### we fill our glob_percentile_dict (chunk by chunk)
-                for month in dic_caldays.keys():
-                    for day in dic_caldays[month]:
-                        glob_percentile_dict[month,day][i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = dic_current_chunk[month,day]
-
-                chunk_counter += 1
-                
-                
-                               
-            
-            dic = glob_percentile_dict
-            
-            if save_to_file != None:
-                with open(save_to_file, 'wb') as handle:
-                    pickle.dump(dic, handle)
-                    print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(save_to_file)
-            
-    nc.close()        
-            
-    return dic

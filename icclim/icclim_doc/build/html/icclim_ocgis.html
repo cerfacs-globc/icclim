@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ICCLIM called from OpenClimateGIS - Examples &mdash; ICCLIM 3.0 documentation</title>
+    <title>ICCLIM called from OpenClimateGIS - Examples &mdash; ICCLIM 3.1.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '3.0',
+        VERSION:     '3.1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,8 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="ICCLIM 3.0 documentation" href="index.html" />
-    <link rel="prev" title="Contacts" href="contact.html" /> 
+    <link rel="top" title="ICCLIM 3.1.0 documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -36,10 +35,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="contact.html" title="Contacts"
-             accesskey="P">previous</a> |</li>
-        <li><a href="index.html">ICCLIM 3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">ICCLIM 3.1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -189,7 +185,7 @@ so first we need to find an optimal tile dimention (number of pixels) to get a c
 <p class="last">Chunks are cut along the time axis, i.e. a maximum chunk size in pixels is <strong>tile_dimention</strong> x <strong>tile_dimention</strong> x <strong>number_time_steps</strong>.</p>
 </div>
 <div class="figure">
-<a class="reference internal image-reference" href="_images/chunks.png"><img alt="_images/chunks.png" src="_images/chunks.png" /></a>
+<a class="reference internal image-reference" href="_images/chunks.png"><img alt="_images/chunks.png" src="_images/chunks.png" style="width: 657.0px; height: 390.6px;" /></a>
 </div>
 <p>Now we can use the compute function:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">rd</span> <span class="o">=</span> <span class="n">ocgis</span><span class="o">.</span><span class="n">RequestDataset</span><span class="p">(</span><span class="n">input_files</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="s">&#39;tas&#39;</span><span class="p">,</span> <span class="n">time_range</span><span class="o">=</span><span class="p">[</span><span class="n">dt1</span><span class="p">,</span> <span class="n">dt2</span><span class="p">])</span>
@@ -219,9 +215,6 @@ so first we need to find an optimal tile dimention (number of pixels) to get a c
 </li>
 </ul>
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="contact.html"
-                        title="previous chapter">Contacts</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/icclim_ocgis.txt"
@@ -253,15 +246,12 @@ so first we need to find an optimal tile dimention (number of pixels) to get a c
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="contact.html" title="Contacts"
-             >previous</a> |</li>
-        <li><a href="index.html">ICCLIM 3.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">ICCLIM 3.1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2014, CERFACS.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

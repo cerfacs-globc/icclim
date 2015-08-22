@@ -63,7 +63,7 @@ map_dt_centroid_month = {
                         'year': 7
                         }
 
-def get_dict_temporal_slices(dt_arr, values_arr, calend='gregorian', temporal_subset_mode=None, time_range=None):
+def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian', temporal_subset_mode=None, time_range=None):
     
     '''
     
@@ -199,7 +199,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, calend='gregorian', temporal_su
                 dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
                 dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
                 
-                return_dict[m, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i)
+                return_dict[m, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value)
         
             #print y
 
@@ -219,7 +219,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, calend='gregorian', temporal_su
             dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
             
-            return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i) 
+            return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value) 
     
             #print y
         
@@ -247,7 +247,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, calend='gregorian', temporal_su
                 dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
                 dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
                 
-                return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i) 
+                return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value) 
             else:
                 pass
 
@@ -266,7 +266,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, calend='gregorian', temporal_su
             dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
             
-            return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i)
+            return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value)
         
             #print y
 
@@ -342,4 +342,50 @@ def get_indices_temp_aggregation(dt_arr, month=None, year=None, f=0):
     return indices_non_masked
     
 
+def get_resampled_arrs(dt_arr, values_arr, year_to_eliminate, year_to_duplicate):
+    
+    '''
+    Arrays resampling: we eliminate 'year_to_eliminate' and duplicate one of the rest years ('year_to_duplicate')
+    
+    param ... :
+    type ... :
+    
+    rtype ... :
+    
+    '''
+    
+    if year_to_eliminate == year_to_duplicate == -9999:
+        return (dt_arr, values_arr)
+    
+    else:
+        # step 1: we eliminate in-base year ("year_to_eliminate"), i.e. we subset our arrays (dt and values)
+        
+        # we define indices where dt_arr != year_to_eliminate
+        dt_arr_years = numpy.array([dt.year for dt in dt_arr])
+        dt_arr_mask_year = dt_arr_years == year_to_eliminate
+        indices_non_masked = numpy.where(dt_arr_mask_year==False)[0]
+        
+        # we subset
+        dt_arr_subsetted = dt_arr[indices_non_masked]
+        values_arr_subsetted = values_arr[indices_non_masked, :, :] # 3D - whole array
+    #     values_arr_subsetted = values_arr[indices_non_masked] # 1D - only one pixel
+    
+    
+        # step 2: we duplicate one of rest years ("year_to_duplicate")
+        
+        # we define indices where dt_arr_subsetted == year_to_duplicate 
+        dt_arr_subsetted_years = numpy.array([dt.year for dt in dt_arr_subsetted])
+        dt_arr_mask_year = dt_arr_subsetted_years == year_to_duplicate
+        indices_year_to_duplicate = numpy.where(dt_arr_mask_year==True)[0]
+        
+        # we define array slices to duplicate
+        dt_arr_year_to_duplicate = dt_arr_subsetted[indices_year_to_duplicate]    
+        values_arr_year_to_duplicate = values_arr_subsetted[indices_year_to_duplicate, :, :] # 3D - whole array
+    #     values_arr_year_to_duplicate = values_arr_subsetted[indices_year_to_duplicate] # 1D - only one pixel
+        
+        # we add slices to duplicate in the end
+        dt_arr_result = numpy.append(dt_arr_subsetted, dt_arr_year_to_duplicate)    
+        values_arr_result = numpy.append(values_arr_subsetted, values_arr_year_to_duplicate, axis=0)
 
+        
+        return (dt_arr_result, values_arr_result)

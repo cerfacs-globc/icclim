@@ -59,7 +59,7 @@ def CSU_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Maximum number of consecutive summer days(temperature > 25 degrees)')
     var_nc.setncattr('units', 'days')
 
-def RR_setvarattr(var_nc):
+def PRCPTOT_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Precipitation sum)')
     var_nc.setncattr('units', 'mm')
 
@@ -179,15 +179,15 @@ def R99p_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Extremely wet days')
     var_nc.setncattr('units', 'days')
     
-def R75TOT_setvarattr(var_nc):
+def R75pTOT_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Precipitation fraction due to moderate wet days')
     var_nc.setncattr('units', '%')
     
-def R95TOT_setvarattr(var_nc):
+def R95pTOT_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Precipitation fraction due to very wet days')
     var_nc.setncattr('units', '%')
     
-def R99TOT_setvarattr(var_nc):
+def R99pTOT_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Precipitation fraction due to extremely wet days')
     var_nc.setncattr('units', '%')
 

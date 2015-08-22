@@ -9,7 +9,7 @@ Currently, the 49 climate indices as defined by `European Climate Assessment & D
 	- 11 cold indices (GD4, CFD, FD, HD17, ID, CSDI, TG10p, TN10p, TX10p, TXn, TNn)
 	- 1 drought indice (CDD)
 	- 9 heat indices (SU, TR, WSDI, TG90p, TN90p, TX90p, TXx, TNx, CSU)
-	- 14 rain indices (RR, RR1, SDII, CWD, R10mm, R20mm, RX1day, RX5day, R75p, R75pTOT, R95p, R95pTOT, R99p, R99pTOT)
+	- 14 rain indices (PRCPTOT, RR1, SDII, CWD, R10mm, R20mm, RX1day, RX5day, R75p, R75pTOT, R95p, R95pTOT, R99p, R99pTOT)
 	- 4 snow indices (SD, SD1, SD5cm, SD50cm)
 	- 6 temperature indices (TG, TN, TX, DTR, ETR, vDTR)
 	- 4 compound indices (CD, CW, WD, WW)
@@ -23,7 +23,7 @@ Python language was first of all choosen to interface with `PyWPS <http://pywps.
 (WPS) Standard.
 Another reason was to interface eventially with the `OpenClimateGIS <https://earthsystemcog.org/projects/openclimategis/>`_.
 
-The ICCLIM developer repository can be found here: `<https://github.com/tatarinova/icclim>`_
+The ICCLIM developer repository can be found here: `<https://github.com/cerfacs-globc/icclim>`_
 
 Notes about ICCLIM
 ~~~~~~~~~~~~~~~~~~~~
@@ -54,3 +54,4 @@ Climate indices allow a statistical study of variations of the dependent climato
     
     - `ATBD ECA&D indices <http://eca.knmi.nl/documents/atbd.pdf>`_
     - `Article about percentile-based indices <http://etccdi.pacificclimate.org/docs/Zhangetal05JumpPaper.pdf>`_
+    - `Sample quantiles in statistical packages <http://amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_
