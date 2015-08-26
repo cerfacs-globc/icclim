@@ -146,22 +146,30 @@ def indice(indice_name,
         slice_mode = 'month'
 
     
-    #####    input files and target variable names
-    if type(in_files) is not list: 
-        in_files = [in_files] 
-    if type(var_name) is not list:
-        var_name = [var_name]    
+    #####    input files and target variable names 
+    if type(var_name) is not list:  # single variable        
+        var_name = [var_name] 
+        if  type(in_files) is not list: # single file
+            in_files = [in_files]   
+    else:                           # multivariable
+        if type(in_files) is not list:
+            raise IOError('"In_files" must be a list')
+        else:
+            assert (len(in_files) == len(var_name)) 
      
-    assert (len(in_files) == len(var_name)) 
+    
     
     #####    VARS_in_files: dictionary where to each target variable (key of the dictionary) correspond input files list
     VARS_in_files = OrderedDict()
-    for i in range(len(var_name)):
-        if type(in_files[i]) is not list: 
-            in_files[i] = [in_files[i]]
-        
-        VARS_in_files[var_name[i]] = in_files[i]
+    for i in range(len(var_name)):        
+        if len(var_name)==1:
+            VARS_in_files[var_name[i]] = in_files
+        else:
+            if type(in_files[i]) is not list:  
+                in_files[i] = [in_files[i]]                
+            VARS_in_files[var_name[i]] = in_files[i]
     
+
     #####    callback
     if callback != None:
         global percentage_current_key        
@@ -178,6 +186,7 @@ def indice(indice_name,
     ################# META: begin
     ########################################
     any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
+   
     inc = Dataset(any_in_file, 'r')
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0]) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
@@ -649,12 +658,13 @@ def get_indice_from_dict_temporal_slices(indice_name,
     if callback != None:    
         global percentage_current_key
         
-        nb_vars = len(vars_dict)
+        #nb_vars = len(vars_dict)
         nb_t_slices = len(t_slices)
+        
         if thresh == None:
-            percentage_key = (callback_percentage_total*1.0)/(nb_vars*nb_t_slices*nb_chunks)
+            percentage_key = (callback_percentage_total*1.0)/(nb_t_slices*nb_chunks)
         elif thresh != None:
-            percentage_key = (callback_percentage_total*1.0)/(nb_vars*nb_t_slices*nb_user_thresholds*nb_chunks)
+            percentage_key = (callback_percentage_total*1.0)/(nb_t_slices*nb_user_thresholds*nb_chunks)
 
 
       
