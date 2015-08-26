@@ -779,9 +779,9 @@ def get_indice_from_dict_temporal_slices(indice_name,
                         
                         
                     # for not "in-base" years we compute pd ONLY one time (i.e. when cnt=1)
-                    #if current_intersecting_year != -9999 or cnt == 1:
-                    if cnt == 1:  # REMOVE  
-                        print "ZZZ"  
+                    if current_intersecting_year != -9999 or cnt == 1:
+#                     if cnt == 1:  # REMOVE  
+#                         print "ZZZ"  
                         pd = percentile_dict.get_percentile_dict(arr=new_arrs_base[1], 
                                                                         dt_arr=new_arrs_base[0], 
                                                                         percentile=maps.map_indice_percentile_value[indice_name][g], 
@@ -797,8 +797,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
 
 
                           
-                        if current_intersecting_year == -9999 and cnt==1:
-#                             VARS_key_pd_whole[k] = pd   
+                        if current_intersecting_year == -9999 and cnt==1:  
                             vars_percentiles[v]['without_bootstrapping'] = pd
                             
                             
@@ -822,9 +821,9 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 BIG_PD[v]['in_base']=sub_BIG_PD_inb
                                 BIG_PD[v]['in_base'][current_intersecting_year, ytd]=pd
                     
-                    # REMOVE            
-                    if  current_intersecting_year != -9999:                                     
-                        vars_percentiles[v]['bootstrapping'] = pd        
+#                     # REMOVE            
+#                     if  current_intersecting_year != -9999:                                     
+#                         vars_percentiles[v]['bootstrapping'] = pd        
                                 
                     g+=1
                     
