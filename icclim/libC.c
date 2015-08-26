@@ -625,11 +625,12 @@ double get_percentile2(float* tab_1d, int len_tab_1d)
     if (len_tab_1d==0) return fill_value;
     if (len_tab_1d==1) return tab_1d[0];
 
+
     double p = percentile * 0.01;
 
-    //double index = len_tab_1d * p + 0.3333 * p + 0.3333;
-    //double index = (len_tab_1d-1) * p + 0.3333 * p + 0.3333;
-    double index = (len_tab_1d-1) * p + (1+p)/3. ;
+
+    //double index = (len_tab_1d-1) * p + (1+p)/3. ;
+    double index = (len_tab_1d) * p + (1+p)/3. ;
 
     double index_integer_part;
 
@@ -710,6 +711,7 @@ int main()
 {
     //printf('HELLO WORLD !!!')
     return 0;
+
 }    
 
 

@@ -257,8 +257,8 @@ def RXXpTOT(arr, dt_arr, percentile_dict, logical_operation='let', pr_thresh = 1
         
 #         print "currenct_calday_perc: ", current_perc_arr
         
-        # we are looking for the values which are greater than the 75th percentile
-        # so, we need first to mask all values <= 75th percentile
+        # we are looking for the values which are greater than the XXth percentile
+        # so, we need first to mask all values <= XXth percentile
         mask = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation=logical_operation) 
         
 #         print "bin array: ", mask

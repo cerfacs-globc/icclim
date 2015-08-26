@@ -41,6 +41,7 @@ Elementary functions computing climate indices:
 - R10mm
 - R20mm
 - RX1day
+- RX5day
 - CDD
 - CWD
 - SD

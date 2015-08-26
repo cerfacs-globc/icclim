@@ -779,8 +779,9 @@ def get_indice_from_dict_temporal_slices(indice_name,
                         
                         
                     # for not "in-base" years we compute pd ONLY one time (i.e. when cnt=1)
-                    if current_intersecting_year != -9999 or cnt == 1:
-                          
+                    #if current_intersecting_year != -9999 or cnt == 1:
+                    if cnt == 1:  # REMOVE  
+                        print "ZZZ"  
                         pd = percentile_dict.get_percentile_dict(arr=new_arrs_base[1], 
                                                                         dt_arr=new_arrs_base[0], 
                                                                         percentile=maps.map_indice_percentile_value[indice_name][g], 
@@ -792,8 +793,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                                         fill_val=fill_val,
                                                                         ignore_Feb29th=ignore_Feb29th,
                                                                         interpolation=interpolation)
-  
-                       
+                        
+
 
                           
                         if current_intersecting_year == -9999 and cnt==1:
@@ -811,15 +812,19 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                         pickle.dump(BIG_PD, handle)
                                     print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(file_path)
                             
-                                                
+                      
                         else:
-#                             VARS_key_pd[k] = pd
+                            
                             vars_percentiles[v]['bootstrapping'] = pd
                             
                             if percentiles_to_file != None and opt=='b':
                                 
                                 BIG_PD[v]['in_base']=sub_BIG_PD_inb
                                 BIG_PD[v]['in_base'][current_intersecting_year, ytd]=pd
+                    
+                    # REMOVE            
+                    if  current_intersecting_year != -9999:                                     
+                        vars_percentiles[v]['bootstrapping'] = pd        
                                 
                     g+=1
                     
@@ -887,9 +892,10 @@ def get_indice_from_dict_temporal_slices(indice_name,
                 indice_key = indice_arr_y
                 indice_key = indice_key.reshape(indice_key.shape[1], indice_key.shape[2]) # 3D --> 2D
                 
-            else:  
+            else: 
+                #print  indice_arr_y[:,0,0]
                 indice_key = numpy.mean(indice_arr_y, axis=0)
-    
+                #print '===='
     
 
     

@@ -20,6 +20,7 @@ import os
 my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
 libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
+
 ## BUG: Segmentation fault (core dumped)
 ## https://bugzilla.redhat.com/show_bug.cgi?id=674206#c5 ----> comment 4
 #libraryC.malloc.restype = ctypes.c_void_p
@@ -295,7 +296,8 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     # data type should be 'float32' to pass it to C function
     if arr_filled.dtype != 'float32':
         arr_filled = numpy.array(arr_filled, dtype='float32')
-        
+    
+  
         
     C_percentile = libraryC.percentile_3d
     C_percentile.restype = None    
@@ -332,9 +334,6 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
             # step2: we do a mask for the datetime vector for current calendar day (day/month)
             dt_arr_mask = get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, ignore_Feb29th)
             
-#             if month==2 and day==27:
-#                 
-#                 print dt_arr[dt_arr_mask]
             
             # step3: we are looking for the indices of non-masked dates (i.e. where dt_arr_mask==False) 
             indices_non_masked = numpy.where(dt_arr_mask==False)[0]
@@ -343,35 +342,36 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
             #arr_subset = arr_filled[indices_non_masked, :, :].squeeze()
             arr_subset = arr_filled[indices_non_masked, :, :]
             
+#             if month==7 and day==20:
+#                 print arr_subset[:,0,0]-273.15
+#                 print dt_arr[indices_non_masked]
             
-#             arr_subset = numpy.random.randint(1,10, (50,2,2))
-#             arr_subset[arr_subset>6]=fill_val
-# #             print arr_subset
-# #             fill_val=999999
-#             if arr_subset.dtype != 'float32':
-#                     arr_subset = numpy.array(arr_subset, dtype='float32')
-            
-#             print fill_val.dtype
             
             # step5: we compute the percentile for current arr_subset           
             C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentille_current_calday, percentile, fill_val, interpolation)
+            
             arr_percentille_current_calday = arr_percentille_current_calday.reshape(arr.shape[1], arr.shape[2])
-#             print month, day, arr_percentille_current_calday[0:5, 0:5]
             
-            
-#             import sys
-#             sys.exit()
 
-            # step6: we add to the dictionnary...
+            # step6: we add to the dictionary...
             percentile_dict[month,day] = arr_percentille_current_calday
-
+    
+    
+    
+            
+#     import pickle
+#     
+#      
+#     with open('/home/natasha/ICCLIM/icclim/icclim/out_icclim/tasmax_90th_K_hynd_bootstap.pkl', 'wb') as f:  
+#         pickle.dump(percentile_dict, f)
+                        
+            
         
         if callback != None:
             percent_current_month =  percent_current_month + percent_one_month
             callback(percent_current_month)
         
-#     import sys
-#     sys.exit()
+
         
     return percentile_dict
 

@@ -47,3 +47,12 @@ map_variable_precipitation =    {
 #                                     'pr': False                   
                                     'pr': True
                                 }
+
+# ETCCDI Climate Change Indices
+# http://etccdi.pacificclimate.org/list_27_indices.shtml
+map_indices_ETCCDI = {  'FD':  {'threshold': 0},       
+                        'SU':  {'threshold': 25},       
+                        'ID':  {'threshold': 0},       
+                        'TR':  {'threshold': 20},  
+
+                      }
