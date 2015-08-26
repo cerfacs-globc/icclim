@@ -49,7 +49,7 @@ summer, autumn and monthly frequency:
 +======================+=======================+
 |  ``year`` (default)  |    annual             |
 +----------------------+-----------------------+
-|  ``month``           |    monthly            |
+|  ``month``           | monthly (all months)  |
 +----------------------+-----------------------+
 |  ``ONDJFM``          |    winter half-year   |
 +----------------------+-----------------------+
@@ -66,6 +66,28 @@ summer, autumn and monthly frequency:
 
 .. note:: The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
             Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001. 
+
+
+Monthly time series with months selected by user:
+
+	>>> slice_mode = ['month',[4,5,11]] # indice will be computed only for April, May and November
+	
+	or 
+	
+	>>> slice_mode = ['month',[4]] # indice will be computed only for April
+	
+
+User defined seasons: 
+
+	>>> slice_mode = ['season',[4,5,6,7]]
+	
+	or 
+	
+	>>> slice_mode = ['season',([11,12],[1])]
+
+	.. note:: For a season composed of two years, months must be separated in *two lists* and united in a *tuple*: ([months of YYYY], [months of YYYY+1])  
+
+
 
 
 ``threshold``

@@ -28,47 +28,119 @@ from collections import OrderedDict, defaultdict
 import util.util_dt as util_dt
 
 
-map_months =   {
-                'None': range(1,13),
-                'month': range(1,13),
-                'DJF': ([12], [1,2]),  # (year i, year i+1)
-                'MAM': [3,4,5],
-                'JJA': [6,7,8],
-                'SON': [9,10,11],
-                'ONDJFM': ([10,11,12], [1,2,3]), # (year i, year i+1)
-                'AMJJAS': [4,5,6,7,8,9]
-                }
+# map_months =   {
+#                 'None': range(1,13),
+#                 'month': range(1,13),
+#                 'DJF': ([12], [1,2]),  # (year i, year i+1)
+#                 'MAM': [3,4,5],
+#                 'JJA': [6,7,8],
+#                 'SON': [9,10,11],
+#                 'ONDJFM': ([10,11,12], [1,2,3]), # (year i, year i+1)
+#                 'AMJJAS': [4,5,6,7,8,9]
+#                 }
+# 
+# 
+# map_dt_centroid_day =   {
+#                         'None': 16,
+#                         'month': 16,
+#                         'DJF': 16,
+#                         'MAM': 16,
+#                         'JJA': 16,
+#                         'SON': 16,
+#                         'ONDJFM': 1,
+#                         'AMJJAS': 1,
+#                         'year': 1
+#                         }
+# 
+# 
+# map_dt_centroid_month = {
+#                         'DJF': 1,
+#                         'MAM': 4,
+#                         'JJA': 7,
+#                         'SON': 10,
+#                         'ONDJFM': 1,
+#                         'AMJJAS': 7,
+#                         'year': 7
+#                         }
 
 
-map_dt_centroid_day =   {
-                        'None': 16,
-                        'month': 16,
-                        'DJF': 16,
-                        'MAM': 16,
-                        'JJA': 16,
-                        'SON': 16,
-                        'ONDJFM': 1,
-                        'AMJJAS': 1,
-                        'year': 1
-                        }
+def get_map_info_slice(slice_mode):
+    map_slices={}
+    map_slices[str(slice_mode)]={}
+    
+    
+    if slice_mode=='year':
+        months=None
+        centroid_day=1
+        centroid_month=7
+        
+    elif slice_mode=='month' or slice_mode==None:
+        months=range(1,13)
+        centroid_day=16
+
+    elif slice_mode=='DJF':
+        months=([12], [1,2])
+
+    elif slice_mode=='MAM':
+        months=[3,4,5]
+
+    elif slice_mode=='JJA':
+        months=[6,7,8]
+
+    elif slice_mode=='SON':
+        months=[9,10,11]
+
+    elif slice_mode=='ONDJFM':
+        months=([10,11,12], [1,2,3])
+
+    elif slice_mode=='AMJJAS':
+        months=[4,5,6,7,8,9]
+
+    
+    elif type(slice_mode) is list:
+        months=slice_mode[1]
+        
+
+    map_slices[str(slice_mode)]['months']=months
+    
+
+    if type(months) is list: # simple season like 'MAM' [3,4,5]
+        months=months
+    elif type(months) is tuple: # composed season like 'DJF' ([12], [1,2]) or 'ONDJFM' ([10,11,12], [1,2,3])
+        months=months[0]+months[1]
+
+    
+    try:
+        # centroid day
+        if len(months) % 2 == 0 and slice_mode!='month':    # nb of months in season is even
+            centroid_day=1
+        else:                       # nb of months in season is odd 
+            centroid_day=16
 
 
-map_dt_centroid_month = {
-                        'DJF': 1,
-                        'MAM': 4,
-                        'JJA': 7,
-                        'SON': 10,
-                        'ONDJFM': 1,
-                        'AMJJAS': 7,
-                        'year': 7
-                        }
+        # centroid month
+        if slice_mode=='month' or slice_mode[0]=='month': #i.e. only for months
+            centroid_month=None
+    
+        else:
+            centroid_month=months[len(months)/2] 
+    except:
+        pass     
+    
+    map_slices[str(slice_mode)]['centroid_day']=centroid_day            
+    map_slices[str(slice_mode)]['centroid_month']=centroid_month  
+                
+    return map_slices
+
+
+            
 
 def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian', temporal_subset_mode=None, time_range=None):
     
     '''
     
-    This function 
-    Temporal aggregation: return a dictionnary with temporal slices.
+    This function returns a dictionary with temporal slices.
+    
     
     :param dt_arr: Datetime vector.
     :type dt_arr: numpy.ndarray (1D) of datetime.datetime objects
@@ -154,7 +226,9 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
     assert(dt_arr.ndim == 1)
     
     return_dict = OrderedDict()
-
+    
+    map_info_slice=get_map_info_slice(slice_mode=temporal_subset_mode)
+    ###########################
     
     ## step 1: list of all years
     
@@ -178,22 +252,22 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
         
         
     years.sort()
-    #print years
+
     
     
     ## step 2: subset 
     
-    # all months of each year will be processed 
-    if temporal_subset_mode == None or temporal_subset_mode == 'month':
+    # all or selected months of each year will be processed 
+    if temporal_subset_mode == None or temporal_subset_mode == 'month' or temporal_subset_mode[0] == 'month':
         
-        for y in years:                            
-            for m in map_months[temporal_subset_mode]:
+        for y in years:                          
+            for m in map_info_slice[str(temporal_subset_mode)]['months']:
             
                 indices_dt_arr_non_masked_i = get_indices_temp_aggregation(dt_arr, month=m, year=y, f=0)
                 dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_i]
                 arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :]
                 
-                dt_centroid = datetime(  y, m, map_dt_centroid_day[temporal_subset_mode]  )
+                dt_centroid = datetime(  y, m, map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
                 tunits = "seconds since 1600-01-01 00:00:00"
                 dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
                 dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
@@ -203,37 +277,37 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
         
             #print y
 
-    
-    elif temporal_subset_mode in ['MAM', 'JJA', 'SON', 'AMJJAS']:
+    # simple seasons (standard or user defined) of each year will be processed
+    elif (temporal_subset_mode in ['MAM', 'JJA', 'SON', 'AMJJAS']) or (temporal_subset_mode[0] == 'season' and type(temporal_subset_mode[1]) is list):
     
         for y in years:                         
     
-            indices_dt_arr_non_masked_year = get_indices_temp_aggregation(dt_arr, month=map_months[temporal_subset_mode], year=y, f=1)
+            indices_dt_arr_non_masked_year = get_indices_temp_aggregation(dt_arr, month=map_info_slice[str(temporal_subset_mode)]['months'], year=y, f=1)
             dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_year]
 
             arr_subset_i = values_arr[indices_dt_arr_non_masked_year, :, :]
             
-            dt_centroid = datetime(  y, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
+            dt_centroid = datetime(  y, map_info_slice[str(temporal_subset_mode)]['centroid_month'], map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
             tunits = "seconds since 1600-01-01 00:00:00"
             dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
             dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
             
-            return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value) 
+            return_dict[str(temporal_subset_mode), y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value) 
     
             #print y
         
-    
-    elif temporal_subset_mode in ['DJF', 'ONDJFM']:
+    # composed seasons (standard or user defined) of each year will be processed
+    elif (temporal_subset_mode in ['DJF', 'ONDJFM']) or (temporal_subset_mode[0] == 'season' and type(temporal_subset_mode[1]) is tuple):
         
         for y in years:
 
             next_year = y+1
             
             if next_year in years:
-                indices_dt_arr_non_masked_first_year = get_indices_temp_aggregation(dt_arr, month=map_months[temporal_subset_mode][0], year=y, f=1)
+                indices_dt_arr_non_masked_first_year = get_indices_temp_aggregation(dt_arr, month=map_info_slice[str(temporal_subset_mode)]['months'][0], year=y, f=1)
 
-                indices_dt_arr_non_masked_next_year = get_indices_temp_aggregation(dt_arr, month=map_months[temporal_subset_mode][1], year=next_year, f=1)
+                indices_dt_arr_non_masked_next_year = get_indices_temp_aggregation(dt_arr, month=map_info_slice[str(temporal_subset_mode)]['months'][1], year=next_year, f=1)
 
                 indices_dt_arr_non_masked_current_season = numpy.concatenate((indices_dt_arr_non_masked_first_year, indices_dt_arr_non_masked_next_year))
                 indices_dt_arr_non_masked_current_season.sort()
@@ -241,13 +315,13 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
                 dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_current_season]
                 arr_subset_i = values_arr[indices_dt_arr_non_masked_current_season, :, :]
                 
-                dt_centroid = datetime(  next_year, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
+                dt_centroid = datetime(  next_year, map_info_slice[str(temporal_subset_mode)]['centroid_month'], map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
                 tunits = "seconds since 1600-01-01 00:00:00"
                 dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
                 dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
                 dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
                 
-                return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value) 
+                return_dict[str(temporal_subset_mode), y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value) 
             else:
                 pass
 
@@ -260,7 +334,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
             dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_i]
             
             arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :]
-            dt_centroid = datetime(  y, map_dt_centroid_month[temporal_subset_mode], map_dt_centroid_day[temporal_subset_mode]  )
+            dt_centroid = datetime(  y, map_info_slice[str(temporal_subset_mode)]['centroid_month'], map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
             tunits = "seconds since 1600-01-01 00:00:00"
             dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
             dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)

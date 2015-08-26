@@ -165,7 +165,7 @@ summer, autumn and monthly frequency:</p>
 <td>annual</td>
 </tr>
 <tr class="row-odd"><td><tt class="docutils literal"><span class="pre">month</span></tt></td>
-<td>monthly</td>
+<td>monthly (all months)</td>
 </tr>
 <tr class="row-even"><td><tt class="docutils literal"><span class="pre">ONDJFM</span></tt></td>
 <td>winter half-year</td>
@@ -192,6 +192,30 @@ summer, autumn and monthly frequency:</p>
 <p class="last">The winter season (<tt class="docutils literal"><span class="pre">DJF</span></tt>) of 2000 is composed of December 2000, January 2001 and February 2001.
 Likewise, the winter half-year (<tt class="docutils literal"><span class="pre">ONDJFM</span></tt>) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001.</p>
 </div>
+<p>Monthly time series with months selected by user:</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">slice_mode</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;month&#39;</span><span class="p">,[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">11</span><span class="p">]]</span> <span class="c"># indice will be computed only for April, May and November</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">slice_mode</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;month&#39;</span><span class="p">,[</span><span class="mi">4</span><span class="p">]]</span> <span class="c"># indice will be computed only for April</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>User defined seasons:</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">slice_mode</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;season&#39;</span><span class="p">,[</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">]]</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">slice_mode</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;season&#39;</span><span class="p">,([</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">],[</span><span class="mi">1</span><span class="p">])]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For a season composed of two years, months must be separated in <em>two lists</em> and united in a <em>tuple</em>: ([months of YYYY], [months of YYYY+1])</p>
+</div>
+</div></blockquote>
 </div>
 <div class="section" id="threshold">
 <h3><tt class="docutils literal"><span class="pre">threshold</span></tt><a class="headerlink" href="#threshold" title="Permalink to this headline">¶</a></h3>
