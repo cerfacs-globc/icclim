@@ -144,8 +144,9 @@ def num2date(num, calend, units):
     dt = t.num2date(num) 
         
     if isinstance(dt, netcdftime.datetime):
+        #dt = netcdftime.datetime(dt.year, dt.month, dt.day, dt.hour)
         dt = datetime(dt.year, dt.month, dt.day, dt.hour)
-        
+            
     return dt
 
 
