@@ -175,9 +175,14 @@ def indice(indice_name,
         global percentage_current_key        
         percentage_current_key = callback_percentage_start_value
     
+    #####    we check if output path exists
+    out_path = os.path.dirname(os.path.abspath(out_file)) + os.sep
+    if os.path.isdir(out_path) == False:
+        raise IOError('Output directory does not exists.')
+                     
     #####    we prepare output file
     onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
-
+    
     #####    we define type of result indice
     ind_type = 'f' # 'float32'
     
