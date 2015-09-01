@@ -37,6 +37,7 @@ Release notes
 		- ``save_percentiles_to_file``
 		- ``out_unit`` ('days' or '%' for indices: TG10p, TG90p, TX10p, TX90p, TN10p, TN90p)
 - Implemented *bootstrapping* procedure (See "Removing the “jump”" section in `this article <http://journals.ametsoc.org/doi/pdf/10.1175/JCLI3366.1>`_). 
+- Possibility of setting user defined seasons. 
 - `ETCCDI climate indices <http://etccdi.pacificclimate.org/list_27_indices.shtml>`_ is used now as indices definition:
 	- Indices *R95pTOT* and *R99pTOT* changed their definition (removed the division in the formula).
 	- Indice *RR* changed its definition (before: sum of precipitation; now: sum of precipitation only of wet days) and renamed to *PRCPTOT*.
