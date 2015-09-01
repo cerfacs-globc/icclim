@@ -15,8 +15,8 @@ Installation (Linux)
 --------------------
 .. note:: Make sure that **Python 2.7** and **GCC** are installed.
 
-1. Go to `<https://github.com/cerfacs-globc/icclim>`_.
-2. Download the current version: click to **Download ZIP**.
+1. Go to `<https://github.com/cerfacs-globc/icclim/releases/>`_.
+2. Download the current release: click to **Source code (zip)** or **Source code (tar.gz)**.
 3. Extract the file.
 4. Go to extracted directory.
 5. Run the following commands:
@@ -46,7 +46,7 @@ To get the version of installed library, do the following:
 .. code-block:: sh
 
     >>> icclim.__version__
-    3.0
+    4.0.0
 
 
 .. note:: ICCLIM was not tested on Windows and Mac platforms...
