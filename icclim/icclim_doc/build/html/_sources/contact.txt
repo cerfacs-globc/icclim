@@ -2,6 +2,6 @@
 Contacts
 ===============================
 
-<natalia.tatarinova@cerfacs.fr>
+<natalia.tatarinova@gmail.com>
     
 <christian.page@cerfacs.fr>

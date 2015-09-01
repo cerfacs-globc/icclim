@@ -9,12 +9,15 @@ from datetime import datetime
 
 import icclim
 import icclim.calc_indice as calc_indice
-
+import util.util_nc as util_nc
+import util.util_dt as util_dt
+import util.OCGIS_tile as OCGIS_tile
+import util.arr_size as arr_size
 
 def defaultCallback(message,percentage):
     print ("[%s] %d" % (message,percentage))
 
-# TODO: remove the "verbose" parameter
+
 def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None, callback=None, mode=0):
     '''
     :param in_files: absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs)
@@ -42,7 +45,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
     
     ###### to get fill value
     nc = Dataset(in_files[0], 'r')
-    fill_val = icclim.get_att_value(nc, var_name, '_FillValue').astype('float32')
+    fill_val = util_nc.get_att_value(nc, var_name, '_FillValue').astype('float32')
     nc.close()
     
     
@@ -53,7 +56,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
         var_time = nc.variables['time']
         
         try:
-           time_calend = var_time.calendar
+            time_calend = var_time.calendar
         except:
             time_calend = 'gregorian'
         time_units = var_time.units    
@@ -65,7 +68,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
             time_arr = var_time[:]
             dt_arr = numpy.array([icclim.num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
     
-            indices_subset = icclim.get_indices_subset(dt_arr, time_range)
+            indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
     
             #arr = var[indices_subset,:,:].squeeze()
             arr = var[indices_subset,:,:]
@@ -88,7 +91,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
 
     
     else: # i.e. we work with OPeNDAP datasets
-        total_array_size_bytes_and_tile_dimension = icclim.get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_limit_bytes, time_range=time_range)
+        total_array_size_bytes_and_tile_dimension = arr_size.get_total_array_size_bytes_and_tile_dimension(in_files, var_name, transfer_limit_bytes, time_range=time_range)
         array_total_size = total_array_size_bytes_and_tile_dimension[0]
         
         if array_total_size < transfer_limit_bytes: # the same as for the "if transfer_limit_bytes == None" case
@@ -99,7 +102,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
             var_time = nc.variables['time']
             
             try:
-               time_calend = var_time.calendar
+                time_calend = var_time.calendar
             except:
                 time_calend = 'gregorian'   
             time_units = var_time.units    
@@ -113,7 +116,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
                 time_arr = var_time[:]
                 dt_arr = numpy.array([icclim.num2date(dt, calend=time_calend, units=time_units) for dt in time_arr])
         
-                indices_subset = icclim.get_indices_subset(dt_arr, time_range)
+                indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
         
                 arr = var[indices_subset,:,:].squeeze()
 
@@ -151,7 +154,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
             var_time = nc.variables['time']
                 
             try:
-               time_calend = var_time.calendar
+                time_calend = var_time.calendar
             except:
                 time_calend = 'gregorian'
             time_units = var_time.units
@@ -188,7 +191,7 @@ def get_mean_arr(in_files, var_name, time_range=None, transfer_limit_bytes=None,
 
                 else:
             
-                    indices_subset = icclim.get_indices_subset(dt_arr, time_range)
+                    indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
                     
                     arr_current_chunk = var[indices_subset, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile].squeeze()
 
@@ -270,7 +273,7 @@ def write2netCDF_anomalies(arr, f_src, f_dst, time_range_future, time_range_past
     onc_bnds_lat        = onc.createVariable(str(inc_lat.__getattribute__('bounds')), inc_lat_bnds.dtype, (str(dim_var_src[1]), 'nv'))
     onc_bnds_lon        = onc.createVariable(str(inc_lon.__getattribute__('bounds')), inc_lon_bnds.dtype, (str(dim_var_src[2]), 'nv'))
     
-    fill_val = icclim.get_att_value(inc, var_src_name, '_FillValue')
+    fill_val = util_nc.get_att_value(inc, var_src_name, '_FillValue')
     onc_var             = onc.createVariable(var_dst, var_src.dtype, (str(dim_var_src[0]), str(dim_var_src[1]), str(dim_var_src[2])), fill_value = fill_val)
     
     
@@ -294,11 +297,11 @@ def write2netCDF_anomalies(arr, f_src, f_dst, time_range_future, time_range_past
     time_range_past_num = numpy.expand_dims(time_range_past_num, axis=0)
        
     # time
-    icclim.copy_var_attrs(inc_temporal, onc_dim_temporal)
+    util_nc.copy_var_attrs(inc_temporal, onc_dim_temporal)
     onc_dim_temporal[:] = time_range_future_num[0,0] + (time_range_future_num[0,1] - time_range_future_num[0,0])/2   # middle of time_range 
     
     # time_bnds    
-    icclim.copy_var_attrs(inc_time_bnds, onc_bnds_temporal)
+    util_nc.copy_var_attrs(inc_time_bnds, onc_bnds_temporal)
     onc_bnds_temporal[:,:] = time_range_future_num[:,:]
     # in case if time_bnds has no attributes, we copy "units" and "calendar" attributes from "time" variable    
     onc_bnds_temporal.setncattr("units", inc_temporal.getncattr("units") )
@@ -323,16 +326,16 @@ def write2netCDF_anomalies(arr, f_src, f_dst, time_range_future, time_range_past
     
     
     
-    icclim.copy_var_attrs(inc_lat, onc_dim_lat)
+    util_nc.copy_var_attrs(inc_lat, onc_dim_lat)
     onc_dim_lat[:] = inc_lat[:]
     
-    icclim.copy_var_attrs(inc_lon, onc_dim_lon)
+    util_nc.copy_var_attrs(inc_lon, onc_dim_lon)
     onc_dim_lon[:] = inc_lon[:]
     
-    icclim.copy_var_attrs(inc_lat_bnds, onc_bnds_lat)
+    util_nc.copy_var_attrs(inc_lat_bnds, onc_bnds_lat)
     onc_bnds_lat[:,:] = inc_lat_bnds[:,:]
     
-    icclim.copy_var_attrs(inc_lon_bnds, onc_bnds_lon)
+    util_nc.copy_var_attrs(inc_lon_bnds, onc_bnds_lon)
     onc_bnds_lon[:,:] = inc_lon_bnds[:,:]
     
     #icclim.copy_var_attrs(var_src, onc_var)
@@ -344,7 +347,7 @@ def write2netCDF_anomalies(arr, f_src, f_dst, time_range_future, time_range_past
     
     #copy global attributes
     for att in inc.ncattrs():
-        icclim.copy_att(inc, onc, att)
+        util_nc.copy_att(inc, onc, att)
     
     
     

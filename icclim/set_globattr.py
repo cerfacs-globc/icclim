@@ -29,7 +29,7 @@ def title(out_nc, indice_name):
         indice_group = 'cold'
     elif indice_name in ['CDD']:
         indice_group = 'drought' 
-    elif indice_name in ['RR', 'RR1', 'SDII', 'CWD', 'R10mm', 'R20mm', 'RX1day', 'RX5day', 'R75p', 'R95p', 'R99p', 'R75TOT', 'R95TOT', 'R99TOT']:
+    elif indice_name in ['PRCPTOT', 'RR1', 'SDII', 'CWD', 'R10mm', 'R20mm', 'RX1day', 'RX5day', 'R75p', 'R95p', 'R99p', 'R75pTOT', 'R95pTOT', 'R99pTOT']:
         indice_group = 'rain'
     elif indice_name in ['SD','SD1', 'SD5cm', 'SD50cm']:
         indice_group = 'snow'
@@ -129,8 +129,17 @@ def history2(out_nc, calc_grouping, indice_name, time_range):
         mode = 'winter half-year time series'
     elif calc_grouping == 'AMJJAS':
         mode = 'summer half-year time series'
-        
-        
+    elif type(calc_grouping) is list:
+        if calc_grouping[0]=='month':
+            months =  calc_grouping[1]
+            mode = 'monthly time series (months: ' +  str(months) + ')'      
+        elif calc_grouping[0]=='season':
+            months_season =  calc_grouping[1]
+            if type(months_season) is list: 
+                season = months_season
+            elif type(months_season) is tuple:
+                season = months_season[0]+months_season[1]
+            mode = 'seasonal time series (season: ' +  str(season) + ')' 
         
     else:
         raise(NotImplementedError(calc_grouping))

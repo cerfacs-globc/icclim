@@ -262,7 +262,7 @@ def copy_var_dim(inc, onc, var):
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
 
 
-def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_range=None, N_lev=None, spatial_chunking=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None, add_offset=0.0, scale_factor=1.0):
+def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_range=None, N_lev=None, ignore_Feb29th=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None, add_offset=0.0, scale_factor=1.0):
     
     try:
         calend = ncVar_temporal.calendar
@@ -278,54 +278,79 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_
     if deltat != 86400.0:
         print "WARNING: Time interval of the input file is not daily!! Delta time is: "+str(deltat)
     
-    if spatial_chunking==False:
+#     if spatial_chunking==False:
+# 
+#         if N_lev == None:
+#             assert(ncVar_values.ndim == 3)
+#             if time_range == None:
+#                 values_arr = (ncVar_values[:,:,:] * scale_factor) + add_offset
+#             else:
+#                 # we adjust datetime.datetime objects from time_range
+#                 dt = util_dt.num2date(ncVar_temporal[:][0], calend, units)
+#                 time_range = util_dt.adjust_time_range(time_range, dt)
+#                 
+#                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
+#                 dt_arr = dt_arr[indices_subset]               
+#                 values_arr = (ncVar_values[indices_subset,:,:] * scale_factor) + add_offset
+#         else:
+#             assert(ncVar_values.ndim == 4)
+#             if time_range == None:
+#                 values_arr = (ncVar_values[:,N_lev,:,:] * scale_factor) + add_offset
+#             else:                
+#                 # we adjust datetime.datetime objects from time_range
+#                 dt = util_dt.num2date(ncVar_temporal[:][0], calend, units)
+#                 time_range = util_dt.adjust_time_range(time_range, dt)
+#                 
+#                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
+#                 dt_arr = dt_arr[indices_subset]
+#                 values_arr = (ncVar_values[indices_subset,N_lev,:,:] * scale_factor) + add_offset
+#         
+#         
+#     else: # spatial_chunking==True
         
-        if N_lev == None:
-            assert(ncVar_values.ndim == 3)
-            if time_range == None:
-                values_arr = (ncVar_values[:,:,:] * scale_factor) + add_offset
-            else:
-                indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-                dt_arr = dt_arr[indices_subset]               
-                values_arr = (ncVar_values[indices_subset,:,:] * scale_factor) + add_offset
+    if N_lev == None:
+        assert(ncVar_values.ndim == 3)
+        if time_range == None:
+            values_arr = (ncVar_values[:,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
         else:
-            assert(ncVar_values.ndim == 4)
-            if time_range == None:
-                values_arr = (ncVar_values[:,N_lev,:,:] * scale_factor) + add_offset
-            else:
-                indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-                dt_arr = dt_arr[indices_subset]
-                values_arr = (ncVar_values[indices_subset,N_lev,:,:] * scale_factor) + add_offset
-
-        
-    else: # spatial_chunking==True
-        
-        if N_lev == None:
-            assert(ncVar_values.ndim == 3)
-            if time_range == None:
-                values_arr = (ncVar_values[:,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
-            else:
-                indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-                dt_arr = dt_arr[indices_subset]
-                values_arr = (ncVar_values[indices_subset,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
-                
+            # we adjust datetime.datetime objects from time_range
+            dt = util_dt.num2date(ncVar_temporal[:][0], calend, units)
+            time_range = util_dt.adjust_time_range(time_range, dt)    
+                       
+            indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
+            dt_arr = dt_arr[indices_subset]
+            values_arr = (ncVar_values[indices_subset,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
+            
+    else:
+        assert(ncVar_values.ndim == 4)
+        if time_range == None:
+            values_arr = (ncVar_values[:,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
         else:
-            assert(ncVar_values.ndim == 4)
-            if time_range == None:
-                values_arr = (ncVar_values[:,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
-            else:
-                indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-                dt_arr = dt_arr[indices_subset]
-                values_arr = (ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
+            # we adjust datetime.datetime objects from time_range
+            dt = util_dt.num2date(ncVar_temporal[:][0], calend, units)
+            time_range = util_dt.adjust_time_range(time_range, dt)
+            
+            indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
+            dt_arr = dt_arr[indices_subset]
+            values_arr = (ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
         
     if fill_val != None:
         numpy.ma.set_fill_value(values_arr, fill_val)
-   
+        
     assert(dt_arr.ndim == 1)    
     assert(values_arr.ndim == 3)
     
+    if ignore_Feb29th == True:
+        mask_Feb29th = numpy.array([ (dt.month==2 and dt.day==29) for dt in dt_arr])
+        indices_masked_Feb29th = numpy.where(mask_Feb29th==False)[0] # ...[0]: tuple to numpy.ndarray (http://stackoverflow.com/questions/16127444/why-is-my-array-length-1-when-building-it-with-numpy-where)
+        dt_arr = dt_arr[indices_masked_Feb29th]
+        values_arr = values_arr[indices_masked_Feb29th,:,:]
+        
+        return (dt_arr, values_arr)
     
-    return (dt_arr, values_arr)
+    else:   
+    
+        return (dt_arr, values_arr)
 
 def list_var_dim(inc, var): 
     '''

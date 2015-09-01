@@ -8,7 +8,7 @@ To use the ICCLIM you first need to install the following python libraries:
     - `NumPy <http://www.numpy.org/>`_
     - `netCDF4 <http://netcdf4-python.googlecode.com/svn/trunk/docs/netCDF4-module.html>`_
     - `ctypes <http://docs.python.org/2/library/ctypes.html>`_
-    - `OpenClimateGIS <http://ncpp.github.io/ocgis/index.html>`_ and its dependencies if you want to use :ref:`ICCLIM inside OpenClimateGIS <icclim_ocgis>`
+    - `OpenClimateGIS <http://ncpp.github.io/ocgis/index.html>`_ and its dependencies if you want to use `ICCLIM inside OpenClimateGIS <http://ncpp.github.io/ocgis/computation.html#calculation-using-icclim-for-eca-indices>`_
     - `ESMPy <https://www.earthsystemcog.org/projects/esmpy/>`_ if you want to use :ref:`regridding module <icclim_regrid>`
     
 Installation (Linux)
@@ -28,7 +28,11 @@ Installation (Linux)
     gcc -shared -o ./icclim/libC.so ./icclim/libC.o
     
     [sudo] python setup.py install
-    or if you don't have root or sudo access, as a normal user:
+
+or if you don't have root or sudo access, as a normal user:
+
+.. code-block:: sh    
+
     python setup.py install --user
     
 5. Check if the library is installed correctly:

@@ -7,11 +7,12 @@
 from netcdftime import utime
 from datetime import datetime
 #from netCDF4 import num2date, date2num, Dataset, MFDataset
-from netCDF4 import Dataset
+from netCDF4 import Dataset, MFDataset
 import numpy
 import sys
 import netcdftime
 
+# unused function
 def get_list_dates_from_nc(nc, type_dates):
     
     '''
@@ -26,10 +27,10 @@ def get_list_dates_from_nc(nc, type_dates):
     
     '''
     
-    ncVar_values_time = nc.variables['time']
+    var_time = nc.variables['time']
     time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
     try:
-       time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
+        time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
     except:
         time_calend = 'gregorian'
     
@@ -65,7 +66,7 @@ def get_list_dates(ifile, type_dates):
     var_time = nc.variables['time']
     time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
     try:
-       time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
+        time_calend = var_time.calendar # str (ex.: 'standard'/'gregorian'/...)
     except:
         time_calend = 'gregorian'
     
@@ -141,19 +142,72 @@ def num2date(num, calend, units):
     '''   
     t = utime(units, calend) 
     dt = t.num2date(num) 
-    
+        
     if isinstance(dt, netcdftime.datetime):
+        #dt = netcdftime.datetime(dt.year, dt.month, dt.day, dt.hour)
         dt = datetime(dt.year, dt.month, dt.day, dt.hour)
-
+            
     return dt
 
 
-def get_time_range(files, temporal_var_name='time'):
+# def get_time_range(files, temporal_var_name='time'):
+#     
+#     '''
+#     :param files: netCDF file(s) (including OPeNDAP URL(s))
+#     :type files: list of str
+#     
+#     :param temporal_var_name: name of temporal variable from netCDF file (default: "time")
+#     :type temporal_var_name: str
+#     
+#     :rtype
+#     
+#     
+#     Returns a time range: a list two datetime objects: [begin, end], where "begin" is the first date, and "end" is the last.
+#     '''
+#     
+#     nc = Dataset(files[0],'r')
+#     time = nc.variables[temporal_var_name]
+#     
+#     try:
+#         calend = time.calendar
+#     except:
+#         calend = 'gregorian'
+#     
+#     units = time.units
+#     
+#     nc.close()
+#     
+#     time_arr = numpy.array([])
+#     for f in files:
+#         nc = Dataset(f, 'r')
+#         time_arr_f = nc.variables[temporal_var_name][:]
+#         time_arr = numpy.concatenate([time_arr, time_arr_f])       
+#         nc.close()
+#     
+#     begin_num = min(time_arr)
+#     end_num = max(time_arr)
+#         
+#     del time_arr
+#     
+#     begin_dt = num2date(begin_num, calend, units)
+#     end_dt = num2date(end_num, calend, units)
+#     
+#     return [begin_dt, end_dt]
+
+
+def get_time_range(files, time_range=None, temporal_var_name='time'):
     
     '''
+    If time_range is None, this function will get a time range from input files.
+    Else, this function will adjust the time_range by setting hour value to datetime.datetime objects. 
+    
+    
     :param files: netCDF file(s) (including OPeNDAP URL(s))
     :type files: list of str
     
+    :param time_range: time_range (default: None)
+    :type time_range: list two datetime objects: [begin, end]  
+     
     :param temporal_var_name: name of temporal variable from netCDF file (default: "time")
     :type temporal_var_name: str
     
@@ -170,27 +224,32 @@ def get_time_range(files, temporal_var_name='time'):
         calend = time.calendar
     except:
         calend = 'gregorian'
-    
+        
     units = time.units
     
+    any_dt = num2date(time[0], calend, units)
     nc.close()
     
-    time_arr = numpy.array([])
-    for f in files:
-        nc = Dataset(f, 'r')
-        time_arr_f = nc.variables[temporal_var_name][:]
-        time_arr = numpy.concatenate([time_arr, time_arr_f])       
+    
+    if time_range != None:        
+        time_range = adjust_time_range(time_range, any_dt)        
+    
+    else:
+        nc = MFDataset(files, 'r')
+        time_arr = nc.variables[temporal_var_name][:]
         nc.close()
     
-    begin_num = min(time_arr)
-    end_num = max(time_arr)
+        begin_num = min(time_arr)
+        end_num = max(time_arr)
         
-    del time_arr
-    
-    begin_dt = num2date(begin_num, calend, units)
-    end_dt = num2date(end_num, calend, units)
-    
-    return [begin_dt, end_dt]
+        begin_dt = num2date(begin_num, calend, units)
+        end_dt = num2date(end_num, calend, units)
+        
+        time_range = [begin_dt, end_dt]
+        
+    return time_range
+
+
 
 def get_year_list(dt_arr):
     '''
@@ -257,9 +316,21 @@ def get_indices_subset(dt_arr, time_range):
        
         return indices_non_masked
         
-    else:    
-        print 'The time range is not included in the input time steps array.'
-        print 'dt1= '+dt1+' dt_arr[0]='+dt_arr[0]+' dt2='+dt2+' dt_arr[-1]='+dt_arr[-1]
+    else: 
         raise ValueError('The time range is not included in the input time steps array.')
         return 0
 
+def get_intersecting_years(time_range1, time_range2):
+    year_begin_tr1 = time_range1[0].year
+    year_end_tr1 = time_range1[1].year
+    
+    year_begin_tr2 = time_range2[0].year
+    year_end_tr2 = time_range2[1].year
+    
+    list_years_tr1 = range(year_begin_tr1, year_end_tr1+1)
+    list_years_tr2 = range(year_begin_tr2, year_end_tr2+1)
+    
+    intersection = list( set(list_years_tr1).intersection(list_years_tr2) )
+    
+    return intersection
+        

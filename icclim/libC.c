@@ -41,10 +41,11 @@ void find_GSL_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *
 double getElementAt_2(const float *table, int t, int i, int j);
 float WSDI_CSDI_1d(const float *indata,int i, int j, int N);
 void WSDI_CSDI_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, int N);
-void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int percentile, float fill_value);
-double percentile_1d(const float *indata, int i, int j);
+void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int percentile, float fill_value,  char * interpolation);
+double percentile_1d(const float *indata, int i, int j, char * interpolation);
 float* get_tab_1d(const float *indata, int i, int j, int* new_size);
 double get_percentile(float* tab_1d, int len_tab_1d);
+double get_percentile2(float* tab_1d, int len_tab_1d);
 void swap(float* a, float* b);
 void qs(float* s_arr, int first, int last);
 
@@ -488,7 +489,7 @@ void WSDI_CSDI_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double 
 
 
 // function called from Python 
-void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int percentile, float fill_value) 
+void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int percentile, float fill_value, char * interpolation)
 {
 
     setGlobalVariables(_sizeT,_sizeI,_sizeJ, fill_value, percentile);
@@ -499,7 +500,7 @@ void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, doub
 
         for (j = 0; j < sizeJ; j++)
         {
-            outdata[i*sizeJ+j] = percentile_1d(indata, i, j);
+            outdata[i*sizeJ+j] = percentile_1d(indata, i, j, interpolation);
         }
     }
 
@@ -507,8 +508,12 @@ void percentile_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, doub
 
 
 
+
+
+
+
 // for 1D array 
-double percentile_1d(const float *indata, int i, int j)
+double percentile_1d(const float *indata, int i, int j, char * interpolation)
 {
     int new_size = 0;
     
@@ -516,7 +521,38 @@ double percentile_1d(const float *indata, int i, int j)
     
     qs(new_tab, 0, sizeT-1);
     
-    double perc =  get_percentile(new_tab, new_size);
+    // begin print
+//    int xx;
+//    for(xx=0; xx<sizeT; xx++)
+//    {
+//    	printf("%f", new_tab[xx]);
+//    	printf("\n");
+//    }
+//    printf("+++++");
+
+//    printf("%f", new_tab[new_size-1]);
+//    printf("\n");
+//    printf("%f", new_tab[new_size]);
+//    printf("\n");
+//    printf("+++++");
+//    printf("\n");
+
+    //printf("%d", new_size);
+    //printf("\n");
+
+    // end print
+
+    double perc;
+
+    if (strcmp(interpolation,"linear")==0)
+    {
+    	perc =  get_percentile(new_tab, new_size);
+    }
+    else if (strcmp(interpolation,"hyndman_fan")==0)
+    {
+    	perc =  get_percentile2(new_tab, new_size);
+    }
+
       
     free(new_tab);
 
@@ -554,7 +590,62 @@ float* get_tab_1d(const float *indata, int i, int j, int* new_size)
 
 
 
+double get_percentile2(float* tab_1d, int len_tab_1d)
+
+	// interpolation of Hyndman and Fan (https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf)
+
+//	percentile<-function(n,x,pctile){
+//
+//			 x1<-x[is.na(x)==F]
+//
+//			 n1<-length(x1)
+//
+//			 a<-mysort(x1,decreasing=F)
+//
+//			 b<-n1*pctile+0.3333*pctile+0.3333
+//
+//			 bb<-trunc(b)
+//
+//			 percentile<-a[bb]+(b-bb)*(a[bb+1]-a[bb]) }#end
+//
+//
+//	 # pseudo code
+//
+//	 func percentile(n, x, perc_val):
+//
+//		x1 = x where missin_values = False
+//		n1 = len(x1)
+//		a = sort(n1)
+//		b = n1 * perc_val + 0.3333 * perc_val + 0.3333
+//		bb = round(b) # !!! round to down, i.e. 2.9 ---> 2
+//		percentile = a[bb] + (b-bb)*(a[bb+1]-a[bb])
+
+
+{
+    if (len_tab_1d==0) return fill_value;
+    if (len_tab_1d==1) return tab_1d[0];
+
+
+    double p = percentile * 0.01;
+
+
+    //double index = (len_tab_1d-1) * p + (1+p)/3. ;
+    double index = (len_tab_1d) * p + (1+p)/3. ;
+
+    double index_integer_part;
+
+    modf(index, &index_integer_part);
+    int i = index_integer_part;
+
+    double perc = tab_1d[i-1] + (index-i)*(tab_1d[i]-tab_1d[i-1]);
+
+    return perc;
+}
+
 double get_percentile(float* tab_1d, int len_tab_1d)
+
+	// linear interpolation
+
 {
     if (len_tab_1d==0) return fill_value;
     if (len_tab_1d==1) return tab_1d[0];
@@ -620,6 +711,7 @@ int main()
 {
     //printf('HELLO WORLD !!!')
     return 0;
+
 }    
 
 

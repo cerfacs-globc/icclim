@@ -15,11 +15,33 @@ Contents:
    python_api.rst
    output_metadata.rst
    contact.rst     
-   icclim_ocgis.rst
 
 
 
-**NEWS:**
+
+Release notes
+------------------
+
+*21/08/2015*
+
+(http://stackoverflow.com/questions/2862590/how-to-replace-master-branch-in-git-entirely-from-another-branch)
+
+- New version: 3.1.0
+- Percentile threshold computing is now directly inside icclim.indice() function:
+	- added new parameters:
+		- ``ignore_Feb29th`` (allow to ignore February 29th)
+		- ``base_period_time_range`` for base period time range 
+		- ``window_width``
+		- ``only_leap_years``
+		- ``interpolation`` (2 interpolation methods: linear and interpolation proposed by `Hyndman and Fan (1996) <http://amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_)
+		- ``save_percentiles_to_file``
+		- ``out_unit`` ('days' or '%' for indices: TG10p, TG90p, TX10p, TX90p, TN10p, TN90p)
+- Implemented *bootstrapping* procedure (See "Removing the “jump”" section in `this article <http://journals.ametsoc.org/doi/pdf/10.1175/JCLI3366.1>`_). 
+- Possibility of setting user defined seasons. 
+- `ETCCDI climate indices <http://etccdi.pacificclimate.org/list_27_indices.shtml>`_ is used now as indices definition:
+	- Indices *R95pTOT* and *R99pTOT* changed their definition (removed the division in the formula).
+	- Indice *RR* changed its definition (before: sum of precipitation; now: sum of precipitation only of wet days) and renamed to *PRCPTOT*.
+
 
 *27/01/2015*
 
