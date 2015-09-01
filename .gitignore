@@ -21,7 +21,8 @@ test_*
 tests/
 WPS/
 
-
+# sphinx build folder
+_build/
 
 # Distribution / packaging
 .Python
