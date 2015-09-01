@@ -24,7 +24,6 @@ Release notes
 
 *21/08/2015*
 
-(http://stackoverflow.com/questions/2862590/how-to-replace-master-branch-in-git-entirely-from-another-branch)
 
 - New version: 3.1.0
 - Percentile threshold computing is now directly inside icclim.indice() function:
