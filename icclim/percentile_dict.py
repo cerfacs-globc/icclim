@@ -181,8 +181,142 @@ def get_masked_arr(arr, fill_val):
 ############### utility functions: end ##################
 
 def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, callback=None, callback_percentage_start_value=0, 
-                        callback_percentage_total=100, chunk_counter=1, precipitation=False, fill_val=None,
+                        callback_percentage_total=100, chunk_counter=1, fill_val=None,
                         ignore_Feb29th=False, interpolation="hyndman_fan"):
+    '''
+    Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
+    Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
+    
+    :param arr: array of values (in case of precipitation, units must be `mm/s`)
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) of float
+    
+    :param dt_arr: corresponding time steps vector (base period: usually 1961-1990)
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    
+    :param percentile: percentile to compute which must be between 0 and 100 inclusive
+    :type percentile: int
+    
+    :param window_width: window width, must be odd
+    :type window_width: int
+    
+    :param only_leap_years: option for February 29th (default: False)
+    :type only_leap_years: bool
+    
+    :param callback: progress bar, if ``None`` progress bar will not be printed
+    :type callback: :func:`callback.defaultCallback2`
+    
+    :param callback_percentage_start_value: init value for percentage of progress bar (default: 0)
+    :type callback_percentage_start_value: int
+    
+    :param callback_percentage_total: final value for percentage of progress bar (default: 100)   
+    :type callback_percentage_total: int
+        
+    :param chunk_counter: chunk counter in case of chunking 
+    :type chunk_counter: int
+    
+    :param fill_val: fill value of ``arr``
+    :type fill_val: float
+    
+    :rtype: dict
+
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+    
+    '''
+    
+    assert(arr.ndim == 3)
+    assert(arr.shape[0]==dt_arr.shape[0])
+    
+    # for callback print
+    nb_months = 12*1.0
+    percent_one_month = ((callback_percentage_total)/nb_months) ######## callback_percentage_total default value = 100 %; set callback_percentage_total=50% for WPS: computing percentiles will be 50%  (other 50% for computing indice)
+    
+    percent_current_month = callback_percentage_start_value + (chunk_counter-1)*callback_percentage_total
+
+    # step1: creation of the dictionary with all calendar days:
+    dic_caldays = get_dict_caldays(dt_arr)
+    
+    percentile_dict = OrderedDict()
+    
+    dt_hour = dt_arr[0].hour # (we get hour of a date only one time, because usually the hour is the same for all dates in input dt_arr)
+    
+    # we mask our array in case it has fill_values
+    arr_masked = get_masked_arr(arr, fill_val)
+    
+    fill_val = arr_masked.fill_value
+
+    arr_filled = arr_masked.filled(fill_val)
+    del arr_masked
+          
+    ############################## prepare calling C function   
+    # data type should be 'float32' to pass it to C function
+    if arr_filled.dtype != 'float32':
+        arr_filled = numpy.array(arr_filled, dtype='float32')
+            
+    C_percentile = libraryC.percentile_3d
+    C_percentile.restype = None    
+    
+    C_percentile.argtypes = [ndpointer(ctypes.c_float),
+                                        ctypes.c_int,
+                                        ctypes.c_int,
+                                        ctypes.c_int,
+                                        ndpointer(ctypes.c_double),
+                                        ctypes.c_int,
+                                        ctypes.c_float,
+                                        ctypes.c_char_p]
+                                                
+    
+    
+    ## we check the fill_value (we need it to be the maximum value in the array)
+        
+    if fill_val == arr_filled.max():
+        pass
+    else:
+        fill_val_new = 1e+20 
+        arr_filled[arr_filled==fill_val] = fill_val_new 
+        fill_val = fill_val_new
+        
+    #############################
+
+    for month in dic_caldays.keys():
+        for day in dic_caldays[month]:
+
+            arr_percentille_current_calday = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
+            
+            #print arr_percentille_current_calday.dtype #float64, i.e. double ----> OK
+            
+            # step2: we do a mask for the datetime vector for current calendar day (day/month)
+            dt_arr_mask = get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, ignore_Feb29th)
+            
+            
+            # step3: we are looking for the indices of non-masked dates (i.e. where dt_arr_mask==False) 
+            indices_non_masked = numpy.where(dt_arr_mask==False)[0]
+             
+            # step4: we subset our arr
+            #arr_subset = arr_filled[indices_non_masked, :, :].squeeze()
+            arr_subset = arr_filled[indices_non_masked, :, :]
+           
+            # step5: we compute the percentile for current arr_subset           
+            C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentille_current_calday, percentile, fill_val, interpolation)
+            
+            arr_percentille_current_calday = arr_percentille_current_calday.reshape(arr.shape[1], arr.shape[2])
+            
+
+            # step6: we add to the dictionary...
+            percentile_dict[month,day] = arr_percentille_current_calday
+
+        
+        if callback != None:
+            percent_current_month =  percent_current_month + percent_one_month
+            callback(percent_current_month)
+        
+
+        
+    return percentile_dict
+
+
+def get_percentile_arr(arr, percentile, window_width, callback=None, callback_percentage_start_value=0, 
+                        callback_percentage_total=100, chunk_counter=1, precipitation=True, fill_val=None,
+                        interpolation="hyndman_fan"):
     '''
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
     Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
@@ -227,31 +361,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     '''
     
     assert(arr.ndim == 3)
-    assert(arr.shape[0]==dt_arr.shape[0])
-    
-    # for callback print
-    nb_months = 12*1.0
-    percent_one_month = ((callback_percentage_total)/nb_months) ######## callback_percentage_total default value = 100 %; set callback_percentage_total=50% for WPS: computing percentiles will be 50%  (other 50% for computing indice)
-    
-    percent_current_month = callback_percentage_start_value + (chunk_counter-1)*callback_percentage_total
 
-    
-#     # February 29th
-#     if ignore_Feb29th == True:
-#         mask_Feb29th = numpy.array([ (dt.month==2 and dt.day==29) for dt in dt_arr])
-#         indices_masked_Feb29th = numpy.where(mask_Feb29th==False)
-#         dt_arr = dt_arr[indices_masked_Feb29th]
-#         arr = arr[indices_masked_Feb29th,:,:].squeeze()
- 
-        
-        
-    # step1: creation of the dictionary with all calendar days:
-    dic_caldays = get_dict_caldays(dt_arr)
-    
-    percentile_dict = OrderedDict()
-    
-    dt_hour = dt_arr[0].hour # (we get hour of a date only one time, because usually the hour is the same for all dates in input dt_arr)
-    
     # we mask our array in case it has fill_values
     arr_masked = get_masked_arr(arr, fill_val)
     
@@ -262,29 +372,14 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
 
         arr_masked = arr_masked*60*60*24 # mm/s --> mm/day
 
-#         print "arr: "
-#          
-#         print arr_masked[0:10, :, :]
- 
-         
-        # 2) we need to process only wet days (i.e. days with RR >= 1 mm)
-        # so, we mask values < 1 mm 
-        mask_arr_masked = arr_masked < 1.0 # new mask of already masked array 
+        # 2) we need to process only wet days (i.e. days with RR >= 1.0 mm)
+        # => we mask values < 1.0 mm 
+        mask_arr_masked = arr_masked < 1.0 # new mask of the masked array 
         arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked)
-         
-#         print "arr masked thresh=1mm:"
-#         print arr_masked_masked[0:10, :, :]
-#         print arr_masked_masked.fill_value
-       
- 
          
         # 3) we fill all masked values with fill_val to pass the filled array to the C function
         arr_filled = arr_masked_masked.filled(fill_val)
-#         print "arr filled with fill_value:"
-#         print arr_filled[0:10, :, :]
-         
- 
-         
+
         del arr_masked, mask_arr_masked, arr_masked_masked
         
     else:
@@ -296,9 +391,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     # data type should be 'float32' to pass it to C function
     if arr_filled.dtype != 'float32':
         arr_filled = numpy.array(arr_filled, dtype='float32')
-    
-  
-        
+
     C_percentile = libraryC.percentile_3d
     C_percentile.restype = None    
     
@@ -313,8 +406,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
                                                 
     
     
-    ## we check the fill_value (we need it to be the maximum value in the array)
-        
+    ## we check the fill_value (we need it to be the maximum value in the array)        
     if fill_val == arr_filled.max():
         pass
     else:
@@ -324,58 +416,17 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
         
     #############################
 
-    for month in dic_caldays.keys():
-        for day in dic_caldays[month]:
-
-            arr_percentille_current_calday = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
-            
-            #print arr_percentille_current_calday.dtype #float64, i.e. double ----> OK
-            
-            # step2: we do a mask for the datetime vector for current calendar day (day/month)
-            dt_arr_mask = get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, ignore_Feb29th)
-            
-            
-            # step3: we are looking for the indices of non-masked dates (i.e. where dt_arr_mask==False) 
-            indices_non_masked = numpy.where(dt_arr_mask==False)[0]
-             
-            # step4: we subset our arr
-            #arr_subset = arr_filled[indices_non_masked, :, :].squeeze()
-            arr_subset = arr_filled[indices_non_masked, :, :]
-            
-#             if month==7 and day==20:
-#                 print arr_subset[:,0,0]-273.15
-#                 print dt_arr[indices_non_masked]
-            
-            
-            # step5: we compute the percentile for current arr_subset           
-            C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentille_current_calday, percentile, fill_val, interpolation)
-            
-            arr_percentille_current_calday = arr_percentille_current_calday.reshape(arr.shape[1], arr.shape[2])
-            
-
-            # step6: we add to the dictionary...
-            percentile_dict[month,day] = arr_percentille_current_calday
+    arr_percentille = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
     
+    #print arr_percentille_current_calday.dtype #float64, i.e. double ----> OK
+        
+    # step5: we compute the percentile for current arr_subset           
+    C_percentile(arr_filled, arr_filled.shape[0], arr_filled.shape[1], arr_filled.shape[2], arr_percentille, percentile, fill_val, interpolation)
     
-    
-            
-#     import pickle
-#     
-#      
-#     with open('/home/natasha/ICCLIM/icclim/icclim/out_icclim/tasmax_90th_K_hynd_bootstap.pkl', 'wb') as f:  
-#         pickle.dump(percentile_dict, f)
-                        
-            
-        
-        if callback != None:
-            percent_current_month =  percent_current_month + percent_one_month
-            callback(percent_current_month)
-        
+    arr_percentille = arr_percentille.reshape(arr.shape[1], arr.shape[2])
 
-        
-    return percentile_dict
-
-
+ 
+    return arr_percentille
 
 
 

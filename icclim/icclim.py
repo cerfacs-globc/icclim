@@ -744,172 +744,177 @@ def get_indice_from_dict_temporal_slices(indice_name,
               
           
         elif indice_type == 'percentile_based' or indice_type == 'percentile_based_multivariable': 
-              
-            if key[1] not in intersecting_years: # key[1] --> year  
-                current_intersecting_year = -9999
-                reduced_base_years_list = [-9999]
-                cnt += 1
-            else:
-                current_intersecting_year = key[1]
-                reduced_base_years_list = years_base[:]
-                reduced_base_years_list.remove(current_intersecting_year)
-
             
-            
-
-            
-            
-            
-            indice_arr_y = numpy.zeros(( len(reduced_base_years_list), nb_rows, nb_columns))
-
-              
-            i=0
-            
-            percentage_current_key1 = percentage_current_key
-            
-            for ytd in reduced_base_years_list:
-                
-  
-                g=0
+            if indice_name in ['R75p', 'R95p', 'R99p','R75pTOT','R95pTOT','R99pTOT']:
                 for v in vars_dict.keys():
-                    vars_percentiles[v] = percentiles_calc_method
-      
-                    dt_arr_key = vars_dict[v]['temporal_slices'][key][2]
-                    values_arr_key = vars_dict[v]['temporal_slices'][key][3]                        
                     fill_val = vars_dict[v]['temporal_slices'][key][4]
-
-                      
-
-  
-                    new_arrs_base = time_subset.get_resampled_arrs(dt_arr=vars_dict[v]['base']['dt_arr'],
-                                                                   values_arr=vars_dict[v]['base']['values_arr'],
-                                                                   year_to_eliminate=current_intersecting_year, 
-                                                                   year_to_duplicate=ytd)
+                    
+                    percentiles_arr = percentile_dict.get_percentile_arr(arr=vars_dict[v]['base']['values_arr'], 
+                                                                     percentile=maps.map_indice_percentile_value[indice_name][0], 
+                                                                     window_width=window_width,                                                                      
+                                                                     callback=None, 
+                                                                     callback_percentage_start_value=0, 
+                                                                    callback_percentage_total=100, 
+                                                                    chunk_counter=1, 
+                                                                    precipitation=True, 
+                                                                    fill_val=fill_val,                                                                     
+                                                                    interpolation=interpolation)
                     
                     
                     
-                    if percentiles_to_file != None and cnt==1:
-                        sub_BIG_PD_v = OrderedDict()
-                        BIG_PD[v] = sub_BIG_PD_v
-                        
-                        
-                    # for not "in-base" years we compute pd ONLY one time (i.e. when cnt=1)
-                    if current_intersecting_year != -9999 or cnt == 1:
-#                     if cnt == 1:  # REMOVE  
-#                         print "ZZZ"  
-                        pd = percentile_dict.get_percentile_dict(arr=new_arrs_base[1], 
-                                                                        dt_arr=new_arrs_base[0], 
-                                                                        percentile=maps.map_indice_percentile_value[indice_name][g], 
-                                                                        window_width=window_width, 
-                                                                        only_leap_years=only_leap_years, 
-                                                                        callback=None, callback_percentage_start_value=0, callback_percentage_total=100, 
-                                                                        chunk_counter=1, 
-                                                                        precipitation=maps.map_variable_precipitation[v],
-                                                                        fill_val=fill_val,
-                                                                        ignore_Feb29th=ignore_Feb29th,
-                                                                        interpolation=interpolation)
-                        
-
-
-                          
-                        if current_intersecting_year == -9999 and cnt==1:  
-                            vars_percentiles[v]['without_bootstrapping'] = pd
-                            
-                            
-                            
-                            if percentiles_to_file != None:
-                                
-                                BIG_PD[v]['out_of_base']=pd
-                                
-                                if opt=='a':
-                                    with open(file_path, 'wb') as handle:
-                                        pickle.dump(BIG_PD, handle)
-                                    print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(file_path)
-                            
-                      
-                        else:
-                            
-                            vars_percentiles[v]['bootstrapping'] = pd
-                            
-                            if percentiles_to_file != None and opt=='b':
-                                
-                                BIG_PD[v]['in_base']=sub_BIG_PD_inb
-                                BIG_PD[v]['in_base'][current_intersecting_year, ytd]=pd
+                    values_arr_key = vars_dict[v]['temporal_slices'][key][3]
+                    current_intersecting_year = -9999
                     
-#                     # REMOVE            
-#                     if  current_intersecting_year != -9999:                                     
-#                         vars_percentiles[v]['bootstrapping'] = pd        
-                                
-                    g+=1
                     
-
+                indice_key = eval(indice_name + '_calculation(values_arr_key, percentiles_arr, fill_val, out_unit=out_unit)')
+                
+                
+            
+            else:
+              
+                if key[1] not in intersecting_years: # key[1] --> year  
+                    current_intersecting_year = -9999
+                    reduced_base_years_list = [-9999]
+                    cnt += 1
+                else:
+                    current_intersecting_year = key[1]
+                    reduced_base_years_list = years_base[:]
+                    reduced_base_years_list.remove(current_intersecting_year)
+    
     
                 
-#                 if current_intersecting_year != -9999:
-#                     if indice_type == 'percentile_based':
-#                         indice_arr_y[i,:,:] = eval(indice_name + '_calculation(VARS_key_values_arr[VARS_key_values_arr.keys()[0]], dt_arr_key, VARS_key_pd[VARS_key_pd.keys()[0]], fill_val=fill_values[0], out_unit=out_unit)') 
-#                     elif indice_type == 'percentile_based_multivariable':   
-#                         indice_arr_y[i,:,:] = eval(indice_name + '_calculation(VARS_key_values_arr[VARS_key_values_arr.keys()[0]], VARS_key_pd[VARS_key_pd.keys()[0]], VARS_key_values_arr[VARS_key_values_arr.keys()[1]], VARS_key_pd[VARS_key_pd.keys()[1]], dt_arr_key, fill_values[0], fill_values[1], out_unit=out_unit)')
-#                     
-#                     
-#                     if callback != None:
-#                         percentage_current_key_intersect_year = percentage_current_key1 + percentage_key/((len(intersecting_years)-1)*1.0)
-#                         callback(percentage_current_key_intersect_year)
-#                         percentage_current_key1 = percentage_current_key_intersect_year
-#                 else:
-#                     if indice_type == 'percentile_based':
-#                         indice_arr_y[i,:,:] = eval(indice_name + '_calculation(VARS_key_values_arr[VARS_key_values_arr.keys()[0]], dt_arr_key, VARS_key_pd_whole[VARS_key_pd_whole.keys()[0]], fill_val=fill_values[0], out_unit=out_unit)') 
-#                     elif indice_type == 'percentile_based_multivariable':             
-#                         indice_arr_y[i,:,:] = eval(indice_name + '_calculation(VARS_key_values_arr[VARS_key_values_arr.keys()[0]], VARS_key_pd_whole[VARS_key_pd_whole.keys()[0]], VARS_key_values_arr[VARS_key_values_arr.keys()[1]], VARS_key_pd_whole[VARS_key_pd_whole.keys()[1]], dt_arr_key, fill_values[0], fill_values[1], out_unit=out_unit)')
-#               
-                vars = vars_dict.keys()
-                p1 = vars_dict[vars[0]]['temporal_slices'][key][3]
-
-
-                p3 = vars_dict[vars[0]]['temporal_slices'][key][4]
+                indice_arr_y = numpy.zeros(( len(reduced_base_years_list), nb_rows, nb_columns))
+    
+                  
+                i=0
                 
-
+                percentage_current_key1 = percentage_current_key
                 
-                
-                if current_intersecting_year != -9999:
-                    p2 = vars_percentiles[vars[0]]['bootstrapping']
+                for ytd in reduced_base_years_list:
                     
-                    if indice_type == 'percentile_based':
-                        indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, dt_arr_key, p2, fill_val=p3, out_unit=out_unit)') 
-                    elif indice_type == 'percentile_based_multivariable':  
-                        p4 = vars_dict[vars[1]]['temporal_slices'][key][3] 
-                        p6 = vars_dict[vars[1]]['temporal_slices'][key][4]
-                        p5 = vars_percentiles[vars[1]]['bootstrapping']
-                        indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, p2, p4, p5, dt_arr_key, fill_val1=p3, fill_val2=p6, out_unit=out_unit)')
-                    
-                    
-                    if callback != None:
-                        percentage_current_key_intersect_year = percentage_current_key1 + percentage_key/((len(intersecting_years)-1)*1.0)
-                        callback(percentage_current_key_intersect_year)
-                        percentage_current_key1 = percentage_current_key_intersect_year
-                else:
-                    p2_ = vars_percentiles[vars[0]]['without_bootstrapping']
-                    
-                    if indice_type == 'percentile_based':
-                        indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, dt_arr_key, p2_, fill_val=p3, out_unit=out_unit)') 
-                    elif indice_type == 'percentile_based_multivariable':  
-                        p4 = vars_dict[vars[1]]['temporal_slices'][key][3] 
-                        p6 = vars_dict[vars[1]]['temporal_slices'][key][4]
-                        p5_ = vars_percentiles[vars[1]]['without_bootstrapping']
-                        indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, p2_, p4, p5_, dt_arr_key, fill_val1=p3, fill_val2=p6, out_unit=out_unit)')
+      
+                    g=0
+                    for v in vars_dict.keys():
+                        vars_percentiles[v] = percentiles_calc_method
+          
+                        dt_arr_key = vars_dict[v]['temporal_slices'][key][2]
+                        values_arr_key = vars_dict[v]['temporal_slices'][key][3]                        
+                        fill_val = vars_dict[v]['temporal_slices'][key][4]
+    
+                          
+    
+      
+                        new_arrs_base = time_subset.get_resampled_arrs(dt_arr=vars_dict[v]['base']['dt_arr'],
+                                                                       values_arr=vars_dict[v]['base']['values_arr'],
+                                                                       year_to_eliminate=current_intersecting_year, 
+                                                                       year_to_duplicate=ytd)
+                        
+                        
+                        
+                        if percentiles_to_file != None and cnt==1:
+                            sub_BIG_PD_v = OrderedDict()
+                            BIG_PD[v] = sub_BIG_PD_v
+                            
+                            
+                        # for not "in-base" years we compute pd ONLY one time (i.e. when cnt=1)
+                        if current_intersecting_year != -9999 or cnt == 1:
+    #                     if cnt == 1:  # REMOVE  
+    #                         print "ZZZ"
 
-                
-                      
-                i+=1
-              
-            if  current_intersecting_year == -9999:  
-                indice_key = indice_arr_y
-                indice_key = indice_key.reshape(indice_key.shape[1], indice_key.shape[2]) # 3D --> 2D
-                
-            else: 
-                #print  indice_arr_y[:,0,0]
-                indice_key = numpy.mean(indice_arr_y, axis=0)
-                #print '===='
+                            pd = percentile_dict.get_percentile_dict(arr=new_arrs_base[1], 
+                                                                            dt_arr=new_arrs_base[0], 
+                                                                            percentile=maps.map_indice_percentile_value[indice_name][g], 
+                                                                            window_width=window_width, 
+                                                                            only_leap_years=only_leap_years, 
+                                                                            callback=None, callback_percentage_start_value=0, callback_percentage_total=100, 
+                                                                            chunk_counter=1, 
+                                                                            #precipitation=maps.map_variable_precipitation[v],
+                                                                            fill_val=fill_val,
+                                                                            ignore_Feb29th=ignore_Feb29th,
+                                                                            interpolation=interpolation)
+                            
+    
+    
+                              
+                            if current_intersecting_year == -9999 and cnt==1:  
+                                vars_percentiles[v]['without_bootstrapping'] = pd
+                                
+                                
+                                
+                                if percentiles_to_file != None:
+                                    
+                                    BIG_PD[v]['out_of_base']=pd
+                                    
+                                    if opt=='a':
+                                        with open(file_path, 'wb') as handle:
+                                            pickle.dump(BIG_PD, handle)
+                                        print "The dictionary with daily percentiles is saved in the file: " + os.path.abspath(file_path)
+                                
+                          
+                            else:
+                                
+                                vars_percentiles[v]['bootstrapping'] = pd
+                                
+                                if percentiles_to_file != None and opt=='b':
+                                    
+                                    BIG_PD[v]['in_base']=sub_BIG_PD_inb
+                                    BIG_PD[v]['in_base'][current_intersecting_year, ytd]=pd
+                        
+    #                     # REMOVE            
+    #                     if  current_intersecting_year != -9999:                                     
+    #                         vars_percentiles[v]['bootstrapping'] = pd        
+                                    
+                        g+=1
+                        
+          
+                    vars = vars_dict.keys()
+                    p1 = vars_dict[vars[0]]['temporal_slices'][key][3]
+    
+    
+                    p3 = vars_dict[vars[0]]['temporal_slices'][key][4]
+                    
+    
+                    
+                    
+                    if current_intersecting_year != -9999:
+                        p2 = vars_percentiles[vars[0]]['bootstrapping']
+                        
+                        if indice_type == 'percentile_based':
+                            indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, dt_arr_key, p2, fill_val=p3, out_unit=out_unit)') 
+                        elif indice_type == 'percentile_based_multivariable':  
+                            p4 = vars_dict[vars[1]]['temporal_slices'][key][3] 
+                            p6 = vars_dict[vars[1]]['temporal_slices'][key][4]
+                            p5 = vars_percentiles[vars[1]]['bootstrapping']
+                            indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, p2, p4, p5, dt_arr_key, fill_val1=p3, fill_val2=p6, out_unit=out_unit)')
+                        
+                        
+                        if callback != None:
+                            percentage_current_key_intersect_year = percentage_current_key1 + percentage_key/((len(intersecting_years)-1)*1.0)
+                            callback(percentage_current_key_intersect_year)
+                            percentage_current_key1 = percentage_current_key_intersect_year
+                    else:
+                        p2_ = vars_percentiles[vars[0]]['without_bootstrapping']
+                        
+                        if indice_type == 'percentile_based':
+                            indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, dt_arr_key, p2_, fill_val=p3, out_unit=out_unit)') 
+                        elif indice_type == 'percentile_based_multivariable':  
+                            p4 = vars_dict[vars[1]]['temporal_slices'][key][3] 
+                            p6 = vars_dict[vars[1]]['temporal_slices'][key][4]
+                            p5_ = vars_percentiles[vars[1]]['without_bootstrapping']
+                            indice_arr_y[i,:,:] = eval(indice_name + '_calculation(p1, p2_, p4, p5_, dt_arr_key, fill_val1=p3, fill_val2=p6, out_unit=out_unit)')
+    
+                    
+                          
+                    i+=1
+                  
+                if  current_intersecting_year == -9999:  
+                    indice_key = indice_arr_y
+                    indice_key = indice_key.reshape(indice_key.shape[1], indice_key.shape[2]) # 3D --> 2D
+                    
+                else: 
+                    #print  indice_arr_y[:,0,0]
+                    indice_key = numpy.mean(indice_arr_y, axis=0)
+                    #print '===='
     
 
     

@@ -185,12 +185,31 @@ def WCSDI(arr, dt_arr, percentile_dict, logical_operation, fill_val=None, N=6):
 
     return WCSDI    
 
-def RXXp(arr, dt_arr, percentile_dict, logical_operation='gt', pr_thresh = 1.0, fill_val=None, out_unit="days"):
+
+# def get_wet_days(arr, pr_thresh = 1.0, logical_operation='gt', fill_val=None):
+#     '''
+#     Return binary 3D array with the same same as arr, where 1 is a wet day.
+#     '''
+#     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
+#     arr_masked = arr_masked*60*60*24            # mm/day
+#     
+#     # we need to check only wet days (i.e. days with RR >= 1 mm)
+#     # so, we mask all values < 1 mm with the same fill_value
+#     mask_arr_masked = arr_masked < pr_thresh # mask
+#     arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
+#   
+#     # we are looking for the values which are greater than the Xth percentile  
+#     bin_arr = get_binary_arr(arr_masked_masked[:,:,:], percentile_arr, logical_operation=logical_operation)
+    
+    
+    
+
+def RXXp(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=None, out_unit="days"):
     '''
     Calculate a RXXp indice, where XX is a percentile value.
 
     '''
-    RXXp = numpy.zeros((arr.shape[1], arr.shape[2]))
+    #RXXp = numpy.zeros((arr.shape[1], arr.shape[2]))
 
     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
     arr_masked = arr_masked*60*60*24            # mm/day
@@ -199,26 +218,15 @@ def RXXp(arr, dt_arr, percentile_dict, logical_operation='gt', pr_thresh = 1.0, 
     # so, we mask all values < 1 mm with the same fill_value
     mask_arr_masked = arr_masked < pr_thresh # mask
     arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
-      
-    i=0
-    for dt in dt_arr:
-        
-        # current calendar day
-        m = dt.month
-        d = dt.day
-
-        current_perc_arr = percentile_dict[m,d]
-
-        # we are looking for the values which are greater than the 75th percentile  
-        bin_arr = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation=logical_operation) 
-        RXXp = RXXp + bin_arr
-        
-        i+=1
+  
+    # we are looking for the values which are greater than the Xth percentile  
+    bin_arr = get_binary_arr(arr_masked_masked, percentile_arr, logical_operation=logical_operation) 
+    RXXp = numpy.sum(bin_arr, axis=0)
      
     if out_unit == "days":
         RXXp = RXXp
     elif out_unit == "%":
-        RXXp = RXXp*(100./len(dt_arr))
+        RXXp = RXXp*(100./arr.shape[0])
     
     # RESULT must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
     if isinstance(arr, numpy.ma.MaskedArray):
@@ -227,60 +235,31 @@ def RXXp(arr, dt_arr, percentile_dict, logical_operation='gt', pr_thresh = 1.0, 
     return RXXp    
 
 
-def RXXpTOT(arr, dt_arr, percentile_dict, logical_operation='let', pr_thresh = 1.0, fill_val=None):
+def RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=None):
     '''
     Calculate a RXXpTOT indice, where XX is a percentile value.
     '''
-
-    RXXpTOT = numpy.zeros((arr.shape[1], arr.shape[2]))
     
+    #RXXpTOT = numpy.zeros((arr.shape[1], arr.shape[2]))
+
     arr_masked = get_masked_arr(arr, fill_val)  # mm/s
     arr_masked = arr_masked*60*60*24            # mm/day
     
     # we need to check only wet days (i.e. days with RR >= 1 mm)
     # so, we mask all values < 1 mm with the same fill_value
-    mask_arr_masked = arr_masked < pr_thresh
-    
+    mask_arr_masked = arr_masked < pr_thresh # mask
     arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked, fill_value=arr_masked.fill_value)
+  
+    # we are looking for the values which are greater than the Xth percentile  
+    bin_arr = get_binary_arr(arr_masked_masked, percentile_arr, logical_operation=logical_operation)
     
+    # we inverse bin_arr to get a mask (i.e. to mask values which are less or equal than the Xth percentile)
+    maska = numpy.logical_not(bin_arr)
     
-    i=0
-    for dt in dt_arr:
-        
-        # current calendar day
-        m = dt.month
-        d = dt.day
-#         print m, d
-#         print "arr_masked, thresh=1mm: ", arr_masked_masked[i,:,:]
-        
-        current_perc_arr = percentile_dict[m,d]
-        
-#         print "currenct_calday_perc: ", current_perc_arr
-        
-        # we are looking for the values which are greater than the XXth percentile
-        # so, we need first to mask all values <= XXth percentile
-        mask = get_binary_arr(arr_masked_masked[i,:,:], current_perc_arr, logical_operation=logical_operation) 
-        
-#         print "bin array: ", mask
-        
-        arr_current_slice_masked = numpy.ma.array(arr_masked_masked[i,:,:], mask=mask, fill_value=0.0) # we mask again the arr_masked_masked 
-        
-#         print "res: ", arr_current_slice_masked
-        
-        arr_current_slice = arr_current_slice_masked.filled() # filled with 0.0 ==> array with daily precipitation amount >= 1.O mm 
-        
-#         print "res filled with 0: ", arr_current_slice
-        
-        RXXpTOT = RXXpTOT + arr_current_slice # sum of all daily precipitation amounts >= 1.O mm
-        
-#         print "SUM:", RXXpTOT
-#         print " "
-#         print '===='
-#         print " "
-        
-        i+=1
-        
-    # RESULT must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
+    # we apply the mask to arr_masked_masked
+    arr_m = numpy.ma.array(arr_masked_masked, mask=maska, fill_value=arr_masked.fill_value)
+    
+    RXXpTOT = numpy.sum(arr_m, axis=0)
 
     if isinstance(arr, numpy.ma.MaskedArray):
         RXXpTOT = numpy.ma.array(RXXpTOT, mask=RXXpTOT==arr_masked.fill_value, fill_value=arr_masked.fill_value)
@@ -578,7 +557,7 @@ def CSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6, out_unit=
 
     
 
-def R75p_calculation(arr, dt_arr, percentile_dict, pr_thresh = 1.0, fill_val=None, out_unit="days"):
+def R75p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
     '''
     Calculate the R75p indice: number of moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the base period).
     
@@ -599,12 +578,12 @@ def R75p_calculation(arr, dt_arr, percentile_dict, pr_thresh = 1.0, fill_val=Non
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
 
     '''
-    R75p = RXXp(arr, dt_arr, percentile_dict, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val, out_unit=out_unit)
+    R75p = RXXp(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val, out_unit=out_unit)
     
     return R75p    
 
 
-def R95p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):
+def R95p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
     '''
     Calculate the R95p indice: number of very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the base period).
     
@@ -623,12 +602,12 @@ def R95p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
 
     '''
-    R95p = RXXp(arr, dt_arr, percentile_dict, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val, out_unit=out_unit)  
+    R95p = RXXp(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val, out_unit=out_unit)  
 
     return R95p
 
 
-def R99p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):
+def R99p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
     '''
     Calculate the R99p indice: number of extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the base period).
     
@@ -648,12 +627,12 @@ def R99p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
 
     '''
-    R99p = RXXp(arr, dt_arr, percentile_dict, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val, out_unit=out_unit) 
+    R99p = RXXp(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val, out_unit=out_unit) 
     
     return R99p
 
 
-def R75pTOT_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit=None):
+def R75pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
     '''
     Calculate the R75pTOT indice: precipitation fraction due to moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the base period) [%]
     
@@ -673,12 +652,12 @@ def R75pTOT_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit=No
 
     '''
     
-    R75pTOT = RXXpTOT(arr, dt_arr, percentile_dict, logical_operation='let', pr_thresh = 1.0, fill_val=fill_val)
+    R75pTOT = RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val)
     
     return R75pTOT
     
 
-def R95pTOT_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit=None):
+def R95pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
     '''
     Calculate the R95pTOT indice: precipitation fraction due to very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the base period) [%]
     
@@ -698,11 +677,11 @@ def R95pTOT_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit=No
 
     '''
        
-    R95pTOT = RXXpTOT(arr, dt_arr, percentile_dict, logical_operation='let', pr_thresh = 1.0, fill_val=fill_val)
+    R95pTOT = RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val)
     
     return R95pTOT
 
-def R99pTOT_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit=None):
+def R99pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
     '''
     Calculate the R99pTOT indice: precipitation fraction due to extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the base period) [%]
     
@@ -722,7 +701,7 @@ def R99pTOT_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit=No
 
     '''
         
-    R99pTOT = RXXpTOT(arr, dt_arr, percentile_dict, logical_operation='let', pr_thresh = 1.0, fill_val=fill_val)
+    R99pTOT = RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val)
     
     return R99pTOT
 
