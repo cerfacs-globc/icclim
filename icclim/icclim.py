@@ -314,8 +314,11 @@ def indice(indice_name,
         VARS[v] = current_var_dict        
         
         dict_files_years_to_process = files_order.get_dict_files_years_to_process_in_correct_order(files_list=VARS_in_files[v], time_range=time_range)  
+        VARS[v]['files_years'] = dict_files_years_to_process
         
-        VARS[v]['files_years'] = dict_files_years_to_process 
+        if indice_type == "percentile_based" or indice_type == "percentile_based_multivariable":
+            dict_files_years_to_process_base = files_order.get_dict_files_years_to_process_in_correct_order(files_list=VARS_in_files[v], time_range=base_period_time_range)
+            VARS[v]['files_years_base'] = dict_files_years_to_process_base
 
         dim_name = util_nc.check_unlimited(VARS_in_files[v][0])
         tile_dimension = arr_size.get_tile_dimension(in_files=dict_files_years_to_process.keys(), 
@@ -434,7 +437,11 @@ def indice(indice_name,
             VARS[v]['values_arr']=arrs_current_chunk[1] 
 
             if indice_type == "percentile_based" or indice_type == "percentile_based_multivariable":
-
+                
+                ncb = MFDataset(VARS[v]['files_years_base'].keys(), 'r', aggdim=dim_name)
+                var_time = ncb.variables[indice_dim[0]]
+                var = ncb.variables[v]                   
+                
                 arrs_base_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
                                                                             fill_val=VARS[v]['fill_value'], 
                                                                             time_range=base_period_time_range, 
