@@ -119,7 +119,6 @@ def TXXXp(arr, dt_arr, percentile_dict, logical_operation, fill_val=None, out_un
     if out_unit == "days":
         TXXXp = TXXXp
     elif out_unit == "%":
-        print len(dt_arr)
         TXXXp = TXXXp*(100./len(dt_arr))
     
     # RESULT must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
