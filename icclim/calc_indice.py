@@ -735,7 +735,7 @@ def CDD_calculation(arr, fill_val=None, threshold=1.0):
     Calculates the CDD indice: maximum number of consecutive dry days (i.e. days with daily precipitation amount < 1 mm) [days].
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
-    :param arr: daily precipitation flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -743,14 +743,12 @@ def CDD_calculation(arr, fill_val=None, threshold=1.0):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    c = 60*60*24                          # mm/s --> mm/day
-    
-    CDD = get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='lt', coef=c, fill_val=fill_val)
+    CDD = get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='lt', coef=1.0, fill_val=fill_val)
 
     return CDD
 
@@ -761,7 +759,7 @@ def PRCPTOT_calculation(arr, fill_val=None):
     '''
     Calculates the PRCPTOT indice: precipitation sum [mm]
     
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -769,13 +767,13 @@ def PRCPTOT_calculation(arr, fill_val=None):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    c = 60*60*24 # mm/s --> mm/day
-    PRCPTOT = simple_stat(arr, stat_operation="sum", coef=c, fill_val=fill_val, thresh=1.0, logical_operation='lt')
+
+    PRCPTOT = simple_stat(arr, stat_operation="sum", coef=1.0, fill_val=fill_val, thresh=1.0, logical_operation='lt')
     
     return PRCPTOT
 
@@ -785,7 +783,7 @@ def RR1_calculation(arr, fill_val=None, threshold=1.0):
     '''
     Calculates the RR1 indice: number of wet days (i.e. days with daily precipitation amount > = 1 mm) [days]
     
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -793,12 +791,12 @@ def RR1_calculation(arr, fill_val=None, threshold=1.0):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    c = 60*60*24 # mm/s --> mm/day
-    RR1 = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
+
+    RR1 = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
     
     return RR1
 
@@ -809,7 +807,7 @@ def CWD_calculation(arr, fill_val=None, threshold=1.0):
     Calculates the CWD indice: maximum number of consecutive wet days (i.e. days with daily precipitation amount > = 1 mm) [days].
     This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -817,14 +815,13 @@ def CWD_calculation(arr, fill_val=None, threshold=1.0):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
-    c = 60*60*24                          # mm/s --> mm/day
     
-    CWD = get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
+    CWD = get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
 
     return CWD
 
@@ -833,7 +830,7 @@ def SDII_calculation(arr, fill_val=None):
     '''
     Calculates the SDII (simple daily intensity index) indice:  mean precipitation amount of wet days (i.e. days with daily precipitation amount > = 1 mm) [mm]
     
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -841,15 +838,15 @@ def SDII_calculation(arr, fill_val=None):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
     pr_thresh = 1                               # precipitation threshold = 1 mm
     
-    arr_masked = get_masked_arr(arr, fill_val)  # mm/s
-    arr_masked = arr_masked*60*60*24            # mm/day
+    arr_masked = get_masked_arr(arr, fill_val)  # mm/day
+
     
     # 1st step: we count wet days
     arr_masked_bool = (arr_masked >= pr_thresh) # array with True/False values
@@ -874,7 +871,7 @@ def R10mm_calculation(arr, fill_val=None, threshold=10.0):
     '''
     Calculates the R10mm indice: number of heavy precipitation days (i.e. days with daily precipitation amount > = 10 mm) [days]
     
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -882,14 +879,13 @@ def R10mm_calculation(arr, fill_val=None, threshold=10.0):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
     
-    c = 60*60*24 # mm/s --> mm/day
-    R10mm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
+    R10mm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
     
     return R10mm
     
@@ -898,7 +894,7 @@ def R20mm_calculation(arr, fill_val=None, threshold=20.0):
     '''
     Calculates the R20mm indice: number of very heavy precipitation days (i.e. days with daily precipitation amount > = 20 mm) [days]
     
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -906,13 +902,13 @@ def R20mm_calculation(arr, fill_val=None, threshold=20.0):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    c = 60*60*24 # mm/s --> mm/day
-    R20mm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
+
+    R20mm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
     
     return R20mm
 
@@ -921,7 +917,7 @@ def RX1day_calculation(arr, fill_val=None):
     '''
     Calculates the RX1day indice: maximum 1-day precipitation amount [mm]
     
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -929,13 +925,12 @@ def RX1day_calculation(arr, fill_val=None):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    arr_masked = get_masked_arr(arr, fill_val)  # mm/s
-    arr_masked = arr_masked*60*60*24            # mm/day
+    arr_masked = get_masked_arr(arr, fill_val)  # mm/day
     
     RX1day = arr_masked.max(axis=0)    
     numpy.ma.set_fill_value(RX1day, arr_masked.fill_value)
@@ -952,7 +947,7 @@ def RX5day_calculation(arr, fill_val=None):
     Calculates the RX5day indice: maximum consecutive 5-day precipitation amount [mm]
     This function calls C function "find_max_sum_slidingwindow_3d" from libC.c
     
-    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/s
+    :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -960,12 +955,11 @@ def RX5day_calculation(arr, fill_val=None):
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
          
-    .. warning:: Units of "arr" must be mm/s.
+    .. warning:: Units of "arr" must be mm/day.
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    arr = arr*60*60*24                          # mm/s --> mm/day
     w_width = 5                                 # 5-day window
 
         
@@ -1003,15 +997,15 @@ def RX5day_calculation(arr, fill_val=None):
 
 ###### snow indices
 '''
-WARNING: needs to define type of input array: snowfall flux (prsn, mm/s) or snow depth (snd, m) --> ???
-Currently: mm/s
+WARNING: needs to define type of input array: snowfall flux (prsn, mm/day) or snow depth (snd, m) --> ???
+Currently: mm/day
 '''
 
 def SD_calculation(arr, fill_val=None):
     '''
     Calculates the SD indice: mean of daily snow depth [cm]
     
-    :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/s
+    :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -1025,7 +1019,7 @@ def SD_calculation(arr, fill_val=None):
     '''
     
 
-    c = (60*60*24)*0.1 # mm/s --> cm/day
+    c = 0.1 # mm/day --> cm/day
     SD = simple_stat(arr, stat_operation='mean', coef=c, fill_val=fill_val)
     
     return SD
@@ -1035,7 +1029,7 @@ def SD1_calculation(arr, fill_val=None, threshold=1.0):
     '''
     Calculates the SD1 indice: number of days with snow depth >= 1 cm [days]
     
-    :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/s
+    :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -1049,7 +1043,7 @@ def SD1_calculation(arr, fill_val=None, threshold=1.0):
     '''
     
     
-    c = (60*60*24)*0.1 # mm/s --> cm/day
+    c = 0.1 # mm/day --> cm/day
     SD1 = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
     
     return SD1
@@ -1059,7 +1053,7 @@ def SD5cm_calculation(arr, fill_val=None, threshold=5.0):
     '''
     Calculates the SD5cm indice: number of days with snow depth >= 5 cm [days]
     
-    :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/s
+    :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -1072,7 +1066,7 @@ def SD5cm_calculation(arr, fill_val=None, threshold=5.0):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    c = (60*60*24)*0.1 # mm/s --> cm/day
+    c = 0.1 # mm/day --> cm/day
     SD5cm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
     
     return SD5cm
@@ -1082,7 +1076,7 @@ def SD50cm_calculation(arr, fill_val=None, threshold=50.0):
     '''
     Calculates the SD50cm indice: number of days with snow depth >= 50 cm [days]
     
-    :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/s
+    :param arr: daily snowfall precipitation flux (e.g. "prsn") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
@@ -1095,7 +1089,7 @@ def SD50cm_calculation(arr, fill_val=None, threshold=50.0):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    c = (60*60*24)*0.1 # mm/s --> cm/day
+    c = 0.1 # mm/day --> cm/day
     SD50cm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
     
     return SD50cm   

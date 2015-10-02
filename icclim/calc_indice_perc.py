@@ -210,8 +210,7 @@ def RXXp(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=
     '''
     #RXXp = numpy.zeros((arr.shape[1], arr.shape[2]))
 
-    arr_masked = get_masked_arr(arr, fill_val)  # mm/s
-    arr_masked = arr_masked*60*60*24            # mm/day
+    arr_masked = get_masked_arr(arr, fill_val)  # mm/day
     
     # we need to check only wet days (i.e. days with RR >= 1 mm)
     # so, we mask all values < 1 mm with the same fill_value
@@ -241,8 +240,7 @@ def RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_v
     
     #RXXpTOT = numpy.zeros((arr.shape[1], arr.shape[2]))
 
-    arr_masked = get_masked_arr(arr, fill_val)  # mm/s
-    arr_masked = arr_masked*60*60*24            # mm/day
+    arr_masked = get_masked_arr(arr, fill_val)  # # mm/day
     
     # we need to check only wet days (i.e. days with RR >= 1 mm)
     # so, we mask all values < 1 mm with the same fill_value
@@ -281,7 +279,7 @@ def CD_CW_WD_WW(t_arr, t_percentile_dict, t_logical_operation, p_arr, p_percenti
     p_arr_masked = get_masked_arr(p_arr, fill_val2)
 
     # 2) p_arr: mm/s ---> mm/day ; we are looking only for wet days (RR > 1 mm), i.e. we mask values < 1 mm
-    p_arr_masked = p_arr_masked*60*60*24            # mm/day
+    #p_arr_masked = p_arr_masked*60*60*24            # mm/day
     mask_p_arr = p_arr_masked<pr_thresh
     p_arr_masked_masked = numpy.ma.array(p_arr_masked, mask=mask_p_arr) 
 
@@ -560,7 +558,7 @@ def R75p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
     '''
     Calculate the R75p indice: number of moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the base period).
     
-    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
@@ -586,7 +584,7 @@ def R95p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
     '''
     Calculate the R95p indice: number of very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the base period).
     
-    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
@@ -610,7 +608,7 @@ def R99p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
     '''
     Calculate the R99p indice: number of extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the base period).
     
-    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
@@ -635,7 +633,7 @@ def R75pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
     '''
     Calculate the R75pTOT indice: precipitation fraction due to moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the base period) [%]
     
-    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
@@ -660,7 +658,7 @@ def R95pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
     '''
     Calculate the R95pTOT indice: precipitation fraction due to very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the base period) [%]
     
-    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
@@ -684,7 +682,7 @@ def R99pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
     '''
     Calculate the R99pTOT indice: precipitation fraction due to extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the base period) [%]
     
-    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/s
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param dt_arr: corresponding time steps vector
     :type dt_arr: numpy.ndarray (1D) of datetime objects
@@ -713,7 +711,7 @@ def CD_calculation(t_arr, t_25th_percentile_dict, p_arr, p_25th_percentile_dict,
     :type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param t_25th_percentile_dict: 25th percentile of daily min temperature
     :type t_25th_percentile_dict: dict
-    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/day
     :type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param p_25th_percentile_dict: 25th percentile of daily precipitation amount at wet days in mm/day
     :type p_25th_percentile_dict: dict
@@ -747,7 +745,7 @@ def CW_calculation(t_arr, t_25th_percentile_dict, p_arr, p_75th_percentile_dict,
     :type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param t_25th_percentile_dict: 25th percentile of daily min temperature
     :type t_25th_percentile_dict: dict
-    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/day
     :type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param p_75th_percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
     :type p_75th_percentile_dict: dict
@@ -783,7 +781,7 @@ def WD_calculation(t_arr, t_75th_percentile_dict, p_arr, p_25th_percentile_dict,
     :type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param t_75th_percentile_dict: 75th percentile of daily min temperature
     :type t_75th_percentile_dict: dict
-    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/day
     :type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param p_25th_percentile_dict: 25th percentile of daily precipitation amount at wet days in mm/day
     :type p_25th_percentile_dict: dict
@@ -817,7 +815,7 @@ def WW_calculation(t_arr, t_75th_percentile_dict, p_arr, p_75th_percentile_dict,
     :type t_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param t_75th_percentile_dict: 75th percentile of daily min temperature
     :type t_75th_percentile_dict: dict
-    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/s
+    :param p_arr: daily precipitation amount at wet day (RR >= 1.0 mm) (e.g. "pr") in mm/day
     :type p_arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param p_75th_percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
     :type p_75th_percentile_dict: dict

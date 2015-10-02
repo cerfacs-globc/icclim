@@ -187,7 +187,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
     Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
     
-    :param arr: array of values (in case of precipitation, units must be `mm/s`)
+    :param arr: array of values 
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) of float
     
     :param dt_arr: corresponding time steps vector (base period: usually 1961-1990)
@@ -315,13 +315,13 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
 
 
 def get_percentile_arr(arr, percentile, window_width, callback=None, callback_percentage_start_value=0, 
-                        callback_percentage_total=100, chunk_counter=1, input_units="mm/day", fill_val=None,
+                        callback_percentage_total=100, chunk_counter=1, precipitation=True, fill_val=None,
                         interpolation="hyndman_fan"):
     '''
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
     Example - to get the 2D percentile array corresponding to the 15th Mai: percentile_dict[5,15]
     
-    :param arr: array of values (in case of precipitation, units must be `mm/s`)
+    :param arr: array of values (in case of precipitation, units must be `mm/day`)
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) of float
     
     :param dt_arr: corresponding time steps vector (base period: usually 1961-1990)
@@ -348,8 +348,8 @@ def get_percentile_arr(arr, percentile, window_width, callback=None, callback_pe
     :param chunk_counter: chunk counter in case of chunking 
     :type chunk_counter: int
     
-    :param input_units: units of `arr` (in case of precipitation variable)
-    :type input_units: str    
+    :param precipitation: if True, only values >=1.0 mm will be processed (i.e. wet days) 
+    :type precipitation: bool    
     
     :param fill_val: fill value of ``arr``
     :type fill_val: float
@@ -368,15 +368,13 @@ def get_percentile_arr(arr, percentile, window_width, callback=None, callback_pe
     fill_val = arr_masked.fill_value
     
     ### not precipitation
-    if input_units == None: 
+    if precipitation == False: 
         arr_filled = arr_masked.filled(fill_val) 
         
         del arr_masked
         
     ### precipitation
     else:
-        if input_units in ["mm/s", "kg m-2 s-1"]:
-            arr_masked = arr_masked*60*60*24 # mm/s --> mm/day
 
         # we need to process only wet days (i.e. days with RR >= 1.0 mm)
         # => we mask values < 1.0 mm 

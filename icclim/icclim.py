@@ -399,8 +399,8 @@ def indice(indice_name,
                 var_scale = 1.0
                 if var_units == 'degC' or var_units == 'Celcius': #Kelvin
                     var_add = var_add + 273.15
-                elif var_units == 'mm': # kg m-2 s-1 (mm/s)
-                    var_scale = var_scale / 86400.0
+                elif var_units in ["mm/s", "mm/sec", "kg m-2 s-1"]: # mm/s --> mm/day
+                    var_scale = var_scale * 86400.0
                     
                 VARS[v]['unit_conversion_var_add']=var_add
                 VARS[v]['unit_conversion_var_scale']=var_scale
@@ -763,7 +763,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                                      callback_percentage_start_value=0, 
                                                                     callback_percentage_total=100, 
                                                                     chunk_counter=1, 
-                                                                    input_units="mm/s", 
+                                                                    precipitation=True, 
                                                                     fill_val=fill_val,                                                                     
                                                                     interpolation=interpolation)
                     
