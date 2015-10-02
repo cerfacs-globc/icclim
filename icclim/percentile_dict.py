@@ -371,6 +371,8 @@ def get_percentile_arr(arr, percentile, window_width, callback=None, callback_pe
     if input_units == None: 
         arr_filled = arr_masked.filled(fill_val) 
         
+        del arr_masked
+        
     ### precipitation
     else:
         if input_units in ["mm/s", "kg m-2 s-1"]:
@@ -384,11 +386,11 @@ def get_percentile_arr(arr, percentile, window_width, callback=None, callback_pe
         # we fill all masked values with fill_val to pass the filled array to the C function
         arr_filled = arr_masked_masked.filled(fill_val)
 
-    del arr_masked, mask_arr_masked, arr_masked_masked
+        del arr_masked, mask_arr_masked, arr_masked_masked
 
           
 
-    ############################## prepare calling C function   
+    ############################## prepare calling C function
     # data type should be 'float32' to pass it to C function
     if arr_filled.dtype != 'float32':
         arr_filled = numpy.array(arr_filled, dtype='float32')
