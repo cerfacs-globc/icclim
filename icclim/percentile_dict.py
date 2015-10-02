@@ -315,7 +315,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
 
 
 def get_percentile_arr(arr, percentile, window_width, callback=None, callback_percentage_start_value=0, 
-                        callback_percentage_total=100, chunk_counter=1, precipitation=True, fill_val=None,
+                        callback_percentage_total=100, chunk_counter=1, input_units="mm/day", fill_val=None,
                         interpolation="hyndman_fan"):
     '''
     Creates a dictionary with keys=calendar day (month,day) and values=numpy.ndarray (2D)
@@ -348,8 +348,8 @@ def get_percentile_arr(arr, percentile, window_width, callback=None, callback_pe
     :param chunk_counter: chunk counter in case of chunking 
     :type chunk_counter: int
     
-    :param precipitation: just to inticate if ``arr`` is precipitation (`True`) or other variable (`False`) to process data differently (default: False) 
-    :type precipitation: bool
+    :param input_units: units of `arr` (in case of precipitation variable)
+    :type input_units: str    
     
     :param fill_val: fill value of ``arr``
     :type fill_val: float
@@ -367,24 +367,25 @@ def get_percentile_arr(arr, percentile, window_width, callback=None, callback_pe
     
     fill_val = arr_masked.fill_value
     
-            
-    if precipitation == True:
+    ### not precipitation
+    if input_units == None: 
+        arr_filled = arr_masked.filled(fill_val) 
+        
+    ### precipitation
+    else:
+        if input_units in ["mm/s", "kg m-2 s-1"]:
+            arr_masked = arr_masked*60*60*24 # mm/s --> mm/day
 
-        arr_masked = arr_masked*60*60*24 # mm/s --> mm/day
-
-        # 2) we need to process only wet days (i.e. days with RR >= 1.0 mm)
+        # we need to process only wet days (i.e. days with RR >= 1.0 mm)
         # => we mask values < 1.0 mm 
         mask_arr_masked = arr_masked < 1.0 # new mask of the masked array 
         arr_masked_masked = numpy.ma.array(arr_masked, mask=mask_arr_masked)
-         
-        # 3) we fill all masked values with fill_val to pass the filled array to the C function
+     
+        # we fill all masked values with fill_val to pass the filled array to the C function
         arr_filled = arr_masked_masked.filled(fill_val)
 
-        del arr_masked, mask_arr_masked, arr_masked_masked
-        
-    else:
-        arr_filled = arr_masked.filled(fill_val)
-        del arr_masked
+    del arr_masked, mask_arr_masked, arr_masked_masked
+
           
 
     ############################## prepare calling C function   

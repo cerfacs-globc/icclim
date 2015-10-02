@@ -763,7 +763,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                                      callback_percentage_start_value=0, 
                                                                     callback_percentage_total=100, 
                                                                     chunk_counter=1, 
-                                                                    precipitation=True, 
+                                                                    input_units="mm/s", 
                                                                     fill_val=fill_val,                                                                     
                                                                     interpolation=interpolation)
                     
