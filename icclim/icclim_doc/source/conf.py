@@ -59,7 +59,7 @@ copyright = u'2014, CERFACS'
 # built documents.
 #
 # The short X.Y version.
-version = '4.0.0'
+version = '4.0.3'
 # The full version, including alpha/beta/rc tags.
 release = version
 
