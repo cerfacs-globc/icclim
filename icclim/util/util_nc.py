@@ -278,35 +278,6 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_
     if deltat != 86400.0:
         print "WARNING: Time interval of the input file is not daily!! Delta time is: "+str(deltat)
     
-#     if spatial_chunking==False:
-# 
-#         if N_lev == None:
-#             assert(ncVar_values.ndim == 3)
-#             if time_range == None:
-#                 values_arr = (ncVar_values[:,:,:] * scale_factor) + add_offset
-#             else:
-#                 # we adjust datetime.datetime objects from time_range
-#                 dt = util_dt.num2date(ncVar_temporal[:][0], calend, units)
-#                 time_range = util_dt.adjust_time_range(time_range, dt)
-#                 
-#                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-#                 dt_arr = dt_arr[indices_subset]               
-#                 values_arr = (ncVar_values[indices_subset,:,:] * scale_factor) + add_offset
-#         else:
-#             assert(ncVar_values.ndim == 4)
-#             if time_range == None:
-#                 values_arr = (ncVar_values[:,N_lev,:,:] * scale_factor) + add_offset
-#             else:                
-#                 # we adjust datetime.datetime objects from time_range
-#                 dt = util_dt.num2date(ncVar_temporal[:][0], calend, units)
-#                 time_range = util_dt.adjust_time_range(time_range, dt)
-#                 
-#                 indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
-#                 dt_arr = dt_arr[indices_subset]
-#                 values_arr = (ncVar_values[indices_subset,N_lev,:,:] * scale_factor) + add_offset
-#         
-#         
-#     else: # spatial_chunking==True
         
     if N_lev == None:
         assert(ncVar_values.ndim == 3)

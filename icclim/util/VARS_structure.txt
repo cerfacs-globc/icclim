@@ -1,0 +1,68 @@
+VARS is OrderedDict() created in icclim.indice(...) function.
+
+VARS.keys(): list of target variables
+
+
+VARS['any_variable'] is another OrderedDict():
+
+('any_variable' here is any target variable)
+
+VARS['any_variable'].keys():
+
+- 'files_years'
+
+- 'files_years_base' 
+- 'base'
+
+- 'dt_arr'
+- 'values_arr'
+
+- 'temporal_slices'
+
+- 'fill_value'
+
+- 'time_calendar'
+- 'time_units'
+
+- 'unit_conversion_var_scale'
+- 'unit_conversion_var_add'
+
+- 'values_arr_ref' (only for anomalies computing!!)
+
+- 'var_type' ('p' or 't'; only for percentile-based indices)
+
+VARS['any_variable']['dt_arr']: datetime vector (numpy.ndarray, 1D) corresponding to selected 'time_range' (the same for all variables)
+
+VARS['any_variable']['values_arr']: 3D array with values (VARS['any_variable']['values_arr'].shape[0] = VARS['any_variable']['dt_arr'].shape[0])
+
+VARS['any_variable']['fill_value']: value of "_FillValue" attribute of 'any_variable' in input netCDF file(s)
+
+VARS['any_variable']['time_calendar']: value of "calendar" attribute of 'time' variable in input netCDF file(s)
+ 
+VARS['any_variable']['time_units']: value of "units" attribute of 'time' variable in input netCDF file(s)
+
+VARS['any_variable']['files_years']: OrderedDict() with input files as keys and list of years to process as values of keys; result of "files_order.get_dict_files_years_to_process_in_correct_order" function, depends on selected "time_range"
+
+VARS['any_variable']['files_years_base']: OrderedDict(), the same as VARS['any_variable']['files_years'], but for "base_period_time_range"; it is empty in case of no percentile-based indice
+
+VARS['any_variable']['base']: OrderedDict() with keys 'dt_arr' and 'values_arr';  it is empty in case of no percentile-based indice
+
+	- VARS['any_variable']['base']['dt_arr']: datetime vector (numpy.ndarray, 1D) corresponding to selected 'base_period_time_range'
+	- VARS['any_variable']['base']['values_arr']: 3D array with values of base period
+
+
+VARS['any_variable']['temporal_slices']: result of "time_subset.get_dict_temporal_slices" function; OrderedDict() with slices as keys (more details in comment of the "time_subset.get_dict_temporal_slices" function) and tuple as value of keys; used in "icclim.get_indice_from_dict_temporal_slices" function to loop on each slice to get indice for each slice
+
+	- VARS['any_variable']['temporal_slices']['any_slice']: tuple with 5 elements
+		
+		- VARS['any_variable']['temporal_slices']['any_slice'][0]: datetime.datetime - centroid of 'any_slice'
+		- VARS['any_variable']['temporal_slices']['any_slice'][1]: vector of datetime.datetime (numpy.ndarray, 1D; with 2 elements) - bounds of 'any_slice'		
+		- VARS['any_variable']['temporal_slices']['any_slice'][2]: vector of datetime.datetime (numpy.ndarray, 1D) corresponding to 'any_slice'
+		- VARS['any_variable']['temporal_slices']['any_slice'][3]: 3D array with values of 'any_slice'
+		- VARS['any_variable']['temporal_slices']['any_slice'][4]: fill_value 
+		
+		
+#######################
+Before passing to icclim.get_indice_from_dict_temporal_slices 
+keys 'files_years', 'files_years_base', 'dt_arr', 'values_arr', 'unit_conversion_var_add', 'unit_conversion_var_scale' 
+of each target variable are deleted.

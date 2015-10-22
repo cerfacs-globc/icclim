@@ -7,16 +7,11 @@
 
 import numpy
 
-import ctypes
-from numpy.ctypeslib import ndpointer
-import os
+import util.calc as calc
 
-my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
-
-libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
 '''
-Elementary functions computing climate indices:
+Basic routines for computing of climate indices:
 - TG
 - TX
 - TN
@@ -48,197 +43,43 @@ Elementary functions computing climate indices:
 - SD1
 - SD5cm
 - SD50cm
+- TG10p
+- TX10p
+- TN10p
+- TG90p
+- TX90p
+- TN90p
+- WSDI
+- CSDI
+- R75p
+- R75pTOT
+- R95p
+- R95pTOT
+- R99p
+- R99pTOT
+
 '''
 
 
-'''
-Statistics elementary functions
-- TIMEAVG
-- SUB
-'''
+# '''
+# Statistics elementary functions
+# - TIMEAVG
+# - SUB
+# '''
 
 
 '''
-Note: these functions maniputate 3D arrays - usual (numpy.ndarray) or masked (numpy.ma.MaskedArray).
+Note: these functions manipulate 3D arrays - numpy.ndarray or numpy.ma.MaskedArray.
 Return type: the same type as the type of input array(s)
 
 Note: A function name is composed from an indice name and "_calculation" (example: FD_calculation).
 
 Example of function calling:
-        1. if input array is an usual array (numpy.ndarray), a fill_value must be provided: FD_calculation(my_3D_array, fill_val=99999)
-        2. if input array is a masked array (numpy.ma.MaskedArray): FD_calculation(my_3D_masked_array)
-
-Note:
-- 4 functions (CSU, CFD, CDD, CWD):
-        1) transforming input array into usual array (numpy.ndarray)
-        2) C function: processing -> result: usual array
-        3) if input array is masked array: transforming the result into a masked array
-
-- other functions:
-        1) transforming input array into masked array (numpy.ma.MaskedArray)
-        2) processing -> result: masked array
-        3) if input array is usual array: transforming the result into usual array
+        1. if input array is a filled array (numpy.ndarray), a fill_value must be provided: FD_calculation(my_3D_array, fill_val=99999)
+        2. if input array is a masked array (numpy.ma.MaskedArray), fill_values is not required: FD_calculation(my_3D_masked_array)
 
 
 '''
-
-
-
-##### utility function (begin) #####
-def get_binary_arr(arr1, arr2, logical_operation):
-    '''
-    Compare "arr1" with "arr2" and return a binary array with the result.
-    
-    :param arr1: array to comparer with arr2
-    :type arr1: numpy.ndarray
-    :param arr2: reference array or threshold 
-    :type arr2: numpy.ndarray or float or int
-    :rtype: binary numpy.ndarray
-    
-    ..warning:: "arr1" and "arr2" must have the same shape
-    
-    '''
-
-    if logical_operation == 'gt':
-        binary_arr = arr1 > arr2
-        
-    elif logical_operation == 'get':
-            binary_arr = arr1 >= arr2
-            
-    elif logical_operation == 'lt':
-            binary_arr = arr1 < arr2
-            
-    elif logical_operation == 'let':
-            binary_arr = arr1 <= arr2 
-    
-    
-    binary_arr = binary_arr.astype(int) # True/False ---> 1/0
-
-    # if binary_arr is masked array, we fill masked values with 0
-    if isinstance(binary_arr, numpy.ma.MaskedArray):
-        binary_arr = binary_arr.filled(0.0)
-
-    
-    return binary_arr
-
-
-def get_masked_arr(arr, fill_val):
-    '''
-    If a masked array is passed, this function does nothing.
-    If a filled array is passed (fill_value must be passed also), it will be transformed into a masked array.
-    
-    '''
-    if isinstance(arr, numpy.ma.MaskedArray):               # numpy.ma.MaskedArray
-        masked_arr = arr
-    else:                                                   # numpy.ndarray
-        if (fill_val==None):
-            raise(ValueError('If input array is not a masked array, a "fill_value" must be provided.'))
-        mask_arr = (arr==fill_val)
-        masked_arr = numpy.ma.masked_array(arr, mask=mask_arr, fill_value=fill_val)
-    
-    return masked_arr
-
-##### utility function (end) #####
-
-def simple_stat(arr, stat_operation, coef=1.0, fill_val=None, thresh=None, logical_operation='lt'):
-    
-    '''    
-    Used for computing: TG, TX, TN, TXx, TNx, TXn, TNn, PRCPTOT, SD    
-    '''
-    
-    arr_masked = get_masked_arr(arr, fill_val)*coef                # numpy.ma.MaskedArray with fill_value=fill_val (if numpy.ndarray passed) or fill_value=arr.fill_value (if numpy.ma.MaskedArray is passed)
-    
-    if thresh != None:
-        if logical_operation=='gt':
-            mask_a = arr_masked > thresh
-        elif logical_operation=='get':
-            mask_a = arr_masked >= thresh
-        elif logical_operation=='lt':
-            mask_a = arr_masked < thresh
-        if logical_operation=='let':
-            mask_a = arr_masked <= thresh
-        
-        arr_masked = numpy.ma.array(arr_masked, mask=mask_a, fill_value=arr_masked.fill_value)
-    
-    
-    if stat_operation=="mean":
-        RESULT = arr_masked.mean(axis=0)                              # fill_value is changed: RESULT is a new numpy.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
-    elif stat_operation=="min":
-        RESULT = arr_masked.min(axis=0)                              # fill_value is changed: RESULT is a new numpy.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
-    elif stat_operation=="max":
-        RESULT = arr_masked.max(axis=0)                              # fill_value is changed: RESULT is a new numpy.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
-    elif stat_operation=="sum":
-        RESULT = arr_masked.sum(axis=0)                              # fill_value is changed: RESULT is a new numpy.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
-
-    numpy.ma.set_fill_value(RESULT, arr_masked.fill_value)
-    
-    if not isinstance(arr, numpy.ma.MaskedArray):
-        RESULT = RESULT.filled(fill_value=arr_masked.fill_value)      # numpy.ndarray filled with input fill_val
-    
-    return RESULT
-
-
-def get_nb_days(arr, thresh, logical_operation, coef=1.0, fill_val=None):
-    '''
-    Used for computing: SU, TR, FD, ID, RR1, R10mm, R20mm, SD1, SD5cm, SD50cm
-    
-    :param thresh: temperature or precipitation threshold (must be the same unit as arr) 
-    :type thresh: float
-    '''
-    
-    arr_masked = get_masked_arr(arr, fill_val)
-    arr_masked = arr_masked * coef
-    arr_bin = get_binary_arr(arr_masked, thresh, logical_operation) # numpy.ndarray
-    RESULT = arr_bin.sum(axis=0) # numpy.ndarray                    
-    
-    # RESULT must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
-    if isinstance(arr, numpy.ma.MaskedArray):
-        RESULT = numpy.ma.array(RESULT, mask=RESULT==arr_masked.fill_value, fill_value=arr_masked.fill_value)
-    
-    return RESULT
-
-
-
-def get_max_nb_consecutive_days(arr, thresh, logical_operation, coef=1.0, fill_val=None):
-
-    '''
-    Used for computing: CSU, CFD, CDD, CWD
-    '''
-    
-    arr_masked = get_masked_arr(arr, fill_val)
-    arr_masked = arr_masked * coef
-    arr_demasked = arr_masked.filled(fill_value=arr_masked.fill_value)
-    
-    ######
-
-        
-    # array data type should be 'float32' to pass it to C function  
-    if arr_demasked.dtype != 'float32':
-        arr_demasked = numpy.array(arr_demasked, dtype='float32')
-    
-    C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
-    C_find_max_len_consec_sequence_3d.restype = None
-    C_find_max_len_consec_sequence_3d.argtypes = [ndpointer(ctypes.c_float),
-                                                    ctypes.c_int,
-                                                    ctypes.c_int,
-                                                    ctypes.c_int,
-                                                    ndpointer(ctypes.c_double),
-                                                    ctypes.c_float,
-                                                    ctypes.c_float,
-                                                    ctypes.c_char_p] 
-    
-    RESULT = numpy.zeros([arr_demasked.shape[1], arr_demasked.shape[2]]) # reserve memory
-    
-    C_find_max_len_consec_sequence_3d(arr_demasked, arr_demasked.shape[0], arr_demasked.shape[1], arr_demasked.shape[2], RESULT, thresh, fill_val, logical_operation)
-    RESULT = RESULT.reshape(arr_demasked.shape[1], arr_demasked.shape[2])
-    
-    # RESULT must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
-    if isinstance(arr, numpy.ma.MaskedArray):
-        RESULT = numpy.ma.array(RESULT, mask=RESULT==arr_masked.fill_value, fill_value=arr_masked.fill_value)
-
-    return RESULT 
-
-
 
 
 
@@ -260,7 +101,7 @@ def TG_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.    
     '''
     
-    TG = simple_stat(arr, stat_operation="mean", fill_val=fill_val)
+    TG = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)
     
     return TG
 
@@ -281,7 +122,7 @@ def TN_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    TN = simple_stat(arr, stat_operation="mean", fill_val=fill_val)     
+    TN = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)     
     
     return TN
 
@@ -302,7 +143,7 @@ def TX_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    TX = simple_stat(arr, stat_operation="mean", fill_val=fill_val)     
+    TX = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)     
     
     return TX
 
@@ -323,7 +164,7 @@ def TXx_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    TXx = simple_stat(arr, stat_operation="max", fill_val=fill_val)      
+    TXx = calc.simple_stat(arr, stat_operation="max", fill_val=fill_val)      
     
     return TXx
 
@@ -344,7 +185,7 @@ def TNx_calculation(arr, fill_val=None):
     #.. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     
     
-    TNx = simple_stat(arr, stat_operation="max", fill_val=fill_val)     
+    TNx = calc.simple_stat(arr, stat_operation="max", fill_val=fill_val)     
     
     return TNx
 
@@ -365,7 +206,7 @@ def TXn_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    TXn = simple_stat(arr, stat_operation="min", fill_val=fill_val)     
+    TXn = calc.simple_stat(arr, stat_operation="min", fill_val=fill_val)     
     
     return TXn
 
@@ -386,7 +227,7 @@ def TNn_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    TNn = simple_stat(arr, stat_operation="min", fill_val=fill_val)      
+    TNn = calc.simple_stat(arr, stat_operation="min", fill_val=fill_val)      
     
     return TNn
 
@@ -414,14 +255,14 @@ def DTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     '''
     #.. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
       
-    arr1_masked = get_masked_arr(arr1, fill_val1)
-    arr2_masked = get_masked_arr(arr2, fill_val2)
+    arr1_masked = calc.get_masked_arr(arr1, fill_val1)
+    arr2_masked = calc.get_masked_arr(arr2, fill_val2)
     
     range_ = arr1_masked - arr2_masked                              # masked array with fill_value = fill_value of the first masked array in expression (i.e. arr1_masked)
-    DTR = range_.mean(axis=0)                           # masked array with new fill_value
-    numpy.ma.set_fill_value(DTR, arr1_masked.fill_value)      # we set a fill_value = fill_value of arr1_masked (or arr2_masked) 
+    DTR = range_.mean(axis=0)                                       # masked array with new fill_value
+    numpy.ma.set_fill_value(DTR, arr1_masked.fill_value)            # we set a fill_value = fill_value of arr1_masked (or arr2_masked) 
     
-    if not isinstance(arr1, numpy.ma.MaskedArray) :     # or if not isinstance(arr2, numpy.ma.MaskedArray) [because the both input arrays are the same type]
+    if not isinstance(arr1, numpy.ma.MaskedArray) :     #�or if not isinstance(arr2, numpy.ma.MaskedArray) [because the both input arrays are the same type]
         DTR = DTR.filled(fill_value=arr1_masked.fill_value)      
     
     return DTR    
@@ -451,8 +292,8 @@ def ETR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     
     '''  
     
-    arr1_masked = get_masked_arr(arr1, fill_val1)
-    arr2_masked = get_masked_arr(arr2, fill_val2)
+    arr1_masked = calc.get_masked_arr(arr1, fill_val1)
+    arr2_masked = calc.get_masked_arr(arr2, fill_val2)
     
     max_arr1_masked = arr1_masked.max(axis=0)   # masked array with new fill_value (default)
     min_arr2_masked = arr2_masked.min(axis=0)   # masked array with new fill_value (default)
@@ -489,8 +330,8 @@ def vDTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     
     '''  
     
-    arr1_masked = get_masked_arr(arr1, fill_val1)
-    arr2_masked = get_masked_arr(arr2, fill_val2)
+    arr1_masked = calc.get_masked_arr(arr1, fill_val1)
+    arr2_masked = calc.get_masked_arr(arr2, fill_val2)
     
     a = arr1_masked[1:] - arr2_masked[1:]
     b = arr1_masked[:-1] - arr2_masked[:-1]
@@ -506,7 +347,7 @@ def vDTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
 
 ###### heat indices
 
-def SU_calculation(arr, fill_val=None, threshold=25):
+def SU_calculation(arr, fill_val=None, threshold=25, out_unit="days"):
     '''
     Calculates the SU indice: number of summer days (i.e. days with daily maximum temperature > 25 degrees Celsius) [days].
     
@@ -527,7 +368,8 @@ def SU_calculation(arr, fill_val=None, threshold=25):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     T = threshold + 273.15
-    SU = get_nb_days(arr, thresh=T, logical_operation='gt', coef=1.0, fill_val=fill_val)
+    
+    SU = calc.get_nb_events(arr, logical_operation='gt', thresh=T, fill_val=fill_val, out_unit=out_unit)
         
     return SU
 
@@ -535,7 +377,7 @@ def CSU_calculation(arr, fill_val=None, threshold=25):
 
     '''
     Calculates the CSU indice: maximum number of consecutive summer days (i.e. days with daily maximum temperature > 25 degrees Celsius) [days].
-    This function calls C function "find_max_len_consec_sequence_3d" from libC.c
+    
     
     :param arr: daily maximum temperature (e.g. "tasmax") in Kelvin
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -556,13 +398,13 @@ def CSU_calculation(arr, fill_val=None, threshold=25):
         
     T = threshold + 273.15  # Celsius -> Kelvin
     
-    CSU = get_max_nb_consecutive_days(arr, thresh=T, logical_operation='gt', coef=1.0, fill_val=fill_val)
+    CSU = calc.get_max_nb_consecutive_days(arr, thresh=T, logical_operation='gt', coef=1.0, fill_val=fill_val)
     
     return CSU    
 
 
 
-def TR_calculation(arr, fill_val=None, threshold=20):
+def TR_calculation(arr, fill_val=None, threshold=20, out_unit="days"):
     '''
     Calculates the TR indice: number of tropical nights (i.e. days with daily minimum temperature > 20 degrees Celsius) [days]. 
     
@@ -584,14 +426,15 @@ def TR_calculation(arr, fill_val=None, threshold=20):
     '''
     
     T = threshold + 273.15
-    TR = get_nb_days(arr, thresh=T, logical_operation='gt', coef=1.0, fill_val=fill_val)
+    
+    TR = calc.get_nb_events(arr, logical_operation='gt', thresh=T, fill_val=fill_val, out_unit=out_unit)
     
     return TR
 
 
 ###### cold indices
 
-def FD_calculation(arr, fill_val=None, threshold=0):
+def FD_calculation(arr, fill_val=None, threshold=0, out_unit="days"):
     '''
     Calculates the FD indice: number of frost days (i.e. days with daily minimum temperature < 0 degrees Celsius) [days].
     
@@ -609,7 +452,8 @@ def FD_calculation(arr, fill_val=None, threshold=0):
     '''
     
     T = threshold + 273.15
-    FD = get_nb_days(arr, thresh=T, logical_operation='lt', coef=1.0, fill_val=fill_val)
+    
+    FD = calc.get_nb_events(arr, logical_operation='lt', thresh=T, fill_val=fill_val, out_unit=out_unit)
     
     return FD
 
@@ -618,7 +462,6 @@ def CFD_calculation(arr, fill_val=None, threshold=0):
 
     '''
     Calculates the CFD indice: maximum number of consecutive frost days (i.e. days with daily minimum temperature < 0 degrees Celsius) [days].
-    This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
     :param arr: daily min temperature (e.g. "tasmin") in Kelvin
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -635,12 +478,12 @@ def CFD_calculation(arr, fill_val=None, threshold=0):
 
     T = threshold + 273.15  # Celsius -> Kelvin
     
-    CFD = get_max_nb_consecutive_days(arr, thresh=T, logical_operation='lt', coef=1.0, fill_val=fill_val)
+    CFD = calc.get_max_nb_consecutive_days(arr, thresh=T, logical_operation='lt', coef=1.0, fill_val=fill_val)
     
     return CFD 
 
 
-def ID_calculation(arr, fill_val=None, threshold=0):
+def ID_calculation(arr, fill_val=None, threshold=0, out_unit="days"):
     '''
     Calculates the ID indice: number of ice days (i.e. days with daily maximum temperature < 0 degrees Celsius) [days].
     
@@ -658,7 +501,8 @@ def ID_calculation(arr, fill_val=None, threshold=0):
     '''
     
     T = threshold + 273.15
-    ID = get_nb_days(arr, thresh=T, logical_operation='lt', coef=1.0, fill_val=fill_val)
+    
+    ID = calc.get_nb_events(arr, logical_operation='lt', thresh=T, fill_val=fill_val, out_unit=out_unit)
     
     return ID
 
@@ -682,10 +526,10 @@ def HD17_calculation(arr, fill_val=None, threshold=17):
 
     T = threshold + 273.15  # Celsius -> Kelvin
     
-    arr_masked = get_masked_arr(arr, fill_val)
+    arr_masked = calc.get_masked_arr(arr, fill_val)
     
     a = T - arr_masked
-    a[a<0] = 0  # on annule les valeurs qui etaient < 0, i.e. ou arr_masked > T
+    a[a<0] = 0  # we set to zero values < 0    
     HD17 = a.sum(axis=0)
     numpy.ma.set_fill_value(HD17, arr_masked.fill_value)
     
@@ -714,7 +558,7 @@ def GD4_calculation(arr, fill_val=None, threshold=4):
         
     T = threshold + 273.15  # Celsius -> Kelvin
     
-    arr_masked = get_masked_arr(arr, fill_val)
+    arr_masked = calc.get_masked_arr(arr, fill_val)
     
     new_mask = (arr_masked<=T)    
     new_arr_masked = numpy.ma.array(arr_masked, mask=new_mask, fill_value=arr_masked.fill_value) # we masked the temperatures <= 4 C 
@@ -733,12 +577,12 @@ def CDD_calculation(arr, fill_val=None, threshold=1.0):
 
     '''
     Calculates the CDD indice: maximum number of consecutive dry days (i.e. days with daily precipitation amount < 1 mm) [days].
-    This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
     :param arr: daily precipitation flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
     :type fill_val: float
+    
     
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
@@ -748,7 +592,7 @@ def CDD_calculation(arr, fill_val=None, threshold=1.0):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    CDD = get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='lt', coef=1.0, fill_val=fill_val)
+    CDD = calc.get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='lt', coef=1.0, fill_val=fill_val)
 
     return CDD
 
@@ -757,7 +601,7 @@ def CDD_calculation(arr, fill_val=None, threshold=1.0):
 
 def PRCPTOT_calculation(arr, fill_val=None):
     '''
-    Calculates the PRCPTOT indice: precipitation sum [mm]
+    Calculates the PRCPTOT indice: total precipitation in wet days [mm]
     
     :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -772,14 +616,13 @@ def PRCPTOT_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-
-    PRCPTOT = simple_stat(arr, stat_operation="sum", coef=1.0, fill_val=fill_val, thresh=1.0, logical_operation='lt')
+    PRCPTOT = calc.simple_stat(arr, stat_operation="sum", coef=1.0, fill_val=fill_val, thresh=1.0, logical_operation='get')
     
     return PRCPTOT
 
 
    
-def RR1_calculation(arr, fill_val=None, threshold=1.0):
+def RR1_calculation(arr, fill_val=None, threshold=1.0, out_unit="days"):
     '''
     Calculates the RR1 indice: number of wet days (i.e. days with daily precipitation amount > = 1 mm) [days]
     
@@ -796,7 +639,8 @@ def RR1_calculation(arr, fill_val=None, threshold=1.0):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
-    RR1 = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
+    
+    RR1 = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
     
     return RR1
 
@@ -805,7 +649,6 @@ def CWD_calculation(arr, fill_val=None, threshold=1.0):
 
     '''
     Calculates the CWD indice: maximum number of consecutive wet days (i.e. days with daily precipitation amount > = 1 mm) [days].
-    This function calls C function "find_max_len_consec_sequence_3d" from libC.c
     
     :param arr: daily precipitation (liquid form) flux (e.g. "pr") in mm/day
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
@@ -820,8 +663,9 @@ def CWD_calculation(arr, fill_val=None, threshold=1.0):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
-    
-    CWD = get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
+
+
+    CWD = calc.get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
 
     return CWD
 
@@ -843,31 +687,14 @@ def SDII_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
-    pr_thresh = 1                               # precipitation threshold = 1 mm
     
-    arr_masked = get_masked_arr(arr, fill_val)  # mm/day
-
-    
-    # 1st step: we count wet days
-    arr_masked_bool = (arr_masked >= pr_thresh) # array with True/False values
-    RR1 = arr_masked_bool.sum(axis=0)           # days
-    
-    # 2nd step: we count precipitation amount of wet days
-    new_mask = (arr_masked < pr_thresh)
-    new_arr_masked = numpy.ma.array(arr_masked, mask=new_mask, fill_value=arr_masked.fill_value) # we have only wet days
-    pr_amount_wet_days = new_arr_masked.sum(axis=0)
-    
-    # 3rd step: we count mean
-    SDII = pr_amount_wet_days/(RR1*1.0)
-    numpy.ma.set_fill_value(SDII, arr_masked.fill_value)
-    
-    if not isinstance(arr, numpy.ma.MaskedArray):
-        SDII = SDII.filled(fill_value=arr_masked.fill_value) 
+    ### mean of wet days (logical_operation='get', thresh=1.0)
+    SDII = calc.simple_stat(arr=arr, stat_operation='mean', logical_operation='get', thresh=1.0, coef=1.0, fill_val=fill_val)
     
     return SDII
 
 
-def R10mm_calculation(arr, fill_val=None, threshold=10.0):    
+def R10mm_calculation(arr, fill_val=None, threshold=10.0, out_unit="days"):    
     '''
     Calculates the R10mm indice: number of heavy precipitation days (i.e. days with daily precipitation amount > = 10 mm) [days]
     
@@ -885,12 +712,12 @@ def R10mm_calculation(arr, fill_val=None, threshold=10.0):
     '''
     
     
-    R10mm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
+    R10mm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
     
     return R10mm
     
 
-def R20mm_calculation(arr, fill_val=None, threshold=20.0):    
+def R20mm_calculation(arr, fill_val=None, threshold=20.0, out_unit="days"):    
     '''
     Calculates the R20mm indice: number of very heavy precipitation days (i.e. days with daily precipitation amount > = 20 mm) [days]
     
@@ -908,7 +735,8 @@ def R20mm_calculation(arr, fill_val=None, threshold=20.0):
     '''
     
 
-    R20mm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
+    
+    R20mm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
     
     return R20mm
 
@@ -930,13 +758,8 @@ def RX1day_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    arr_masked = get_masked_arr(arr, fill_val)  # mm/day
-    
-    RX1day = arr_masked.max(axis=0)    
-    numpy.ma.set_fill_value(RX1day, arr_masked.fill_value)
-    
-    if not isinstance(arr, numpy.ma.MaskedArray):
-        RX1day = RX1day.filled(fill_value=arr_masked.fill_value) 
+
+    RX1day = calc.simple_stat(arr, stat_operation='max', fill_val=fill_val)
     
     return RX1day
 
@@ -960,37 +783,8 @@ def RX5day_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    w_width = 5                                 # 5-day window
-
-        
-    # if "arr" is a masked array, we fill it with its fill_value to transform it into a normal array (to pass after to C function!)
-    if isinstance(arr, numpy.ma.MaskedArray):
-        fill_val = arr.fill_value
-        arr_demasked = arr.filled(fill_value=fill_val)
-    else:
-        arr_demasked = arr
-    
-    ## array data type should be 'float32' to pass it to C function  
-    if arr_demasked.dtype != 'float32':
-        arr_demasked = numpy.array(arr_demasked, dtype='float32')
-    
-    C_find_max_sum_slidingwindow_3d = libraryC.find_max_sum_slidingwindow_3d
-    C_find_max_sum_slidingwindow_3d.restype = None
-    C_find_max_sum_slidingwindow_3d.argtypes = [ndpointer(ctypes.c_float),
-                                                    ctypes.c_int,
-                                                    ctypes.c_int,
-                                                    ctypes.c_int,
-                                                    ndpointer(ctypes.c_double),
-                                                    ctypes.c_int,
-                                                    ctypes.c_float]
-    
-    RX5day = numpy.zeros([arr_demasked.shape[1], arr_demasked.shape[2]]) # reserve memory
-  
-    C_find_max_sum_slidingwindow_3d(arr_demasked, arr_demasked.shape[0], arr_demasked.shape[1], arr_demasked.shape[2], RX5day, w_width, fill_val)
-    RX5day = RX5day.reshape(arr_demasked.shape[1], arr_demasked.shape[2])
-    
-    if isinstance(arr, numpy.ma.MaskedArray):
-        RX5day = numpy.ma.array(RX5day, mask=(RX5day==fill_val), fill_value=fill_val)
+       
+    RX5day = calc.get_run_stat(arr, window_width=5, stat_mode='sum', extreme_mode='max', coef=1.0, fill_val=fill_val)
 
     return RX5day
  
@@ -1020,12 +814,12 @@ def SD_calculation(arr, fill_val=None):
     
 
     c = 0.1 # mm/day --> cm/day
-    SD = simple_stat(arr, stat_operation='mean', coef=c, fill_val=fill_val)
+    SD = calc.simple_stat(arr, stat_operation='mean', coef=c, fill_val=fill_val)
     
     return SD
 
     
-def SD1_calculation(arr, fill_val=None, threshold=1.0):
+def SD1_calculation(arr, fill_val=None, threshold=1.0, out_unit="days"):
     '''
     Calculates the SD1 indice: number of days with snow depth >= 1 cm [days]
     
@@ -1043,13 +837,14 @@ def SD1_calculation(arr, fill_val=None, threshold=1.0):
     '''
     
     
-    c = 0.1 # mm/day --> cm/day
-    SD1 = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
+    
+    threshold = threshold*10 # cm --> mm
+    SD1 = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
     
     return SD1
 
 
-def SD5cm_calculation(arr, fill_val=None, threshold=5.0):
+def SD5cm_calculation(arr, fill_val=None, threshold=5.0, out_unit="days"):
     '''
     Calculates the SD5cm indice: number of days with snow depth >= 5 cm [days]
     
@@ -1066,13 +861,14 @@ def SD5cm_calculation(arr, fill_val=None, threshold=5.0):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    c = 0.1 # mm/day --> cm/day
-    SD5cm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
+    
+    threshold = threshold*10 # cm --> mm
+    SD5cm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
     
     return SD5cm
 
 
-def SD50cm_calculation(arr, fill_val=None, threshold=50.0):
+def SD50cm_calculation(arr, fill_val=None, threshold=50.0, out_unit="days"):
     '''
     Calculates the SD50cm indice: number of days with snow depth >= 50 cm [days]
     
@@ -1089,66 +885,460 @@ def SD50cm_calculation(arr, fill_val=None, threshold=50.0):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    c = 0.1 # mm/day --> cm/day
-    SD50cm = get_nb_days(arr, thresh=threshold, logical_operation='get', coef=c, fill_val=fill_val)
+    
+    threshold = threshold*10 # cm --> mm
+    SD50cm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
     
     return SD50cm   
 
 
-######### simple statistics: aggregation over time
+# ######### simple statistics: aggregation over time
+# 
+# def TIMEAVG_calculation(arr, fill_val=None):
+#     
+#     '''    
+#     Calculates the average: mean of variable
+#     
+#     :param arr: daily mean 
+#     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+#     :param fill_val: fill value  
+#     :type fill_val: float
+#     
+#     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+#          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+#          
+#     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.    
+#     '''
+#     
+#     
+#     TIMEAVG = calc.simple_stat(arr, stat_operation='mean', fill_val=fill_val)
+#     
+#     return TIMEAVG
+# 
+# 
+# def SUB_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
+#     
+#     '''    
+#     Calculates the substraction of two datasets
+#     
+#     :param arr1: daily max temperature (e.g. "tasmax")
+#     :type arr1: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+#     :param arr2: daily min temperature (e.g. "tasmin")
+#     :type arr2: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) 
+#     
+#     :param fill_val1: fill value of arr1 
+#     :type fill_val1: float
+#     :param fill_val2: fill value of arr2 
+#     :type fill_val2: float
+#     
+#     :rtype: numpy.ndarray (2D)        (if "arr1" and "arr2" are numpy.ndarray)
+#          or numpy.ma.MaskedArray (2D) (if "arr1" and "arr2" are numpy.ma.MaskedArray)
+# 
+#     .. warning:: "arr1" and "arr2" must be the same type, shape and correspond to the same time step vector.
+#     
+#     '''
+#     #.. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
+#       
+#     arr1_masked = calc.get_masked_arr(arr1, fill_val1)
+#     arr2_masked = calc.get_masked_arr(arr2, fill_val2)
+#     
+#     SUB = arr1_masked - arr2_masked                              # masked array with fill_value = fill_value of the first masked array in expression (i.e. arr1_masked)
+#     numpy.ma.set_fill_value(SUB, arr1_masked.fill_value)      # we set a fill_value = fill_value of arr1_masked (or arr2_masked) 
+#     
+#     if not isinstance(arr1, numpy.ma.MaskedArray) :     # or if not isinstance(arr2, numpy.ma.MaskedArray) [because the both input arrays are the same type]
+#         SUB = SUB.filled(fill_value=arr1_masked.fill_value)      
+#     
+#     return SUB    
 
-def TIMEAVG_calculation(arr, fill_val=None):
+
+def TG90p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):
+    '''
+    Calculate the TG90p indice: number of warm days (i.e. days with daily mean temperature > 90th percentile of daily mean temperature in the base period).
     
-    '''    
-    Calculates the average: mean of variable
-    
-    :param arr: daily mean 
+    :param arr: daily mean temperature (e.g. "tas")
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    :param fill_val: fill value  
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 90th percentile of daily mean temperature 
+    :type percentile_dict: dict
+    :param fill_val: fill value
     :type fill_val: float
     
     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
-         or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
-         
-    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.    
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)    
+    
+    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+
+    
+    TG90p = calc.get_nb_events(arr, logical_operation='gt', thresh=percentile_dict, fill_val=fill_val, out_unit=out_unit, dt_arr=dt_arr)  
+    
+    return TG90p
+
+
+def TX90p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):
+    '''
+    Calculate the TX90p indice: number of warm days-times (i.e. days with daily max temperature > 90th percentile of daily max temperature in the base period).
+    
+    :param arr: daily max temperature (e.g. "tasmax")
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 90th percentile of daily max temperature 
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)     
+    
+    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+
+    
+    TX90p = calc.get_nb_events(arr, logical_operation='gt', thresh=percentile_dict, fill_val=fill_val, out_unit=out_unit, dt_arr=dt_arr)
+    
+    return TX90p
+    
+
+def TN90p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):
+    '''
+    Calculate the TN90p indice: number of warm nights (i.e. days with daily min temperature > 90th percentile of daily min temperature in the base period).
+    
+    :param arr: daily min temperature (e.g. "tasmin")
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 90th percentile of daily min temperature 
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)   
+    
+    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+
+    
+    TN90p = calc.get_nb_events(arr, logical_operation='gt', thresh=percentile_dict, fill_val=fill_val, out_unit=out_unit, dt_arr=dt_arr)
+    
+    return TN90p    
+
+
+    
+    
+def TG10p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):
+    '''
+    Calculate the TG10p indice: number of cold days (i.e. days with daily mean temperature < 10th percentile of daily mean temperature in the base period).
+    
+    :param arr: daily mean temperature (e.g. "tas")
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 10th percentile of daily mean temperature 
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)        
+    
+    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+
+    
+    TG10p = calc.get_nb_events(arr, logical_operation='lt', thresh=percentile_dict, fill_val=fill_val, out_unit=out_unit, dt_arr=dt_arr)
+    
+    return TG10p      
+    
+    
+    
+def TX10p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):
+    '''
+    Calculate the TX10p indice: number of cold day-times (i.e. days with daily max temperature < 10th percentile of daily max temperature in the base period).
+    
+    :param arr: daily max temperature (e.g. "tasmax")
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 10th percentile of daily max temperature 
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)        
+    
+    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+
+    
+    TX10p = calc.get_nb_events(arr, logical_operation='lt', thresh=percentile_dict, fill_val=fill_val, out_unit=out_unit, dt_arr=dt_arr)
+    
+    return TX10p      
+    
+
+def TN10p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):
+    '''
+    Calculate the TN10p indice: number of cold nights (i.e. days with daily min temperature < 10th percentile of daily min temperature in the base period).
+    
+    :param arr: daily min temperature (e.g. "tasmin")
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 10th percentile of daily min temperature 
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)      
+    '''
+    
+    #.. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    #
+    #.. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+
+    
+    TN10p = calc.get_nb_events(arr, logical_operation='lt', thresh=percentile_dict, fill_val=fill_val, out_unit=out_unit, dt_arr=dt_arr) 
+    
+    return TN10p    
+
+
+def WSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6, out_unit="days"):
+    '''
+    Calculate the WSDI indice (warm-spell duration index): number of days where, in intervals of at least 6 consecutive days, 
+    daily max temperature > 90th percentile of daily max temperature in the base period).
+    
+    :param arr: daily max temperature (e.g. "tasmax")
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 90th percentile of daily max temperature 
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    :param N: number of consecutive days (default: 6)
+    :type N: int
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)      
+    '''
+    
+        
+    #.. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    #
+    #.. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+ 
+        
+    WSDI = calc.WCSDI(arr, dt_arr, percentile_dict, logical_operation='gt', fill_val=fill_val, N=6)
+
+    return WSDI 
+
+
+def CSDI_calculation(arr, dt_arr, percentile_dict, fill_val=None, N=6, out_unit="days"):
+    '''
+    Calculate the CSDI indice (cold-spell duration index): number of days where, in intervals of at least 6 consecutive days, 
+    daily min temperature < 10th percentile of daily min temperature in the base period).    
+    
+    :param arr: daily min temperature (e.g. "tasmin")
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 10th percentile of daily max temperature 
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    :param N: number of consecutive days (default: 6)
+    :type N: int
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)       
+    
+    .. warning:: Units of "arr" and percentile values of "percentile_dict" must be the same.
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+     
+    CSDI = calc.WCSDI(arr, dt_arr, percentile_dict, logical_operation='lt', fill_val=fill_val, N=6)
+
+    return CSDI
+
+    
+
+def R75p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
+    '''
+    Calculate the R75p indice: number of moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the base period).
+    
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
+    :type percentile_dict: dict
+    :param pr_thresh: precipitation threshold (default: 1.0 mm)
+    :type pr_thresh: float
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)       
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
     '''
     
     
-    TIMEAVG = simple_stat(arr, stat_operation='mean', fill_val=fill_val)
+    wet_arr = calc.get_wet_days(arr=arr, fill_val=fill_val) # masked array
     
-    return TIMEAVG
+    R75p = calc.get_nb_events(wet_arr, logical_operation='gt', thresh=percentile_arr, fill_val=fill_val, out_unit=out_unit) 
+    
+    return R75p    
 
 
-def SUB_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
-    
-    '''    
-    Calculates the substraction of two datasets
-    
-    :param arr1: daily max temperature (e.g. "tasmax")
-    :type arr1: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-    :param arr2: daily min temperature (e.g. "tasmin")
-    :type arr2: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) 
-    
-    :param fill_val1: fill value of arr1 
-    :type fill_val1: float
-    :param fill_val2: fill value of arr2 
-    :type fill_val2: float
-    
-    :rtype: numpy.ndarray (2D)        (if "arr1" and "arr2" are numpy.ndarray)
-         or numpy.ma.MaskedArray (2D) (if "arr1" and "arr2" are numpy.ma.MaskedArray)
-
-    .. warning:: "arr1" and "arr2" must be the same type, shape and correspond to the same time step vector.
-    
+def R95p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
     '''
-    #.. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
-      
-    arr1_masked = get_masked_arr(arr1, fill_val1)
-    arr2_masked = get_masked_arr(arr2, fill_val2)
+    Calculate the R95p indice: number of very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the base period).
     
-    SUB = arr1_masked - arr2_masked                              # masked array with fill_value = fill_value of the first masked array in expression (i.e. arr1_masked)
-    numpy.ma.set_fill_value(SUB, arr1_masked.fill_value)      # we set a fill_value = fill_value of arr1_masked (or arr2_masked) 
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 95th percentile of daily precipitation amount at wet days in mm/day
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
     
-    if not isinstance(arr1, numpy.ma.MaskedArray) :     # or if not isinstance(arr2, numpy.ma.MaskedArray) [because the both input arrays are the same type]
-        SUB = SUB.filled(fill_value=arr1_masked.fill_value)      
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)       
     
-    return SUB    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+    
+    
+    wet_arr = calc.get_wet_days(arr=arr, fill_val=fill_val) # masked array
+    
+    R95p = calc.get_nb_events(wet_arr, logical_operation='gt', thresh=percentile_arr, fill_val=fill_val, out_unit=out_unit) 
+    
+    return R95p
+
+
+def R99p_calculation(arr, percentile_arr, fill_val=None, out_unit="days"):
+    '''
+    Calculate the R99p indice: number of extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the base period).
+    
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 99th percentile of daily precipitation amount at wet days in mm/day
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)       
+
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+    
+    wet_arr = calc.get_wet_days(arr=arr, fill_val=fill_val) # masked array
+    
+    R99p = calc.get_nb_events(wet_arr, logical_operation='gt', thresh=percentile_arr, fill_val=fill_val, out_unit=out_unit) 
+    
+    return R99p
+
+
+def R75pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
+    '''
+    Calculate the R75pTOT indice: precipitation fraction due to moderate wet days (i.e. days with daily precipitation amount > 75th percentile of daily amount in the base period) [%]
+    
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 75th percentile of daily precipitation amount at wet days in mm/day
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+    
+    R75pTOT = calc.RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val)
+    
+    return R75pTOT
+    
+
+def R95pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
+    '''
+    Calculate the R95pTOT indice: precipitation fraction due to very wet days (i.e. days with daily precipitation amount > 95th percentile of daily amount in the base period) [%]
+    
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 95th percentile of daily precipitation amount at wet days in mm/day
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+       
+    R95pTOT = calc.RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val)
+    
+    return R95pTOT
+
+def R99pTOT_calculation(arr, percentile_arr, fill_val=None, out_unit=None):
+    '''
+    Calculate the R99pTOT indice: precipitation fraction due to extremely wet days (i.e. days with daily precipitation amount > 99th percentile of daily amount in the base period) [%]
+    
+    :param arr: daily precipitation flux (liquid form) (e.g. "pr") in mm/day
+    :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
+    :param dt_arr: corresponding time steps vector
+    :type dt_arr: numpy.ndarray (1D) of datetime objects
+    :param percentile_dict: 99th percentile of daily precipitation amount at wet days in mm/day
+    :type percentile_dict: dict
+    :param fill_val: fill value
+    :type fill_val: float
+    
+    :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
+        or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
+    
+    .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
+
+    '''
+        
+    R99pTOT = calc.RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_val=fill_val)
+    
+    return R99pTOT

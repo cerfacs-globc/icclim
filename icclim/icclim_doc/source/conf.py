@@ -52,14 +52,14 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'ICCLIM'
-copyright = u'2014, CERFACS'
+copyright = u'2015, CERFACS'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '4.0.3'
+version = '4.1.0-test'
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -106,10 +106,12 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'default'
+html_theme = 'classic'
 if on_rtd:
-    html_theme = 'default'
-    html_style = '/default.css'
+    #html_theme = 'default'
+    #html_style = '/default.css'
+     html_theme = 'classic'	
+     html_style = '/classic.css'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

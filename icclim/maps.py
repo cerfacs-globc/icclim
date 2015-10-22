@@ -12,9 +12,9 @@ map_indice_type =   {
                         'simple_time_aggregation': ['TIMEAVG'],
                             
                         'percentile_based': ['TG10p', 'TX10p', 'TN10p', 'TG90p', 'TX90p', 'TN90p', 'WSDI', 'CSDI',
-                                             'R75p', 'R75pTOT', 'R95p', 'R95pTOT', 'R99p', 'R99pTOT'],
-                            
-                        'percentile_based_multivariable': ['CD', 'CW', 'WD', 'WW']
+                                             'R75p', 'R75pTOT', 'R95p', 'R95pTOT', 'R99p', 'R99pTOT']
+
+
                     }
 
 map_indice_percentile_value =   {
@@ -31,28 +31,30 @@ map_indice_percentile_value =   {
                                     'R95p': [95],
                                     'R95pTOT': [95],
                                     'R99p': [99],
-                                    'R99pTOT': [99],
-                                    
-                                    'CD': [25, 25],
-                                    'CW': [25, 75],
-                                    'WD': [75, 25],
-                                    'WW': [75, 75],                    
+                                    'R99pTOT': [99]
+                   
                                 }
 
 
-map_variable_precipitation =    {
-                                    'tas': False,
-                                    'tasmin': False,
-                                    'tasmax': False,
-#                                     'pr': False                   
-                                    'pr': True
-                                }
 
-# ETCCDI Climate Change Indices
-# http://etccdi.pacificclimate.org/list_27_indices.shtml
-map_indices_ETCCDI = {  'FD':  {'threshold': 0},       
-                        'SU':  {'threshold': 25},       
-                        'ID':  {'threshold': 0},       
-                        'TR':  {'threshold': 20},  
+### to know which method for computing pctl thresholds to use:
+### if 't': calc_percentiles.get_percentile_dict(...) + bootstrapping
+### if 'p': calc_percentiles.get_percentile_arr(...)
+map_var_type =   {
+                    'TG10p': 't',
+                    'TX10p': 't', 
+                    'TN10p': 't',
+                    'TG90p': 't',
+                    'TX90p': 't',
+                    'TN90p': 't',
+                    'WSDI': 't',
+                    'CSDI': 't',
+                    'R75p': 'p',
+                    'R75pTOT': 'p',
+                    'R95p': 'p',
+                    'R95pTOT': 'p',
+                    'R99p': 'p',
+                    'R99pTOT': 'p'
+                  
+                }
 
-                      }

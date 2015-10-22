@@ -6,8 +6,8 @@
 #  Author: Natalia Tatarinova
 
 """
-Types of temporal aggregations:
-- 'month'
+Types of temporal aggregations (slice_mode):
+- 'month' (all months of year)
 - 'year'
 - 'DFJ'
 - 'MAM'
@@ -15,55 +15,22 @@ Types of temporal aggregations:
 - 'SON'
 - 'ONDJFM'
 - 'AMJJAS'
+- user selected months
+- user defined seasons
+- None : whole selected period will be processed
 
 Note: DJF 2000: December 2000 + January 2001 + February 2001
 
 """
 
-import numpy
-from netCDF4 import Dataset, MFDataset
+import numpy 
 from datetime import datetime
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 
 import util.util_dt as util_dt
 
-
-# map_months =   {
-#                 'None': range(1,13),
-#                 'month': range(1,13),
-#                 'DJF': ([12], [1,2]),  # (year i, year i+1)
-#                 'MAM': [3,4,5],
-#                 'JJA': [6,7,8],
-#                 'SON': [9,10,11],
-#                 'ONDJFM': ([10,11,12], [1,2,3]), # (year i, year i+1)
-#                 'AMJJAS': [4,5,6,7,8,9]
-#                 }
-# 
-# 
-# map_dt_centroid_day =   {
-#                         'None': 16,
-#                         'month': 16,
-#                         'DJF': 16,
-#                         'MAM': 16,
-#                         'JJA': 16,
-#                         'SON': 16,
-#                         'ONDJFM': 1,
-#                         'AMJJAS': 1,
-#                         'year': 1
-#                         }
-# 
-# 
-# map_dt_centroid_month = {
-#                         'DJF': 1,
-#                         'MAM': 4,
-#                         'JJA': 7,
-#                         'SON': 10,
-#                         'ONDJFM': 1,
-#                         'AMJJAS': 7,
-#                         'year': 7
-#                         }
-
-
+## This function creates a dictionary with centroid day and centroid month for each type of temporal aggregation
+## except for slice_mode=None
 def get_map_info_slice(slice_mode):
     map_slices={}
     map_slices[str(slice_mode)]={}
@@ -74,7 +41,7 @@ def get_map_info_slice(slice_mode):
         centroid_day=1
         centroid_month=7
         
-    elif slice_mode=='month' or slice_mode==None:
+    elif slice_mode=='month':
         months=range(1,13)
         centroid_day=16
 
@@ -154,14 +121,26 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
     :param time_range: Time range.
     :type time_range: [datetime.datetime, datetime.datetime]
     
-    :rtype: dict, where key is (``temporal_subset_mode``, year) and values are grouped in a tuple with 4 elements: (dt_centroid, dt_bounds, dt_arr, values_arr).
+    :rtype: dict, where key is (``temporal_subset_mode``, year) and values are grouped in a tuple with 5 elements: (dt_centroid, dt_bounds, dt_arr, values_arr, fill_value).
     
-    .. note:: 
-    dt_centroid = my_dict[key][0]
-    dt_bounds = my_dict[key][1]
-    dt_arr = my_dict[key][2]
-    values_arr = my_dict[key][3]
+    .. note:: To view all keys of the returned dict:
     
+    >>> my_dict.keys()
+    
+    .. note:: structure of the returned dictionary: 
+    
+    >>> all_slices = my_dict.keys()
+    
+    
+    dt_centroid = my_dict['any_slice'][0]
+    dt_bounds = my_dict['any_slice'][1]
+    dt_arr = my_dict['any_slice'][2]
+    values_arr = my_dict['any_slice'][3]
+    fill_val = my_dict['any_slice'][4]
+    
+    
+    ##################################################
+    ##################################################
     
     Example:
     
@@ -171,12 +150,12 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
     >>> import numpy
     >>> import icclim
     >>> 
-    >>> f = '/data/tatarinova/tasmax_day_EC-EARTH_rcp26_r8i1p1_20760101-21001231.nc'
+    >>> f = '/data/tasmax_day_EC-EARTH_rcp26_r8i1p1_20760101-21001231.nc'
     >>> nc = Dataset(f, 'r')
     >>> 
     >>> v_arr = nc.variables['tasmax'][:,:,:]
     >>> t_arr = nc.variables['time'][:]
-    >>> dt_arr = numpy.array([icclim.num2date(dt, calend='gregorian', units='days since 2006-1-1') for dt in t_arr])
+    >>> dt_arr = numpy.array([icclim.util_dt.num2date(dt, calend='gregorian', units='days since 2006-1-1') for dt in t_arr])
     >>> 
     >>> dict_temp_subset = time_subset.get_dict_temporal_slices(dt_arr=dt_arr, values_arr=v_arr, calend='gregorian', temporal_subset_mode='DJF', time_range=[datetime(2080,01,01), datetime(2085,12,31)])
     >>> 
@@ -222,12 +201,17 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
 
     '''
     
+    if type(values_arr)==list: # case of anomalies
+        values_arr=values_arr[0]
+        
     assert(values_arr.ndim == 3)
     assert(dt_arr.ndim == 1)
+    assert(values_arr.shape[0] == dt_arr.shape[0])
     
     return_dict = OrderedDict()
     
-    map_info_slice=get_map_info_slice(slice_mode=temporal_subset_mode)
+    if temporal_subset_mode != None:
+        map_info_slice=get_map_info_slice(slice_mode=temporal_subset_mode)
     ###########################
     
     ## step 1: list of all years
@@ -257,8 +241,15 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
     
     ## step 2: subset 
     
+    # whole selected time range will be processed
+    if temporal_subset_mode == None:
+        dt_centroid = time_range[0] + (time_range[1]-time_range[0])/2
+        dt_bounds = time_range
+        return_dict['whole_time_range', time_range[0].year, time_range[1].year] = (dt_centroid, dt_bounds, dt_arr, values_arr, fill_value)
+    
+    
     # all or selected months of each year will be processed 
-    if temporal_subset_mode == None or temporal_subset_mode == 'month' or temporal_subset_mode[0] == 'month':
+    elif temporal_subset_mode == 'month' or temporal_subset_mode[0] == 'month':
         
         for y in years:                          
             for m in map_info_slice[str(temporal_subset_mode)]['months']:
@@ -343,13 +334,13 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
             return_dict[temporal_subset_mode, y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value)
         
             #print y
-
+    
 
     return return_dict
         
         
             
-def get_indices_temp_aggregation(dt_arr, month=None, year=None, f=0):    
+def get_indices_temp_aggregation(dt_arr, month, year, f=0):    
     '''
     
     Return indices used for temporal aggregation.
@@ -415,22 +406,14 @@ def get_indices_temp_aggregation(dt_arr, month=None, year=None, f=0):
     
     return indices_non_masked
     
-
+### This function is used for the bootstrapping procedure
 def get_resampled_arrs(dt_arr, values_arr, year_to_eliminate, year_to_duplicate):
     
-    '''
-    Arrays resampling: we eliminate 'year_to_eliminate' and duplicate one of the rest years ('year_to_duplicate')
-    
-    param ... :
-    type ... :
-    
-    rtype ... :
-    
-    '''
-    
+    ### "out-of-base" years ---> no resampling
     if year_to_eliminate == year_to_duplicate == -9999:
         return (dt_arr, values_arr)
     
+    ### "in-base" years ---> resampling
     else:
         # step 1: we eliminate in-base year ("year_to_eliminate"), i.e. we subset our arrays (dt and values)
         
@@ -442,7 +425,6 @@ def get_resampled_arrs(dt_arr, values_arr, year_to_eliminate, year_to_duplicate)
         # we subset
         dt_arr_subsetted = dt_arr[indices_non_masked]
         values_arr_subsetted = values_arr[indices_non_masked, :, :] # 3D - whole array
-    #     values_arr_subsetted = values_arr[indices_non_masked] # 1D - only one pixel
     
     
         # step 2: we duplicate one of rest years ("year_to_duplicate")
@@ -455,7 +437,6 @@ def get_resampled_arrs(dt_arr, values_arr, year_to_eliminate, year_to_duplicate)
         # we define array slices to duplicate
         dt_arr_year_to_duplicate = dt_arr_subsetted[indices_year_to_duplicate]    
         values_arr_year_to_duplicate = values_arr_subsetted[indices_year_to_duplicate, :, :] # 3D - whole array
-    #     values_arr_year_to_duplicate = values_arr_subsetted[indices_year_to_duplicate] # 1D - only one pixel
         
         # we add slices to duplicate in the end
         dt_arr_result = numpy.append(dt_arr_subsetted, dt_arr_year_to_duplicate)    

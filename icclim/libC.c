@@ -32,10 +32,8 @@ int percentile;
 
 void setGlobalVariables(int _sizeT,int _sizeI,int _sizeJ,float _fill_value, int _percentile);
 double getElementAt(const float *table, int t, int i, int j);
-float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation);
-void find_max_len_consec_sequence_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, float temp, float fill_val, char *operation);
-float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, float fill_val);
-void find_max_sum_slidingwindow_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int w_width, float fill_val);
+float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation, int *index_event_start, int *index_event_end);
+void find_max_len_consec_sequence_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, float temp, float fill_val, char *operation, int *tab_index_event_start, int *tab_index_event_end);
 float find_GSL_1d(const float *indata,int i, int j, float thresh, float fill_val, int indexMiddleOfYear);
 void find_GSL_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, float temp, float fill_val, int indexMiddleOfYear);
 double getElementAt_2(const float *table, int t, int i, int j);
@@ -48,7 +46,8 @@ double get_percentile(float* tab_1d, int len_tab_1d);
 double get_percentile2(float* tab_1d, int len_tab_1d);
 void swap(float* a, float* b);
 void qs(float* s_arr, int first, int last);
-
+double get_run_stat_1d(const float *indata, int i, int j, int w_width, float fill_val, char * stat_mode, char * extreme_mode, int *index_event);
+void get_run_stat_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int w_width, float fill_val, char * stat_mode, char * extreme_mode, int *index_event);
 /////////////////////////////////////////////////////////////////////
 
 
@@ -70,13 +69,10 @@ double getElementAt(const float *table, int t, int i, int j)
 }
 
 
-
-
-// ERROR
 //Segmentation fault (core dumped)
 //http://stackoverflow.com/questions/13654449/error-segmentation-fault-core-dumped
 
-float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation)
+float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float thresh, float fill_val, char *operation, int *index_event_start, int *index_event_end)
 {
 // find max length of a consecutive sequence in 1D array in a chosen logical condition ("gt", "get", "lt", "let", "e")
     float previous=-999;
@@ -84,6 +80,10 @@ float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float th
     int nb=0;
     int t;
     int all_fillval = 1;
+
+    *index_event_start=-1;
+    *index_event_end=-1;
+    int index=-1;
 
     ///////////   >
     if (strcmp(operation,"gt")==0)
@@ -96,15 +96,28 @@ float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float th
 
             if ((val>thresh) && (val != fill_val))
             {
-              if (previous>thresh) nb++;
-                else nb=1;	    
+              if ((previous>thresh) && (previous != fill_val))
+            	  nb++;
+              else
+              {
+            	  nb=1;
+            	  index=t;
+              }
             }
             else
-              nb=0;
+            	nb=0;
             
             if (val != fill_val) all_fillval = 0;
 
-            if (nb>nb_max) nb_max=(float)nb;
+            // If several sequences have the same length nb_max,
+            // if (nb>nb_max): then the 1st sequence is taken into account for index_event_start
+            // if (nb>=nb_max): then the last sequence is taken into account for index_event_start
+            if (nb>nb_max)
+			{
+            	nb_max=(float)nb;
+            	*index_event_start=index;
+            	*index_event_end = index+nb_max-1;
+			}
             
             previous=val;
         }
@@ -121,19 +134,32 @@ float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float th
 
             if ((val>=thresh) && (val != fill_val))
             {
-                if (previous>=thresh) nb++;
-                else nb=1;	    
+              if ((previous>=thresh) && (previous != fill_val))
+            	  nb++;
+              else
+              {
+            	  nb=1;
+            	  index=t;
+              }
             }
             else
-              nb=0;
+            	nb=0;
 
             if (val != fill_val) all_fillval = 0;
 
-            if (nb>nb_max) nb_max=(float)nb;
+            // If several sequences have the same length nb_max,
+            // if (nb>nb_max): then the 1st sequence is taken into account for index_event_start
+            // if (nb>=nb_max): then the last sequence is taken into account for index_event_start
+            if (nb>nb_max)
+			{
+            	nb_max=(float)nb;
+            	*index_event_start=index;
+            	*index_event_end = index+nb_max-1;
+			}
             
             previous=val;
         }
-    }    
+    }
     
     ///////////   <
     else if (strcmp(operation,"lt")==0)
@@ -145,16 +171,29 @@ float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float th
             float val = getElementAt(indata,t,i,j);
 
             if ((val<thresh) && (val != fill_val))
-                {
-                    if (previous<thresh) nb++;
-                    else nb=1;	    
-                }
+            {
+              if ((previous<thresh) && (previous != fill_val))
+            	  nb++;
+              else
+              {
+            	  nb=1;
+            	  index=t;
+              }
+            }
             else
-              nb=0;
+            	nb=0;
 
             if (val != fill_val) all_fillval = 0;
 
-            if (nb>nb_max) nb_max=(float)nb;
+            // If several sequences have the same length nb_max,
+            // if (nb>nb_max): then the 1st sequence is taken into account for index_event_start
+            // if (nb>=nb_max): then the last sequence is taken into account for index_event_start
+            if (nb>nb_max)
+			{
+            	nb_max=(float)nb;
+            	*index_event_start=index;
+            	*index_event_end = index+nb_max-1;
+			}
             
             previous=val;
         }
@@ -171,15 +210,28 @@ float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float th
 
             if ((val<=thresh) && (val != fill_val))
             {
-                if (previous<=thresh) nb++;
-                else nb=1;	    
+              if ((previous<=thresh) && (previous != fill_val))
+            	  nb++;
+              else
+              {
+            	  nb=1;
+            	  index=t;
+              }
             }
             else
-              nb=0;
+            	nb=0;
 
             if (val != fill_val) all_fillval = 0;
 
-            if (nb>nb_max) nb_max=(float)nb;
+            // If several sequences have the same length nb_max,
+            // if (nb>nb_max): then the 1st sequence is taken into account for index_event_start
+            // if (nb>=nb_max): then the last sequence is taken into account for index_event_start
+            if (nb>nb_max)
+			{
+            	nb_max=(float)nb;
+            	*index_event_start=index;
+            	*index_event_end = index+nb_max-1;
+			}
             
             previous=val;
         }
@@ -196,15 +248,28 @@ float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float th
 
             if ((val==thresh) && (val != fill_val))
             {
-                if (previous==thresh) nb++;
-                else nb=1;	    
+              if ((previous==thresh) && (previous != fill_val))
+            	  nb++;
+              else
+              {
+            	  nb=1;
+            	  index=t;
+              }
             }
             else
-              nb=0;
+            	nb=0;
 
             if (val != fill_val) all_fillval = 0;
 
-            if (nb>nb_max) nb_max=(float)nb;
+            // If several sequences have the same length nb_max,
+            // if (nb>nb_max): then the 1st sequence is taken into account for index_event_start
+            // if (nb>=nb_max): then the last sequence is taken into account for index_event_start
+            if (nb>nb_max)
+			{
+            	nb_max=(float)nb;
+            	*index_event_start=index;
+            	*index_event_end = index+nb_max-1;
+			}
             
             previous=val;
         }
@@ -216,93 +281,29 @@ float find_max_len_consec_sequence_1d(const float *indata,int i, int j, float th
 }
 
 
-// fonction appelee depuis python 
-void find_max_len_consec_sequence_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, float temp, float fill_val, char *operation) 
+// function called from Python
+void find_max_len_consec_sequence_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, float thresh, float fill_val, char *operation, int *tab_index_event_start, int *tab_index_event_end)
 {
 // find max length of a consecutive sequence in 3D array (along time axis) in a logical condition
 
     //outdata = (double *) malloc (_sizeI*_sizeJ*sizeof(double));
     setGlobalVariables(_sizeT,_sizeI,_sizeJ, fill_value, percentile);
     int i,j;
+    int index_event_start=-1;
+    int index_event_end=-1;
 
         for (i = 0; i < sizeI; i++)
         {
             for (j = 0; j < sizeJ; j++)
             {
                 //outdata[i*sizeJ+j] = find_max_len_consec_sequence_1d(indata,i,j,temp);
-                outdata[i*sizeJ+j] = find_max_len_consec_sequence_1d(indata,i,j,temp, fill_val, operation); 
+                outdata[i*sizeJ+j] = find_max_len_consec_sequence_1d(indata,i,j,thresh, fill_val, operation, &index_event_start, &index_event_end);
+                tab_index_event_start[i*sizeJ+j] = index_event_start;
+                tab_index_event_end[i*sizeJ+j] = index_event_end;
             }
         }
 }
     
-
-float get_max_sum_window_1d(const float *indata, int i, int j, int w_width, float fill_val)
-{
-    float max_sum=0.0;
-    float sum=0.0;
-    int t;
-    float val, val_to_subtract;
-    int all_fillval = 1;
-
-    // initialize max_sum [for the first (w_width-1) elements]
-    for (t=0; t<w_width; t++)
-    {
-        val = getElementAt(indata,t,i,j);
-        
-        if (val==fill_val)
-          val=0.0;
-        else
-          all_fillval = 0;
-        
-        sum += val;
-    }
-    
-    max_sum = sum;      
-    
-    // calculate the current sum, and compare it to the max_sum               
-    for (t=w_width; t<=sizeT-1; t++) 
-    {
-        val = getElementAt(indata,t,i,j);
-        if (val==fill_val)
-          val=0.0;
-        else
-          all_fillval = 0;
-
-        sum += val;                                 // previous sum + following element
-        
-        val_to_subtract = getElementAt(indata,t-w_width,i,j);
-        if (val_to_subtract==fill_val) val_to_subtract=0.0;
-        sum -= val_to_subtract;                      // current sum
-
-        if (sum > max_sum) max_sum =  sum;
-        
-    }    
-
-    if (all_fillval == 1) max_sum = fill_val;
-
-    return max_sum;
-}
-    
-
-void find_max_sum_slidingwindow_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int w_width, float fill_val)
-{
-// find max sum of a consecutif sequence of w_width elements (sliding window of size=w_width) (along time axis)
-
-    setGlobalVariables(_sizeT,_sizeI,_sizeJ, fill_value, percentile); 
-    int i,j;
-    
-        for (i = 0; i < sizeI; i++)
-        {
-            for (j = 0; j < sizeJ; j++)
-            {
-                outdata[i*sizeJ+j] = get_max_sum_window_1d(indata, i, j, w_width, fill_val); 
-            }
-        }
-}
-
-
-
-
 
 
 // indexMiddleOfYear is the index of the 1st day in the 2nd semester for which we have a value for temperature
@@ -466,7 +467,7 @@ for i in range(len(a)):
 }
 
 
-// fonction appelee depus python 
+// function called from Python
 void WSDI_CSDI_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double *outdata, int N) 
 {
     setGlobalVariables(_sizeT,_sizeI,_sizeJ, fill_value, percentile);
@@ -483,7 +484,7 @@ void WSDI_CSDI_3d(const float *indata, int _sizeT,int _sizeI,int _sizeJ, double 
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-// percentiles computation
+// percentiles computation: begin
 //////////////////////////////////////////////////////////////////////////////////// 
 
 
@@ -701,6 +702,85 @@ void qs(float* s_arr, int first, int last)
         qs(s_arr, first, j);
 }
 
+/////////////////////////////////////////////////////////////////////////////////////
+// percentiles computation: end
+////////////////////////////////////////////////////////////////////////////////////
+
+
+void get_run_stat_3d(const float *indata, int _sizeT, int _sizeI, int _sizeJ, double *outdata, int w_width, float fill_val, char * stat_mode, char * extreme_mode, int *tab_index_event)
+{
+// find max sum of a consecutif sequence of w_width elements (sliding window of size=w_width) (along time axis)
+
+    setGlobalVariables(_sizeT,_sizeI,_sizeJ, fill_value, percentile);
+    int i,j;
+    int index_event=-1;
+
+        for (i = 0; i < sizeI; i++)
+        {
+            for (j = 0; j < sizeJ; j++)
+            {
+                outdata[i*sizeJ+j] = get_run_stat_1d(indata, i, j, w_width, fill_val, stat_mode, extreme_mode, &index_event);
+                tab_index_event[i*sizeJ+j] = index_event;
+            }
+        }
+}
+
+
+double get_run_stat_1d(const float *indata, int i, int j, int w_width, float fill_val, char * stat_mode, char * extreme_mode, int *index_event)
+{
+	int t, tt;
+	*index_event = -1; // initialize the index_event to -1 (i.e. no correct value is found yet)
+
+	// extreme_oper is 'min' or 'max'
+	int extreme_mode_max=(strcmp(extreme_mode,"max")==0);
+	int extreme_mode_min=(strcmp(extreme_mode,"min")==0);
+
+	// stat_mode is 'sum' or 'mean'
+	int stat_mode_sum = (strcmp(stat_mode,"sum")==0);
+	int stat_mode_mean = (strcmp(stat_mode,"mean")==0);
+
+	float extreme_val, val;
+	if (extreme_mode_max) extreme_val=-1.0;
+	else if (extreme_mode_min) extreme_val=9999999999;
+
+
+	for (t=0; t<=sizeT-w_width; t++)
+
+	{
+		// all_values_ok (boolean) =>  no fill_value found in window (w_width)
+		int all_values_ok=1;
+
+		float sum = 0.0;
+
+
+    	for (tt=t; tt<t+w_width; tt++)
+    	{
+    		val = getElementAt(indata,tt,i,j);
+    		all_values_ok = all_values_ok && val!=9999;
+    		if (!all_values_ok) break; // if a fill_value is found, then no need to finish calculation the sum in the window
+    		sum += val;
+    	}
+
+
+    	if ((extreme_mode_max && all_values_ok && sum>extreme_val) || (extreme_mode_min && all_values_ok && sum<extreme_val))
+    	{
+    		extreme_val = sum;
+    		*index_event = t;// memorize the 1st index of the window where extreme val is found (minSum or maxSum)
+    	}
+
+	}
+
+	if (*index_event == -1)
+		return (double) fill_val;
+
+	else if (stat_mode_sum)
+		return (double)  extreme_val;
+
+	else if (stat_mode_mean)
+		return (double) (extreme_val*1.0)/w_width; // if a sum is max(min), then mean is max(min) also
+
+	else return (double) fill_val;
+}
 
 
 
@@ -710,6 +790,8 @@ void qs(float* s_arr, int first, int last)
 int main() 
 {
     //printf('HELLO WORLD !!!')
+
+
     return 0;
 
 }    

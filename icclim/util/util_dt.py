@@ -6,7 +6,6 @@
 
 from netcdftime import utime
 from datetime import datetime
-#from netCDF4 import num2date, date2num, Dataset, MFDataset
 from netCDF4 import Dataset, MFDataset
 import numpy
 import sys
@@ -150,51 +149,6 @@ def num2date(num, calend, units):
     return dt
 
 
-# def get_time_range(files, temporal_var_name='time'):
-#     
-#     '''
-#     :param files: netCDF file(s) (including OPeNDAP URL(s))
-#     :type files: list of str
-#     
-#     :param temporal_var_name: name of temporal variable from netCDF file (default: "time")
-#     :type temporal_var_name: str
-#     
-#     :rtype
-#     
-#     
-#     Returns a time range: a list two datetime objects: [begin, end], where "begin" is the first date, and "end" is the last.
-#     '''
-#     
-#     nc = Dataset(files[0],'r')
-#     time = nc.variables[temporal_var_name]
-#     
-#     try:
-#         calend = time.calendar
-#     except:
-#         calend = 'gregorian'
-#     
-#     units = time.units
-#     
-#     nc.close()
-#     
-#     time_arr = numpy.array([])
-#     for f in files:
-#         nc = Dataset(f, 'r')
-#         time_arr_f = nc.variables[temporal_var_name][:]
-#         time_arr = numpy.concatenate([time_arr, time_arr_f])       
-#         nc.close()
-#     
-#     begin_num = min(time_arr)
-#     end_num = max(time_arr)
-#         
-#     del time_arr
-#     
-#     begin_dt = num2date(begin_num, calend, units)
-#     end_dt = num2date(end_num, calend, units)
-#     
-#     return [begin_dt, end_dt]
-
-
 def get_time_range(files, time_range=None, temporal_var_name='time'):
     
     '''
@@ -272,7 +226,7 @@ def adjust_time_range(time_range, dt):
     :param time_range: time range selected by user   
     :type time_range: list of two datetime.datetime objects
     
-    :param dt: one datetime step of input datetime vector
+    :param dt: any datetime step of input datetime vector
     :type dt: datetime.datetime object
     
     :rtype: list of two datetime.datetime objects
@@ -285,8 +239,7 @@ def adjust_time_range(time_range, dt):
     Thus, this function will adjust the hour of the user's time_range: [datetime.datetime(1900, 1, 1, 12, 0), datetime.datetime(1905, 12, 31, 12, 0)]
 
     '''
-    
-    hour = dt.hour
+
     time_range_begin = datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
     time_range_end = datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     
@@ -306,7 +259,7 @@ def get_indices_subset(dt_arr, time_range):
 
     dt1 = time_range[0]
     dt2 = time_range[1]
-   
+    
     
     if dt1 >= dt_arr[0] and dt2 <= dt_arr[-1]:
 

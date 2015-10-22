@@ -1,3 +1,3 @@
 from icclim import *
 
-__version__ = "4.0.3" # print icclim.__version__
+__version__ = "4.1.0-test" # print icclim.__version__

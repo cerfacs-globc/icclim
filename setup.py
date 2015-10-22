@@ -32,7 +32,7 @@ setup(
  
     # la version du code
     
-    version="4.0.3",
+    version="4.1.0-test",
  
     # Liste les packages a inserer dans la distribution
     # plutot que de le faire a la main, on utilise la foncton
