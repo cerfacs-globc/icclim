@@ -163,9 +163,9 @@ and  :ref:`ignore_Feb29th <ignore_Feb29th_label>` parameters.
 
 
 In *ICCLIM* these thresholds represent a dictionary with 365 (if :ref:`ignore_Feb29th <ignore_Feb29th_label>` is True) 
-or 366 (:ref:`ignore_Feb29th <ignore_Feb29th_label>` is False) calendar days as keys, and 2D arrays as values.
+or 366 (if :ref:`ignore_Feb29th <ignore_Feb29th_label>` is False) calendar days as keys, and 2D arrays as values.
 
-.. note:: A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma, i.e. to get for example the 2D array with percentiles for April 13th it will looks like *my_perc_dict[4,13]*.
+.. note:: A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma. For example, getting of the 2D array with percentiles for April 13th, looks like *my_perc_dict[4,13]*.
 
 
 The percentile thresholds are different for "in-base" years (years inside the base period) and "out-of-base" years. 
@@ -185,7 +185,7 @@ the resampling algorithm in the section **4. Removing the "jump"**.
 Both methods could use 2 types of :ref:`interpolation <interpolation_label>`.
 
 
-The `calc_percentiles.py <link>`_ module contains get_percentile_dict(...) and get_percentile_arr(...) for the described methods.  
+The `calc_percentiles.py <https://github.com/cerfacs-globc/icclim/blob/master/icclim/calc_percentiles.py>`_ module contains *get_percentile_dict* and *get_percentile_arr* functions for the described methods.  
 
 .. _window_width_label:
 
@@ -315,13 +315,14 @@ or as percentage of days (``out_unit`` = "%").
 **Custom indices**
 -------------------
 
-It is possible to define custom indices setting all the necessary information to ``user_indice`` parameter. 
+You can also calculate custom climate indices by setting all necessary parameters to ``user_indice``. 
+
 
 ``user_indice``
 ~~~~~~~~~~~~~~~~
 
 
-``user_indice`` is a dictionary with following keys:
+``user_indice`` is a dictionary with possible keys:
 
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
 |Key                       |Type of value                              |Description                                                                           |
