@@ -347,10 +347,11 @@ You can also calculate custom climate indices by setting all necessary parameter
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
 |"var_type"                |*str*                                      |"t" or "p". See below for more details.                                               |
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"ref_time_range"          |[*datetime.datetime*, *datetime.datetime*] |Reference time range (past period) for anomalies computing.                           |
+|"ref_time_range"          |[*datetime.datetime*, *datetime.datetime*] |Time range of reference (baseline) period for computing anomalies.                    |
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
 
-Below some additional information about ``user_indice`` keys.
+Additional information about ``user_indice`` keys are given below.
+
 
 - key ``calc_operation``
 
@@ -361,15 +362,15 @@ value									description
 'min'									minimum
 'sum'									sum
 'mean'									mean
-'nb_events'								number of events satisfying the selected condition
-'max_nb_consecutive_events'             maximum number of consecutive events satisfying the selected condition
+'nb_events'								number of relevant events fulfilling given criteria
+'max_nb_consecutive_events'             maximum number of consecutive events fulfilling given criteria
 'run_mean'								max or min of running mean
 'run_sum'								max or min of running sum 
 'anomaly'								mean(future period) - mean(past period)
 =======================================	===========================================================================
 
 
-- key ``date_event`` allows to keep date(s) of the event, it if is ``True``:
+- The key ``date_event`` allows to keep date(s) of the event, it if is ``True``:
 
  	- For simple statistics (min, max) in output netCDF file will be created "date_event" variable with numerical dates of the first occurrence of the event for each pixel. 
  		
@@ -383,11 +384,11 @@ value									description
 			- for all pixels of "in-base" years (years in base period) for temperature percentile-based indices - it is not possible to determine the correct date of the event because of averaging of indice in "in-base" year.   	
 
 
-- key ``var_type`` is used to define the method of percentile thresholds computing. The methods are different for temperature and precipitation variables (more detailed :ref:`here <pctl_methods_label>`):
+- The key ``var_type`` is used to chose the method for computing  percentile thresholds. The methods are different for temperature and precipitation variables (more detailed :ref:`here <pctl_methods_label>`):
 
-	- If 't' (temperature variable), percentile thresholds is computed for each calendar day, using  *the bootstrapping procedure*. 
+	- If 't' (temperature variable), percentile thresholds are computed for each calendar day, using  *the bootstrapping procedure*. 
 		
-	- If 'p' (precipitation variable), percentile threshold is calculated for whole set of values corresponding to wet days (i.e. days with daily precipitation amount >= 1.0 mm) in base period.
+	- If 'p' (precipitation variable), percentile threshold are calculated for whole set of values corresponding to wet days (i.e. days with daily precipitation amount >= 1.0 mm) in base period.
 
 
 
@@ -426,7 +427,7 @@ Correspondence table "cal_operation" -- required/optional parameters:
 
 .. warning:: The 'window_width' here is a parameter for calculation of statistics in running window. Do not confuse with 'window_width' of :func:`icclim.indice`, which is used for computing of temperature percentiles and set to 5 as default. 
 
-.. note:: See examples for computing of custom indices :ref:`here <examples_user_indices_label>`.
+.. note:: See examples for computing custom indices :ref:`here <examples_user_indices_label>`.
 
 
 Examples
@@ -480,7 +481,7 @@ Example 3: indice TG90p with callback
 
 Example 4: multivariable percentile-based indices CD, CW, WD, WW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-These indices could be computed as custom indices, see an example here :ref:`here <examples_CD_CW_WD_WW_label>`
+These indices could be defined as costum indices, See an example :ref:`here <examples_CD_CW_WD_WW_label>`
 
 
 .. _examples_user_indices_label:
@@ -504,9 +505,9 @@ Example 5: Custom indice (max)
 
 Example 6: Custom indice (min positive + date)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-We want to find min temperature which is > 0 degrees Celsius and to define its date of year.
+Get minimum temperature which is above zero Celsius and find its date.
 
-.. warning:: If input data in Kelvin, then 'thresh' must be in Kelvin also.
+.. warning:: If input data are in Kelvin, then ``thresh`` must be in Kelvin too.
 
 .. note:: An additional variable will be created in output netCDF file: "date_event" with the date of the *first* occurrence of min positive.
 
