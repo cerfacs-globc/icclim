@@ -21,55 +21,76 @@ libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
 
 ## This function is used for user defined indices when 'date_event' param is True
-def get_first_occurrence(arr, logical_operation, thresh):
+def get_first_occurrence(arr, val=1):
     '''
-    Return the first occurrence (index) of values satisfying the condition (logical_operation, thresh)
-    in the 3D array along axis=0    
-    '''
+    Return the first occurrence (index) of val in the 3D array along axis=0    
     
-    if logical_operation == 'gt':
-        res=numpy.argmax(arr>thresh, axis=0)
+    arr is a binary (0/1) 3D array
+    
+    '''
+    ### we are looking for the first occurence of 1 (val=1)
+    res=numpy.argmax(arr==val, axis=0)
+
+    '''    
+    Problem:
+    
+    >>> a = numpy.zeros((4,2,3))
+    >>> a[0,0,0]=1
+    >>> a
+    array([[[ 1.,  0.,  0.],
+            [ 0.,  0.,  0.]],
+    
+           [[ 0.,  0.,  0.],
+            [ 0.,  0.,  0.]],
+    
+           [[ 0.,  0.,  0.],
+            [ 0.,  0.,  0.]],
+    
+           [[ 0.,  0.,  0.],
+            [ 0.,  0.,  0.]]])
+    >>> numpy.argmax(a==1, axis=0)
+    array([[0, 0, 0],
+           [0, 0, 0]])
+
+    Solution: if event is not found we set index to -1
+    i.e. the result we want:
+    array([[0, -1, -1],
+           [-1, -1, -1]])
         
-    elif logical_operation == 'get':
-        res=numpy.argmax(arr>=thresh, axis=0)   
-            
-    elif logical_operation == 'lt':
-        res=numpy.argmax(arr<thresh, axis=0)    
-            
-    elif logical_operation == 'let':
-        res=numpy.argmax(arr<=thresh, axis=0) 
-             
-    elif logical_operation == 'e':
-        res=numpy.argmax(arr==thresh, axis=0)
-        
+    '''
+
+    sum_arr = numpy.sum(arr, axis=0) # we have 0 if no event (1) is found 
+    
+    test_res = sum_arr + res
+    
+    ### correction
+    res[test_res==0]=-1
+    
     return res
 
+
 ## This function is used for user defined indices when 'date_event' param is True
-def get_last_occurrence(arr, logical_operation, thresh):
+def get_last_occurrence(arr, val=1):
     '''
-    Return the last occurrence (index) of values satisfying the condition (logical_operation, thresh)
-    in the 3D array along axis=0    
-    ''' 
+    Return the last occurrence (index) of val in the 3D array along axis=0    
+    
+    arr is a binary (0/1) 3D array
+    
+    '''
     
     arr_inverted = arr[::-1,:,:]
-    
-    # first occurrence in the inverted array   
-    if logical_operation == 'gt':
-        firs_occ=numpy.argmax(arr_inverted>thresh, axis=0)
+
+    firs_occ=numpy.argmax(arr_inverted==val, axis=0)
         
-    elif logical_operation == 'get':
-        firs_occ=numpy.argmax(arr_inverted>=thresh, axis=0)   
-            
-    elif logical_operation == 'lt':
-        firs_occ=numpy.argmax(arr_inverted<thresh, axis=0)    
-            
-    elif logical_operation == 'let':
-        firs_occ=numpy.argmax(arr_inverted<=thresh, axis=0) 
-             
-    elif logical_operation == 'e':
-        firs_occ=numpy.argmax(arr_inverted==thresh, axis=0)
+    sum_arr = numpy.sum(arr, axis=0)
+        
+    test_first_occ = sum_arr + firs_occ
     
+    ### last occurrence 
     res=arr.shape[0]-firs_occ-1
+    
+    ### correction of res
+    res[test_first_occ==0]=-1
         
     return res    
 
@@ -431,8 +452,8 @@ def get_nb_events(arr, logical_operation, thresh, fill_val=None, index_event=Fal
         res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
     
     if index_event==True:
-        first_occurrence_event=get_first_occurrence(binary_arr_3D, logical_operation='e', thresh=1)
-        last_occurrence_event=get_last_occurrence(binary_arr_3D, logical_operation='e', thresh=1)
+        first_occurrence_event=get_first_occurrence(binary_arr_3D)
+        last_occurrence_event=get_last_occurrence(binary_arr_3D)
 
         index_event_bounds=[first_occurrence_event, last_occurrence_event]
         
@@ -524,8 +545,8 @@ def get_nb_events_multivar(bin_arrs, link_logical_operation, fill_val, index_eve
     if index_event==True:
         
         if max_consecutive==False:         
-            first_occurrence_event=get_first_occurrence(bin_res, logical_operation='e', thresh=1)
-            last_occurrence_event=get_last_occurrence(bin_res, logical_operation='e', thresh=1)
+            first_occurrence_event=get_first_occurrence(bin_res)
+            last_occurrence_event=get_last_occurrence(bin_res)
             index_event_bounds=[first_occurrence_event, last_occurrence_event]
         
         else:
@@ -619,14 +640,15 @@ def get_date_event_arr(dt_arr, index_arr, time_calendar, time_units, fill_val):
     ## index_arr: 2D array with indices
     ## return: 2D array with with numeric dates 
     
+    
     res = numpy.zeros((index_arr.shape[0], index_arr.shape[1]))
     
     for i in range(index_arr.shape[0]):
         for j in range(index_arr.shape[1]):     
             index =  index_arr[i,j] 
             
-            if index==-1:
-                date_num = fill_val 
+            if index==-1: #### no event was found
+                date_num = fill_val ### no date
             else:
                 date_dt =  dt_arr[index]            
                 date_num = util_dt.date2num(dt=date_dt, calend=time_calendar, units=time_units)
