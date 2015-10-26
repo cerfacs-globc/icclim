@@ -12,6 +12,7 @@ from netCDF4 import Dataset, MFDataset
 import os
 from collections import OrderedDict
 
+print "Test branch 360_day"
 
 import set_globattr
 import set_longname_units
