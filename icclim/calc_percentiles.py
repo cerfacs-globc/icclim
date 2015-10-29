@@ -12,6 +12,8 @@ from datetime import datetime
 from collections import OrderedDict, defaultdict
 import calendar
 import util.calc as calc
+import util.util_dt as util_dt
+import netcdftime
 
 import ctypes
 from numpy.ctypeslib import ndpointer
@@ -47,7 +49,7 @@ def get_dict_caldays(dt_arr):
 
 
     
-def get_masked(current_date, month, day, hour, window_width, only_leap_years, ignore_Feb29th=False): 
+def get_masked(current_date, month, day, hour, window_width, only_leap_years, t_calendar, t_units, ignore_Feb29th=False): 
 
     '''
     Returns "True" if "current_date" is not in the window centered on the given calendar day (month-day).
@@ -72,41 +74,64 @@ def get_masked(current_date, month, day, hour, window_width, only_leap_years, ig
     
     yyyy = current_date.year
     
+    current_date_num = util_dt.date2num(dt=current_date, calend=t_calendar, units=t_units)
+    
 
     if (day==29 and month==02):
         if calendar.isleap(yyyy):
-            dt1 = datetime(yyyy,month,day,hour)
-            diff = abs(current_date-dt1).days
+            dt1 = netcdftime.datetime(yyyy,month,day,hour)
+
+            #diff = abs(current_date-dt1).days
+            
+            dt1_num = util_dt.date2num(dt=dt1, calend=t_calendar, units=t_units)
+            diff = abs(current_date_num-dt1_num)            
+            
             toReturn = diff > window_width/2
+            
         else:
             if only_leap_years:
                 toReturn=True
             else:                
-                dt1 = datetime(yyyy,02,28,hour)
-                diff = (current_date-dt1).days
+                dt1 = netcdftime.datetime(yyyy,02,28,hour)
+                #diff = (current_date-dt1).days
+                
+                dt1_num = util_dt.date2num(dt=dt1, calend=t_calendar, units=t_units)
+                diff = abs(current_date_num-dt1_num) 
+                
                 toReturn = (diff < (-(window_width/2) + 1)) or (diff > window_width/2)
     else:
         
         
         
-        d1 = datetime(yyyy,month,day, hour)
+        d1 = netcdftime.datetime(yyyy,month,day, hour)
         
         # In the case the current date is in December and calendar day (day-month) is at the beginning of year.
         # For example we are looking for dates around January 2nd, and the current date is 31 Dec 1999,
         # we will compare it with 02 Jan 2000 (1999 + 1)
-        d2 = datetime(yyyy+1,month,day, hour)
+        d2 = netcdftime.datetime(yyyy+1,month,day, hour)
         
         # In the case the current date is in January and calendar day (day-month) is at the end of year.
         # For example we are looking for dates around December 31st, and the current date is 02 Jan 2003,
         # we will compare it with 01 Jan 2002 (2003 - 1) 
-        d3 = datetime(yyyy-1,month,day, hour)
+        d3 = netcdftime.datetime(yyyy-1,month,day, hour)
         
         
+        ## This line is replaced by following lines, because 
+        ## TypeError: unsupported operand type(s) for -: 'netcdftime._datetime.datetime' and 'datetime.datetime'
+#         diff=min(abs(current_date-d1).days,abs(current_date-d2).days,abs(current_date-d3).days)    
         
-        diff=min(abs(current_date-d1).days,abs(current_date-d2).days,abs(current_date-d3).days)    
+        ## we convert datetime (netcdftime.datetime or datetime.datetime) to numeric values
+        ## WARNING: the result should be correct if units string begins with 'days'
+        
+        d1_num = util_dt.date2num(dt=d1, calend=t_calendar, units=t_units)
+        d2_num = util_dt.date2num(dt=d2, calend=t_calendar, units=t_units)
+        d3_num = util_dt.date2num(dt=d3, calend=t_calendar, units=t_units)
 
-        if ignore_Feb29th==True and calendar.isleap(yyyy) and (   abs((current_date-datetime(yyyy,02,29,hour)).days) < window_width/2 ):
-
+        
+        diff=min(abs(current_date_num-d1_num),abs(current_date_num-d2_num),abs(current_date_num-d3_num))
+        
+#         if ignore_Feb29th==True and calendar.isleap(yyyy) and (   abs((current_date-datetime(yyyy,02,29,hour)).days) < window_width/2 ):
+        if ignore_Feb29th==True and calendar.isleap(yyyy) and (abs(   current_date_num-util_dt.date2num(dt=netcdftime.datetime(yyyy,02,29,hour), calend=t_calendar, units=t_units)  ) < window_width/2 ):
             diff =  diff -1
             
             
@@ -116,7 +141,7 @@ def get_masked(current_date, month, day, hour, window_width, only_leap_years, ig
     return toReturn
 
 
-def get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, ignore_Feb29th=False):
+def get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, t_calendar, t_units, ignore_Feb29th=False):
     '''
     Creates a binary mask for a datetime vector for a given calendar day (month-day).
     
@@ -136,7 +161,7 @@ def get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, 
     
     rtype: numpy.ndarray (1D)   
     ''' 
-    mask = numpy.array([get_masked(dt, month, day, dt_hour, window_width, only_leap_years, ignore_Feb29th) for dt in dt_arr])
+    mask = numpy.array([get_masked(dt, month, day, dt_hour, window_width, only_leap_years, t_calendar, t_units, ignore_Feb29th) for dt in dt_arr])
     return mask
 
 
@@ -173,7 +198,9 @@ def get_masked_arr(arr, fill_val):
 #########################################################
 
 ### used to get daily percentile thresholds for temperature variables
-def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=False, callback=None, callback_percentage_start_value=0, 
+def get_percentile_dict(arr, dt_arr, percentile, window_width, 
+                        t_calendar, t_units,
+                        only_leap_years=False, callback=None, callback_percentage_start_value=0, 
                         callback_percentage_total=100, chunk_counter=1, fill_val=None,
                         ignore_Feb29th=False, interpolation="hyndman_fan"):
     '''
@@ -281,7 +308,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
             arr_percentille_current_calday = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
             
             # step2: we do a mask for the datetime vector for current calendar day (day/month)
-            dt_arr_mask = get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, ignore_Feb29th)
+            dt_arr_mask = get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, t_calendar, t_units, ignore_Feb29th)
             
             
             # step3: we are looking for the indices of non-masked dates (i.e. where dt_arr_mask==False) 
@@ -298,13 +325,10 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, only_leap_years=F
 
             # step6: we add to the dictionary
             percentile_dict[month,day] = arr_percentille_current_calday
-
         
         if callback != None:
             percent_current_month =  percent_current_month + percent_one_month
             callback(percent_current_month)
-        
-
         
     return percentile_dict
 

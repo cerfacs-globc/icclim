@@ -945,6 +945,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                                                     dt_arr=new_arrs_base[0], 
                                                                                     percentile=pctl_value, 
                                                                                     window_width=window_width, 
+                                                                                    t_calendar=vars_dict[v]['time_calendar'], 
+                                                                                    t_units=vars_dict[v]['time_units'],          
                                                                                     only_leap_years=only_leap_years, 
                                                                                     callback=None, callback_percentage_start_value=0, callback_percentage_total=100, 
                                                                                     chunk_counter=1, 
@@ -956,8 +958,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 pctl_thresh[v]['without_bootstrapping'] = daily_pctl_dict
                             elif current_intersecting_year != -9999:
                                 pctl_thresh[v]['bootstrapping']=daily_pctl_dict
-                        
-   
+                            
+                            
                     test_v[i]=1 ### we change zero on 1 in the list "test_v"
                     i+=1                   
             

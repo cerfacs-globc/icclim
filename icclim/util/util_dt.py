@@ -4,12 +4,12 @@
 #  Author: Natalia Tatarinova
 
 
-from netcdftime import utime
-from datetime import datetime
+import netcdftime
+#from datetime import datetime
 from netCDF4 import Dataset, MFDataset
 import numpy
 import sys
-import netcdftime
+
 
 # unused function
 def get_list_dates_from_nc(nc, type_dates):
@@ -38,8 +38,8 @@ def get_list_dates_from_nc(nc, type_dates):
         list_dt = arr_dt.tolist() # numpy array -> list
         
     if type_dates == 'dt':
-        t = utime(time_units, time_calend) # <netcdftime.utime instance at 0xecae18>
-        arr_dt = t.num2date(var_time[:]) # arr_dt: numpy array of dates datetime; var_time[:]: time values (ex.: [49323.5, 49353, 49382.5, ...])
+        t = netcdftime.utime(time_units, time_calend) 
+        arr_dt = t.num2date(var_time[:]) 
         list_dt = arr_dt.tolist() # numpy array -> list
     del arr_dt
     
@@ -75,8 +75,8 @@ def get_list_dates(ifile, type_dates):
         list_dt = arr_dt.tolist() # numpy array -> list
         
     if type_dates == 'dt':
-        t = utime(time_units, time_calend) # <netcdftime.utime instance at 0xecae18>
-        arr_dt = t.num2date(var_time[:]) # arr_dt: numpy array of dates datetime; var_time[:]: time values (ex.: [49323.5, 49353, 49382.5, ...])
+        t = netcdftime.utime(time_units, time_calend) 
+        arr_dt = t.num2date(var_time[:]) 
         list_dt = arr_dt.tolist() # numpy array -> list
     del arr_dt
     
@@ -121,8 +121,9 @@ def date2num(dt, calend, units):
     
     :rtype: float
     '''
-    t = utime(units, calend)
+    t = netcdftime.utime(units, calend)
     dt_num = t.date2num(dt)
+    
     return dt_num
 
 
@@ -139,13 +140,9 @@ def num2date(num, calend, units):
     
     :rtype: datetime.datetime object
     '''   
-    t = utime(units, calend) 
-    dt = t.num2date(num) 
-        
-    if isinstance(dt, netcdftime.datetime):
-        #dt = netcdftime.datetime(dt.year, dt.month, dt.day, dt.hour)
-        dt = datetime(dt.year, dt.month, dt.day, dt.hour)
-            
+    t = netcdftime.utime(units, calend)    
+    dt = t.num2date(num)
+
     return dt
 
 
@@ -181,7 +178,9 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
         
     units = time.units
     
-    any_dt = num2date(time[0], calend, units)
+    t = netcdftime.utime(units, calend)
+    
+    any_dt = t.num2date(time[0])
     nc.close()
     
     
@@ -240,8 +239,11 @@ def adjust_time_range(time_range, dt):
 
     '''
 
-    time_range_begin = datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-    time_range_end = datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+#     time_range_begin = datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+#     time_range_end = datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+
+    time_range_begin = netcdftime.datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+    time_range_end = netcdftime.datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     
     return [time_range_begin, time_range_end]
 
