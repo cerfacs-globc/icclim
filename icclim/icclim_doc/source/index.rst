@@ -22,8 +22,6 @@ Contents:
 Release notes
 ------------------
 
-*1/09/2015* **Version 4.0.0**
-
 For release notes please look `here <https://github.com/cerfacs-globc/icclim/releases>`_
 
 
