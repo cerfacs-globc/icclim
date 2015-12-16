@@ -859,7 +859,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         
         
         
-        else: # percentile based indcies (single- or multivariable)
+        else: # percentile based indices (single- or multivariable)
             
             test_v = [0]*(len(vars_dict)) ### list of zeros
 
