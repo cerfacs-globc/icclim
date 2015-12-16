@@ -393,7 +393,7 @@ def indice(in_files,
                 # Units conversion
                 var_add = 0.0
                 var_scale = 1.0
-                if var_units == 'degC' or var_units == 'Celcius': #Kelvin
+                if var_units == 'degC' or var_units == 'Celsius': #Kelvin
                     var_add = var_add + 273.15
                 elif var_units in ["mm/s", "mm/sec", "kg m-2 s-1"]: # mm/s --> mm/day
                     var_scale = var_scale * 86400.0
