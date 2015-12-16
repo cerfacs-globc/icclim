@@ -6,7 +6,7 @@
 #  Author: Natalia Tatarinova
 #  Additions from 2015/05/01: Christian Page
 
-pyximport.install(pyimport = True)
+#pyximport.install(pyimport = True)
 
 import numpy
 from netCDF4 import Dataset, MFDataset
