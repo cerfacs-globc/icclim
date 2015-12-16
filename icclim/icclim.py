@@ -6,6 +6,8 @@
 #  Author: Natalia Tatarinova
 #  Additions from 2015/05/01: Christian Page
 
+pyximport.install(pyimport = True)
+
 import numpy
 from netCDF4 import Dataset, MFDataset
 
@@ -483,18 +485,19 @@ def indice(in_files,
             
             
             #### we remove all that we do not need in VARS dictionary before passing to "get_indice_from_dict_temporal_slices"
-            keys_to_remove = ['files_years', 'files_years_base', 'dt_arr', 'values_arr', 'unit_conversion_var_add', 'unit_conversion_var_scale']
-            for k in keys_to_remove:
-                del VARS[v][k]
+            #### Does not work because in the loop we lose required keys...
+            # keys_to_remove = ['files_years', 'files_years_base', 'dt_arr', 'values_arr', 'unit_conversion_var_add', 'unit_conversion_var_scale']
+            # for k in keys_to_remove:
+            #     del VARS[v][k]
                 
-                try:
-                    if indice_type.startswith('user_indice_'):
-                        if type(user_indice[v]['thresh'])==str:
-                            VARS[v]['var_type'] = user_indice[v]['var_type']
-                    else:
-                        VARS[v]['var_type'] = maps.map_var_type[indice_name]
-                except:
-                    pass
+            try:
+                if indice_type.startswith('user_indice_'):
+                    if type(user_indice[v]['thresh'])==str:
+                        VARS[v]['var_type'] = user_indice[v]['var_type']
+                else:
+                    VARS[v]['var_type'] = maps.map_var_type[indice_name]
+            except:
+                pass
                 
             nc.close()
 
