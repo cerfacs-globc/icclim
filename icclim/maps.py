@@ -7,14 +7,8 @@ map_indice_type =   {
                             
                         'multivariable': ['DTR', 'ETR', 'vDTR'],
 
-                        'multiperiod': ['SUB'],
-                 
-                        'simple_time_aggregation': ['TIMEAVG'],
-                            
                         'percentile_based': ['TG10p', 'TX10p', 'TN10p', 'TG90p', 'TX90p', 'TN90p', 'WSDI', 'CSDI',
                                              'R75p', 'R75pTOT', 'R95p', 'R95pTOT', 'R99p', 'R99pTOT']
-
-
                     }
 
 map_indice_percentile_value =   {

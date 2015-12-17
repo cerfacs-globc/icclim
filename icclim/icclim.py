@@ -148,7 +148,6 @@ def indice(in_files,
             
             user_indice = ui.get_user_indice_params(user_indice, var_name, out_unit)
             indice_type = user_indice['type']
-            print(indice_type)
                             
     ########## User indice check end
     #######################################################            
@@ -868,7 +867,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         
         
         
-        else: # percentile based indcies (single- or multivariable)
+        else: # percentile based indices (single- or multivariable)
             
             test_v = [0]*(len(vars_dict)) ### list of zeros
 

@@ -170,7 +170,7 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
     
     Returns a time range: a list two datetime objects: [begin, end], where "begin" is the first date, and "end" is the last.
     '''
-    
+
     nc = Dataset(files[0],'r')
     time = nc.variables[temporal_var_name]
     
@@ -189,10 +189,10 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
         time_range = adjust_time_range(time_range, any_dt)        
     
     else:
-        nc = MFDataset(files, 'r')
+        nc = MFDataset(files, 'r', aggdim='time')
         time_arr = nc.variables[temporal_var_name][:]
         nc.close()
-    
+
         begin_num = min(time_arr)
         end_num = max(time_arr)
         
@@ -260,11 +260,6 @@ def get_indices_subset(dt_arr, time_range):
     dt1 = time_range[0]
     dt2 = time_range[1]
     
-    print(str(dt_arr[0]))
-    print(str(dt_arr[len(dt_arr)-1]))
-    print(str(dt1))
-    print(str(dt2))
-
     if dt1 >= dt_arr[0] and dt2 <= dt_arr[-1]:
 
         mask_dt_arr = numpy.logical_or(dt_arr<dt1, dt_arr>dt2)
