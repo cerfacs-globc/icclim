@@ -260,7 +260,11 @@ def get_indices_subset(dt_arr, time_range):
     dt1 = time_range[0]
     dt2 = time_range[1]
     
-    
+    print(str(dt_arr[0]))
+    print(str(dt_arr[len(dt_arr)-1]))
+    print(str(dt1))
+    print(str(dt2))
+
     if dt1 >= dt_arr[0] and dt2 <= dt_arr[-1]:
 
         mask_dt_arr = numpy.logical_or(dt_arr<dt1, dt_arr>dt2)
@@ -270,7 +274,7 @@ def get_indices_subset(dt_arr, time_range):
         return indices_non_masked
         
     else: 
-        raise ValueError('The time range is not included in the input time steps array.')
+        raise ValueError('The time range is not included in the input time steps array.'+str(dt1)+' '+str(dt_arr[0])+' '+str(dt2)+' '+str(dt_arr[-1]))
         return 0
 
 def get_intersecting_years(time_range1, time_range2):

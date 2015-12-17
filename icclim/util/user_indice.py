@@ -15,7 +15,7 @@ map_calc_params_required = {
                               'max_nb_consecutive_events': ['logical_operation', 'thresh'], # 'link_logical_operations' ('and' or 'or' ) is required if multivariable indice
                               'run_mean': ['extreme_mode', 'window_width'],
                               'run_sum': ['extreme_mode', 'window_width'],
-                              'anomaly': ['ref_time_range'] # past period
+                              'anomaly': []
                               }   
 
 # map with optional parameters (for user defined indices)  
@@ -97,7 +97,6 @@ def set_params(user_indice):
     setattr(obj, 'coef', 1.0)
     setattr(obj, 'date_event', False)
     setattr(obj, 'var_type', None)
-    setattr(obj, 'ref_time_range', None)
     setattr(obj, 'link_logical_operation', 'and')
     
     
@@ -124,7 +123,7 @@ def get_user_indice_params(user_indice, var_name, out_unit):
         user_indice_var = {}
         
         for param in user_indice.keys():
-            if (type(user_indice[param]) is list) and param != 'ref_time_range':
+            if (type(user_indice[param]) is list):
                 
                 param_value = user_indice[param][i]
             else:
@@ -159,8 +158,6 @@ def get_user_indice_params(user_indice, var_name, out_unit):
     ui['date_event']=ui[var_name[0]]['date_event']
     ui['calc_operation']=ui[var_name[0]]['calc_operation']
     
-    if ui['calc_operation']=='anomaly':
-        ui['ref_time_range']=ui[var_name[0]]['ref_time_range'] 
     
     
     
