@@ -301,17 +301,13 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_
     assert(dt_arr.ndim == 1)    
     assert(values_arr.ndim == 3)
     
-    if ignore_Feb29th == True:
+    if ignore_Feb29th == True and not calend == '360_day':
         mask_Feb29th = numpy.array([ (dt.month==2 and dt.day==29) for dt in dt_arr])
         indices_masked_Feb29th = numpy.where(mask_Feb29th==False)[0] # ...[0]: tuple to numpy.ndarray (http://stackoverflow.com/questions/16127444/why-is-my-array-length-1-when-building-it-with-numpy-where)
         dt_arr = dt_arr[indices_masked_Feb29th]
         values_arr = values_arr[indices_masked_Feb29th,:,:]
-        
-        return (dt_arr, values_arr)
     
-    else:   
-    
-        return (dt_arr, values_arr)
+    return (dt_arr, values_arr)
 
 def list_var_dim(inc, var): 
     '''
