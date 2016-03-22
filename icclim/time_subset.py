@@ -202,6 +202,9 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
 
     '''
     
+    seconds_per_day = 86400.0
+    tunits = "seconds since 1600-01-01 00:00:00"
+
     if type(values_arr)==list: # case of anomalies
         values_arr=values_arr[0]
         
@@ -260,8 +263,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
                 arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :]
                 
                 dt_centroid = datetime(  y, m, map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
-                tunits = "seconds since 1600-01-01 00:00:00"
-                dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
+                dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits) + seconds_per_day
                 dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
                 dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
                 
@@ -280,8 +282,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
             arr_subset_i = values_arr[indices_dt_arr_non_masked_year, :, :]
             
             dt_centroid = datetime(  y, map_info_slice[str(temporal_subset_mode)]['centroid_month'], map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
-            tunits = "seconds since 1600-01-01 00:00:00"
-            dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
+            dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits) + seconds_per_day
             dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
             
@@ -308,8 +309,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
                 arr_subset_i = values_arr[indices_dt_arr_non_masked_current_season, :, :]
                 
                 dt_centroid = datetime(  next_year, map_info_slice[str(temporal_subset_mode)]['centroid_month'], map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
-                tunits = "seconds since 1600-01-01 00:00:00"
-                dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
+                dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits) + seconds_per_day
                 dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
                 dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
                 
@@ -327,8 +327,7 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
             
             arr_subset_i = values_arr[indices_dt_arr_non_masked_i, :, :]
             dt_centroid = datetime(  y, map_info_slice[str(temporal_subset_mode)]['centroid_month'], map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
-            tunits = "seconds since 1600-01-01 00:00:00"
-            dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits)+86400.0
+            dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits) + seconds_per_day
             dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
             
