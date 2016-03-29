@@ -5,6 +5,7 @@
 
 
 import netcdftime
+import pdb
 #from datetime import datetime
 from netCDF4 import Dataset, MFDataset
 import numpy
@@ -288,4 +289,3 @@ def get_intersecting_years(time_range1, time_range2):
     intersection = list( set(list_years_tr1).intersection(list_years_tr2) )
     
     return intersection
-        
