@@ -60,14 +60,6 @@ Basic routines for computing of climate indices:
 
 '''
 
-
-# '''
-# Statistics elementary functions
-# - TIMEAVG
-# - SUB
-# '''
-
-
 '''
 Note: these functions manipulate 3D arrays - numpy.ndarray or numpy.ma.MaskedArray.
 Return type: the same type as the type of input array(s)
@@ -890,65 +882,6 @@ def SD50cm_calculation(arr, fill_val=None, threshold=50.0, out_unit="days"):
     SD50cm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
     
     return SD50cm   
-
-
-# ######### simple statistics: aggregation over time
-# 
-# def TIMEAVG_calculation(arr, fill_val=None):
-#     
-#     '''    
-#     Calculates the average: mean of variable
-#     
-#     :param arr: daily mean 
-#     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-#     :param fill_val: fill value  
-#     :type fill_val: float
-#     
-#     :rtype: numpy.ndarray (2D)        (if "arr" is numpy.ndarray)
-#          or numpy.ma.MaskedArray (2D) (if "arr" is numpy.ma.MaskedArray)
-#          
-#     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.    
-#     '''
-#     
-#     
-#     TIMEAVG = calc.simple_stat(arr, stat_operation='mean', fill_val=fill_val)
-#     
-#     return TIMEAVG
-# 
-# 
-# def SUB_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
-#     
-#     '''    
-#     Calculates the substraction of two datasets
-#     
-#     :param arr1: daily max temperature (e.g. "tasmax")
-#     :type arr1: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
-#     :param arr2: daily min temperature (e.g. "tasmin")
-#     :type arr2: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D) 
-#     
-#     :param fill_val1: fill value of arr1 
-#     :type fill_val1: float
-#     :param fill_val2: fill value of arr2 
-#     :type fill_val2: float
-#     
-#     :rtype: numpy.ndarray (2D)        (if "arr1" and "arr2" are numpy.ndarray)
-#          or numpy.ma.MaskedArray (2D) (if "arr1" and "arr2" are numpy.ma.MaskedArray)
-# 
-#     .. warning:: "arr1" and "arr2" must be the same type, shape and correspond to the same time step vector.
-#     
-#     '''
-#     #.. warning:: If "arr1" and "arr2" are masked arrays, the parameters "fill_val1" and "fill_val2" are ignored, because they have no sense in this case.
-#       
-#     arr1_masked = calc.get_masked_arr(arr1, fill_val1)
-#     arr2_masked = calc.get_masked_arr(arr2, fill_val2)
-#     
-#     SUB = arr1_masked - arr2_masked                              # masked array with fill_value = fill_value of the first masked array in expression (i.e. arr1_masked)
-#     numpy.ma.set_fill_value(SUB, arr1_masked.fill_value)      # we set a fill_value = fill_value of arr1_masked (or arr2_masked) 
-#     
-#     if not isinstance(arr1, numpy.ma.MaskedArray) :     # or if not isinstance(arr2, numpy.ma.MaskedArray) [because the both input arrays are the same type]
-#         SUB = SUB.filled(fill_value=arr1_masked.fill_value)      
-#     
-#     return SUB    
 
 
 def TG90p_calculation(arr, dt_arr, percentile_dict, fill_val=None, out_unit="days"):

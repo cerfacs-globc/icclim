@@ -206,12 +206,3 @@ def WD_setvarattr(var_nc):
 def WW_setvarattr(var_nc):
     var_nc.setncattr('long_name', 'Warm and wet days')
     var_nc.setncattr('units', 'days')
-
-def TIMEAVG_setvarattr(var_nc, longname, units):
-    var_nc.setncattr('long_name', 'Time Average of '+longname)
-    var_nc.setncattr('units', units)
-    
-def SUB_setvarattr(var_nc, longname, units):
-    var_nc.setncattr('long_name', 'Substraction of '+longname)
-    var_nc.setncattr('units', units)
-    

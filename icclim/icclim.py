@@ -6,6 +6,8 @@
 #  Author: Natalia Tatarinova
 #  Additions from 2015/05/01: Christian Page
 
+#pyximport.install(pyimport = True)
+
 import numpy
 import pdb
 from netCDF4 import Dataset, MFDataset
@@ -53,16 +55,17 @@ def indice(in_files,
            N_lev=None,
            transfer_limit_Mbytes=None,
            callback=None,
-            callback_percentage_start_value=0,  
-            callback_percentage_total=100, 
-            base_period_time_range=None,
-            window_width=5,
-            only_leap_years=False,
-            ignore_Feb29th=False,
-            interpolation='hyndman_fan', 
-            out_unit='days',
-            user_indice=None
-            ):
+           callback_percentage_start_value=0,  
+           callback_percentage_total=100, 
+           base_period_time_range=None,
+           window_width=5,
+           only_leap_years=False,
+           ignore_Feb29th=False,
+           interpolation='hyndman_fan', 
+           out_unit='days',
+           netcdf_version='NETCDF3_CLASSIC',
+           user_indice=None
+           ):
 
     
     '''
@@ -141,6 +144,8 @@ def indice(in_files,
                 
             if user_indice['calc_operation']=='anomaly':
                 slice_mode=None
+                if base_period_time_range==None:
+                    raise IOError('Time range of base period is required for anomaly-based user indices! Please, set the "base_period_time_range" parameter.')
             
             user_indice = ui.get_user_indice_params(user_indice, var_name, out_unit)
             indice_type = user_indice['type']
@@ -152,10 +157,9 @@ def indice(in_files,
         indice_type = get_key_by_value_from_dict(maps.map_indice_type, indice_name) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
 
     
-    if (indice_type in ['percentile_based', 'percentile_based_multivariable'] or  indice_type.startswith('user_indice_percentile_')) and base_period_time_range==None:
+    if (indice_type in ['percentile_based', 'percentile_based_multivariable'] or indice_type.startswith('user_indice_percentile_')) and base_period_time_range==None:
         raise IOError('Time range of base period is required for percentile-based indices! Please, set the "base_period_time_range" parameter.')
 
-    
     
     
     #####    input files and target variable names 
@@ -193,7 +197,10 @@ def indice(in_files,
         raise IOError('Output directory does not exists.')
                      
     #####    we prepare output file
-    onc = Dataset(out_file, 'w' ,format="NETCDF3_CLASSIC")
+    netcdfv = ['NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT']
+    if netcdf_version not in netcdfv:
+        netcdf_version = 'NETCDF3_CLASSIC'
+    onc = Dataset(out_file, 'w' ,format=netcdf_version)
     
     #####    we define type of result indice
     ind_type = 'f' # 'float32'
@@ -203,7 +210,7 @@ def indice(in_files,
     ################# META DATA: begin
     ########################################
     any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
-   
+
     inc = Dataset(any_in_file, 'r')
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0]) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
@@ -275,7 +282,7 @@ def indice(in_files,
     
     if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
         time_range2 = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
-                                             time_range=user_indice['ref_time_range'], temporal_var_name=indice_dim[0])
+                                         time_range=base_period_time_range, temporal_var_name=indice_dim[0])
 
     # we get nb_rows (var_shape1) and nb_cols (var_shape2) to compute in the following optimal tile_dimension 
     var_shape = ncVar.shape
@@ -326,7 +333,7 @@ def indice(in_files,
         
         VARS[v]['files_years'] = dict_files_years_to_process 
         
-        if indice_type in ["percentile_based", "percentile_based_multivariable"] or  indice_type.startswith('user_indice_percentile_'):
+        if indice_type in ["percentile_based", "percentile_based_multivariable"] or indice_type.startswith('user_indice_percentile_') or (indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly'):
             dict_files_years_to_process_base = files_order.get_dict_files_years_to_process_in_correct_order(files_list=VARS_in_files[v], time_range=base_period_time_range)
             VARS[v]['files_years_base'] = dict_files_years_to_process_base
 
@@ -434,48 +441,51 @@ def indice(in_files,
             
             if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
                 
+                ncb = MFDataset(VARS[v]['files_years_base'].keys(), 'r', aggdim=dim_name)
+                var_time = ncb.variables[indice_dim[0]]
+                var = ncb.variables[v]
                 arrs_current_chunk_ref = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
-                                                                     fill_val=VARS[v]['fill_value'], 
-                                                                     time_range=time_range2, ### reference period
-                                                                     N_lev=N_lev, 
-                                                                     scale_factor=VARS[v]['unit_conversion_var_scale'], 
-                                                                     add_offset=VARS[v]['unit_conversion_var_add'],
-                                                                     ignore_Feb29th=ignore_Feb29th, 
-                                                                     i1_row_current_tile=i1_row_current_tile,
-                                                                     i2_row_current_tile=i2_row_current_tile,
-                                                                     i1_col_current_tile=i1_col_current_tile,
-                                                                     i2_col_current_tile=i2_col_current_tile)
-            
+                                                                            fill_val=VARS[v]['fill_value'], 
+                                                                            time_range=base_period_time_range, 
+                                                                            N_lev=N_lev, 
+                                                                            scale_factor=VARS[v]['unit_conversion_var_scale'], 
+                                                                            add_offset=VARS[v]['unit_conversion_var_add'],
+                                                                            ignore_Feb29th=ignore_Feb29th,
+                                                                            i1_row_current_tile=i1_row_current_tile,
+                                                                            i2_row_current_tile=i2_row_current_tile,
+                                                                            i1_col_current_tile=i1_col_current_tile,
+                                                                            i2_col_current_tile=i2_col_current_tile)
+                
+                ncb.close()
+
                 VARS[v]['values_arr_ref']=arrs_current_chunk_ref[1] # arrs_current_chunk_ref[1]: values, arrs_current_chunk_ref[0]: dt_arr
 
 
-            if indice_type in ["percentile_based", "percentile_based_multivariable"] or  indice_type.startswith('user_indice_percentile_'):
+            if indice_type in ["percentile_based", "percentile_based_multivariable"] or indice_type.startswith('user_indice_percentile_'):
                 ncb = MFDataset(VARS[v]['files_years_base'].keys(), 'r', aggdim=dim_name)
                 var_time = ncb.variables[indice_dim[0]]
                 var = ncb.variables[v]
                 arrs_base_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
                                                                             fill_val=VARS[v]['fill_value'], 
                                                                             time_range=base_period_time_range, 
-                                                                              N_lev=N_lev, 
-                                                                              scale_factor=VARS[v]['unit_conversion_var_scale'], 
-                                                                              add_offset=VARS[v]['unit_conversion_var_add'],
-                                                                              ignore_Feb29th=ignore_Feb29th,
-                                                                              i1_row_current_tile=i1_row_current_tile,
-                                                                             i2_row_current_tile=i2_row_current_tile,
-                                                                             i1_col_current_tile=i1_col_current_tile,
-                                                                             i2_col_current_tile=i2_col_current_tile)
+                                                                            N_lev=N_lev, 
+                                                                            scale_factor=VARS[v]['unit_conversion_var_scale'], 
+                                                                            add_offset=VARS[v]['unit_conversion_var_add'],
+                                                                            ignore_Feb29th=ignore_Feb29th,
+                                                                            i1_row_current_tile=i1_row_current_tile,
+                                                                            i2_row_current_tile=i2_row_current_tile,
+                                                                            i1_col_current_tile=i1_col_current_tile,
+                                                                            i2_col_current_tile=i2_col_current_tile)
                 
                 ncb.close()
 
-            
                 VARS[v]['base']['dt_arr']=arrs_base_current_chunk[0]
                 VARS[v]['base']['values_arr']=arrs_base_current_chunk[1]
 
             
             dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=VARS[v]['dt_arr'], 
                                                                         values_arr=VARS[v]['values_arr'],
-                                                                        fill_value=VARS[v]['fill_value'],                                                                      
-                                                                        calend=VARS[v]['time_calendar'], 
+                                                                        fill_value=VARS[v]['fill_value'],                                                                                                            calend=VARS[v]['time_calendar'], 
                                                                         temporal_subset_mode=slice_mode, 
                                                                         time_range=time_range)
             
@@ -484,18 +494,19 @@ def indice(in_files,
             
             
             #### we remove all that we do not need in VARS dictionary before passing to "get_indice_from_dict_temporal_slices"
-            keys_to_remove = ['files_years', 'files_years_base', 'dt_arr', 'values_arr', 'unit_conversion_var_add', 'unit_conversion_var_scale']
-            for k in keys_to_remove:
-                del VARS[v][k]
+            #### Christian: Does not work because in the loop we lose required keys...
+            # keys_to_remove = ['files_years', 'files_years_base', 'dt_arr', 'values_arr', 'unit_conversion_var_add', 'unit_conversion_var_scale']
+            # for k in keys_to_remove:
+            #     del VARS[v][k]
                 
-                try:
-                    if indice_type.startswith('user_indice_'):
-                        if type(user_indice[v]['thresh'])==str:
-                            VARS[v]['var_type'] = user_indice[v]['var_type']
-                    else:
-                        VARS[v]['var_type'] = maps.map_var_type[indice_name]
-                except:
-                    pass
+            try:
+                if indice_type.startswith('user_indice_'):
+                    if type(user_indice[v]['thresh'])==str:
+                        VARS[v]['var_type'] = user_indice[v]['var_type']
+                else:
+                    VARS[v]['var_type'] = maps.map_var_type[indice_name]
+            except:
+                pass
                 
             nc.close()
 
@@ -857,7 +868,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         
         
         
-        else: # percentile based indcies (single- or multivariable)
+        else: # percentile based indices (single- or multivariable)
             
             test_v = [0]*(len(vars_dict)) ### list of zeros
 

@@ -59,7 +59,7 @@ copyright = u'2015, CERFACS'
 # built documents.
 #
 # The short X.Y version.
-version = '4.1.0'
+version = '4.1.1'
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -110,8 +110,8 @@ html_theme = 'classic'
 if on_rtd:
     #html_theme = 'default'
     #html_style = '/default.css'
-     html_theme = 'classic'	
-     html_style = '/classic.css'
+    html_theme = 'classic'	
+    html_style = '/classic.css'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

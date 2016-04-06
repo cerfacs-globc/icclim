@@ -422,8 +422,6 @@ Correspondence table "cal_operation" -- required/optional parameters:
 |'run_mean'/'run_sum'           |'extreme_mode',                |'coef',                |
 |                               |'window_width'                 |'date_event'           |
 +-------------------------------+-------------------------------+-----------------------+
-|'anomaly'                      |'ref_time_range'               |                       |
-+-------------------------------+-------------------------------+-----------------------+
 
 .. warning:: The 'window_width' here is a parameter for calculation of statistics in running window. Do not confuse with 'window_width' of :func:`icclim.indice`, which is used for computing of temperature percentiles and set to 5 as default. 
 
@@ -683,16 +681,15 @@ Example 14: Custom indice (anomaly of tasmax between 2 period of 30 years)
 .. code-block:: python
 
 	my_indice_params = {'indice_name': 'my_indice',
-                            'calc_operation': 'anomaly',
-	                    'ref_time_range': [datetime.datetime(1901,01,01), datetime.datetime(1930,12,31)], ### reference period: past period 
-
+                            'calc_operation': 'anomaly'
 	                   }
 
 	file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
 	out_f = 'my_indice.nc'
 	tr = [datetime.datetime(1971,01,01), datetime.datetime(2000,12,31)] ### studied period: future period
+        tr_base = [datetime.datetime(1901,01,01), datetime.datetime(1930,12,31)] ### reference period: past period
 	
-	icclim.indice(user_indice=my_indice_params, in_files=file_tasmax, var_name='tasmax', time_range=tr, out_file=out_f, callback=callback.defaultCallback2)
+	icclim.indice(user_indice=my_indice_params, in_files=file_tasmax, var_name='tasmax', time_range=tr, base_period_time_range=tr_base, out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 15: Multivariable custom indice (number of days when tasmin >= 10 degrees Celsius and tasmax > 25 degrees Celsius)

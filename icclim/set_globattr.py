@@ -35,14 +35,10 @@ def title(out_nc, indice_name):
         indice_group = 'snow'
     elif indice_name in ['CD','CW', 'WD', 'WW']:
         indice_group = 'compound'
-    elif indice_name in ['TIMEAVG','SUB']:
-        indice_group = 'statistics'
     
     # example:      title: ECA heat indice SU
-    if indice_group != 'statistics':
-        title_str = 'ECA {0} indice {1}'.format(indice_group, indice_name)
-    else:
-        title_str = '{0} {1}'.format(indice_group, indice_name)
+    title_str = 'ECA {0} indice {1}'.format(indice_group, indice_name)
+
     out_nc.setncattr('title', title_str)
     
 def history(out_nc, calc_grouping, indice_name, time_range):
