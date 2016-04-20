@@ -27,6 +27,7 @@ import numpy
 import pdb
 from datetime import datetime
 from collections import OrderedDict
+from icclim_exceptions import *
 
 import util.util_dt as util_dt
 
@@ -35,7 +36,6 @@ import util.util_dt as util_dt
 def get_map_info_slice(slice_mode):
     map_slices={}
     map_slices[str(slice_mode)]={}
-    
     
     if slice_mode=='year':
         months=None
@@ -67,7 +67,9 @@ def get_map_info_slice(slice_mode):
     
     elif type(slice_mode) is list:
         months=slice_mode[1]
-        
+
+    else:
+        raise InvalidIcclimArgument("slice_mode", "Invalid value = " + slice_mode)
 
     map_slices[str(slice_mode)]['months']=months
     
