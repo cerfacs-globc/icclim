@@ -277,8 +277,11 @@ def get_indices_subset(dt_arr, time_range):
         return indices_non_masked
         
     else: 
-        raise ValueError('The time range is not included in the input time steps array.'+str(dt1)+' '+str(dt_arr[0])+' '+str(dt2)+' '+str(dt_arr[-1]))
-        return 0
+        if dt1 < dt_arr[0]:
+            error_msg = "Lower limit input to time array is earlier than available time steps, dt1 < dt_arr[0]: " + str(dt1) + " < " + str(dt_arr[0])
+        if dt2 > dt_arr[-1]:
+            error_msg = "Upper time limit specified is later than available time steps, dt2 > dt_arr[-1]: " + str(dt2) + " < " + str(dt_arr[-1])
+    raise ValueError(error_msg)
 
 def get_intersecting_years(time_range1, time_range2):
     year_begin_tr1 = time_range1[0].year
