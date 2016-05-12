@@ -69,7 +69,7 @@ def get_map_info_slice(slice_mode):
         months=slice_mode[1]
 
     else:
-        raise InvalidIcclimArgument("slice_mode", "Invalid value = " + slice_mode)
+        raise InvalidIcclimArgumentError("slice_mode", "Invalid value = " + slice_mode)
 
     map_slices[str(slice_mode)]['months']=months
     

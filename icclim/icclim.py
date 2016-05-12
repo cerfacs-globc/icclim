@@ -33,6 +33,7 @@ import calc_ind
 import util.calc as calc
 
 from util import user_indice as ui
+from icclim_exceptions import *
 
 import sys
 
@@ -210,6 +211,9 @@ def indice(in_files,
     ################# META DATA: begin
     ########################################
     any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
+
+    if (not os.path.exists(any_in_file)):
+       raise MissingIcclimFileError("No such file or folder: " + any_in_file)
 
     inc = Dataset(any_in_file, 'r')
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0]) # tuple ('time', 'lat', 'lon')    

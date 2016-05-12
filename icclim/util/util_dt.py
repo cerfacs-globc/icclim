@@ -6,11 +6,13 @@
 
 import netcdftime
 import pdb
+import os
 #from datetime import datetime
 from netCDF4 import Dataset, MFDataset
 import numpy
 import sys
 
+from icclim_exceptions import *
 
 # unused function
 def get_list_dates_from_nc(nc, type_dates):
@@ -189,6 +191,9 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
         time_range = adjust_time_range(time_range, any_dt)        
     
     else:
+        missing_files = [f for f in files if not os.path.exists(f)]
+        if len(missing_files) > 0:
+            raise MissingIcclimFileError()
         nc = MFDataset(files, 'r', aggdim='time')
         time_arr = nc.variables[temporal_var_name][:]
         nc.close()
