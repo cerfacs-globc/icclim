@@ -283,6 +283,10 @@ def indice(in_files,
     
     time_range = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
                                         time_range=time_range, temporal_var_name=indice_dim[0])
+
+    if base_period_time_range is not None:
+        base_period_time_range = util_dt.harmonize_hourly_timestamp(base_period_time_range, time_range[0])
+
     
     if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
         time_range2 = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 

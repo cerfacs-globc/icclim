@@ -188,7 +188,7 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
     
     
     if time_range != None:        
-        time_range = adjust_time_range(time_range, any_dt)        
+        time_range = harmonize_hourly_timestamp(time_range, any_dt)
     
     else:
         missing_files = [f for f in files if not os.path.exists(f)]
@@ -224,7 +224,7 @@ def get_year_list(dt_arr):
     return year_list
 
 
-def adjust_time_range(time_range, dt):
+def harmonize_hourly_timestamp(time_range, dt):
     '''
     Adjust the ``time_range`` by setting hour value to datetime.datetime objects.
     
