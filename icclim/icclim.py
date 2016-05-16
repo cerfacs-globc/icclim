@@ -557,10 +557,9 @@ def indice(in_files,
             
         
         else:
-            
-            dict_threshold_indice_arr = OrderedDict()
             for t in user_thresholds:                    
                 if chunk_counter == 0:              
+                    dict_threshold_indice_arr = OrderedDict()
                     dict_threshold_indice_arr[t] = numpy.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
             
                 
