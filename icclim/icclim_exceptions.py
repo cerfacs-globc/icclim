@@ -15,7 +15,7 @@ class InvalidIcclimArgumentError(IcclimError):
     def __str__(self):
         return repr(self.arg + ": " + self.msg)
 
-class MissingIcclimFileError(IcclimError):
+class MissingIcclimInputError(IcclimError):
     """ Exceptions raised erreonous input arguments.
 
     Attributes:

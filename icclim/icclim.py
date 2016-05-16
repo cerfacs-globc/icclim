@@ -212,10 +212,11 @@ def indice(in_files,
     ########################################
     any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
 
-    if (not os.path.exists(any_in_file)):
-       raise MissingIcclimFileError("No such file or folder: " + any_in_file)
+    try:
+        inc = Dataset(any_in_file, 'r')
+    except RuntimeError:
+        raise MissingIcclimInputError("Failed to access dataset: " + any_in_file)
 
-    inc = Dataset(any_in_file, 'r')
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0]) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
     ncVar = inc.variables[var_name[0]] 

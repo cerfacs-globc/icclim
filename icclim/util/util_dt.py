@@ -63,8 +63,11 @@ def get_list_dates(ifile, type_dates):
     :rtype: list of datetime/float 
     
     '''
-    
-    nc = Dataset(ifile, 'r')
+    try:
+        nc = Dataset(ifile, 'r')
+    except Runtime:
+        raise MissingIcclimInputError("Failed to access dataset: " + ifile)
+
     var_time = nc.variables['time']
     time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
     try:
@@ -170,8 +173,11 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
     
     Returns a time range: a list two datetime objects: [begin, end], where "begin" is the first date, and "end" is the last.
     '''
+    try:
+        nc = Dataset(files[0],'r')
+    except Runtime:
+        raise MissingIcclimInputError("Failed to access dataset: " + files[0])
 
-    nc = Dataset(files[0],'r')
     time = nc.variables[temporal_var_name]
     
     try:
@@ -191,10 +197,10 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
         time_range = harmonize_hourly_timestamp(time_range, any_dt)
     
     else:
-        missing_files = [f for f in files if not os.path.exists(f)]
-        if len(missing_files) > 0:
-            raise MissingIcclimFileError()
-        nc = MFDataset(files, 'r', aggdim='time')
+        try:
+            nc = MFDataset(files, 'r', aggdim='time')
+        except Runtime:
+            raise MissingIcclimInputError("Failed to access dataset: " + files)
         time_arr = nc.variables[temporal_var_name][:]
         nc.close()
 
