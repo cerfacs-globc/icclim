@@ -9,6 +9,7 @@
 #pyximport.install(pyimport = True)
 
 import numpy
+import logging
 import pdb
 from netCDF4 import Dataset, MFDataset
 
@@ -135,6 +136,7 @@ def indice(in_files,
 
     '''
     
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
     #######################################################
     ########## User indice check params
     if indice_name==None:
@@ -371,9 +373,9 @@ def indice(in_files,
     for tile_id in tile_map:
         
         if len(tile_map)>1:
-            print "Loading data: chunk " + str(int(chunk_counter+1)) + '/'+ str(len(tile_map)) + " ..."
+            logging.info("Loading data: chunk " + str(int(chunk_counter+1)) + '/'+ str(len(tile_map)) + " ...")
         else:
-            print "Loading data..."
+            logging.info("Loading data...")
         
         #####    for each target variable
         for v in var_name:
