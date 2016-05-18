@@ -23,6 +23,7 @@ Note: DJF 2000: December 2000 + January 2001 + February 2001
 
 """
 
+import netcdftime
 import numpy 
 import pdb
 from datetime import datetime
@@ -248,8 +249,13 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
     ## step 2: subset 
     
     # whole selected time range will be processed
-    if temporal_subset_mode == None:
-        dt_centroid = time_range[0] + (time_range[1]-time_range[0])/2
+    if temporal_subset_mode is None:
+        dummy_time_units = "hours since 1901-01-01 12:00 UTC"
+        cdftime = netcdftime.utime(dummy_time_units, calendar=calend)
+        first_second = cdftime.date2num(time_range[0])
+        last_second = cdftime.date2num(time_range[1])
+        dt_centroid_second = first_second + (last_second - first_second) / 2.
+        dt_centroid = cdftime.num2date(dt_centroid_second)
         dt_bounds = time_range
         return_dict['whole_time_range', time_range[0].year, time_range[1].year] = (dt_centroid, dt_bounds, dt_arr, values_arr, fill_value)
     
