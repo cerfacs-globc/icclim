@@ -219,7 +219,7 @@ def indice(in_files,
     index_time = 0
     ncVar_time = inc.variables[dimensions_list_var[index_time]]
     
-    ############## in case of user defined thresholds 
+    ############## in case of user defined thresholdsÂ 
     global nb_user_thresholds, user_thresholds    
     
     # As default, no threshold is defined, no threshold dimension is created and added to the indice var
@@ -375,7 +375,7 @@ def indice(in_files,
                 dimensions_list_current_var = ncVar.dimensions
             
  
-                fill_val = ncVar._FillValue.astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
+                fill_val = ncVar._FillValue.astype('float32') #Â fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
                 VARS[v]['fill_value']=fill_val
 
                 ncVar_time = inc.variables[dimensions_list_current_var[index_time]]
@@ -398,7 +398,7 @@ def indice(in_files,
                 # Units conversion
                 var_add = 0.0
                 var_scale = 1.0
-                if var_units == 'degC' or var_units == 'Celcius': #Kelvin
+                if var_units == 'degC' or var_units == 'Celsius': #Kelvin
                     var_add = var_add + 273.15
                 elif var_units in ["mm/s", "mm/sec", "kg m-2 s-1"]: # mm/s --> mm/day
                     var_scale = var_scale * 86400.0
@@ -785,7 +785,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                     indice_slice_date_event = indice_[1]
                     date_event_slice = calc.get_date_event_arr(dt_arr=dt_arr_, index_arr=indice_slice_date_event, 
                                                                time_calendar=t_calend, time_units=t_units, fill_val=fill_val)
-                    date_event_slice = date_event_slice.reshape(-1, date_event_slice.shape[0], date_event_slice.shape[1]) # 2D --> 3D  
+                    date_event_slice = date_event_slice.reshape(-1, date_event_slice.shape[0], date_event_slice.shape[1]) #Â 2D --> 3D  
                      
                 else:
                     indice_slice_date_event_bounds = indice_[1] 
@@ -798,8 +798,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                     date_event_slice_end = calc.get_date_event_arr(dt_arr=dt_arr_, index_arr=indice_slice_date_event_end, 
                                                                time_calendar=t_calend, time_units=t_units, fill_val=fill_val)
                     
-                    date_event_slice_start = date_event_slice_start.reshape(-1, date_event_slice_start.shape[0], date_event_slice_start.shape[1]) # 2D --> 3D
-                    date_event_slice_end = date_event_slice_end.reshape(-1, date_event_slice_end.shape[0], date_event_slice_end.shape[1]) # 2D --> 3D 
+                    date_event_slice_start = date_event_slice_start.reshape(-1, date_event_slice_start.shape[0], date_event_slice_start.shape[1]) #Â 2D --> 3D
+                    date_event_slice_end = date_event_slice_end.reshape(-1, date_event_slice_end.shape[0], date_event_slice_end.shape[1]) #Â 2D --> 3D 
                     
                     
             else:
@@ -852,8 +852,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                 date_event_slice_end = calc.get_date_event_arr(dt_arr=dt_arr_, index_arr=indice_slice_date_event_end, 
                                                            time_calendar=t_calend, time_units=t_units, fill_val=fill_val_)
                 
-                date_event_slice_start = date_event_slice_start.reshape(-1, date_event_slice_start.shape[0], date_event_slice_start.shape[1]) # 2D --> 3D
-                date_event_slice_end = date_event_slice_end.reshape(-1, date_event_slice_end.shape[0], date_event_slice_end.shape[1]) # 2D --> 3D 
+                date_event_slice_start = date_event_slice_start.reshape(-1, date_event_slice_start.shape[0], date_event_slice_start.shape[1]) #Â 2D --> 3D
+                date_event_slice_end = date_event_slice_end.reshape(-1, date_event_slice_end.shape[0], date_event_slice_end.shape[1]) #Â 2D --> 3D 
                     
                 
                 
@@ -1160,8 +1160,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                            time_calendar=t_calend, time_units=t_units, 
                                                            fill_val=vars_dict[vars_dict.keys()[0]]['fill_value'])
                  
-                date_event_slice_start = date_event_slice_start.reshape(-1, date_event_slice_start.shape[0], date_event_slice_start.shape[1]) # 2D --> 3D
-                date_event_slice_end = date_event_slice_end.reshape(-1, date_event_slice_end.shape[0], date_event_slice_end.shape[1]) # 2D --> 3D 
+                date_event_slice_start = date_event_slice_start.reshape(-1, date_event_slice_start.shape[0], date_event_slice_start.shape[1]) #Â 2D --> 3D
+                date_event_slice_end = date_event_slice_end.reshape(-1, date_event_slice_end.shape[0], date_event_slice_end.shape[1]) #Â 2D --> 3D 
             
             
             
@@ -1175,7 +1175,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         
         
         ### for each slice we transform indice_slice from 2D to 3D (to concatenate in the following 3D arrays along axis=0)
-        indice_slice = indice_slice.reshape(-1, indice_slice.shape[0], indice_slice.shape[1]) # 2D --> 3D
+        indice_slice = indice_slice.reshape(-1, indice_slice.shape[0], indice_slice.shape[1]) #Â 2D --> 3D
         
         ### we concatenate results into indice_arr (the final result of computed indice)
         if slice_counter == 0:
