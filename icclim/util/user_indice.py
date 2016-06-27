@@ -4,6 +4,7 @@
 #  Author: Natalia Tatarinova
 
 import calc
+import pdb
 
 # map with required parameters (for user defined indices)  
 map_calc_params_required = {
@@ -189,24 +190,26 @@ def get_user_indice(user_indice, arr, fill_val, vars, out_unit='days', dt_arr=No
             set_params(user_indice[v])  
        
             
+            # WARNING: if precipitation var ===>  values < 1.0 mm must be filtered (?? ME)
+            if type(obj.thresh) != str:
+                thresh_=obj.thresh # threshold is int or float
+            else
+                thresh_=pctl_thresh
+
             if obj.calc_operation in ['min', 'max', 'mean', 'sum']:
                 # simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1.0, fill_val=None, index_event=False)
                 res = calc.simple_stat(arr, 
                                 stat_operation=obj.calc_operation,
                                 logical_operation=obj.logical_operation,
-                                thresh=obj.thresh,
+                                thresh=thresh_,
                                 coef=obj.coef,
                                 fill_val=fill_val,
+                                dt_arr=dt_arr,
                                 index_event=obj.date_event)
         
             elif obj.calc_operation in ['nb_events', 'max_nb_consecutive_events']:
                 
                 # WARNING: if precipitation var ===>  values < 1.0 mm must be filtered
-
-                if type(obj.thresh) != str:
-                    thresh_=obj.thresh # threshold is int or float
-                else:          
-                    thresh_=pctl_thresh
                 
                 if obj.calc_operation == 'nb_events':
                     # get_nb_events(arr, logical_operation, thresh, fill_val=None, index_event=False, out_unit="days", dt_arr=None, coef=1.0)
