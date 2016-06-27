@@ -496,7 +496,8 @@ def indice(in_files,
             
             dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=VARS[v]['dt_arr'], 
                                                                         values_arr=VARS[v]['values_arr'],
-                                                                        fill_value=VARS[v]['fill_value'],                                                                                                            calend=VARS[v]['time_calendar'], 
+                                                                        fill_value=VARS[v]['fill_value'],
+                                                                        calend=VARS[v]['time_calendar'],
                                                                         temporal_subset_mode=slice_mode, 
                                                                         time_range=time_range)
             
@@ -734,7 +735,6 @@ def get_indice_from_dict_temporal_slices(indice_name,
     
     for slice in t_slices: # for each temporal slice
         
-        
         # datetime vector of current slice is the same for all variables 
         dt_arr_= vars_dict[vars_dict.keys()[0]]['temporal_slices'][slice][2]  ###   vars_dict.keys()[0] is the first target variable in the dictionary     
         dt_centroid_ = vars_dict[vars_dict.keys()[0]]['temporal_slices'][slice][0]
@@ -760,7 +760,6 @@ def get_indice_from_dict_temporal_slices(indice_name,
             
         
         elif indice_type == 'multivariable':
- 
             ############ TODO: 'tasmin' and 'tasmax' to generic names
             ############ e.g.: if 'tmax' and 'tmin', it will not work
             values_arr_tasmax = vars_dict['tasmax']['temporal_slices'][slice][3]
@@ -954,8 +953,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                        
                             # for "out-of-base" years we compute daily_pctl_dict ONLY one time (i.e. when cnt=1)
                             if current_intersecting_year != -9999 or cnt==1:
-                                
-                                
+
                                 new_arrs_base = time_subset.get_resampled_arrs(dt_arr=vars_dict[v]['base']['dt_arr'],
                                                        values_arr=vars_dict[v]['base']['values_arr'],
                                                        year_to_eliminate=current_intersecting_year, 
