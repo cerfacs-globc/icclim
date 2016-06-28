@@ -193,7 +193,7 @@ def get_user_indice(user_indice, arr, fill_val, vars, out_unit='days', dt_arr=No
             # WARNING: if precipitation var ===>  values < 1.0 mm must be filtered (?? ME)
             if type(obj.thresh) != str:
                 thresh_=obj.thresh # threshold is int or float
-            else
+            else:
                 thresh_=pctl_thresh
 
             if obj.calc_operation in ['min', 'max', 'mean', 'sum']:
