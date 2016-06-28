@@ -244,10 +244,10 @@ def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1
     arr_masked = get_masked_arr(arr, fill_val) * coef                # numpy.ma.MaskedArray with fill_value=fill_val (if numpy.ndarray passed) or fill_value=arr.fill_value (if numpy.ma.MaskedArray is passed)
 
     # if thresh is a dictionary with daily percentiles
+    mask_a = numpy.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
     if type(thresh)==OrderedDict:
 
         i=0
-        mask_a = numpy.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
 
         for dt in dt_arr:
 
