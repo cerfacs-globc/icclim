@@ -8,7 +8,7 @@ import re
 import sys
 import types
 
-sys.path.append("/nobackup/rossby18/sm_maeva/projects/icclim/icclim/icclim/")
+sys.path.append(os.getcwd())
 import util.callback as callback
 
 

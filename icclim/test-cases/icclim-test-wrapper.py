@@ -14,7 +14,6 @@ from auxiliary import *
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
-sys.path.append("/nobackup/rossby18/sm_maeva/projects/icclim/icclim/icclim/")
 import icclim
 
 from argparse import ArgumentParser
