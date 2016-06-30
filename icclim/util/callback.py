@@ -1,3 +1,4 @@
+import logging
 # callback called from
 # - icclim.indice(...)
 # - icclim.get_percentile_dict(...)
@@ -11,8 +12,8 @@
 #    print ("[%s] %0.2f" % (message,percentage))
 
 def defaultCallback(percentage):
-    print ("[%s] %d" % ('Processing: ', percentage))
+    logging.info("[%s] %d%s", 'Processing: ', percentage, '%')
     
     
 def defaultCallback2(percentage):
-    print ("[%s] %0.2f" % ('Processing: ', percentage))
+    logging.info("[%s] %0.2f%s", 'Processing: ', percentage, '%')

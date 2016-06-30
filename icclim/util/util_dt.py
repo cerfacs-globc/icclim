@@ -4,12 +4,15 @@
 #  Author: Natalia Tatarinova
 
 
-from netcdftime import utime
-from datetime import datetime
+import netcdftime
+import pdb
+import os
+#from datetime import datetime
 from netCDF4 import Dataset, MFDataset
 import numpy
 import sys
-import netcdftime
+
+from icclim_exceptions import *
 
 # unused function
 def get_list_dates_from_nc(nc, type_dates):
@@ -38,8 +41,8 @@ def get_list_dates_from_nc(nc, type_dates):
         list_dt = arr_dt.tolist() # numpy array -> list
         
     if type_dates == 'dt':
-        t = utime(time_units, time_calend) # <netcdftime.utime instance at 0xecae18>
-        arr_dt = t.num2date(var_time[:]) # arr_dt: numpy array of dates datetime; var_time[:]: time values (ex.: [49323.5, 49353, 49382.5, ...])
+        t = netcdftime.utime(time_units, time_calend) 
+        arr_dt = t.num2date(var_time[:]) 
         list_dt = arr_dt.tolist() # numpy array -> list
     del arr_dt
     
@@ -60,8 +63,11 @@ def get_list_dates(ifile, type_dates):
     :rtype: list of datetime/float 
     
     '''
-    
-    nc = Dataset(ifile, 'r')
+    try:
+        nc = Dataset(ifile, 'r')
+    except Runtime:
+        raise MissingIcclimInputError("Failed to access dataset: " + ifile)
+
     var_time = nc.variables['time']
     time_units = var_time.units # str (ex.: 'days since 1850-01-01 00:00:00')
     try:
@@ -75,8 +81,8 @@ def get_list_dates(ifile, type_dates):
         list_dt = arr_dt.tolist() # numpy array -> list
         
     if type_dates == 'dt':
-        t = utime(time_units, time_calend) # <netcdftime.utime instance at 0xecae18>
-        arr_dt = t.num2date(var_time[:]) # arr_dt: numpy array of dates datetime; var_time[:]: time values (ex.: [49323.5, 49353, 49382.5, ...])
+        t = netcdftime.utime(time_units, time_calend) 
+        arr_dt = t.num2date(var_time[:]) 
         list_dt = arr_dt.tolist() # numpy array -> list
     del arr_dt
     
@@ -121,8 +127,9 @@ def date2num(dt, calend, units):
     
     :rtype: float
     '''
-    t = utime(units, calend)
+    t = netcdftime.utime(units, calend)
     dt_num = t.date2num(dt)
+    
     return dt_num
 
 
@@ -139,13 +146,9 @@ def num2date(num, calend, units):
     
     :rtype: datetime.datetime object
     '''   
-    t = utime(units, calend) 
-    dt = t.num2date(num) 
-        
-    if isinstance(dt, netcdftime.datetime):
-        #dt = netcdftime.datetime(dt.year, dt.month, dt.day, dt.hour)
-        dt = datetime(dt.year, dt.month, dt.day, dt.hour)
-            
+    t = netcdftime.utime(units, calend)    
+    dt = t.num2date(num)
+
     return dt
 
 
@@ -170,8 +173,11 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
     
     Returns a time range: a list two datetime objects: [begin, end], where "begin" is the first date, and "end" is the last.
     '''
+    try:
+        nc = Dataset(files[0],'r')
+    except Runtime:
+        raise MissingIcclimInputError("Failed to access dataset: " + files[0])
 
-    nc = Dataset(files[0],'r')
     time = nc.variables[temporal_var_name]
     
     try:
@@ -181,15 +187,20 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
         
     units = time.units
     
-    any_dt = num2date(time[0], calend, units)
+    t = netcdftime.utime(units, calend)
+    
+    any_dt = t.num2date(time[0])
     nc.close()
     
     
     if time_range != None:        
-        time_range = adjust_time_range(time_range, any_dt)        
+        time_range = harmonize_hourly_timestamp(time_range, any_dt)
     
     else:
-        nc = MFDataset(files, 'r', aggdim='time')
+        try:
+            nc = MFDataset(files, 'r', aggdim='time')
+        except Runtime:
+            raise MissingIcclimInputError("Failed to access dataset: " + files)
         time_arr = nc.variables[temporal_var_name][:]
         nc.close()
 
@@ -219,7 +230,7 @@ def get_year_list(dt_arr):
     return year_list
 
 
-def adjust_time_range(time_range, dt):
+def harmonize_hourly_timestamp(time_range, dt):
     '''
     Adjust the ``time_range`` by setting hour value to datetime.datetime objects.
     
@@ -240,8 +251,11 @@ def adjust_time_range(time_range, dt):
 
     '''
 
-    time_range_begin = datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-    time_range_end = datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+#     time_range_begin = datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+#     time_range_end = datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+
+    time_range_begin = netcdftime.datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+    time_range_end = netcdftime.datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     
     return [time_range_begin, time_range_end]
 
@@ -269,8 +283,12 @@ def get_indices_subset(dt_arr, time_range):
         return indices_non_masked
         
     else: 
-        raise ValueError('The time range is not included in the input time steps array.'+str(dt1)+' '+str(dt_arr[0])+' '+str(dt2)+' '+str(dt_arr[-1]))
-        return 0
+        error_msg = ""
+        if dt1 < dt_arr[0]:
+            error_msg = "Lower limit input to time array is earlier than available time steps, dt1 < dt_arr[0]: " + str(dt1) + " < " + str(dt_arr[0]) + "\n"
+        if dt2 > dt_arr[-1]:
+            error_msg = error_msg + "Upper time limit specified is later than available time steps, dt2 > dt_arr[-1]: " + str(dt2) + " < " + str(dt_arr[-1])
+    raise ValueError(error_msg)
 
 def get_intersecting_years(time_range1, time_range2):
     year_begin_tr1 = time_range1[0].year
@@ -285,4 +303,3 @@ def get_intersecting_years(time_range1, time_range2):
     intersection = list( set(list_years_tr1).intersection(list_years_tr2) )
     
     return intersection
-        

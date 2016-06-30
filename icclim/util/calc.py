@@ -8,6 +8,7 @@
 # basic function used for computing indices 
 
 import numpy
+import pdb
 
 import util_dt
 from collections import OrderedDict
@@ -200,7 +201,7 @@ def get_masked_arr(arr, fill_val):
     return masked_arr
 
 
-def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1.0, fill_val=None, index_event=False):
+def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1.0, fill_val=None, dt_arr=None, index_event=False):
     
     '''    
     Used for computing: TG, TX, TN, TXx, TNx, TXn, TNn, PRCPTOT, SD
@@ -208,6 +209,7 @@ def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1
     :param arr: input data array
     :type arr: numpy.ndarray (3D)
     
+
     :param stat_operation: Statistical operation to be applied to `arr`: 'min', 'max', 'mean', 'sum' 
     :type stat_operation: str
     
@@ -217,8 +219,8 @@ def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1
     :param fill_val: Fill value
     :type fill_val: float
 
-    :param thresh: numerical threshold
-    :type thresh: float
+    :param thresh: threshold could be a number, an array or a dictionary with daily percentiles
+    :type thresh: float or numpy.ndarray or collections.OrderedDict
     
     :param logical_operation: 'gt', 'get', 'lt', 'let', 'e'
     :type logical_operation: str
@@ -232,25 +234,59 @@ def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1
     ..note:: if for example logical_operation='get' and thresh=20,
     this function will fist mask all values < 20 before doing statistical operation.
 
+    If thresh is a dictionary with daily percentiles, dt_arr is required.
 
 
-    
+
+
     '''
-    
+
     arr_masked = get_masked_arr(arr, fill_val) * coef                # numpy.ma.MaskedArray with fill_value=fill_val (if numpy.ndarray passed) or fill_value=arr.fill_value (if numpy.ma.MaskedArray is passed)
-                
-    # condition: arr <logical_operation> <thresh>         
-    if thresh != None:
+
+    # if thresh is a dictionary with daily percentiles
+    mask_a = numpy.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
+    if type(thresh)==OrderedDict:
+
+        i=0
+
+        for dt in dt_arr:
+
+            # current calendar day
+            m = dt.month
+            d = dt.day
+
+            # we take the 2D array corresponding to the current calendar day
+            current_perc_arr = thresh[m,d] # thresh is a dictionary
+
+            # we are looking for the values which are g/ge/l/le/e than the XXth percentile
+
+            if logical_operation == 'gt':
+                mask_a[i,:,:] = arr_masked[i,:,:] <= current_perc_arr
+
+            elif logical_operation == 'get':
+                    mask_a[i,:,:] = arr_masked[i,:,:] < current_perc_arr
+
+            elif logical_operation == 'lt':
+                    mask_a[i,:,:] = arr_masked[i,:,:] >= current_perc_arr
+
+            elif logical_operation == 'let':
+                    mask_a[i,:,:] = arr_masked[i,:,:] > current_perc_arr
+
+
+            i+=1
+
+    # condition: arr <logical_operation> <thresh>
+    else:  # thresh is  a number
         if logical_operation=='gt':
             mask_a = arr_masked <= thresh
         elif logical_operation=='get':
             mask_a = arr_masked < thresh
         elif logical_operation=='lt':
             mask_a = arr_masked >= thresh
-        if logical_operation=='let':
+        elif logical_operation=='let':
             mask_a = arr_masked > thresh
         
-        arr_masked = numpy.ma.array(arr_masked, mask=mask_a, fill_value=arr_masked.fill_value)
+    arr_masked = numpy.ma.array(arr_masked, mask=mask_a, fill_value=arr_masked.fill_value)
     
     
     if stat_operation=="mean":
@@ -676,9 +712,7 @@ def get_anomaly(arr, arr2, fill_val, out_unit=None):
     if out_unit == "%":
         # mean of the past period is reference (100%)
         anomaly = anomaly * (100./arr2_mean)
-        return anomaly
-    else:
-        return anomaly
+    return anomaly
 
 def get_wet_days(arr, fill_val=None):
     '''

@@ -9,6 +9,8 @@
 #pyximport.install(pyimport = True)
 
 import numpy
+import logging
+import pdb
 from netCDF4 import Dataset, MFDataset
 
 import os
@@ -32,6 +34,7 @@ import calc_ind
 import util.calc as calc
 
 from util import user_indice as ui
+from icclim_exceptions import *
 
 import sys
 
@@ -133,6 +136,7 @@ def indice(in_files,
 
     '''
     
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
     #######################################################
     ########## User indice check params
     if indice_name==None:
@@ -210,7 +214,11 @@ def indice(in_files,
     ########################################
     any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
 
-    inc = Dataset(any_in_file, 'r')
+    try:
+        inc = Dataset(any_in_file, 'r')
+    except RuntimeError:
+        raise MissingIcclimInputError("Failed to access dataset: " + any_in_file)
+
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0]) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
     ncVar = inc.variables[var_name[0]] 
@@ -278,6 +286,10 @@ def indice(in_files,
     
     time_range = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
                                         time_range=time_range, temporal_var_name=indice_dim[0])
+
+    if base_period_time_range is not None:
+        base_period_time_range = util_dt.harmonize_hourly_timestamp(base_period_time_range, time_range[0])
+
     
     if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
         time_range2 = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
@@ -361,9 +373,9 @@ def indice(in_files,
     for tile_id in tile_map:
         
         if len(tile_map)>1:
-            print "Loading data: chunk " + str(int(chunk_counter+1)) + '/'+ str(len(tile_map)) + " ..."
+            logging.info("Loading data: chunk " + str(int(chunk_counter+1)) + '/'+ str(len(tile_map)) + " ...")
         else:
-            print "Loading data..."
+            logging.info("Loading data...")
         
         #####    for each target variable
         for v in var_name:
@@ -484,7 +496,8 @@ def indice(in_files,
             
             dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=VARS[v]['dt_arr'], 
                                                                         values_arr=VARS[v]['values_arr'],
-                                                                        fill_value=VARS[v]['fill_value'],                                                                                                            calend=VARS[v]['time_calendar'], 
+                                                                        fill_value=VARS[v]['fill_value'],
+                                                                        calend=VARS[v]['time_calendar'],
                                                                         temporal_subset_mode=slice_mode, 
                                                                         time_range=time_range)
             
@@ -547,10 +560,9 @@ def indice(in_files,
             
         
         else:
-            
-            dict_threshold_indice_arr = OrderedDict()
             for t in user_thresholds:                    
                 if chunk_counter == 0:              
+                    dict_threshold_indice_arr = OrderedDict()
                     dict_threshold_indice_arr[t] = numpy.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
             
                 
@@ -659,7 +671,7 @@ def indice(in_files,
 def get_indice_from_dict_temporal_slices(indice_name, 
                                          vars_dict,
                                          thresh=None,
-                                          window_width=None, only_leap_years=None,  
+                                          window_width=None, only_leap_years=False,
                                           callback=None, callback_percentage_start_value=0, callback_percentage_total=100,
                                           ignore_Feb29th=False, interpolation="hyndman_fan", 
                                           out_unit="days",
@@ -723,7 +735,6 @@ def get_indice_from_dict_temporal_slices(indice_name,
     
     for slice in t_slices: # for each temporal slice
         
-        
         # datetime vector of current slice is the same for all variables 
         dt_arr_= vars_dict[vars_dict.keys()[0]]['temporal_slices'][slice][2]  ###   vars_dict.keys()[0] is the first target variable in the dictionary     
         dt_centroid_ = vars_dict[vars_dict.keys()[0]]['temporal_slices'][slice][0]
@@ -749,7 +760,6 @@ def get_indice_from_dict_temporal_slices(indice_name,
             
         
         elif indice_type == 'multivariable':
- 
             ############ TODO: 'tasmin' and 'tasmax' to generic names
             ############ e.g.: if 'tmax' and 'tmin', it will not work
             values_arr_tasmax = vars_dict['tasmax']['temporal_slices'][slice][3]
@@ -922,7 +932,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                  
                                 pctl_arr = calc_percentiles.get_percentile_arr(arr=vars_dict[v]['base']['values_arr'], 
                                                                                  percentile=pctl_value,                                                            
-                                                                                 callback=None, 
+                                                                                 callback=callback,
                                                                                  callback_percentage_start_value=0, 
                                                                                 callback_percentage_total=100, 
                                                                                 chunk_counter=1, 
@@ -943,8 +953,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                        
                             # for "out-of-base" years we compute daily_pctl_dict ONLY one time (i.e. when cnt=1)
                             if current_intersecting_year != -9999 or cnt==1:
-                                
-                                
+
                                 new_arrs_base = time_subset.get_resampled_arrs(dt_arr=vars_dict[v]['base']['dt_arr'],
                                                        values_arr=vars_dict[v]['base']['values_arr'],
                                                        year_to_eliminate=current_intersecting_year, 
@@ -956,8 +965,10 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                                                     dt_arr=new_arrs_base[0], 
                                                                                     percentile=pctl_value, 
                                                                                     window_width=window_width, 
+                                                                                    t_calendar=vars_dict[v]['time_calendar'], 
+                                                                                    t_units=vars_dict[v]['time_units'],          
                                                                                     only_leap_years=only_leap_years, 
-                                                                                    callback=None, callback_percentage_start_value=0, callback_percentage_total=100, 
+                                                                                    callback=callback, callback_percentage_start_value=0, callback_percentage_total=100,
                                                                                     chunk_counter=1, 
                                                                                     fill_val=vars_dict[v]['fill_value'],
                                                                                     ignore_Feb29th=ignore_Feb29th,
@@ -967,8 +978,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 pctl_thresh[v]['without_bootstrapping'] = daily_pctl_dict
                             elif current_intersecting_year != -9999:
                                 pctl_thresh[v]['bootstrapping']=daily_pctl_dict
-                        
-   
+                            
+                            
                     test_v[i]=1 ### we change zero on 1 in the list "test_v"
                     i+=1                   
             
