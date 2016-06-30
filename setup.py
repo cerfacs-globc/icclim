@@ -32,7 +32,7 @@ setup(
  
     # la version du code
     
-    version="4.1.1",
+    version="4.2.0",
  
     # Liste les packages a inserer dans la distribution
     # plutot que de le faire a la main, on utilise la foncton
@@ -70,7 +70,7 @@ setup(
     include_package_data=True,
  
     # Une url qui pointe vers la page officielle de votre lib
-    url='https://github.com/tatarinova/icclim',
+    url='https://github.com/cerfacs-globc/icclim',
  
     # Il est d'usage de mettre quelques metadata a propos de sa lib
     # Pour que les robots puissent facilement la classer.
