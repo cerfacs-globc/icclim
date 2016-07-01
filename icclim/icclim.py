@@ -760,13 +760,12 @@ def get_indice_from_dict_temporal_slices(indice_name,
             
         
         elif indice_type == 'multivariable':
-            ############ TODO: 'tasmin' and 'tasmax' to generic names
-            ############ e.g.: if 'tmax' and 'tmin', it will not work
-            values_arr_tasmax = vars_dict['tasmax']['temporal_slices'][slice][3]
-            values_arr_tasmin = vars_dict['tasmin']['temporal_slices'][slice][3]
+
+            values_arr_tasmax = vars_dict[vars_dict.keys()[0]]['temporal_slices'][slice][3]
+            values_arr_tasmin = vars_dict[vars_dict.keys()[1]]['temporal_slices'][slice][3]
              
-            fill_val = vars_dict['tasmax']['temporal_slices'][slice][4]
-            fill_val2 = vars_dict['tasmin']['temporal_slices'][slice][4]
+            fill_val = vars_dict[vars_dict.keys()[0]]['temporal_slices'][slice][4]
+            fill_val2 = vars_dict[vars_dict.keys()[1]]['temporal_slices'][slice][4]
             
             dic_args = {'arr1': values_arr_tasmax, 'arr2': values_arr_tasmin, 
                         'fill_val1': fill_val, 'fill_val2': fill_val2} 
