@@ -505,12 +505,6 @@ def indice(in_files,
             VARS[v]['temporal_slices']=dict_temporal_slices
             
             
-            #### we remove all that we do not need in VARS dictionary before passing to "get_indice_from_dict_temporal_slices"
-            #### Christian: Does not work because in the loop we lose required keys...
-            # keys_to_remove = ['files_years', 'files_years_base', 'dt_arr', 'values_arr', 'unit_conversion_var_add', 'unit_conversion_var_scale']
-            # for k in keys_to_remove:
-            #     del VARS[v][k]
-                
             try:
                 if indice_type.startswith('user_indice_'):
                     if type(user_indice[v]['thresh'])==str:

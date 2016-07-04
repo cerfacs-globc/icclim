@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
  
 from setuptools import setup, find_packages, Command
- 
+
 # notez qu'on import la lib
 # donc assurez-vous que l'importe n'a pas d'effet de bord
 #import icclim
 import os
+
+from icclim import __version__
 
 #class Install_C_sharedLib(Command):
 #    description = ""
@@ -32,7 +34,7 @@ setup(
  
     # la version du code
     
-    version="4.2.2",
+    version=__version__,
  
     # Liste les packages a inserer dans la distribution
     # plutot que de le faire a la main, on utilise la foncton
