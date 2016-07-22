@@ -1173,7 +1173,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                     indice_slice_date_event_end =  indice_slice_date_event_bounds[1] 
                                 
                                 else: #### in-base years
-                                    ### in case of bootsrapping : it is not possible to get a correct date of event
+                                    ### in case of bootstrapping : it is not possible to get a correct date of event
                                     ### ==> we fill all indices by -1 to get fill_value in output date of event array for in-base years
                                     indice_slice_date_event_start = indice_slice_date_event_bounds[0]*0 -1
                                     indice_slice_date_event_end = indice_slice_date_event_bounds[1]*0 -1

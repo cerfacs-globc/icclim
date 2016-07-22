@@ -306,7 +306,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width,
     for month in dic_caldays.keys():
         for day in dic_caldays[month]:
 
-            arr_percentille_current_calday = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
+            arr_percentile_current_calday = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
 
             # step2: we do a mask for the datetime vector for current calendar day (day/month)
             dt_arr_mask = get_mask_dt_arr(dt_arr, month, day, dt_hour, window_width, only_leap_years, t_calendar, t_units, ignore_Feb29th)
@@ -320,12 +320,12 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width,
             arr_subset = arr_filled[indices_non_masked, :, :]
 
             # step5: we compute the percentile for current arr_subset
-            C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentille_current_calday, percentile, fill_val, interpolation)
+            C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentile_current_calday, percentile, fill_val, interpolation)
 
-            arr_percentille_current_calday = arr_percentille_current_calday.reshape(arr.shape[1], arr.shape[2])
+            arr_percentile_current_calday = arr_percentile_current_calday.reshape(arr.shape[1], arr.shape[2])
 
             # step6: we add to the dictionary
-            percentile_dict[month,day] = arr_percentille_current_calday
+            percentile_dict[month,day] = arr_percentile_current_calday
 
         if callback != None:
             percent_current_month =  percent_current_month + percent_one_month
@@ -433,14 +433,14 @@ def get_percentile_arr(arr, percentile, callback=None, callback_percentage_start
 
     #############################
 
-    arr_percentille = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
+    arr_percentile = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
 
     # we compute the percentiles
-    C_percentile(arr_filled, arr_filled.shape[0], arr_filled.shape[1], arr_filled.shape[2], arr_percentille, percentile, fill_val, interpolation)
+    C_percentile(arr_filled, arr_filled.shape[0], arr_filled.shape[1], arr_filled.shape[2], arr_percentile, percentile, fill_val, interpolation)
 
-    arr_percentille = arr_percentille.reshape(arr.shape[1], arr.shape[2])
+    arr_percentile = arr_percentile.reshape(arr.shape[1], arr.shape[2])
 
-    return arr_percentille
+    return arr_percentile
 
 
 
