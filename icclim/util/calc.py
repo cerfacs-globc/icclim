@@ -330,6 +330,7 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
     
     arr_masked = get_masked_arr(arr, fill_val) * coef
     arr_filled = arr_masked.filled(fill_value=arr_masked.fill_value) # array must be filled for passing in C function
+    in_mask = arr_masked.mask[0, :, :]
     
     
     ## array data type should be 'float32' to pass it to C function  
@@ -368,7 +369,9 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
     
     # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
     if isinstance(arr, numpy.ma.MaskedArray):
-        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+#        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
+    del in_mask
     
     
     if index_event==False:
@@ -395,6 +398,7 @@ def get_max_nb_consecutive_days(arr, logical_operation, thresh, coef=1.0, fill_v
         index_event_bounds=[]
     
     arr_masked = get_masked_arr(arr, fill_val) * coef
+    in_mask = arr_masked.mask[0, :, :]
     arr_filled = arr_masked.filled(fill_value=arr_masked.fill_value) # array must be filled for passing in C function
         
     # array data type should be 'float32' to pass it to C function  
@@ -442,7 +446,9 @@ def get_max_nb_consecutive_days(arr, logical_operation, thresh, coef=1.0, fill_v
     
     # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
     if isinstance(arr, numpy.ma.MaskedArray):
-        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+#        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
+    del in_mask
 
     if index_event==False:
         return res
@@ -466,6 +472,7 @@ def get_nb_events(arr, logical_operation, thresh, fill_val=None, index_event=Fal
 
     '''
     arr_masked = get_masked_arr(arr, fill_val) * coef
+    in_mask = arr_masked.mask[0, :, :]
 
     
     binary_arr_3D = get_binary_arr(arr=arr_masked, 
@@ -485,7 +492,9 @@ def get_nb_events(arr, logical_operation, thresh, fill_val=None, index_event=Fal
     
     # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
     if isinstance(arr, numpy.ma.MaskedArray):
-        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+#        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
+    del in_mask
     
     if index_event==True:
         first_occurrence_event=get_first_occurrence(binary_arr_3D)
@@ -608,6 +617,7 @@ def WCSDI(arr, dt_arr, percentile_dict, logical_operation, fill_val=None, N=6):
 
  
     arr_masked = get_masked_arr(arr, fill_val)
+    in_mask = arr_masked.mask[0, :, :]
     
     # step1: we get a 3D binary array from arr (if arr value > pctl value: 1, else: 0)    
     binary_arr_3D = get_binary_arr(arr=arr_masked, 
@@ -639,7 +649,9 @@ def WCSDI(arr, dt_arr, percentile_dict, logical_operation, fill_val=None, N=6):
     
     # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
     if isinstance(arr, numpy.ma.MaskedArray):
-        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+    #    res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
+    del in_mask
 
     return res    
 
@@ -651,6 +663,7 @@ def RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_v
     '''
 
     wet_arr = get_wet_days(arr=arr, fill_val=fill_val) # masked array
+    in_mask = wet_arr.mask[0, :, :]
     
     # we are looking for the values which are greater than the Xth percentile
     bin_arr = get_binary_arr(arr=wet_arr, logical_operation=logical_operation, thresh=percentile_arr)
@@ -664,7 +677,9 @@ def RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_v
     res = numpy.sum(arr_ma, axis=0)
 
     if isinstance(arr, numpy.ma.MaskedArray):
-        res = numpy.ma.array(res, mask=res==fill_val, fill_value=fill_val)
+#        res = numpy.ma.array(res, mask=res==fill_val, fill_value=fill_val)
+        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=fill_val)
+    del in_mask
         
     
     return res
@@ -697,6 +712,7 @@ def get_anomaly(arr, arr2, fill_val, out_unit=None):
     ### arr: 3D numpy array corresponding to studied period (future)
     ### arr2: 3D numpy array corresponding to reference period (past)
     arr1_masked = get_masked_arr(arr, fill_val)
+    in_mask1 = arr1_masked.mask[0, :, :]
     arr2_masked = get_masked_arr(arr2, fill_val)
     
     arr1_mean = numpy.ma.mean(arr1_masked, axis=0) # future
@@ -707,7 +723,9 @@ def get_anomaly(arr, arr2, fill_val, out_unit=None):
     
     # anomaly must be numpy.ma.MaskedArray if arr and arr2 are numpy.ma.MaskedArray
     if isinstance(arr, numpy.ma.MaskedArray):
-        anomaly = numpy.ma.array(anomaly, mask=anomaly==arr1_masked.fill_value, fill_value=arr1_masked.fill_value)
+#        anomaly = numpy.ma.array(anomaly, mask=anomaly==arr1_masked.fill_value, fill_value=arr1_masked.fill_value)
+        anomaly = numpy.ma.masked_array(anomaly, mask=in_mask1, fill_value=arr1_masked.fill_value)
+    del in_mask1
     
     if out_unit == "%":
         # mean of the past period is reference (100%)

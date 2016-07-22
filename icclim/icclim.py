@@ -542,7 +542,7 @@ def indice(in_files,
         if nb_user_thresholds == 0:
             
             if chunk_counter == 0:
-                indice_arr = numpy.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
+                indice_arr = numpy.ma.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
 
             
             indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
@@ -553,7 +553,6 @@ def indice(in_files,
                                                         ignore_Feb29th=ignore_Feb29th, interpolation=interpolation,
                                                         out_unit=out_unit,
                                                         user_indice=user_indice) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-    
             indice_arr_current_chunk = indice_tuple_current_chunk[2]
             
             if indice_type.startswith('user_indice_'):
@@ -680,7 +679,7 @@ def indice(in_files,
 
     logging.info("   ********************************************************************************************")
     logging.info("   *                                                                                          *")
-    logging.info("   *          %-50s                V%-10s   *", icclim.__name__, icclim.__version__)
+    logging.info("   *          %-50s                V%-10s   *", 'icclim', pkg_resources.get_distribution("icclim").version)
     logging.info("   *                                                                                          *")
     logging.info("   *                                                                                          *")
     logging.info("   *          %-28s                                                    *", time.asctime(time.gmtime()) + " " + tz)
@@ -921,11 +920,11 @@ def get_indice_from_dict_temporal_slices(indice_name,
                 reduced_base_years_list.remove(current_intersecting_year)
             
             ### we initialize the intermediate result (for the current slice)
-            indice_slice_i = numpy.zeros(( len(reduced_base_years_list), nb_rows, nb_columns))
+            indice_slice_i = numpy.ma.zeros(( len(reduced_base_years_list), nb_rows, nb_columns))
             
             
             
-            ### bootstraping
+            ### bootstrapping
             ### for in-base year, we remove it [the current in-base year] from base years list (reduced_base_years_list) 
             ### and duplicate each year from reduced_base_years_list to compute intermediate result for in-base year
             ### if we have N years in base period, then we have (N-1) intermediate results for each base year
@@ -991,7 +990,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 if current_intersecting_year == -9999:
                                     logging.info("[Bootstrapping] Daily Percentiles calculation for out-of-base years. Please be patient...")
                                 else:
-                                    logging.info("[Bootstrapping] Daily Percentiles calculation for in-base year %d. Please be patient...", current_intersecting_year)
+                                    logging.info("[Bootstrapping] Daily Percentiles calculation for in-base year %d for %s. Duplicating %s. Please be patient...", current_intersecting_year, str(v), str(ytd))
                                 daily_pctl_dict = calc_percentiles.get_percentile_dict(arr=new_arrs_base[1], 
                                                                                     dt_arr=new_arrs_base[0], 
                                                                                     percentile=pctl_value, 
@@ -1014,7 +1013,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                     test_v[i]=1 ### we change zero on 1 in the list "test_v"
                     i+=1                   
             
-                if  all(test_v)==1: ### if "test_v" contains only 1, i.e. we cheked all variables
+                if  all(test_v)==1: ### if "test_v" contains only 1, i.e. we checked all variables
                     
                     
                     if indice_type in ['percentile_based', 'user_indice_percentile_based']: ### based on ONE variable
@@ -1036,6 +1035,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 #### for in-base years (reduced_base_years_list>0), 
                                 #### indice_slice_i will be filled anyway by the same 2D arrays len(reduced_base_years_list) numbers
                                 #### (in the following we compute average of indice_slice_i[:,:,:] along axis=0)
+                                numpy.ma.set_fill_value(indice_slice_i, vars_dict[va]['fill_value'])
                                 indice_slice_i[:,:,:] = calc_ind.zzz(indice_name, **dic_args) # 3D with the same  2D arrays
                             
                             else:
@@ -1051,7 +1051,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 
                             else:
                                 pd = pctl_thresh[va]['bootstrapping']
-                            
+
                             dic_args = {'arr': vars_dict[va]['temporal_slices'][slice][3], 
                                         'dt_arr': vars_dict[va]['temporal_slices'][slice][2],
                                         'percentile_dict': pd, 
@@ -1059,8 +1059,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                         'out_unit': out_unit}
                         
                             
+                            numpy.ma.set_fill_value(indice_slice_i, vars_dict[va]['fill_value'])
                             indice_slice_i[ytd_counter,:,:] = calc_ind.zzz(indice_name, **dic_args) # 3D
-                            
                         
                         else: ####  'user_indice_percentile_based'
                             va =  vars_dict.keys()[0] 
@@ -1089,6 +1089,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                             
                             if user_indice['date_event']==True:
 
+                                numpy.ma.set_fill_value(indice_slice_i, vars_dict[va]['fill_value'])
                                 indice_slice_i[ytd_counter,:,:] = indice_slice_[0]
                                 
                                 if ytd_counter == 0:
@@ -1115,6 +1116,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
 
                             else:
     
+                                numpy.ma.set_fill_value(indice_slice_i, vars_dict[va]['fill_value'])
                                 indice_slice_i[ytd_counter,:,:] = indice_slice_
 
 
@@ -1163,6 +1165,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                        
                         if user_indice['date_event']==True:
 
+                            numpy.ma.set_fill_value(indice_slice_i, fv)
                             indice_slice_i[ytd_counter,:,:] = indice_slice_[0]
                             
                             if ytd_counter == 0:
@@ -1180,6 +1183,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
 
                         else:
 
+                            numpy.ma.set_fill_value(indice_slice_i, fv)
                             indice_slice_i[ytd_counter,:,:] = indice_slice_
                         
                 
@@ -1188,8 +1192,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                 ytd_counter+=1 
             
 
-            indice_slice = numpy.mean(indice_slice_i, axis=0) # 3D --> 2D
-            
+            indice_slice = numpy.ma.mean(indice_slice_i, axis=0) # 3D --> 2D
+                        
             
             #### we have INDICES of date event ==> we search for the dates in dt_arr
             if indice_type in ['user_indice_percentile_based', 'user_indice_percentile_based_multivariable'] and user_indice['date_event']==True:
@@ -1209,9 +1213,9 @@ def get_indice_from_dict_temporal_slices(indice_name,
             
             #### when we average indice_slice_i, values are float
             if out_unit=='days': 
-                indice_slice = numpy.around(indice_slice) ### we need them to be integer for out_unit="days"
+                indice_slice = numpy.ma.around(indice_slice) ### we need them to be integer for out_unit="days"
 #             else:
-#                 indice_slice = numpy.around(indice_slice, decimals=2)
+#                 indice_slice = numpy.ma.around(indice_slice, decimals=2)
 
         
         
@@ -1223,9 +1227,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         if slice_counter == 0:
             indice_arr = indice_slice
         else:                
-            indice_arr = numpy.concatenate((indice_arr, indice_slice), axis=0)
-        
-        
+            indice_arr = numpy.ma.concatenate((indice_arr, indice_slice), axis=0)
         
         ### we concatenate date_event_slice, date_event_slice_start, date_event_slice_end into final arrays with numerical dates   
         if indice_type.startswith('user_indice_') and user_indice['date_event']==True:
