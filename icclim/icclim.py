@@ -11,6 +11,7 @@
 import numpy
 import logging
 import pdb
+import pkg_resources
 from netCDF4 import Dataset, MFDataset
 
 import os
@@ -29,6 +30,7 @@ import util.arr_size as arr_size
 import util.OCGIS_tile as OCGIS_tile
 import util.files_order as files_order
 import time_subset
+import time
 import maps
 import calc_ind
 import util.calc as calc
@@ -135,8 +137,26 @@ def indice(in_files,
     .. warning:: If ``out_file`` already exists, Icclim will overwrite it!
 
     '''
-    
+
+    os.environ['TZ'] = 'GMT'
+    time.tzset()
+    tz = time.tzname[0]
+
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
+    
+    logging.info("   ********************************************************************************************")
+    logging.info("   *                                                                                          *")
+    logging.info("   *          %-50s                V%-10s   *", 'icclim', pkg_resources.get_distribution("icclim").version)
+    logging.info("   *                                                                                          *")
+    logging.info("   *                                                                                          *")
+    logging.info("   *          %-28s                                                    *", time.asctime(time.gmtime()) + " " + tz)
+    logging.info("   *                                                                                          *")
+    logging.info("   *          BEGIN EXECUTION                                                                 *")
+    logging.info("   *                                                                                          *")
+    logging.info("   ********************************************************************************************")
+
+    time_start = time.clock()
+
     #######################################################
     ########## User indice check params
     if indice_name==None:
@@ -656,7 +676,21 @@ def indice(in_files,
     
     onc.close()
 
-    
+    time_elapsed = (time.clock() - time_start)
+
+    logging.info("   ********************************************************************************************")
+    logging.info("   *                                                                                          *")
+    logging.info("   *          %-50s                V%-10s   *", icclim.__name__, icclim.__version__)
+    logging.info("   *                                                                                          *")
+    logging.info("   *                                                                                          *")
+    logging.info("   *          %-28s                                                    *", time.asctime(time.gmtime()) + " " + tz)
+    logging.info("   *                                                                                          *")
+    logging.info("   *          END EXECUTION                                                                   *")
+    logging.info("   *                                                                                          *")
+    logging.info("   *          CP SECS = %-10.3f                                                            *", time_elapsed)
+    logging.info("   *                                                                                          *")
+    logging.info("   ********************************************************************************************")
+
     return out_file
 
 
@@ -922,7 +956,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                             
                             # we compute pctl array only one time
                             if slice_counter==0 and ytd_counter==0: 
-                                 
+
                                 pctl_arr = calc_percentiles.get_percentile_arr(arr=vars_dict[v]['base']['values_arr'], 
                                                                                  percentile=pctl_value,                                                            
                                                                                  callback=callback,
@@ -954,6 +988,10 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                     
                                     
                                 # dictionary with daily percentiles    
+                                if current_intersecting_year == -9999:
+                                    logging.info("[Bootstrapping] Daily Percentiles calculation for out-of-base years. Please be patient...")
+                                else:
+                                    logging.info("[Bootstrapping] Daily Percentiles calculation for in-base year %d. Please be patient...", current_intersecting_year)
                                 daily_pctl_dict = calc_percentiles.get_percentile_dict(arr=new_arrs_base[1], 
                                                                                     dt_arr=new_arrs_base[0], 
                                                                                     percentile=pctl_value, 
@@ -961,7 +999,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                                                     t_calendar=vars_dict[v]['time_calendar'], 
                                                                                     t_units=vars_dict[v]['time_units'],          
                                                                                     only_leap_years=only_leap_years, 
-                                                                                    callback=callback, callback_percentage_start_value=0, callback_percentage_total=100,
+                                                                                    callback=None, callback_percentage_start_value=0, callback_percentage_total=100,
                                                                                     chunk_counter=1, 
                                                                                     fill_val=vars_dict[v]['fill_value'],
                                                                                     ignore_Feb29th=ignore_Feb29th,
@@ -1217,6 +1255,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                     callback(percentage_current_slice)
              
             else:
+                print("intersect")
                 callback(percentage_current_slice)
         
      

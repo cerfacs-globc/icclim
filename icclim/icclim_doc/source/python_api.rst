@@ -134,9 +134,9 @@ The ``transfer_limit_Mbytes`` parameter, required to estimate the optimal data c
 ``callback``
 ~~~~~~~~~~~~~
 The percentage progress bar is printed if the ``callback`` parameter is set to a callback function.
-The default callback functions are defined in `util.callback.py <link>`_. 
+The default callback functions are defined in `icclim.util.callback.py <link>`_. 
 
->>> import util.callback as callback
+>>> import icclim.util.callback as callback
 >>> cb = callback.defaultCallback
 
 .. _ignore_Feb29th_label:
