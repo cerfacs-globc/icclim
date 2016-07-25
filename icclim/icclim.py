@@ -680,7 +680,7 @@ def indice(in_files,
 
     logging.info("   ********************************************************************************************")
     logging.info("   *                                                                                          *")
-    logging.info("   *          %-50s                V%-10s   *", icclim.__name__, icclim.__version__)
+    logging.info("   *          %-50s                V%-10s   *", 'icclim', pkg_resources.get_distribution("icclim").version)
     logging.info("   *                                                                                          *")
     logging.info("   *                                                                                          *")
     logging.info("   *          %-28s                                                    *", time.asctime(time.gmtime()) + " " + tz)
