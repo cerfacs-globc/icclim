@@ -268,6 +268,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width,
 
     # we mask our array in case it has fill_values
     arr_masked = get_masked_arr(arr, fill_val)
+    in_mask = arr_masked.mask[0, :, :]
 
     fill_val = arr_masked.fill_value
 
@@ -323,13 +324,17 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width,
             C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentile_current_calday, percentile, fill_val, interpolation)
 
             arr_percentile_current_calday = arr_percentile_current_calday.reshape(arr.shape[1], arr.shape[2])
+            arr_percentile_current_calday_masked = numpy.ma.masked_array(arr_percentile_current_calday, in_mask)
+            del arr_percentile_current_calday
 
             # step6: we add to the dictionary
-            percentile_dict[month,day] = arr_percentile_current_calday
+            percentile_dict[month,day] = arr_percentile_current_calday_masked
 
         if callback != None:
             percent_current_month =  percent_current_month + percent_one_month
             callback(percent_current_month)
+            
+    del in_mask
 
     return percentile_dict
 
@@ -381,8 +386,11 @@ def get_percentile_arr(arr, percentile, callback=None, callback_percentage_start
 
     assert(arr.ndim == 3)
 
+    in_fill_val = fill_val
+
     # we mask our array in case it has fill_values
     arr_masked = get_masked_arr(arr, fill_val)
+    in_mask = arr_masked.mask[0, :, :]
 
     fill_val = arr_masked.fill_value
 
@@ -434,13 +442,16 @@ def get_percentile_arr(arr, percentile, callback=None, callback_percentage_start
     #############################
 
     arr_percentile = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
-
+    
     # we compute the percentiles
     C_percentile(arr_filled, arr_filled.shape[0], arr_filled.shape[1], arr_filled.shape[2], arr_percentile, percentile, fill_val, interpolation)
 
     arr_percentile = arr_percentile.reshape(arr.shape[1], arr.shape[2])
+    arr_percentile_masked = numpy.ma.masked_array(arr_percentile, in_mask)
+    del arr_percentile
+    del in_mask
 
-    return arr_percentile
+    return arr_percentile_masked
 
 
 
