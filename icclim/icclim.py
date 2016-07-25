@@ -1257,7 +1257,6 @@ def get_indice_from_dict_temporal_slices(indice_name,
                     callback(percentage_current_slice)
              
             else:
-                print("intersect")
                 callback(percentage_current_slice)
         
      
