@@ -988,7 +988,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                     
                                 # dictionary with daily percentiles    
                                 if current_intersecting_year == -9999:
-                                    logging.info("[Bootstrapping] Daily Percentiles calculation for out-of-base years. Please be patient...")
+                                    logging.info("Daily Percentiles calculation for out-of-base years. Please be patient...")
                                 else:
                                     logging.info("[Bootstrapping] Daily Percentiles calculation for in-base year %d for %s. Duplicating %s. Please be patient...", current_intersecting_year, str(v), str(ytd))
                                 daily_pctl_dict = calc_percentiles.get_percentile_dict(arr=new_arrs_base[1], 
