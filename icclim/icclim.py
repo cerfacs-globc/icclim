@@ -1165,7 +1165,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                        
                         if user_indice['date_event']==True:
 
-                            numpy.ma.set_fill_value(indice_slice_i, fv)
+                            numpy.ma.set_fill_value(indice_slice_i, fv[v])
                             indice_slice_i[ytd_counter,:,:] = indice_slice_[0]
                             
                             if ytd_counter == 0:
@@ -1183,7 +1183,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
 
                         else:
 
-                            numpy.ma.set_fill_value(indice_slice_i, fv)
+                            numpy.ma.set_fill_value(indice_slice_i, fv[v])
                             indice_slice_i[ytd_counter,:,:] = indice_slice_
                         
                 
