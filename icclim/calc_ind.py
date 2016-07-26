@@ -1,5 +1,6 @@
 from calc_indice import *
 
+import logging
 
 # - TG 
 # - TX 
@@ -200,6 +201,9 @@ def zzz(indice_name, **kwargs):
        
     elif indice_name == 'R99pTOT':
         res = R99pTOT_calculation(**kwargs)            
-       
+
+    else:
+        logging.critical("Error: unknown indice name: %s. Please check documentation.", indice_name)
+        raise SystemExit()
         
     return res        
