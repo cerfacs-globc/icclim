@@ -2,7 +2,7 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 #  Author: Natalia Tatarinova
-#  Additions from 2015/05/01: Christian Page
+#  Additions (2015, 2016): Christian Page
 
 import numpy
 import pdb
