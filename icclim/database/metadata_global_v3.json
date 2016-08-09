@@ -3,7 +3,7 @@
 
   "description": {
    "ATTR_MANDATORY": "1",
-   "ATTR_VALUE": "Output a NetCDF file of climate index calculated by the ICCLIM" }, 
+   "ATTR_VALUE": "Output a NetCDF file of climate index calculated by the ICCLIM" },
 
   "keywords": {
    "ATTR_MANDATORY": "1",
@@ -11,7 +11,7 @@
 
   "activity": {
    "ATTR_MANDATORY": "1",
-   "ATTR_VALUE": " " }, 
+   "ATTR_VALUE": " " },
 
   "method": {
    "ATTR_MANDATORY": "1",
@@ -32,10 +32,10 @@
   "software_reference": {
   "ATTR_MANDATORY": "1",
   "ATTR_VALUE": "ICCLIM Documentation 3.0: https://media.readthedocs.org/pdf/icclim/latest/icclim.pdf" },
- 
+
   "institution": {
-   "ATTR_MANDATORY": "1", 
-   "ATTR_VALUE": "CERFACS" }, 
+   "ATTR_MANDATORY": "1",
+   "ATTR_VALUE": "CERFACS" },
 
   "institution_url": {
    "ATTR_MANDATORY": "1",
@@ -48,7 +48,7 @@
   "summary": {
    "ATTR_MANDATORY": "1",
    "ATTR_VALUE": "Output a NetCDF file of climate index calculated by the ICCLIM" },
- 
+
   "in_var_project_id": {
    "ATTR_MANDATORY": "0" },
 
@@ -66,14 +66,14 @@
 
   "in_var_driving_model_id": {
    "ATTR_MANDATORY": "0" },
- 
+
   "in_var_driving_ensemble_member": {
    "ATTR_MANDATORY": "0" },
- 
+
   "in_var_driving_experiment_id": {
    "ATTR_MANDATORY": "0" },
 
-  "in_var_domain": {    
+  "in_var_domain": {
    "ATTR_MANDATORY": "0" },
 
   "in_var_reference": {
@@ -111,35 +111,35 @@
 
   "cdm_datatype": {
    "ATTR_MANDATORY": "1",
-   "ATTR_VALUE": "Grid" }, 
+   "ATTR_VALUE": "Grid" },
 
   "domain": {
    "ATTR_MANDATORY": "1",
    "ATTR_VALUE": " " },
-  
+
   "geospatial_increment": {
-   "ATTR_MANDATORY": "1", 
+   "ATTR_MANDATORY": "1",
    "ATTR_VALUE": " " },
- 
+
   "geospatial_lat_min": {
    "ATTR_MANDATORY": "1",
-   "ATTR_VALUE": " " }, 
+   "ATTR_VALUE": " " },
 
   "geospatial_lat_max": {
    "ATTR_MANDATORY": "1",
-   "ATTR_VALUE": " " }, 
+   "ATTR_VALUE": " " },
 
   "geospatial_lon_min": {
    "ATTR_MANDATORY": "1",
-   "ATTR_VALUE": " " }, 
+   "ATTR_VALUE": " " },
 
   "geospatial_lon_max": {
    "ATTR_MANDATORY": "1",
-   "ATTR_VALUE": " " }, 
+   "ATTR_VALUE": " " },
 
   "version": {
    "ATTR_MANDATORY": "1",
-   "ATTR_VALUE": " " }, 
+   "ATTR_VALUE": " " },
 
   "Conventions": {
    "ATTR_MANDATORY": "1",
