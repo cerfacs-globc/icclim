@@ -126,7 +126,7 @@ def set_timebnds_values(nc, time_bnds_dt, calend, units):
     nc.variables['time_bnds'][:,:] = time_bnds_num[:,:]
     
     
-def copy_var_dim(inc, onc, var): 
+def copy_var_dim(inc, onc, var, lev_dim_pos=1): 
     '''
     Copies the spatial coordinate variables (e.g.: lat, lon) of a variable (var) from one NetCDF file (ifile) to another (out_file)
     and returns list of coordinates variables.
@@ -139,6 +139,8 @@ def copy_var_dim(inc, onc, var):
     :type var: str
     :param project: project name ("CMIP5" or "CORDEX")
     :type project: str
+    :param lev_dim_pos: Position of Level dimension, either 0 or 1. 0 is leftmost dimension, 1 is second to the leftmost. Default 1.
+    :type lev_dim_pos: int
     
     :rtype: tuple of str (coordinate variables: 'time', 'lat', 'lon')
     '''
@@ -152,11 +154,18 @@ def copy_var_dim(inc, onc, var):
         time_var = v_dim[0]
         lat_var = v_dim[1]
         lon_var = v_dim[2]
+        lat_shape = v.shape[1]
+        lon_shape = v.shape[2]
         
     elif v.ndim == 4: # (e.g.: u'time', u'plev', u'lat', u'lon')
-        time_var = v_dim[0]
+        if lev_dim_pos == 0:
+            time_var = v_dim[1]
+        else:
+            time_var = v_dim[0]
         lat_var = v_dim[-2]
         lon_var = v_dim[-1]
+        lat_shape = v.shape[-2]
+        lon_shape = v.shape[-1]
         
     glob_att = ['title', 'institution', 'source', 'references', 'comment', 'history']
     
@@ -182,8 +191,8 @@ def copy_var_dim(inc, onc, var):
     
     ### create dimensions
     onc.createDimension(str(time_var), 0) # time       
-    onc.createDimension(str(lat_var), v.shape[1]) # lat
-    onc.createDimension(str(lon_var), v.shape[2]) # lon        
+    onc.createDimension(str(lat_var), lat_shape) # lat
+    onc.createDimension(str(lon_var), lon_shape) # lon        
     onc.createDimension('bnds', 2) # bnds
     if boundsvar == 1:
       onc.createDimension('nv', 2) # nv
@@ -263,7 +272,7 @@ def copy_var_dim(inc, onc, var):
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
 
 
-def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_range=None, N_lev=None, ignore_Feb29th=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None, add_offset=0.0, scale_factor=1.0):
+def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_range=None, N_lev=None, lev_dim_pos=1, ignore_Feb29th=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None, add_offset=0.0, scale_factor=1.0):
     
     try:
         calend = ncVar_temporal.calendar
@@ -293,7 +302,10 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_
             
         indices_subset = util_dt.get_indices_subset(dt_arr, time_range)
         dt_arr = dt_arr[indices_subset]
-        values_arr = (ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
+        if lev_dim_pos == 0:
+            values_arr = (ncVar_values[N_lev,indices_subset,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
+        else:
+            values_arr = (ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
         
     if fill_val != None:
         numpy.ma.set_fill_value(values_arr, fill_val)

@@ -57,6 +57,7 @@ def indice(in_files,
            out_file="./icclim_out.nc",
            threshold=None,
            N_lev=None,
+           lev_dim_pos=1,
            transfer_limit_Mbytes=None,
            callback=None,
            callback_percentage_start_value=0,  
@@ -98,6 +99,9 @@ def indice(in_files,
     
     :param N_lev: Level number if 4D variable.
     :type N_lev: int
+
+    :param lev_dim_pos: Position of Level dimension, either 0 or 1. 0 is leftmost dimension, 1 is second to the leftmost. Default 1.
+    :type lev_dim_pos: int
     
     :param transfer_limit_Mbytes: Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
     :type transfer_limit_Mbytes: float
@@ -239,12 +243,15 @@ def indice(in_files,
     except RuntimeError:
         raise MissingIcclimInputError("Failed to access dataset: " + any_in_file)
 
-    indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0]) # tuple ('time', 'lat', 'lon')    
+    indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0], lev_dim_pos=lev_dim_pos) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
     ncVar = inc.variables[var_name[0]] 
     fill_val = ncVar._FillValue.astype('float32') # fill_value must be the same type as "ind_type", i.e. 'float32'
     dimensions_list_var = ncVar.dimensions
-    index_time = 0
+    if lev_dim_pos == 0:
+        index_time = 1
+    else:
+        index_time = 0
     ncVar_time = inc.variables[dimensions_list_var[index_time]]
     
     ############## in case of user defined thresholds 
@@ -458,6 +465,7 @@ def indice(in_files,
                                                                      fill_val=VARS[v]['fill_value'], 
                                                                      time_range=time_range, 
                                                                      N_lev=N_lev, 
+                                                                     lev_dim_pos=lev_dim_pos,
                                                                      scale_factor=VARS[v]['unit_conversion_var_scale'], 
                                                                      add_offset=VARS[v]['unit_conversion_var_add'],
                                                                      ignore_Feb29th=ignore_Feb29th, 
@@ -479,6 +487,7 @@ def indice(in_files,
                                                                             fill_val=VARS[v]['fill_value'], 
                                                                             time_range=base_period_time_range, 
                                                                             N_lev=N_lev, 
+                                                                            lev_dim_pos=lev_dim_pos,
                                                                             scale_factor=VARS[v]['unit_conversion_var_scale'], 
                                                                             add_offset=VARS[v]['unit_conversion_var_add'],
                                                                             ignore_Feb29th=ignore_Feb29th,
@@ -500,6 +509,7 @@ def indice(in_files,
                                                                             fill_val=VARS[v]['fill_value'], 
                                                                             time_range=base_period_time_range, 
                                                                             N_lev=N_lev, 
+                                                                            lev_dim_pos=lev_dim_pos,
                                                                             scale_factor=VARS[v]['unit_conversion_var_scale'], 
                                                                             add_offset=VARS[v]['unit_conversion_var_add'],
                                                                             ignore_Feb29th=ignore_Feb29th,
