@@ -65,7 +65,7 @@ def get_list_dates(ifile, type_dates):
     '''
     try:
         nc = Dataset(ifile, 'r')
-    except Runtime:
+    except RuntimeError:
         raise MissingIcclimInputError("Failed to access dataset: " + ifile)
 
     var_time = nc.variables['time']
@@ -175,7 +175,7 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
     '''
     try:
         nc = Dataset(files[0],'r')
-    except Runtime:
+    except RuntimeError:
         raise MissingIcclimInputError("Failed to access dataset: " + files[0])
 
     time = nc.variables[temporal_var_name]
@@ -199,7 +199,7 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
     else:
         try:
             nc = MFDataset(files, 'r', aggdim='time')
-        except Runtime:
+        except RuntimeError:
             raise MissingIcclimInputError("Failed to access dataset: " + files)
         time_arr = nc.variables[temporal_var_name][:]
         nc.close()
