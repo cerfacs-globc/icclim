@@ -377,10 +377,10 @@ def check_unlimited(infile):
         dim_name = dim
         num_unlimited = num_unlimited + 1
     if dim_unlimited == False:
-      print 'Warning: There is no unlimited dimension. File should be fixed if possible to set time as the unlimited dimension.'
-      print 'Warning: Using time as the aggregation dimension. Hope this is what you want to do...'
+      print("Warning: There is no unlimited dimension. File should be fixed if possible to set time as the unlimited dimension.")
+      print("Warning: Using time as the aggregation dimension. Hope this is what you want to do...")
     if num_unlimited > 1:
-        print 'Warning: There are more than one unlimited dimension to aggregate. Using '+dim_name+' to aggregate.'
+        print("Warning: There are more than one unlimited dimension to aggregate. Using "+dim_name+" to aggregate.")
 
     nc.close()
 
