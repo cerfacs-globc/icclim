@@ -361,8 +361,8 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
                    res, 
                    window_width, 
                    fill_val,
-                   stat_mode, 
-                   extreme_mode, 
+                   stat_mode.encode(), 
+                   extreme_mode.encode(), 
                    first_index_event)
     
     res = res.reshape(arr_filled.shape[1], arr_filled.shape[2])
@@ -431,7 +431,7 @@ def get_max_nb_consecutive_days(arr, logical_operation, thresh, coef=1.0, fill_v
                                       res, 
                                       thresh, 
                                       fill_val, 
-                                      logical_operation, 
+                                      logical_operation.encode(), 
                                       first_index_event, 
                                       last_index_event)
 
@@ -567,7 +567,7 @@ def get_nb_events_multivar(bin_arrs, link_logical_operation, fill_val, index_eve
                                           res, 
                                           1, ### thresh
                                           fill_val, 
-                                          "e", ### we are looking for a max sequence where values==1
+                                          "e".encode(), ### we are looking for a max sequence where values==1
                                           first_index_event, 
                                           last_index_event)
     

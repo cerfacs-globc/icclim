@@ -93,7 +93,7 @@ def indice(in_files,
            window_width=5,
            only_leap_years=False,
            ignore_Feb29th=False,
-           interpolation='hyndman_fan', 
+           interpolation="hyndman_fan", 
            out_unit='days',
            netcdf_version=icclim_output_file_defaults('netcdf_version'),  # was: 'NETCDF3_CLASSIC',
            user_indice=None

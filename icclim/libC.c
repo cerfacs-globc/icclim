@@ -15,8 +15,6 @@ gcc -shared -o libC.so -std=c99 libC.o
 
 */
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

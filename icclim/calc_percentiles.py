@@ -318,7 +318,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width,
             arr_subset = arr_filled[indices_non_masked, :, :]
 
             # step5: we compute the percentile for current arr_subset
-            C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentile_current_calday, percentile, fill_val, interpolation)
+            C_percentile(arr_subset, arr_subset.shape[0], arr_subset.shape[1], arr_subset.shape[2], arr_percentile_current_calday, percentile, fill_val, interpolation.encode())
 
             arr_percentile_current_calday = arr_percentile_current_calday.reshape(arr.shape[1], arr.shape[2])
             arr_percentile_current_calday_masked = numpy.ma.masked_array(arr_percentile_current_calday, in_mask)
@@ -441,7 +441,7 @@ def get_percentile_arr(arr, percentile, callback=None, callback_percentage_start
     arr_percentile = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
     
     # we compute the percentiles
-    C_percentile(arr_filled, arr_filled.shape[0], arr_filled.shape[1], arr_filled.shape[2], arr_percentile, percentile, fill_val, interpolation)
+    C_percentile(arr_filled, arr_filled.shape[0], arr_filled.shape[1], arr_filled.shape[2], arr_percentile, percentile, fill_val, interpolation.encode())
 
     arr_percentile = arr_percentile.reshape(arr.shape[1], arr.shape[2])
     arr_percentile_masked = numpy.ma.masked_array(arr_percentile, in_mask)
