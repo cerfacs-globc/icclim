@@ -277,7 +277,87 @@ def indice(in_files,
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0], lev_dim_pos=lev_dim_pos) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
     ncVar = inc.variables[var_name[0]] 
-    fill_val = ncVar._FillValue.astype('float32') # fill_value must be the same type as "ind_type", i.e. 'float32'
+
+#   Below is a slightly involved code for handling various ways of expressing misssing data.
+#   Not at all pythonic, but we need to check typing of input data and output data
+#   as checking for missing values involves exact (bit level) comparison of floating point numbers
+#   that may (in the worst case) be of different types.
+#
+#   The netCDF4 default _FillValue for float32 and float64 can be recast back and forth between
+#   the two types (which is nice), but numpy.float32(1.e20) (prescibed by CMIP(5)) is not exactly
+#   the same number as numpy.float64(1.e20):
+#   float32(1.e20) = 100000002004087734272 (exactly)
+#   float64(1.e20) = 100000000000000000000 (exactly)
+
+#   Currently icclim cannot deal with valid_min, valid_max, and valid_range, 
+#   as they imply the possibility of a range of missing/invalid values. 
+    try: 
+        tmp = ncVar.valid_min
+        in_valid = True
+    except AttributeError:
+        try:
+            tmp = ncVar.valid_max
+            in_valid = True
+        except AttributeError:
+            try:
+                tmp = ncVar.valid_range
+                in_valid = True
+            except AttributeError:
+                in_valid = False
+    if in_valid:
+        logging.warning('   ********************************************************************************************')
+        logging.warning('   *                                                                                          *')
+        logging.warning('   *          CANNOT HANDLE variable attributes "valid_min", "valid_max", and "valid_range"   *') 
+        logging.warning('   *                        values beyond these limits will be included in the computations   *')
+        logging.warning('   *                        If present "missing_value" and/or "_FillValue" will be honoured   *')
+        logging.warning('   *                                                                                          *')
+        logging.warning('   ********************************************************************************************')
+
+    #   1) Check if _FillValue and/or missing_value exist in the input file
+    try:
+        in_fillval = ncVar._FillValue
+    except AttributeError:
+        in_fillval = None
+    try:
+        in_missval = ncVar.missing_value
+    except AttributeError: 
+        in_missval = None
+
+    if in_fillval is None and in_missval is None:
+        #   2) If neither exist then assume that the default value is not used as a valid number in the input file(s)
+        #      However, given the value this seems very (VERY!) unlikely
+        fill_val = icclim_output_file_defaults('missing_value')
+    else:
+	#   3) _FillValue or missing_value is present in the input file ...
+        if ncVar.dtype.name != icclim_output_file_defaults('missing_value').dtype.name:
+            #   4) ... and input data type is not the same as the output data type
+            #      This works out only if it is the netCDF4 default _FillValue, or we have a problem
+            if in_fillval == netCDF4.default_fillvals[ncVar.dtype.str[1:]]:
+                fill_val = in_fillval
+            else:
+                if in_missval == netCDF4.default_fillvals[ncVar.dtype.str[1:]]:
+                    fill_val = in_missval
+                else:
+                    # Only error out here when really necessary...
+                    # Above code is really to trying to avoid coming here
+                    raise NotImplementedError('Input variable type <' 
+                                              + ncVar.dtype.name 
+                                              + '> not the same as output data type <' 
+                                              + icclim_output_file_defaults('missing_value').dtype.name 
+                                              + '>\\nThis is only possible if the input files are without missing values and _FillValue'
+                                              + '\\nor the they (either one, or both) are exatly equal the netCDF4 default _FillValue')
+        else:
+            #   5) ... and the input data type is the same as the output data type
+            #      so use the value fro mthe input file (missing_value thakes precedence over _FillValue)
+            if in_missval is None:
+                fill_val = in_fillval
+            else:
+                fill_val = in_missval
+    #   6) That's it ....
+    #      Old code below (1 line) does not account for the situation when _FillValue is not defined in the input file
+
+    # fill_val = ncVar._FillValue.astype('float32') # fill_value must be the same type as "ind_type", i.e. 'float32'
+
     dimensions_list_var = ncVar.dimensions
     if lev_dim_pos == 0:
         index_time = 1
@@ -443,8 +523,10 @@ def indice(in_files,
                 ncVar = inc.variables[v]    
                 dimensions_list_current_var = ncVar.dimensions
             
- 
-                fill_val = ncVar._FillValue.astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
+                # Old code (1 line below) does not take into accound that _FillValue may not exist
+                # Instead we assume that the fill_value remains as assigned earlier
+                # If we cannot assume this, then a proper check of the data/variable consistency across files should be done
+                # fill_val = ncVar._FillValue.astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
                 VARS[v]['fill_value']=fill_val
 
                 ncVar_time = inc.variables[dimensions_list_current_var[index_time]]
