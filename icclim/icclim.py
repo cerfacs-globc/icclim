@@ -228,8 +228,9 @@ def indice(in_files,
         if type(in_files) is not list:
             raise IOError('"In_files" must be a list')
         else:
-            assert (len(in_files) == len(var_name)) 
-     
+            #assert (len(in_files) == len(var_name)) ## ==> assert is not a proper error handling mechanism
+            if len(in_files) != len(var_name):
+                raise MissingIcclimInputError('Number of input file lists must match number of input variables')
     
     
     #####    VARS_in_files: dictionary where to each target variable (key of the dictionary) correspond input files list
@@ -415,7 +416,6 @@ def indice(in_files,
 
     tile_dimension = min(vars_tile_dimension)
 
- 
     global nb_chunks
     
     # chunk tiles    
@@ -697,10 +697,16 @@ def indice(in_files,
 
         if threshold == None:
             eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-            ind.setncattr('standard_name', 'ECA_indice')         
+            #### ==> N.B. "ECA_index" is not a valid standard name
+            #### ==> IF a standard name really is required, 
+            #### ==> THEN uncomment the line below and insert a name (typed as string)
+            # ind.setncattr('standard_name', 'ECA_index')  
         else:
             eval('set_longname_units_custom_indices.' + indice_name + '_setvarattr(ind, threshold)')
-            ind.setncattr('standard_name', 'ECA_indice with user defined threshold')
+            #### ==> N.B. "ECA_index with user defined threshold" is not a valid standard name
+            #### ==> IF a standard name really is required, 
+            #### ==> THEN uncomment the line below and insert a name (typed as string)
+            # ind.setncattr('standard_name', 'ECA_index with user defined threshold')
             
             if nb_user_thresholds > 1:
                 eval('set_longname_units_custom_indices.' + indice_name + '_setthresholdattr(thresholdvar)')
