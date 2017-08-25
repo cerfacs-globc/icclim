@@ -8,15 +8,16 @@
 
 #pyximport.install(pyimport = True)
 
-import numpy
-import logging
-import pdb
-import pkg_resources
-from netCDF4 import Dataset, MFDataset
-
+import sys
 import os
 from collections import OrderedDict
 
+import numpy
+import logging
+import pdb   #### TODO: Do we actually need this? -- Or can it be commented out
+import pkg_resources
+
+from netCDF4 import Dataset, MFDataset
 
 import set_globattr
 import set_longname_units
@@ -37,8 +38,6 @@ import util.calc as calc
 
 from util import user_indice as ui
 from icclim_exceptions import *
-
-import sys
 
 
 def icclim_output_file_defaults(arg):
@@ -106,7 +105,7 @@ def indice(in_files,
     '''
 
     
-    :param indice_name: Climate indice name. 
+    :param indice_name: Climate index name. 
     :type indice_name: str    
     
     :param in_files: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
@@ -115,7 +114,7 @@ def indice(in_files,
     :param var_name: Target variable name to process corresponding to ``in_files``.
     :type var_name: str OR list of str
          
-    :param slice_mode: Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the indice will be calculated as monthly values.
+    :param slice_mode: Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the index will be calculated as monthly values.
     :type slice_mode: str
     
     :param time_range: Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
@@ -163,7 +162,7 @@ def indice(in_files,
     :param out_unit: Output unit for certain indices: "days" or "%" (default: "days").
     :type out_unit: str
     
-    :param user_indice: A dictionary with parameters for user defined indice
+    :param user_indice: A dictionary with parameters for user defined index
     :type user_indice: dict
     
     :rtype: path to NetCDF file
@@ -192,29 +191,29 @@ def indice(in_files,
     time_start = time.clock()
 
     #######################################################
-    ########## User indice check params
-    if indice_name==None:
-        if user_indice==None:
+    ########## User index check params
+    if indice_name is None:
+        if user_indice is None:
             raise IOError(" 'user_indice' is required as a dictionary with user defined parameters.")
         else:
             ui.check_params(user_indice, time_range=time_range, vars=var_name)
                 
             if user_indice['calc_operation']=='anomaly':
                 slice_mode=None
-                if base_period_time_range==None:
+                if base_period_time_range is None:
                     raise IOError('Time range of base period is required for anomaly-based user indices! Please, set the "base_period_time_range" parameter.')
             
             user_indice = ui.get_user_indice_params(user_indice, var_name, out_unit)
             indice_type = user_indice['type']
                             
-    ########## User indice check end
+    ########## User index check end
     #######################################################            
 
     else:
         indice_type = get_key_by_value_from_dict(maps.map_indice_type, indice_name) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
 
     
-    if (indice_type in ['percentile_based', 'percentile_based_multivariable'] or indice_type.startswith('user_indice_percentile_')) and base_period_time_range==None:
+    if (indice_type in ['percentile_based', 'percentile_based_multivariable'] or indice_type.startswith('user_indice_percentile_')) and base_period_time_range is None:
         raise IOError('Time range of base period is required for percentile-based indices! Please, set the "base_period_time_range" parameter.')
 
     
@@ -260,13 +259,14 @@ def indice(in_files,
         netcdf_version = icclim_output_file_defaults('netcdf_version')
     onc = Dataset(out_file, 'w' ,format=netcdf_version)
     
-    #####    we define type of result indice
+    #####    we define type of result index
     ind_type = icclim_output_file_defaults('variable_type_str')
     
     
     ########################################
     ################# META DATA: begin
     ########################################
+    
     any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
 
     try:
@@ -368,8 +368,8 @@ def indice(in_files,
     ############## in case of user defined thresholds 
     global nb_user_thresholds, user_thresholds    
     
-    # As default, no threshold is defined, no threshold dimension is created and added to the indice var
-    # Also the case if we are not calculating an indice
+    # As default, no threshold is defined, no threshold dimension is created and added to the index var
+    # Also the case if we are not calculating an index
     if threshold == None: 
         nb_user_thresholds = 0        
     
@@ -383,7 +383,7 @@ def indice(in_files,
         nb_user_thresholds = len(user_thresholds)
         
         if nb_user_thresholds > 1:        
-            # Create an extra dimension for the indice:
+            # Create an extra dimension for the index:
             indice_dim.insert(1,'threshold')
             onc.createDimension('threshold',nb_user_thresholds)
             thresholdvar = onc.createVariable('threshold','f8',('threshold'))
@@ -399,7 +399,7 @@ def indice(in_files,
     else:
         ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
 
-    #####    we copy attributes from variable to process to indice variable, except scale_factor and _FillValue
+    #####    we copy attributes from variable to process to index variable, except scale_factor and _FillValue
     util_nc.copy_var_attrs(ncVar, ind)
     
     ### we create new variable(s) to save date of event
@@ -446,7 +446,7 @@ def indice(in_files,
     
 
     ########################################################################################################################
-    ###### Computing indice: begin
+    ###### Computing index: begin
     ########################################################################################################################
     
     
@@ -481,16 +481,17 @@ def indice(in_files,
         dict_files_years_to_process = files_order.get_dict_files_years_to_process_in_correct_order(files_list=VARS_in_files[v], time_range=time_range)  
         
         VARS[v]['files_years'] = dict_files_years_to_process 
-        
+
+        # TODO: Currently the priority in this logic:   X or Y or (Z and W)   Is this correct ?
         if indice_type in ["percentile_based", "percentile_based_multivariable"] or indice_type.startswith('user_indice_percentile_') or (indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly'):
             dict_files_years_to_process_base = files_order.get_dict_files_years_to_process_in_correct_order(files_list=VARS_in_files[v], time_range=base_period_time_range)
             VARS[v]['files_years_base'] = dict_files_years_to_process_base
 
         dim_name = util_nc.check_unlimited(VARS_in_files[v][0])
         tile_dimension = arr_size.get_tile_dimension(in_files=dict_files_years_to_process.keys(), 
-                                             var_name=v, 
-                                             transfer_limit_Mbytes=transfer_limit_Mbytes, 
-                                             time_range=time_range)
+                                                     var_name=v, 
+                                                     transfer_limit_Mbytes=transfer_limit_Mbytes, 
+                                                     time_range=time_range)
 
         vars_tile_dimension.append(tile_dimension)
 
@@ -724,7 +725,7 @@ def indice(in_files,
     
 
     ########################################################################################################################
-    ###### Computing indice: end
+    ###### Computing index: end
     ########################################################################################################################
     
     
@@ -735,7 +736,7 @@ def indice(in_files,
     ################### Writing result to out netCDF file
     ###########################################################################################        
     
-    ######## we write array with result to "ind" (netCDF variable containing indice)   
+    ######## we write array with result to "ind" (netCDF variable containing index)   
     if  nb_user_thresholds == 0:
         ind[:,:,:] = indice_arr
         
@@ -764,7 +765,7 @@ def indice(in_files,
         
         # title
         if threshold != None:
-            onc.setncattr('title', 'Indice {0} with user defined threshold'.format(indice_name))
+            onc.setncattr('title', 'Index {0} with user defined threshold'.format(indice_name))
         else:
             set_globattr.title(onc, indice_name)
             
@@ -895,7 +896,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         dt_centroid_ = vars_dict[vars_dict.keys()[0]]['temporal_slices'][slice][0]
         dt_bounds_ = vars_dict[vars_dict.keys()[0]]['temporal_slices'][slice][1]
         
-        ###### we compute indice for the current slice
+        ###### we compute index for the current slice
         
         if indice_type == 'simple':  
 
@@ -1068,14 +1069,14 @@ def get_indice_from_dict_temporal_slices(indice_name,
                 ### for each variable in the dictionary
                 for v in vars_dict.keys():
                 
-                    if 'var_type' in vars_dict[v].keys(): # if percentile-based indice, we will compute a pctl threshold
+                    if 'var_type' in vars_dict[v].keys(): # if percentile-based index, we will compute a pctl threshold
                         
                         
                         ### we want to get the percentile value:
                         if indice_type == 'percentile_based':
                             pctl_value = maps.map_indice_percentile_value[indice_name][0] ### for standard indices, we take it from "maps.map_indice_percentile_value"
                         else:
-                            pctl_value = int ( (user_indice[v]['thresh'])[1:] )  ### for user indice, we take it from "user_indice" dictionary
+                            pctl_value = int ( (user_indice[v]['thresh'])[1:] )  ### for user index, we take it from "user_indice" dictionary
                     
                     
                     
@@ -1095,7 +1096,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                                                 interpolation=interpolation)
                                 
                                 
-                                # we keep percentiles_arr in dictionary for following calculation of indice
+                                # we keep percentiles_arr in dictionary for following calculation of index
                                 pctl_thresh[v]=pctl_arr
     
                             
@@ -1146,7 +1147,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                     
                     if indice_type in ['percentile_based', 'user_indice_percentile_based']: ### based on ONE variable
                         
-                        ### even if we loop on ytd, for in-base years we compute indice only one time (i.e. when ytd_counter=0)
+                        ### even if we loop on ytd, for in-base years we compute index only one time (i.e. when ytd_counter=0)
                         if indice_name in ['R75p', 'R75pTOT', 'R95p', 'R95pTOT', 'R99p', 'R99pTOT']: 
                             
                             if ytd_counter==0:                                
@@ -1351,7 +1352,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         ### for each slice we transform indice_slice from 2D to 3D (to concatenate in the following 3D arrays along axis=0)
         indice_slice = indice_slice.reshape(-1, indice_slice.shape[0], indice_slice.shape[1]) # 2D --> 3D
         
-        ### we concatenate results into indice_arr (the final result of computed indice)
+        ### we concatenate results into indice_arr (the final result of computed index)
         if slice_counter == 0:
             indice_arr = indice_slice
         else:                
