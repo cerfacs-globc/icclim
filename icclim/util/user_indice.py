@@ -36,7 +36,7 @@ def check_params(user_indice, time_range=None, vars=None):
     '''
     Checks if a set of user parameters is correct for selected calc_operation
     '''
-    
+
     if 'indice_name' not in user_indice.keys():
         raise IOError(" 'indice_name' is required for a user defines indice")
     

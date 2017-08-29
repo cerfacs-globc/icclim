@@ -521,6 +521,7 @@ def indice(in_files,
             if chunk_counter == 0:
 
                 inc = Dataset(VARS[v]['files_years'].keys()[0], 'r')     
+
                 ncVar = inc.variables[v]    
                 dimensions_list_current_var = ncVar.dimensions
             
@@ -542,9 +543,6 @@ def indice(in_files,
                 VARS[v]['time_calendar']=calend
                 VARS[v]['time_units']=units
 
-                
-               
-               
                 var_units = getattr(inc.variables[v],'units')
 
                 # Units conversion
