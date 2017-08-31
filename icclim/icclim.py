@@ -165,9 +165,12 @@ def indice(in_files,
     :param user_indice: A dictionary with parameters for user defined index
     :type user_indice: dict
     
+    :param netcdf_version: NetCDF version to create (default: "NETCDF3_CLASSIC").
+    :type netcdf_version: str
+    
     :rtype: path to NetCDF file
 
-    .. warning:: If ``out_file`` already exists, Icclim will overwrite it!
+    .. warning:: If ``out_file`` already exists, icclim will overwrite it!
 
     '''
 
