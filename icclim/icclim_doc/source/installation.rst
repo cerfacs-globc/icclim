@@ -12,7 +12,7 @@ To use the ICCLIM you first need to install the following python libraries:
     - `ESMPy <https://www.earthsystemcog.org/projects/esmpy/>`_ if you want to use :ref:`regridding module <icclim_regrid>`
     
 Installation (Linux, OS X)
---------------------
+--------------------------
 .. note:: Make sure that **Python 2.7** and **GCC** are installed.
 
 1. Go to `<https://github.com/cerfacs-globc/icclim/releases/>`_.

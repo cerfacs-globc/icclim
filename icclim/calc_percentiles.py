@@ -9,8 +9,8 @@ from datetime import datetime
 from collections import OrderedDict, defaultdict
 import pdb
 import calendar
-from .util import calc as calc
-from .util import util_dt as util_dt
+from util import calc as calc
+from util import util_dt as util_dt
 import netcdftime
 
 import ctypes

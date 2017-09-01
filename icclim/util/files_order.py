@@ -4,7 +4,7 @@
 #  Author: Natalia Tatarinova
 
 from collections import OrderedDict
-from . import util_dt
+from util import util_dt
 
 
 def get_dict_file_years_glob(files_list):

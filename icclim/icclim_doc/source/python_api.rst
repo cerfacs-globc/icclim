@@ -194,8 +194,8 @@ The `calc_percentiles.py <https://github.com/cerfacs-globc/icclim/blob/master/ic
 
 The ``window width`` is used for getting samples for percentiles computing and is set to 5: percentiles-based indices use 5-day window.
 The window is centred on a certain calendar day, for example:
-    - **April 13th**, we take the values for *April 11th*, *April 12th*, *April 13th*, *April 14th* and *April 15th* of each year of the base period.
-    - **January 1st**, we take all days of *December 30th*, *December 31st*, *January 1st*, *January 2nd* and *January 3rd*.
+- **April 13th**, we take the values for *April 11th*, *April 12th*, *April 13th*, *April 14th* and *April 15th* of each year of the base period.
+- **January 1st**, we take all days of *December 30th*, *December 31st*, *January 1st*, *January 2nd* and *January 3rd*.
 
 Hence, for a base period of 30 years and 5-day window width for each calendar day (except February 29th), there are 150 values ( 30 * 5 )
 to compute its percentile value.

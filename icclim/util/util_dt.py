@@ -12,7 +12,7 @@ from netCDF4 import Dataset, MFDataset
 import numpy
 import sys
 
-from ..icclim_exceptions import *
+from icclim_exceptions import *
 
 # unused function
 def get_list_dates_from_nc(nc, type_dates):

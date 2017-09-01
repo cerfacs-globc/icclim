@@ -17,25 +17,25 @@ import logging
 import pdb   #### TODO: Do we actually need this? -- Or can it be commented out
 import pkg_resources
 
-from . import set_globattr
-from . import set_longname_units
-from . import set_longname_units_custom_indices
-from . import calc_percentiles
+import set_globattr
+import set_longname_units
+import set_longname_units_custom_indices
+import calc_percentiles
 
 #import util.callback as callback
-from .util import util_dt as util_dt
-from .util import util_nc as util_nc
-from .util import arr_size as arr_size
-from .util import OCGIS_tile as OCGIS_tile
-from .util import files_order as files_order
-from . import time_subset
+from util import util_dt as util_dt
+from util import util_nc as util_nc
+from util import arr_size as arr_size
+from util import OCGIS_tile as OCGIS_tile
+from util import files_order as files_order
+import time_subset
 import time
-from . import maps
-from . import calc_ind
-from .util import calc as calc
+import maps
+import calc_ind
+from util import calc as calc
 
-from .util import user_indice as ui
-from . import icclim_exceptions
+from util import user_indice as ui
+import icclim_exceptions
 
 
 def icclim_output_file_defaults(arg):
