@@ -4,7 +4,10 @@
 #  Author: Natalia Tatarinova
 
 from collections import OrderedDict
-from util import util_dt
+try:
+    from util import util_dt
+except ImportError:
+    import util_dt
 
 
 def get_dict_file_years_glob(files_list):

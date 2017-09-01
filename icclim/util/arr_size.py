@@ -5,7 +5,10 @@
 
 from netCDF4 import MFDataset
 import numpy
-from util.util_dt import *
+try:
+    from util import util_dt
+except ImportError:
+    import util_dt
 
 def get_tile_dimension(in_files, var_name, transfer_limit_Mbytes=None, time_range=None):
     '''

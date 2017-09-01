@@ -3,7 +3,10 @@
 #
 #  Author: Natalia Tatarinova
 
-from util import calc
+try:
+    from util import calc
+except ImportError:
+    import calc
 import pdb
 
 # map with required parameters (for user defined indices)  

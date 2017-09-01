@@ -6,7 +6,10 @@
 
 import numpy
 import pdb
-from util import util_dt
+try:
+    from util import util_dt
+except ImportError:
+    import util_dt
 from datetime import timedelta
 from netCDF4 import Dataset
 
