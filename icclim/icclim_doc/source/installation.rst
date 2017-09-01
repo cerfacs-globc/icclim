@@ -13,7 +13,7 @@ To use the ICCLIM you first need to install the following python libraries:
     
 Installation (Linux, OS X)
 --------------------------
-.. note:: Make sure that **Python 2.7** and **GCC** are installed.
+.. note:: Make sure that **Python 2.7+ or 3.3+** and **GCC** are installed. 
 
 1. Go to `<https://github.com/cerfacs-globc/icclim/releases/>`_.
 2. Download the last release: click to **Source code (zip)** or **Source code (tar.gz)**.
@@ -46,7 +46,7 @@ To get the version of installed library, do the following:
 .. code-block:: sh
 
     >>> icclim.__version__
-    4.2.5
+    4.3.0
 
 
 .. note:: ICCLIM was not tested on Windows platform...
