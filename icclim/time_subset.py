@@ -28,9 +28,9 @@ import numpy
 import pdb
 from datetime import datetime, timedelta
 from collections import OrderedDict
-from icclim_exceptions import *
+from . import icclim_exceptions
 
-import util.util_dt as util_dt
+from .util import util_dt as util_dt
 
 ## This function creates a dictionary with centroid day and centroid month for each type of temporal aggregation
 ## except for slice_mode=None

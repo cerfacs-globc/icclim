@@ -6,7 +6,7 @@
 
 import numpy
 import pdb
-import util_dt
+from . import util_dt
 from datetime import timedelta
 from netCDF4 import Dataset
 
@@ -214,22 +214,22 @@ def copy_var_dim(inc, onc, var, lev_dim_pos=1):
     ### copy attributes        
     # time 
     for j in range(len(inc_dim0.ncattrs())): # set attributs of current variable       
-        onc_dim0.__setattr__(  inc_dim0.__dict__.items()[j][0]  , inc_dim0.__dict__.items()[j][1])          
+        onc_dim0.__setattr__(  list(inc_dim0.__dict__.items())[j][0]  , list(inc_dim0.__dict__.items())[j][1])          
     # lat
     for j in range(len(inc_dim1.ncattrs())): # set attributs of current variable       
-        onc_dim1.__setattr__(  inc_dim1.__dict__.items()[j][0]  , inc_dim1.__dict__.items()[j][1])  
+        onc_dim1.__setattr__(  list(inc_dim1.__dict__.items())[j][0]  , list(inc_dim1.__dict__.items())[j][1])  
     # lon
     for j in range(len(inc_dim2.ncattrs())): # set attributs of current variable       
-        onc_dim2.__setattr__(  inc_dim2.__dict__.items()[j][0]  , inc_dim2.__dict__.items()[j][1])
+        onc_dim2.__setattr__(  list(inc_dim2.__dict__.items())[j][0]  , list(inc_dim2.__dict__.items())[j][1])
 
     try:
         # lat_bnds
         for j in range(len(inc_dim1_bounds.ncattrs())): # set attributs of current variable       
-            onc_dim1_bounds.__setattr__(  inc_dim1_bounds.__dict__.items()[j][0]  , inc_dim1_bounds.__dict__.items()[j][1])
+            onc_dim1_bounds.__setattr__(  list(inc_dim1_bounds.__dict__.items())[j][0]  , list(inc_dim1_bounds.__dict__.items())[j][1])
     
         # lon_bnds
         for j in range(len(inc_dim2_bounds.ncattrs())): # set attributs of current variable       
-            onc_dim2_bounds.__setattr__(  inc_dim2_bounds.__dict__.items()[j][0]  , inc_dim2_bounds.__dict__.items()[j][1])
+            onc_dim2_bounds.__setattr__(  list(inc_dim2_bounds.__dict__.items())[j][0]  , list(inc_dim2_bounds.__dict__.items())[j][1])
     except:
         pass        
 

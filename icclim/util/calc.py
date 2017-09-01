@@ -10,7 +10,7 @@
 import numpy
 import pdb
 
-import util_dt
+from .util_dt import *
 from collections import OrderedDict
 
 import ctypes

@@ -7,7 +7,7 @@
 
 import numpy
 
-import util.calc as calc
+from .util import calc as calc
 
 
 '''

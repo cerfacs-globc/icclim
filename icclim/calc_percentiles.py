@@ -3,17 +3,14 @@
 #
 #  Author: Natalia Tatarinova
 
-
-
-
 import numpy
 numpy.set_printoptions(threshold=numpy.nan)
 from datetime import datetime
 from collections import OrderedDict, defaultdict
 import pdb
 import calendar
-import util.calc as calc
-import util.util_dt as util_dt
+from .util import calc as calc
+from .util import util_dt as util_dt
 import netcdftime
 
 import ctypes
