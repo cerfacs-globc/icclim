@@ -8,64 +8,36 @@
 
 #pyximport.install(pyimport = True)
 
-import sys
+import numpy
+import logging
+import pdb
+import pkg_resources
+from netCDF4 import Dataset, MFDataset
+
 import os
 from collections import OrderedDict
 
-import numpy
-import logging
-import pdb   #### TODO: Do we actually need this? -- Or can it be commented out
-import pkg_resources
-
-import set_globattr
-import set_longname_units
-import set_longname_units_custom_indices
-import calc_percentiles
+from . import set_globattr
+from . import set_longname_units
+from . import set_longname_units_custom_indices
+from . import calc_percentiles
 
 #import util.callback as callback
-from util import util_dt as util_dt
-from util import util_nc as util_nc
-from util import arr_size as arr_size
-from util import OCGIS_tile as OCGIS_tile
-from util import files_order as files_order
-import time_subset
+from .util import util_dt as util_dt
+from .util import util_nc as util_nc
+from .util import arr_size as arr_size
+from .util import OCGIS_tile as OCGIS_tile
+from .util import files_order as files_order
+from . import time_subset
 import time
-import maps
-import calc_ind
-from util import calc as calc
+from . import maps
+from . import calc_ind
+from .util import calc as calc
 
-from util import user_indice as ui
-import icclim_exceptions
+from .util import user_indice as ui
+from . import icclim_exceptions
 
-
-def icclim_output_file_defaults(arg):
-    # first embryo towards collecting certain stuff at a central place
-
-    defaults = {'file_name'          : './icclim_out.nc',
-                'netcdf_version'     : 'NETCDF3_CLASSIC',
-                'variable_type_str'  : 'f4',
-                'variable_calender'  : 'gregorian'}
-
-    if defaults['variable_type_str'] in ['f', 'f4']:
-        # 1.e20 is used by CMIP, otherwise the netCDF4 library default is preferrable 
-        # as it can be recasted back and forth between float32 and float64
-        # defaults['_FillValue'] = netCDF4.default_fillvals['f4']
-        defaults['_FillValue'] = numpy.float32(1.e20)  
-        defaults['missing_value'] = defaults['_FillValue']
-        defaults['variable_type_name'] = 'float32' 
-    else:
-        # what goes here should be patterned from above, e.g.:
-        # if defaults['variable_type'] in ['d', 'f8']:
-        #     # defaults['_FillValue'] = netCDF4.default_fillvals['f8']
-        #     defaults['_FillValue'] = numpy.float64(1.e20)  
-        #     defaults['missing_value'] = defaults['_FillValue']
-        #     defaults['variable_type_name'] = 'float64' 
-        # else
-
-        raise NotImplementedError('Coding error in function icclim_output_file_defaults: '
-                                  + 'only "f" / "f4" / "float32" output is implemented')
-
-    return defaults[arg]
+import sys
 
 
 def get_key_by_value_from_dict(my_map, my_value):
@@ -81,7 +53,7 @@ def indice(in_files,
            indice_name=None,          
            slice_mode='year',
            time_range=None,
-           out_file=icclim_output_file_defaults('file_name'),   # was: "./icclim_out.nc",
+           out_file="./icclim_out.nc",
            threshold=None,
            N_lev=None,
            lev_dim_pos=1,
@@ -95,7 +67,7 @@ def indice(in_files,
            ignore_Feb29th=False,
            interpolation="hyndman_fan", 
            out_unit='days',
-           netcdf_version=icclim_output_file_defaults('netcdf_version'),  # was: 'NETCDF3_CLASSIC',
+           netcdf_version='NETCDF3_CLASSIC',
            user_indice=None
            ):
 
@@ -103,7 +75,7 @@ def indice(in_files,
     '''
 
     
-    :param indice_name: Climate index name. 
+    :param indice_name: Climate indice name. 
     :type indice_name: str    
     
     :param in_files: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
@@ -112,7 +84,7 @@ def indice(in_files,
     :param var_name: Target variable name to process corresponding to ``in_files``.
     :type var_name: str OR list of str
          
-    :param slice_mode: Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the index will be calculated as monthly values.
+    :param slice_mode: Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the indice will be calculated as monthly values.
     :type slice_mode: str
     
     :param time_range: Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
@@ -160,15 +132,12 @@ def indice(in_files,
     :param out_unit: Output unit for certain indices: "days" or "%" (default: "days").
     :type out_unit: str
     
-    :param user_indice: A dictionary with parameters for user defined index
+    :param user_indice: A dictionary with parameters for user defined indice
     :type user_indice: dict
-    
-    :param netcdf_version: NetCDF version to create (default: "NETCDF3_CLASSIC").
-    :type netcdf_version: str
     
     :rtype: path to NetCDF file
 
-    .. warning:: If ``out_file`` already exists, icclim will overwrite it!
+    .. warning:: If ``out_file`` already exists, Icclim will overwrite it!
 
     '''
 
@@ -192,29 +161,29 @@ def indice(in_files,
     time_start = time.clock()
 
     #######################################################
-    ########## User index check params
-    if indice_name is None:
-        if user_indice is None:
+    ########## User indice check params
+    if indice_name==None:
+        if user_indice==None:
             raise IOError(" 'user_indice' is required as a dictionary with user defined parameters.")
         else:
             ui.check_params(user_indice, time_range=time_range, vars=var_name)
                 
             if user_indice['calc_operation']=='anomaly':
                 slice_mode=None
-                if base_period_time_range is None:
+                if base_period_time_range==None:
                     raise IOError('Time range of base period is required for anomaly-based user indices! Please, set the "base_period_time_range" parameter.')
             
             user_indice = ui.get_user_indice_params(user_indice, var_name, out_unit)
             indice_type = user_indice['type']
                             
-    ########## User index check end
+    ########## User indice check end
     #######################################################            
 
     else:
         indice_type = get_key_by_value_from_dict(maps.map_indice_type, indice_name) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
 
     
-    if (indice_type in ['percentile_based', 'percentile_based_multivariable'] or indice_type.startswith('user_indice_percentile_')) and base_period_time_range is None:
+    if (indice_type in ['percentile_based', 'percentile_based_multivariable'] or indice_type.startswith('user_indice_percentile_')) and base_period_time_range==None:
         raise IOError('Time range of base period is required for percentile-based indices! Please, set the "base_period_time_range" parameter.')
 
     
@@ -228,9 +197,8 @@ def indice(in_files,
         if type(in_files) is not list:
             raise IOError('"In_files" must be a list')
         else:
-            #assert (len(in_files) == len(var_name)) ## ==> assert is not a proper error handling mechanism
-            if len(in_files) != len(var_name):
-                raise MissingIcclimInputError('Number of input file lists must match number of input variables')
+            assert (len(in_files) == len(var_name)) 
+     
     
     
     #####    VARS_in_files: dictionary where to each target variable (key of the dictionary) correspond input files list
@@ -257,17 +225,16 @@ def indice(in_files,
     #####    we prepare output file
     netcdfv = ['NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT']
     if netcdf_version not in netcdfv:
-        netcdf_version = icclim_output_file_defaults('netcdf_version')
+        netcdf_version = 'NETCDF3_CLASSIC'
     onc = Dataset(out_file, 'w' ,format=netcdf_version)
-    
-    #####    we define type of result index
-    ind_type = icclim_output_file_defaults('variable_type_str')
+
+    #####    we define type of result indice
+    ind_type = 'f' # 'float32'
     
     
     ########################################
     ################# META DATA: begin
     ########################################
-    
     any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
 
     try:
@@ -278,87 +245,7 @@ def indice(in_files,
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0], lev_dim_pos=lev_dim_pos) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
     ncVar = inc.variables[var_name[0]] 
-
-#   Below is a slightly involved code for handling various ways of expressing misssing data.
-#   Not at all pythonic, but we need to check typing of input data and output data
-#   as checking for missing values involves exact (bit level) comparison of floating point numbers
-#   that may (in the worst case) be of different types.
-#
-#   The netCDF4 default _FillValue for float32 and float64 can be recast back and forth between
-#   the two types (which is nice), but numpy.float32(1.e20) (prescibed by CMIP(5)) is not exactly
-#   the same number as numpy.float64(1.e20):
-#   float32(1.e20) = 100000002004087734272 (exactly)
-#   float64(1.e20) = 100000000000000000000 (exactly)
-
-#   Currently icclim cannot deal with valid_min, valid_max, and valid_range, 
-#   as they imply the possibility of a range of missing/invalid values. 
-    try: 
-        tmp = ncVar.valid_min
-        in_valid = True
-    except AttributeError:
-        try:
-            tmp = ncVar.valid_max
-            in_valid = True
-        except AttributeError:
-            try:
-                tmp = ncVar.valid_range
-                in_valid = True
-            except AttributeError:
-                in_valid = False
-    if in_valid:
-        logging.warning('   ********************************************************************************************')
-        logging.warning('   *                                                                                          *')
-        logging.warning('   *          CANNOT HANDLE variable attributes "valid_min", "valid_max", and "valid_range"   *') 
-        logging.warning('   *                        values beyond these limits will be included in the computations   *')
-        logging.warning('   *                        If present "missing_value" and/or "_FillValue" will be honoured   *')
-        logging.warning('   *                                                                                          *')
-        logging.warning('   ********************************************************************************************')
-
-    #   1) Check if _FillValue and/or missing_value exist in the input file
-    try:
-        in_fillval = ncVar._FillValue
-    except AttributeError:
-        in_fillval = None
-    try:
-        in_missval = ncVar.missing_value
-    except AttributeError: 
-        in_missval = None
-
-    if in_fillval is None and in_missval is None:
-        #   2) If neither exist then assume that the default value is not used as a valid number in the input file(s)
-        #      However, given the value this seems very (VERY!) unlikely
-        fill_val = icclim_output_file_defaults('missing_value')
-    else:
-	#   3) _FillValue or missing_value is present in the input file ...
-        if ncVar.dtype.name != icclim_output_file_defaults('missing_value').dtype.name:
-            #   4) ... and input data type is not the same as the output data type
-            #      This works out only if it is the netCDF4 default _FillValue, or we have a problem
-            if in_fillval == netCDF4.default_fillvals[ncVar.dtype.str[1:]]:
-                fill_val = in_fillval
-            else:
-                if in_missval == netCDF4.default_fillvals[ncVar.dtype.str[1:]]:
-                    fill_val = in_missval
-                else:
-                    # Only error out here when really necessary...
-                    # Above code is really to trying to avoid coming here
-                    raise NotImplementedError('Input variable type <' 
-                                              + ncVar.dtype.name 
-                                              + '> not the same as output data type <' 
-                                              + icclim_output_file_defaults('missing_value').dtype.name 
-                                              + '>\\nThis is only possible if the input files are without missing values and _FillValue'
-                                              + '\\nor the they (either one, or both) are exatly equal the netCDF4 default _FillValue')
-        else:
-            #   5) ... and the input data type is the same as the output data type
-            #      so use the value fro mthe input file (missing_value thakes precedence over _FillValue)
-            if in_missval is None:
-                fill_val = in_fillval
-            else:
-                fill_val = in_missval
-    #   6) That's it ....
-    #      Old code below (1 line) does not account for the situation when _FillValue is not defined in the input file
-
-    # fill_val = ncVar._FillValue.astype('float32') # fill_value must be the same type as "ind_type", i.e. 'float32'
-
+    fill_val = ncVar._FillValue.astype('float32') # fill_value must be the same type as "ind_type", i.e. 'float32'
     dimensions_list_var = ncVar.dimensions
     if lev_dim_pos == 0:
         index_time = 1
@@ -369,8 +256,8 @@ def indice(in_files,
     ############## in case of user defined thresholds 
     global nb_user_thresholds, user_thresholds    
     
-    # As default, no threshold is defined, no threshold dimension is created and added to the index var
-    # Also the case if we are not calculating an index
+    # As default, no threshold is defined, no threshold dimension is created and added to the indice var
+    # Also the case if we are not calculating an indice
     if threshold == None: 
         nb_user_thresholds = 0        
     
@@ -384,7 +271,7 @@ def indice(in_files,
         nb_user_thresholds = len(user_thresholds)
         
         if nb_user_thresholds > 1:        
-            # Create an extra dimension for the index:
+            # Create an extra dimension for the indice:
             indice_dim.insert(1,'threshold')
             onc.createDimension('threshold',nb_user_thresholds)
             thresholdvar = onc.createVariable('threshold','f8',('threshold'))
@@ -400,7 +287,7 @@ def indice(in_files,
     else:
         ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
 
-    #####    we copy attributes from variable to process to index variable, except scale_factor and _FillValue
+    #####    we copy attributes from variable to process to indice variable, except scale_factor and _FillValue
     util_nc.copy_var_attrs(ncVar, ind)
     
     ### we create new variable(s) to save date of event
@@ -427,7 +314,7 @@ def indice(in_files,
                                         time_range=time_range, temporal_var_name=indice_dim[0])
 
     if base_period_time_range is not None:
-        base_period_time_range = util_dt.harmonize_hourly_timestamp(base_period_time_range, time_range[0])
+        base_period_time_range = util_dt.harmonize_hourly_timestamp(base_period_time_range, time_range[0], ncVar_time.calendar, ncVar_time.units)
 
     
     if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
@@ -447,7 +334,7 @@ def indice(in_files,
     
 
     ########################################################################################################################
-    ###### Computing index: begin
+    ###### Computing indice: begin
     ########################################################################################################################
     
     
@@ -482,8 +369,7 @@ def indice(in_files,
         dict_files_years_to_process = files_order.get_dict_files_years_to_process_in_correct_order(files_list=VARS_in_files[v], time_range=time_range)  
         
         VARS[v]['files_years'] = dict_files_years_to_process 
-
-        # TODO: Currently the priority in this logic:   X or Y or (Z and W)   Is this correct ?
+        
         if indice_type in ["percentile_based", "percentile_based_multivariable"] or indice_type.startswith('user_indice_percentile_') or (indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly'):
             dict_files_years_to_process_base = files_order.get_dict_files_years_to_process_in_correct_order(files_list=VARS_in_files[v], time_range=base_period_time_range)
             VARS[v]['files_years_base'] = dict_files_years_to_process_base
@@ -498,6 +384,7 @@ def indice(in_files,
 
     tile_dimension = min(vars_tile_dimension)
 
+ 
     global nb_chunks
     
     # chunk tiles    
@@ -525,10 +412,8 @@ def indice(in_files,
                 ncVar = inc.variables[v]    
                 dimensions_list_current_var = ncVar.dimensions
             
-                # Old code (1 line below) does not take into accound that _FillValue may not exist
-                # Instead we assume that the fill_value remains as assigned earlier
-                # If we cannot assume this, then a proper check of the data/variable consistency across files should be done
-                # fill_val = ncVar._FillValue.astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
+ 
+                fill_val = ncVar._FillValue.astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
                 VARS[v]['fill_value']=fill_val
 
                 ncVar_time = inc.variables[dimensions_list_current_var[index_time]]
@@ -543,6 +428,9 @@ def indice(in_files,
                 VARS[v]['time_calendar']=calend
                 VARS[v]['time_units']=units
 
+                
+               
+               
                 var_units = getattr(inc.variables[v],'units')
 
                 # Units conversion
@@ -571,7 +459,6 @@ def indice(in_files,
             i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
             i2_col_current_tile = tile_map.get(tile_id).get('col')[1]  
                         
-
             arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
                                                                      fill_val=VARS[v]['fill_value'], 
                                                                      time_range=time_range, 
@@ -723,7 +610,7 @@ def indice(in_files,
     
 
     ########################################################################################################################
-    ###### Computing index: end
+    ###### Computing indice: end
     ########################################################################################################################
     
     
@@ -734,7 +621,7 @@ def indice(in_files,
     ################### Writing result to out netCDF file
     ###########################################################################################        
     
-    ######## we write array with result to "ind" (netCDF variable containing index)   
+    ######## we write array with result to "ind" (netCDF variable containing indice)   
     if  nb_user_thresholds == 0:
         ind[:,:,:] = indice_arr
         
@@ -763,7 +650,7 @@ def indice(in_files,
         
         # title
         if threshold != None:
-            onc.setncattr('title', 'Index {0} with user defined threshold'.format(indice_name))
+            onc.setncattr('title', 'Indice {0} with user defined threshold'.format(indice_name))
         else:
             set_globattr.title(onc, indice_name)
             
@@ -778,16 +665,10 @@ def indice(in_files,
 
         if threshold == None:
             eval('set_longname_units.' + indice_name + '_setvarattr(ind)')
-            #### ==> N.B. "ECA_index" is not a valid standard name
-            #### ==> IF a standard name really is required, 
-            #### ==> THEN uncomment the line below and insert a name (typed as string)
-            # ind.setncattr('standard_name', 'ECA_index')  
+            ind.setncattr('standard_name', 'ECA_indice')         
         else:
             eval('set_longname_units_custom_indices.' + indice_name + '_setvarattr(ind, threshold)')
-            #### ==> N.B. "ECA_index with user defined threshold" is not a valid standard name
-            #### ==> IF a standard name really is required, 
-            #### ==> THEN uncomment the line below and insert a name (typed as string)
-            # ind.setncattr('standard_name', 'ECA_index with user defined threshold')
+            ind.setncattr('standard_name', 'ECA_indice with user defined threshold')
             
             if nb_user_thresholds > 1:
                 eval('set_longname_units_custom_indices.' + indice_name + '_setthresholdattr(thresholdvar)')
@@ -894,7 +775,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         dt_centroid_ = vars_dict[list(vars_dict.keys())[0]]['temporal_slices'][slice][0]
         dt_bounds_ = vars_dict[list(vars_dict.keys())[0]]['temporal_slices'][slice][1]
         
-        ###### we compute index for the current slice
+        ###### we compute indice for the current slice
         
         if indice_type == 'simple':  
 
@@ -1067,14 +948,14 @@ def get_indice_from_dict_temporal_slices(indice_name,
                 ### for each variable in the dictionary
                 for v in list(vars_dict.keys()):
                 
-                    if 'var_type' in vars_dict[v].keys(): # if percentile-based index, we will compute a pctl threshold
+                    if 'var_type' in vars_dict[v].keys(): # if percentile-based indice, we will compute a pctl threshold
                         
                         
                         ### we want to get the percentile value:
                         if indice_type == 'percentile_based':
                             pctl_value = maps.map_indice_percentile_value[indice_name][0] ### for standard indices, we take it from "maps.map_indice_percentile_value"
                         else:
-                            pctl_value = int ( (user_indice[v]['thresh'])[1:] )  ### for user index, we take it from "user_indice" dictionary
+                            pctl_value = int ( (user_indice[v]['thresh'])[1:] )  ### for user indice, we take it from "user_indice" dictionary
                     
                     
                     
@@ -1094,7 +975,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                                                                 interpolation=interpolation)
                                 
                                 
-                                # we keep percentiles_arr in dictionary for following calculation of index
+                                # we keep percentiles_arr in dictionary for following calculation of indice
                                 pctl_thresh[v]=pctl_arr
     
                             
@@ -1145,7 +1026,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                     
                     if indice_type in ['percentile_based', 'user_indice_percentile_based']: ### based on ONE variable
                         
-                        ### even if we loop on ytd, for in-base years we compute index only one time (i.e. when ytd_counter=0)
+                        ### even if we loop on ytd, for in-base years we compute indice only one time (i.e. when ytd_counter=0)
                         if indice_name in ['R75p', 'R75pTOT', 'R95p', 'R95pTOT', 'R99p', 'R99pTOT']: 
                             
                             if ytd_counter==0:                                
@@ -1350,7 +1231,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         ### for each slice we transform indice_slice from 2D to 3D (to concatenate in the following 3D arrays along axis=0)
         indice_slice = indice_slice.reshape(-1, indice_slice.shape[0], indice_slice.shape[1]) # 2D --> 3D
         
-        ### we concatenate results into indice_arr (the final result of computed index)
+        ### we concatenate results into indice_arr (the final result of computed indice)
         if slice_counter == 0:
             indice_arr = indice_slice
         else:                

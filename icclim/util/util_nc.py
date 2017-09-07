@@ -6,10 +6,7 @@
 
 import numpy
 import pdb
-try:
-    from util import util_dt
-except ImportError:
-    import util_dt
+from . import util_dt
 from datetime import timedelta
 from netCDF4 import Dataset
 
@@ -88,7 +85,7 @@ def copy_var(variableName,sourceDataset, destinationDataset):
     
     # Copy the dims of the variable
     for dimname in sourceVar.dimensions:
-        if destinationDataset.dimensions.has_key(dimname) == False:
+        if dimname not in destinationDataset.dimensions:
             dim = rootgrp.dimensions.get(dimname)
             destinationDataset.createDimension(dimname,len(dim))
     
@@ -270,7 +267,7 @@ def copy_var_dim(inc, onc, var, lev_dim_pos=1):
           onc_c = onc.createVariable( c, inc.variables[c].dtype )
           
           for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
-              onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
+              onc_c.__setattr__(  list(inc_c.__dict__.items())[j][0]  , list(inc_c.__dict__.items())[j][1])
     
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
 
@@ -284,7 +281,7 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_
     units=ncVar_temporal.units
     
     time_arr = ncVar_temporal[:]
-    
+
     dt_arr = numpy.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
 
     # REMOVED, because netcdftime.datetime objects have no method total_seconds()

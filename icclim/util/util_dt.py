@@ -12,10 +12,7 @@ from netCDF4 import Dataset, MFDataset
 import numpy
 import sys
 
-try:
-    from icclim import icclim_exceptions
-except ImportError:
-    import icclim_exceptions
+from ..icclim_exceptions import *
 
 # unused function
 def get_list_dates_from_nc(nc, type_dates):
@@ -187,7 +184,7 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
         calend = time.calendar
     except:
         calend = 'gregorian'
-        
+
     units = time.units
     
     t = netcdftime.utime(units, calend)
@@ -195,10 +192,10 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
     any_dt = t.num2date(time[0])
     nc.close()
     
-    
     if time_range != None:        
-        time_range = harmonize_hourly_timestamp(time_range, any_dt)
-    
+        
+        time_range = harmonize_hourly_timestamp(time_range, any_dt, calend, units)
+        print(time_range[1])
     else:
         try:
             nc = MFDataset(files, 'r', aggdim='time')
@@ -209,12 +206,12 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
 
         begin_num = min(time_arr)
         end_num = max(time_arr)
-        
+
         begin_dt = num2date(begin_num, calend, units)
         end_dt = num2date(end_num, calend, units)
         
         time_range = [begin_dt, end_dt]
-        
+
     return time_range
 
 
@@ -233,7 +230,7 @@ def get_year_list(dt_arr):
     return year_list
 
 
-def harmonize_hourly_timestamp(time_range, dt):
+def harmonize_hourly_timestamp(time_range, dt, calend, units):
     '''
     Adjust the ``time_range`` by setting hour value to datetime.datetime objects.
     
@@ -242,6 +239,12 @@ def harmonize_hourly_timestamp(time_range, dt):
     
     :param dt: any datetime step of input datetime vector
     :type dt: datetime.datetime object
+
+    :param calend: calendar attribute of variable "time" in netCDF file
+    :type calend: str
+
+    :param units: units of variable "time" in netCDF file
+    :type units: str
     
     :rtype: list of two datetime.datetime objects
     
@@ -257,9 +260,28 @@ def harmonize_hourly_timestamp(time_range, dt):
 #     time_range_begin = datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
 #     time_range_end = datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
 
-    time_range_begin = netcdftime.datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-    time_range_end = netcdftime.datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
-    
+    if calend == 'noleap' or calend == '365_day':
+        time_range_begin = netcdftime._netcdftime.DatetimeNoLeap(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = netcdftime._netcdftime.DatetimeNoLeap(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+    elif calend == '360_day':
+        time_range_begin = netcdftime._netcdftime.Datetime360Day(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = netcdftime._netcdftime.Datetime360Day(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+    elif calend == 'gregorian':
+        time_range_begin = netcdftime._netcdftime.DatetimeGregorian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = netcdftime._netcdftime.DatetimeGregorian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+    elif calend == 'proleptic_gregorian':
+        time_range_begin = netcdftime._netcdftime.DatetimeProlepticGregorian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = netcdftime._netcdftime.DatetimeProlepticGregorian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+    elif calend == 'julian':
+        time_range_begin = netcdftime._netcdftime.DatetimeJulian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = netcdftime._netcdftime.DatetimeJulian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+    elif calend == 'all_leap' or calend == '366_day':
+        time_range_begin = netcdftime._netcdftime.DatetimeAllLeap(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = netcdftime._netcdftime.DatetimeAllLeap(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+    else:
+        time_range_begin = netcdftime.datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = netcdftime.datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+
     return [time_range_begin, time_range_end]
 
 
@@ -276,7 +298,7 @@ def get_indices_subset(dt_arr, time_range):
 
     dt1 = time_range[0]
     dt2 = time_range[1]
-    
+
     if dt1 >= dt_arr[0] and dt2 <= dt_arr[-1]:
 
         mask_dt_arr = numpy.logical_or(dt_arr<dt1, dt_arr>dt2)
