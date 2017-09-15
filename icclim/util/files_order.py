@@ -5,7 +5,7 @@
 
 from collections import OrderedDict
 try:
-    from util import util_dt
+    from . import util_dt
 except ImportError:
     import util_dt
 

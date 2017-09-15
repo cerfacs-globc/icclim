@@ -1,115 +1,71 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
- 
-from setuptools import setup, find_packages, Command
+"""A setuptools based setup module.
+See:
+https://packaging.python.org/en/latest/distributing.html
+https://github.com/pypa/sampleproject
+"""
 
-# notez qu'on import la lib
-# donc assurez-vous que l'importe n'a pas d'effet de bord
-#import icclim
-import os
+from setuptools import setup, find_packages
+from codecs import open
+from os import path
 
-from icclim import __version__
+here = path.abspath(path.dirname(__file__))
 
-#class Install_C_sharedLib(Command):
-#    description = ""
-#    user_options = []
-#
-#    def initialize_options(self): pass
-#    
-#    def finalize_options(self): pass
-#    
-#    def run(self):
-#        os.system('gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o') # create libC.o
-#        os.system('gcc -shared -o ./icclim/libC.so ./icclim/libC.o') # create libC.so
-#        os.system('python setup.py install')
+# Get the long description from the README file
+with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+    long_description = f.read()
 
-
-
-# Ceci n'est qu'un appel de fonction. Mais il est treeeeeeeeeees long
-# et il comporte beaucoup de parametres
 setup(
  
-    # le nom de votre bibliotheque, tel qu'il apparaitre sur pypi
     name='icclim',
  
-    # la version du code
-    
-    version=__version__,
+    # Versions should comply with PEP440.  For a discussion on single-sourcing
+    # the version across setup.py and the project code, see
+    # https://packaging.python.org/en/latest/single_source_version.html
+    version="4.3.0",
  
-    # Liste les packages a inserer dans la distribution
-    # plutot que de le faire a la main, on utilise la foncton
-    # find_packages() de setuptools qui va cherche tous les packages
-    # python recursivement dans le dossier courant.
-    # C'est pour cette raison que l'on a tout mis dans un seul dossier:
-    # on peut ainsi utiliser cette fonction facilement
-    packages=find_packages(),
- 
-    # votre pti nom
+    description="Python library for climate indices calculation",
+    long_description=long_description,
+
+    # The project's main homepage.
+    url='https://github.com/cerfacs-globc/icclim',
+
+    # Author details
     author="Christian P.",
- 
-    # Votre email, sachant qu'il sera publique visible, avec tous les risques
-    # que ca implique.
     author_email="christian.page@cerfacs.fr",
  
-    # Une description courte
-    description="Python library for climate indices calculation",
+    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=[
+        # How mature is this project? Common values are
+        #   3 - Alpha
+        #   4 - Beta
+        #   5 - Production/Stable
+        'Development Status :: 4 - Beta',
+
+        # Indicate who your project is intended for
+        # 'Intended Audience :: Developers',
+        # 'Topic :: Software Development :: Build Tools',
  
-    # Une description longue, sera affichee pour presenter la lib
-    # Generalement on dump le README ici
-    long_description=open('README.md').read(),
+        # Specify the Python versions you support here. In particular, ensure
+        # that you indicate whether you support Python 2, Python 3 or both.
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+    ],
+
+
+    # What does your project relate to?
+    keywords='climate indices calculation',
  
-    # Vous pouvez rajouter une liste de dependances pour votre lib
-    # et meme preciser une version. A l'installation, Python essayera de
-    # les telecharger et les installer.
-    #
-    # Ex: ["gunicorn", "docutils >= 0.3", "lxml==0.5a7"]
-    #
-    # Dans notre cas on en a pas besoin, donc je le commente, mais je le
-    # laisse pour que vous sachiez que ca existe car c'est tres utile.
-    # install_requires= ,
+    # You can just specify the packages manually here if your project is
+    # simple. Or you can use find_packages().
+    packages=find_packages(),
  
-    # Active la prise en compte du fichier MANIFEST.in
-    include_package_data=True,
- 
-    # Une url qui pointe vers la page officielle de votre lib
-    url='https://github.com/cerfacs-globc/icclim',
- 
-    # Il est d'usage de mettre quelques metadata a propos de sa lib
-    # Pour que les robots puissent facilement la classer.
-    # La liste des marqueurs autorisees est longue, alors je vous
-    # l'ai mise sur 0bin: http://is.gd/AajTjj
-    #
-    # Il n'y a pas vraiment de regle pour le contenu. Chacun fait un peu
-    # comme il le sent. Il y en a qui ne mettent rien.
-    #classifiers=[
-    #    "Programming Language :: Python",
-    #    "Development Status :: 1 - Planning",
-    #    "License :: OSI Approved",
-    #    "Natural Language :: French",
-    #    "Operating System :: OS Independent",
-    #    "Programming Language :: Python :: 3",
-    #    "Topic :: Communications",
-    #],
- 
- 
-    # C'est un systeme de plugin, mais on s'en sert presque exclusivement
-    # Pour creer des commandes, comme "django-admin".
-    # Par exemple, si on veut creer la fabuleuse commande "proclame-sm", on
-    # va faire pointer ce nom vers la fonction proclamer(). La commande sera
-    # cree automatiquement. 
-    # La syntaxe est "nom-de-commande-a-creer = package.module:fonction".
-    #entry_points = {
-    #    'console_scripts': [
-    #        'proclame-sm = sm_lib.core:proclamer',
-    #    ],
-    #},
-    #
-    # A fournir uniquement si votre licence n'est pas listee dans "classifiers"
-    # ce qui est notre cas
-    #license="WTFPL",
- 
-    # Il y a encore une chiee de parametres possibles, mais avec ca vous
-    # couvrez 90% des besoins
- 
-    #cmdclass={'install_all':Install_C_sharedLib}
+    # List run-time dependencies here.  These will be installed by pip when
+    # your project is installed. For an analysis of "install_requires" vs pip's
+    # requirements files see:
+    # https://packaging.python.org/en/latest/requirements.html
+    install_requires=['netCDF4','numpy'],
+
+    python_requires='>=3.4',
 )

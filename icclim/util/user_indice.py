@@ -4,7 +4,7 @@
 #  Author: Natalia Tatarinova
 
 try:
-    from util import calc
+    from . import calc
 except ImportError:
     import calc
 import pdb

@@ -39,7 +39,6 @@ from . import icclim_exceptions
 
 import sys
 
-
 def get_key_by_value_from_dict(my_map, my_value):
     for key in my_map.keys():
         if my_value in my_map[key]:

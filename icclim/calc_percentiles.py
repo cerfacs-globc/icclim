@@ -10,11 +10,11 @@ from collections import OrderedDict, defaultdict
 import pdb
 import calendar
 try:
-    from util import calc
+    from .util import calc
 except ImportError:
     import util.calc
 try:
-    from util import util_dt
+    from .util import util_dt
 except ImportError:
     import util.util_dt
 import netcdftime

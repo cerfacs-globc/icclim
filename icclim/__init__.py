@@ -1,3 +1,7 @@
-import icclim
+try:
+    from icclim import icclim
+except ImportError:
+    from icclim import *
 
-__version__ = "4.3.0" # print icclim.__version__
+__version__="4.3.0"
+

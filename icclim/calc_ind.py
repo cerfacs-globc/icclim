@@ -1,4 +1,4 @@
-from calc_indice import *
+from .calc_indice import *
 
 import logging
 

@@ -6,7 +6,7 @@
 from netCDF4 import MFDataset
 import numpy
 try:
-    from util import util_dt
+    from . import util_dt
 except ImportError:
     import util_dt
 

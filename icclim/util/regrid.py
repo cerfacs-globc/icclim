@@ -10,7 +10,7 @@ import numpy
 import ESMF
 from netCDF4 import Dataset
 #from os.path import basename
-from util import util_nc 
+from .util import util_nc 
 
 #esmpy = ESMF.Manager(logkind=ESMF.LogKind.MULTI, debug=True)
 
