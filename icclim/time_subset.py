@@ -455,7 +455,7 @@ def get_resampled_arrs(dt_arr, values_arr, year_to_eliminate, year_to_duplicate)
         
         # we add slices to duplicate in the end
         dt_arr_result = numpy.append(dt_arr_subsetted, dt_arr_year_to_duplicate)    
-        values_arr_result = numpy.append(values_arr_subsetted, values_arr_year_to_duplicate, axis=0)
+        values_arr_result = numpy.ma.append(values_arr_subsetted, values_arr_year_to_duplicate, axis=0)
 
         
         return (dt_arr_result, values_arr_result)
