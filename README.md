@@ -9,3 +9,14 @@ Development is not funded at the moment, but code is still being actively develo
 It is lead by CERFACS, a research institution located in Toulouse, France.
 
 For documentation please visit: http://icclim.readthedocs.org
+
+Quick Install Instructions
+--------------------------
+
+gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o
+
+gcc -shared -o ./icclim/libC.so ./icclim/libC.o
+
+python setup.py install --user
+
+or as root: python setup.py install
