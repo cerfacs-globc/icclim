@@ -4,7 +4,7 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 #  Author: Natalia Tatarinova
-#  Additions from Christian Page (2015/2016)
+#  Additions from Christian Page (2015-2017)
 
 #pyximport.install(pyimport = True)
 
@@ -14,7 +14,6 @@ from collections import OrderedDict
 
 import numpy
 import logging
-import pdb   #### TODO: Do we actually need this? -- Or can it be commented out
 import pkg_resources
 
 from netCDF4 import Dataset, MFDataset
@@ -429,7 +428,7 @@ def indice(in_files,
                                         time_range=time_range, temporal_var_name=indice_dim[0])
 
     if base_period_time_range is not None:
-        base_period_time_range = util_dt.harmonize_hourly_timestamp(base_period_time_range, time_range[0])
+        base_period_time_range = util_dt.harmonize_hourly_timestamp(base_period_time_range, ncVar_time.calendar, time_range[0])
 
     
     if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
