@@ -39,7 +39,7 @@ def get_tile_dimension(in_files, var_name, transfer_limit_Mbytes=None, time_rang
 
         ndim = mfnc.variables[var_name].ndim
         if ndim != 3:
-            print "ERROR: The variable to process must be 3D"
+            print ("ERROR: The variable to process must be 3D")
             
         v = mfnc.variables[var_name]
         v_shape = v.shape
