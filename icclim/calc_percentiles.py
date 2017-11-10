@@ -78,7 +78,7 @@ def get_masked(current_date, month, day, hour, window_width, only_leap_years, t_
     current_date_num = util_dt.date2num(dt=current_date, calend=t_calendar, units=t_units)
 
 
-    if (day==29 and month==02):
+    if (day==29 and month==2):
         if calendar.isleap(yyyy):
             dt1 = netcdftime.datetime(yyyy,month,day,hour)
 
@@ -93,7 +93,7 @@ def get_masked(current_date, month, day, hour, window_width, only_leap_years, t_
             if only_leap_years:
                 toReturn=True
             else:
-                dt1 = netcdftime.datetime(yyyy,02,28,hour)
+                dt1 = netcdftime.datetime(yyyy,2,28,hour)
                 #diff = (current_date-dt1).days
 
                 dt1_num = util_dt.date2num(dt=dt1, calend=t_calendar, units=t_units)
@@ -132,7 +132,7 @@ def get_masked(current_date, month, day, hour, window_width, only_leap_years, t_
         diff=min(abs(current_date_num-d1_num),abs(current_date_num-d2_num),abs(current_date_num-d3_num))
 
 #         if ignore_Feb29th==True and calendar.isleap(yyyy) and (   abs((current_date-datetime(yyyy,02,29,hour)).days) < window_width/2 ):
-        if ignore_Feb29th==True and calendar.isleap(yyyy) and (abs(   current_date_num-util_dt.date2num(dt=netcdftime.datetime(yyyy,02,29,hour), calend=t_calendar, units=t_units)  ) < window_width/2 ):
+        if ignore_Feb29th==True and calendar.isleap(yyyy) and (abs(   current_date_num-util_dt.date2num(dt=netcdftime.datetime(yyyy,2,29,hour), calend=t_calendar, units=t_units)  ) < window_width/2 ):
             diff =  diff -1
 
 
