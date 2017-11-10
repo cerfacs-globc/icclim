@@ -3,7 +3,7 @@ Installation
 
 
 Dependencies
--------------------------
+------------
 To use the ICCLIM you first need to install the following python libraries:
     - `NumPy <http://www.numpy.org/>`_
     - `netCDF4 (make sure you have at least version 1.2.9+) <http://unidata.github.io/netcdf4-python/>`_
@@ -12,7 +12,7 @@ To use the ICCLIM you first need to install the following python libraries:
     - `ESMPy <https://www.earthsystemcog.org/projects/esmpy/>`_ if you want to use :ref:`regridding module <icclim_regrid>`
     
 Installation (Linux, OS X)
---------------------
+--------------------------
 .. note:: Make sure that **Python 2.7** and **GCC** are installed.
 
 1. Go to `<https://github.com/cerfacs-globc/icclim/releases/>`_.
