@@ -81,21 +81,23 @@ def copy_var(variableName,sourceDataset, destinationDataset):
 
     '''
     # Get the variable to copy
-    sourceVar = sourceDataset.variables[variableName];
+    try:
+      sourceVar = sourceDataset.variables[variableName];
     
-    # Copy the dims of the variable
-    for dimname in sourceVar.dimensions:
-        if destinationDataset.dimensions.has_key(dimname) == False:
-            dim = rootgrp.dimensions.get(dimname)
-            destinationDataset.createDimension(dimname,len(dim))
+      # Copy the dims of the variable
+      for dimname in sourceVar.dimensions:
+          if destinationDataset.dimensions.has_key(dimname) == False:
+              dim = rootgrp.dimensions.get(dimname)
+              destinationDataset.createDimension(dimname,len(dim))
+              
+      # Create the variable
+      destinationVariable = destinationDataset.createVariable(variableName,sourceVar.dtype, sourceVar.dimensions)
     
-    # Create the variable
-    destinationVariable = destinationDataset.createVariable(variableName,sourceVar.dtype, sourceVar.dimensions)
-    
-    #Copy its attributes
-    copy_var_attrs(sourceVar,destinationVariable);
-    destinationVariable[:] = sourceVar[:]
-    
+      #Copy its attributes
+      copy_var_attrs(sourceVar,destinationVariable);
+      destinationVariable[:] = sourceVar[:]
+    except KeyError:
+      sourceVar = None
     
 def get_att_value(nc, var, att):
     '''
@@ -258,7 +260,7 @@ def copy_var_dim(inc, onc, var, lev_dim_pos=1):
       coordinateAttr = v.getncattr("coordinates").split()
       for coordinate in coordinateAttr:
         #print "Copying coordidinate"+coordinate
-        copy_var(coordinate,inc,onc)
+          copy_var(coordinate,inc,onc)
     # maartenplieger comments: Is this necessary? Should copy all grid_mapping of the var to write and it will be fine.
     if check_att(v, 'grid_mapping')==1:
           c = str(v.__getattribute__('grid_mapping'))
