@@ -12,8 +12,8 @@ from datetime import datetime
 from collections import OrderedDict, defaultdict
 import pdb
 import calendar
-import util.calc as calc
-import util.util_dt as util_dt
+from .util import calc
+from .util import util_dt
 import netcdftime
 
 import ctypes
@@ -442,9 +442,13 @@ def get_percentile_arr(arr, percentile, callback=None, callback_percentage_start
     #############################
 
     arr_percentile = numpy.zeros([arr.shape[1], arr.shape[2]]) # we reserve memory
-    
+
+    # Need a string buffer for Python 3 compatibility.
+    b_interpolation = interpolation.encode('utf-8')
+    b_interpolation = ctypes.create_string_buffer(b_interpolation)
+
     # we compute the percentiles
-    C_percentile(arr_filled, arr_filled.shape[0], arr_filled.shape[1], arr_filled.shape[2], arr_percentile, percentile, fill_val, interpolation)
+    C_percentile(arr_filled, arr_filled.shape[0], arr_filled.shape[1], arr_filled.shape[2], arr_percentile, percentile, fill_val, b_interpolation)
 
     arr_percentile = arr_percentile.reshape(arr.shape[1], arr.shape[2])
     arr_percentile_masked = numpy.ma.masked_array(arr_percentile, in_mask)
