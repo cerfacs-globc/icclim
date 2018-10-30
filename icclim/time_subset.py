@@ -292,6 +292,8 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
         for y in years:                         
     
             indices_dt_arr_non_masked_year = get_indices_temp_aggregation(dt_arr, month=map_info_slice[str(temporal_subset_mode)]['months'], year=y, f=1)
+            if indices_dt_arr_non_masked_year.size==0:
+                continue
             dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_year]
 
             arr_subset_i = values_arr[indices_dt_arr_non_masked_year, :, :]
