@@ -3,7 +3,7 @@
 #
 #  Author: Natalia Tatarinova
 
-
+#from cftime import num2date, date2num
 import netcdftime
 import pdb
 import os
@@ -46,7 +46,13 @@ def get_list_dates_from_nc(nc, type_dates):
     
     return list_dt
 
+def check_calend(t_calend):
 
+    if t_calend=='360_day':
+        len_ytd = 360
+    else:
+        len_ytd = 365
+    return len_ytd
 
 def get_list_dates(ifile, type_dates):
     
@@ -73,16 +79,21 @@ def get_list_dates(ifile, type_dates):
     except:
         time_calend = 'gregorian'
     
-    
     if type_dates == 'num':
         arr_dt = var_time[:]
         list_dt = arr_dt.tolist() # numpy array -> list
-        
+        del arr_dt
     if type_dates == 'dt':
-        t = netcdftime.utime(time_units, time_calend) 
-        arr_dt = t.num2date(var_time[:]) 
-        list_dt = arr_dt.tolist() # numpy array -> list
-    del arr_dt
+        try:
+            arr_dt = netcdftime.num2date(var_time[:], units = time_units, calendar = time_calend)
+            list_dt = arr_dt.tolist()
+            del arr_dt
+        except:
+            t = netcdftime.utime(time_units, time_calend)
+            list_dt = [netcdftime.num2date(var_time_i, units = time_units, calendar = time_calend) for var_time_i in var_time]
+            #list_dt = arr_dt.tolist() # numpy array -> list 
+
+    
     
     nc.close()
     
@@ -220,6 +231,7 @@ def get_year_list(dt_arr):
     '''
 
     year_list = []
+
     for dt in dt_arr:
         year_list.append(dt.year)
         
@@ -276,7 +288,7 @@ def harmonize_hourly_timestamp(time_range, calend, dt):
     else:
         time_range_begin = netcdftime.datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
         time_range_end = netcdftime.datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
-    
+
     return [time_range_begin, time_range_end]
 
 
@@ -297,9 +309,8 @@ def get_indices_subset(dt_arr, time_range):
     if dt1 >= dt_arr[0] and dt2 <= dt_arr[-1]:
 
         mask_dt_arr = numpy.logical_or(dt_arr<dt1, dt_arr>dt2)
-        
         indices_non_masked = numpy.where(mask_dt_arr==False)[0]
-       
+
         return indices_non_masked
         
     else: 
