@@ -1,12 +1,11 @@
 # -*- coding: latin-1 -*-
-
 #  Copyright CERFACS (http://cerfacs.fr/)
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
 #  Author: Natalia Tatarinova
 
 import numpy
-
+import pdb
 from .util import calc
 
 
@@ -113,9 +112,11 @@ def TN_calculation(arr, fill_val=None):
          
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    
-    TN = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)     
-    
+
+    TN = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)
+    # From Kelvin to Celsius
+    if numpy.mean(TN>100):
+        TN -= 273.15
     return TN
 
 
@@ -134,9 +135,10 @@ def TX_calculation(arr, fill_val=None):
          
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    
-    TX = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)     
-    
+    TX = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)
+    # From Kelvin to Celsius
+    if numpy.mean(TX>100):     
+        TX -= 273.15
     return TX
 
 
@@ -254,7 +256,7 @@ def DTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
     DTR = range_.mean(axis=0)                                       # masked array with new fill_value
     numpy.ma.set_fill_value(DTR, arr1_masked.fill_value)            # we set a fill_value = fill_value of arr1_masked (or arr2_masked) 
     
-    if not isinstance(arr1, numpy.ma.MaskedArray) :     # or if not isinstance(arr2, numpy.ma.MaskedArray) [because the both input arrays are the same type]
+    if not isinstance(arr1, numpy.ma.MaskedArray) :     #ï¿½or if not isinstance(arr2, numpy.ma.MaskedArray) [because the both input arrays are the same type]
         DTR = DTR.filled(fill_value=arr1_masked.fill_value)      
     
     return DTR    
@@ -527,10 +529,9 @@ def HD17_calculation(arr, fill_val=None, threshold=17):
     
     if not isinstance(arr, numpy.ma.MaskedArray):
         HD17 = HD17.filled(fill_value=arr_masked.fill_value) 
-    
+
     return HD17
-
-
+    
 def GD4_calculation(arr, fill_val=None, threshold=4):
     '''
     Calculates the GD4 indice: growing degree days (sum of daily mean temperature > 4 degrees Celsius).
