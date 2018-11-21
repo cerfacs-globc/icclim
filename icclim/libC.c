@@ -4,15 +4,11 @@
 //  Author: Natalia Tatarinova
 
 /* To compile:
-
 gcc -fPIC -g -c -Wall libC.c
 gcc -shared -o libC.so libC.o
-
 OR
-
 gcc -fPIC -g -c -Wall -std=c99 libC.c
 gcc -shared -o libC.so -std=c99 libC.o
-
 */
 
 
@@ -422,7 +418,6 @@ float WSDI_CSDI_1d(const float *indata,int i, int j, int N)
 /*
 sum_glob = 0
 sum_portion = 0
-
 for i in range(len(a)):
     
     a = numpy.append(a, 0)
@@ -795,5 +790,4 @@ int main()
     return 0;
 
 }    
-
 

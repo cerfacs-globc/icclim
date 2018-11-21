@@ -28,9 +28,15 @@ import numpy
 import pdb
 from datetime import datetime, timedelta
 from collections import OrderedDict
-from icclim_exceptions import *
+import sys
 
-import util.util_dt as util_dt
+if sys.version_info[0] < 3:
+    from icclim_exceptions import *
+    import util.util_dt as util_dt
+
+else:
+    from icclim.icclim_exceptions import *
+    from icclim.util import util_dt
 
 ## This function creates a dictionary with centroid day and centroid month for each type of temporal aggregation
 ## except for slice_mode=None
@@ -94,7 +100,8 @@ def get_map_info_slice(slice_mode):
             centroid_month=None
     
         else:
-            centroid_month=months[len(months)/2] 
+            #Necessary to add 'int' since python 3 returns round number. e.g 3/2=1.5 in python 3 while 3/2=1 in python 2
+            centroid_month=months[int(len(months)/2)] 
     except:
         pass     
     
@@ -292,11 +299,13 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
         for y in years:                         
     
             indices_dt_arr_non_masked_year = get_indices_temp_aggregation(dt_arr, month=map_info_slice[str(temporal_subset_mode)]['months'], year=y, f=1)
+            if indices_dt_arr_non_masked_year.size==0:
+                continue
             dt_arr_subset_i = dt_arr[indices_dt_arr_non_masked_year]
 
             arr_subset_i = values_arr[indices_dt_arr_non_masked_year, :, :]
             
-            dt_centroid = datetime(  y, map_info_slice[str(temporal_subset_mode)]['centroid_month'], map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
+            dt_centroid = datetime(y, map_info_slice[str(temporal_subset_mode)]['centroid_month'], map_info_slice[str(temporal_subset_mode)]['centroid_day']  )
             dtt_num_i = util_dt.date2num(dt_arr_subset_i[-1], calend, tunits) + seconds_per_day
             dtt_i = util_dt.num2date(dtt_num_i, calend=calend, units=tunits)
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )

@@ -4,8 +4,12 @@
 #  Author: Natalia Tatarinova
 
 from collections import OrderedDict
-import util_dt
-
+import sys
+import pdb
+if sys.version_info[0] < 3:
+    import util_dt
+else:
+    from icclim.util import util_dt
 
 def get_dict_file_years_glob(files_list):
     dict_file_years = OrderedDict()
@@ -23,7 +27,7 @@ def get_files_correct_order(files_list, time_range, slice_mode=None):
     '''
     Select only files to process (depending on the time_range) and put them in correct (chronological) order.    
     '''
-    
+
     dict_file_years = get_dict_file_years_glob(files_list)
     
     #if slice_mode in ['DJF','ONDJFM']:
@@ -52,14 +56,11 @@ def get_dict_files_years_to_process_in_correct_order(files_list, time_range, sli
     #    years_to_process = range(time_range[0].year, time_range[1].year+1)
     
     years_to_process = range(time_range[0].year, time_range[1].year+1)
-
-        
     list_files_correct_order = get_files_correct_order(files_list, time_range)
     
     dict_glob_all_files_years = get_dict_file_years_glob(files_list)
     
     new_dic = OrderedDict()
-    
     for f in list_files_correct_order:
         list_years_to_process_correct_order = []
         for y in dict_glob_all_files_years[f]:

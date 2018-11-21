@@ -1,4 +1,9 @@
-from calc_indice import *
+import sys
+
+if sys.version_info[0] < 3:
+    from calc_indice import *
+else:
+    from icclim.calc_indice import *
 
 import logging
 
