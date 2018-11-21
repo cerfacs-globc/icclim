@@ -64,7 +64,7 @@ def get_masked_arr(arr, fill_val):
         masked_arr = np.ma.masked_array(arr, mask=mask_arr, fill_value=fill_val)
 
     return masked_arr
-    
+
 
 #get_list_year returns a list containing all the year except the year to be duplicated
 def get_list_year(ytd, dt_arr):
@@ -248,8 +248,8 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
     return ind_2_calc
 
 
-#Main function to compute the percentile with bootstrapping
-def return_perc_array_2_compute_with_bootstrapping(dt_arr, arr_filled, 
+#Main function to compute the percentile
+def return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled, 
                                                     t_units, t_calendar, ytd, window_width, percentile, 
                                                     interpolation, ignore_Feb29th, only_leap_years, bootstrapping):
 
@@ -379,7 +379,7 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, reduced_base_year
         arr_filled[arr_filled==fill_val] = fill_val_new
         fill_val = fill_val_new
 
-    percentile_array = return_perc_array_2_compute_with_bootstrapping(dt_arr, arr_filled, t_units, t_calendar, ytd, window_width, percentile, interpolation, ignore_Feb29th, only_leap_years, bootstrapping)
+    percentile_array = return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled, t_units, t_calendar, ytd, window_width, percentile, interpolation, ignore_Feb29th, only_leap_years, bootstrapping)
 
     ind_day = 0 
 
