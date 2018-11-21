@@ -5,7 +5,12 @@
 
 from netCDF4 import MFDataset
 import numpy
-import util_dt
+import sys
+
+if sys.version_info[0] < 3:
+    import util_dt
+else:
+    from icclim.util import util_dt
 
 def get_tile_dimension(in_files, var_name, transfer_limit_Mbytes=None, time_range=None):
     '''

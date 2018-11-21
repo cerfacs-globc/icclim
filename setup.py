@@ -42,7 +42,7 @@ setup(
     # python recursivement dans le dossier courant.
     # C'est pour cette raison que l'on a tout mis dans un seul dossier:
     # on peut ainsi utiliser cette fonction facilement
-    packages=find_packages(),
+    packages=find_packages(include=['icclim']),
  
     # votre pti nom
     author="Christian P.",
@@ -81,15 +81,16 @@ setup(
     #
     # Il n'y a pas vraiment de regle pour le contenu. Chacun fait un peu
     # comme il le sent. Il y en a qui ne mettent rien.
-    #classifiers=[
-    #    "Programming Language :: Python",
-    #    "Development Status :: 1 - Planning",
-    #    "License :: OSI Approved",
-    #    "Natural Language :: French",
-    #    "Operating System :: OS Independent",
-    #    "Programming Language :: Python :: 2.7",
-    #    "Topic :: Communications",
-    #],
+    classifiers=[
+        "Programming Language :: Python",
+        "Development Status :: 1 - Planning",
+        "License :: OSI Approved",
+        "Natural Language :: French",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Climate Index",
+    ],
  
  
     # C'est un systeme de plugin, mais on s'en sert presque exclusivement

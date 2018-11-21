@@ -46,12 +46,27 @@ def get_list_dates_from_nc(nc, type_dates):
     
     return list_dt
 
+<<<<<<< HEAD
+def check_calend(calend, ignore_Feb29th):
+
+    if calend == '360_day':
+        len_ytd = 360
+    elif calend == '365_day':
+        len_ytd= 365
+    else:
+        if ignore_Feb29th==False:
+            len_ytd = 366
+        else:
+            len_ytd = 365
+
+=======
 def check_calend(t_calend):
 
     if t_calend=='360_day':
         len_ytd = 360
     else:
         len_ytd = 365
+>>>>>>> 9a4f8882a1b7c0bbbe95d51f498a7774eb0e2a35
     return len_ytd
 
 def get_list_dates(ifile, type_dates):
@@ -334,3 +349,12 @@ def get_intersecting_years(time_range1, time_range2):
     intersection = list( set(list_years_tr1).intersection(list_years_tr2) )
     
     return intersection
+
+def from_OrderedDict_to_array(pt, dt_arr_, indice_slice):
+    ind = [pt_keys for pt_keys in pt.keys()]
+    array_2_return = numpy.zeros((len(dt_arr_), indice_slice.shape[1], indice_slice.shape[2]))
+    
+    for i in range(len(ind)):
+        array_2_return[i,:,:] = numpy.array(pt[ind[i][0], ind[i][1]]) 
+
+    return array_2_return

@@ -9,7 +9,7 @@
 
 import numpy
 import pdb
-
+import sys
 from . import util_dt
 from collections import OrderedDict
 
@@ -353,7 +353,11 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
     
     res = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]]) # reserve memory
     first_index_event = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
-    
+
+    if sys.version_info[0] >= 3:
+        stat_mode = stat_mode.encode('ascii')
+        extreme_mode = extreme_mode.encode('ascii')
+
     C_get_run_stat(arr_filled, 
                    arr_filled.shape[0], 
                    arr_filled.shape[1], 
@@ -364,7 +368,7 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
                    stat_mode, 
                    extreme_mode, 
                    first_index_event)
-    
+
     res = res.reshape(arr_filled.shape[1], arr_filled.shape[2])
     
     # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
@@ -422,8 +426,8 @@ def get_max_nb_consecutive_days(arr, logical_operation, thresh, coef=1.0, fill_v
     res = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]]) # reserve memory
     first_index_event = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
     last_index_event = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
+    logical_operation = logical_operation.encode('utf-8')
 
-    
     C_find_max_len_consec_sequence_3d(arr_filled, 
                                       arr_filled.shape[0], 
                                       arr_filled.shape[1], 
@@ -693,7 +697,6 @@ def get_date_event_arr(dt_arr, index_arr, time_calendar, time_units, fill_val):
     
     
     res = numpy.zeros((index_arr.shape[0], index_arr.shape[1]))
-    
     for i in range(index_arr.shape[0]):
         for j in range(index_arr.shape[1]):     
             index =  index_arr[i,j] 

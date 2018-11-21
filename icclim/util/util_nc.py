@@ -5,10 +5,17 @@
 #  Additions (2015, 2016): Christian Page
 
 import numpy
+import sys
 import pdb
-import util_dt
 from datetime import timedelta
 from netCDF4 import Dataset
+
+if sys.version_info[0] < 3:
+    import util_dt
+else:
+    from icclim.util import util_dt
+
+
 
 def check_att(nc, att):
     
@@ -86,7 +93,7 @@ def copy_var(variableName,sourceDataset, destinationDataset):
     
       # Copy the dims of the variable
       for dimname in sourceVar.dimensions:
-          if destinationDataset.dimensions.has_key(dimname) == False:
+          if dimname not in destinationDataset.dimensions:
               dim = rootgrp.dimensions.get(dimname)
               destinationDataset.createDimension(dimname,len(dim))
               
@@ -213,25 +220,26 @@ def copy_var_dim(inc, onc, var, lev_dim_pos=1):
           pass
 
 
-    ### copy attributes        
-    # time 
-    for j in range(len(inc_dim0.ncattrs())): # set attributs of current variable       
-        onc_dim0.__setattr__(  inc_dim0.__dict__.items()[j][0]  , inc_dim0.__dict__.items()[j][1])          
+    ### copy attributes // work for python 2 & 3
+    # Change has been done cause Orderdict type doesn't support index in python 3         
+    # time
+    for attr in inc_dim0.__dict__.items():
+        onc_dim0.__setattr__(attr[0], attr[1])
     # lat
-    for j in range(len(inc_dim1.ncattrs())): # set attributs of current variable       
-        onc_dim1.__setattr__(  inc_dim1.__dict__.items()[j][0]  , inc_dim1.__dict__.items()[j][1])  
+    for attr in inc_dim1.__dict__.items(): # set attributs of current variable
+        onc_dim1.__setattr__(attr[0]  , attr[1])  
     # lon
-    for j in range(len(inc_dim2.ncattrs())): # set attributs of current variable       
-        onc_dim2.__setattr__(  inc_dim2.__dict__.items()[j][0]  , inc_dim2.__dict__.items()[j][1])
+    for attr in inc_dim2.__dict__.items(): # set attributs of current variable       
+        onc_dim2.__setattr__(attr[0]  , attr[1])
 
     try:
         # lat_bnds
-        for j in range(len(inc_dim1_bounds.ncattrs())): # set attributs of current variable       
-            onc_dim1_bounds.__setattr__(  inc_dim1_bounds.__dict__.items()[j][0]  , inc_dim1_bounds.__dict__.items()[j][1])
+        for attr in inc_dim1_bounds.__dict__.items(): # set attributs of current variable       
+            onc_dim1_bounds.__setattr__(  attr[0]  , attr[1])
     
         # lon_bnds
-        for j in range(len(inc_dim2_bounds.ncattrs())): # set attributs of current variable       
-            onc_dim2_bounds.__setattr__(  inc_dim2_bounds.__dict__.items()[j][0]  , inc_dim2_bounds.__dict__.items()[j][1])
+        for attr in inc_dim2_bounds.__dict__.items(): # set attributs of current variable       
+            onc_dim2_bounds.__setattr__(  attr[0]  , attr[1])
     except:
         pass        
 
@@ -267,9 +275,9 @@ def copy_var_dim(inc, onc, var, lev_dim_pos=1):
           inc_c = inc.variables[c]
           
           onc_c = onc.createVariable( c, inc.variables[c].dtype )
-          
-          for j in range(len(inc_c.ncattrs())): # set attributs of current variable       
-              onc_c.__setattr__(  inc_c.__dict__.items()[j][0]  , inc_c.__dict__.items()[j][1])
+
+          for attr in inc_c.__dict__.items(): # set attributs of current variable       
+              onc_c.__setattr__(  attr[0]  , attr[1])
     
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
 
@@ -320,6 +328,8 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_
         indices_masked_Feb29th = numpy.where(mask_Feb29th==False)[0] # ...[0]: tuple to numpy.ndarray (http://stackoverflow.com/questions/16127444/why-is-my-array-length-1-when-building-it-with-numpy-where)
         dt_arr = dt_arr[indices_masked_Feb29th]
         values_arr = values_arr[indices_masked_Feb29th,:,:]
+
+    #values_arr = values_arr.astype(numpy.float64)
     
     return (dt_arr, values_arr)
 
@@ -387,3 +397,17 @@ def check_unlimited(infile):
     nc.close()
 
     return dim_name
+
+def save_percentile_netcdf(out_file, percentile_array):
+
+    onc = Dataset(out_file[:-3]+"percentile_array.nc", 'w' ,format='NETCDF4_CLASSIC')
+
+    time = onc.createDimension('time', percentile_array.shape[0])
+    lat = onc.createDimension('lat', percentile_array.shape[1])
+    lon = onc.createDimension('lon', percentile_array.shape[2])
+
+    Perc = onc.createVariable('Perc', numpy.float32, ('time', 'lat','lon')) 
+
+    Perc[:] = percentile_array
+
+    onc.close()

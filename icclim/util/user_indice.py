@@ -3,7 +3,13 @@
 #
 #  Author: Natalia Tatarinova
 
-import calc
+import sys
+
+if sys.version_info[0] < 3:
+    import calc
+else:
+    from icclim.util import calc
+
 import pdb
 
 # map with required parameters (for user defined indices)  
@@ -75,8 +81,9 @@ def check_params(user_indice, time_range=None, vars=None):
 
 
 def get_given_params(user_indice):
-    given_params_list = user_indice.keys()
-    
+
+    #given_params_list = user_indice.keys()
+    given_params_list = [user_indice_keys for user_indice_keys in user_indice.keys()]
     given_params_list.remove('indice_name')
     #given_params_list.remove('calc_operation') 
 
@@ -146,8 +153,10 @@ def get_user_indice_params(user_indice, var_name, out_unit):
 
            
     else:
-        if 'thresh' in ui[ui.keys()[0]].keys():
-            if type(ui[ui.keys()[0]]['thresh']) == str:
+        #pdb.set_trace()
+        ui_keys_0 = [ui_keys for ui_keys in ui.keys()][0]
+        if 'thresh' in ui[ui_keys_0].keys():
+            if type(ui[ui_keys_0]['thresh']) == str:
                 ui['type']='user_indice_percentile_based'
             else:
                 ui['type']='user_indice_simple'
