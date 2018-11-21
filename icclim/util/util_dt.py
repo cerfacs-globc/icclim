@@ -46,6 +46,7 @@ def get_list_dates_from_nc(nc, type_dates):
     
     return list_dt
 
+<<<<<<< HEAD
 def check_calend(calend, ignore_Feb29th):
 
     if calend == '360_day':
@@ -58,6 +59,14 @@ def check_calend(calend, ignore_Feb29th):
         else:
             len_ytd = 365
 
+=======
+def check_calend(t_calend):
+
+    if t_calend=='360_day':
+        len_ytd = 360
+    else:
+        len_ytd = 365
+>>>>>>> 9a4f8882a1b7c0bbbe95d51f498a7774eb0e2a35
     return len_ytd
 
 def get_list_dates(ifile, type_dates):
