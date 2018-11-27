@@ -42,7 +42,7 @@ setup(
     # python recursivement dans le dossier courant.
     # C'est pour cette raison que l'on a tout mis dans un seul dossier:
     # on peut ainsi utiliser cette fonction facilement
-    packages=find_packages(include=['icclim']),
+    packages=find_packages(),
  
     # votre pti nom
     author="Christian P.",
