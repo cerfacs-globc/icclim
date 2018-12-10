@@ -119,7 +119,7 @@ def get_non_leap_year(list_year):
 
 #check_leap_day check if the current year is leap. If the calendar is 360 days, there is no leap year (==>29/02 & 30/02)
 def check_leap_day(t_calendar, t, ytd, only_leap_years):
-    if [t.month, t.day] == [2,29]:
+    if [t.month, t.day] == [2,29] and t_calendar!='360_day':
         return True
     else:
         return False
