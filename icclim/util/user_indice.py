@@ -4,11 +4,15 @@
 #  Author: Natalia Tatarinova
 
 import sys
+import json
+from collections import OrderedDict
 
 if sys.version_info[0] < 3:
     import calc
+    from icclim import maps
 else:
     from icclim.util import calc
+    from icclim import maps
 
 import pdb
 
@@ -37,6 +41,79 @@ map_calc_params_optional = {
                               'run_sum': ['coef', 'date_event'],
                               'anomaly': []
                               }   
+
+def check_features(var_name, in_files):
+    #Check features for var_name and input files
+    #####    input files and target variable names 
+    if type(var_name) is not list:  # single variable        
+        var_name = [var_name] 
+        if  type(in_files) is not list: # single file
+            in_files = [in_files]   
+    else:                           # multivariable
+        if type(in_files) is not list:
+            raise IOError('"In_files" must be a list')
+        else:
+            #assert (len(in_files) == len(var_name)) ## ==> assert is not a proper error handling mechanism
+            if len(in_files) != len(var_name):
+                raise MissingIcclimInputError('Number of input file lists must match number of input variables')
+
+    return var_name, in_files   
+
+
+def get_VARS_in_files(var_name, in_files):
+    #####    VARS_in_files: dictionary where to each target variable (key of the dictionary) correspond input files list
+    VARS_in_files = OrderedDict()
+    for i in range(len(var_name)):        
+        if len(var_name)==1:
+            VARS_in_files[var_name[i]] = in_files
+        else:
+            if type(in_files[i]) is not list:  
+                in_files[i] = [in_files[i]]                
+            VARS_in_files[var_name[i]] = in_files[i]
+
+    return VARS_in_files
+
+
+def check_user_indice(indice_name, user_indice, time_range, var_name, out_unit):
+    if user_indice is None:
+        raise IOError(" 'user_indice' is required as a dictionary with user defined parameters.")
+    else:
+        check_params(user_indice, time_range=time_range, vars=var_name)
+            
+        if user_indice['calc_operation']=='anomaly':
+            slice_mode=None
+            if base_period_time_range is None:
+                raise IOError('Time range of base period is required for anomaly-based user indices! Please, set the "base_period_time_range" parameter.')
+        
+        user_indice = get_user_indice_params(user_indice, var_name, out_unit)
+        indice_type = user_indice['type']   
+
+    return user_indice, indice_type
+ 
+
+def get_key_by_value_from_dict(my_map, my_value, inc, config_file):
+
+    icclim_indice = [key for key in my_map.keys() if my_value in my_map[key]][0]
+    if icclim_indice:
+        check_icclim_indice(my_value, inc, config_file)
+        return icclim_indice
+    else:
+        raise IOError("'user_indice' or 'indice_name' are required to perform a calculation.")
+
+
+def check_icclim_indice(indice_name, inc, config_file):
+
+    with open(config_file) as json_data:
+        data = json.load(json_data)
+
+    var_indice = data['icclim'][indice_name]['var_name']    
+    check_varname = [var for var in inc.variables.keys() if var==var_indice]
+
+    if not check_varname:
+        raise Exception("Wrong data variable. Indice name %s requires %s variable type." %(indice_name, var_indice))
+
+
+
 
 def check_params(user_indice, time_range=None, vars=None):
     '''

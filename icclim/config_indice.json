@@ -1,0 +1,257 @@
+{
+    "icclim" :
+    {
+        "TG":
+        {
+            "var_name":"tasmean"
+        },
+
+        "GD4":
+        {
+            "var_name":"tasmean"
+        },
+
+        "HD17":
+        {
+            "var_name":"tasmean"
+        },
+
+        "TG10p":
+        {
+            "var_name":"tasmean"
+        },
+
+        "TG90p":
+        {
+            "var_name":"tasmean"
+        },
+
+        "TN":
+        {
+            "var_name":"tasmin"
+        },
+
+        "TNx":
+        {
+            "var_name":"tasmin"
+        },
+
+        "TNn":
+        {
+            "var_name":"tasmin"
+        },
+
+        "TR":
+        {
+            "var_name":"tasmin"
+        },
+
+        "FD":
+        {
+            "var_name":"tasmin"
+        },
+
+        "CFD":
+        {
+            "var_name":"tasmin"
+        },
+
+        "TN10p":
+        {
+            "var_name":"tasmin"
+        },
+
+        "TN90p":
+        {
+            "var_name":"tasmin"
+        },
+
+        "CDSI":
+        {
+            "var_name":"tasmin"
+        },
+
+        "TX":
+        {
+            "var_name":"tasmax"
+        },
+
+        "TXx":
+        {
+            "var_name":"tasmax"
+        },
+
+        "TXn":
+        {
+            "var_name":"tasmax"
+        },
+
+        "SU":
+        {
+            "var_name":"tasmax"
+        },
+
+        "CSU":
+        {
+            "var_name":"tasmax"
+        },
+
+        "ID":
+        {
+            "var_name":"tasmax"
+        },
+
+        "TX10p":
+        {
+            "var_name":"tasmax"
+        },
+
+        "TX90p":
+        {
+            "var_name":"tasmax"
+        },
+
+        "WSDI":
+        {
+            "var_name":"tasmax"
+        },
+
+        "DTR":
+        {
+            "var_name":["tasmin", "tasmax"]
+        },
+
+        "ETR":
+        {
+            "var_name":["tasmin", "tasmax"]
+        },
+
+        "vDTR":
+        {
+            "var_name":["tasmin", "tasmax"]
+        },
+
+        "PRCPTOT":
+        {
+            "var_name":"pr"
+        },
+
+        "RR1":
+        {
+            "var_name":"pr"
+        },
+
+        "SDII":
+        {
+            "var_name":"pr"
+        },
+
+        "CWD":
+        {
+            "var_name":"pr"
+        },
+
+        "CDD":
+        {
+            "var_name":"pr"
+        },
+
+        "R10mm":
+        {
+            "var_name":"pr"
+        },
+
+        "RR20mm":
+        {
+            "var_name":"pr"
+        },
+        
+        "RX1day":
+        {
+            "var_name":"pr"
+        },
+
+        "RX5day":
+        {
+            "var_name":"pr"
+        },
+        
+        "R75p":
+        {
+            "var_name":"pr"
+        },
+
+        "R75pTOT":
+        {
+            "var_name":"pr"
+        },
+
+        "R95p":
+        {
+            "var_name":"pr"
+        },
+
+        "R95pTOT":
+        {
+            "var_name":"pr"
+        },
+
+        "R99p":
+        {
+            "var_name":"pr"
+        },
+
+        "R99pTOT":
+        {
+            "var_name":"pr"
+        },
+
+        "SD":
+        {
+            "var_name":"SNOWFALL TO COMPLETE"
+        },
+
+        "SD1":
+        {
+            "var_name":"SNOWFALL TO COMPLETE"
+        },
+
+        "SD5cm":
+        {
+            "var_name":"SNOWFALL TO COMPLETE"
+        },
+
+        "SD50cm":
+        {
+            "var_name":"SNOWFALL TO COMPLETE"
+        },
+
+        "CD":
+        {
+            "var_name":["tasmean", "pr"]
+        },
+
+        "CW":
+        {
+            "var_name":["tasmean", "pr"]
+        },
+
+        "WD":
+        {
+            "var_name":["tasmean", "pr"]
+        },
+
+        "WW":
+        {
+            "var_name":["tasmean", "pr"]
+        }
+    },
+
+    "List_PE":[
+        "NetCDFProcessing()",
+        "ReadNetCDF()",
+        "StandardDeviation()",
+        "AverageData()",
+        "CombineDataAndPlot()"
+    ]
+}

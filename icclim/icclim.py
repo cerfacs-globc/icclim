@@ -60,6 +60,10 @@ else:
     from icclim.util import user_indice as ui
     from icclim.icclim_exceptions import *
 
+#Initial Config
+global config_file
+config_file = os.path.dirname(os.path.abspath(__file__))+"/config_indice.json"
+
 
 def icclim_output_file_defaults(arg):
     # first embryo towards collecting certain stuff at a central place
@@ -216,56 +220,23 @@ def indice(in_files,
 
     #######################################################
     ########## User index check params
+
+    var_name, in_files = ui.check_features(var_name, in_files)
+
+    VARS_in_files = ui.get_VARS_in_files(var_name, in_files)
+
+    inc = util_nc.read_netCDF(VARS_in_files[var_name[0]][0])
+
     if indice_name is None:
-        if user_indice is None:
-            raise IOError(" 'user_indice' is required as a dictionary with user defined parameters.")
-        else:
-            ui.check_params(user_indice, time_range=time_range, vars=var_name)
-                
-            if user_indice['calc_operation']=='anomaly':
-                slice_mode=None
-                if base_period_time_range is None:
-                    raise IOError('Time range of base period is required for anomaly-based user indices! Please, set the "base_period_time_range" parameter.')
-            
-            user_indice = ui.get_user_indice_params(user_indice, var_name, out_unit)
-            indice_type = user_indice['type']
-                            
-    ########## User index check end
-    #######################################################            
-
+        user_indice, indice_type = ui.check_user_indice(indice_name, user_indice, time_range, var_name, out_unit)
     else:
-        indice_type = get_key_by_value_from_dict(maps.map_indice_type, indice_name) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
+        indice_type = ui.get_key_by_value_from_dict(maps.map_indice_type, indice_name, inc, config_file) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
 
-    
     if (indice_type in ['percentile_based', 'percentile_based_multivariable'] or indice_type.startswith('user_indice_percentile_')) and base_period_time_range is None:
         raise IOError('Time range of base period is required for percentile-based indices! Please, set the "base_period_time_range" parameter.')
 
-    
-    
-    #####    input files and target variable names 
-    if type(var_name) is not list:  # single variable        
-        var_name = [var_name] 
-        if  type(in_files) is not list: # single file
-            in_files = [in_files]   
-    else:                           # multivariable
-        if type(in_files) is not list:
-            raise IOError('"In_files" must be a list')
-        else:
-            #assert (len(in_files) == len(var_name)) ## ==> assert is not a proper error handling mechanism
-            if len(in_files) != len(var_name):
-                raise MissingIcclimInputError('Number of input file lists must match number of input variables')
-    
-    
-    #####    VARS_in_files: dictionary where to each target variable (key of the dictionary) correspond input files list
-    VARS_in_files = OrderedDict()
-    for i in range(len(var_name)):        
-        if len(var_name)==1:
-            VARS_in_files[var_name[i]] = in_files
-        else:
-            if type(in_files[i]) is not list:  
-                in_files[i] = [in_files[i]]                
-            VARS_in_files[var_name[i]] = in_files[i]
-    
+    ########## User index check end
+    #######################################################        
 
     #####    callback
     if callback != None:
@@ -292,13 +263,6 @@ def indice(in_files,
     ################# META DATA: begin
     ########################################
     
-    any_in_file = VARS_in_files[var_name[0]][0] # we take any input file (for example the first one of the first one of the target variables)
-
-    try:
-        inc = Dataset(any_in_file, 'r')
-    except RuntimeError:
-        raise MissingIcclimInputError("Failed to access dataset: " + any_in_file)
-
     indice_dim = util_nc.copy_var_dim(inc, onc, var_name[0], lev_dim_pos=lev_dim_pos) # tuple ('time', 'lat', 'lon')    
     indice_dim = list(indice_dim)
     ncVar = inc.variables[var_name[0]] 
@@ -906,7 +870,6 @@ def get_indice_from_dict_temporal_slices(indice_name,
     pctl_calc_method = {} ### dictionary to separate pctl thresholds: computed with bootstrapping (for in-base years) or without bootstrapping (for out-of-base years)
     
     for slice_ in t_slices: # for each temporal slice
-
         # datetime vector of current slice is the same for all variables
         dt_arr_= vars_dict_keys_0['temporal_slices'][slice_][2]  ###   vars_dict.keys()[0] is the first target variable in the dictionary     
         dt_centroid_ = vars_dict_keys_0['temporal_slices'][slice_][0]
