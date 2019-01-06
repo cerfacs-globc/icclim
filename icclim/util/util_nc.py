@@ -16,6 +16,13 @@ else:
     from icclim.util import util_dt
 
 
+def read_netCDF(file):
+    try:
+        inc = Dataset(file, 'r')
+    except RuntimeError:
+        raise MissingIcclimInputError("Failed to access dataset: " + file)
+    return inc
+
 
 def check_att(nc, att):
     
