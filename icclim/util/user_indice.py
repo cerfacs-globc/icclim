@@ -102,7 +102,7 @@ def get_key_by_value_from_dict(my_map, my_value, inc, config_file):
 
 
 def check_icclim_indice(indice_name, inc, config_file):
-
+    pdb.set_trace()
     with open(config_file) as json_data:
         data = json.load(json_data)
 

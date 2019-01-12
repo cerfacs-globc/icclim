@@ -30,7 +30,9 @@ if sys.version_info[0] < 3:
     import maps
     import calc_ind
 
+    import util.logging_info as logging_info
     import util.calc as calc
+    import util.check as check
     import util.callback as callback
     import util.util_dt as util_dt
     import util.util_nc as util_nc
@@ -54,45 +56,16 @@ else:
     from icclim.util import util_nc
     from icclim.util import arr_size
     from icclim.util import OCGIS_tile
+    from icclim.util import check
     from icclim.util import files_order
     from icclim.util import calc
-
+    from icclim.util import logging_info
     from icclim.util import user_indice as ui
     from icclim.icclim_exceptions import *
 
 #Initial Config
 global config_file
 config_file = os.path.dirname(os.path.abspath(__file__))+"/config_indice.json"
-
-
-def icclim_output_file_defaults(arg):
-    # first embryo towards collecting certain stuff at a central place
-
-    defaults = {'file_name'          : './icclim_out.nc',
-                'netcdf_version'     : 'NETCDF3_CLASSIC',
-                'variable_type_str'  : 'f4',
-                'variable_calender'  : 'gregorian'}
-
-    if defaults['variable_type_str'] in ['f', 'f4']:
-        # 1.e20 is used by CMIP, otherwise the netCDF4 library default is preferrable 
-        # as it can be recasted back and forth between float32 and float64
-        # defaults['_FillValue'] = netCDF4.default_fillvals['f4']
-        defaults['_FillValue'] = numpy.float32(1.e20)  
-        defaults['missing_value'] = defaults['_FillValue']
-        defaults['variable_type_name'] = 'float32' 
-    else:
-        # what goes here should be patterned from above, e.g.:
-        # if defaults['variable_type'] in ['d', 'f8']:
-        #     # defaults['_FillValue'] = netCDF4.default_fillvals['f8']
-        #     defaults['_FillValue'] = numpy.float64(1.e20)  
-        #     defaults['missing_value'] = defaults['_FillValue']
-        #     defaults['variable_type_name'] = 'float64' 
-        # else
-
-        raise NotImplementedError('Coding error in function icclim_output_file_defaults: '
-                                  + 'only "f" / "f4" / "float32" output is implemented')
-
-    return defaults[arg]
 
 
 def get_key_by_value_from_dict(my_map, my_value):
@@ -107,7 +80,7 @@ def indice(in_files,
            indice_name=None,          
            slice_mode='year',
            time_range=None,
-           out_file=icclim_output_file_defaults('file_name'),   # was: "./icclim_out.nc",
+           out_file=check.icclim_output_file_defaults('file_name'),   # was: "./icclim_out.nc",
            threshold=None,
            N_lev=None,
            lev_dim_pos=1,
@@ -121,15 +94,13 @@ def indice(in_files,
            ignore_Feb29th=False,
            interpolation='linear', 
            out_unit='days',
-           netcdf_version=icclim_output_file_defaults('netcdf_version'),  # was: 'NETCDF3_CLASSIC',
+           netcdf_version=check.icclim_output_file_defaults('netcdf_version'),  # was: 'NETCDF3_CLASSIC',
            user_indice=None,
            save_percentile=False
            ):
 
     
     '''
-
-    
     :param indice_name: Climate index name. 
     :type indice_name: str    
     
@@ -199,22 +170,7 @@ def indice(in_files,
 
     '''
 
-    os.environ['TZ'] = 'GMT'
-    time.tzset()
-    tz = time.tzname[0]
-
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
-    
-    logging.info("   ********************************************************************************************")
-    logging.info("   *                                                                                          *")
-    logging.info("   *          %-50s                V%-10s   *", 'icclim', pkg_resources.get_distribution("icclim").version)
-    logging.info("   *                                                                                          *")
-    logging.info("   *                                                                                          *")
-    logging.info("   *          %-28s                                                    *", time.asctime(time.gmtime()) + " " + tz)
-    logging.info("   *                                                                                          *")
-    logging.info("   *          BEGIN EXECUTION                                                                 *")
-    logging.info("   *                                                                                          *")
-    logging.info("   ********************************************************************************************")
+    logging_info.start_message()
 
     time_start = time.clock()
 
@@ -247,16 +203,10 @@ def indice(in_files,
     out_path = os.path.dirname(os.path.abspath(out_file)) + os.sep
     if os.path.isdir(out_path) == False:
         raise IOError('Output directory does not exists.')
-                     
-    #####    we prepare output file
-    netcdfv = ['NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT']
-    if netcdf_version not in netcdfv:
-        netcdf_version = icclim_output_file_defaults('netcdf_version')
-    onc = Dataset(out_file, 'w' ,format=netcdf_version)
+        
 
-    
-    #####    we define type of result index
-    ind_type = icclim_output_file_defaults('variable_type_str')
+    onc = util_nc.create_output_netcdf(netcdf_version, out_file)
+    ind_type = check.icclim_output_file_defaults('variable_type_str')
     
     
     ########################################
@@ -280,78 +230,19 @@ def indice(in_files,
 
 #   Currently icclim cannot deal with valid_min, valid_max, and valid_range, 
 #   as they imply the possibility of a range of missing/invalid values. 
-    try: 
-        tmp = ncVar.valid_min
-        in_valid = True
-    except AttributeError:
-        try:
-            tmp = ncVar.valid_max
-            in_valid = True
-        except AttributeError:
-            try:
-                tmp = ncVar.valid_range
-                in_valid = True
-            except AttributeError:
-                in_valid = False
-    if in_valid:
-        logging.warning('   ********************************************************************************************')
-        logging.warning('   *                                                                                          *')
-        logging.warning('   *          CANNOT HANDLE variable attributes "valid_min", "valid_max", and "valid_range"   *') 
-        logging.warning('   *                        values beyond these limits will be included in the computations   *')
-        logging.warning('   *                        If present "missing_value" and/or "_FillValue" will be honoured   *')
-        logging.warning('   *                                                                                          *')
-        logging.warning('   ********************************************************************************************')
 
-    #   1) Check if _FillValue and/or missing_value exist in the input file
-    try:
-        in_fillval = ncVar._FillValue
-    except AttributeError:
-        in_fillval = None
-    try:
-        in_missval = ncVar.missing_value
-    except AttributeError: 
-        in_missval = None
+    in_valid = check.check_ncVar(ncVar)
+    logging_info.wrong_variable_attribute_message(in_valid)    
 
-    if in_fillval is None and in_missval is None:
-        #   2) If neither exist then assume that the default value is not used as a valid number in the input file(s)
-        #      However, given the value this seems very (VERY!) unlikely
-        fill_val = icclim_output_file_defaults('missing_value')
-    else:
-	#   3) _FillValue or missing_value is present in the input file ...
-        if ncVar.dtype.name != icclim_output_file_defaults('missing_value').dtype.name:
-            #   4) ... and input data type is not the same as the output data type
-            #      This works out only if it is the netCDF4 default _FillValue, or we have a problem
-            if in_fillval == netCDF4.default_fillvals[ncVar.dtype.str[1:]]:
-                fill_val = in_fillval
-            else:
-                if in_missval == netCDF4.default_fillvals[ncVar.dtype.str[1:]]:
-                    fill_val = in_missval
-                else:
-                    # Only error out here when really necessary...
-                    # Above code is really to trying to avoid coming here
-                    raise NotImplementedError('Input variable type <' 
-                                              + ncVar.dtype.name 
-                                              + '> not the same as output data type <' 
-                                              + icclim_output_file_defaults('missing_value').dtype.name 
-                                              + '>\\nThis is only possible if the input files are without missing values and _FillValue'
-                                              + '\\nor the they (either one, or both) are exatly equal the netCDF4 default _FillValue')
-        else:
-            #   5) ... and the input data type is the same as the output data type
-            #      so use the value fro mthe input file (missing_value thakes precedence over _FillValue)
-            if in_missval is None:
-                fill_val = in_fillval
-            else:
-                fill_val = in_missval
-    #   6) That's it ....
-    #      Old code below (1 line) does not account for the situation when _FillValue is not defined in the input file
-
-    # fill_val = ncVar._FillValue.astype('float32') # fill_value must be the same type as "ind_type", i.e. 'float32'
+    fill_val = check.check_fill_value(ncVar)
+    pdb.set_trace()
 
     dimensions_list_var = ncVar.dimensions
     if lev_dim_pos == 0:
         index_time = 1
     else:
         index_time = 0
+
     ncVar_time = inc.variables[dimensions_list_var[index_time]]
     
     ############## in case of user defined thresholds 
@@ -371,45 +262,20 @@ def indice(in_files,
         
         nb_user_thresholds = len(user_thresholds)
         
-        if nb_user_thresholds > 1:        
-            # Create an extra dimension for the index:
-            indice_dim.insert(1,'threshold')
-            onc.createDimension('threshold',nb_user_thresholds)
-            thresholdvar = onc.createVariable('threshold','f8',('threshold'))
-            thresholdvar[:] = user_thresholds
-            thresholdvar.setncattr("units","threshold")
-            thresholdvar.setncattr("standard_name","threshold")
-    ##############
+        if nb_user_thresholds > 1:
+            util_nc.set_threshold(onc, threshold, indice_dim)
     
 
     if indice_type.startswith('user_indice_'):
         indice_name=user_indice['indice_name']
-        ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
-    else:
-        ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
+
+    ind = onc.createVariable(indice_name, ind_type, indice_dim, fill_value = fill_val)
 
     #####    we copy attributes from variable to process to index variable, except scale_factor and _FillValue
     util_nc.copy_var_attrs(ncVar, ind)
     
-    ### we create new variable(s) to save date of event
-
     if indice_type.startswith('user_indice_') and user_indice['date_event']==True:
-        if user_indice['calc_operation'] in ['min', 'max']:            
-            date_event = onc.createVariable('date_event', 'f', indice_dim, fill_value = fill_val)
-            # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
-            date_event.__setattr__('calendar', ncVar_time.calendar)
-            date_event.__setattr__('units', ncVar_time.units)
-            
-        elif user_indice['calc_operation'] in ['nb_events', 'max_nb_consecutive_events', 'run_mean', 'run_sum']:
-            date_event_start = onc.createVariable('date_event_start', 'f', indice_dim, fill_value = fill_val)
-            # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
-            date_event_start.__setattr__('calendar', ncVar_time.calendar)
-            date_event_start.__setattr__('units', ncVar_time.units)
-            
-            date_event_end = onc.createVariable('date_event_end', 'f', indice_dim, fill_value = fill_val)
-            # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
-            date_event_end.__setattr__('calendar', ncVar_time.calendar)
-            date_event_end.__setattr__('units', ncVar_time.units)
+        util_nc.set_date_event(onc, user_indice, indice_dim, fill_val, ncVar_time)
     
     time_range = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
                                         time_range=time_range, temporal_var_name=indice_dim[0])
@@ -420,7 +286,7 @@ def indice(in_files,
     
     if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
         time_range2 = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
-                                         time_range=base_period_time_range, temporal_var_name=indice_dim[0])
+                                        time_range=base_period_time_range, temporal_var_name=indice_dim[0])
 
     # we get nb_rows (var_shape1) and nb_cols (var_shape2) to compute in the following optimal tile_dimension 
     var_shape = ncVar.shape
@@ -439,7 +305,6 @@ def indice(in_files,
     ########################################################################################################################
     
 
-    
     ################# we create a dictionary VARS with all necessary information about each target variable
     ################# for more detailed information about the structure of this dictionary, see the util/VARS_structure.txt
     VARS = OrderedDict()

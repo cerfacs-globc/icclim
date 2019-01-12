@@ -70,7 +70,7 @@ setup(
  
     # Active la prise en compte du fichier MANIFEST.in
     include_package_data=True,
- 
+    data_files = [('icclim', ['icclim/config_indice.json'])],
     # Une url qui pointe vers la page officielle de votre lib
     url='https://github.com/cerfacs-globc/icclim',
  
