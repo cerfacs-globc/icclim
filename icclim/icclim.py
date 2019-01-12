@@ -68,36 +68,6 @@ global config_file
 config_file = os.path.dirname(os.path.abspath(__file__))+"/config_indice.json"
 
 
-def icclim_output_file_defaults(arg):
-    # first embryo towards collecting certain stuff at a central place
-
-    defaults = {'file_name'          : './icclim_out.nc',
-                'netcdf_version'     : 'NETCDF3_CLASSIC',
-                'variable_type_str'  : 'f4',
-                'variable_calender'  : 'gregorian'}
-
-    if defaults['variable_type_str'] in ['f', 'f4']:
-        # 1.e20 is used by CMIP, otherwise the netCDF4 library default is preferrable 
-        # as it can be recasted back and forth between float32 and float64
-        # defaults['_FillValue'] = netCDF4.default_fillvals['f4']
-        defaults['_FillValue'] = numpy.float32(1.e20)  
-        defaults['missing_value'] = defaults['_FillValue']
-        defaults['variable_type_name'] = 'float32' 
-    else:
-        # what goes here should be patterned from above, e.g.:
-        # if defaults['variable_type'] in ['d', 'f8']:
-        #     # defaults['_FillValue'] = netCDF4.default_fillvals['f8']
-        #     defaults['_FillValue'] = numpy.float64(1.e20)  
-        #     defaults['missing_value'] = defaults['_FillValue']
-        #     defaults['variable_type_name'] = 'float64' 
-        # else
-
-        raise NotImplementedError('Coding error in function icclim_output_file_defaults: '
-                                  + 'only "f" / "f4" / "float32" output is implemented')
-
-    return defaults[arg]
-
-
 def get_key_by_value_from_dict(my_map, my_value):
     for key in my_map.keys():
         if my_value in my_map[key]:
@@ -110,7 +80,7 @@ def indice(in_files,
            indice_name=None,          
            slice_mode='year',
            time_range=None,
-           out_file=icclim_output_file_defaults('file_name'),   # was: "./icclim_out.nc",
+           out_file=check.icclim_output_file_defaults('file_name'),   # was: "./icclim_out.nc",
            threshold=None,
            N_lev=None,
            lev_dim_pos=1,
@@ -124,15 +94,13 @@ def indice(in_files,
            ignore_Feb29th=False,
            interpolation='linear', 
            out_unit='days',
-           netcdf_version=icclim_output_file_defaults('netcdf_version'),  # was: 'NETCDF3_CLASSIC',
+           netcdf_version=check.icclim_output_file_defaults('netcdf_version'),  # was: 'NETCDF3_CLASSIC',
            user_indice=None,
            save_percentile=False
            ):
 
     
     '''
-
-    
     :param indice_name: Climate index name. 
     :type indice_name: str    
     
@@ -238,7 +206,7 @@ def indice(in_files,
         
 
     onc = util_nc.create_output_netcdf(netcdf_version, out_file)
-    ind_type = icclim_output_file_defaults('variable_type_str')
+    ind_type = check.icclim_output_file_defaults('variable_type_str')
     
     
     ########################################
@@ -337,7 +305,6 @@ def indice(in_files,
     ########################################################################################################################
     
 
-    
     ################# we create a dictionary VARS with all necessary information about each target variable
     ################# for more detailed information about the structure of this dictionary, see the util/VARS_structure.txt
     VARS = OrderedDict()

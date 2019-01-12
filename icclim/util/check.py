@@ -1,3 +1,34 @@
+import numpy as np
+
+def icclim_output_file_defaults(arg):
+    # first embryo towards collecting certain stuff at a central place
+
+    defaults = {'file_name'          : './icclim_out.nc',
+                'netcdf_version'     : 'NETCDF3_CLASSIC',
+                'variable_type_str'  : 'f4',
+                'variable_calender'  : 'gregorian'}
+
+    if defaults['variable_type_str'] in ['f', 'f4']:
+        # 1.e20 is used by CMIP, otherwise the netCDF4 library default is preferrable 
+        # as it can be recasted back and forth between float32 and float64
+        # defaults['_FillValue'] = netCDF4.default_fillvals['f4']
+        defaults['_FillValue'] = np.float32(1.e20)  
+        defaults['missing_value'] = defaults['_FillValue']
+        defaults['variable_type_name'] = 'float32' 
+    else:
+        # what goes here should be patterned from above, e.g.:
+        # if defaults['variable_type'] in ['d', 'f8']:
+        #     # defaults['_FillValue'] = netCDF4.default_fillvals['f8']
+        #     defaults['_FillValue'] = numpy.float64(1.e20)  
+        #     defaults['missing_value'] = defaults['_FillValue']
+        #     defaults['variable_type_name'] = 'float64' 
+        # else
+
+        raise NotImplementedError('Coding error in function icclim_output_file_defaults: '
+                                  + 'only "f" / "f4" / "float32" output is implemented')
+
+    return defaults[arg]
+
 def check_ncVar(ncVar):
     try: 
         tmp = ncVar.valid_min

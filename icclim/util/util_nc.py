@@ -17,6 +17,7 @@ else:
 
 
 def read_netCDF(file):
+
     try:
         inc = Dataset(file, 'r')
     except RuntimeError:
@@ -24,6 +25,7 @@ def read_netCDF(file):
     return inc
 
 def create_output_netcdf(netcdf_version, out_file):
+
     netcdfv = ['NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_CLASSIC', 'NETCDF3_64BIT']
     if netcdf_version not in netcdfv:
         netcdf_version = icclim_output_file_defaults('netcdf_version')
@@ -32,6 +34,7 @@ def create_output_netcdf(netcdf_version, out_file):
 
 
 def set_date_event(onc, user_indice, indice_dim, fill_val, ncVar_time):
+
     if user_indice['calc_operation'] in ['min', 'max']:            
         date_event = onc.createVariable('date_event', 'f', indice_dim, fill_value = fill_val)
         # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
@@ -50,7 +53,8 @@ def set_date_event(onc, user_indice, indice_dim, fill_val, ncVar_time):
         date_event_end.__setattr__('units', ncVar_time.units)
 
 
-def set_threshold(onc, threshold, indice_dim)
+def set_threshold(onc, threshold, indice_dim):
+
     # Create an extra dimension for the index:
     indice_dim.insert(1,'threshold')
     onc.createDimension('threshold',nb_user_thresholds)
