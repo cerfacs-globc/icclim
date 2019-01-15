@@ -104,7 +104,7 @@ def get_key_by_value_from_dict(my_map, my_value, inc, config_file):
 def check_icclim_indice(indice_name, inc, config_file):
     with open(config_file) as json_data:
         data = json.load(json_data)
-        
+
     var_indice = data['icclim']['indice'][indice_name]['var_name']    
     check_varname = [var for var in inc.variables.keys() if var==var_indice]
 
@@ -229,7 +229,6 @@ def get_user_indice_params(user_indice, var_name, out_unit):
 
            
     else:
-        #pdb.set_trace()
         ui_keys_0 = [ui_keys for ui_keys in ui.keys()][0]
         if 'thresh' in ui[ui_keys_0].keys():
             if type(ui[ui_keys_0]['thresh']) == str:
