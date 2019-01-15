@@ -235,7 +235,6 @@ def indice(in_files,
     logging_info.wrong_variable_attribute_message(in_valid)    
 
     fill_val = check.check_fill_value(ncVar)
-    pdb.set_trace()
 
     dimensions_list_var = ncVar.dimensions
     if lev_dim_pos == 0:

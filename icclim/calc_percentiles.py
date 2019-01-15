@@ -148,7 +148,6 @@ def get_ind_2_calc(i, ind_date, len_ytd, window_wide, ind_ytd_start, bootstrappi
     #We build the window around the centered day in this condition
     #test condition is true if the index are smaller than half of the window. i.e i=1, window_width=5 ==> window_wide=2: i<window_wide
     if i<window_wide:
-
         #ranging_day creates the vector with all the window centered on the day                                       
         ranging_day = np.array([np.arange(ind_date_i - window_wide, ind_date_i + window_wide+1) for ind_date_i in ind_2_calc[ind_2_calc!=i]])#ind_2_calc[ind_2_calc!=test[0]]])
         #day_after are the day within the window and after the index 0. i.e test[0]=1 and window_wide=2; day_after=[0,1,2,3]
@@ -241,6 +240,7 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
             ind_2_calc = np.append(ind_2_calc, ind_2_calc_non_leap)
 
     #This part returns the indices to calculate when the duplicated year is not leap
+
     else:
         ind_date = get_index_for_other_years(nc_time, t, t_calendar, list_year, ytd, dt_arr_num)
         ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
@@ -285,7 +285,7 @@ def return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled,
 
     #We iterate across day over all year long related to the year length
     while i<len_ytd:
-
+        
         # t is the centered day which we perform the calculation on
         t = dt_arr[ind_ytd_start+i]
 
