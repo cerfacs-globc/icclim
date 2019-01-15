@@ -229,6 +229,7 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
 
         #If only_leap_years is false, we take in account all the year for calculation. See docs for more details
         else:
+            pdb.set_trace()
             list_year_leap_only = get_leap_year(list_year)
             list_year_not_leap = get_non_leap_year(list_year)
 
@@ -241,6 +242,7 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
             ind_2_calc = np.append(ind_2_calc, ind_2_calc_non_leap)
 
     #This part returns the indices to calculate when the duplicated year is not leap
+
     else:
         ind_date = get_index_for_other_years(nc_time, t, t_calendar, list_year, ytd, dt_arr_num)
         ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
@@ -268,6 +270,7 @@ def return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled,
     #Get the length of the year depending on the calendar type and 29th Feb option. I.e 360, 365 ot 366 days        
     len_ytd = util_dt.check_calend(t_calendar, ignore_Feb29th)
 
+    pdb.set_trace()
     #List the year to be computed and duplicated ytd
     list_year = get_list_year(ytd, dt_arr)
 
@@ -285,7 +288,7 @@ def return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled,
 
     #We iterate across day over all year long related to the year length
     while i<len_ytd:
-
+        
         # t is the centered day which we perform the calculation on
         t = dt_arr[ind_ytd_start+i]
 
