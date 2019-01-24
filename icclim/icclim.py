@@ -205,7 +205,6 @@ def indice(in_files,
     if os.path.isdir(out_path) == False:
         raise IOError('Output directory does not exists.')
         
-    data = read.read_config_file()
     onc = util_nc.create_output_netcdf(netcdf_version, out_file)
     ind_type = check.icclim_output_file_defaults('variable_type_str')
     
