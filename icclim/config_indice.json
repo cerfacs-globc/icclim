@@ -5,297 +5,349 @@
             "TG":
             {
                 "var_name":"tasmean",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "GD4":
             {
                 "var_name":"tasmean",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "HD17":
             {
                 "var_name":"tasmean",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "TG10p":
             {
                 "var_name":"tasmean",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "TG90p":
             {
                 "var_name":"tasmean",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "TN":
             {
                 "var_name":"tasmin",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "TNx":
             {
                 "var_name":"tasmin",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "TNn":
             {
                 "var_name":"tasmin",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "TR":
             {
                 "var_name":"tasmin",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "FD":
             {
                 "var_name":"tasmin",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "CFD":
             {
                 "var_name":"tasmin",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "TN10p":
             {
                 "var_name":"tasmin",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "TN90p":
             {
                 "var_name":"tasmin",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "CDSI":
             {
                 "var_name":"tasmin",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "TX":
             {
                 "var_name":"tasmax",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "TXx":
             {
                 "var_name":"tasmax",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "TXn":
             {
                 "var_name":"tasmax",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "SU":
             {
                 "var_name":"tasmax",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "CSU":
             {
                 "var_name":"tasmax",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "ID":
             {
                 "var_name":"tasmax",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "TX10p":
             {
                 "var_name":"tasmax",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "TX90p":
             {
                 "var_name":"tasmax",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "WSDI":
             {
                 "var_name":"tasmax",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "DTR":
             {
                 "var_name":["tasmin", "tasmax"],
-                "indice_type":"multivariable"
+                "indice_type":"multivariable",
+                "out_unit":"days"
             },
 
             "ETR":
             {
                 "var_name":["tasmin", "tasmax"],
-                "indice_type":"multivariable"
+                "indice_type":"multivariable",
+                "out_unit":"days"
             },
 
             "vDTR":
             {
                 "var_name":["tasmin", "tasmax"],
-                "indice_type":"multivariable"
+                "indice_type":"multivariable",
+                "out_unit":"days"
             },
 
             "PRCPTOT":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "RR1":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "SDII":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "CWD":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "CDD":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "R10mm":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "RR20mm":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
             
             "RX1day":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "RX5day":
             {
                 "var_name":"pr",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
             
             "R75p":
             {
                 "var_name":"pr",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "R75pTOT":
             {
                 "var_name":"pr",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "R95p":
             {
                 "var_name":"pr",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "R95pTOT":
             {
                 "var_name":"pr",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "R99p":
             {
                 "var_name":"pr",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "R99pTOT":
             {
                 "var_name":"pr",
-                "indice_type":"percentile_based"
+                "indice_type":"percentile_based",
+                "out_unit":"days"
             },
 
             "SD":
             {
                 "var_name":"SNOWFALL TO COMPLETE",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "SD1":
             {
                 "var_name":"SNOWFALL TO COMPLETE",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "SD5cm":
             {
                 "var_name":"SNOWFALL TO COMPLETE",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "SD50cm":
             {
                 "var_name":"SNOWFALL TO COMPLETE",
-                "indice_type":"simple"
+                "indice_type":"simple",
+                "out_unit":"days"
             },
 
             "CD":
             {
                 "var_name":["tasmean", "pr"],
-                "indice_type":"multivariable"
+                "indice_type":"multivariable",
+                "out_unit":"days"
             },
 
             "CW":
             {
                 "var_name":["tasmean", "pr"],
-                "indice_type":"multivariable"
+                "indice_type":"multivariable",
+                "out_unit":"days"
             },
 
             "WD":
             {
                 "var_name":["tasmean", "pr"],
-                "indice_type":"multivariable"
+                "indice_type":"multivariable",
+                "out_unit":"days"
             },
 
             "WW":
             {
                 "var_name":["tasmean", "pr"],
-                "indice_type":"multivariable"
+                "indice_type":"multivariable",
+                "out_unit":"days"
             }
         },
+
+        "slice_mode":["None","year","month","ONDJFM",
+            "AMJJAS","DJF","MAM","JJA","SON"],
 
         "operation":
         {
