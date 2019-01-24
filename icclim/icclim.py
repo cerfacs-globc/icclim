@@ -1,5 +1,4 @@
 # -*- coding: latin-1 -*-
-
 #  Copyright CERFACS (http://cerfacs.fr/)
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
@@ -31,6 +30,7 @@ if sys.version_info[0] < 3:
     import calc_ind
 
     import util.logging_info as logging_info
+    import util.read as read
     import util.calc as calc
     import util.check as check
     import util.callback as callback
@@ -52,6 +52,7 @@ else:
     from . import calc_ind
 
     from icclim.util import callback
+    from icclim.util import read
     from icclim.util import util_dt
     from icclim.util import util_nc
     from icclim.util import arr_size
@@ -204,7 +205,6 @@ def indice(in_files,
     if os.path.isdir(out_path) == False:
         raise IOError('Output directory does not exists.')
         
-
     onc = util_nc.create_output_netcdf(netcdf_version, out_file)
     ind_type = check.icclim_output_file_defaults('variable_type_str')
     
