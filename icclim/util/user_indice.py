@@ -108,8 +108,8 @@ def check_icclim_indice(indice_name, inc, config_file):
     var_indice = data['icclim']['indice'][indice_name]['var_name']    
     check_varname = [var for var in inc.variables.keys() if var==var_indice]
 
-    if not check_varname:
-        raise Exception("Wrong data variable. Indice name %s requires %s variable type." %(indice_name, var_indice))
+    #if not check_varname:
+    #    raise Exception("Wrong data variable. Indice name %s requires %s variable type." %(indice_name, var_indice))
 
 
 
