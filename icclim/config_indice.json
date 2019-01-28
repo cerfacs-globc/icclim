@@ -363,11 +363,30 @@
         }
     },
 
-    "List_PE":[
-        "NetCDFProcessing()",
-        "ReadNetCDF()",
-        "StandardDeviation()",
-        "AverageData()",
-        "CombineDataAndPlot()"
-    ]
+    "dispel4py":
+    {
+        "configFileName":"input_C4I.json",
+        "def":["PE","Worfklow"]        
+    },
+
+    "C4I":
+    {
+        "dispel4py_wps":
+        {
+            "configFileName":"input_C4I.json",
+            "def":["PE","Worfklow"]
+        }
+    },
+
+    "List_PE":
+    {
+        "NetCDFProcessing()":
+        {
+
+        },
+        "ReadNetCDF()":[],
+        "StandardDeviation()":[],
+        "AverageData()":[],
+        "CombineDataAndPlot()":[]
+    }
 }

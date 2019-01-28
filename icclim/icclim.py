@@ -648,21 +648,9 @@ def indice(in_files,
     util_nc.set_timebnds_values(onc, dt_bounds_arr, calend, units)
 
     onc.close()
-
+    
     time_elapsed = (time.clock() - time_start)
-
-    logging.info("   ********************************************************************************************")
-    logging.info("   *                                                                                          *")
-    logging.info("   *          %-50s                V%-10s   *", 'icclim', pkg_resources.get_distribution("icclim").version)
-    logging.info("   *                                                                                          *")
-    logging.info("   *                                                                                          *")
-    logging.info("   *          %-28s                                                    *", time.asctime(time.gmtime()) + " " + tz)
-    logging.info("   *                                                                                          *")
-    logging.info("   *          END EXECUTION                                                                   *")
-    logging.info("   *                                                                                          *")
-    logging.info("   *          CP SECS = %-10.3f                                                            *", time_elapsed)
-    logging.info("   *                                                                                          *")
-    logging.info("   ********************************************************************************************")
+    logging_info.ending_message(time_elapsed)
 
     return out_file
 
