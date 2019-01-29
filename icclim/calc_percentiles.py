@@ -4,7 +4,7 @@
 #  Author: Natalia Tatarinova
 
 import numpy as np
-np.set_printoptions(threshold=np.nan)
+#np.set_printoptions(threshold=np.nan)
 
 from datetime import datetime
 from datetime import timedelta
