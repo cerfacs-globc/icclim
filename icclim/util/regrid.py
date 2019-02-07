@@ -10,7 +10,10 @@ import numpy
 import ESMF
 from netCDF4 import Dataset
 #from os.path import basename
-import util_nc 
+if sys.version_info[0] < 3:
+    import util_nc
+else:
+    from icclim.util.util_nc import util_nc
 
 #esmpy = ESMF.Manager(logkind=ESMF.LogKind.MULTI, debug=True)
 

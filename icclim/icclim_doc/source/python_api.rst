@@ -848,7 +848,7 @@ Below are some of them.
 
 
 
-.. automodule:: calc_indice
+.. automodule:: icclim.calc_indice
     :members: TNx_calculation, CSU_calculation, DTR_calculation, TN10p_calculation, WSDI_calculation
    
 
@@ -863,7 +863,7 @@ Utility functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It is possible to do simple regridding (only rectangular "lat/lon" grid), using the `util.regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/util/regrid.py>`_ module:
 
-.. automodule:: util.regrid
+.. automodule:: icclim.util.regrid
     :members: get_regridded_var, write2netCDF_after_regridding
 
 
@@ -891,7 +891,7 @@ Utility functions for spatial statistics such as computing of spatial average, s
 1. :func:`util.spatial_stat.get_weight_matrix` computes weights, giving more weight to the pixels on the poles
 2. :func:`util.spatial_stat.multiply_to_weight_matrix` returns new values to be used for spatial statistics
 
-.. automodule:: util.spatial_stat
+.. automodule:: icclim.util.spatial_stat
     :members: get_weight_matrix, multiply_to_weight_matrix
 
 .. warning:: Only for rectangular "lat/lon" grid.
