@@ -9,7 +9,7 @@ Python API
 
 This is the main function to compute an indice:
 
-.. automodule:: icclim
+.. automodule:: icclim.icclim
     :members: indice
 
 
