@@ -6,14 +6,15 @@
 #  Author: Natalia Tatarinova
 
 
+import sys
 import numpy
 import ESMF
 from netCDF4 import Dataset
 #from os.path import basename
 if sys.version_info[0] < 3:
-    import util_nc
+    import util.util_nc as util_nc
 else:
-    from icclim.util.util_nc import util_nc
+    from icclim.util import util_nc
 
 #esmpy = ESMF.Manager(logkind=ESMF.LogKind.MULTI, debug=True)
 
