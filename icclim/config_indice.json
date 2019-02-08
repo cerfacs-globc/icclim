@@ -346,7 +346,7 @@
             }
         },
 
-        "slice_mode":["None","year","month","ONDJFM",
+        "slice_mode":["year","month","ONDJFM",
             "AMJJAS","DJF","MAM","JJA","SON"],
 
         "operation":
@@ -364,9 +364,22 @@
     },
 
     "dispel4py":
-    {
-        "configFileName":"input_C4I.json",
-        "def":["PE","Worfklow"]        
+    { 
+        "List_PE":
+        {
+            "NetCDFProcessing()":
+            {
+                "indice_name":null,
+                "user_indice":null,
+                "slice_mode":null,
+                "in_files":null,
+                "out_file":null
+            },
+            "ReadNetCDF()":{},
+            "StandardDeviation()":{},
+            "AverageData()":{},
+            "CombineDataAndPlot()":{}
+        }        
     },
 
     "C4I":
@@ -374,19 +387,11 @@
         "dispel4py_wps":
         {
             "configFileName":"input_C4I.json",
-            "def":["PE","Worfklow"]
+            "jsonStructure":
+            {
+                "PE":{},
+                "Workflow":{}
+            }
         }
-    },
-
-    "List_PE":
-    {
-        "NetCDFProcessing()":
-        {
-
-        },
-        "ReadNetCDF()":[],
-        "StandardDeviation()":[],
-        "AverageData()":[],
-        "CombineDataAndPlot()":[]
     }
 }
