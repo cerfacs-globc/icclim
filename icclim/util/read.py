@@ -1,12 +1,14 @@
 import json
 import os
 
-config_file = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))+"/config_indice.json"
+config_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))+"/config_indice.json"
 
-def read_config_file(config_file=config_file):
-    with open(config_file) as json_data:
+def read_config_file(config_file_path=config_file_path):
+    with open(config_file_path) as json_data:
             data = json.load(json_data)
     return data
+
+config_file = read_config_file()
 
 def get_icclim_indice_config(config_file=config_file):
         #Loading config from icclim for the dispel4py wps workflow
