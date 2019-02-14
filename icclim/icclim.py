@@ -974,10 +974,8 @@ def get_indice_from_dict_temporal_slices(indice_name,
                         ### even if we loop on ytd, for in-base years we compute index only one time (i.e. when ytd_counter=0)
                         if indice_name in ['R75p', 'R75pTOT', 'R95p', 'R95pTOT', 'R99p', 'R99pTOT']: 
                             
-                            if ytd_counter==0:                                
-                                
-                                va =  vars_dict.keys()[0]               
-                                
+                            if ytd_counter==0:
+                                va = [vars_dict_keys_0 for vars_dict_keys_0 in vars_dict.keys()][0]                                
                                 dic_args = {'arr': vars_dict[va]['temporal_slices'][slice_][3], 
                                             'percentile_arr': pctl_thresh[va],
                                             'fill_val':vars_dict[va]['fill_value'], 
