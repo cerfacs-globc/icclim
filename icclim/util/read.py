@@ -23,3 +23,7 @@ def get_disp4py_config(config_file=config_file):
         conf_filename = config_file["C4I"]["dispel4py_wps"]["configFileName"]
         json_structure = config_file["C4I"]["dispel4py_wps"]["jsonStructure"]
         return conf_filename, json_structure
+
+def get_PE_config(pe_name, config_file=config_file):
+        #Loading the config for a specific processing element
+        return config_file["dispel4py"]["List_PE"][pe_name]
