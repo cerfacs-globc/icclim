@@ -226,7 +226,7 @@
                 "out_unit":"days"
             },
 
-            "RR20mm":
+            "R20mm":
             {
                 "var_name":"pr",
                 "indice_type":"simple",
