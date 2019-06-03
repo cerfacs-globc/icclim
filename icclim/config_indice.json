@@ -93,7 +93,7 @@
                 "out_unit":"days"
             },
 
-            "CDSI":
+            "CSDI":
             {
                 "var_name":"tasmin",
                 "indice_type":"percentile_based",
