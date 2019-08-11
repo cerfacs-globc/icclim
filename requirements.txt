@@ -1,1 +1,2 @@
+tqdm==4.23.4
 pyocclient==0.4

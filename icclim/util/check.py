@@ -1,4 +1,8 @@
 import numpy as np
+from .. import maps
+from icclim.util import util_nc
+import xarray as xr
+import pdb
 
 def icclim_output_file_defaults(arg):
     # first embryo towards collecting certain stuff at a central place
@@ -28,6 +32,39 @@ def icclim_output_file_defaults(arg):
                                   + 'only "f" / "f4" / "float32" output is implemented')
 
     return defaults[arg]
+
+def formatting_before_calculation(ds, var_name, indice_name, slice_mode):
+
+    #TODO list all the check 
+    if indice_name in maps.consecutive_days_indice:
+        return util_nc.vectorize(ds, var_name, indice_name, slice_mode)
+
+    #Working with the dataArray type
+    
+    #if indice_name=='PRCPTOT':   
+    #    pdb.set_trace()
+    #check the system unit and convert it to the official unit from SU
+    ds[indice_name] = check_system_unit(ds, indice_name)
+    ds = xr.decode_cf(ds)
+    da = ds[indice_name]
+
+    if slice_mode in maps.season:
+        da = ds[indice_name]
+        return da[da.groupby(da['time.season']).groups[slice_mode]]
+    else:
+        return da
+
+
+
+
+def check_system_unit(ds, indice_name):
+    if ds[indice_name].units == 'degC' or ds[indice_name].units == 'Celsius': #Kelvin
+        return ds[indice_name] + 273.15
+    elif ds[indice_name].units in ["mm/s", "mm/sec", "kg m-2 s-1"]: # mm/s --> mm/day
+        return ds[indice_name] * 86400.0
+    else:
+        return ds[indice_name]
+
 
 def check_ncVar(ncVar):
     try: 

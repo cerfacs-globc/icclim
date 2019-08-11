@@ -4,17 +4,19 @@
 #  Author: Natalia Tatarinova
 #  Additions (2015, 2016): Christian Page
 
-import numpy
+import numpy as np
 import sys
 import pdb
+import datetime
 from datetime import timedelta
 from netCDF4 import Dataset
-
+import cftime
+import xarray as xr
 if sys.version_info[0] < 3:
     import util_dt
 else:
     from icclim.util import util_dt
-
+import pandas as pd
 
 def read_netCDF(file):
 
@@ -174,11 +176,11 @@ def set_time_values(nc, time_steps_arr_dt, calend, units):
     '''
     param time_steps_arr_dt: numpy array of datetime objects
     '''
-    time_steps_num = numpy.array([util_dt.date2num(i, calend, units) for i in time_steps_arr_dt])
+    time_steps_num = np.array([util_dt.date2num(i, calend, units) for i in time_steps_arr_dt])
     nc.variables['time'][:] = time_steps_num[:]
 
 def set_timebnds_values(nc, time_bnds_dt, calend, units):
-    time_bnds_num = numpy.array([util_dt.date2num(i, calend, units) for i in time_bnds_dt])
+    time_bnds_num = np.array([util_dt.date2num(i, calend, units) for i in time_bnds_dt])
     nc.variables['time_bnds'][:,:] = time_bnds_num[:,:]
     
     
@@ -329,17 +331,148 @@ def copy_var_dim(inc, onc, var, lev_dim_pos=1):
     return (str(time_var), str(lat_var), str(lon_var)) # tuple ('time', 'lat', 'lon')
 
 
+def subset_bbox(ds, time_range=None, lon_bnds=None, lat_bnds=None):
+    """Subset a datarray or dataset spatially (and temporally) using a lat lon bounding box and years selection.
+    Return a subsetted data array for grid points falling within a spatial bounding box
+    defined by longitude and latitudinal bounds and for years falling within provided year bounds.
+    Parameters
+    ----------
+    arr : xarray.DataArray or xarray.Dataset
+      Input data.
+    lon_bnds : list of floats
+      List of maximum and minimum longitudinal bounds. Optional. Defaults to all longitudes in original data-array.
+    lat_bnds :  list of floats
+      List maximum and minimum latitudinal bounds. Optional. Defaults to all latitudes in original data-array.
+
+    Returns
+    -------
+    xarray.DataArray or xarray.DataSet
+      subsetted data array or dataset
+    Examples
+    --------
+    >>> from xclim import subset
+    >>> ds = xr.open_dataset('pr.day.nc')
+    Subset lat lon and years
+    >>> prSub = subset.subset_bbox(ds.pr, lon_bnds=[-75,-70],lat_bnds=[40,45],start_yr=1990,end_yr=1999)
+    Subset data array lat, lon and single year
+    >>> prSub = subset.subset_bbox(ds.pr, lon_bnds=[-75,-70],lat_bnds=[40,45],start_yr=1990,end_yr=1990)
+    Subset dataarray single year keep entire lon, lat grid
+    >>> prSub = subset.subset_bbox(ds.pr,start_yr=1990,end_yr=1990) # one year only entire grid
+    Subset multiple variables in a single dataset
+    >>> ds = xr.open_mfdataset(['pr.day.nc','tas.day.nc'])
+    >>> dsSub = subset.subset_bbox(ds,lon_bnds=[-75,-70],lat_bnds=[40,45],start_yr=1990,end_yr=1999)
+    """
+
+    if lon_bnds is not None:
+        lon_bnds = np.asarray(lon_bnds)
+        if np.all(ds.lon > 0) and np.any(lon_bnds < 0):
+            lon_bnds[lon_bnds < 0] += 360
+        if np.all(ds.lon < 0) and np.any(lon_bnds > 0):
+            lon_bnds[lon_bnds < 0] -= 360
+        ds = ds.where((ds.lon >= lon_bnds.min()) & (ds.lon <= lon_bnds.max()), drop=True)
+
+    if lat_bnds is not None:
+        lat_bnds = np.asarray(lat_bnds)
+        ds = ds.where((ds.lat >= lat_bnds.min()) & (ds.lat <= lat_bnds.max()), drop=True)
+
+    if time_range is not None:
+        date_cf = cftime.date2num([time_range], ds.time.units, calendar=ds.time.calendar)[0]
+        ds = ds.sel(time=slice(date_cf[0], date_cf[1]))
+        
+    return ds
+
+def vectorize(da, var_ds, indice_name, slice_mode=None):
+    ds = xr.decode_cf(da)
+
+    time_value = ds.time.values
+    year = ds.groupby(ds['time.year']).groups
+    yearA = np.array([*year])
+    
+    i=0
+    season = ["MAM","JJA","SON"]
+    centroid_time = []
+    time_bnds = []
+    time_start = datetime.datetime.now()
+
+    if slice_mode in season:
+
+        seasonA = ds.groupby(ds['time.season']).groups[slice_mode]
+        for season_year in yearA:
+            s_y = np.array(year[season_year])   
+            mask = np.isin(s_y, seasonA)
+            interval_season = time_value[s_y[mask]]
+
+            if i==0:
+                dataA = np.zeros((len(yearA), len(interval_season), len(ds.coords['lat']), len(ds.coords['lon'])))
+                time2compute = np.arange(len(interval_season))
+
+            centroid_time.append(ds.time.sel(time=slice(interval_season[0], interval_season[-1])).mean())
+            #time_num = cftime.date2num(time_interval, da.time.units, calendar=da.time.calendar)
+            #centroid_time[i] = np.mean(time_num, da.time.units, calendar=da.time.calendar)[0]
+            time_bnds.append([interval_season[0],interval_season[-1]])
+            #data[str(centroid_time[i])] = ds[indice_name].sel(time=slice(interval_season[0], interval_season[-1])).values
+            dataA[i,:] = ds[indice_name].sel(time=slice(interval_season[0], interval_season[-1])).values
+            i+=1
+
+    elif slice_mode=='month':
+
+        month_iteration = 0
+        list_month = []
+        time2compute = np.arange(31)
+        for year_i in yearA:
+
+            year_interval = [year[year_i][0],year[year_i][-1]]
+            year_boundary = da.time.values[year_interval]
+            da_subset = da.sel(time=slice(year_boundary[0], year_boundary[1]))
+            ds_year = xr.decode_cf(da_subset)
+            monthA = ds_year.groupby(ds_year['time.month']).groups
+            
+            for month in monthA:
+
+                dat = np.zeros((31, len(ds.coords['lat']), len(ds.coords['lon'])))
+                dat[:] = np.nan
+                dat[np.arange(len(monthA[month])),:] = ds_year[indice_name].values[monthA[month],:]
+                list_month.append(dat)
+
+                time_bnds.append([da_subset.time.values[monthA[month]][0],da_subset.time.values[monthA[month]][-1]])
+                centroid_time.append(np.mean(time_bnds[month_iteration])) 
+
+                month_iteration += 1
+
+        dataA = np.asarray(list_month)
+
+    
+    lon=ds.lon.values
+    lat=ds.lat.values
+
+    #data = xr.Dataset({indice_name: (['time','time2compute','lat','lon'],dataA), 'time_bnds': (['time','bnds'], time_bnds)},coords={'time': centroid_time,'time2compute': time2compute,'lon': lon,'lat': lat})
+
+    data = xr.Dataset({indice_name: (['time','time2compute','lat','lon'],dataA), 
+                                    'time_bnds': (['time','bnds'], time_bnds)},
+                                    coords={'time': centroid_time,
+                                    'time2compute': time2compute,
+                                    'lon': lon,
+                                    'lat': lat})
+    time_end =  datetime.datetime.now()
+    print('delta_time: '+str(time_end-time_start))
+    return data
+
+
 def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_range=None, N_lev=None, lev_dim_pos=1, ignore_Feb29th=False, i1_row_current_tile=None, i2_row_current_tile=None, i1_col_current_tile=None, i2_col_current_tile=None, add_offset=0.0, scale_factor=1.0):
     
     try:
         calend = ncVar_temporal.calendar
     except:
         calend = 'gregorian'
+
+    """
+    ncVar_temporal.values
+    """
     units=ncVar_temporal.units
     
     time_arr = ncVar_temporal[:]
     
-    dt_arr = numpy.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
+    dt_arr = np.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
 
     # REMOVED, because netcdftime.datetime objects have no method total_seconds()
 #     deltat = (dt_arr[1]-dt_arr[0]).total_seconds()
@@ -365,14 +498,14 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_
             values_arr = (ncVar_values[indices_subset,N_lev,i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] * scale_factor) + add_offset
         
     if fill_val != None:
-        numpy.ma.set_fill_value(values_arr, fill_val)
+        np.ma.set_fill_value(values_arr, fill_val)
         
     assert(dt_arr.ndim == 1)    
     assert(values_arr.ndim == 3)
     
     if ignore_Feb29th == True and not calend == '360_day':
-        mask_Feb29th = numpy.array([ (dt.month==2 and dt.day==29) for dt in dt_arr])
-        indices_masked_Feb29th = numpy.where(mask_Feb29th==False)[0] # ...[0]: tuple to numpy.ndarray (http://stackoverflow.com/questions/16127444/why-is-my-array-length-1-when-building-it-with-numpy-where)
+        mask_Feb29th = np.array([ (dt.month==2 and dt.day==29) for dt in dt_arr])
+        indices_masked_Feb29th = np.where(mask_Feb29th==False)[0] # ...[0]: tuple to np.ndarray (http://stackoverflow.com/questions/16127444/why-is-my-array-length-1-when-building-it-with-numpy-where)
         dt_arr = dt_arr[indices_masked_Feb29th]
         values_arr = values_arr[indices_masked_Feb29th,:,:]
 
@@ -453,7 +586,7 @@ def save_percentile_netcdf(out_file, percentile_array):
     lat = onc.createDimension('lat', percentile_array.shape[1])
     lon = onc.createDimension('lon', percentile_array.shape[2])
 
-    Perc = onc.createVariable('Perc', numpy.float32, ('time', 'lat','lon')) 
+    Perc = onc.createVariable('Perc', np.float32, ('time', 'lat','lon')) 
 
     Perc[:] = percentile_array
 

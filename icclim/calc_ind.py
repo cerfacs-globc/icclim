@@ -57,7 +57,7 @@ import logging
 
 ### TODO: rename this function
 
-def zzz(indice_name, **kwargs):
+def get_indice_calculation(indice_name, **kwargs):
     if indice_name == 'TG' :
         res = TG_calculation(**kwargs)
         
@@ -208,6 +208,7 @@ def zzz(indice_name, **kwargs):
         res = R99pTOT_calculation(**kwargs)            
 
     else:
+        pdb.set_trace()
         logging.critical("Error: unknown indice name: %s. Please check documentation.", indice_name)
         raise SystemExit()
         

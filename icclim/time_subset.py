@@ -311,7 +311,6 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
             dt_bounds = numpy.array([ dt_arr_subset_i[0], dtt_i ]) # [ bnd1, bnd2 )
             
             return_dict[str(temporal_subset_mode), y] = (dt_centroid, dt_bounds, dt_arr_subset_i, arr_subset_i, fill_value) 
-    
             #print y
         
     # composed seasons (standard or user defined) of each year will be processed
@@ -359,7 +358,6 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
         
             #print y
     
-
     return return_dict
         
         

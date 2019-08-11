@@ -6,21 +6,34 @@
             {
                 "var_name":"tasmean",
                 "indice_type":"simple",
-                "out_unit":"days"
+                "stat_operation":"mean",
+                "out_unit":"days",
+                "metadata":{
+                    "long_name":"Mean of daily mean temperature",
+                    "units":"K"
+                }
             },
 
             "GD4":
             {
                 "var_name":"tasmean",
                 "indice_type":"simple",
-                "out_unit":"days"
+                "stat_operation":"max",
+                "metadata":{
+                    "long_name": "Growing degree days (sum of TG > 4 degrees)",
+                    "out_unit":"days"
+                }
+                
             },
 
             "HD17":
             {
                 "var_name":"tasmean",
                 "indice_type":"simple",
-                "out_unit":"days"
+                "metadata":{
+                    "long_name":"Heating degree days (sum of 17 degrees - mean temperature)",
+                    "out_unit":"days"
+                }
             },
 
             "TG10p":
@@ -41,6 +54,7 @@
             {
                 "var_name":"tasmin",
                 "indice_type":"simple",
+                "stat_operation":"mean",
                 "out_unit":"days"
             },
 
@@ -48,6 +62,7 @@
             {
                 "var_name":"tasmin",
                 "indice_type":"simple",
+                "stat_operation":"max",
                 "out_unit":"days"
             },
 
@@ -55,6 +70,7 @@
             {
                 "var_name":"tasmin",
                 "indice_type":"simple",
+                "stat_operation":"min",
                 "out_unit":"days"
             },
 
@@ -62,6 +78,7 @@
             {
                 "var_name":"tasmin",
                 "indice_type":"simple",
+                "stat_operation":"gt",
                 "out_unit":"days"
             },
 
@@ -69,6 +86,7 @@
             {
                 "var_name":"tasmin",
                 "indice_type":"simple",
+                "stat_operation":"lt",
                 "out_unit":"days"
             },
 
@@ -76,6 +94,7 @@
             {
                 "var_name":"tasmin",
                 "indice_type":"simple",
+                "stat_operation":"lt",
                 "out_unit":"days"
             },
 
@@ -104,6 +123,7 @@
             {
                 "var_name":"tasmax",
                 "indice_type":"simple",
+                "stat_operation":"mean",
                 "out_unit":"days"
             },
 
@@ -111,6 +131,7 @@
             {
                 "var_name":"tasmax",
                 "indice_type":"simple",
+                "stat_operation":"max",
                 "out_unit":"days"
             },
 
@@ -118,6 +139,7 @@
             {
                 "var_name":"tasmax",
                 "indice_type":"simple",
+                "min":"min",
                 "out_unit":"days"
             },
 
@@ -125,6 +147,7 @@
             {
                 "var_name":"tasmax",
                 "indice_type":"simple",
+                "stat_operation":"gt",
                 "out_unit":"days"
             },
 
@@ -132,13 +155,14 @@
             {
                 "var_name":"tasmax",
                 "indice_type":"simple",
+                "stat_operation":"gt",
                 "out_unit":"days"
             },
 
             "ID":
             {
                 "var_name":"tasmax",
-                "indice_type":"simple",
+                "indice_type":"lt",
                 "out_unit":"days"
             },
 
@@ -188,6 +212,7 @@
             {
                 "var_name":"pr",
                 "indice_type":"simple",
+                "stat_operation":"sum",
                 "out_unit":"days"
             },
 
@@ -195,6 +220,7 @@
             {
                 "var_name":"pr",
                 "indice_type":"simple",
+                "stat_operation":"get",
                 "out_unit":"days"
             },
 
@@ -202,6 +228,7 @@
             {
                 "var_name":"pr",
                 "indice_type":"simple",
+                "stat_operation":"mean",
                 "out_unit":"days"
             },
 
@@ -209,6 +236,7 @@
             {
                 "var_name":"pr",
                 "indice_type":"simple",
+                "stat_operation":"get",
                 "out_unit":"days"
             },
 

@@ -7,19 +7,47 @@
 
 # basic function used for computing indices 
 
-import numpy
+import numpy as np
 import pdb
 import sys
 from . import util_dt
 from collections import OrderedDict
-
+from . import read
 import ctypes
 from numpy.ctypeslib import ndpointer
 import os
+
 my_rep = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0] + os.sep
 libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 
+def threshold_calculation(da, threshold, logical_operation):
+    #Write a function to return a threshold selection
+    #operations are: "<, <=, >=, >" == "lt, let, get, gt"
+    if logical_operation=='gt':
+        return da.where(da>threshold)
+    elif logical_operation=='get':
+        return da.where(da>threshold)
+    elif logical_operation=='lt':
+        return da.where(da<threshold)
+    elif logical_operation=='let':
+        return da.where(da<=threshold)
 
+
+
+def simple_stat_2(da, freq_mode='YS', stat_operation=None):
+
+    if stat_operation=='mean':
+        return da.resample(time=freq_mode, keep_attrs=True).mean(dim='time')
+        #return da.mean(dim='time2compute')
+    elif stat_operation=='max':
+        return da.resample(time=freq_mode, keep_attrs=True).max(dim='time')
+        #return da.max(dim='time2compute')
+    elif stat_operation=='min':
+        return da.resample(time=freq_mode, keep_attrs=True).min(dim='time')
+        #return da.min(dim='time2compute')
+    elif stat_operation=='sum':
+        return da.resample(time=freq_mode, keep_attrs=True).sum(dim='time')
+    
 
 ## This function is used for user defined indices when 'date_event' param is True
 def get_first_occurrence(arr, val=1):
@@ -30,12 +58,12 @@ def get_first_occurrence(arr, val=1):
     
     '''
     ### we are looking for the first occurence of 1 (val=1)
-    res=numpy.argmax(arr==val, axis=0)
+    res=np.argmax(arr==val, axis=0)
 
     '''    
     Problem:
     
-    >>> a = numpy.zeros((4,2,3))
+    >>> a = np.zeros((4,2,3))
     >>> a[0,0,0]=1
     >>> a
     array([[[ 1.,  0.,  0.],
@@ -49,7 +77,7 @@ def get_first_occurrence(arr, val=1):
     
            [[ 0.,  0.,  0.],
             [ 0.,  0.,  0.]]])
-    >>> numpy.argmax(a==1, axis=0)
+    >>> np.argmax(a==1, axis=0)
     array([[0, 0, 0],
            [0, 0, 0]])
 
@@ -60,7 +88,7 @@ def get_first_occurrence(arr, val=1):
         
     '''
 
-    sum_arr = numpy.sum(arr, axis=0) # we have 0 if no event (1) is found 
+    sum_arr = np.sum(arr, axis=0) # we have 0 if no event (1) is found 
     
     test_res = sum_arr + res
     
@@ -81,9 +109,9 @@ def get_last_occurrence(arr, val=1):
     
     arr_inverted = arr[::-1,:,:]
 
-    firs_occ=numpy.argmax(arr_inverted==val, axis=0)
+    firs_occ=np.argmax(arr_inverted==val, axis=0)
         
-    sum_arr = numpy.sum(arr, axis=0)
+    sum_arr = np.sum(arr, axis=0)
         
     test_first_occ = sum_arr + firs_occ
     
@@ -95,24 +123,31 @@ def get_last_occurrence(arr, val=1):
         
     return res    
 
+def get_nb_events_2(da, freq_mode, threshold, logical_operation):
+
+    da = threshold_calculation(da, threshold, logical_operation)
+
+    da /= da
+
+    return da.resample(time=freq_mode, keep_attrs=True).sum(dim='time')
 
 def get_binary_arr(arr, logical_operation, thresh, dt_arr=None, fill_val=None):
     '''
     Compare "arr" with "thresh" and return a binary array with the result.
     
     :param arr: array to comparer with thresh
-    :type arr: numpy.ndarray (3D)
+    :type arr: np.ndarray (3D)
     
     :param thresh: threshold could be a number, an array or a dictionary with daily percentiles 
-    :type thresh: float or numpy.ndarray or collections.OrderedDict
+    :type thresh: float or np.ndarray or collections.OrderedDict
     
     :param logical_operation: logical operation to compare arr with thresh ('gt', 'get', 'lt', 'let', 'e')
     :type logical_operation: str
     
     :param dt_arr: datetime vector, required if thresh is a dictionary with daily percentiles 
-    :type dt_arr: numpy.ndarray (1D) with datetime.datetime objects
+    :type dt_arr: np.ndarray (1D) with datetime.datetime objects
     
-    :rtype: binary numpy.ndarray (3D)
+    :rtype: binary np.ndarray (3D)
 
     
     '''
@@ -124,7 +159,7 @@ def get_binary_arr(arr, logical_operation, thresh, dt_arr=None, fill_val=None):
     # thresh is a dictionary with daily percentiles
     if type(thresh)==OrderedDict:
         
-        binary_arr = numpy.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
+        binary_arr = np.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
 
         i=0
         for dt in dt_arr:
@@ -153,7 +188,6 @@ def get_binary_arr(arr, logical_operation, thresh, dt_arr=None, fill_val=None):
             elif logical_operation == 'e':
                     binary_arr[i,:,:] = arr_masked[i,:,:] == current_perc_arr
             
-
             i+=1
     
     
@@ -178,7 +212,7 @@ def get_binary_arr(arr, logical_operation, thresh, dt_arr=None, fill_val=None):
     binary_arr = binary_arr.astype(int) # True/False ---> 1/0
 
     # if binary_arr is masked array, we fill masked values with 0
-    if isinstance(binary_arr, numpy.ma.MaskedArray):
+    if isinstance(binary_arr, np.ma.MaskedArray):
         binary_arr = binary_arr.filled(0.0)
     
     return binary_arr
@@ -190,14 +224,14 @@ def get_masked_arr(arr, fill_val):
     If a filled array is passed (fill_value must be passed also), it will be transformed into a masked array.
     
     '''
-    if isinstance(arr, numpy.ma.MaskedArray):               # numpy.ma.MaskedArray
+    if isinstance(arr, np.ma.MaskedArray):               # np.ma.MaskedArray
         masked_arr = arr
-    else:                                                   # numpy.ndarray
+    else:                                                   # np.ndarray
         if (fill_val==None):
             raise(ValueError('If input array is not a masked array, a "fill_value" must be provided.'))
         mask_arr = (arr==fill_val)
-        masked_arr = numpy.ma.masked_array(arr, mask=mask_arr, fill_value=fill_val)
-    
+        masked_arr = np.ma.masked_array(arr, mask=mask_arr, fill_value=fill_val)
+
     return masked_arr
 
 
@@ -207,7 +241,7 @@ def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1
     Used for computing: TG, TX, TN, TXx, TNx, TXn, TNn, PRCPTOT, SD
     
     :param arr: input data array
-    :type arr: numpy.ndarray (3D)
+    :type arr: np.ndarray (3D)
     
 
     :param stat_operation: Statistical operation to be applied to `arr`: 'min', 'max', 'mean', 'sum' 
@@ -220,7 +254,7 @@ def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1
     :type fill_val: float
 
     :param thresh: threshold could be a number, an array or a dictionary with daily percentiles
-    :type thresh: float or numpy.ndarray or collections.OrderedDict
+    :type thresh: float or np.ndarray or collections.OrderedDict
     
     :param logical_operation: 'gt', 'get', 'lt', 'let', 'e'
     :type logical_operation: str
@@ -228,23 +262,19 @@ def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1
     :param index_event: If True, returns the index where the first occurrence of the event is found (only for 'max' and 'min')
     :type index_event: bool
     
-    :rtype: numpy.ndarray(2D) if index_event=False
-           or [numpy.ndarray(2D), numpy.ndarray(2D)] if index_event=True
+    :rtype: np.ndarray(2D) if index_event=False
+           or [np.ndarray(2D), np.ndarray(2D)] if index_event=True
            
     ..note:: if for example logical_operation='get' and thresh=20,
     this function will fist mask all values < 20 before doing statistical operation.
 
     If thresh is a dictionary with daily percentiles, dt_arr is required.
 
-
-
-
     '''
 
-    arr_masked = get_masked_arr(arr, fill_val) * coef                # numpy.ma.MaskedArray with fill_value=fill_val (if numpy.ndarray passed) or fill_value=arr.fill_value (if numpy.ma.MaskedArray is passed)
-
+    arr_masked = get_masked_arr(arr, fill_val) * coef                # np.ma.MaskedArray with fill_value=fill_val (if np.ndarray passed) or fill_value=arr.fill_value (if np.ma.MaskedArray is passed)
     # if thresh is a dictionary with daily percentiles
-    mask_a = numpy.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
+    mask_a = np.zeros((arr.shape[0], arr.shape[1], arr.shape[2]))
     if type(thresh)==OrderedDict:
 
         i=0
@@ -286,28 +316,28 @@ def simple_stat(arr, stat_operation, logical_operation=None, thresh=None, coef=1
         elif logical_operation=='let':
             mask_a = arr_masked > thresh
         
-    arr_masked = numpy.ma.array(arr_masked, mask=mask_a, fill_value=arr_masked.fill_value)
+    arr_masked = np.ma.array(arr_masked, mask=mask_a, fill_value=arr_masked.fill_value)
     
     
     if stat_operation=="mean":
-        res = arr_masked.mean(axis=0)                              # fill_value is changed: res is a new numpy.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
+        res = arr_masked.mean(axis=0)                              # fill_value is changed: res is a new np.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
     elif stat_operation=="min":
-        res = arr_masked.min(axis=0)                              # fill_value is changed: res is a new numpy.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
+        res = arr_masked.min(axis=0)                              # fill_value is changed: res is a new np.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
         if index_event==True:
-            index_event_arr=numpy.argmin(arr_masked, axis=0) # numpy.argmin works as well for masked arrays
+            index_event_arr=np.argmin(arr_masked, axis=0) # np.argmin works as well for masked arrays
         
     elif stat_operation=="max":
-        res = arr_masked.max(axis=0)                              # fill_value is changed: res is a new numpy.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
+        res = arr_masked.max(axis=0)                              # fill_value is changed: res is a new np.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
         if index_event==True:
-            index_event_arr=numpy.argmax(arr_masked, axis=0) # numpy.argmax works as well for masked arrays
+            index_event_arr=np.argmax(arr_masked, axis=0) # np.argmax works as well for masked arrays
     elif stat_operation=="sum":
-        res = arr_masked.sum(axis=0)                              # fill_value is changed: res is a new numpy.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
+        res = arr_masked.sum(axis=0)                              # fill_value is changed: res is a new np.ma.MaskedArray with default fill_value=999999 (!) => next line is to keep the fill_value of arr_masked
 
-    numpy.ma.set_fill_value(res, arr_masked.fill_value)
+    np.ma.set_fill_value(res, arr_masked.fill_value)
     
-    # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
-    if not isinstance(arr, numpy.ma.MaskedArray):
-        res = res.filled(fill_value=arr_masked.fill_value)      # numpy.ndarray filled with input fill_val
+    # res must be np.ma.MaskedArray if arr is np.ma.MaskedArray
+    if not isinstance(arr, np.ma.MaskedArray):
+        res = res.filled(fill_value=arr_masked.fill_value)      # np.ndarray filled with input fill_val
     
     if index_event==True and stat_operation in ['min', 'max']:
         return [res, index_event_arr]
@@ -335,7 +365,7 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
     
     ## array data type should be 'float32' to pass it to C function  
     if arr_filled.dtype != 'float32':
-        arr_filled = numpy.array(arr_filled, dtype='float32')
+        arr_filled = np.array(arr_filled, dtype='float32')
     
     C_get_run_stat = libraryC.get_run_stat_3d
     C_get_run_stat.restype = None
@@ -351,8 +381,8 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
                                 ndpointer(ctypes.c_int) # int *index_event                                                              
                                 ]
     
-    res = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]]) # reserve memory
-    first_index_event = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
+    res = np.zeros([arr_filled.shape[1], arr_filled.shape[2]]) # reserve memory
+    first_index_event = np.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
 
     if sys.version_info[0] >= 3:
         stat_mode = stat_mode.encode('ascii')
@@ -371,10 +401,10 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
 
     res = res.reshape(arr_filled.shape[1], arr_filled.shape[2])
     
-    # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
-    if isinstance(arr, numpy.ma.MaskedArray):
-#        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
-        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
+    # res must be np.ma.MaskedArray if arr is np.ma.MaskedArray
+    if isinstance(arr, np.ma.MaskedArray):
+#        res = np.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+        res = np.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
     del in_mask
     
     
@@ -389,7 +419,36 @@ def get_run_stat(arr, window_width, stat_mode, extreme_mode, coef=1.0, fill_val=
         index_event_bounds=[first_index_event, last_index_event]
         return [res, index_event_bounds] # [2D, [2D, 2D]]
 
-    
+def get_max_nb_consecutive_days_2(da, logical_operation, threshold, freq_mode='YS'):
+
+    da = threshold_calculation(da, threshold, logical_operation)
+    da /= da
+
+    roll_arr = da.rolling(time2compute=2, min_periods=2)
+    test_arr = da.sum(dim='time2compute')
+    mask = test_arr > 0 
+
+    for label, arr_window in roll_arr:
+        if label==0:
+            arr_sum = arr_window.sum(dim='time2compute')
+            arr_max = arr_sum
+            arr_sum_before = arr_sum
+
+        else:
+            res = arr_window.sum(dim='time2compute')
+            previous = (res>arr_sum_before)*1
+            arr_sum = (arr_sum+res.where(res<2, 1))*res.where(res<2, 1) + previous
+            arr_max = np.maximum(arr_sum,arr_max) 
+            arr_sum_before = res
+
+    cond = mask & (arr_max == 0)
+    arr_max.values[np.where(cond)]=1
+
+    return arr_max
+
+
+
+
 ### This function uses "find_max_len_consec_sequence_3d" function from libC.c
 def get_max_nb_consecutive_days(arr, logical_operation, thresh, coef=1.0, fill_val=None, index_event=False, out_unit="days"):
 
@@ -407,7 +466,7 @@ def get_max_nb_consecutive_days(arr, logical_operation, thresh, coef=1.0, fill_v
         
     # array data type should be 'float32' to pass it to C function  
     if arr_filled.dtype != 'float32':
-        arr_filled = numpy.array(arr_filled, dtype='float32')
+        arr_filled = np.array(arr_filled, dtype='float32')
     
     C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
     C_find_max_len_consec_sequence_3d.restype = None
@@ -423,9 +482,9 @@ def get_max_nb_consecutive_days(arr, logical_operation, thresh, coef=1.0, fill_v
                                                     ndpointer(ctypes.c_int), # int *index_event_end
                                                     ] 
     
-    res = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]]) # reserve memory
-    first_index_event = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
-    last_index_event = numpy.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
+    res = np.zeros([arr_filled.shape[1], arr_filled.shape[2]]) # reserve memory
+    first_index_event = np.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
+    last_index_event = np.zeros([arr_filled.shape[1], arr_filled.shape[2]], dtype='int32') # reserve memory
     logical_operation = logical_operation.encode('utf-8')
 
     C_find_max_len_consec_sequence_3d(arr_filled, 
@@ -448,10 +507,10 @@ def get_max_nb_consecutive_days(arr, logical_operation, thresh, coef=1.0, fill_v
         res = res*(100./arr.shape[0])
     
     
-    # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
-    if isinstance(arr, numpy.ma.MaskedArray):
-#        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
-        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
+    # res must be np.ma.MaskedArray if arr is np.ma.MaskedArray
+    if isinstance(arr, np.ma.MaskedArray):
+#        res = np.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+        res = np.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
     del in_mask
 
     if index_event==False:
@@ -470,7 +529,7 @@ def get_nb_events(arr, logical_operation, thresh, fill_val=None, index_event=Fal
     
     '''
     :param thresh: threshold could be a number, an array or a dictionary with daily percentiles 
-    :type thresh: float or numpy.ndarray or collections.OrderedDict
+    :type thresh: float or np.ndarray or collections.OrderedDict
     
     If thresh is a dictionary with daily percentiles, dt_arr is required.
 
@@ -478,14 +537,13 @@ def get_nb_events(arr, logical_operation, thresh, fill_val=None, index_event=Fal
     arr_masked = get_masked_arr(arr, fill_val) * coef
     in_mask = arr_masked.mask[0, :, :]
 
-    
     binary_arr_3D = get_binary_arr(arr=arr_masked, 
                                    logical_operation=logical_operation,
                                    thresh=thresh,                                     
                                    dt_arr=dt_arr)
     
     
-    res = numpy.sum(binary_arr_3D, axis=0)
+    res = np.sum(binary_arr_3D, axis=0)
     
     
     if out_unit == "days":
@@ -494,21 +552,23 @@ def get_nb_events(arr, logical_operation, thresh, fill_val=None, index_event=Fal
         res = res*(100./arr.shape[0])
         
     
-    # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
-    if isinstance(arr, numpy.ma.MaskedArray):
-#        res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
-        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
+    # res must be np.ma.MaskedArray if arr is np.ma.MaskedArray
+    if isinstance(arr, np.ma.MaskedArray):
+#        res = np.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+        res = np.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
     del in_mask
     
     if index_event==True:
+
         first_occurrence_event=get_first_occurrence(binary_arr_3D)
         last_occurrence_event=get_last_occurrence(binary_arr_3D)
 
         index_event_bounds=[first_occurrence_event, last_occurrence_event]
-        
+
         return [res, index_event_bounds]   
     
     else:    
+
         return res
 
 
@@ -526,24 +586,24 @@ def get_nb_events_multivar(bin_arrs, link_logical_operation, fill_val, index_eve
     i=1
     for i in range(len(bin_arrs)):
         if link_logical_operation=='and':
-            bin_res = numpy.logical_and(bin_res, bin_arrs[i])
+            bin_res = np.logical_and(bin_res, bin_arrs[i])
             
         elif link_logical_operation=='or':
-            bin_res = numpy.logical_or(bin_res, bin_arrs[i]) 
+            bin_res = np.logical_or(bin_res, bin_arrs[i]) 
             
         i+=1
     if  max_consecutive==False:   
-        res = numpy.sum(bin_res, axis=0) 
+        res = np.sum(bin_res, axis=0) 
         
     else:  ### max_consecutive==True 
         ### we pass bin_res to C function
     
         ##############
-        assert(isinstance(bin_res, numpy.ndarray)) ### we check if bin_res is not a masked array
+        assert(isinstance(bin_res, np.ndarray)) ### we check if bin_res is not a masked array
 
         # array data type should be 'float32' to pass it to C function  
         if bin_res.dtype != 'float32':
-            bin_res = numpy.array(bin_res, dtype='float32')
+            bin_res = np.array(bin_res, dtype='float32')
         
         C_find_max_len_consec_sequence_3d = libraryC.find_max_len_consec_sequence_3d
         C_find_max_len_consec_sequence_3d.restype = None
@@ -559,9 +619,9 @@ def get_nb_events_multivar(bin_arrs, link_logical_operation, fill_val, index_eve
                                                         ndpointer(ctypes.c_int), # int *index_event_end
                                                         ] 
         
-        res = numpy.zeros([bin_res.shape[1], bin_res.shape[2]]) # reserve memory
-        first_index_event = numpy.zeros([bin_res.shape[1], bin_res.shape[2]], dtype='int32') # reserve memory
-        last_index_event = numpy.zeros([bin_res.shape[1], bin_res.shape[2]], dtype='int32') # reserve memory
+        res = np.zeros([bin_res.shape[1], bin_res.shape[2]]) # reserve memory
+        first_index_event = np.zeros([bin_res.shape[1], bin_res.shape[2]], dtype='int32') # reserve memory
+        last_index_event = np.zeros([bin_res.shape[1], bin_res.shape[2]], dtype='int32') # reserve memory
     
         
         C_find_max_len_consec_sequence_3d(bin_res, 
@@ -633,7 +693,7 @@ def WCSDI(arr, dt_arr, percentile_dict, logical_operation, fill_val=None, N=6):
     
     # array data type should be 'float32' to pass it to C function  
     if binary_arr_3D.dtype != 'float32':
-        binary_arr_3D = numpy.array(binary_arr_3D, dtype='float32')
+        binary_arr_3D = np.array(binary_arr_3D, dtype='float32')
     
     
     WSDI_CSDI_C = libraryC.WSDI_CSDI_3d    
@@ -645,16 +705,16 @@ def WCSDI(arr, dt_arr, percentile_dict, logical_operation, fill_val=None, N=6):
                             ndpointer(ctypes.c_double),
                             ctypes.c_int] 
         
-    res = numpy.zeros([arr.shape[1], arr.shape[2]]) # reserve memory
+    res = np.zeros([arr.shape[1], arr.shape[2]]) # reserve memory
         
     WSDI_CSDI_C(binary_arr_3D, binary_arr_3D.shape[0], binary_arr_3D.shape[1], binary_arr_3D.shape[2], res, N)
     
     res = res.reshape(arr.shape[1], arr.shape[2])
     
-    # res must be numpy.ma.MaskedArray if arr is numpy.ma.MaskedArray
-    if isinstance(arr, numpy.ma.MaskedArray):
-    #    res = numpy.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
-        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
+    # res must be np.ma.MaskedArray if arr is np.ma.MaskedArray
+    if isinstance(arr, np.ma.MaskedArray):
+    #    res = np.ma.array(res, mask=res==arr_masked.fill_value, fill_value=arr_masked.fill_value)
+        res = np.ma.masked_array(res, mask=in_mask, fill_value=arr_masked.fill_value)
     del in_mask
 
     return res    
@@ -673,16 +733,16 @@ def RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_v
     bin_arr = get_binary_arr(arr=wet_arr, logical_operation=logical_operation, thresh=percentile_arr)
     
     # we inverse bin_arr to get a mask (i.e. to mask values which are less or equal than the Xth percentile)
-    maska_ = numpy.logical_not(bin_arr)
+    maska_ = np.logical_not(bin_arr)
     
     # we apply the mask to wet_arr
-    arr_ma = numpy.ma.array(wet_arr, mask=maska_, fill_value=fill_val)
+    arr_ma = np.ma.array(wet_arr, mask=maska_, fill_value=fill_val)
     
-    res = numpy.sum(arr_ma, axis=0)
+    res = np.sum(arr_ma, axis=0)
 
-    if isinstance(arr, numpy.ma.MaskedArray):
-#        res = numpy.ma.array(res, mask=res==fill_val, fill_value=fill_val)
-        res = numpy.ma.masked_array(res, mask=in_mask, fill_value=fill_val)
+    if isinstance(arr, np.ma.MaskedArray):
+#        res = np.ma.array(res, mask=res==fill_val, fill_value=fill_val)
+        res = np.ma.masked_array(res, mask=in_mask, fill_value=fill_val)
     del in_mask
         
     
@@ -691,12 +751,12 @@ def RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_v
 
 
 def get_date_event_arr(dt_arr, index_arr, time_calendar, time_units, fill_val):
-    ## dt_arr: 1D numpy array with datetime.datetime objects
+    ## dt_arr: 1D np array with datetime.datetime objects
     ## index_arr: 2D array with indices
     ## return: 2D array with with numeric dates 
     
     
-    res = numpy.zeros((index_arr.shape[0], index_arr.shape[1]))
+    res = np.zeros((index_arr.shape[0], index_arr.shape[1]))
     for i in range(index_arr.shape[0]):
         for j in range(index_arr.shape[1]):     
             index =  index_arr[i,j] 
@@ -712,22 +772,22 @@ def get_date_event_arr(dt_arr, index_arr, time_calendar, time_units, fill_val):
 
 
 def get_anomaly(arr, arr2, fill_val, out_unit=None):
-    ### arr: 3D numpy array corresponding to studied period (future)
-    ### arr2: 3D numpy array corresponding to reference period (past)
+    ### arr: 3D np array corresponding to studied period (future)
+    ### arr2: 3D np array corresponding to reference period (past)
     arr1_masked = get_masked_arr(arr, fill_val)
     in_mask1 = arr1_masked.mask[0, :, :]
     arr2_masked = get_masked_arr(arr2, fill_val)
     
-    arr1_mean = numpy.ma.mean(arr1_masked, axis=0) # future
-    arr2_mean = numpy.ma.mean(arr2_masked, axis=0) # past
+    arr1_mean = np.ma.mean(arr1_masked, axis=0) # future
+    arr2_mean = np.ma.mean(arr2_masked, axis=0) # past
      
     #anomaly = abs(arr1_mean - arr2_mean)
     anomaly = arr1_mean - arr2_mean
     
-    # anomaly must be numpy.ma.MaskedArray if arr and arr2 are numpy.ma.MaskedArray
-    if isinstance(arr, numpy.ma.MaskedArray):
-#        anomaly = numpy.ma.array(anomaly, mask=anomaly==arr1_masked.fill_value, fill_value=arr1_masked.fill_value)
-        anomaly = numpy.ma.masked_array(anomaly, mask=in_mask1, fill_value=arr1_masked.fill_value)
+    # anomaly must be np.ma.MaskedArray if arr and arr2 are np.ma.MaskedArray
+    if isinstance(arr, np.ma.MaskedArray):
+#        anomaly = np.ma.array(anomaly, mask=anomaly==arr1_masked.fill_value, fill_value=arr1_masked.fill_value)
+        anomaly = np.ma.masked_array(anomaly, mask=in_mask1, fill_value=arr1_masked.fill_value)
     del in_mask1
     
     if out_unit == "%":
@@ -747,6 +807,6 @@ def get_wet_days(arr, fill_val=None):
     
     maska = arr_masked < 1.0 
 
-    arr_wet = numpy.ma.array(arr_masked, mask=maska, fill_value=arr_masked.fill_value)
+    arr_wet = np.ma.array(arr_masked, mask=maska, fill_value=arr_masked.fill_value)
     
     return arr_wet

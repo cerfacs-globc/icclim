@@ -11,6 +11,7 @@ import os
 from netCDF4 import Dataset, MFDataset
 import numpy
 import sys
+import cftime
 
 # unused function
 def get_list_dates_from_nc(nc, type_dates):
@@ -297,6 +298,9 @@ def harmonize_hourly_timestamp(time_range, calend, dt):
 
     return [time_range_begin, time_range_end]
 
+def from_datetime_to_cftime(ds, time_range):
+    date_cf = cftime.date2num([time_range], ds.time.units, calendar=ds.time.calendar)[0]
+    return date_cf
 
 def get_indices_subset(dt_arr, time_range):
     '''
@@ -316,7 +320,6 @@ def get_indices_subset(dt_arr, time_range):
 
         mask_dt_arr = numpy.logical_or(dt_arr<dt1, dt_arr>dt2)
         indices_non_masked = numpy.where(mask_dt_arr==False)[0]
-
         return indices_non_masked
         
     else: 

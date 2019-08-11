@@ -1,4 +1,4 @@
-
+import pdb
 
 map_indice_type =   {
                         'simple': ['TG', 'TX', 'TN', 'TXx', 'TXn', 'TNx', 'TNn', 'SU', 'TR', 'CSU', 'GD4', 'FD', 'CFD',
@@ -10,6 +10,19 @@ map_indice_type =   {
                         'percentile_based': ['TG10p', 'TX10p', 'TN10p', 'TG90p', 'TX90p', 'TN90p', 'WSDI', 'CSDI',
                                              'R75p', 'R75pTOT', 'R95p', 'R95pTOT', 'R99p', 'R99pTOT']
                     }
+
+season = ['DJF', 'MAM', 'JJA', 'SON']
+
+consecutive_days_indice = ['CFD', 'CSU', 'CWD','CDD']
+
+freq_mode = {
+                'month':'MS',
+                'DJF':'QS-DEC',
+                'MAM':'YS',
+                'JJA':'YS',
+                'SON':'YS',
+                'year':'YS'
+            }
 
 map_indice_percentile_value =   {
                                     'TG10p': [10],
@@ -52,3 +65,6 @@ map_var_type =   {
                   
                 }
 
+
+def map_slice_mode(slice_mode, freq_mode=freq_mode):
+    return freq_mode[slice_mode]

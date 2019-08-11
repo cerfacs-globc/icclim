@@ -15,6 +15,7 @@ import numpy
 import logging
 import pkg_resources
 import time
+import xarray as xr
 
 import pdb
 
@@ -50,6 +51,7 @@ else:
     from . import time_subset
     from . import maps
     from . import calc_ind
+    from . import calc_ind_2
 
     from icclim.util import callback
     from icclim.util import read
@@ -60,8 +62,10 @@ else:
     from icclim.util import check
     from icclim.util import files_order
     from icclim.util import calc
+    from icclim.util import metadata
     from icclim.util import logging_info
     from icclim.util import user_indice as ui
+
     from icclim.icclim_exceptions import *
 
 #Initial Config
@@ -178,6 +182,10 @@ def indice(in_files,
     #######################################################
     ########## User index check params
 
+    ########################################
+    ################# RE-WRITE THE CODE FROM HERE TO....
+    ########################################
+
     var_name, in_files = ui.check_features(var_name, in_files)
 
     VARS_in_files = ui.get_VARS_in_files(var_name, in_files)
@@ -208,7 +216,6 @@ def indice(in_files,
     onc = util_nc.create_output_netcdf(netcdf_version, out_file)
     ind_type = check.icclim_output_file_defaults('variable_type_str')
     
-    
     ########################################
     ################# META DATA: begin
     ########################################
@@ -231,6 +238,19 @@ def indice(in_files,
 #   Currently icclim cannot deal with valid_min, valid_max, and valid_range, 
 #   as they imply the possibility of a range of missing/invalid values. 
 
+
+    #From set_globattr.py, extract the function where the calculation are defined
+    #Watch how xclim did to describe the data and calculation and do the same
+
+    #Define new lon/lat time subset time bnds
+
+    #Extract data attributes, i.e history, source, reference...
+
+    #Fulfill with value, rename the variable in the xarray dataset aka change tasmax for TG for example
+
+
+
+
     in_valid = check.check_ncVar(ncVar)
     logging_info.wrong_variable_attribute_message(in_valid)    
 
@@ -242,8 +262,8 @@ def indice(in_files,
     else:
         index_time = 0
 
-    ncVar_time = inc.variables[dimensions_list_var[index_time]]
-    
+    ncVar_time = ncVar_time = inc.variables[dimensions_list_var[index_time]]
+
     ############## in case of user defined thresholds 
     global nb_user_thresholds, user_thresholds    
     
@@ -275,7 +295,19 @@ def indice(in_files,
     
     if indice_type.startswith('user_indice_') and user_indice['date_event']==True:
         util_nc.set_date_event(onc, user_indice, indice_dim, fill_val, ncVar_time)
-    
+
+
+    ########################################
+    ################# .........TO HERE
+    ########################################
+
+
+    #TODO if icclim is based on xarray, the netcdftime module and all the function using it will be deprecated
+    #ds = xr.open_mfdataset(in_files, decode_times=False)
+    #if time_range is not None:
+    #    time_range_xa = util_dt.from_datetime_to_cftime(ds, time_range)
+
+    time_range_xa = time_range
     time_range = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
                                         time_range=time_range, temporal_var_name=indice_dim[0])
 
@@ -312,6 +344,7 @@ def indice(in_files,
 
     for v in var_name:
         
+        #DEFINE HERE THE VAR DICT
         current_var_dict = OrderedDict({
                                 'files_years': OrderedDict(), 
                                 'time_calendar': [],
@@ -345,239 +378,241 @@ def indice(in_files,
                                                      time_range=time_range)
 
         vars_tile_dimension.append(tile_dimension)
-
-    tile_dimension = min(vars_tile_dimension)
-
-    global nb_chunks
     
-    # chunk tiles    
-    tile_map = OCGIS_tile.get_tile_schema(nrow=var_shape1, ncol=var_shape2, tdim=tile_dimension, origin=0)
-        
-    nb_chunks = len(tile_map)
+    chunk_counter=0
+    #####    for each target variable
+    for v in var_name:
+        filename = [name for name in VARS[v]['files_years'].keys()][0]
+        inc = Dataset(filename, 'r')
 
-    global chunk_counter
-    chunk_counter = 0
-
+        ncVar = inc.variables[v]    
+        dimensions_list_current_var = ncVar.dimensions
     
-    #####    for each chunk
-    for tile_id in tile_map:
+        # Old code (1 line below) does not take into accound that _FillValue may not exist
+        # Instead we assume that the fill_value remains as assigned earlier
+        # If we cannot assume this, then a proper check of the data/variable consistency across files should be done
+        # fill_val = ncVar._FillValue.astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
+        VARS[v]['fill_value']=fill_val
+
+        ncVar_time = inc.variables[dimensions_list_current_var[index_time]]
         
-        if len(tile_map)>1:
-            logging.info("Loading data: chunk " + str(int(chunk_counter+1)) + '/'+ str(len(tile_map)) + " ...")
-        else:
-            logging.info("Loading data...")
+        try:
+            calend = ncVar_time.calendar
+        except:
+            calend = 'gregorian'
+            
+        units = ncVar_time.units
         
-        #####    for each target variable
-        for v in var_name:
-            if chunk_counter == 0:
-                filename = [name for name in VARS[v]['files_years'].keys()][0]
-                inc = Dataset(filename, 'r')
+        VARS[v]['time_calendar']=calend
+        VARS[v]['time_units']=units
 
-                ncVar = inc.variables[v]    
-                dimensions_list_current_var = ncVar.dimensions
+        var_units = getattr(inc.variables[v],'units')
+
+        # Units conversion
+        var_add = 0.0
+        var_scale = 1.0
+        if var_units == 'degC' or var_units == 'Celsius': #Kelvin
+            var_add = var_add + 273.15
+        elif var_units in ["mm/s", "mm/sec", "kg m-2 s-1"]: # mm/s --> mm/day
+            var_scale = var_scale * 86400.0
             
-                # Old code (1 line below) does not take into accound that _FillValue may not exist
-                # Instead we assume that the fill_value remains as assigned earlier
-                # If we cannot assume this, then a proper check of the data/variable consistency across files should be done
-                # fill_val = ncVar._FillValue.astype('float32') # fill value (_FillValue) must be the same type as data type: float32 (ind_type = 'f', i.e. float32)
-                VARS[v]['fill_value']=fill_val
+        VARS[v]['unit_conversion_var_add']=var_add
+        VARS[v]['unit_conversion_var_scale']=var_scale
 
-                ncVar_time = inc.variables[dimensions_list_current_var[index_time]]
-             
-                try:
-                    calend = ncVar_time.calendar
-                except:
-                    calend = 'gregorian'
-                 
-                units = ncVar_time.units
-                
-                VARS[v]['time_calendar']=calend
-                VARS[v]['time_units']=units
+        filename = [name for name in VARS[v]['files_years'].keys()]
 
-                var_units = getattr(inc.variables[v],'units')
+        ##############################################################
+        ###########CHECK AND MAP ALL THE VARIABLE#####################
+        #check.py
+        #map the season name
+        #create a check with the time subset and slice_mode i.e DJF is a special one
+        #because it's in between two different years.
+        #Check if there's some missing data and fill it with fill_value
+        ##############################################################
 
-                # Units conversion
-                var_add = 0.0
-                var_scale = 1.0
-                if var_units == 'degC' or var_units == 'Celsius': #Kelvin
-                    var_add = var_add + 273.15
-                elif var_units in ["mm/s", "mm/sec", "kg m-2 s-1"]: # mm/s --> mm/day
-                    var_scale = var_scale * 86400.0
-                    
-                VARS[v]['unit_conversion_var_add']=var_add
-                VARS[v]['unit_conversion_var_scale']=var_scale
+        #decode_times set up to False to fit the current icclim version
+        ds = xr.open_mfdataset(filename, decode_times=False)
 
-            filename = [name for name in VARS[v]['files_years'].keys()]
-            nc = MFDataset(filename, 'r', aggdim=dim_name) # VARS[v]['files_years'].keys(): files of current variable
-            var_time = nc.variables[indice_dim[0]]
-            var = nc.variables[v]
+        data_var_names = [*ds.data_vars]
+        coor_names = [*ds.coords]
+       
+        #####TODO FOR THE BETA and ONLY for the test [0] has been added at the end. On alpha version we must be able to take a list in account for multivariable
+        #var_name = [name for name in data_var_names if not name.endswith('bnds')][0]
+        #TODO var_name extraction could be really instable depending on the units order - change or test this line with many different dataset
+        var_name = data_var_names[-1]
 
-            ### coordinate of current chunk:
-            ### indices of the left upper corner: (i1_row_current_tile, i1_col_current_tile)
-            ### indices of the right lower corner: (i2_row_current_tile, i2_col_current_tile)
-            i1_row_current_tile = tile_map.get(tile_id).get('row')[0]
-            i2_row_current_tile = tile_map.get(tile_id).get('row')[1]
+        ds = ds.rename({var_name:indice_name})
+
+        ds = util_nc.subset_bbox(ds, time_range)
+        freq_mode = maps.map_slice_mode(slice_mode)
+
+        #if the 
+        #ds = ds.rename({var_name:indice_name})
+        ds = check.formatting_before_calculation(ds, var_name, indice_name, slice_mode)
+        #ds = util_nc.vectorize(ds, var_name, indice_name, slice_mode)
+        ds = calc_ind_2.get_indice_calculation(indice_name, ds, **{'freq_mode':freq_mode})
+        print('done')
+        
+        nc = MFDataset(filename, 'r', aggdim=dim_name) # VARS[v]['files_years'].keys(): files of current variable
+        
+        var_time = nc.variables[indice_dim[0]]
+        var = nc.variables[v]
+
+        arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
+                                                                    fill_val=VARS[v]['fill_value'], 
+                                                                    time_range=time_range, 
+                                                                    N_lev=N_lev, 
+                                                                    lev_dim_pos=lev_dim_pos,
+                                                                    scale_factor=VARS[v]['unit_conversion_var_scale'], 
+                                                                    add_offset=VARS[v]['unit_conversion_var_add'],
+                                                                    ignore_Feb29th=ignore_Feb29th)
+
+        
+
+        VARS[v]['dt_arr']=arrs_current_chunk[0]            
+        VARS[v]['values_arr']=arrs_current_chunk[1]
+
+        
+        if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
+            MF_nc = [MF_nc for MF_nc in VARS[v]['files_years_base'].keys()]
+            ncb = MFDataset(MF_nc, 'r', aggdim=dim_name)
+            var_time = ncb.variables[indice_dim[0]]
+            var = ncb.variables[v]
+            arrs_current_chunk_ref = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
+                                                                        fill_val=VARS[v]['fill_value'], 
+                                                                        time_range=base_period_time_range, 
+                                                                        N_lev=N_lev, 
+                                                                        lev_dim_pos=lev_dim_pos,
+                                                                        scale_factor=VARS[v]['unit_conversion_var_scale'], 
+                                                                        add_offset=VARS[v]['unit_conversion_var_add'],
+                                                                        ignore_Feb29th=ignore_Feb29th,
+                                                                        i1_row_current_tile=i1_row_current_tile,
+                                                                        i2_row_current_tile=i2_row_current_tile,
+                                                                        i1_col_current_tile=i1_col_current_tile,
+                                                                        i2_col_current_tile=i2_col_current_tile)
             
-            i1_col_current_tile = tile_map.get(tile_id).get('col')[0]
-            i2_col_current_tile = tile_map.get(tile_id).get('col')[1]  
-                        
-            arrs_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
-                                                                     fill_val=VARS[v]['fill_value'], 
-                                                                     time_range=time_range, 
-                                                                     N_lev=N_lev, 
-                                                                     lev_dim_pos=lev_dim_pos,
-                                                                     scale_factor=VARS[v]['unit_conversion_var_scale'], 
-                                                                     add_offset=VARS[v]['unit_conversion_var_add'],
-                                                                     ignore_Feb29th=ignore_Feb29th, 
-                                                                     i1_row_current_tile=i1_row_current_tile,
-                                                                     i2_row_current_tile=i2_row_current_tile,
-                                                                     i1_col_current_tile=i1_col_current_tile,
-                                                                     i2_col_current_tile=i2_col_current_tile)
+            ncb.close()
+
+            VARS[v]['values_arr_ref']=arrs_current_chunk_ref[1] # arrs_current_chunk_ref[1]: values, arrs_current_chunk_ref[0]: dt_arr
+
+
+        if indice_type in ["percentile_based", "percentile_based_multivariable"] or indice_type.startswith('user_indice_percentile_'):
+            MF_nc = [MF_nc for MF_nc in VARS[v]['files_years_base'].keys()]
+            ncb = MFDataset(MF_nc, 'r', aggdim=dim_name)
+            var_time = ncb.variables[indice_dim[0]]
+            var = ncb.variables[v]
+            arrs_base_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
+                                                                        fill_val=VARS[v]['fill_value'], 
+                                                                        time_range=base_period_time_range, 
+                                                                        N_lev=N_lev, 
+                                                                        lev_dim_pos=lev_dim_pos,
+                                                                        scale_factor=VARS[v]['unit_conversion_var_scale'], 
+                                                                        add_offset=VARS[v]['unit_conversion_var_add'],
+                                                                        ignore_Feb29th=ignore_Feb29th,
+                                                                        i1_row_current_tile=i1_row_current_tile,
+                                                                        i2_row_current_tile=i2_row_current_tile,
+                                                                        i1_col_current_tile=i1_col_current_tile,
+                                                                        i2_col_current_tile=i2_col_current_tile)
             
-            VARS[v]['dt_arr']=arrs_current_chunk[0]            
-            VARS[v]['values_arr']=arrs_current_chunk[1]
+            ncb.close()
 
+            VARS[v]['base']['dt_arr']=arrs_base_current_chunk[0]
+            VARS[v]['base']['values_arr']=arrs_base_current_chunk[1]
 
-            
-            if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
-                MF_nc = [MF_nc for MF_nc in VARS[v]['files_years_base'].keys()]
-                ncb = MFDataset(MF_nc, 'r', aggdim=dim_name)
-                var_time = ncb.variables[indice_dim[0]]
-                var = ncb.variables[v]
-                arrs_current_chunk_ref = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
-                                                                            fill_val=VARS[v]['fill_value'], 
-                                                                            time_range=base_period_time_range, 
-                                                                            N_lev=N_lev, 
-                                                                            lev_dim_pos=lev_dim_pos,
-                                                                            scale_factor=VARS[v]['unit_conversion_var_scale'], 
-                                                                            add_offset=VARS[v]['unit_conversion_var_add'],
-                                                                            ignore_Feb29th=ignore_Feb29th,
-                                                                            i1_row_current_tile=i1_row_current_tile,
-                                                                            i2_row_current_tile=i2_row_current_tile,
-                                                                            i1_col_current_tile=i1_col_current_tile,
-                                                                            i2_col_current_tile=i2_col_current_tile)
-                
-                ncb.close()
+        dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=VARS[v]['dt_arr'], 
+                                                                    values_arr=VARS[v]['values_arr'],
+                                                                    fill_value=VARS[v]['fill_value'],
+                                                                    calend=VARS[v]['time_calendar'],
+                                                                    temporal_subset_mode=slice_mode, 
+                                                                    time_range=time_range)
 
-                VARS[v]['values_arr_ref']=arrs_current_chunk_ref[1] # arrs_current_chunk_ref[1]: values, arrs_current_chunk_ref[0]: dt_arr
-
-
-            if indice_type in ["percentile_based", "percentile_based_multivariable"] or indice_type.startswith('user_indice_percentile_'):
-                MF_nc = [MF_nc for MF_nc in VARS[v]['files_years_base'].keys()]
-                ncb = MFDataset(MF_nc, 'r', aggdim=dim_name)
-                var_time = ncb.variables[indice_dim[0]]
-                var = ncb.variables[v]
-                arrs_base_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
-                                                                            fill_val=VARS[v]['fill_value'], 
-                                                                            time_range=base_period_time_range, 
-                                                                            N_lev=N_lev, 
-                                                                            lev_dim_pos=lev_dim_pos,
-                                                                            scale_factor=VARS[v]['unit_conversion_var_scale'], 
-                                                                            add_offset=VARS[v]['unit_conversion_var_add'],
-                                                                            ignore_Feb29th=ignore_Feb29th,
-                                                                            i1_row_current_tile=i1_row_current_tile,
-                                                                            i2_row_current_tile=i2_row_current_tile,
-                                                                            i1_col_current_tile=i1_col_current_tile,
-                                                                            i2_col_current_tile=i2_col_current_tile)
-                
-                ncb.close()
-
-                VARS[v]['base']['dt_arr']=arrs_base_current_chunk[0]
-                VARS[v]['base']['values_arr']=arrs_base_current_chunk[1]
-
-            dict_temporal_slices = time_subset.get_dict_temporal_slices(dt_arr=VARS[v]['dt_arr'], 
-                                                                        values_arr=VARS[v]['values_arr'],
-                                                                        fill_value=VARS[v]['fill_value'],
-                                                                        calend=VARS[v]['time_calendar'],
-                                                                        temporal_subset_mode=slice_mode, 
-                                                                        time_range=time_range)
-            
-            VARS[v]['temporal_slices']=dict_temporal_slices
-            
-            
-            try:
-                if indice_type.startswith('user_indice_'):
-                    if type(user_indice[v]['thresh'])==str:
-                        VARS[v]['var_type'] = user_indice[v]['var_type']
-                else:
-                    VARS[v]['var_type'] = maps.map_var_type[indice_name]
-            except:
-                pass
-                
-            nc.close()
-
-
-        if nb_user_thresholds == 0:
-            
-            if chunk_counter == 0:
-                indice_arr = numpy.ma.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
-            indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                        vars_dict=VARS,
-                                                        window_width=window_width,
-                                                        only_leap_years=only_leap_years,
-                                                        callback=callback, callback_percentage_total=callback_percentage_total,
-                                                        ignore_Feb29th=ignore_Feb29th, interpolation=interpolation,
-                                                        out_unit=out_unit,
-                                                        user_indice=user_indice,
-                                                        out_file=out_file,
-                                                        save_percentile=save_percentile) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
-            indice_arr_current_chunk = indice_tuple_current_chunk[2]
-
+        VARS[v]['temporal_slices']=dict_temporal_slices
+        
+        
+        try:
             if indice_type.startswith('user_indice_'):
-                if user_indice['date_event']==True:
-                    if user_indice['calc_operation'] in ['min', 'max']:            
-                        date_event_arr_current_chunk = indice_tuple_current_chunk[3]
-                        
-                    elif user_indice['calc_operation'] in ['nb_events', 'max_nb_consecutive_events', 'run_mean', 'run_sum']:
-                        date_event_start_arr_current_chunk = indice_tuple_current_chunk[3]
-                        date_event_end_arr_current_chunk = indice_tuple_current_chunk[4]
-                        
-                        
+                if type(user_indice[v]['thresh'])==str:
+                    VARS[v]['var_type'] = user_indice[v]['var_type']
+            else:
+                VARS[v]['var_type'] = maps.map_var_type[indice_name]
+        except:
+            pass
+            
+        nc.close()
 
-            indice_arr[:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
-                     
-            
-            
-        
-        else:
-            for t in user_thresholds:                    
-                if chunk_counter == 0:              
-                    dict_threshold_indice_arr = OrderedDict()
-                    dict_threshold_indice_arr[t] = numpy.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
-            
-                
-                indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
-                                                                    vars_dict=VARS,
-                                                                    thresh=t,
-                                                                    callback=callback, callback_percentage_total=callback_percentage_total,
-                                                                    user_indice=user_indice,
-                                                                    out_file=out_file,
-                                                                    save_percentile=save_percentile)  ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr)         
-                
-                
-                indice_arr_current_chunk = indice_tuple_current_chunk[2]
-                
-                # we concatenate
-                dict_threshold_indice_arr[t][:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
-    
+
+    if nb_user_thresholds == 0:
         
         if chunk_counter == 0:
-                dt_centroid_arr = indice_tuple_current_chunk[0]
-                dt_bounds_arr = indice_tuple_current_chunk[1]
-        
+            indice_arr = numpy.ma.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
 
-        chunk_counter +=1
+        indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                    vars_dict=VARS,
+                                                    ds=ds,
+                                                    window_width=window_width,
+                                                    only_leap_years=only_leap_years,
+                                                    callback=callback, callback_percentage_total=callback_percentage_total,
+                                                    ignore_Feb29th=ignore_Feb29th, interpolation=interpolation,
+                                                    out_unit=out_unit,
+                                                    user_indice=user_indice,
+                                                    out_file=out_file,
+                                                    save_percentile=save_percentile) ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr) 
+        indice_arr_current_chunk = indice_tuple_current_chunk[2]
+
+        if indice_type.startswith('user_indice_'):
+            if user_indice['date_event']==True:
+                if user_indice['calc_operation'] in ['min', 'max']:            
+                    date_event_arr_current_chunk = indice_tuple_current_chunk[3]
+                    
+                elif user_indice['calc_operation'] in ['nb_events', 'max_nb_consecutive_events', 'run_mean', 'run_sum']:
+                    date_event_start_arr_current_chunk = indice_tuple_current_chunk[3]
+                    date_event_end_arr_current_chunk = indice_tuple_current_chunk[4]
+                    
+                    
+
+        indice_arr[:, :, :] = indice_arr_current_chunk
+                    
+        
+        
+    
+    else:
+        for t in user_thresholds:                    
+            if chunk_counter == 0:              
+                dict_threshold_indice_arr = OrderedDict()
+                dict_threshold_indice_arr[t] = numpy.zeros( (len(dict_temporal_slices),var_shape1, var_shape2), dtype=ind_type )
+        
+            
+            indice_tuple_current_chunk = get_indice_from_dict_temporal_slices(indice_name=indice_name,
+                                                                vars_dict=VARS,
+                                                                thresh=t,
+                                                                callback=callback, callback_percentage_total=callback_percentage_total,
+                                                                user_indice=user_indice,
+                                                                out_file=out_file,
+                                                                save_percentile=save_percentile)  ## tuple: (dt_centroid_arr, dt_bounds_arr, indice_arr)         
+            
+            
+            indice_arr_current_chunk = indice_tuple_current_chunk[2]
+            
+            # we concatenate
+            dict_threshold_indice_arr[t][:, i1_row_current_tile:i2_row_current_tile, i1_col_current_tile:i2_col_current_tile] = indice_arr_current_chunk
+
+    
+    if chunk_counter == 0:
+            dt_centroid_arr = indice_tuple_current_chunk[0]
+            dt_bounds_arr = indice_tuple_current_chunk[1]
+    
+
 
     
 
     ########################################################################################################################
     ###### Computing index: end
     ########################################################################################################################
-    
-    
-        
 
-    
+    if slice_mode=='month' or slice_mode=='year':
+        print("diff mean: "+str(numpy.nanmean(indice_arr-ds.values)))
+    else:
+        print("diff mean: "+str(numpy.nanmean(indice_arr-ds.values)))
     ###########################################################################################
     ################### Writing result to out netCDF file
     ###########################################################################################        
@@ -647,8 +682,10 @@ def indice(in_files,
     util_nc.set_time_values(onc, dt_centroid_arr, calend, units)
     util_nc.set_timebnds_values(onc, dt_bounds_arr, calend, units)
 
+
     onc.close()
-    
+
+
     time_elapsed = (time.clock() - time_start)
     logging_info.ending_message(time_elapsed)
 
@@ -659,6 +696,7 @@ def indice(in_files,
 
 def get_indice_from_dict_temporal_slices(indice_name, 
                                          vars_dict,
+                                         ds,
                                          thresh=None,
                                           window_width=None, only_leap_years=False,
                                           callback=None, callback_percentage_start_value=0, callback_percentage_total=100,
@@ -681,8 +719,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
         # we need this information in case if date_event is True 
         t_calend = vars_dict_keys_0['time_calendar'] 
         t_units = vars_dict_keys_0['time_units']
-    
-    
+        
     #### if indice_type is percentile based, we define intersecting_years (in-base years)
     for v in vars_dict.keys():
         if 'var_type' in vars_dict[v].keys(): # no matter if it is 'p' or 't'
@@ -693,14 +730,13 @@ def get_indice_from_dict_temporal_slices(indice_name,
             intersecting_years = list( set(years_base).intersection(years_study) )
             
             break # when we found intersecting_years, we exit from the loop
-
     if callback != None:    
         global percentage_current_slice
 
         nb_t_slices = len(t_slices)
         
         if thresh == None:
-            percentage_slice = (callback_percentage_total*1.0)/(nb_t_slices*nb_chunks)
+            percentage_slice = 0#(callback_percentage_total*1.0)/(nb_t_slices*nb_chunks)
         elif thresh != None:
             percentage_slice = (callback_percentage_total*1.0)/(nb_t_slices*nb_user_thresholds*nb_chunks)
 
@@ -720,8 +756,10 @@ def get_indice_from_dict_temporal_slices(indice_name,
     
     pctl_thresh = {} ### dictionary to keep pctl threshold for each target variable
     pctl_calc_method = {} ### dictionary to separate pctl thresholds: computed with bootstrapping (for in-base years) or without bootstrapping (for out-of-base years)
-    
+
+
     for slice_ in t_slices: # for each temporal slice
+
         # datetime vector of current slice is the same for all variables
         dt_arr_= vars_dict_keys_0['temporal_slices'][slice_][2]  ###   vars_dict.keys()[0] is the first target variable in the dictionary     
         dt_centroid_ = vars_dict_keys_0['temporal_slices'][slice_][0]
@@ -733,15 +771,14 @@ def get_indice_from_dict_temporal_slices(indice_name,
             values_arr = vars_dict_keys_0['temporal_slices'][slice_][3]                        
             fill_val = vars_dict_keys_0['fill_value']  
             
-            
             if nb_user_thresholds == 0:
                 dic_args = {'arr': values_arr, 'fill_val': fill_val} 
 
             else:
                 dic_args = {'arr': values_arr, 'fill_val': fill_val, 'threshold': thresh}
 
-            
-            indice_slice = calc_ind.zzz(indice_name, **dic_args)
+            indice_slice = calc_ind.get_indice_calculation(indice_name, **dic_args)
+
             
             
         
@@ -758,7 +795,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
             dic_args = {'arr1': values_arr_tasmax, 'arr2': values_arr_tasmin, 
                         'fill_val1': fill_val, 'fill_val2': fill_val2} 
  
-            indice_slice = calc_ind.zzz(indice_name, **dic_args)
+            indice_slice = calc_ind.get_indice_calculation(indice_name, **dic_args)
         
         
         elif indice_type == 'user_indice_simple':
@@ -987,7 +1024,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 #### indice_slice_i will be filled anyway by the same 2D arrays len(reduced_base_years_list) numbers
                                 #### (in the following we compute average of indice_slice_i[:,:,:] along axis=0)
                                 numpy.ma.set_fill_value(indice_slice_i, vars_dict[va]['fill_value'])
-                                indice_slice_i[:,:,:] = calc_ind.zzz(indice_name, **dic_args) # 3D with the same  2D arrays
+                                indice_slice_i[:,:,:] = calc_ind.get_indice_calculation(indice_name, **dic_args) # 3D with the same  2D arrays
                             
                             else:
                                 
@@ -1010,7 +1047,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                         
                             
                             numpy.ma.set_fill_value(indice_slice_i, vars_dict[va]['fill_value'])
-                            indice_slice_i[ytd_counter,:,:] = calc_ind.zzz(indice_name, **dic_args) # 3D
+                            indice_slice_i[ytd_counter,:,:] = calc_ind.get_indice_calculation(indice_name, **dic_args) # 3D
                         
                         else: ####  'user_indice_percentile_based'
 
