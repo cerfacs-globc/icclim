@@ -5,9 +5,8 @@
 #  Author: Natalia Tatarinova
 
 import numpy
-import pdb
 from .util import calc
-
+from . import maps
 
 '''
 Basic routines for computing of climate indices:
@@ -72,11 +71,26 @@ Example of function calling:
 
 '''
 
+def get_indice_calculation(indice_name, ds, **kwargs):
 
+    #da = ds[indice_name]
+    #kwargs['da'] = da
+    #ds[indice_name] = eval(indice_name+'_calculation(**kwargs)') 
+
+    if indice_name in maps.consecutive_days_indice:
+        kwargs['indice_name'] = indice_name
+
+    kwargs['da'] = ds 
+    ds = eval(indice_name+'_calculation(**kwargs)')  
+    
+    if 'time2compute' in [*ds.coords]:
+        ds = ds.drop('time2compute')
+
+    return ds        
 
 ######### temperature indices
 
-def TG_calculation(arr, fill_val=None):
+def TG_calculation(da, freq_mode='YS'):
     
     '''    
     Calculates the TG indice: mean of daily mean temperature.
@@ -91,13 +105,13 @@ def TG_calculation(arr, fill_val=None):
          
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.    
     '''
-    
-    TG = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)
+
+    TG = calc.simple_stat(da, freq_mode, stat_operation="mean")
     
     return TG
 
 
-def TN_calculation(arr, fill_val=None):
+def TN_calculation(da, freq_mode='YS', fill_val=None):
     
     '''    
     Calculates the TN indice: mean of daily minimum temperature.
@@ -113,14 +127,14 @@ def TN_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
-    TN = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)
+    TN = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="mean")
     # From Kelvin to Celsius
     if numpy.mean(TN>100):
         TN -= 273.15
     return TN
 
 
-def TX_calculation(arr, fill_val=None):
+def TX_calculation(da, freq_mode='YS', fill_val=None):
     
     '''    
     Calculates the TX indice: mean of daily maximum temperature.
@@ -135,14 +149,14 @@ def TX_calculation(arr, fill_val=None):
          
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    TX = calc.simple_stat(arr, stat_operation="mean", fill_val=fill_val)
+    TX = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="mean")
     # From Kelvin to Celsius
     if numpy.mean(TX>100):     
         TX -= 273.15
     return TX
 
 
-def TXx_calculation(arr, fill_val=None):
+def TXx_calculation(da, freq_mode='YS', fill_val=None):
     
     '''    
     Calculates the TXx indice: maximum of daily maximum temperature.
@@ -158,12 +172,12 @@ def TXx_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    TXx = calc.simple_stat(arr, stat_operation="max", fill_val=fill_val)      
+    TXx = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="max")      
     
     return TXx
 
 
-def TNx_calculation(arr, fill_val=None):
+def TNx_calculation(da, freq_mode='YS'):
     
     '''    
     Calculates the TNx indice: maximum of daily minimum temperature.
@@ -179,12 +193,12 @@ def TNx_calculation(arr, fill_val=None):
     #.. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     
     
-    TNx = calc.simple_stat(arr, stat_operation="max", fill_val=fill_val)     
+    TNx = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="max")     
     
     return TNx
 
 
-def TXn_calculation(arr, fill_val=None):
+def TXn_calculation(da, freq_mode='YS'):
     
     '''    
     Calculates the TXn indice: minimum of daily maximum temperature.
@@ -200,12 +214,12 @@ def TXn_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    TXn = calc.simple_stat(arr, stat_operation="min", fill_val=fill_val)     
+    TXn = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="min")     
     
     return TXn
 
 
-def TNn_calculation(arr, fill_val=None):
+def TNn_calculation(da, freq_mode='YS', fill_val=None):
     
     '''    
     Calculates the TNn indice: minimum of daily minimum temperature.
@@ -221,7 +235,7 @@ def TNn_calculation(arr, fill_val=None):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    TNn = calc.simple_stat(arr, stat_operation="min", fill_val=fill_val)      
+    TNn = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="min")      
     
     return TNn
 
@@ -341,7 +355,7 @@ def vDTR_calculation(arr1, arr2, fill_val1=None, fill_val2=None):
 
 ###### heat indices
 
-def SU_calculation(arr, fill_val=None, threshold=25, out_unit="days"):
+def SU_calculation(da, freq_mode='YS', threshold=25, out_unit="days"):
     '''
     Calculates the SU indice: number of summer days (i.e. days with daily maximum temperature > 25 degrees Celsius) [days].
     
@@ -363,11 +377,11 @@ def SU_calculation(arr, fill_val=None, threshold=25, out_unit="days"):
     '''
     T = threshold + 273.15
     
-    SU = calc.get_nb_events(arr, logical_operation='gt', thresh=T, fill_val=fill_val, out_unit=out_unit)
+    SU = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='gt', threshold=T)
         
     return SU
 
-def CSU_calculation(arr, fill_val=None, threshold=25):
+def CSU_calculation(da, indice_name, freq_mode='YS', threshold=25):
 
     '''
     Calculates the CSU indice: maximum number of consecutive summer days (i.e. days with daily maximum temperature > 25 degrees Celsius) [days].
@@ -391,14 +405,17 @@ def CSU_calculation(arr, fill_val=None, threshold=25):
 
         
     T = threshold + 273.15  # Celsius -> Kelvin
-    
-    CSU = calc.get_max_nb_consecutive_days(arr, thresh=T, logical_operation='gt', coef=1.0, fill_val=fill_val)
+    coef=1.0
+    da=da[indice_name]
+    da *= coef
+
+    CSU = calc.get_max_nb_consecutive_days(da, threshold=T, logical_operation='gt')
     
     return CSU    
 
 
 
-def TR_calculation(arr, fill_val=None, threshold=20, out_unit="days"):
+def TR_calculation(da, freq_mode='YS', fill_val=None, threshold=20, out_unit="days"):
     '''
     Calculates the TR indice: number of tropical nights (i.e. days with daily minimum temperature > 20 degrees Celsius) [days]. 
     
@@ -420,15 +437,15 @@ def TR_calculation(arr, fill_val=None, threshold=20, out_unit="days"):
     '''
     
     T = threshold + 273.15
-    
-    TR = calc.get_nb_events(arr, logical_operation='gt', thresh=T, fill_val=fill_val, out_unit=out_unit)
+
+    TR = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='gt', threshold=T)
     
     return TR
 
 
 ###### cold indices
 
-def FD_calculation(arr, fill_val=None, threshold=0, out_unit="days"):
+def FD_calculation(da, freq_mode='YS', fill_val=None, threshold=0, out_unit="days"):
     '''
     Calculates the FD indice: number of frost days (i.e. days with daily minimum temperature < 0 degrees Celsius) [days].
     
@@ -447,12 +464,12 @@ def FD_calculation(arr, fill_val=None, threshold=0, out_unit="days"):
     
     T = threshold + 273.15
     
-    FD = calc.get_nb_events(arr, logical_operation='lt', thresh=T, fill_val=fill_val, out_unit=out_unit)
+    FD = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='lt', threshold=T)
     
     return FD
 
 
-def CFD_calculation(arr, fill_val=None, threshold=0):
+def CFD_calculation(da, indice_name, freq_mode='YS', fill_val=None, threshold=0):
 
     '''
     Calculates the CFD indice: maximum number of consecutive frost days (i.e. days with daily minimum temperature < 0 degrees Celsius) [days].
@@ -471,9 +488,10 @@ def CFD_calculation(arr, fill_val=None, threshold=0):
     '''
 
     T = threshold + 273.15  # Celsius -> Kelvin
-    
-    CFD = calc.get_max_nb_consecutive_days(arr, thresh=T, logical_operation='lt', coef=1.0, fill_val=fill_val)
+    da=da[indice_name]
 
+    CFD = calc.get_max_nb_consecutive_days(da, threshold=T, logical_operation='lt')
+    
     return CFD 
 
 
@@ -501,10 +519,11 @@ def ID_calculation(arr, fill_val=None, threshold=0, out_unit="days"):
     return ID
 
 
-def HD17_calculation(arr, fill_val=None, threshold=17):
+def HD17_calculation(da, freq_mode='YS', threshold=17):
     '''
     Calculates the HD17 indice: heating degree days (sum of (17 degrees Celsius - daily mean temperature)).
-    
+    heating degree days represent the number of days where it is required to heat an building
+
     :param arr: daily mean temperature (e.g. "tas") in Kelvin
     :type arr: numpy.ndarray (3D) or numpy.ma.MaskedArray (3D)
     :param fill_val: fill value 
@@ -518,21 +537,14 @@ def HD17_calculation(arr, fill_val=None, threshold=17):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
-    T = threshold + 273.15  #Celsius -> Kelvin
-    
-    arr_masked = calc.get_masked_arr(arr, fill_val)
-    
-    a = T - arr_masked
-    a[a<0] = 0  # we set to zero values < 0    
-    HD17 = a.sum(axis=0)
-    numpy.ma.set_fill_value(HD17, arr_masked.fill_value)
-
-    if not isinstance(arr, numpy.ma.MaskedArray):
-        HD17 = HD17.filled(fill_value=arr_masked.fill_value) 
+    T = threshold + 273.15  # Celsius -> Kelvin
+    da.values = T-da.values
+    da = da.where(da>0,0) 
+    HD17 = calc.simple_stat(da, freq_mode=freq_mode, stat_operation='sum')
 
     return HD17
     
-def GD4_calculation(arr, fill_val=None, threshold=4):
+def GD4_calculation(da, freq_mode, fill_val=None, threshold=4):
     '''
     Calculates the GD4 indice: growing degree days (sum of daily mean temperature > 4 degrees Celsius).
     
@@ -548,25 +560,16 @@ def GD4_calculation(arr, fill_val=None, threshold=4):
        
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-        
-    T = threshold + 273.15  # Celsius -> Kelvin
-    
-    arr_masked = calc.get_masked_arr(arr, fill_val)
 
-    new_mask = (arr_masked<=T)    
-    new_arr_masked = numpy.ma.array(arr_masked, mask=new_mask, fill_value=arr_masked.fill_value) # we masked the temperatures <= 4 C 
-    GD4 = new_arr_masked.sum(axis=0)
-    numpy.ma.set_fill_value(GD4, arr_masked.fill_value)
-
-    if not isinstance(arr, numpy.ma.MaskedArray):
-        GD4 = GD4.filled(fill_value=arr_masked.fill_value) 
-    
+    T = threshold + 273.15  
+    da = da.where(da>=T)
+    GD4 = calc.simple_stat(da, freq_mode, stat_operation='sum')
     return GD4
     
 
 ###### draught indices
 
-def CDD_calculation(arr, fill_val=None, threshold=1.0):
+def CDD_calculation(da, indice_name, freq_mode='YS', threshold=1.0):
 
     '''
     Calculates the CDD indice: maximum number of consecutive dry days (i.e. days with daily precipitation amount < 1 mm) [days].
@@ -584,15 +587,17 @@ def CDD_calculation(arr, fill_val=None, threshold=1.0):
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    
-    CDD = calc.get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='lt', coef=1.0, fill_val=fill_val)
+    coef=1.0
+    da*=coef
+    da=da[indice_name]
+    CDD = calc.get_max_nb_consecutive_days(da, threshold=threshold, logical_operation='lt')
 
     return CDD
 
 
 ###### rain indices
 
-def PRCPTOT_calculation(arr, fill_val=None):
+def PRCPTOT_calculation(da, freq_mode='YS', fill_val=None):
     '''
     Calculates the PRCPTOT indice: total precipitation in wet days [mm]
     
@@ -608,14 +613,16 @@ def PRCPTOT_calculation(arr, fill_val=None):
     
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    
-    PRCPTOT = calc.simple_stat(arr, stat_operation="sum", coef=1.0, fill_val=fill_val, thresh=1.0, logical_operation='get')
+    c = 1.0
+    da *= c
+    da = calc.threshold_calculation(da, threshold=1.0, logical_operation='get')
+    PRCPTOT = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="sum")
     
     return PRCPTOT
 
 
    
-def RR1_calculation(arr, fill_val=None, threshold=1.0, out_unit="days"):
+def RR1_calculation(da, freq_mode='YS', fill_val=None, threshold=1.0, out_unit="days"):
     '''
     Calculates the RR1 indice: number of wet days (i.e. days with daily precipitation amount > = 1 mm) [days]
     
@@ -633,12 +640,12 @@ def RR1_calculation(arr, fill_val=None, threshold=1.0, out_unit="days"):
     '''
 
     
-    RR1 = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
+    RR1 = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='get', threshold=threshold)
 
     return RR1
 
 
-def CWD_calculation(arr, fill_val=None, threshold=1.0):
+def CWD_calculation(da, indice_name, freq_mode='YS', threshold=1.0):
 
     '''
     Calculates the CWD indice: maximum number of consecutive wet days (i.e. days with daily precipitation amount > = 1 mm) [days].
@@ -656,14 +663,16 @@ def CWD_calculation(arr, fill_val=None, threshold=1.0):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
+    da = da[indice_name]
+    coef=1.0
 
-
-    CWD = calc.get_max_nb_consecutive_days(arr, thresh=threshold, logical_operation='get', coef=1.0, fill_val=fill_val)
+    da *= coef
+    CWD = calc.get_max_nb_consecutive_days(da, threshold=threshold, logical_operation='get')
 
     return CWD
 
 
-def SDII_calculation(arr, fill_val=None):
+def SDII_calculation(da, freq_mode='YS'):
     '''
     Calculates the SDII (simple daily intensity index) indice:  mean precipitation amount of wet days (i.e. days with daily precipitation amount > = 1 mm) [mm]
     
@@ -682,12 +691,17 @@ def SDII_calculation(arr, fill_val=None):
 
     
     ### mean of wet days (logical_operation='get', thresh=1.0)
-    SDII = calc.simple_stat(arr=arr, stat_operation='mean', logical_operation='get', thresh=1.0, coef=1.0, fill_val=fill_val)
+    coef=1.0
+    da *= coef
+
+    da = calc.threshold_calculation(da, threshold=1.0, logical_operation='get')
+
+    SDII = calc.simple_stat(da, freq_mode=freq_mode, stat_operation='mean')
     
     return SDII
 
 
-def R10mm_calculation(arr, fill_val=None, threshold=10.0, out_unit="days"):    
+def R10mm_calculation(da, freq_mode='YS', fill_val=None, threshold=10.0, out_unit="days"):    
     '''
     Calculates the R10mm indice: number of heavy precipitation days (i.e. days with daily precipitation amount > = 10 mm) [days]
     
@@ -705,12 +719,12 @@ def R10mm_calculation(arr, fill_val=None, threshold=10.0, out_unit="days"):
     '''
     
     
-    R10mm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
+    R10mm = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='get', threshold=threshold)
     
     return R10mm
     
 
-def R20mm_calculation(arr, fill_val=None, threshold=20.0, out_unit="days"):    
+def R20mm_calculation(da, freq_mode='YS', fill_val=None, threshold=20.0, out_unit="days"):    
     '''
     Calculates the R20mm indice: number of very heavy precipitation days (i.e. days with daily precipitation amount > = 20 mm) [days]
     
@@ -727,14 +741,12 @@ def R20mm_calculation(arr, fill_val=None, threshold=20.0, out_unit="days"):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-
-    
-    R20mm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
+    R20mm = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='get', threshold=threshold)
     
     return R20mm
 
 
-def RX1day_calculation(arr, fill_val=None):
+def RX1day_calculation(da, freq_mode='YS', fill_val=None):
     '''
     Calculates the RX1day indice: maximum 1-day precipitation amount [mm]
     
@@ -752,12 +764,12 @@ def RX1day_calculation(arr, fill_val=None):
     '''
     
 
-    RX1day = calc.simple_stat(arr, stat_operation='max', fill_val=fill_val)
+    RX1day = calc.simple_stat(da, freq_mode=freq_mode, stat_operation='max')
     
     return RX1day
 
 
-def RX5day_calculation(arr, fill_val=None):
+def RX5day_calculation(da, freq_mode='YS', fill_val=None):
     
     '''
     Calculates the RX5day indice: maximum consecutive 5-day precipitation amount [mm]
@@ -777,7 +789,7 @@ def RX5day_calculation(arr, fill_val=None):
     '''
     
        
-    RX5day = calc.get_run_stat(arr, window_width=5, stat_mode='sum', extreme_mode='max', coef=1.0, fill_val=fill_val)
+    RX5day = calc.get_run_stat(da, window_width=5, stat_mode='sum', extreme_mode='max', coef=1.0, fill_val=fill_val)
 
     return RX5day
  
@@ -788,7 +800,7 @@ WARNING: needs to define type of input array: snowfall flux (prsn, mm/day) or sn
 Currently: mm/day
 '''
 
-def SD_calculation(arr, fill_val=None):
+def SD_calculation(da, freq_mode='YS', fill_val=None):
     '''
     Calculates the SD indice: mean of daily snow depth [cm]
     
@@ -806,13 +818,14 @@ def SD_calculation(arr, fill_val=None):
     '''
     
 
-    c = 0.1 # mm/day --> cm/day
-    SD = calc.simple_stat(arr, stat_operation='mean', coef=c, fill_val=fill_val)
+    c = 0.1 
+    da *= c
+    SD = calc.simple_stat(da, freq_mode='YS', stat_operation='mean')
     
     return SD
 
     
-def SD1_calculation(arr, fill_val=None, threshold=1.0, out_unit="days"):
+def SD1_calculation(da, freq_mode='YS', fill_val=None, threshold=1.0, out_unit="days"):
     '''
     Calculates the SD1 indice: number of days with snow depth >= 1 cm [days]
     
@@ -832,12 +845,12 @@ def SD1_calculation(arr, fill_val=None, threshold=1.0, out_unit="days"):
     
     
     threshold = threshold*10 # cm --> mm
-    SD1 = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
+    SD1 = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='get', threshold=threshold)
     
     return SD1
 
 
-def SD5cm_calculation(arr, fill_val=None, threshold=5.0, out_unit="days"):
+def SD5cm_calculation(da, freq_mode='YS', fill_val=None, threshold=5.0, out_unit="days"):
     '''
     Calculates the SD5cm indice: number of days with snow depth >= 5 cm [days]
     
@@ -856,12 +869,12 @@ def SD5cm_calculation(arr, fill_val=None, threshold=5.0, out_unit="days"):
     
     
     threshold = threshold*10 # cm --> mm
-    SD5cm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
+    SD5cm = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='get', threshold=threshold)
     
     return SD5cm
 
 
-def SD50cm_calculation(arr, fill_val=None, threshold=50.0, out_unit="days"):
+def SD50cm_calculation(da, freq_mode='YS', fill_val=None, threshold=50.0, out_unit="days"):
     '''
     Calculates the SD50cm indice: number of days with snow depth >= 50 cm [days]
     
@@ -880,7 +893,7 @@ def SD50cm_calculation(arr, fill_val=None, threshold=50.0, out_unit="days"):
     
     
     threshold = threshold*10 # cm --> mm
-    SD50cm = calc.get_nb_events(arr, logical_operation='get', thresh=threshold, fill_val=fill_val, out_unit=out_unit)
+    SD50cm = calc.get_nb_events(da, freq_mode=freq_mode, logical_operation='get', threshold=threshold)
     
     return SD50cm   
 
