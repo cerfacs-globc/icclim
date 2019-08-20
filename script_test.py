@@ -1,6 +1,5 @@
 from icclim import icclim
 import pdb
-from icclim.util import callback
 import datetime
 import glob
 import json
