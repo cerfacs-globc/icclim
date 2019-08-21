@@ -106,7 +106,7 @@ def TG_calculation(da, freq_mode='YS'):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.    
     '''
 
-    TG = calc.simple_stat(da, freq_mode, stat_operation="mean")
+    TG = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="mean")
     
     return TG
 
@@ -561,7 +561,7 @@ def GD4_calculation(da, freq_mode, fill_val=None, threshold=4):
 
     T = threshold + 273.15  
     da = da.where(da>=T)
-    GD4 = calc.simple_stat(da, freq_mode, stat_operation='sum')
+    GD4 = calc.simple_stat(da, freq_mode=freq_mode, stat_operation='sum')
     return GD4
     
 
@@ -818,7 +818,7 @@ def SD_calculation(da, freq_mode='YS', fill_val=None):
 
     c = 0.1 
     da *= c
-    SD = calc.simple_stat(da, freq_mode='YS', stat_operation='mean')
+    SD = calc.simple_stat(da, freq_mode=freq_mode, stat_operation='mean')
     
     return SD
 

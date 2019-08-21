@@ -4,7 +4,7 @@ import cftime
 import pdb
 def subset_time(ds, time_range):
     date_cf = cftime.date2num([time_range], ds.time.units, calendar=ds.time.calendar)[0]
-    pdb.set_trace()
+#    pdb.set_trace()
     return ds.sel(time=slice(date_cf[0], date_cf[1]))
 
 
