@@ -23,7 +23,6 @@ def netcdf_processing():
         if list_indice[indice_param]['indice_type']=='simple':
             tr = [datetime.datetime(1960,1,1), datetime.datetime(1980,12,31,13)]
 
-            indice_param='HD17'
             if 'tas' in list_indice[indice_param]['var_name']:
                 path_in_file='/Users/xavier/Projets/data/tasmax_day_CNRM-CM6-1-HR_highresSST-present_r1i1p1f2_gr_19500101-19591231.nc'
                 #path_in_file = '/Users/xavier/Projets/data/test/tas_day_CMCC-CM_historical_r1i1p1_18500101_20051231.nc'#'/Users/xavier/Projets/data/usecase/tasmax_day_CSIRO-Mk3L-1-2_historical_r1i2p1_18510101_20051231.nc'

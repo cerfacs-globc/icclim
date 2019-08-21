@@ -128,9 +128,7 @@ def TN_calculation(da, freq_mode='YS', fill_val=None):
     '''
 
     TN = calc.simple_stat(da, freq_mode=freq_mode, stat_operation="mean")
-    # From Kelvin to Celsius
-    if numpy.mean(TN>100):
-        TN -= 273.15
+
     return TN
 
 
