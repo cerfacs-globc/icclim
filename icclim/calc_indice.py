@@ -7,7 +7,7 @@
 import numpy
 from .util import calc
 from . import maps
-
+import pdb
 '''
 Basic routines for computing of climate indices:
 - TG
@@ -538,7 +538,7 @@ def HD17_calculation(da, freq_mode='YS', threshold=17):
     '''
 
     T = threshold + 273.15  # Celsius -> Kelvin
-    da.values = T-da.values
+    da -= T
     da = da.where(da>0,0) 
     HD17 = calc.simple_stat(da, freq_mode=freq_mode, stat_operation='sum')
 

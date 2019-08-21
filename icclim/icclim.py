@@ -6,6 +6,7 @@
 import sys
 import os
 from collections import OrderedDict
+import pdb
 
 import numpy
 import logging
@@ -54,7 +55,6 @@ def indice(in_files,
            save_percentile=False
            ):
 
-    
     '''
     :param indice_name: Climate index name. 
     :type indice_name: str    
@@ -152,8 +152,8 @@ def indice(in_files,
     #if time_range is not None:
     #    time_range_xa = util_dt.from_datetime_to_cftime(ds, time_range)
 
-    time_range = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
-                                        time_range=time_range, temporal_var_name='time')
+    #time_range = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
+    #                                    time_range=time_range, temporal_var_name='time')
  
     ########################################################################################################################
     ###### Computing index: begin
