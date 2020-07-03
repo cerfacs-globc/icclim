@@ -339,7 +339,7 @@ def indice(in_files,
             VARS[v]['files_years_base'] = dict_files_years_to_process_base
 
         dim_name = util_nc.check_unlimited(VARS_in_files[v][0])
-        tile_dimension = arr_size.get_tile_dimension(in_files=dict_files_years_to_process.keys(), 
+        tile_dimension = arr_size.get_tile_dimension(in_files=list(dict_files_years_to_process.keys()), 
                                                      var_name=v, 
                                                      transfer_limit_Mbytes=transfer_limit_Mbytes, 
                                                      time_range=time_range)
