@@ -23,7 +23,7 @@ Note: DJF 2000: December 2000 + January 2001 + February 2001
 
 """
 
-import netcdftime
+import cftime
 import numpy 
 import pdb
 from datetime import datetime, timedelta
@@ -258,13 +258,13 @@ def get_dict_temporal_slices(dt_arr, values_arr, fill_value, calend='gregorian',
     # whole selected time range will be processed
     if temporal_subset_mode is None:
         dummy_time_units = "hours since 1901-01-01 12:00 UTC"
-        cdftime = netcdftime.utime(dummy_time_units, calendar=calend)
+        cdftime = cftime.utime(dummy_time_units, calendar=calend)
         if calend == '360_day':
             if time_range[0].day > 30:
-                time_range[0] = netcdftime.datetime(time_range[0].year, time_range[0].month, 30, time_range[0].hour)
+                time_range[0] = cftime.datetime(time_range[0].year, time_range[0].month, 30, time_range[0].hour)
                 print("Warning: Specified time range is invalid: there are only 30 days in every month with the 360_day calendar. Truncating to 30 days per month.")
             elif time_range[1].day > 30:
-                time_range[1] = netcdftime.datetime(time_range[1].year, time_range[1].month, 30, time_range[1].hour)
+                time_range[1] = cftime.datetime(time_range[1].year, time_range[1].month, 30, time_range[1].hour)
                 print("Warning: Specified time range is invalid: there are only 30 days in every month with the 360_day calendar. Truncating to 30 days per month.")
         first_second = cdftime.date2num(time_range[0])
         last_second = cdftime.date2num(time_range[1])

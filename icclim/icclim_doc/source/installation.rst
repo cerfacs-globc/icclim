@@ -7,6 +7,7 @@ Dependencies
 To use the ICCLIM you first need to install the following python libraries:
     - `NumPy <http://www.numpy.org/>`_
     - `netCDF4 (make sure you have at least version 1.2.9+) <http://unidata.github.io/netcdf4-python/>`_
+    - `cftime <https://unidata.github.io/cftime/>`_ 
     - `ctypes <http://docs.python.org/2/library/ctypes.html>`_
     - `OpenClimateGIS <http://ncpp.github.io/ocgis/index.html>`_ and its dependencies if you want to use `ICCLIM inside OpenClimateGIS <http://ncpp.github.io/ocgis/computation.html#calculation-using-icclim-for-eca-indices>`_
     - `ESMPy <https://www.earthsystemcog.org/projects/esmpy/>`_ if you want to use :ref:`regridding module <icclim_regrid>`
@@ -46,7 +47,7 @@ To get the version of installed library, do the following:
 .. code-block:: sh
 
     >>> icclim.__version__
-    4.2.13
+    4.2.15
 
 
 .. note:: ICCLIM was not tested on Windows platform...

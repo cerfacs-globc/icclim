@@ -14,12 +14,12 @@ import pdb
 import calendar
 from .util import calc
 from .util import util_dt
-import netcdftime
+import cftime
 import sys
 import ctypes
 from numpy.ctypeslib import ndpointer
 import os
-import netcdftime
+import cftime
 
 my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
 libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
@@ -84,17 +84,17 @@ def get_index_with_window(ind_2_calc, window_wide, test):
 def get_index_for_other_years(nc_time, t, calend, list_year, ytd, dt_arr_num):
 
     if calend == 'all_leap' or calend == '366_day':
-        same_date_other_year = [netcdftime._netcdftime.DatetimeAllLeap(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
+        same_date_other_year = [cftime._cftime.DatetimeAllLeap(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
     elif calend == '360_day':
-        same_date_other_year = [netcdftime._netcdftime.Datetime360Day(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
+        same_date_other_year = [cftime._cftime.Datetime360Day(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
     elif calend == 'gregorian':
-        same_date_other_year = [netcdftime._netcdftime.DatetimeGregorian(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
+        same_date_other_year = [cftime._cftime.DatetimeGregorian(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
     elif calend == 'proleptic_gregorian':
-        same_date_other_year = [netcdftime._netcdftime.DatetimeProlepticGregorian(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
+        same_date_other_year = [cftime._cftime.DatetimeProlepticGregorian(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
     elif calend == 'julian':
-        same_date_other_year = [netcdftime._netcdftime.DatetimeJulian(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
+        same_date_other_year = [cftime._cftime.DatetimeJulian(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
     else:
-        same_date_other_year = [netcdftime.datetime(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
+        same_date_other_year = [cftime.datetime(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
 
     sdoy2num = nc_time.date2num(same_date_other_year)
 
@@ -254,7 +254,7 @@ def return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled,
                                                     interpolation, ignore_Feb29th, only_leap_years, bootstrapping):
 
     #Get time config
-    nc_time = netcdftime.utime(t_units, t_calendar)
+    nc_time = cftime.utime(t_units, t_calendar)
 
     #From datetime to numerical format
     dt_arr_num = nc_time.date2num(dt_arr)

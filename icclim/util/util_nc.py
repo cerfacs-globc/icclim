@@ -341,7 +341,7 @@ def get_values_arr_and_dt_arr(ncVar_temporal, ncVar_values, fill_val=None, time_
     
     dt_arr = numpy.array([util_dt.num2date(dt, calend=calend, units=units) for dt in time_arr])
 
-    # REMOVED, because netcdftime.datetime objects have no method total_seconds()
+    # REMOVED, because cftime.datetime objects have no method total_seconds()
 #     deltat = (dt_arr[1]-dt_arr[0]).total_seconds()
 #     if deltat != 86400.0:
 #         print "WARNING: Time interval of the input file is not daily!! Delta time is: "+str(deltat)
