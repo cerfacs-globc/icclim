@@ -27,7 +27,7 @@ def ConfigSectionMap(Config, section):
 
 
 def log(message):
-    print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + message
+    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ": " + message)
 
 
 def get_varnames_from_filenames(files):

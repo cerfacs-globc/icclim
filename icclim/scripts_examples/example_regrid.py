@@ -41,10 +41,11 @@ for f in files_src_grid:
 
     regridded_files.append(result_file_name) # we add each regridded file to the list
         
-    print f, ' regridded!'
+    print(f, ' regridded!')
     
 
 # step 3: finally we get the list of files with the same grid
 file_list_final = files_dst_grid + regridded_files
 
-print file_list_final
+print(file_list_final)
+

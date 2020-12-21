@@ -538,7 +538,7 @@ double percentile_1d(const float *indata, int i, int j, char * interpolation)
 
     // end print
 
-    double perc;
+    double perc = 0.0;
 
     if (strcmp(interpolation,"linear")==0)
     {
