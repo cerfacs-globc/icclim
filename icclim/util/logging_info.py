@@ -32,7 +32,7 @@ def wrong_variable_attribute_message(in_valid):
         logging.warning('   *                                                                                          *')
         logging.warning('   ********************************************************************************************')
 
-def ending_message(time_elapsed, tz=tz):
+def ending_message(time_cpu, tz=tz):
     
 
     logging.info("   ********************************************************************************************")
@@ -44,6 +44,6 @@ def ending_message(time_elapsed, tz=tz):
     logging.info("   *                                                                                          *")
     logging.info("   *          END EXECUTION                                                                   *")
     logging.info("   *                                                                                          *")
-    logging.info("   *          CP SECS = %-10.3f                                                            *", time_elapsed)
+    logging.info("   *          CP SECS = %-10.3f                                                            *", time_cpu)
     logging.info("   *                                                                                          *")
     logging.info("   ********************************************************************************************")

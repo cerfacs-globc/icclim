@@ -173,8 +173,6 @@ def indice(in_files,
 
     logging_info.start_message()
 
-    time_start = time.clock()
-
     #######################################################
     ########## User index check params
 
@@ -649,8 +647,8 @@ def indice(in_files,
 
     onc.close()
     
-    time_elapsed = (time.clock() - time_start)
-    logging_info.ending_message(time_elapsed)
+    time_cpu = time.process_time()
+    logging_info.ending_message(time_cpu)
 
     return out_file
 
