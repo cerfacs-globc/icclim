@@ -111,8 +111,10 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 html_theme = 'classic'
 if on_rtd:
+    import sphinx_rtd_theme
     #html_theme = 'default'
     #html_style = '/default.css'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
     html_theme = 'classic'	
     html_style = 'classic.css'
 
