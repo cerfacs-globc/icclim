@@ -169,9 +169,9 @@ Example:
 
     // global attributes:
 		:title = "ECA cold indice FD" ;
-		:institution = "Climate impact portal (http://climate4impact.eu)" ;
+		:institution = "Climate impact portal (https://climate4impact.eu)" ;
 		:source =  ;
-		:references = "ATBD of the ECA indices calculation (http://eca.knmi.nl/documents/atbd.pdf)" ;
+		:references = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)" ;
 		:comment = " " ;
 		:history = "2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements. \n",
                         "2014-04-01 12:16:03 Calculation of FD indice (monthly time series) from 1950-1-1 to 1955-12-31." ;

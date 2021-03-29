@@ -134,7 +134,7 @@ The ``transfer_limit_Mbytes`` parameter, required to estimate the optimal data c
 ``callback``
 ~~~~~~~~~~~~~
 The percentage progress bar is printed if the ``callback`` parameter is set to a callback function.
-The default callback functions are defined in `icclim.util.callback.py <link>`_. 
+The default callback functions are defined in `icclim.util.callback.py <https://github.com/cerfacs-globc/icclim/blob/master/icclim/util/callback.py>`_. 
 
 >>> from icclim import icclim.util.callback as callback
 >>> cb = callback.defaultCallback
@@ -301,7 +301,7 @@ for the calendar day of **February 29th**:
 ~~~~~~~~~~~~~~~~~~~~
 
 Computing of a percentile value could use ``linear`` interpolation or the interpolation proposed 
-by `Hyndman and Fan (1996) <http://amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_, named
+by `Hyndman and Fan (1996) <https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_, named
 in *ICCLIM* as ``hyndman_fan`` interpolation.
 
 
@@ -746,7 +746,7 @@ Example 17: CW as a custom indice (number of days when tas < 25th pctl and preci
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed. 
 
-4 compound indices defined in http://eca.knmi.nl/documents/atbd.pdf (see the section 5.3.3 "Compound indices") are 
+4 compound indices defined in https://www.ecad.eu/documents/atbd.pdf (see the section 5.3.3 "Compound indices") are 
 based on daily precipitation (RR) and mean temperature (TG) variables:
 
 	- CD (cold/dry days): (TG < 25th pctl) and (RR < 25th pctl) 
@@ -830,7 +830,7 @@ Basic functions for computing indices
 -------------------------------------------
 
 
-The `calc_indice.py <https://github.com/tatarinova/icclim/blob/master/icclim/calc_indice.py>`_ module contains basic routines for manipulating 3D arrays.
+The `calc_indice.py <https://github.com/cerfacs-globc/icclim/blob/master/icclim/calc_indice.py>`_ module contains basic routines for manipulating 3D arrays.
 Below are some of them.
 
 .. note:: A function name is composed of an indice name and "_calculation" (example: FD_calculation).
@@ -861,7 +861,7 @@ Utility functions
 
 :mod:`util.regrid` -- Regridding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-It is possible to do simple regridding (only rectangular "lat/lon" grid), using the `util.regrid.py <https://github.com/tatarinova/icclim/blob/master/icclim/util/regrid.py>`_ module:
+It is possible to do simple regridding (only rectangular "lat/lon" grid), using the `util.regrid.py <https://github.com/cerfacs-globc/icclim/blob/master/icclim/util/regrid.py>`_ module:
 
 .. automodule:: icclim.util.regrid
     :members: get_regridded_var, write2netCDF_after_regridding
@@ -878,9 +878,9 @@ For example, we have 2 files with different resolutions:
 >>> f1_regridded = 'regridded_tasmax_Amon_bcc-csm1-1_historical_r1i1p1_185001-201212.nc' # name of the new netCDF file
 >>> regrid.write2netCDF_after_regridding(arr, f_src=f1, f_dst=f2, f_out=f1_regridded, var_src='tasmax')
 
-See also `more detailed example <https://github.com/tatarinova/icclim/blob/master/icclim/scripts_examples/example_regrid.py>`_.
+See also `more detailed example <https://github.com/cerfacs-globc/icclim/blob/master/icclim/scripts_examples/example_regrid.py>`_.
 
-.. warning:: The package `ESMF/ESMPy <https://www.earthsystemcog.org/projects/esmpy/>`_ must be installed.
+.. warning:: The package `ESMF/ESMPy <https://earthsystemmodeling.org/esmpy/>`_ must be installed.
 
 
 :mod:`util.spatial_stat` -- Spatial statistics

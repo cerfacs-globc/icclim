@@ -2,7 +2,7 @@
 
 ICCLIM called from OpenClimateGIS - Examples
 ==============================================
-ICCLIM indices (`ECA&D climate indices <http://eca.knmi.nl/documents/atbd.pdf>`_) are implemented in the `OpenClimateGIS <http://ncpp.github.io/ocgis/index.html>`_ (Version 1.1.0) Python package. 
+ICCLIM indices (`ECA&D climate indices <https://www.ecad.eu/documents/atbd.pdf>`_) are implemented in the `OpenClimateGIS <https://github.com/NCPP/ocgis>`_ (Version 1.1.0) Python package. 
 
 
 >>> import ocgis
@@ -12,7 +12,7 @@ It is also possible to pass a list of datasets:
 
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas')
 
-Subsetting with `time range <http://ncpp.github.io/ocgis/api.html#time-range>`_ and/or `time_region <http://ncpp.github.io/ocgis/api.html#time-region>`_
+Subsetting with `time_range <https://ocgis.readthedocs.io/en/latest/examples.html#subsetting-with-a-time-level-range>` and/or `time_region <https://ocgis.readthedocs.io/en/latest/operations.html#time-region>`
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 For temporal subsetting we use the ``time_range`` parameter:
@@ -28,7 +28,7 @@ or/and the ``time_region`` parameter:
 
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas', time_region={'year':[1989,1990,1991],'month':[6,7,8]})
 
-Temporal aggregation with `calc_grouping <http://ncpp.github.io/ocgis/api.html#calc-grouping>`_
+Temporal aggregation with `calc_grouping <https://ocgis.readthedocs.io/en/latest/operations.html#calc-grouping>`
 ---------------------------------------------------------------------------------------------------
 
 Annual values:
@@ -119,7 +119,7 @@ Finally, to calculate the TG10p indice:
 Example 4: OPeNDAP dataset, big request
 ---------------------------------------
 If you want to process OPeNDAP datasets of total size more than for example the OPenDAP/THREDDS limit (500 Mbytes),
-use the `compute function <http://ncpp.github.io/ocgis/utility.html#ocgis.util.large_array.compute>`_ which processes data chunk-by-chunk:
+use the `compute function <https://ocgis.readthedocs.io/en/latest/functions.html#ocgis.util.large_array.compute>`_ which processes data chunk-by-chunk:
 
 >>> from ocgis.util.large_array import compute
 
