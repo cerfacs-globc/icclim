@@ -6,10 +6,8 @@
 from collections import OrderedDict
 import sys
 import pdb
-if sys.version_info[0] < 3:
-    import util_dt
-else:
-    from icclim.util import util_dt
+
+from . import util_dt
 
 def get_dict_file_years_glob(files_list):
     dict_file_years = OrderedDict()

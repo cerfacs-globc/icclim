@@ -9,7 +9,7 @@ Python API
 
 This is the main function to compute an indice:
 
-.. automodule:: icclim.icclim
+.. automodule:: icclim
     :members: indice
 
 
@@ -136,7 +136,7 @@ The ``transfer_limit_Mbytes`` parameter, required to estimate the optimal data c
 The percentage progress bar is printed if the ``callback`` parameter is set to a callback function.
 The default callback functions are defined in `icclim.util.callback.py <https://github.com/cerfacs-globc/icclim/blob/master/icclim/util/callback.py>`_. 
 
->>> from icclim import icclim.util.callback as callback
+>>> from icclim.util import callback
 >>> cb = callback.defaultCallback
 
 .. _ignore_Feb29th_label:
@@ -430,7 +430,7 @@ Correspondence table "cal_operation" -- required/optional parameters:
 
 Examples
 ---------
->>> from icclim import icclim
+>>> import icclim
 >>> import datetime
 
 Example 1: indice SU
@@ -459,7 +459,7 @@ Example 2: indice ETR
 
 Example 3: indice TG90p with callback
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>> from icclim import icclim.util.callback as callback
+>>> from icclim.util import callback
 >>>
 >>> f = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
 >>>
@@ -489,7 +489,7 @@ Example 5: Custom indice (max)
 
 .. code-block:: python
 	
-	from icclim import icclim.util.callback as callback
+	from icclim.util import callback
 	
 	my_indice_params = {'indice_name': 'my_indice',
 	                    'calc_operation': 'max'
@@ -867,7 +867,7 @@ It is possible to do simple regridding (only rectangular "lat/lon" grid), using 
     :members: get_regridded_var, write2netCDF_after_regridding
 
 
->>> from icclim import icclim.util.regrid as regrid
+>>> from icclim.util import regrid
 
 
 For example, we have 2 files with different resolutions:

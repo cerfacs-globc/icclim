@@ -1,4 +1,4 @@
-# -*- coding: latin-1 -*-
+# -*- Coding: latin-1 -*-
 #  Copyright CERFACS (http://cerfacs.fr/)
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 #
@@ -20,49 +20,10 @@ import pdb
 
 from netCDF4 import Dataset, MFDataset
 
-if sys.version_info[0] < 3:
-    import set_globattr
-    import set_longname_units
-    import set_longname_units_custom_indices
-    import calc_percentiles
-    import time_subset
-    import maps
-    import calc_ind
-
-    import util.logging_info as logging_info
-    import util.read as read
-    import util.calc as calc
-    import util.check as check
-    import util.callback as callback
-    import util.util_dt as util_dt
-    import util.util_nc as util_nc
-    import util.arr_size as arr_size
-    import util.OCGIS_tile as OCGIS_tile
-    import util.files_order as files_order
-    from util import user_indice as ui
-    from icclim_exceptions import *
-
-else:
-    from . import set_globattr
-    from . import set_longname_units
-    from . import set_longname_units_custom_indices
-    from . import calc_percentiles    
-    from . import time_subset
-    from . import maps
-    from . import calc_ind
-
-    from icclim.util import callback
-    from icclim.util import read
-    from icclim.util import util_dt
-    from icclim.util import util_nc
-    from icclim.util import arr_size
-    from icclim.util import OCGIS_tile
-    from icclim.util import check
-    from icclim.util import files_order
-    from icclim.util import calc
-    from icclim.util import logging_info
-    from icclim.util import user_indice as ui
-    from icclim.icclim_exceptions import *
+from . import maps, time_subset, calc_ind, set_globattr, set_longname_units, set_longname_units_custom_indices, calc_percentiles
+from .icclim_exceptions import *
+from .util import check, logging_info, util_nc, util_dt, files_order, arr_size, callback, read, OCGIS_tile, calc
+from .util import user_indice as ui
 
 #Initial Config
 global config_file
@@ -185,7 +146,7 @@ def indice(in_files,
     if indice_name is None:
         user_indice, indice_type = ui.check_user_indice(indice_name, user_indice, time_range, var_name, out_unit)
     else:
-        indice_type = ui.get_key_by_value_from_dict(maps.map_indice_type, indice_name, inc, config_file) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
+        indice_type = ui.get_key_by_value_from_dict_ui(maps.map_indice_type, indice_name, inc, config_file) # 'simple'/'multivariable'/'percentile_based'/'percentile_based_multivariable'
 
     if (indice_type in ['percentile_based', 'percentile_based_multivariable'] or indice_type.startswith('user_indice_percentile_')) and base_period_time_range is None:
         raise IOError('Time range of base period is required for percentile-based indices! Please, set the "base_period_time_range" parameter.')
@@ -771,7 +732,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                             'dt_arr': dt_arr_, 'out_unit':out_unit}
                 
                  
-                indice_ = ui.get_user_indice(**dic_args)
+                indice_ = get_user_indice(**dic_args)
                 indice_slice = indice_[0]
                  
                  
@@ -811,7 +772,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 'fill_val':fill_val, 'vars':vars_dict.keys(),
                                 'out_unit':out_unit}
                 
-                indice_slice = ui.get_user_indice(**dic_args)
+                indice_slice = get_user_indice(**dic_args)
         
         
         
@@ -832,7 +793,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                             'fill_val':fv, 'vars':vars_dict.keys(),
                             'dt_arr': dt_arr_, 'out_unit':out_unit}
                 
-                indice_ = ui.get_user_indice(**dic_args)
+                indice_ = get_user_indice(**dic_args)
                 indice_slice = indice_[0]
                 
                 indice_slice_date_event_bounds = indice_[1] 
@@ -856,7 +817,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                             'fill_val':fv, 'vars':vars_dict.keys(),
                             'out_unit':out_unit}
                 
-                indice_slice = ui.get_user_indice(**dic_args)
+                indice_slice = get_user_indice(**dic_args)
         
         
         
@@ -1030,7 +991,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                         'vars': vars_dict.keys(),'out_unit':out_unit,
                                         'dt_arr': dt_arr_, 'pctl_thresh': pt} 
                             
-                            indice_slice_ = ui.get_user_indice(**dic_args)
+                            indice_slice_ = get_user_indice(**dic_args)
                        
                             
                             
@@ -1108,7 +1069,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                     'dt_arr': dt_arr_, 'pctl_thresh': pt} 
 
 
-                        indice_slice_ = ui.get_user_indice(**dic_args)
+                        indice_slice_ = get_user_indice(**dic_args)
                        
                         if user_indice['date_event']==True:
 

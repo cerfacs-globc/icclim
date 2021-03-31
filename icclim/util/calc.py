@@ -10,12 +10,14 @@
 import numpy
 import pdb
 import sys
-from . import util_dt
 from collections import OrderedDict
 
 import ctypes
 from numpy.ctypeslib import ndpointer
 import os
+
+from . import util_dt
+
 my_rep = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0] + os.sep
 libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
 

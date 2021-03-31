@@ -8,7 +8,6 @@ Additions from 2015/08/07 by Natalia Tatarinova: added default value of "tdim" i
 import numpy as np
 import itertools
 
-
 def get_tile_schema(nrow,ncol,tdim=0,origin=0):
     ret = {}
     

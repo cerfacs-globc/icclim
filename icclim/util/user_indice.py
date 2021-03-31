@@ -6,15 +6,9 @@
 import sys
 import json
 from collections import OrderedDict
-
-if sys.version_info[0] < 3:
-    import calc
-    from icclim import maps
-else:
-    from icclim.util import calc
-    from icclim import maps
-
 import pdb
+
+from . import calc
 
 # map with required parameters (for user defined indices)  
 map_calc_params_required = {
@@ -91,7 +85,7 @@ def check_user_indice(indice_name, user_indice, time_range, var_name, out_unit):
     return user_indice, indice_type
  
 
-def get_key_by_value_from_dict(my_map, my_value, inc, config_file):
+def get_key_by_value_from_dict_ui(my_map, my_value, inc, config_file):
 
     icclim_indice = [key for key in my_map.keys() if my_value in my_map[key]][0]
     if icclim_indice:

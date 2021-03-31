@@ -7,7 +7,6 @@
 import cftime
 import pdb
 import os
-#from datetime import datetime
 from netCDF4 import Dataset, MFDataset
 import numpy
 import sys

@@ -40,14 +40,14 @@ or if you don't have root or sudo access, as a normal user:
 
 .. code-block:: sh
 
-    >>> from icclim import icclim
+    >>> import icclim
     
 To get the version of installed library, do the following:
 
 .. code-block:: sh
 
     >>> icclim.__version__
-    4.2.16
+    4.2.17
 
 
 .. note:: ICCLIM was not tested on Windows platform...

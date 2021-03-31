@@ -6,8 +6,8 @@
 
 import numpy
 import pdb
-from .util import calc
 
+from .util import calc
 
 '''
 Basic routines for computing of climate indices:

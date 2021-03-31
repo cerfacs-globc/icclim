@@ -10,11 +10,7 @@ import pdb
 from datetime import timedelta
 from netCDF4 import Dataset
 
-if sys.version_info[0] < 3:
-    import util_dt
-else:
-    from icclim.util import util_dt
-
+from . import util_dt
 
 def read_netCDF(file):
 

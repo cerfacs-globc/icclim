@@ -30,13 +30,8 @@ from datetime import datetime, timedelta
 from collections import OrderedDict
 import sys
 
-if sys.version_info[0] < 3:
-    from icclim_exceptions import *
-    import util.util_dt as util_dt
-
-else:
-    from icclim.icclim_exceptions import *
-    from icclim.util import util_dt
+from .util import util_dt
+from .icclim_exceptions import *
 
 ## This function creates a dictionary with centroid day and centroid month for each type of temporal aggregation
 ## except for slice_mode=None

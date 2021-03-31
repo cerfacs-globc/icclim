@@ -12,14 +12,15 @@ import datetime
 from collections import OrderedDict, defaultdict
 import pdb
 import calendar
-from .util import calc
-from .util import util_dt
 import cftime
 import sys
 import ctypes
 from numpy.ctypeslib import ndpointer
 import os
 import cftime
+
+from .util import calc
+from .util import util_dt
 
 my_rep = os.path.dirname(os.path.abspath(__file__)) + os.sep
 libraryC = ctypes.cdll.LoadLibrary(my_rep+'libC.so')
@@ -69,7 +70,8 @@ def get_masked_arr(arr, fill_val):
 #get_list_year returns a list containing all the year except the year to be duplicated
 def get_list_year(ytd, dt_arr):
     list_year = []
-    list_year.append(ytd)
+    if ytd != -9999:
+        list_year.append(ytd)
     [list_year.append(date.year) for date in dt_arr if date.year not in list_year]
     return list_year
 
@@ -82,7 +84,6 @@ def get_index_with_window(ind_2_calc, window_wide, test):
 
 #get_index_for_other_years returns the indexes for the centered days t within the time series - dt_arr & dt_arr_num
 def get_index_for_other_years(nc_time, t, calend, list_year, ytd, dt_arr_num):
-
     if calend == 'all_leap' or calend == '366_day':
         same_date_other_year = [cftime._cftime.DatetimeAllLeap(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
     elif calend == '360_day':
@@ -148,7 +149,7 @@ def get_ind_2_calc(i, ind_date, len_ytd, window_wide, ind_ytd_start, bootstrappi
     #We build the window around the centered day in this condition
     #test condition is true if the index are smaller than half of the window. i.e i=1, window_width=5 ==> window_wide=2: i<window_wide
     if i<window_wide:
-        #ranging_day creates the vector with all the window centered on the day                                       
+        #ranging_day creates the vector with all the window centered on the day
         ranging_day = np.array([np.arange(ind_date_i - window_wide, ind_date_i + window_wide+1) for ind_date_i in ind_2_calc[ind_2_calc!=i]])#ind_2_calc[ind_2_calc!=test[0]]])
         #day_after are the day within the window and after the index 0. i.e test[0]=1 and window_wide=2; day_after=[0,1,2,3]
         day_after = np.arange(0, i+window_wide+1)
@@ -156,7 +157,7 @@ def get_ind_2_calc(i, ind_date, len_ytd, window_wide, ind_ytd_start, bootstrappi
         day_before = np.arange(i+len_ytd-window_wide, len_ytd)
         #We concatenate the two vector below
         day_ytd = np.concatenate([day_after,day_before])
-        #We finally create the vector with all indez to perform calculation
+        #We finally create the vector with all index to perform calculation
         ind_2_calc = np.concatenate([[day_ytd],ranging_day])
 
     #if the window center reach the end of the time vector. i.e if len_ytd=365, i=363 and window_wide = 2
@@ -180,7 +181,30 @@ def get_ind_2_calc(i, ind_date, len_ytd, window_wide, ind_ytd_start, bootstrappi
 #It does return a window width of ranking (n-1) compare to the leap year
 #More details about leap calculation are available on the doc
 def get_ind_2_calc_for_non_leap(i, ind_date, len_ytd, window_wide):
-    ind_2_calc = np.array([np.arange(ind_date_i - window_wide+1, ind_date_i + window_wide+1) for ind_date_i in ind_date])
+    ind_2_calc = np.array(ind_date)
+    if i<window_wide:
+        #ranging_day creates the vector with all the window centered on the day
+        ranging_day = np.array([np.arange(ind_date_i - window_wide, ind_date_i + window_wide+1) for ind_date_i in ind_2_calc[ind_2_calc!=i]])
+        #day_after are the day within the window and after the index 0. i.e test[0]=1 and window_wide=2; day_after=[0,1,2,3]
+        day_after = np.arange(0, i+window_wide+1)
+        #Following what has been done on the previous version we take the last index of the array to fulfill the missing data before the first year
+        day_before = np.arange(i+len_ytd-window_wide, len_ytd)
+        #We concatenate the two vector below
+        day_ytd = np.concatenate([day_after,day_before])
+        #We finally create the vector with all index to perform calculation
+        ind_2_calc = np.concatenate([[day_ytd],ranging_day])
+
+    elif i>=(len_ytd-window_wide):
+        #We first get all the window for every year except the last year
+        ind_2_calc = np.array([np.arange(ind_date_i - window_wide, ind_date_i + window_wide+1) for ind_date_i in ind_2_calc[:-1]])
+        #We generate here the window for the last day
+        last_day = np.arange(ind_date[-1] - window_wide, ind_date[-1] + (len_ytd-i))
+        #We finally concatenate all the year and the last year together
+        ind_2_calc = np.append(ind_2_calc, last_day)
+
+    else:
+        ind_2_calc = np.array([np.arange(ind_date_i - window_wide+1, ind_date_i + window_wide+1) for ind_date_i in ind_2_calc])
+
     return np.reshape(ind_2_calc, -1)
 
 
@@ -224,7 +248,8 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
         if only_leap_years:
             list_year_leap_only = get_leap_year(list_year)
             ind_date = get_index_for_other_years(nc_time, t, t_calendar, list_year_leap_only, ytd, dt_arr_num)
-            ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
+            ind_2_calc = get_ind_2_calc(i , ind_date, 366, window_wide, ind_ytd_start, bootstrapping)
+#            ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
 
         #If only_leap_years is false, we take in account all the year for calculation. See docs for more details
         else:
@@ -232,10 +257,11 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
             list_year_not_leap = get_non_leap_year(list_year)
 
             ind_date = get_index_for_other_years(nc_time, t, t_calendar, list_year_leap_only, ytd, dt_arr_num)
-            ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
-            
+            ind_2_calc = get_ind_2_calc(i , ind_date, 366, window_wide, ind_ytd_start, bootstrapping)
+#            ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
             ind_date_not_leap = get_index_for_other_years(nc_time, dt_arr[ind_ytd_start+i-1], t_calendar, list_year_not_leap, ytd, dt_arr_num)
-            ind_2_calc_non_leap = get_ind_2_calc_for_non_leap(i, ind_date_not_leap, len_ytd, window_wide)
+#            ind_2_calc_non_leap = get_ind_2_calc_for_non_leap(i, ind_date_not_leap, len_ytd, window_wide)
+            ind_2_calc_non_leap = get_ind_2_calc_for_non_leap(i, ind_date_not_leap, 365, window_wide)
 
             ind_2_calc = np.append(ind_2_calc, ind_2_calc_non_leap)
 
@@ -243,7 +269,7 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
 
     else:
         ind_date = get_index_for_other_years(nc_time, t, t_calendar, list_year, ytd, dt_arr_num)
-        ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
+        ind_2_calc = get_ind_2_calc_for_non_leap(i , ind_date, 365, window_wide)
 
     return ind_2_calc
 
@@ -280,12 +306,17 @@ def return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled,
     #Datetime for the first index of the year to duplicate => Starting date
     t = dt_arr[ind_ytd_start]
 
+    if check_leap_day(t_calendar, t, ytd, only_leap_years):
+        len_ytd = 366
+    else:
+        len_ytd = 365
+
     #variable i to be iterated in the while statement represents each day of the year
     i=0
 
     #We iterate across day over all year long related to the year length
     while i<len_ytd:
-        
+
         # t is the centered day which we perform the calculation on
         t = dt_arr[ind_ytd_start+i]
 
@@ -367,7 +398,6 @@ def get_percentile_dict(arr, dt_arr, percentile, window_width, reduced_base_year
     in_mask = arr_masked.mask[0, :, :]
 
     fill_val = arr_masked.fill_value
-
     arr_filled = arr_masked.filled(fill_val)
     del arr_masked
 

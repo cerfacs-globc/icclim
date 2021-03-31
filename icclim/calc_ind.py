@@ -1,11 +1,7 @@
 import sys
-
-if sys.version_info[0] < 3:
-    from calc_indice import *
-else:
-    from icclim.calc_indice import *
-
 import logging
+
+from . import calc_indice
 
 # - TG 
 # - TX 
@@ -59,153 +55,153 @@ import logging
 
 def zzz(indice_name, **kwargs):
     if indice_name == 'TG' :
-        res = TG_calculation(**kwargs)
+        res = calc_indice.TG_calculation(**kwargs)
         
     elif indice_name == 'TX':
-        res = TX_calculation(**kwargs)
+        res = calc_indice.TX_calculation(**kwargs)
         
     elif indice_name == 'TN':
-        res = TN_calculation(**kwargs)
+        res = calc_indice.TN_calculation(**kwargs)
 
 
     elif indice_name == 'TXx':
-        res = TXx_calculation(**kwargs)
+        res = calc_indice.TXx_calculation(**kwargs)
         
     elif indice_name == 'TNx':
-        res = TNx_calculation(**kwargs)
+        res = calc_indice.TNx_calculation(**kwargs)
         
     elif indice_name == 'TXn':
-        res = TXn_calculation(**kwargs)
+        res = calc_indice.TXn_calculation(**kwargs)
         
     elif indice_name == 'TNn':
-        res = TNn_calculation(**kwargs) 
+        res = calc_indice.TNn_calculation(**kwargs) 
 
 #---
         
     elif indice_name == 'DTR':
-        res = DTR_calculation(**kwargs)
+        res = calc_indice.DTR_calculation(**kwargs)
         
     elif indice_name == 'ETR':
-        res = ETR_calculation(**kwargs)
+        res = calc_indice.ETR_calculation(**kwargs)
         
     elif indice_name == 'vDTR':
-        res = vDTR_calculation(**kwargs)
+        res = calc_indice.vDTR_calculation(**kwargs)
         
     
     elif indice_name == 'SU':
-        res = SU_calculation(**kwargs)
+        res = calc_indice.SU_calculation(**kwargs)
         
     elif indice_name == 'CSU':
-        res = CSU_calculation(**kwargs)
+        res = calc_indice.CSU_calculation(**kwargs)
         
     
     elif indice_name == 'TR':
-        res = TR_calculation(**kwargs)            
+        res = calc_indice.TR_calculation(**kwargs)            
        
     elif indice_name == 'FD':
-        res = FD_calculation(**kwargs)            
+        res = calc_indice.FD_calculation(**kwargs)            
        
     elif indice_name == 'CFD':
-        res = CFD_calculation(**kwargs)            
+        res = calc_indice.CFD_calculation(**kwargs)            
        
        
     elif indice_name == 'ID':
-        res = ID_calculation(**kwargs)            
+        res = calc_indice.ID_calculation(**kwargs)            
        
     elif indice_name == 'HD17':
-        res = HD17_calculation(**kwargs)            
+        res = calc_indice.HD17_calculation(**kwargs)            
        
     elif indice_name == 'GD4':
-        res = GD4_calculation(**kwargs)            
+        res = calc_indice.GD4_calculation(**kwargs)            
        
        
     elif indice_name == 'PRCPTOT':
-        res = PRCPTOT_calculation(**kwargs)            
+        res = calc_indice.PRCPTOT_calculation(**kwargs)            
        
     elif indice_name == 'RR1':
-        res = RR1_calculation(**kwargs)            
+        res = calc_indice.RR1_calculation(**kwargs)            
        
     elif indice_name == 'SDII':
-        res = SDII_calculation(**kwargs)            
+        res = calc_indice.SDII_calculation(**kwargs)            
        
        
     elif indice_name == 'R10mm':
-        res = R10mm_calculation(**kwargs)            
+        res = calc_indice.R10mm_calculation(**kwargs)            
        
     elif indice_name == 'R20mm':
-        res = R20mm_calculation(**kwargs)            
+        res = calc_indice.R20mm_calculation(**kwargs)            
        
     elif indice_name == 'RX1day':
-        res = RX1day_calculation(**kwargs)   
+        res = calc_indice.RX1day_calculation(**kwargs)   
         
         
     elif indice_name == 'RX5day':
-        res = RX5day_calculation(**kwargs)            
+        res = calc_indice.RX5day_calculation(**kwargs)            
        
     elif indice_name == 'CDD':
-        res = CDD_calculation(**kwargs)            
+        res = calc_indice.CDD_calculation(**kwargs)            
        
     elif indice_name == 'CWD':
         res =CWD_calculation(**kwargs)            
        
        
     elif indice_name == 'SD':
-        res = SD_calculation(**kwargs)            
+        res = calc_indice.SD_calculation(**kwargs)            
        
     elif indice_name == 'SD1':
-        res = SD1_calculation(**kwargs)            
+        res = calc_indice.SD1_calculation(**kwargs)            
        
     elif indice_name == 'SD5cm':
-        res = SD5cm_calculation(**kwargs)   
+        res = calc_indice.SD5cm_calculation(**kwargs)   
         
         
     elif indice_name == 'SD50cm':
-        res = SD50cm_calculation(**kwargs) 
+        res = calc_indice.SD50cm_calculation(**kwargs) 
                    
        
     elif indice_name == 'TG10p':
-        res = TG10p_calculation(**kwargs)            
+        res = calc_indice.TG10p_calculation(**kwargs)            
        
     elif indice_name == 'TG90p':
-        res = TG90p_calculation(**kwargs)           
+        res = calc_indice.TG90p_calculation(**kwargs)           
               
     elif indice_name == 'TN10p':
-        res = TN10p_calculation(**kwargs)            
+        res = calc_indice.TN10p_calculation(**kwargs)            
        
     elif indice_name == 'TN90p':
-        res = TN90p_calculation(**kwargs)            
+        res = calc_indice.TN90p_calculation(**kwargs)            
        
     elif indice_name == 'TX10p':
-        res = TX10p_calculation(**kwargs) 
+        res = calc_indice.TX10p_calculation(**kwargs) 
                 
     elif indice_name == 'TX90p':
-        res = TX90p_calculation(**kwargs)  
+        res = calc_indice.TX90p_calculation(**kwargs)  
                   
        
     elif indice_name == 'WSDI':
-        res = WSDI_calculation(**kwargs)            
+        res = calc_indice.WSDI_calculation(**kwargs)            
        
     elif indice_name == 'CSDI':
-        res = CSDI_calculation(**kwargs)            
+        res = calc_indice.CSDI_calculation(**kwargs)            
        
        
     elif indice_name == 'R75p':
-        res = R75p_calculation(**kwargs)            
+        res = calc_indice.R75p_calculation(**kwargs)            
        
     elif indice_name == 'R75pTOT':
-        res = R75pTOT_calculation(**kwargs)            
+        res = calc_indice.R75pTOT_calculation(**kwargs)            
        
     elif indice_name == 'R95p':
-        res = R95p_calculation(**kwargs)   
+        res = calc_indice.R95p_calculation(**kwargs)   
         
     elif indice_name == 'R95pTOT':
-        res = R95pTOT_calculation(**kwargs)            
+        res = calc_indice.R95pTOT_calculation(**kwargs)            
        
     elif indice_name == 'R99p':
-        res = R99p_calculation(**kwargs)            
+        res = calc_indice.R99p_calculation(**kwargs)            
        
     elif indice_name == 'R99pTOT':
-        res = R99pTOT_calculation(**kwargs)            
+        res = calc_indice.R99pTOT_calculation(**kwargs)            
 
     else:
         logging.critical("Error: unknown indice name: %s. Please check documentation.", indice_name)
