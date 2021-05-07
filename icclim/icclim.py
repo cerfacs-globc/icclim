@@ -127,7 +127,7 @@ def indice(in_files,
 
     logging_info.start_message()
 
-    time_start = time.clock()
+    time_start = time.perf_counter()
 
     #######################################################
     ########## User index check params
@@ -147,7 +147,7 @@ def indice(in_files,
         
     ind_type = check.icclim_output_file_defaults('variable_type_str')
     
-    #TODO if icclim is based on xarray, the netcdftime module and all the function using it will be deprecated
+    #TODO if icclim is based on xarray, the cftime module and all the function using it will be deprecated
     #ds = xr.open_mfdataset(in_files, decode_times=False)
     #if time_range is not None:
     #    time_range_xa = util_dt.from_datetime_to_cftime(ds, time_range)
@@ -194,6 +194,6 @@ def indice(in_files,
         ds = calc_indice.get_indice_calculation(indice_name, ds, **{'freq_mode':freq_mode})
         
         #ds.to_netcdf('results.nc')
-        time_elapsed = (time.clock() - time_start)
+        time_elapsed = (time.perf_counter() - time_start)
 
         logging_info.ending_message(time_elapsed)    
