@@ -19,7 +19,6 @@ Python package requirements:
 numpy
 xarray (pandas; python-dateutil; pytz; six)
 cftime
-netcdftime
 netcdf4
 
 To install:

@@ -305,7 +305,7 @@ import mock
 #libraryC = ctypes.cdll.LoadLibrary('../../libC.so')
 
 
-#MOCK_MODULES = ['numpy', 'scipy', 'ctypes', 'numpy.ctypeslib', 'ctypes.cdll', 'libC', 'libC.c', 'libC.so', 'libraryC', 'netCDF4', 'netcdftime']
-MOCK_MODULES = ['numpy', 'scipy', 'ctypes', 'numpy.ctypeslib', 'netCDF4', 'netcdftime', 'numpy.ma', 'ESMF']
+#MOCK_MODULES = ['numpy', 'scipy', 'ctypes', 'numpy.ctypeslib', 'ctypes.cdll', 'libC', 'libC.c', 'libC.so', 'libraryC', 'netCDF4', 'cftime']
+MOCK_MODULES = ['numpy', 'scipy', 'ctypes', 'numpy.ctypeslib', 'netCDF4', 'cftime', 'numpy.ma', 'ESMF']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()

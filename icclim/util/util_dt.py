@@ -4,7 +4,7 @@
 #  Author: Natalia Tatarinova
 
 #from cftime import num2date, date2num
-import netcdftime
+import cftime
 import pdb
 import os
 #from datetime import datetime
@@ -40,7 +40,7 @@ def get_list_dates_from_nc(nc, type_dates):
         list_dt = arr_dt.tolist() # numpy array -> list
         
     if type_dates == 'dt':
-        t = netcdftime.utime(time_units, time_calend) 
+        t = cftime.utime(time_units, time_calend) 
         arr_dt = t.num2date(var_time[:]) 
         list_dt = arr_dt.tolist() # numpy array -> list
     del arr_dt
@@ -92,12 +92,12 @@ def get_list_dates(ifile, type_dates):
         del arr_dt
     if type_dates == 'dt':
         try:
-            arr_dt = netcdftime.num2date(var_time[:], units = time_units, calendar = time_calend)
+            arr_dt = cftime.num2date(var_time[:], units = time_units, calendar = time_calend)
             list_dt = arr_dt.tolist()
             del arr_dt
         except:
-            t = netcdftime.utime(time_units, time_calend)
-            list_dt = [netcdftime.num2date(var_time_i, units = time_units, calendar = time_calend) for var_time_i in var_time]
+            t = cftime.utime(time_units, time_calend)
+            list_dt = [cftime.num2date(var_time_i, units = time_units, calendar = time_calend) for var_time_i in var_time]
             #list_dt = arr_dt.tolist() # numpy array -> list 
 
     
@@ -143,7 +143,7 @@ def date2num(dt, calend, units):
     
     :rtype: float
     '''
-    t = netcdftime.utime(units, calend)
+    t = cftime.utime(units, calend)
     dt_num = t.date2num(dt)
     
     return dt_num
@@ -162,7 +162,7 @@ def num2date(num, calend, units):
     
     :rtype: datetime.datetime object
     '''   
-    t = netcdftime.utime(units, calend)    
+    t = cftime.utime(units, calend)    
     dt = t.num2date(num)
 
     return dt
@@ -203,7 +203,7 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
         
     units = time.units
     
-    t = netcdftime.utime(units, calend)
+    t = cftime.utime(units, calend)
     
     any_dt = t.num2date(time[0])
     nc.close()
@@ -275,26 +275,26 @@ def harmonize_hourly_timestamp(time_range, calend, dt):
 #     time_range_end = datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
 
     if calend == 'noleap' or calend == '365_day':
-        time_range_begin = netcdftime._netcdftime.DatetimeNoLeap(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-        time_range_end = netcdftime._netcdftime.DatetimeNoLeap(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+        time_range_begin = cftime._cftime.DatetimeNoLeap(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = cftime._cftime.DatetimeNoLeap(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     elif calend == '360_day':
-        time_range_begin = netcdftime._netcdftime.Datetime360Day(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-        time_range_end = netcdftime._netcdftime.Datetime360Day(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+        time_range_begin = cftime._cftime.Datetime360Day(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = cftime._cftime.Datetime360Day(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     elif calend == 'gregorian':
-        time_range_begin = netcdftime._netcdftime.DatetimeGregorian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-        time_range_end = netcdftime._netcdftime.DatetimeGregorian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+        time_range_begin = cftime._cftime.DatetimeGregorian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = cftime._cftime.DatetimeGregorian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     elif calend == 'proleptic_gregorian':
-        time_range_begin = netcdftime._netcdftime.DatetimeProlepticGregorian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-        time_range_end = netcdftime._netcdftime.DatetimeProlepticGregorian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+        time_range_begin = cftime._cftime.DatetimeProlepticGregorian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = cftime._cftime.DatetimeProlepticGregorian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     elif calend == 'julian':
-        time_range_begin = netcdftime._netcdftime.DatetimeJulian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-        time_range_end = netcdftime._netcdftime.DatetimeJulian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+        time_range_begin = cftime._cftime.DatetimeJulian(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = cftime._cftime.DatetimeJulian(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     elif calend == 'all_leap' or calend == '366_day':
-        time_range_begin = netcdftime._netcdftime.DatetimeAllLeap(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-        time_range_end = netcdftime._netcdftime.DatetimeAllLeap(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+        time_range_begin = cftime._cftime.DatetimeAllLeap(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = cftime._cftime.DatetimeAllLeap(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
     else:
-        time_range_begin = netcdftime.datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
-        time_range_end = netcdftime.datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
+        time_range_begin = cftime.datetime(time_range[0].year, time_range[0].month, time_range[0].day, dt.hour)
+        time_range_end = cftime.datetime(time_range[1].year, time_range[1].month, time_range[1].day, dt.hour)
 
     return [time_range_begin, time_range_end]
 
