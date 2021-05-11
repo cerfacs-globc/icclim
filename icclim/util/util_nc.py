@@ -29,26 +29,6 @@ def create_output_netcdf(netcdf_version, out_file):
     return onc
 
 
-def set_date_event(onc, user_indice, indice_dim, fill_val, ncVar_time):
-
-    if user_indice['calc_operation'] in ['min', 'max']:            
-        date_event = onc.createVariable('date_event', 'f', indice_dim, fill_value = fill_val)
-        # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
-        date_event.__setattr__('calendar', ncVar_time.calendar)
-        date_event.__setattr__('units', ncVar_time.units)
-        
-    elif user_indice['calc_operation'] in ['nb_events', 'max_nb_consecutive_events', 'run_mean', 'run_sum']:
-        date_event_start = onc.createVariable('date_event_start', 'f', indice_dim, fill_value = fill_val)
-        # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
-        date_event_start.__setattr__('calendar', ncVar_time.calendar)
-        date_event_start.__setattr__('units', ncVar_time.units)
-        
-        date_event_end = onc.createVariable('date_event_end', 'f', indice_dim, fill_value = fill_val)
-        # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
-        date_event_end.__setattr__('calendar', ncVar_time.calendar)
-        date_event_end.__setattr__('units', ncVar_time.units)
-
-
 def set_threshold(onc, threshold, indice_dim):
 
     # Create an extra dimension for the index:

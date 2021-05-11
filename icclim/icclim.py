@@ -233,7 +233,22 @@ def indice(in_files,
     util_nc.copy_var_attrs(ncVar, ind)
     
     if indice_type.startswith('user_indice_') and user_indice['date_event']==True:
-        util_nc.set_date_event(onc, user_indice, indice_dim, fill_val, ncVar_time)
+      if user_indice['calc_operation'] in ['min', 'max']:            
+        date_event = onc.createVariable('date_event', 'f', indice_dim, fill_value = fill_val)
+        # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
+        date_event.__setattr__('calendar', ncVar_time.calendar)
+        date_event.__setattr__('units', ncVar_time.units)
+        
+      elif user_indice['calc_operation'] in ['nb_events', 'max_nb_consecutive_events', 'run_mean', 'run_sum']:
+        date_event_start = onc.createVariable('date_event_start', 'f', indice_dim, fill_value = fill_val)
+        # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
+        date_event_start.__setattr__('calendar', ncVar_time.calendar)
+        date_event_start.__setattr__('units', ncVar_time.units)
+        
+        date_event_end = onc.createVariable('date_event_end', 'f', indice_dim, fill_value = fill_val)
+        # we set the same 'calendar' and 'units' attributes as those of netCDF var 'time'
+        date_event_end.__setattr__('calendar', ncVar_time.calendar)
+        date_event_end.__setattr__('units', ncVar_time.units)
     
     time_range = util_dt.get_time_range(files=VARS_in_files[var_name[0]], 
                                         time_range=time_range, temporal_var_name=indice_dim[0])
@@ -732,7 +747,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                             'dt_arr': dt_arr_, 'out_unit':out_unit}
                 
                  
-                indice_ = get_user_indice(**dic_args)
+                indice_ = ui.get_user_indice(**dic_args)
                 indice_slice = indice_[0]
                  
                  
@@ -772,7 +787,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                 'fill_val':fill_val, 'vars':vars_dict.keys(),
                                 'out_unit':out_unit}
                 
-                indice_slice = get_user_indice(**dic_args)
+                indice_slice = ui.get_user_indice(**dic_args)
         
         
         
@@ -793,7 +808,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                             'fill_val':fv, 'vars':vars_dict.keys(),
                             'dt_arr': dt_arr_, 'out_unit':out_unit}
                 
-                indice_ = get_user_indice(**dic_args)
+                indice_ = ui.get_user_indice(**dic_args)
                 indice_slice = indice_[0]
                 
                 indice_slice_date_event_bounds = indice_[1] 
@@ -817,7 +832,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                             'fill_val':fv, 'vars':vars_dict.keys(),
                             'out_unit':out_unit}
                 
-                indice_slice = get_user_indice(**dic_args)
+                indice_slice = ui.get_user_indice(**dic_args)
         
         
         
@@ -991,7 +1006,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                         'vars': vars_dict.keys(),'out_unit':out_unit,
                                         'dt_arr': dt_arr_, 'pctl_thresh': pt} 
                             
-                            indice_slice_ = get_user_indice(**dic_args)
+                            indice_slice_ = ui.get_user_indice(**dic_args)
                        
                             
                             
@@ -1069,7 +1084,7 @@ def get_indice_from_dict_temporal_slices(indice_name,
                                     'dt_arr': dt_arr_, 'pctl_thresh': pt} 
 
 
-                        indice_slice_ = get_user_indice(**dic_args)
+                        indice_slice_ = ui.get_user_indice(**dic_args)
                        
                         if user_indice['date_event']==True:
 
