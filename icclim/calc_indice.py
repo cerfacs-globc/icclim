@@ -72,6 +72,8 @@ Example of function calling:
 
 '''
 
+PR_UNIT_CONVERSION = 3600*24  # kg/m2/s --> mm
+
 
 def get_indice_calculation(indice_name, ds, **kwargs):
 
@@ -587,7 +589,7 @@ def CDD_calculation(da, indice_name, freq_mode='YS', threshold=1.0):
 
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-    coef = 1.0
+    coef = PR_UNIT_CONVERSION
     da *= coef
     da = da[indice_name]
     CDD = calc.get_max_nb_consecutive_days(
@@ -663,7 +665,7 @@ def CWD_calculation(da, indice_name, freq_mode='YS', threshold=1.0):
     '''
 
     da = da[indice_name]
-    coef = 1.0
+    coef = PR_UNIT_CONVERSION
 
     da *= coef
     CWD = calc.get_max_nb_consecutive_days(

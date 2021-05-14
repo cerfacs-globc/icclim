@@ -11,14 +11,14 @@ import xarray
 # TODO add comments to describe the function // Take the one from previous version
 
 
-def threshold_calculation(da: xarray.DataArray, threshold, logical_operation):
+def threshold_calculation(da: xarray.DataArray, threshold, logical_operation) -> xarray.DataArray:
     # TODO [Refacto] Replace with lambda
     # Write a function to return a threshold selection
     # operations are: "<, <=, >=, >" == "lt, let, get, gt"
     if logical_operation == 'gt':
         return da.where(da > threshold)
     elif logical_operation == 'get':
-        return da.where(da > threshold)
+        return da.where(da >= threshold)
     elif logical_operation == 'lt':
         return da.where(da < threshold)
     elif logical_operation == 'let':
@@ -53,11 +53,15 @@ def sum_rolling(da: xarray.DataArray, rolling_window: int):
 
 def get_max_nb_consecutive_days(da: xarray.DataArray, logical_operation, threshold, freq_mode='YS'):
 
+    # Get the ndarray of values matching the threshold function
     da = threshold_calculation(da, threshold, logical_operation)
+    # Replace each value matching the threshold by 1, we now have a ndarray of either NaN or 1
     da /= da
-
+    # make a rolling window of 2 days on timeToCompute dimension
     roll_arr = da.rolling(time2compute=2, min_periods=2)
+    # Build a ndarray of total day per month matching the threshold
     test_arr = da.sum(dim='time2compute')
+
     mask = test_arr > 0
 
     for label, arr_window in roll_arr:
