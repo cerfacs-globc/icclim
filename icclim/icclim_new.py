@@ -5,72 +5,48 @@
 #  Author: Natalia Tatarinova
 #  Additions from Christian Page (2015-2017)
 
-# pyximport.install(pyimport = True)
-
-from numpy.lib.function_base import percentile
+from icclim.models.frequency import build_frequency
+from icclim.util import logging_info
+from icclim.indices import IndiceConfig
 from xarray.core.dataarray import DataArray
-from icclim import indices
 import xarray
-from dataclasses import dataclass
-from typing import Callable, List, Union
-import numpy
-import logging
-from netCDF4 import Dataset, MFDataset
-import os
-from collections import OrderedDict
-
-import numpy
-import logging
-import pkg_resources
-import time
+from typing import Callable, List, Optional, Union
+import indices
 import datetime
 
-import pdb
 
-from netCDF4 import Dataset, MFDataset
-from numpy.core.arrayprint import DatetimeFormat
-
-from . import (
-    maps,
-    time_subset,
-    calc_ind,
-    set_globattr,
-    set_longname_units,
-    set_longname_units_custom_indices,
-    calc_percentiles,
-)
-from .icclim_exceptions import *
-from .util import (
-    check,
-    logging_info,
-    util_nc,
-    util_dt,
-    files_order,
-    arr_size,
-    callback,
-    read,
-    OCGIS_tile,
-    calc,
-)
-from .util import user_indice as ui
-
-# Initial Config
-global config_file
-config_file = os.path.dirname(os.path.abspath(__file__)) + "/config_indice.json"
-
-
-def get_key_by_value_from_dict(my_map, my_value):
-    for key in my_map.keys():
-        if my_value in my_map[key]:
-            return key
-    if my_value not in my_map.keys():
-        return "user_indice"
-
-
-@dataclass
-class InputFile:
-    path: str
-    cf_variables: List[str]
+# @dataclasses.dataclass
+# class IcclimInput:
+#     in_files: Union[str, List[str]]
+#     var_name: List[str]
+#     # TODO use an enumeration if it's not breaking the api
+#     slice_mode: str
+#     # TODO should be a slice instead of a List
+#     time_range: List[datetime.datetime]
+#     out_file: str
+#     threshold: Union[float, List[float]]
+#     N_lev: int
+#     # TODO See if it still makes sense with xarray
+#     lev_dim_pos: int
+#     transfer_limit_Mbytes: float
+#     callback: Callable
+#     callback_percentage_start_value: int
+#     callback_percentage_total: int
+#     # TODO should be a slice instead of a List
+#     base_period_time_range: List[datetime.datetime]
+#     window_width: int
+#     only_leap_years: bool
+#     # TODO see how to use it
+#     ignore_Feb29th: bool
+#     # TODO should be an enumeration
+#     interpolation: str
+#     # TODO probably unecessary with xclim unit handling
+#     out_unit: str
+#     # TODO use an enum
+#     netcdf_version: str
+#     # TODO see if we can make use of a more sophisticated type than dict
+#     user_indice: dict
+#     save_percentile: bool
 
 
 def indice(
@@ -81,7 +57,8 @@ def indice(
     slice_mode: str = "year",
     # TODO should be a slice instead of a List
     time_range: List[datetime.datetime] = None,
-    out_file: str = check.icclim_output_file_defaults("file_name"),
+    # TODO re-add default file name
+    out_file: str = None,
     threshold: Union[float, List[float]] = None,
     N_lev: int = None,
     # TODO See if it still makes sense with xarray
@@ -100,8 +77,8 @@ def indice(
     interpolation: str = "linear",
     # TODO probably unecessary with xclim unit handling
     out_unit: str = "days",
-    # TODO probably unecessary
-    netcdf_version=check.icclim_output_file_defaults("netcdf_version"),
+    # TODO use an enum and re-add default value
+    netcdf_version=None,
     # TODO see if we can make use of a more sophisticated type than dict
     user_indice: dict = None,
     save_percentile: bool = False,
@@ -177,44 +154,70 @@ def indice(
     """
 
     logging_info.start_message()
-
+    # icclim_input = IcclimInput(
+    #     in_files,
+    #     var_name,
+    #     slice_mode,
+    #     time_range,
+    #     out_file,
+    #     threshold,
+    #     N_lev,
+    #     lev_dim_pos,
+    #     transfer_limit_Mbytes,
+    #     callback,
+    #     callback_percentage_start_value,
+    #     callback_percentage_total,
+    #     base_period_time_range,
+    #     window_width,
+    #     only_leap_years,
+    #     ignore_Feb29th,
+    #     interpolation,
+    #     out_unit,
+    #     user_indice,
+    #     save_percentile,
+    # )
     ds = xarray.open_mfdataset(in_files)
-    da = ds[var_name]  # TODO handle multi variable
-    da = build_data_array(da, time_range, ignore_Feb29th)
-    freq = compute_freq(slice_mode)
-    percentile_da = compute_percentile_da(da, base_period_time_range, only_leap_years)
-
-    indices.indice_from_string(indice_name)(
-        da=da,
-        freq=freq,
-        percentile_da=percentile_da,
-        window_width=window_width,
-        threshold=threshold,
-    ).to_netcdf(out_file)
+    config = IndiceConfig()
+    config.data_arrays = []
+    config.data_arrays_in_base = []
+    for cf_var in var_name:
+        config.data_arrays.append(build_data_array(ds[cf_var]))
+        if base_period_time_range is not None:
+            config.data_arrays_in_base.append(
+                build_percentile_da(ds[cf_var], base_period_time_range, only_leap_years)
+            )
+    config.freq = build_frequency(slice_mode).panda_freq
+    config.window = window_width
+    config.threshold = to_celcius(threshold)  # TODO handle multi threshold ?
+    indices.indice_from_string(indice_name).compute(**config).to_netcdf(out_file)
 
 
 def build_data_array(
     da: DataArray, time_range: List[str], ignore_Feb29th: bool
 ) -> DataArray:
-    # TODO
+    if len(time_range) != 2:
+        raise Exception("Not a valid time range")
+    time_range = slice(time_range[0], time_range[1])
+    da = da.sel(time=time_range)
+    if ignore_Feb29th:
+        da = da  # TODO check if in xclim calendar there is something for this
     return da
 
 
-def compute_freq(slice_mode: str) -> str:
-    freq_mode = {
-        "month": "MS",
-        "DJF": "QS-DEC",
-        "MAM": "YS",
-        "JJA": "YS",
-        "SON": "YS",
-        "year": "YS",
-    }
-    # TODO do it better
-    return freq_mode[slice_mode]
-
-
-def compute_percentile_da(
+def build_percentile_da(
     da: DataArray, base_period_time_range: List[str], only_leap_years: bool
 ) -> DataArray:
-    # TODO
+    if len(base_period_time_range) != 2:
+        raise Exception("Not a valid time range")
+    base_period_time_range = slice(base_period_time_range[0], base_period_time_range[1])
+    da = da.sel(time=base_period_time_range)
+    if only_leap_years:
+        da = da  # TODO check if in xclim calendar there is something for this
     return da
+
+
+def to_celcius(threshold: int) -> Union[None, str]:
+    if threshold is not None:
+        return f"{threshold} degC"
+    return None
+
