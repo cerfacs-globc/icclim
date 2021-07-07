@@ -5,6 +5,7 @@
 #  Author: Natalia Tatarinova
 #  Additions from Christian Page (2015-2017)
 
+from icclim.models import frequency
 from icclim.models.frequency import build_frequency
 from icclim.util import logging_info
 from icclim.indices import IndiceConfig
@@ -56,6 +57,7 @@ def indice(
     # TODO use an enumeration if it's not breaking the api
     slice_mode: str = "year",
     # TODO should be a slice instead of a List
+    # TODO !!! using it like [12, 2] has the same meaning as using slice_mode="DJF"
     time_range: List[datetime.datetime] = None,
     # TODO re-add default file name
     out_file: str = None,
@@ -180,13 +182,18 @@ def indice(
     config = IndiceConfig()
     config.data_arrays = []
     config.data_arrays_in_base = []
+    sampling_frequency = build_frequency(slice_mode)
     for cf_var in var_name:
-        config.data_arrays.append(build_data_array(ds[cf_var]))
+        da = build_data_array(ds[cf_var])
+        if sampling_frequency.resampler is not None:
+            da = sampling_frequency.resampler(da)
+        config.data_arrays.append()
         if base_period_time_range is not None:
             config.data_arrays_in_base.append(
                 build_in_base_da(ds[cf_var], base_period_time_range, only_leap_years)
             )
-    config.freq = build_frequency(slice_mode).panda_freq
+
+    config.freq = sampling_frequency.panda_freq
     config.window = window_width
     config.threshold = to_celcius(threshold)  # TODO handle multi threshold ?
     indices.indice_from_string(indice_name).compute(**config).to_netcdf(out_file)

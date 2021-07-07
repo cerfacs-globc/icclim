@@ -1,12 +1,11 @@
 import datetime
-from indices import Indice
 
 import icclim_new
 
 
 def run():
     files = "climpact.sampledata.gridded.1991-2010.nc"
-    out_f = "icclim_tx90p_no_BS.nc"
+    out_f = "icclim.v5.nc"
     bp = [datetime.datetime(1991, 1, 1), datetime.datetime(2000, 12, 31)]
     tr = [datetime.datetime(2001, 1, 1), datetime.datetime(2010, 12, 31)]
     icclim_new.indice(
@@ -23,3 +22,4 @@ def run():
 
 if __name__ == "__main__":
     run()
+
