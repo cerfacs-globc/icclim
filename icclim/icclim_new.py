@@ -10,10 +10,10 @@ from icclim.util import logging_info
 from icclim.indices import IndiceConfig
 from xarray.core.dataarray import DataArray
 import xarray
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Union
 import indices
 import datetime
-
+import xclim.core.calendar as calendar
 
 # @dataclasses.dataclass
 # class IcclimInput:
@@ -184,7 +184,7 @@ def indice(
         config.data_arrays.append(build_data_array(ds[cf_var]))
         if base_period_time_range is not None:
             config.data_arrays_in_base.append(
-                build_percentile_da(ds[cf_var], base_period_time_range, only_leap_years)
+                build_in_base_da(ds[cf_var], base_period_time_range, only_leap_years)
             )
     config.freq = build_frequency(slice_mode).panda_freq
     config.window = window_width
@@ -200,11 +200,11 @@ def build_data_array(
     time_range = slice(time_range[0], time_range[1])
     da = da.sel(time=time_range)
     if ignore_Feb29th:
-        da = da  # TODO check if in xclim calendar there is something for this
+        da = calendar.convert_calendar(da, "noleap")
     return da
 
 
-def build_percentile_da(
+def build_in_base_da(
     da: DataArray, base_period_time_range: List[str], only_leap_years: bool
 ) -> DataArray:
     if len(base_period_time_range) != 2:
@@ -212,11 +212,23 @@ def build_percentile_da(
     base_period_time_range = slice(base_period_time_range[0], base_period_time_range[1])
     da = da.sel(time=base_period_time_range)
     if only_leap_years:
-        da = da  # TODO check if in xclim calendar there is something for this
+        da = reduce_only_leap_years(da)
     return da
 
 
-def to_celcius(threshold: int) -> Union[None, str]:
+def reduce_only_leap_years(da: DataArray):
+    reduced_list = []
+    for y, val in da.groupby(da.time.dt.year):
+        if val.time.dt.dayofyear.max() == 366:
+            reduced_list.append(val)
+    if reduced_list == []:
+        raise Exception(
+            "No leap year in current dataset. Do not use only_leap_years parameter."
+        )
+    return xarray.concat(reduced_list, "time")
+
+
+def to_celcius(threshold: float) -> Union[None, str]:
     if threshold is not None:
         return f"{threshold} degC"
     return None
