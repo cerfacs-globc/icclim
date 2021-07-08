@@ -184,7 +184,7 @@ def rx5day(config: IndiceConfig) -> DataArray:
 def r75p(config: IndiceConfig) -> DataArray:
     return atmos.days_over_precip_thresh(
         config.data_arrays[0],
-        percentile_doy(config.data_arrays[0], config.window, 75),
+        percentile_doy(config.data_arrays_in_base[0], config.window, 75),
         thresh="1 mm/day",
         freq=config.freq,
         bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
@@ -194,7 +194,7 @@ def r75p(config: IndiceConfig) -> DataArray:
 def r75ptot(config: IndiceConfig) -> DataArray:
     return atmos.fraction_over_precip_thresh(
         config.data_arrays[0],
-        percentile_doy(config.data_arrays[0], config.window, 75),
+        percentile_doy(config.data_arrays_in_base[0], config.window, 75),
         thresh="1 mm/day",
         freq=config.freq,
         bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
@@ -204,7 +204,7 @@ def r75ptot(config: IndiceConfig) -> DataArray:
 def r95p(config: IndiceConfig) -> DataArray:
     return atmos.days_over_precip_thresh(
         config.data_arrays[0],
-        percentile_doy(config.data_arrays[0], config.window, 95),
+        percentile_doy(config.data_arrays_in_base[0], config.window, 95),
         thresh="1 mm/day",
         freq=config.freq,
         bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations
@@ -214,7 +214,7 @@ def r95p(config: IndiceConfig) -> DataArray:
 def r95ptot(config: IndiceConfig) -> DataArray:
     return atmos.fraction_over_precip_thresh(
         config.data_arrays[0],
-        percentile_doy(config.data_arrays[0], config.window, 95),
+        percentile_doy(config.data_arrays_in_base[0], config.window, 95),
         thresh="1 mm/day",
         freq=config.freq,
         bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations
@@ -224,7 +224,7 @@ def r95ptot(config: IndiceConfig) -> DataArray:
 def r99p(config: IndiceConfig) -> DataArray:
     return atmos.days_over_precip_thresh(
         config.data_arrays[0],
-        percentile_doy(config.data_arrays[0], config.window, 99),
+        percentile_doy(config.data_arrays_in_base[0], config.window, 99),
         thresh="1 mm/day",
         freq=config.freq,
         bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations
@@ -234,10 +234,10 @@ def r99p(config: IndiceConfig) -> DataArray:
 def r99ptot(config: IndiceConfig) -> DataArray:
     return atmos.fraction_over_precip_thresh(
         config.data_arrays[0],
-        percentile_doy(config.data_arrays[0], config.window, 99),
+        percentile_doy(config.data_arrays_in_base[0], config.window, 99),
         thresh="1 mm/day",
         freq=config.freq,
-        bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
+        bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations
     )
 
 

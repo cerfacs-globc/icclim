@@ -16,39 +16,6 @@ import indices
 import datetime
 import xclim.core.calendar as calendar
 
-# @dataclasses.dataclass
-# class IcclimInput:
-#     in_files: Union[str, List[str]]
-#     var_name: List[str]
-#     # TODO use an enumeration if it's not breaking the api
-#     slice_mode: str
-#     # TODO should be a slice instead of a List
-#     time_range: List[datetime.datetime]
-#     out_file: str
-#     threshold: Union[float, List[float]]
-#     N_lev: int
-#     # TODO See if it still makes sense with xarray
-#     lev_dim_pos: int
-#     transfer_limit_Mbytes: float
-#     callback: Callable
-#     callback_percentage_start_value: int
-#     callback_percentage_total: int
-#     # TODO should be a slice instead of a List
-#     base_period_time_range: List[datetime.datetime]
-#     window_width: int
-#     only_leap_years: bool
-#     # TODO see how to use it
-#     ignore_Feb29th: bool
-#     # TODO should be an enumeration
-#     interpolation: str
-#     # TODO probably unecessary with xclim unit handling
-#     out_unit: str
-#     # TODO use an enum
-#     netcdf_version: str
-#     # TODO see if we can make use of a more sophisticated type than dict
-#     user_indice: dict
-#     save_percentile: bool
-
 
 def indice(
     in_files: Union[str, List[str]],
@@ -73,7 +40,6 @@ def indice(
     base_period_time_range: List[datetime.datetime] = None,
     window_width: int = 5,
     only_leap_years: bool = False,
-    # TODO see how to use it
     ignore_Feb29th: bool = False,
     # TODO should be an enumeration
     interpolation: str = "linear",
@@ -156,35 +122,13 @@ def indice(
     """
 
     logging_info.start_message()
-    # icclim_input = IcclimInput(
-    #     in_files,
-    #     var_name,
-    #     slice_mode,
-    #     time_range,
-    #     out_file,
-    #     threshold,
-    #     N_lev,
-    #     lev_dim_pos,
-    #     transfer_limit_Mbytes,
-    #     callback,
-    #     callback_percentage_start_value,
-    #     callback_percentage_total,
-    #     base_period_time_range,
-    #     window_width,
-    #     only_leap_years,
-    #     ignore_Feb29th,
-    #     interpolation,
-    #     out_unit,
-    #     user_indice,
-    #     save_percentile,
-    # )
     ds = xarray.open_mfdataset(in_files)
     config = IndiceConfig()
     config.data_arrays = []
     config.data_arrays_in_base = []
     sampling_frequency = build_frequency(slice_mode)
     for cf_var in var_name:
-        da = build_data_array(ds[cf_var])
+        da = build_data_array(ds[cf_var], time_range, ignore_Feb29th)
         if sampling_frequency.resampler is not None:
             da = sampling_frequency.resampler(da)
         config.data_arrays.append()
