@@ -212,7 +212,11 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
     
     else:
         try:
-            nc = MFDataset(files, 'r', aggdim='time')
+            if len(files) > 1:
+                nc = MFDataset(files, 'r', aggdim='time')
+            else:
+                nc = Dataset(files[0], 'r')
+
         except RuntimeError:
             raise MissingIcclimInputError("Failed to access dataset: " + files)
         time_arr = nc.variables[temporal_var_name][:]
