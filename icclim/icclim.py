@@ -382,7 +382,12 @@ def indice(in_files,
                 VARS[v]['unit_conversion_var_scale']=var_scale
 
             filename = [name for name in VARS[v]['files_years'].keys()]
-            nc = MFDataset(filename, 'r', aggdim=dim_name) # VARS[v]['files_years'].keys(): files of current variable
+
+            if len(filename) > 1:
+                nc = MFDataset(filename, 'r', aggdim=dim_name) # VARS[v]['files_years'].keys(): files of current variable
+            else:
+                nc = Dataset(filename[0], 'r')
+                
             var_time = nc.variables[indice_dim[0]]
             var = nc.variables[v]
 
@@ -415,7 +420,12 @@ def indice(in_files,
             
             if indice_type.startswith('user_indice_') and user_indice['calc_operation']=='anomaly':
                 MF_nc = [MF_nc for MF_nc in VARS[v]['files_years_base'].keys()]
-                ncb = MFDataset(MF_nc, 'r', aggdim=dim_name)
+
+                if len(MF_nc) > 1:
+                    ncb = MFDataset(MF_nc, 'r', aggdim=dim_name)
+                else:
+                    ncb = Dataset(MF_nc[0], 'r')
+
                 var_time = ncb.variables[indice_dim[0]]
                 var = ncb.variables[v]
                 arrs_current_chunk_ref = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
@@ -438,7 +448,12 @@ def indice(in_files,
 
             if indice_type in ["percentile_based", "percentile_based_multivariable"] or indice_type.startswith('user_indice_percentile_'):
                 MF_nc = [MF_nc for MF_nc in VARS[v]['files_years_base'].keys()]
-                ncb = MFDataset(MF_nc, 'r', aggdim=dim_name)
+                
+                if len(MF_nc) > 1:
+                    ncb = MFDataset(MF_nc, 'r', aggdim=dim_name)
+                else:
+                    ncb = Dataset(MF_nc[0], 'r')
+                
                 var_time = ncb.variables[indice_dim[0]]
                 var = ncb.variables[v]
                 arrs_base_current_chunk = util_nc.get_values_arr_and_dt_arr(ncVar_temporal=var_time, ncVar_values=var, 
