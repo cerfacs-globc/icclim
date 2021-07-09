@@ -680,7 +680,7 @@ def RXXpTOT(arr, percentile_arr, logical_operation='gt', pr_thresh = 1.0, fill_v
     # we apply the mask to wet_arr
     arr_ma = numpy.ma.array(wet_arr, mask=maska_, fill_value=fill_val)
     
-    res = numpy.sum(arr_ma, axis=0)
+    res = 100.0 * numpy.sum(arr_ma, axis=0) / numpy.sum(wet_arr, axis=0)
 
     if isinstance(arr, numpy.ma.MaskedArray):
 #        res = numpy.ma.array(res, mask=res==fill_val, fill_value=fill_val)
