@@ -471,7 +471,7 @@ def get_percentile_arr(arr, percentile, callback=None, callback_percentage_start
 
     # we mask our array in case it has fill_values
     arr_masked = get_masked_arr(arr, fill_val)
-    in_mask = arr_masked.mask[0, :, :]
+    in_mask = np.ma.getmaskarray(arr_masked)[0, :, :]
 
     fill_val = arr_masked.fill_value
 
