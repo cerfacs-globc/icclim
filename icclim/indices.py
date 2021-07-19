@@ -1,10 +1,12 @@
 from enum import Enum
+
 from icclim.models.indice_config import IndiceConfig
 from typing import Callable
 from xclim import atmos, land
 from xarray import DataArray
 
 from xclim.core.calendar import percentile_doy
+from xclim.core.units import convert_units_to
 
 
 def gd4(config: IndiceConfig) -> DataArray:
@@ -242,8 +244,7 @@ def r99ptot(config: IndiceConfig) -> DataArray:
 
 
 def sd(config: IndiceConfig) -> DataArray:
-    # TODO
-    raise NotImplemented("not yet implemented on xclim")
+    return land.snow_depth(config.data_arrays[0], config.freq)
 
 
 def sd1(config: IndiceConfig) -> DataArray:
@@ -289,25 +290,75 @@ def vdtr(config: IndiceConfig) -> DataArray:
 
 
 def cd(config: IndiceConfig) -> DataArray:
-    # TODO
-    raise NotImplemented(
-        "not yet implemented on xclim, see cold_and_dry_days in _multivariate.py"
+    tas_per = percentile_doy(config.data_arrays_in_base[0], window=5, per=25).sel(
+        percentiles=25
+    )
+
+    precip = convert_units_to(config.data_arrays_in_base[1], "mm/d")
+    precip = precip.where(precip > 1, drop=True)
+    pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
+
+    return atmos.cold_and_wet_days(
+        tas=config.data_arrays[0],
+        tas_25=tas_per,
+        pr=config.data_arrays[1],
+        pr_25=pr_per,
+        freq=config.freq,
     )
 
 
 def cw(config: IndiceConfig) -> DataArray:
-    # TODO
-    raise NotImplemented("not yet implemented on xclim")
+    tas_per = percentile_doy(config.data_arrays_in_base[0], window=5, per=25).sel(
+        percentiles=25
+    )
+
+    precip = convert_units_to(config.data_arrays_in_base[1], "mm/d")
+    precip = precip.where(precip > 1, drop=True)
+    pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
+
+    return atmos.cold_and_wet_days(
+        tas=config.data_arrays[0],
+        tas_25=tas_per,
+        pr=config.data_arrays[1],
+        pr_75=pr_per,
+        freq=config.freq,
+    )
 
 
 def wd(config: IndiceConfig) -> DataArray:
-    # TODO
-    raise NotImplemented("not yet implemented on xclim")
+    tas_per = percentile_doy(config.data_arrays_in_base[0], window=5, per=75).sel(
+        percentiles=75
+    )
+
+    precip = convert_units_to(config.data_arrays_in_base[1], "mm/d")
+    precip = precip.where(precip > 1, drop=True)
+    pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
+
+    return atmos.cold_and_wet_days(
+        tas=config.data_arrays[0],
+        tas_75=tas_per,
+        pr=config.data_arrays[1],
+        pr_25=pr_per,
+        freq=config.freq,
+    )
 
 
 def ww(config: IndiceConfig) -> DataArray:
-    # TODO
-    raise NotImplemented("not yet implemented on xclim")
+    tas_per = percentile_doy(config.data_arrays_in_base[0], window=5, per=75).sel(
+        percentiles=75
+    )
+
+    precip = convert_units_to(config.data_arrays_in_base[1], "mm/d")
+    precip = precip.where(precip > 1, drop=True)
+    pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
+
+    return atmos.cold_and_wet_days(
+        tas=config.data_arrays[0],
+        tas_75=tas_per,
+        pr=config.data_arrays[1],
+        pr_75=pr_per,
+        freq=config.freq,
+    )
 
 
 class Indice(Enum):
