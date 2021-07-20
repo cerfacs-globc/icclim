@@ -5,7 +5,8 @@
 #  Author: Natalia Tatarinova
 #  Additions from Christian Page (2015-2017)
 
-from icclim.models.frequency import build_frequency
+from icclim.types import SliceMode
+from icclim.models.frequency import Frequency, build_frequency
 from icclim.util import logging_info
 from icclim.indices import IndiceConfig
 from xarray.core.dataarray import DataArray
@@ -20,10 +21,7 @@ def indice(
     in_files: Union[str, List[str]],
     var_name: List[str],
     indice_name: str = None,
-    # TODO use an enumeration if it's not breaking the api
-    slice_mode: str = "year",
-    # TODO should be a slice instead of a List
-    # TODO !!! using it like [12, 2] has the same meaning as using slice_mode="DJF"
+    slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime.datetime] = None,
     # TODO re-add default file name
     out_file: str = None,
@@ -31,11 +29,11 @@ def indice(
     N_lev: int = None,
     # TODO See if it still makes sense with xarray
     lev_dim_pos: int = 1,
+    # TODO see how to go from this to Dask chunks
     transfer_limit_Mbytes: float = None,
     callback: Callable = None,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    # TODO should be a slice instead of a List
     base_period_time_range: List[datetime.datetime] = None,
     window_width: int = 5,
     only_leap_years: bool = False,
@@ -48,6 +46,7 @@ def indice(
     netcdf_version=None,
     # TODO see if we can make use of a more sophisticated type than dict
     user_indice: dict = None,
+    # TODO ease to extract from percentile_doy
     save_percentile: bool = False,
 ):
     """
@@ -143,7 +142,7 @@ def indice(
 
 
 def build_data_array(
-    da: DataArray, time_range: List[str], ignore_Feb29th: bool
+    da: DataArray, time_range: List[datetime.datetime], ignore_Feb29th: bool
 ) -> DataArray:
     if len(time_range) != 2:
         raise Exception("Not a valid time range")
@@ -155,7 +154,9 @@ def build_data_array(
 
 
 def build_in_base_da(
-    da: DataArray, base_period_time_range: List[str], only_leap_years: bool
+    da: DataArray,
+    base_period_time_range: List[datetime.datetime],
+    only_leap_years: bool,
 ) -> DataArray:
     if len(base_period_time_range) != 2:
         raise Exception("Not a valid time range")
