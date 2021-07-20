@@ -5,7 +5,6 @@
 #  Author: Natalia Tatarinova
 #  Additions from Christian Page (2015-2017)
 
-from icclim.models import frequency
 from icclim.models.frequency import build_frequency
 from icclim.util import logging_info
 from icclim.indices import IndiceConfig
@@ -169,7 +168,7 @@ def build_in_base_da(
 
 def reduce_only_leap_years(da: DataArray):
     reduced_list = []
-    for y, val in da.groupby(da.time.dt.year):
+    for _, val in da.groupby(da.time.dt.year):
         if val.time.dt.dayofyear.max() == 366:
             reduced_list.append(val)
     if reduced_list == []:
