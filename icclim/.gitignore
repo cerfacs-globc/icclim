@@ -16,9 +16,6 @@ __pycache__/
 out_icclim/
 
 # tests
-test_*.py
-test_*
-tests/
 WPS/
 
 
