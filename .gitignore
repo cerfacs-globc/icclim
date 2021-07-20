@@ -76,3 +76,5 @@ PET0.ESMF_LogFile
 /.settings/
 /.project
 /.pydevproject
+
+.vscode
