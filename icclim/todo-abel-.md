@@ -1,8 +1,8 @@
 # Add the user custom indicies
-# See how to handle multiple thresholds
-On doit calculer plusieurs fois l'indice pour chaque seuil de la liste
 
 # Add unit tests
+
+# Add documentation
 
 # Verify on climdex that they bootstrap precipitation as well as temperatures indices
 --> ils ne le font pas !

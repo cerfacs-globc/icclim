@@ -5,14 +5,14 @@
 #  Author: Natalia Tatarinova
 #  Additions from Christian Page (2015-2017)
 
-from icclim.types import SliceMode
-from icclim.models.frequency import Frequency, build_frequency
+from xarray.core.dataset import Dataset
+from icclim import indices
+from icclim.models.frequency import Frequency, SliceMode, build_frequency
 from icclim.util import logging_info
 from icclim.indices import IndiceConfig
 from xarray.core.dataarray import DataArray
 import xarray
 from typing import Callable, List, Union
-import indices
 import datetime
 import xclim.core.calendar as calendar
 
@@ -125,11 +125,11 @@ def indice(
     config.data_arrays = []
     config.data_arrays_in_base = []
     sampling_frequency = build_frequency(slice_mode)
+    if isinstance(var_name, str):
+        var_name = [var_name]
     for cf_var in var_name:
         da = build_data_array(ds[cf_var], time_range, ignore_Feb29th)
-        if sampling_frequency.resampler is not None:
-            da = sampling_frequency.resampler(da)
-        config.data_arrays.append()
+        config.data_arrays.append(da)
         if base_period_time_range is not None:
             config.data_arrays_in_base.append(
                 build_in_base_da(ds[cf_var], base_period_time_range, only_leap_years)
@@ -137,8 +137,26 @@ def indice(
 
     config.freq = sampling_frequency.panda_freq
     config.window = window_width
-    config.threshold = to_celcius(threshold)  # TODO handle multi threshold ?
-    indices.indice_from_string(indice_name).compute(**config).to_netcdf(out_file)
+    result_ds = Dataset()
+    # TODO add global attributes to dataset
+    if isinstance(threshold, list):
+        for th in threshold:
+            result_ds[f"{indice_name}_threshold_{th}"] = compute_indice(
+                indice_name, config, sampling_frequency, th,
+            )
+    else:
+        result_ds[indice_name] = compute_indice(
+            indice_name, config, sampling_frequency, threshold, indice_name
+        )
+    result_ds.to_netcdf(out_file)
+
+
+def compute_indice(indice_name, config, sampling_frequency, th):
+    config.threshold = to_celcius(th)
+    da = indices.indice_from_string(indice_name).compute(config)
+    if sampling_frequency.resampler is not None:
+        da = sampling_frequency.resampler(da)
+    return da
 
 
 def build_data_array(
