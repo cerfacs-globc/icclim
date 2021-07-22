@@ -1,6 +1,5 @@
 from enum import Enum
 from typing import Callable, List, Tuple, Union
-from _pytest.compat import NOTSET
 import numpy
 import pandas
 import xarray
@@ -8,32 +7,37 @@ import xarray
 from xarray.core.dataarray import DataArray
 
 
-def seasons_resampler(
-    start_month: int, end_month: int
-) -> Callable[[DataArray], DataArray]:
+# month_list must be ordered from first month of season to the last. Example: [11, 1, 2,4]
+def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]:
     def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
         years = numpy.unique(da.time.dt.year)
         acc = []
         time_bounds = []
         middle_date = []
-        is_overlapping_season = start_month > end_month
+        start_month = month_list[0]
+        end_month = month_list[-1]
+        filtered_da = month_filter(month_list)(da)
+        # TODO, maybe raise a warning if the month_list is not made of consecutive month (case of user error)
         for year in years:
-            if is_overlapping_season:
+            if start_month > end_month:
                 start_season_date = pandas.to_datetime(f"{year-1}-{start_month}")
             else:
                 start_season_date = pandas.to_datetime(f"{year}-{start_month}")
-            end_season_date = pandas.to_datetime(f"{year}-{end_month}")
-            season_of_year = da.sel(time=slice(start_season_date, end_season_date)).sum(
-                "time"
+            end_season_date = (
+                pandas.to_datetime(f"{year}-{end_month+1}")
+                - pandas.tseries.offsets.Day()
             )
+            season_of_year = filtered_da.sel(
+                time=slice(start_season_date, end_season_date)
+            ).sum("time")
             middle_date.append(
-                start_season_date
-                + (pandas.to_datetime(f"{year}-{end_month+1}") - start_season_date) / 2
+                start_season_date + (end_season_date - start_season_date) / 2
             )
             time_bounds.append([start_season_date, end_season_date])
             acc.append(season_of_year)
         seasons = xarray.concat(acc, "time")
         seasons.coords["time"] = ("time", middle_date)
+        # FIXME: In case of month_list with holes, such as [1,3,4,6]; How do we show this in metatadas ?
         seasons.time.attrs["bounds"] = "time_bounds"
         seasons.time._copy_attrs_from(da.time)
         time_bounds_da = DataArray(
@@ -46,7 +50,7 @@ def seasons_resampler(
     return resampler
 
 
-def month_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]:
+def month_filter(month_list: List[int]) -> Callable[[DataArray], DataArray]:
     def resampler(da: DataArray):
         return da.sel(time=da.time.dt.month.isin(month_list))
 
@@ -66,12 +70,12 @@ class Frequency(Enum):
     """
 
     MONTH = ("MS", ["month", "MS"])
-    AMJJAS = ("MS", ["AMJJAS"], seasons_resampler(4, 9))
-    ONDJFM = ("MS", ["ONDJFM"], seasons_resampler(10, 3))
-    DJF = ("MS", ["DJF",], seasons_resampler(12, 2))
-    MAM = ("MS", ["MAM",], seasons_resampler(3, 5))
-    JJA = ("MS", ["JJA",], seasons_resampler(6, 8))
-    SON = ("MS", ["SON",], seasons_resampler(9, 11))
+    AMJJAS = ("MS", ["AMJJAS"], seasons_resampler([*range(4, 9)]))
+    ONDJFM = ("MS", ["ONDJFM"], seasons_resampler([10, 11, 12, 1, 2, 3]))
+    DJF = ("MS", ["DJF",], seasons_resampler([12, 1, 2]))
+    MAM = ("MS", ["MAM",], seasons_resampler([*range(3, 5)]))
+    JJA = ("MS", ["JJA",], seasons_resampler([*range(6, 8)]))
+    SON = ("MS", ["SON",], seasons_resampler([*range(9, 11)]))
     YEAR = ("YS", ["year", "YS"])
     CUSTOM = ("MS", [], None)
 
@@ -115,12 +119,13 @@ def get_frequency_from_list(slice_mode_list: List):
     months = slice_mode_list[1]
     custom_freq = Frequency.CUSTOM
     if sampling_freq == "month":
-        custom_freq.resampler = month_resampler(months)
+        custom_freq.resampler = month_filter(months)
     elif sampling_freq == "season":
         if months is Tuple:
-            custom_freq.resampler = seasons_resampler(months[0][0], months[1][-1])
+            # TODO add deprecation for the Tuple, because we support [11,12,1] and it will avoid the need of concat here
+            custom_freq.resampler = seasons_resampler(months[1] + months[0])
         else:
-            custom_freq.resampler = seasons_resampler(months[0], months[-1])
+            custom_freq.resampler = seasons_resampler(months)
     else:
         raise f"Unknown frequency {slice_mode_list}"
     return custom_freq

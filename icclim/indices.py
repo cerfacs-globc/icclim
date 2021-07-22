@@ -85,8 +85,6 @@ def cdd(config: IndiceConfig) -> DataArray:
 
 
 def su(config: IndiceConfig) -> DataArray:
-    if config.threshold is None:
-        config.threshold = "25 degC"  # TODO add thresholds to other indices
     return atmos.tx_days_above(config.data_arrays[0], config.threshold, config.freq)
 
 
