@@ -85,6 +85,8 @@ def cdd(config: IndiceConfig) -> DataArray:
 
 
 def su(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        config.threshold = "25 degC"  # TODO add thresholds to other indices
     return atmos.tx_days_above(config.data_arrays[0], config.threshold, config.freq)
 
 
@@ -362,64 +364,65 @@ def ww(config: IndiceConfig) -> DataArray:
 
 
 class Indice(Enum):
-    GD4 = gd4
-    TX90P = tx90p
-    CFD = cfd
-    FD = fd
-    HD17 = hd17
-    ID = id
-    CSDI = csdi
-    TG10P = tg10p
-    TN10P = tn10p
-    TX10P = tx10p
-    TXN = txn
-    TNN = tnn
-    CDD = cdd
-    SU = su
-    TR = tr
-    WSDI = wsdi
-    TG90P = tg90p
-    TN90P = tn90p
-    TXX = txx
-    TNX = tnx
-    CSU = csu
-    PRCPTOT = prcptot
-    RR1 = rr1
-    SDII = sdii
-    CWD = cwd
-    R10MM = r10mm
-    R20MM = r20mm
-    RX1DAY = rx1day
-    RX5DAY = rx5day
-    R75P = r75p
-    R75PTOT = r75ptot
-    R95P = r95p
-    R95PTOT = r95ptot
-    R99P = r99p
-    R99PTOT = r99ptot
-    SD = sd
-    SD1 = sd1
-    SD5CM = sd5cm
-    SD50CM = sd50cm
-    TG = tg
-    TN = tn
-    TX = tx
-    DTR = dtr
-    ETR = etr
-    VDTR = vdtr
-    CD = cd
-    CW = cw
-    WD = wd
-    WW = ww
+    GD4 = ("gd4", gd4)
+    TX90P = ("tx90p", tx90p)
+    CFD = ("cfd", cfd)
+    FD = ("fd", fd)
+    HD17 = ("hd17", hd17)
+    ID = ("id", id)
+    CSDI = ("csdi", csdi)
+    TG10P = ("tg10p", tg10p)
+    TN10P = ("tn10p", tn10p)
+    TX10P = ("tx10p", tx10p)
+    TXN = ("txn", txn)
+    TNN = ("tnn", tnn)
+    CDD = ("cdd", cdd)
+    SU = ("su", su)
+    TR = ("tr", tr)
+    WSDI = ("wsdi", wsdi)
+    TG90P = ("tg90p", tg90p)
+    TN90P = ("tn90p", tn90p)
+    TXX = ("txx", txx)
+    TNX = ("tnx", tnx)
+    CSU = ("csu", csu)
+    PRCPTOT = ("prcptot", prcptot)
+    RR1 = ("rr1", rr1)
+    SDII = ("sdii", sdii)
+    CWD = ("cwd", cwd)
+    R10MM = ("r10mm", r10mm)
+    R20MM = ("r20mm", r20mm)
+    RX1DAY = ("rx1day", rx1day)
+    RX5DAY = ("rx5day", rx5day)
+    R75P = ("r75p", r75p)
+    R75PTOT = ("r75ptot", r75ptot)
+    R95P = ("r95p", r95p)
+    R95PTOT = ("r95ptot", r95ptot)
+    R99P = ("r99p", r99p)
+    R99PTOT = ("r99ptot", r99ptot)
+    SD = ("sd", sd)
+    SD1 = ("sd1", sd1)
+    SD5CM = ("sd5cm", sd5cm)
+    SD50CM = ("sd50cm", sd50cm)
+    TG = ("tg", tg)
+    TN = ("tn", tn)
+    TX = ("tx", tx)
+    DTR = ("dtr", dtr)
+    ETR = ("etr", etr)
+    VDTR = ("vdtr", vdtr)
+    CD = ("cd", cd)
+    CW = ("cw", cw)
+    WD = ("wd", wd)
+    WW = ("ww", ww)
 
-    def __init__(self, compute):
+    def __init__(self, indice_name, compute):
+        self.indice_name: str = indice_name
         self.compute: Callable[[IndiceConfig], DataArray] = compute
 
 
 def indice_from_string(s: str) -> Indice:
     indice_to_check = s.upper()
     for e in Indice:
-        if e.name == indice_to_check:
+        if e.indice_name.upper() == indice_to_check:
             return e
     raise Exception(f"Unknown indice {s}")
 
