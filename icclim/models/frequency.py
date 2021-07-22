@@ -1,8 +1,8 @@
 from enum import Enum
-from icclim.types import SliceMode
 from typing import Callable, List, Tuple, Union
 from _pytest.compat import NOTSET
 import numpy
+import pandas
 import xarray
 
 from xarray.core.dataarray import DataArray
@@ -11,35 +11,44 @@ from xarray.core.dataarray import DataArray
 def seasons_resampler(
     start_month: int, end_month: int
 ) -> Callable[[DataArray], DataArray]:
-    def resampler(da: DataArray):
-        months = da.time.dt.month
-        return da.where(
-            numpy.logical_and(months >= start_month, months <= end_month), drop=True
+    def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
+        years = numpy.unique(da.time.dt.year)
+        acc = []
+        time_bounds = []
+        middle_date = []
+        is_overlapping_season = start_month > end_month
+        for year in years:
+            if is_overlapping_season:
+                start_season_date = pandas.to_datetime(f"{year-1}-{start_month}")
+            else:
+                start_season_date = pandas.to_datetime(f"{year}-{start_month}")
+            end_season_date = pandas.to_datetime(f"{year}-{end_month}")
+            season_of_year = da.sel(time=slice(start_season_date, end_season_date)).sum(
+                "time"
+            )
+            middle_date.append(
+                start_season_date
+                + (pandas.to_datetime(f"{year}-{end_month+1}") - start_season_date) / 2
+            )
+            time_bounds.append([start_season_date, end_season_date])
+            acc.append(season_of_year)
+        seasons = xarray.concat(acc, "time")
+        seasons.coords["time"] = ("time", middle_date)
+        seasons.time.attrs["bounds"] = "time_bounds"
+        seasons.time._copy_attrs_from(da.time)
+        time_bounds_da = DataArray(
+            time_bounds,
+            dims=["time", "bounds"],
+            coords=[("time", seasons.time), ("bounds", [0, 1])],
         )
-
-    return resampler
-
-
-# Because it is overlapping between 2 years, winter need it's own computation function
-def winter_resampler(
-    start_month: int, end_month: int
-) -> Callable[[DataArray], DataArray]:
-    def resampler(da: DataArray):
-        months = da.time.dt.month
-        return da.where(
-            numpy.logical_or(months <= end_month, months >= start_month), drop=True
-        )
+        return (seasons, time_bounds_da)
 
     return resampler
 
 
 def month_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]:
     def resampler(da: DataArray):
-        acc = []
-        for gr, val in da.groupby(da.time.dt.month):
-            if gr in month_list:
-                acc.append(val)
-        return xarray.concat(acc, "time")
+        return da.sel(time=da.time.dt.month.isin(month_list))
 
     return resampler
 
@@ -58,8 +67,8 @@ class Frequency(Enum):
 
     MONTH = ("MS", ["month", "MS"])
     AMJJAS = ("MS", ["AMJJAS"], seasons_resampler(4, 9))
-    ONDJFM = ("MS", ["ONDJFM"], winter_resampler(10, 3))
-    DJF = ("MS", ["DJF",], winter_resampler(12, 2))
+    ONDJFM = ("MS", ["ONDJFM"], seasons_resampler(10, 3))
+    DJF = ("MS", ["DJF",], seasons_resampler(12, 2))
     MAM = ("MS", ["MAM",], seasons_resampler(3, 5))
     JJA = ("MS", ["JJA",], seasons_resampler(6, 8))
     SON = ("MS", ["SON",], seasons_resampler(9, 11))
@@ -72,9 +81,12 @@ class Frequency(Enum):
         accepted_values: List[str],
         resampler: Callable[[DataArray], DataArray] = None,
     ):
-        self.panda_freq = panda_time
-        self.accepted_values = accepted_values
-        self.resampler = resampler
+        self.panda_freq: str = panda_time
+        self.accepted_values: List[str] = accepted_values
+        self.resampler: Callable[[DataArray], DataArray] = resampler
+
+
+SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
 
 
 def build_frequency(slice_mode: SliceMode) -> Frequency:
@@ -106,7 +118,7 @@ def get_frequency_from_list(slice_mode_list: List):
         custom_freq.resampler = month_resampler(months)
     elif sampling_freq == "season":
         if months is Tuple:
-            custom_freq.resampler = winter_resampler(months[0][0], months[1][-1])
+            custom_freq.resampler = seasons_resampler(months[0][0], months[1][-1])
         else:
             custom_freq.resampler = seasons_resampler(months[0], months[-1])
     else:
