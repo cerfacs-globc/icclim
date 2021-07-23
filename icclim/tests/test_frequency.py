@@ -1,3 +1,4 @@
+from icclim.tests.stubs import STUB_DA
 from icclim.models.frequency import (
     Frequency,
     build_frequency,
@@ -112,11 +113,4 @@ class Test_seasons_resampler:
             time_bds_res[0].data[1]
             == pd.to_datetime("2042-05") - pd.tseries.offsets.Day()
         )
-
-
-STUB_DA = xarray.DataArray(
-    data=np.full(366 * 5, 1),
-    dims=["time"],
-    coords=dict(time=pd.date_range("2042-01-01", periods=366 * 5),),
-)
 
