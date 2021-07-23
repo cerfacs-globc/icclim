@@ -5,6 +5,8 @@
 #  Author: Natalia Tatarinova
 #  Additions from Christian Page (2015-2017)
 
+from icclim.user_indice.operation import compute_user_indice
+from icclim.user_indice.user_indice import UserIndice
 from xarray.core.dataset import Dataset
 from icclim import indices
 from icclim.models.frequency import Frequency, SliceMode, build_frequency
@@ -44,7 +46,7 @@ def indice(
     out_unit: str = "days",
     # TODO use an enum and re-add default value
     netcdf_version=None,
-    # TODO see if we can make use of a more sophisticated type than dict
+    # TODO see if we can deprecated this and have another etry point only for the user_indices
     user_indice: dict = None,
     # TODO ease to extract from percentile_doy
     save_percentile: bool = False,
@@ -138,16 +140,22 @@ def indice(
     config.freq = sampling_frequency.panda_freq
     config.window = window_width
     result_ds = Dataset()
-    # TODO add global attributes to dataset
-    if isinstance(threshold, list):
-        for th in threshold:
-            result_ds[f"{indice_name}_threshold_{th}"] = compute_indice(
-                indice_name, config, sampling_frequency, th,
-            )
-    else:
-        result_ds[indice_name] = compute_indice(
-            indice_name, config, sampling_frequency, threshold, indice_name
+    # TODO add attributes to dataset
+    if user_indice is not None:
+        user_indice: UserIndice = UserIndice(**user_indice)
+        result_ds[user_indice.indice_name] = compute_user_indice(
+            user_indice, config.data_arrays[0]
         )
+    else:
+        if isinstance(threshold, list):
+            for th in threshold:
+                result_ds[f"{indice_name}_threshold_{th}"] = compute_indice(
+                    indice_name, config, sampling_frequency, th,
+                )
+        else:
+            result_ds[indice_name] = compute_indice(
+                indice_name, config, sampling_frequency, threshold, indice_name
+            )
     result_ds.to_netcdf(out_file)
 
 
@@ -162,10 +170,11 @@ def compute_indice(indice_name, config, sampling_frequency, th):
 def build_data_array(
     da: DataArray, time_range: List[datetime.datetime], ignore_Feb29th: bool
 ) -> DataArray:
-    if len(time_range) != 2:
-        raise Exception("Not a valid time range")
-    time_range = slice(time_range[0], time_range[1])
-    da = da.sel(time=time_range)
+    if time_range is not None:
+        if len(time_range) != 2:
+            raise Exception("Not a valid time range")
+        time_range = slice(time_range[0], time_range[1])
+        da = da.sel(time=time_range)
     if ignore_Feb29th:
         da = calendar.convert_calendar(da, "noleap")
     return da
