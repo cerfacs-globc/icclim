@@ -293,11 +293,9 @@ def cd(config: IndiceConfig) -> DataArray:
     tas_per = percentile_doy(config.data_arrays_in_base[0], window=5, per=25).sel(
         percentiles=25
     )
-
     precip = convert_units_to(config.data_arrays_in_base[1], "mm/d")
     precip = precip.where(precip > 1, drop=True)
     pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
-
     return atmos.cold_and_wet_days(
         tas=config.data_arrays[0],
         tas_25=tas_per,
@@ -311,11 +309,9 @@ def cw(config: IndiceConfig) -> DataArray:
     tas_per = percentile_doy(config.data_arrays_in_base[0], window=5, per=25).sel(
         percentiles=25
     )
-
     precip = convert_units_to(config.data_arrays_in_base[1], "mm/d")
     precip = precip.where(precip > 1, drop=True)
     pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
-
     return atmos.cold_and_wet_days(
         tas=config.data_arrays[0],
         tas_25=tas_per,
@@ -329,11 +325,9 @@ def wd(config: IndiceConfig) -> DataArray:
     tas_per = percentile_doy(config.data_arrays_in_base[0], window=5, per=75).sel(
         percentiles=75
     )
-
     precip = convert_units_to(config.data_arrays_in_base[1], "mm/d")
     precip = precip.where(precip > 1, drop=True)
     pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
-
     return atmos.cold_and_wet_days(
         tas=config.data_arrays[0],
         tas_75=tas_per,
@@ -347,11 +341,9 @@ def ww(config: IndiceConfig) -> DataArray:
     tas_per = percentile_doy(config.data_arrays_in_base[0], window=5, per=75).sel(
         percentiles=75
     )
-
     precip = convert_units_to(config.data_arrays_in_base[1], "mm/d")
     precip = precip.where(precip > 1, drop=True)
     pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
-
     return atmos.cold_and_wet_days(
         tas=config.data_arrays[0],
         tas_75=tas_per,
