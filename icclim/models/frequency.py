@@ -1,29 +1,60 @@
 from enum import Enum
-from typing import Callable, List, Union
+from typing import Callable, List, Tuple, Union
 import numpy
+import pandas
+import xarray
 
 from xarray.core.dataarray import DataArray
 
 
-def sesons_resampler(start_month: int, end_month: int):
-    def x(da):
-        months = da.time.dt.month
-        return da.where(
-            numpy.logical_and(months >= start_month, months <= end_month), drop=True
+# month_list must be ordered from first month of season to the last. Example: [11, 1, 2,4]
+def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]:
+    def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
+        years = numpy.unique(da.time.dt.year)
+        acc = []
+        time_bounds = []
+        middle_date = []
+        start_month = month_list[0]
+        end_month = month_list[-1]
+        filtered_da = month_filter(month_list)(da)
+        # TODO, maybe raise a warning if the month_list is not made of consecutive month (case of user error)
+        for year in years:
+            if start_month > end_month:
+                start_season_date = pandas.to_datetime(f"{year-1}-{start_month}")
+            else:
+                start_season_date = pandas.to_datetime(f"{year}-{start_month}")
+            end_season_date = (
+                pandas.to_datetime(f"{year}-{end_month+1}")
+                - pandas.tseries.offsets.Day()
+            )
+            season_of_year = filtered_da.sel(
+                time=slice(start_season_date, end_season_date)
+            ).sum("time")
+            middle_date.append(
+                start_season_date + (end_season_date - start_season_date) / 2
+            )
+            time_bounds.append([start_season_date, end_season_date])
+            acc.append(season_of_year)
+        seasons = xarray.concat(acc, "time")
+        seasons.coords["time"] = ("time", middle_date)
+        # FIXME: In case of month_list with holes, such as [1,3,4,6]; How do we show this in metatadas ?
+        seasons.time.attrs["bounds"] = "time_bounds"
+        seasons.time._copy_attrs_from(da.time)
+        time_bounds_da = DataArray(
+            time_bounds,
+            dims=["time", "bounds"],
+            coords=[("time", seasons.time), ("bounds", [0, 1])],
         )
+        return (seasons, time_bounds_da)
 
-    return x
+    return resampler
 
 
-# Bsecause it's overlapping between 2 years, winter need it's own coputation function
-def winter_resampler(start_month: int, end_month: int):
-    def x(da):
-        months = da.time.dt.month
-        return lambda da: da.where(
-            numpy.logical_or(months <= end_month, months >= start_month), drop=True
-        )
+def month_filter(month_list: List[int]) -> Callable[[DataArray], DataArray]:
+    def resampler(da: DataArray):
+        return da.sel(time=da.time.dt.month.isin(month_list))
 
-    return x
+    return resampler
 
 
 class Frequency(Enum):
@@ -39,13 +70,14 @@ class Frequency(Enum):
     """
 
     MONTH = ("MS", ["month", "MS"])
-    AMJJAS = ("MS", ["AMJJAS"], sesons_resampler(4, 9))
-    ONDJFM = ("MS", ["ONDJFM"], winter_resampler(10, 3))
-    DJF = ("MS", ["DJF",], winter_resampler(12, 2))
-    MAM = ("MS", ["MAM",], sesons_resampler(3, 5))
-    JJA = ("MS", ["JJA",], sesons_resampler(6, 8))
-    SON = ("MS", ["SON",], sesons_resampler(9, 11))
+    AMJJAS = ("MS", ["AMJJAS"], seasons_resampler([*range(4, 9)]))
+    ONDJFM = ("MS", ["ONDJFM"], seasons_resampler([10, 11, 12, 1, 2, 3]))
+    DJF = ("MS", ["DJF",], seasons_resampler([12, 1, 2]))
+    MAM = ("MS", ["MAM",], seasons_resampler([*range(3, 5)]))
+    JJA = ("MS", ["JJA",], seasons_resampler([*range(6, 8)]))
+    SON = ("MS", ["SON",], seasons_resampler([*range(9, 11)]))
     YEAR = ("YS", ["year", "YS"])
+    CUSTOM = ("MS", [], None)
 
     def __init__(
         self,
@@ -53,17 +85,47 @@ class Frequency(Enum):
         accepted_values: List[str],
         resampler: Callable[[DataArray], DataArray] = None,
     ):
-        self.panda_freq = panda_time
-        self.accepted_values = accepted_values
-        resampler = resampler
+        self.panda_freq: str = panda_time
+        self.accepted_values: List[str] = accepted_values
+        self.resampler: Callable[[DataArray], DataArray] = resampler
 
 
-def build_frequency(s: Union[str, Frequency]) -> Frequency:
-    # TODO write unit test
-    if s is Frequency:
-        return s
-    for f in Frequency:
-        if f.name == s.upper() or s.upper() in map(f.accepted_values, str.upper()):
-            return f
-    raise Exception(f"Unknown frequency {s}")  # TODO use click BadParam exception
+SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
 
+
+def build_frequency(slice_mode: SliceMode) -> Frequency:
+    if isinstance(slice_mode, Frequency):
+        return slice_mode
+    if isinstance(slice_mode, str):
+        return get_frequency_from_string(slice_mode)
+    if isinstance(slice_mode, list):
+        return get_frequency_from_list(slice_mode)
+    raise Exception(f"Unknown frequency {slice_mode}")
+
+
+def get_frequency_from_string(slice_mode: str):
+    for freq in Frequency:
+        if freq.name == slice_mode.upper() or slice_mode.upper() in map(
+            str.upper, freq.accepted_values
+        ):
+            return freq
+    raise Exception(f"Unknown frequency {slice_mode}")
+
+
+def get_frequency_from_list(slice_mode_list: List):
+    if len(slice_mode_list) < 2:
+        raise f"Unknown frequency {slice_mode_list}"
+    sampling_freq = slice_mode_list[0]
+    months = slice_mode_list[1]
+    custom_freq = Frequency.CUSTOM
+    if sampling_freq == "month":
+        custom_freq.resampler = month_filter(months)
+    elif sampling_freq == "season":
+        if months is Tuple:
+            # TODO add deprecation for the Tuple, because we support [11,12,1] and it will avoid the need of concat here
+            custom_freq.resampler = seasons_resampler(months[1] + months[0])
+        else:
+            custom_freq.resampler = seasons_resampler(months)
+    else:
+        raise f"Unknown frequency {slice_mode_list}"
+    return custom_freq

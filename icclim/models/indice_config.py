@@ -3,7 +3,6 @@ from typing import List, Optional
 from xarray import DataArray
 
 
-@dataclasses.dataclass
 class IndiceConfig:
     data_arrays: List[DataArray]
     freq: str
