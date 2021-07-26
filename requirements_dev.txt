@@ -1,0 +1,6 @@
+pip
+flake8
+black
+isort
+pylint
+pre-commit>=2.9
