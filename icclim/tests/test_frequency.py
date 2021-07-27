@@ -1,4 +1,4 @@
-from icclim.tests.stubs import STUB_DA
+from icclim.tests.stubs import stub_da
 from icclim.models.frequency import (
     Frequency,
     build_frequency,
@@ -65,7 +65,7 @@ class Test_build_frequency_over_list:
 class Test_filter_months:
     def test_simple(self):
         # WHEN
-        da = month_filter([1, 2, 7])(STUB_DA)
+        da = month_filter([1, 2, 7])(stub_da())
         # THEN
         months = np.unique(da.time.dt.month)
         assert len(months) == 3
@@ -77,7 +77,7 @@ class Test_filter_months:
 class Test_seasons_resampler:
     def test_simple(self):
         # WHEN
-        da_res, time_bds_res = seasons_resampler([4, 5, 6])(STUB_DA)
+        da_res, time_bds_res = seasons_resampler([4, 5, 6])(stub_da())
         # THEN
         assert da_res[0] == 91
         assert time_bds_res[0].data[0] == pd.to_datetime("2042-04")
@@ -88,7 +88,7 @@ class Test_seasons_resampler:
 
     def test_winter(self):
         # WHEN
-        da_res, time_bds_res = seasons_resampler([11, 12, 1])(STUB_DA)
+        da_res, time_bds_res = seasons_resampler([11, 12, 1])(stub_da())
         # THEN
         assert da_res[0] == 31
         assert time_bds_res[0].data[0] == pd.to_datetime("2041-11")
@@ -105,7 +105,7 @@ class Test_seasons_resampler:
 
     def test_season_with_holes(self):
         # WHEN
-        da_res, time_bds_res = seasons_resampler([1, 3, 4])(STUB_DA)
+        da_res, time_bds_res = seasons_resampler([1, 3, 4])(stub_da())
         # THEN
         assert da_res[0] == 92
         assert time_bds_res[0].data[0] == pd.to_datetime("2042-01")

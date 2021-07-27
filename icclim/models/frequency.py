@@ -41,10 +41,10 @@ def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]
         seasons.time.attrs["bounds"] = "time_bnds"
         seasons.time._copy_attrs_from(da.time)
         time_bnds_da = DataArray(
-            time_bnds,
+            data=time_bnds,
             dims=["time", "bounds"],
-            coords=[("time", seasons.time), ("bounds", [0, 1])],
-        )
+            coords=[("time", seasons.time.data), ("bounds", [0, 1])],
+        )  # TODO make sure it works, and there is no duplicated time coords in the final dataset
         return (seasons, time_bnds_da)
 
     return resampler

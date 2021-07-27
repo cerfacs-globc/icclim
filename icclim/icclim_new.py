@@ -5,8 +5,9 @@
 #  Author: Natalia Tatarinova
 #  Additions from Christian Page (2015-2017)
 
+from icclim.models.indice_config import CfVariable
 from icclim.user_indice.operation import compute_user_indice
-from icclim.user_indice.user_indice import UserIndice
+from icclim.user_indice.user_indice import UserIndiceConfig
 from xarray.core.dataset import Dataset
 from icclim import indices
 from icclim.models.frequency import Frequency, SliceMode, build_frequency
@@ -124,47 +125,61 @@ def indice(
     logging_info.start_message()
     ds = xarray.open_mfdataset(in_files)
     config = IndiceConfig()
-    config.data_arrays = []
-    config.data_arrays_in_base = []
-    sampling_frequency = build_frequency(slice_mode)
+    config.freq = build_frequency(slice_mode)
     if isinstance(var_name, str):
         var_name = [var_name]
-    for cf_var in var_name:
-        da = build_data_array(ds[cf_var], time_range, ignore_Feb29th)
-        config.data_arrays.append(da)
-        if base_period_time_range is not None:
-            config.data_arrays_in_base.append(
-                build_in_base_da(ds[cf_var], base_period_time_range, only_leap_years)
-            )
-
-    config.freq = sampling_frequency.panda_freq
+    config.cfvariables = [
+        build_cf_variable(
+            ds[cf_var_name],
+            time_range,
+            ignore_Feb29th,
+            base_period_time_range,
+            only_leap_years,
+        )
+        for cf_var_name in var_name
+    ]
     config.window = window_width
     result_ds = Dataset()
     # TODO add attributes to dataset
     if user_indice is not None:
-        user_indice: UserIndice = UserIndice(**user_indice)
+        user_indice: UserIndiceConfig = UserIndiceConfig(**user_indice)
+        user_indice.freq = config.freq
         result_ds[user_indice.indice_name] = compute_user_indice(
-            user_indice, config.data_arrays[0]
+            user_indice, config.cfvariables[0]  # TODO HANDLE LIST
         )
     else:
         if isinstance(threshold, list):
             for th in threshold:
+                # TODO: use the same name as in icc 4
                 result_ds[f"{indice_name}_threshold_{th}"] = compute_indice(
-                    indice_name, config, sampling_frequency, th,
+                    indice_name, config, th
                 )
         else:
-            result_ds[indice_name] = compute_indice(
-                indice_name, config, sampling_frequency, threshold, indice_name
-            )
+            result_ds[indice_name] = compute_indice(indice_name, config, threshold)
     result_ds.to_netcdf(out_file)
 
 
-def compute_indice(indice_name, config, sampling_frequency, th):
-    config.threshold = to_celcius(th)
+def compute_indice(indice_name: str, config: IndiceConfig, threshold: float):
+    config.threshold = to_celcius(threshold)
     da = indices.indice_from_string(indice_name).compute(config)
-    if sampling_frequency.resampler is not None:
-        da = sampling_frequency.resampler(da)
+    if config.freq.resampler is not None:
+        da = config.freq.resampler(da)
     return da
+
+
+def build_cf_variable(
+    da: DataArray,
+    time_range: List[datetime.datetime],
+    ignore_Feb29th: bool,
+    base_period_time_range: List[datetime.datetime],
+    only_leap_years: bool,
+) -> CfVariable:
+    cf_var = CfVariable(build_data_array(da, time_range, ignore_Feb29th))
+    if base_period_time_range is not None:
+        cf_var.in_base_da = build_in_base_da(
+            da, base_period_time_range, only_leap_years
+        )
+    return cf_var
 
 
 def build_data_array(

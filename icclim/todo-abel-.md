@@ -21,3 +21,6 @@ ligne 435 de https://github.com/pacificclimate/climdex.pcic/blob/master/R/climde
 
 
 # checkout IDEA IDE to see if it handles the tests better
+
+
+# merge previous branch and create draft pr for user indices

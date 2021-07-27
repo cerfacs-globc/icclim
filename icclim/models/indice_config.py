@@ -1,11 +1,21 @@
-import dataclasses
+from icclim.models.frequency import Frequency
 from typing import List, Optional
 from xarray import DataArray
+from xarray.core.dataset import Dataset
+
+
+class CfVariable:
+    da: DataArray
+    in_base_da: Optional[DataArray]
+
+    def __init__(self, da: DataArray, in_base_da: DataArray = None) -> None:
+        self.da = da
+        self.in_base_da = in_base_da
 
 
 class IndiceConfig:
-    data_arrays: List[DataArray]
-    freq: str
-    data_arrays_in_base: Optional[List[DataArray]]
+    freq: Frequency
     window: Optional[int]
     threshold: Optional[int]
+    cfvariables: List[CfVariable]
+    ds: Dataset

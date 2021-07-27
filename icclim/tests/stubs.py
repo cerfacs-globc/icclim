@@ -1,16 +1,16 @@
-from icclim.user_indice.user_indice import UserIndice
+from icclim.models.frequency import Frequency
+from icclim.user_indice.user_indice import UserIndiceConfig
 import xarray
 import numpy as np
 import pandas as pd
 import copy
 
-STUB_DA = xarray.DataArray(
-    data=np.full(366 * 5, 1),
-    dims=["time"],
-    coords=dict(time=pd.date_range("2042-01-01", periods=366 * 5),),
-)
+COORDS = dict(time=pd.date_range("2042-01-01", periods=366 * 5),)
 
-STUB_USER_INDICE = UserIndice(indice_name="Yolo", calc_operation="noop")
+
+STUB_USER_INDICE = UserIndiceConfig(
+    indice_name="Yolo", calc_operation="noop", freq=Frequency.MONTH
+)
 
 
 def stub_user_indice():
@@ -18,4 +18,18 @@ def stub_user_indice():
 
 
 def stub_da():
-    return copy.deepcopy(STUB_DA)
+    return xarray.DataArray(data=np.full(366 * 5, 1), dims=["time"], coords=COORDS)
+
+
+def stub_pr(val):
+    return xarray.DataArray(
+        np.full(366 * 5, val),
+        coords=COORDS,
+        dims="time",
+        name="pr",
+        attrs={
+            "standard_name": "precipitation_flux",
+            "cell_methods": "time: mean within days",
+            "units": "kg m-2 d-1",
+        },
+    )

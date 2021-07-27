@@ -1,4 +1,4 @@
-from icclim.user_indice.user_indice import LogicalOperation, UserIndice
+from icclim.user_indice.user_indice import LogicalOperation, UserIndiceConfig
 
 
 class Test_UserIndice:
@@ -10,10 +10,10 @@ class Test_UserIndice:
             "thresh": 0 + 273.15,  ### input data in Kelvin ==> threshold in Kelvin!
             "date_event": True,
         }
-        plop = UserIndice(**dico)
+        plop = UserIndiceConfig(**dico)
         assert plop.indice_name == "my_indice"
         assert plop.calc_operation == "min"
-        assert plop.logical_operation == LogicalOperation.GT
+        assert plop.logical_operation == LogicalOperation.GREATER_THAN
         assert plop.thresh == 273.15
         assert plop.date_event == True
 
