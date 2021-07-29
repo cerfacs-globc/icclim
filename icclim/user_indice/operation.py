@@ -1,21 +1,25 @@
 from enum import Enum
-import xarray
-from icclim.models.indice_config import CfVariable
+from functools import reduce
 from typing import List, Union
-from xclim.core.units import convert_units_to
-from xclim.core.calendar import percentile_doy, resample_doy
 
-from xclim.core.bootstrapping import bootstrap_func, percentile_bootstrap
+import numpy
+from xarray.core.dataarray import DataArray
+from xclim.core.bootstrapping import percentile_bootstrap
+from xclim.core.calendar import percentile_doy, resample_doy
+from xclim.core.units import convert_units_to
+
+from icclim.models.indice_config import CfVariable
 from icclim.user_indice.user_indice import (
-    LogicalOperation,
     PRECIPITATION,
     TEMPERATURE,
+    LogicalOperation,
     UserIndiceConfig,
 )
-from xarray.core.dataarray import DataArray
 
 PERCENTILE_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm
+OR_STAMP = "or"
+AND_STAMP = "and"
 
 
 def apply_coef(coef: float, da: DataArray) -> DataArray:
@@ -25,7 +29,9 @@ def apply_coef(coef: float, da: DataArray) -> DataArray:
 
 
 def filter_by_logical_op(
-    logical_operation: LogicalOperation, threshold: float, da: DataArray,
+    logical_operation: LogicalOperation,
+    threshold: float,
+    da: DataArray,
 ) -> DataArray:
     if logical_operation is not None and threshold is not None:
         return da.where(logical_operation.compute(da, threshold), drop=True)
@@ -133,6 +139,65 @@ def user_indice_mean(
     return da.mean(dim="time")
 
 
+@percentile_bootstrap
+def threshold_compare_on_percentiles(
+    da: DataArray,
+    percentiles: DataArray,
+    logical_operation: LogicalOperation,
+    freq: str = "MS",
+    bootstrap: bool = False,
+):
+    percentiles = resample_doy(percentiles, da)
+    return logical_operation.compute(da, percentiles)
+
+
+def user_indice_count_events(
+    data_arrays: List[DataArray],
+    logical_operation: List[LogicalOperation],
+    thresholds: List[float] = None,
+    coef: float = None,
+    link_logical_operations: str = None,
+    percentiles: List[DataArray] = None,
+    bootstrap=False,
+    freq: str = "MS",
+    date_event: bool = False,
+):
+    acc = []
+    for i, da in enumerate(data_arrays):
+        da = apply_coef(coef, da)
+        if percentiles is not None:
+            da = threshold_compare_on_percentiles(
+                da=da,
+                percentiles=percentiles[i],
+                logical_operation=logical_operation[i],
+                freq=freq,
+                bootstrap=bootstrap,
+            )
+        else:
+            da = logical_operation[i].compute(da, thresholds[i])
+        acc.append(da)
+    if len(acc) == 1:
+        result = acc[0]
+    elif link_logical_operations == AND_STAMP:
+        result = reduce(numpy.logical_and, acc, True)
+    elif link_logical_operations == OR_STAMP:
+        result = reduce(numpy.logical_or, acc, False)
+    else:
+        raise NotImplementedError()
+    return result.resample(time=freq).sum(dim="time")
+
+
+@percentile_bootstrap
+def threshold_count(
+    da: DataArray,
+    logical_operation: LogicalOperation,
+    thresh: Union[float, int, DataArray],
+    freq: str,
+    bootstrap=False,
+) -> DataArray:
+    return logical_operation.compute(da, thresh).resample(time=freq).sum(dim="time")
+
+
 def compute_user_indice(indice: UserIndiceConfig, cf_vars: CfVariable) -> DataArray:
     if isinstance(indice.thresh, str):
         if indice.thresh.find(PERCENTILE_STAMP) == -1:
@@ -201,8 +266,20 @@ def _compute(
             bootstrap=bootstrap,
             freq=indice.freq.panda_freq,
         )
+    elif indice.calc_operation == CalcOperation.EVENT_COUNT.value:
+        return user_indice_count_events(
+            da=da,
+            logical_operation=indice.logical_operation,
+            thresholds=indice.thresh,
+            coef=indice.coef,
+            link_logical_operations=indice.link_logical_operations,
+            percentiles=percentiles,
+            bootstrap=bootstrap,
+            freq=indice.freq.panda_freq,
+            date_event=indice.date_event,
+        )
     else:
-        raise Exception("")  # TODO exc
+        raise NotImplementedError("")  # TODO exc
 
 
 class CalcOperation(Enum):
@@ -211,4 +288,3 @@ class CalcOperation(Enum):
     SUM = "sum"
     MEAN = "mean"
     EVENT_COUNT = "nb_event"
-

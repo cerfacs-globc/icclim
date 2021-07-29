@@ -1,21 +1,22 @@
+import numpy as np
+from xclim.core.calendar import percentile_doy
+
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import CfVariable
-from icclim.user_indice.user_indice import LogicalOperation, PRECIPITATION, TEMPERATURE
-from icclim.tests.stubs import (
-    stub_da,
-    stub_pr,
-    stub_user_indice,
-)
+from icclim.tests.stubs import stub_da, stub_pr, stub_user_indice
 from icclim.user_indice.operation import (
+    AND_STAMP,
+    OR_STAMP,
     apply_coef,
     compute_user_indice,
     filter_by_logical_op,
+    user_indice_count_events,
     user_indice_max,
     user_indice_mean,
     user_indice_min,
     user_indice_sum,
 )
-import numpy as np
+from icclim.user_indice.user_indice import PRECIPITATION, TEMPERATURE, LogicalOperation
 
 
 class Test_apply_coef:
@@ -44,7 +45,14 @@ class Test_user_indice_max:
         da.data[1] = 20
         # WHEN
         stub = stub_user_indice()
-        result = user_indice_max(stub, da)
+        result = user_indice_max(
+            da=da,
+            coef=stub.coef,
+            logical_operation=stub.logical_operation,
+            threshold=stub.thresh,
+            freq=stub.freq.panda_freq,
+            date_event=stub.date_event,
+        )
         # THEN
         assert np.testing.assert_equal(result.data, 20) is None
 
@@ -55,7 +63,14 @@ class Test_user_indice_min:
         da.data[1] = -20
         stub = stub_user_indice()
         # WHEN
-        result = user_indice_min(stub, da)
+        result = user_indice_min(
+            da=da,
+            coef=stub.coef,
+            logical_operation=stub.logical_operation,
+            threshold=stub.thresh,
+            freq=stub.freq.panda_freq,
+            date_event=stub.date_event,
+        )
         # THEN
         assert result.data == -20
 
@@ -65,7 +80,13 @@ class Test_user_indice_mean:
         stub = stub_user_indice()
         da = stub_da()
         # WHEN
-        result = user_indice_mean(stub, da)
+        result = user_indice_mean(
+            da=da,
+            coef=stub.coef,
+            logical_operation=stub.logical_operation,
+            threshold=stub.thresh,
+            freq=stub.freq.panda_freq,
+        )
         # THEN
         assert result.data == 1
 
@@ -75,9 +96,81 @@ class Test_user_indice_sum:
         da = stub_da()
         stub = stub_user_indice()
         # WHEN
-        result = user_indice_sum(stub, da)
+        result = user_indice_sum(
+            da=da,
+            coef=stub.coef,
+            logical_operation=stub.logical_operation,
+            threshold=stub.thresh,
+            freq=stub.freq.panda_freq,
+        )
         # THEN
         assert result.data == 366 * 5
+
+
+class Test_user_indice_count_events:
+    def test_simple(self):
+        # GIVEN
+        da = stub_da(10)
+        da[1] = 15
+        da[2] = 16
+        # WHEN
+        result = user_indice_count_events(
+            data_arrays=[da],
+            logical_operation=[LogicalOperation.GREATER_THAN],
+            thresholds=[15],
+            freq="MS",
+        )
+        # THEN
+        assert result[0] == 1
+
+    def test_simple_percentile(self):
+        # GIVEN
+        da = stub_da(10)
+        da[1] = 15
+        da[2] = 16
+        per = percentile_doy(da, 5, 80).sel(percentiles=80)
+        # WHEN
+        result = user_indice_count_events(
+            data_arrays=[da],
+            logical_operation=[LogicalOperation.GREATER_THAN],
+            percentiles=[per],
+            freq="MS",
+        )
+        # THEN
+        assert result[0] == 2
+
+    def test_multi_threshold_or(self):
+        # GIVEN
+        tmax = stub_da(10)
+        tmax[1] = 15
+        tmin = stub_da(-10)
+        # WHEN
+        result = user_indice_count_events(
+            data_arrays=[tmax, tmin],
+            logical_operation=[LogicalOperation.GREATER_THAN, LogicalOperation.EQUAL],
+            thresholds=[12, -20],
+            link_logical_operations=OR_STAMP,
+            freq="MS",
+        )
+        # THEN
+        assert result[0] == 1
+
+    def test_multi_threshold_and(self):
+        # GIVEN
+        tmax = stub_da(10)
+        tmax[1] = 15
+        tmin = stub_da(-10)
+        tmin[1] = -20
+        # WHEN
+        result = user_indice_count_events(
+            data_arrays=[tmax, tmin],
+            logical_operation=[LogicalOperation.GREATER_THAN, LogicalOperation.EQUAL],
+            thresholds=[12, -20],
+            link_logical_operations=AND_STAMP,
+            freq="MS",
+        )
+        # THEN
+        assert result[0] == 1
 
 
 class Test_compute:

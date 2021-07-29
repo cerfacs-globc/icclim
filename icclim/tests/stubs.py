@@ -1,24 +1,23 @@
-from icclim.models.frequency import Frequency
-from icclim.user_indice.user_indice import UserIndiceConfig
-import xarray
 import numpy as np
 import pandas as pd
-import copy
+import xarray
 
-COORDS = dict(time=pd.date_range("2042-01-01", periods=366 * 5),)
+from icclim.models.frequency import Frequency
+from icclim.user_indice.user_indice import UserIndiceConfig
 
-
-STUB_USER_INDICE = UserIndiceConfig(
-    indice_name="Yolo", calc_operation="noop", freq=Frequency.MONTH
+COORDS = dict(
+    time=pd.date_range("2042-01-01", periods=366 * 5),
 )
 
 
 def stub_user_indice():
-    return copy.deepcopy(STUB_USER_INDICE)
+    return UserIndiceConfig(
+        indice_name="Yolo", calc_operation="noop", freq=Frequency.MONTH
+    )
 
 
-def stub_da():
-    return xarray.DataArray(data=np.full(366 * 5, 1), dims=["time"], coords=COORDS)
+def stub_da(value=1):
+    return xarray.DataArray(data=np.full(366 * 5, value), dims=["time"], coords=COORDS)
 
 
 def stub_pr(val):
