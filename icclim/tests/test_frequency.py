@@ -1,14 +1,15 @@
-from icclim.tests.stubs import stub_da
+import numpy as np
+import pandas as pd
+import pytest
+import xarray
+
 from icclim.models.frequency import (
     Frequency,
     build_frequency,
     month_filter,
     seasons_resampler,
 )
-import pandas as pd
-import pytest
-import xarray
-import numpy as np
+from icclim.tests.stubs import stub_tas
 
 
 class Test_build_frequency_over_frequency:
@@ -19,7 +20,7 @@ class Test_build_frequency_over_frequency:
 
 class Test_build_frequency_over_string:
     def test_error(self):
-        with pytest.raises(Exception) as exc:
+        with pytest.raises(Exception):
             build_frequency("yolo")
 
     def test_simple(self):
@@ -29,7 +30,7 @@ class Test_build_frequency_over_string:
 
 class Test_build_frequency_over_list:
     def test_error(self):
-        with pytest.raises(Exception) as exc:  # TODO use a more specific exception
+        with pytest.raises(Exception):  # TODO use a more specific exception
             build_frequency(["cacahuêtes"])
 
     def test_month(self):
@@ -65,7 +66,7 @@ class Test_build_frequency_over_list:
 class Test_filter_months:
     def test_simple(self):
         # WHEN
-        da = month_filter([1, 2, 7])(stub_da())
+        da = month_filter([1, 2, 7])(stub_tas())
         # THEN
         months = np.unique(da.time.dt.month)
         assert len(months) == 3
@@ -77,7 +78,7 @@ class Test_filter_months:
 class Test_seasons_resampler:
     def test_simple(self):
         # WHEN
-        da_res, time_bds_res = seasons_resampler([4, 5, 6])(stub_da())
+        da_res, time_bds_res = seasons_resampler([4, 5, 6])(stub_tas())
         # THEN
         assert da_res[0] == 91
         assert time_bds_res[0].data[0] == pd.to_datetime("2042-04")
@@ -88,7 +89,7 @@ class Test_seasons_resampler:
 
     def test_winter(self):
         # WHEN
-        da_res, time_bds_res = seasons_resampler([11, 12, 1])(stub_da())
+        da_res, time_bds_res = seasons_resampler([11, 12, 1])(stub_tas())
         # THEN
         assert da_res[0] == 31
         assert time_bds_res[0].data[0] == pd.to_datetime("2041-11")
@@ -105,7 +106,7 @@ class Test_seasons_resampler:
 
     def test_season_with_holes(self):
         # WHEN
-        da_res, time_bds_res = seasons_resampler([1, 3, 4])(stub_da())
+        da_res, time_bds_res = seasons_resampler([1, 3, 4])(stub_tas())
         # THEN
         assert da_res[0] == 92
         assert time_bds_res[0].data[0] == pd.to_datetime("2042-01")
@@ -113,4 +114,3 @@ class Test_seasons_resampler:
             time_bds_res[0].data[1]
             == pd.to_datetime("2042-05") - pd.tseries.offsets.Day()
         )
-

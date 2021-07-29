@@ -6,7 +6,7 @@ from icclim.models.frequency import Frequency
 from icclim.user_indice.user_indice import UserIndiceConfig
 
 COORDS = dict(
-    time=pd.date_range("2042-01-01", periods=366 * 5),
+    time=pd.date_range("2042-01-01", periods=365 * 5 + 1, freq=pd.DateOffset(days=1))
 )
 
 
@@ -16,19 +16,24 @@ def stub_user_indice():
     )
 
 
-def stub_da(value=1):
-    return xarray.DataArray(data=np.full(366 * 5, value), dims=["time"], coords=COORDS)
+def stub_tas(value=1):
+    return xarray.DataArray(
+        data=np.full(365 * 5 + 1, value),
+        dims=["time"],
+        coords=COORDS,
+        attrs={
+            "units": "K",
+        },
+    )
 
 
 def stub_pr(val):
     return xarray.DataArray(
-        np.full(366 * 5, val),
+        np.full(365 * 5 + 1, val),
         coords=COORDS,
         dims="time",
         name="pr",
         attrs={
-            "standard_name": "precipitation_flux",
-            "cell_methods": "time: mean within days",
             "units": "kg m-2 d-1",
         },
     )

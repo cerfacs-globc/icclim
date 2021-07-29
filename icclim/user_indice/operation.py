@@ -6,7 +6,8 @@ import numpy
 from xarray.core.dataarray import DataArray
 from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import percentile_doy, resample_doy
-from xclim.core.units import convert_units_to
+from xclim.core.units import convert_units_to, to_agg_units
+from xclim.indices.run_length import longest_run
 
 from icclim.models.indice_config import CfVariable
 from icclim.user_indice.user_indice import (
@@ -164,18 +165,18 @@ def user_indice_count_events(
 ):
     acc = []
     for i, da in enumerate(data_arrays):
-        da = apply_coef(coef, da)
+        result = apply_coef(coef, da)
         if percentiles is not None:
-            da = threshold_compare_on_percentiles(
-                da=da,
+            result = threshold_compare_on_percentiles(
+                da=result,
                 percentiles=percentiles[i],
                 logical_operation=logical_operation[i],
                 freq=freq,
                 bootstrap=bootstrap,
             )
         else:
-            da = logical_operation[i].compute(da, thresholds[i])
-        acc.append(da)
+            result = logical_operation[i].compute(result, thresholds[i])
+        acc.append(result)
     if len(acc) == 1:
         result = acc[0]
     elif link_logical_operations == AND_STAMP:
@@ -185,6 +186,31 @@ def user_indice_count_events(
     else:
         raise NotImplementedError()
     return result.resample(time=freq).sum(dim="time")
+
+
+def user_indice_max_consecutive_event_count(
+    da: DataArray,
+    logical_operation: LogicalOperation,
+    thresholds: float = None,
+    coef: float = None,
+    percentiles: DataArray = None,
+    bootstrap=False,
+    freq: str = "MS",
+    date_event: bool = False,
+):
+    result = apply_coef(coef, da)
+    if percentiles is not None:
+        result = threshold_compare_on_percentiles(
+            da=result,
+            percentiles=percentiles,
+            logical_operation=logical_operation,
+            freq=freq,
+            bootstrap=bootstrap,
+        )
+    else:
+        result = logical_operation.compute(da, thresholds)
+    result = result.resample(time=freq).map(longest_run, dim="time")
+    return to_agg_units(result, da, "count")
 
 
 @percentile_bootstrap
@@ -212,6 +238,7 @@ def compute_user_indice(indice: UserIndiceConfig, cf_vars: CfVariable) -> DataAr
             da_per = da_per.where(da_per > WET_DAY_THRESHOLD, drop=True)
         percentiles = percentile_doy(arr=da_per, per=per).sel(percentiles=per)
         if indice.var_type == TEMPERATURE:
+            # TODO add if thresh > 90th percentile ? it doesn't make sense to bootstrap for example the 70th percentile
             return _compute(indice, cf_vars.da, percentiles=percentiles, bootstrap=True)
         else:
             return _compute(indice, cf_vars.da, percentiles=percentiles)
@@ -278,6 +305,18 @@ def _compute(
             freq=indice.freq.panda_freq,
             date_event=indice.date_event,
         )
+    elif indice.calc_operation == CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value:
+        return user_indice_max_consecutive_event_count(
+            da=da,
+            logical_operation=indice.logical_operation,
+            thresholds=indice.thresh,
+            coef=indice.coef,
+            link_logical_operations=indice.link_logical_operations,
+            percentiles=percentiles,
+            bootstrap=bootstrap,
+            freq=indice.freq.panda_freq,
+            date_event=indice.date_event,
+        )
     else:
         raise NotImplementedError("")  # TODO exc
 
@@ -288,3 +327,4 @@ class CalcOperation(Enum):
     SUM = "sum"
     MEAN = "mean"
     EVENT_COUNT = "nb_event"
+    MAX_NUMBER_OF_CONSECUTIVE_EVENTS = "max_nb_consecutive_events"

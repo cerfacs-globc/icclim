@@ -7,13 +7,12 @@ class Test_UserIndice:
             "indice_name": "my_indice",
             "calc_operation": "min",
             "logical_operation": "gt",
-            "thresh": 0 + 273.15,  ### input data in Kelvin ==> threshold in Kelvin!
+            "thresh": 0 + 273.15,
             "date_event": True,
         }
-        plop = UserIndiceConfig(**dico)
+        plop = UserIndiceConfig(**dico, freq="MS")
         assert plop.indice_name == "my_indice"
         assert plop.calc_operation == "min"
         assert plop.logical_operation == LogicalOperation.GREATER_THAN
         assert plop.thresh == 273.15
-        assert plop.date_event == True
-
+        assert plop.date_event
