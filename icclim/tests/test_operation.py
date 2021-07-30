@@ -5,8 +5,6 @@ from icclim.models.frequency import Frequency
 from icclim.models.indice_config import CfVariable
 from icclim.tests.stubs import stub_pr, stub_tas, stub_user_indice
 from icclim.user_indice.operation import (
-    AND_STAMP,
-    OR_STAMP,
     apply_coef,
     compute_user_indice,
     filter_by_logical_op,
@@ -15,9 +13,16 @@ from icclim.user_indice.operation import (
     user_indice_max_consecutive_event_count,
     user_indice_mean,
     user_indice_min,
+    user_indice_run_mean,
+    user_indice_run_sum,
     user_indice_sum,
 )
-from icclim.user_indice.user_indice import PRECIPITATION, TEMPERATURE, LogicalOperation
+from icclim.user_indice.user_indice import (
+    PRECIPITATION,
+    TEMPERATURE,
+    LinkLogicalOperation,
+    LogicalOperation,
+)
 
 
 class Test_apply_coef:
@@ -150,7 +155,7 @@ class Test_user_indice_count_events:
             data_arrays=[tmax, tmin],
             logical_operation=[LogicalOperation.GREATER_THAN, LogicalOperation.EQUAL],
             thresholds=[12, -20],
-            link_logical_operations=OR_STAMP,
+            link_logical_operations=LinkLogicalOperation.OR_STAMP,
             freq="MS",
         )
         # THEN
@@ -167,7 +172,7 @@ class Test_user_indice_count_events:
             data_arrays=[tmax, tmin],
             logical_operation=[LogicalOperation.GREATER_THAN, LogicalOperation.EQUAL],
             thresholds=[12, -20],
-            link_logical_operations=AND_STAMP,
+            link_logical_operations=LinkLogicalOperation.AND_STAMP,
             freq="MS",
         )
         # THEN
@@ -215,6 +220,82 @@ class Test_compute:
         result = compute_user_indice(stub, cf_var)
         # THEN
         assert result.data == 5
+
+
+class Test_user_indice_run_mean:
+    def test_simple_min(self):
+        # GIVEN
+        tmax = stub_tas(10)
+        tmax[30] = 0
+        tmax[29] = 0
+        tmax[28] = 0
+        tmax[27] = 0
+        tmax[26] = 0
+        # WHEN
+        result = user_indice_run_mean(
+            da=tmax,
+            extreme_mode="min",
+            window_width=5,
+            freq="MS",
+        )
+        # THEN
+        assert result[0] == 0
+        assert result[1] == 2
+        assert result[2] == 10
+
+    def test_simple_max(self):
+        # GIVEN
+        tmax = stub_tas(10)
+        tmax[30] = 20
+        # WHEN
+        result = user_indice_run_mean(
+            da=tmax,
+            extreme_mode="max",
+            window_width=2,
+            freq="MS",
+        )
+        # THEN
+        assert result[0] == 15
+        assert result[1] == 15
+        assert result[2] == 10
+
+
+class Test_user_indice_run_sum:
+    def test_simple_min(self):
+        # GIVEN
+        tmax = stub_tas(10)
+        tmax[30] = 0
+        tmax[29] = 0
+        tmax[28] = 0
+        tmax[27] = 0
+        tmax[26] = 0
+        # WHEN
+        result = user_indice_run_sum(
+            da=tmax,
+            extreme_mode="min",
+            window_width=5,
+            freq="MS",
+        )
+        # THEN
+        assert result[0] == 0
+        assert result[1] == 10
+        assert result[2] == 50
+
+    def test_simple_max(self):
+        # GIVEN
+        tmax = stub_tas(10)
+        tmax[30] = 20
+        # WHEN
+        result = user_indice_run_sum(
+            da=tmax,
+            extreme_mode="max",
+            window_width=2,
+            freq="MS",
+        )
+        # THEN
+        assert result[0] == 30
+        assert result[1] == 30
+        assert result[2] == 20
 
 
 class Test_user_indice_max_consecutive_event_count:

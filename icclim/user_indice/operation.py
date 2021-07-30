@@ -1,6 +1,6 @@
 from enum import Enum
 from functools import reduce
-from typing import List, Union
+from typing import Any, Callable, List, Union
 
 import numpy
 from xarray.core.dataarray import DataArray
@@ -13,14 +13,13 @@ from icclim.models.indice_config import CfVariable
 from icclim.user_indice.user_indice import (
     PRECIPITATION,
     TEMPERATURE,
+    LinkLogicalOperation,
     LogicalOperation,
     UserIndiceConfig,
 )
 
 PERCENTILE_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm
-OR_STAMP = "or"
-AND_STAMP = "and"
 
 
 def apply_coef(coef: float, da: DataArray) -> DataArray:
@@ -157,7 +156,7 @@ def user_indice_count_events(
     logical_operation: List[LogicalOperation],
     thresholds: List[float] = None,
     coef: float = None,
-    link_logical_operations: str = None,
+    link_logical_operations: LinkLogicalOperation = None,
     percentiles: List[DataArray] = None,
     bootstrap=False,
     freq: str = "MS",
@@ -179,9 +178,9 @@ def user_indice_count_events(
         acc.append(result)
     if len(acc) == 1:
         result = acc[0]
-    elif link_logical_operations == AND_STAMP:
+    elif link_logical_operations == LinkLogicalOperation.AND_STAMP:
         result = reduce(numpy.logical_and, acc, True)
-    elif link_logical_operations == OR_STAMP:
+    elif link_logical_operations == LinkLogicalOperation.OR_STAMP:
         result = reduce(numpy.logical_or, acc, False)
     else:
         raise NotImplementedError()
@@ -213,15 +212,62 @@ def user_indice_max_consecutive_event_count(
     return to_agg_units(result, da, "count")
 
 
-@percentile_bootstrap
-def threshold_count(
+def user_indice_run_mean(
     da: DataArray,
-    logical_operation: LogicalOperation,
-    thresh: Union[float, int, DataArray],
-    freq: str,
-    bootstrap=False,
-) -> DataArray:
-    return logical_operation.compute(da, thresh).resample(time=freq).sum(dim="time")
+    extreme_mode: str,
+    window_width: int,
+    coef: float = None,
+    freq: str = "MS",
+    date_event: bool = False,
+):
+    return _user_indice_run_aggregator(
+        da=da,
+        extreme_mode=extreme_mode,
+        window_width=window_width,
+        coef=coef,
+        freq=freq,
+        date_event=date_event,
+        aggregator=lambda da: da.mean(),
+    )
+
+
+def user_indice_run_sum(
+    da: DataArray,
+    extreme_mode: str,
+    window_width: int,
+    coef: float = None,
+    freq: str = "MS",
+    date_event: bool = False,
+):
+    return _user_indice_run_aggregator(
+        da=da,
+        extreme_mode=extreme_mode,
+        window_width=window_width,
+        coef=coef,
+        freq=freq,
+        date_event=date_event,
+        aggregator=lambda da: da.sum(),
+    )
+
+
+def _user_indice_run_aggregator(
+    da: DataArray,
+    extreme_mode: str,
+    window_width: int,
+    aggregator: Callable[[Any], DataArray],  # Any is a DataArrayRolling
+    coef: float = None,
+    freq: str = "MS",
+    date_event: bool = False,
+):
+    result = apply_coef(coef, da)
+    result = result.rolling(time=window_width)
+    result = aggregator(result).resample(time=freq)
+    if extreme_mode == "min":
+        return result.min(dim="time")
+    elif extreme_mode == "max":
+        return result.max(dim="time")
+    else:
+        raise NotImplementedError()
 
 
 def compute_user_indice(indice: UserIndiceConfig, cf_vars: CfVariable) -> DataArray:
@@ -317,8 +363,26 @@ def _compute(
             freq=indice.freq.panda_freq,
             date_event=indice.date_event,
         )
+    elif indice.calc_operation == CalcOperation.RUN_MEAN.value:
+        return user_indice_run_mean(
+            da=da,
+            extreme_mode=indice.extreme_mode,
+            window_width=indice.window_width,
+            coef=indice.coef,
+            freq=indice.freq.panda_freq,
+            date_event=indice.date_event,
+        )
+    elif indice.calc_operation == CalcOperation.RUN_SUM.value:
+        return user_indice_run_sum(
+            da=da,
+            extreme_mode=indice.extreme_mode,
+            window_width=indice.window_width,
+            coef=indice.coef,
+            freq=indice.freq.panda_freq,
+            date_event=indice.date_event,
+        )
     else:
-        raise NotImplementedError("")  # TODO exc
+        raise NotImplementedError("")  # TODO better exception
 
 
 class CalcOperation(Enum):
@@ -328,3 +392,6 @@ class CalcOperation(Enum):
     MEAN = "mean"
     EVENT_COUNT = "nb_event"
     MAX_NUMBER_OF_CONSECUTIVE_EVENTS = "max_nb_consecutive_events"
+    RUN_MEAN = "run_mean"
+    RUN_SUM = "run_sum"
+    # TODO anomaly
