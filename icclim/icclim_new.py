@@ -5,19 +5,21 @@
 #  Author: Natalia Tatarinova
 #  Additions from Christian Page (2015-2017)
 
+import datetime
+from typing import Callable, List, Union
+
+import xarray
+import xclim.core.calendar as calendar
+from xarray.core.dataarray import DataArray
+from xarray.core.dataset import Dataset
+
+from icclim import indices
+from icclim.indices import IndiceConfig
+from icclim.models.frequency import Frequency, SliceMode, build_frequency
 from icclim.models.indice_config import CfVariable
 from icclim.user_indice.operation import compute_user_indice
 from icclim.user_indice.user_indice import UserIndiceConfig
-from xarray.core.dataset import Dataset
-from icclim import indices
-from icclim.models.frequency import Frequency, SliceMode, build_frequency
 from icclim.util import logging_info
-from icclim.indices import IndiceConfig
-from xarray.core.dataarray import DataArray
-import xarray
-from typing import Callable, List, Union
-import datetime
-import xclim.core.calendar as calendar
 
 
 def indice(
@@ -53,69 +55,69 @@ def indice(
     save_percentile: bool = False,
 ):
     """
-    :param indice_name: Climate index name. 
-    :type indice_name: str    
-    
+    :param indice_name: Climate index name.
+    :type indice_name: str
+
     :param in_files: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
     :type in_files: str OR list of str OR list of lists
 
     :param var_name: Target variable name to process corresponding to ``in_files``.
     :type var_name: str OR list of str
-         
+
     :param slice_mode: Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the index will be calculated as monthly values.
     :type slice_mode: str
-    
+
     :param time_range: Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
     :type time_range: [datetime.datetime, datetime.datetime]
 
     :param out_file: Output NetCDF file name (default: "icclim_out.nc" in the current directory).
     :type out_file: str
-       
+
     :param threshold: User defined threshold for certain indices.
     :type threshold: float or list of floats
-    
+
     :param N_lev: Level number if 4D variable.
     :type N_lev: int
 
     :param lev_dim_pos: Position of Level dimension, either 0 or 1. 0 is leftmost dimension, 1 is second to the leftmost. Default 1.
     :type lev_dim_pos: int
-    
+
     :param transfer_limit_Mbytes: Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
     :type transfer_limit_Mbytes: float
-    
-    :param callback: Progress bar printing. If ``None``, progress bar will not be printed. 
+
+    :param callback: Progress bar printing. If ``None``, progress bar will not be printed.
     :type callback: :func:`callback.defaultCallback`
-    
+
     :param callback_percentage_start_value: Initial value of percentage of the progress bar (default: 0).
     :type callback_percentage_start_value: int
-    
-    :param callback_percentage_total: Total persentage value (default: 100).   
+
+    :param callback_percentage_total: Total persentage value (default: 100).
     :type callback_percentage_total: int
 
-    :param base_period_time_range: Temporal range of the base period. 
+    :param base_period_time_range: Temporal range of the base period.
     :type base_period_time_range: [datetime.datetime, datetime.datetime]
-    
+
     :param window_width: Window width, must be odd (default: 5).
     :type window_width: int
-   
+
     :param only_leap_years: Option for February 29th (default: False).
     :type only_leap_years: bool
-   
+
     :param ignore_Feb29th: Ignoring or not February 29th (default: False).
     :type ignore_Feb29th: bool
-   
+
     :param interpolation: Interpolation method to compute percentile values: "linear" or "hyndman_fan" (default: "hyndman_fan").
     :type interpolation: str
-    
+
     :param out_unit: Output unit for certain indices: "days" or "%" (default: "days").
     :type out_unit: str
-    
+
     :param user_indice: A dictionary with parameters for user defined index
     :type user_indice: dict
-    
+
     :param netcdf_version: NetCDF version to create (default: "NETCDF3_CLASSIC").
     :type netcdf_version: str
-    
+
     :rtype: path to NetCDF file
 
     .. warning:: If ``out_file`` already exists, icclim will overwrite it!
@@ -144,8 +146,11 @@ def indice(
     if user_indice is not None:
         user_indice: UserIndiceConfig = UserIndiceConfig(**user_indice)
         user_indice.freq = config.freq
+        user_indice.da_ref = config.cfvariables[0].in_base_da
+        user_indice.nb_event_config.data_arrays = config.cfvariables
+        # TODO redondant to have nb_event_config.data_arrays and to pass config.cfvariables[0] in parameters
         result_ds[user_indice.indice_name] = compute_user_indice(
-            user_indice, config.cfvariables[0]  # TODO HANDLE LIST
+            user_indice, config.cfvariables[0]
         )
     else:
         if isinstance(threshold, list):
@@ -225,4 +230,3 @@ def to_celcius(threshold: float) -> Union[None, str]:
     if threshold is not None:
         return f"{threshold} degC"
     return None
-

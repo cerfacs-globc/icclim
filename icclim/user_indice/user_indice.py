@@ -1,10 +1,12 @@
+from dataclasses import dataclass
 from enum import Enum
 from inspect import FrameInfo
-from typing import Callable, List, Union
+from typing import Callable, List, Optional, Union
 
 from xarray.core.dataarray import DataArray
 
 from icclim.models.frequency import Frequency
+from icclim.models.indice_config import CfVariable
 
 
 class LinkLogicalOperation(Enum):
@@ -40,6 +42,15 @@ PRECIPITATION = "p"
 TEMPERATURE = "t"
 
 
+@dataclass
+class NbEventConfig:
+    logical_operation: List[LogicalOperation]
+    link_logical_operations: LinkLogicalOperation = None
+    thresholds: Optional[List[float]] = None
+    percentiles: Optional[List[DataArray]] = None
+    data_arrays: List[CfVariable] = None
+
+
 # TODO make a DTO ? it make the following independant LogicalOperation, base_period, thresh
 class UserIndiceConfig:
     indice_name: str  # Name of custom indice.
@@ -48,8 +59,7 @@ class UserIndiceConfig:
     thresh: Union[
         float,
         str,
-        DataArray,
-        List[Union[float, str, DataArray]],
+        List[Union[float, str]],
     ]  # In case of percentile-based indice, it must be a string starting or ending with “p” (e.g. ‘p90’), then it will be mutated in a DataArray of the percentile of each day
     link_logical_operations: LinkLogicalOperation
     extreme_mode: ExtremeMode
@@ -58,6 +68,9 @@ class UserIndiceConfig:
     date_event: bool  # To keep or not the date of event. See below for more details.
     var_type: Union[PRECIPITATION, TEMPERATURE]
     freq: Frequency
+    da_ref: DataArray
+    is_percent: bool
+    nb_event_config: NbEventConfig
 
     def __init__(
         self,
@@ -72,22 +85,25 @@ class UserIndiceConfig:
         coef=None,
         date_event=None,
         var_type=None,
-        ref_time_range=None,
+        is_percent=None,
     ) -> None:
         self.indice_name = indice_name
         self.calc_operation = calc_operation
         self.freq = freq
         self.logical_operation = get_logical_operation(logical_operation)
         self.thresh = thresh
-        self.link_logical_operations = get_link_logical_operations(
-            link_logical_operations
+        self.nb_event_config = get_nb_event_conf(
+            logical_operation,
+            link_logical_operations,
+            thresh,
         )
+        get_link_logical_operations(link_logical_operations)
         self.extreme_mode = get_extreme_mode(extreme_mode)
         self.window_width = window_width
         self.coef = coef
         self.date_event = date_event
         self.var_type = var_type
-        self.ref_time_range = ref_time_range
+        self.is_percent = is_percent
 
 
 def get_logical_operation(s: str) -> LogicalOperation:
@@ -115,3 +131,23 @@ def get_link_logical_operations(s: str) -> LinkLogicalOperation:
         if s.upper == mode.value.upper():
             return mode
     raise Exception(f"Unknown link_logical_operation mode {s}")
+
+
+def get_nb_event_conf(
+    logical_operation: Union[List[float], float],
+    link_logical_operations: str,
+    thresholds: Union[List[float], float],
+) -> NbEventConfig:
+    if logical_operation is None:
+        return None
+    if not isinstance(thresholds, list):
+        thresholds = [thresholds]
+    if isinstance(logical_operation, list):
+        logical_operation = map(get_link_logical_operations, logical_operation)
+    else:
+        logical_operation = [get_link_logical_operations(logical_operation)]
+    return NbEventConfig(
+        logical_operation=get_link_logical_operations(logical_operation),
+        link_logical_operations=get_link_logical_operations(link_logical_operations),
+        thresholds=thresholds,
+    )

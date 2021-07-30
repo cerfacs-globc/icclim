@@ -8,6 +8,7 @@ from icclim.user_indice.operation import (
     apply_coef,
     compute_user_indice,
     filter_by_logical_op,
+    user_indice_anomaly,
     user_indice_count_events,
     user_indice_max,
     user_indice_max_consecutive_event_count,
@@ -313,3 +314,24 @@ class Test_user_indice_max_consecutive_event_count:
         # THEN
         assert result[0] == 334
         assert result[1] == 365
+
+
+class Test_user_indice_anomaly:
+    def test_simple(self):
+        # GIVEN
+        tmax = stub_tas(10)
+        tmax2 = stub_tas(11)
+        # WHEN
+        result = user_indice_anomaly(da_ref=tmax, da=tmax2, percent=False)
+        # THEN
+        assert result == 1
+
+    def test_simple_percent(self):
+        # GIVEN
+        tmax = stub_tas(10)
+        tmax2 = stub_tas(11)
+        # WHEN
+        result = user_indice_anomaly(da_ref=tmax, da=tmax2, percent=True)
+        # THEN
+        assert result == 10
+        assert result.attrs["units"] == "%"

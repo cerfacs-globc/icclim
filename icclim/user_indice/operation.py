@@ -9,12 +9,14 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
+from icclim import indices
 from icclim.models.indice_config import CfVariable
 from icclim.user_indice.user_indice import (
     PRECIPITATION,
     TEMPERATURE,
     LinkLogicalOperation,
     LogicalOperation,
+    NbEventConfig,
     UserIndiceConfig,
 )
 
@@ -152,35 +154,33 @@ def threshold_compare_on_percentiles(
 
 
 def user_indice_count_events(
-    data_arrays: List[DataArray],
-    logical_operation: List[LogicalOperation],
-    thresholds: List[float] = None,
+    nb_event_config: NbEventConfig,
     coef: float = None,
-    link_logical_operations: LinkLogicalOperation = None,
-    percentiles: List[DataArray] = None,
     bootstrap=False,
     freq: str = "MS",
     date_event: bool = False,
 ):
     acc = []
-    for i, da in enumerate(data_arrays):
+    for i, da in enumerate(nb_event_config.data_arrays):
         result = apply_coef(coef, da)
-        if percentiles is not None:
+        if nb_event_config.percentiles is not None:
             result = threshold_compare_on_percentiles(
                 da=result,
-                percentiles=percentiles[i],
-                logical_operation=logical_operation[i],
+                percentiles=nb_event_config.percentiles[i],
+                logical_operation=nb_event_config.logical_operation[i],
                 freq=freq,
                 bootstrap=bootstrap,
             )
         else:
-            result = logical_operation[i].compute(result, thresholds[i])
+            result = nb_event_config.logical_operation[i].compute(
+                result, nb_event_config.thresholds[i]
+            )
         acc.append(result)
     if len(acc) == 1:
         result = acc[0]
-    elif link_logical_operations == LinkLogicalOperation.AND_STAMP:
+    elif nb_event_config.link_logical_operations == LinkLogicalOperation.AND_STAMP:
         result = reduce(numpy.logical_and, acc, True)
-    elif link_logical_operations == LinkLogicalOperation.OR_STAMP:
+    elif nb_event_config.link_logical_operations == LinkLogicalOperation.OR_STAMP:
         result = reduce(numpy.logical_or, acc, False)
     else:
         raise NotImplementedError()
@@ -250,6 +250,16 @@ def user_indice_run_sum(
     )
 
 
+def user_indice_anomaly(da_ref: DataArray, da: DataArray, percent: bool):
+    ref_mean = da_ref.mean(dim="time")
+    result: DataArray = da.mean(dim="time") - ref_mean
+    result._copy_attrs_from(da_ref)
+    if percent:
+        result = result / ref_mean * 100
+        result.attrs["units"] = "%"
+    return result
+
+
 def _user_indice_run_aggregator(
     da: DataArray,
     extreme_mode: str,
@@ -270,25 +280,43 @@ def _user_indice_run_aggregator(
         raise NotImplementedError()
 
 
-def compute_user_indice(indice: UserIndiceConfig, cf_vars: CfVariable) -> DataArray:
+def compute_user_indice(
+    indice: UserIndiceConfig, cf_vars: List[CfVariable]
+) -> DataArray:
     if isinstance(indice.thresh, str):
-        if indice.thresh.find(PERCENTILE_STAMP) == -1:
-            raise Exception(
-                # TODO create a UserInputException
-                "Percentile threshold not properly formatted. Use p as a prefix or suffix of the value for example 90p or p90. For non percentile threshold use a float instead of a string"
-            )
-        per = float(indice.thresh.replace(PERCENTILE_STAMP, ""))
-        da_per = cf_vars.in_base_da
-        if indice.var_type == PRECIPITATION:
-            da_per = convert_units_to(cf_vars.in_base_da, "mm/d")
-            da_per = da_per.where(da_per > WET_DAY_THRESHOLD, drop=True)
-        percentiles = percentile_doy(arr=da_per, per=per).sel(percentiles=per)
+        percentiles = get_percentiles(indice, cf_vars[0])
+        indice.da_ref = cf_vars[0].in_base_da
         if indice.var_type == TEMPERATURE:
             # TODO add if thresh > 90th percentile ? it doesn't make sense to bootstrap for example the 70th percentile
-            return _compute(indice, cf_vars.da, percentiles=percentiles, bootstrap=True)
+            return _compute(
+                indice, cf_vars[0].da, percentiles=percentiles, bootstrap=True
+            )
         else:
-            return _compute(indice, cf_vars.da, percentiles=percentiles)
+            return _compute(indice, cf_vars[0].da, percentiles=percentiles)
+    elif isinstance(indice.thresh, list):
+        percentiles = []
+        for i, t in enumerate(indice.thresh):
+            if isinstance(t, str):
+                percentiles.append(get_percentiles(indice, cf_vars[i]))
+        indice.nb_event_config.percentiles = percentiles
+        indice.nb_event_config.data_arrays = cf_vars
+
     return _compute(indice, cf_vars.da)
+
+
+def get_percentiles(indice, cf_vars):
+    if indice.thresh.find(PERCENTILE_STAMP) == -1:
+        raise Exception(
+            # TODO create a UserInputException
+            "Percentile threshold not properly formatted. Use p as a prefix or suffix of the value for example 90p or p90. For non percentile threshold use a float instead of a string"
+        )
+    per = float(indice.thresh.replace(PERCENTILE_STAMP, ""))
+    da_per = cf_vars.in_base_da
+    if indice.var_type == PRECIPITATION:
+        da_per = convert_units_to(cf_vars.in_base_da, "mm/d")
+        da_per = da_per.where(da_per > WET_DAY_THRESHOLD, drop=True)
+    percentiles = percentile_doy(arr=da_per, per=per).sel(percentiles=per)
+    return percentiles
 
 
 def _compute(
@@ -341,12 +369,8 @@ def _compute(
         )
     elif indice.calc_operation == CalcOperation.EVENT_COUNT.value:
         return user_indice_count_events(
-            da=da,
-            logical_operation=indice.logical_operation,
-            thresholds=indice.thresh,
+            nb_event_config=indice.nb_event_config,
             coef=indice.coef,
-            link_logical_operations=indice.link_logical_operations,
-            percentiles=percentiles,
             bootstrap=bootstrap,
             freq=indice.freq.panda_freq,
             date_event=indice.date_event,
@@ -381,6 +405,12 @@ def _compute(
             freq=indice.freq.panda_freq,
             date_event=indice.date_event,
         )
+    elif indice.calc_operation == CalcOperation.ANOMALY.value:
+        return user_indice_anomaly(
+            da=da,
+            da_ref=indice.da_ref,
+            percent=indice.is_percent,
+        )
     else:
         raise NotImplementedError("")  # TODO better exception
 
@@ -394,4 +424,4 @@ class CalcOperation(Enum):
     MAX_NUMBER_OF_CONSECUTIVE_EVENTS = "max_nb_consecutive_events"
     RUN_MEAN = "run_mean"
     RUN_SUM = "run_sum"
-    # TODO anomaly
+    ANOMALY = "anomaly"
