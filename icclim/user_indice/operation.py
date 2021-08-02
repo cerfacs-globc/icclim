@@ -2,8 +2,8 @@ from enum import Enum
 from functools import reduce
 from typing import Any, Callable, List, Optional, Union
 
-import numpy
 import numpy as np
+import xarray
 from xarray.core.dataarray import DataArray
 from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import percentile_doy, resample_doy
@@ -45,12 +45,18 @@ def user_indice_max(
     freq: str = "MS",
     date_event: bool = False,
     var_type: Optional[str] = None,
-):
+) -> DataArray:
     result = _apply_coef(coef, da)
     result = _filter_by_threshold(
         result, in_base_da, logical_operation, threshold, freq, var_type
     )
-    return result.resample(time=freq).max(dim="time", keep_attrs=True)
+    resampled = result.resample(time=freq)
+    if date_event:
+        return _reduce_with_date_event(
+            resampled, lambda x: x.argmax("time", keep_attrs=True)  # type:ignore
+        )
+    else:
+        return result.max(dim="time", keep_attrs=True)
 
 
 def user_indice_min(
@@ -62,13 +68,18 @@ def user_indice_min(
     freq: str = "MS",
     date_event: bool = False,
     var_type: str = None,
-):
+) -> DataArray:
     result = _apply_coef(coef, da)
     result = _filter_by_threshold(
         result, in_base_da, logical_operation, threshold, freq, var_type
     )
-    result = result.resample(time=freq).min(dim="time", keep_attrs=True)
-    return result
+    resampled = result.resample(time=freq)
+    if date_event:
+        return _reduce_with_date_event(
+            resampled, lambda x: x.argmin("time", keep_attrs=True)  # type:ignore
+        )
+    else:
+        return result.min(dim="time", keep_attrs=True)
 
 
 def user_indice_sum(
@@ -137,9 +148,9 @@ def user_indice_count_events(
     if len(acc) == 1:
         result = acc[0]
     elif link_logical_operations == LinkLogicalOperation.AND_STAMP:
-        result = reduce(numpy.logical_and, acc, True)
+        result = reduce(np.logical_and, acc, True)
     elif link_logical_operations == LinkLogicalOperation.OR_STAMP:
-        result = reduce(numpy.logical_or, acc, False)
+        result = reduce(np.logical_or, acc, False)
     else:
         raise NotImplementedError()
     return result.resample(time=freq).sum(dim="time")
@@ -419,3 +430,24 @@ def threshold_compare_on_percentiles(
 ):
     percentiles = resample_doy(percentiles, da)
     return logical_operation.compute(da, percentiles)
+
+
+def _reduce_with_date_event(
+    resampled: DataArray, reducer: Callable[[DataArray], DataArray]
+) -> DataArray:
+    acc: List[DataArray] = []
+    for label, value in resampled:
+        reduced_result = value.isel(time=reducer(value))
+        acc.append(
+            DataArray(
+                data=reduced_result,
+                dims=["lat", "lon"],
+                coords=dict(
+                    time=label,
+                    lat=value.lat,
+                    lon=value.lon,
+                    event_date=reduced_result.time,
+                ),
+            )
+        )
+    return xarray.concat(acc, "time")

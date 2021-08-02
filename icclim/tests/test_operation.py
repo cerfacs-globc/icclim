@@ -36,6 +36,21 @@ class Test_apply_coef:
 
 
 class Test_user_indice_max:
+    # def test_NOT_simple(self):
+    #     import xarray
+
+    #     ds = xarray.open_dataset(
+    #         "/Users/aoun/workspace/icclim/climpact.sampledata.gridded.1991-2010.nc"
+    #     )
+    #     result = user_indice_max(
+    #         da=ds.tmax,
+    #         coef=1,
+    #         logical_operation=None,
+    #         threshold=None,
+    #         freq="MS",
+    #         date_event=True,
+    #     )
+
     def test_simple(self):
         da = stub_tas()
         da.data[1] = 20

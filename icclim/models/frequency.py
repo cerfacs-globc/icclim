@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import Callable, List, Tuple, Union
+
 import numpy
 import pandas
 import xarray
-
 from xarray.core.dataarray import DataArray
 
 
@@ -11,7 +11,7 @@ from xarray.core.dataarray import DataArray
 def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]:
     def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
         years = numpy.unique(da.time.dt.year)
-        acc = []
+        acc: List[DataArray] = []
         time_bnds = []
         middle_date = []
         start_month = month_list[0]
@@ -35,7 +35,7 @@ def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]
             )
             time_bnds.append([start_season_date, end_season_date])
             acc.append(season_of_year)
-        seasons = xarray.concat(acc, "time")
+        seasons: DataArray = xarray.concat(acc, "time")
         seasons.coords["time"] = ("time", middle_date)
         # FIXME: In case of month_list with holes, such as [1,3,4,6]; How do we show this in metatadas ?
         seasons.time.attrs["bounds"] = "time_bnds"
@@ -72,10 +72,34 @@ class Frequency(Enum):
     MONTH = ("MS", ["month", "MS"])
     AMJJAS = ("MS", ["AMJJAS"], seasons_resampler([*range(4, 9)]))
     ONDJFM = ("MS", ["ONDJFM"], seasons_resampler([10, 11, 12, 1, 2, 3]))
-    DJF = ("MS", ["DJF",], seasons_resampler([12, 1, 2]))
-    MAM = ("MS", ["MAM",], seasons_resampler([*range(3, 5)]))
-    JJA = ("MS", ["JJA",], seasons_resampler([*range(6, 8)]))
-    SON = ("MS", ["SON",], seasons_resampler([*range(9, 11)]))
+    DJF = (
+        "MS",
+        [
+            "DJF",
+        ],
+        seasons_resampler([12, 1, 2]),
+    )
+    MAM = (
+        "MS",
+        [
+            "MAM",
+        ],
+        seasons_resampler([*range(3, 5)]),
+    )
+    JJA = (
+        "MS",
+        [
+            "JJA",
+        ],
+        seasons_resampler([*range(6, 8)]),
+    )
+    SON = (
+        "MS",
+        [
+            "SON",
+        ],
+        seasons_resampler([*range(9, 11)]),
+    )
     YEAR = ("YS", ["year", "YS"])
     CUSTOM = ("MS", [], None)
 
@@ -87,7 +111,7 @@ class Frequency(Enum):
     ):
         self.panda_freq: str = panda_time
         self.accepted_values: List[str] = accepted_values
-        self.resampler: Callable[[DataArray], DataArray] = resampler
+        self.resampler = resampler
 
 
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
@@ -114,7 +138,7 @@ def get_frequency_from_string(slice_mode: str):
 
 def get_frequency_from_list(slice_mode_list: List):
     if len(slice_mode_list) < 2:
-        raise f"Unknown frequency {slice_mode_list}"
+        raise Exception(f"Unknown frequency {slice_mode_list}")
     sampling_freq = slice_mode_list[0]
     months = slice_mode_list[1]
     custom_freq = Frequency.CUSTOM
@@ -127,5 +151,5 @@ def get_frequency_from_list(slice_mode_list: List):
         else:
             custom_freq.resampler = seasons_resampler(months)
     else:
-        raise f"Unknown frequency {slice_mode_list}"
+        raise Exception(f"Unknown frequency {slice_mode_list}")
     return custom_freq

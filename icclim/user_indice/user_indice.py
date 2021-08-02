@@ -63,7 +63,7 @@ class UserIndiceConfig:
     extreme_mode: Optional[ExtremeMode] = None
     window_width: Optional[int]  # Used for computing running mean/sum.
     coef: Optional[float]  # Constant for multiplying input data array.
-    date_event: Optional[bool]
+    date_event: bool = False
     var_type: Optional[str]
     freq: Frequency
     da_ref: Optional[DataArray] = None
