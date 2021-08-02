@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from enum import Enum
-from inspect import FrameInfo
 from typing import Callable, List, Optional, Union
 
 from xarray.core.dataarray import DataArray
@@ -30,7 +29,7 @@ class LogicalOperation(Enum):
         self,
         accepted_input: str,
         operator: str,
-        compute: Callable[[DataArray, Union[DataArray, float]], DataArray],
+        compute: Callable[[DataArray, Union[DataArray, float, int]], DataArray],
     ) -> None:
         super().__init__()
         self.accepted_input = accepted_input
@@ -45,38 +44,39 @@ TEMPERATURE = "t"
 @dataclass
 class NbEventConfig:
     logical_operation: List[LogicalOperation]
-    link_logical_operations: LinkLogicalOperation = None
-    thresholds: Optional[List[float]] = None
-    percentiles: Optional[List[DataArray]] = None
-    data_arrays: List[CfVariable] = None
+    link_logical_operations: Optional[LinkLogicalOperation] = None
+    thresholds: Optional[List[Union[float, str]]] = None
+    data_arrays: Optional[List[CfVariable]] = None
 
 
 # TODO make a DTO ? it make the following independant LogicalOperation, base_period, thresh
 class UserIndiceConfig:
     indice_name: str  # Name of custom indice.
     calc_operation: str  # Type of calculation. See below for more details.
-    logical_operation: LogicalOperation
+    logical_operation: Optional[LogicalOperation] = None
     thresh: Union[
         float,
         str,
         List[Union[float, str]],
     ]  # In case of percentile-based indice, it must be a string starting or ending with “p” (e.g. ‘p90’), then it will be mutated in a DataArray of the percentile of each day
-    link_logical_operations: LinkLogicalOperation
-    extreme_mode: ExtremeMode
-    window_width: int  # Used for computing running mean/sum.
-    coef: float  # Constant for multiplying input data array.
-    date_event: bool  # To keep or not the date of event. See below for more details.
-    var_type: Union[PRECIPITATION, TEMPERATURE]
+    link_logical_operations: Optional[LinkLogicalOperation]
+    extreme_mode: Optional[ExtremeMode] = None
+    window_width: Optional[int]  # Used for computing running mean/sum.
+    coef: Optional[float]  # Constant for multiplying input data array.
+    date_event: Optional[bool]
+    var_type: Optional[str]
     freq: Frequency
-    da_ref: DataArray
+    da_ref: Optional[DataArray] = None
     is_percent: bool
-    nb_event_config: NbEventConfig
+    nb_event_config: Optional[NbEventConfig] = None
+    cf_vars: List[CfVariable]
 
     def __init__(
         self,
         indice_name,
         calc_operation,
         freq: Frequency,
+        cf_vars: List[CfVariable],
         logical_operation: str = None,
         thresh=None,
         link_logical_operations: str = None,
@@ -85,37 +85,36 @@ class UserIndiceConfig:
         coef=None,
         date_event=None,
         var_type=None,
-        is_percent=None,
+        is_percent=False,
     ) -> None:
         self.indice_name = indice_name
         self.calc_operation = calc_operation
         self.freq = freq
-        self.logical_operation = get_logical_operation(logical_operation)
+        if logical_operation is not None:
+            self.logical_operation = get_logical_operation(logical_operation)
         self.thresh = thresh
-        self.nb_event_config = get_nb_event_conf(
-            logical_operation,
-            link_logical_operations,
-            thresh,
-        )
-        get_link_logical_operations(link_logical_operations)
         self.extreme_mode = get_extreme_mode(extreme_mode)
         self.window_width = window_width
         self.coef = coef
         self.date_event = date_event
         self.var_type = var_type
         self.is_percent = is_percent
+        self.da_ref = cf_vars[0].in_base_da
+        self.cf_vars = cf_vars
+        if isinstance(thresh, list) and logical_operation is not None:
+            self.nb_event_config = get_nb_event_conf(
+                logical_operation, link_logical_operations, thresh, cf_vars
+            )
 
 
 def get_logical_operation(s: str) -> LogicalOperation:
-    if s is None:
-        return None
     for op in LogicalOperation:
         if s.upper() in map(str.upper, op.accepted_input):
             return op
     raise Exception(f"Unknown operator {s}")
 
 
-def get_extreme_mode(s: str) -> ExtremeMode:
+def get_extreme_mode(s: Optional[str]) -> Optional[ExtremeMode]:
     if s is None:
         return None
     for mode in ExtremeMode:
@@ -125,8 +124,6 @@ def get_extreme_mode(s: str) -> ExtremeMode:
 
 
 def get_link_logical_operations(s: str) -> LinkLogicalOperation:
-    if s is None:
-        return None
     for mode in LinkLogicalOperation:
         if s.upper == mode.value.upper():
             return mode
@@ -134,20 +131,28 @@ def get_link_logical_operations(s: str) -> LinkLogicalOperation:
 
 
 def get_nb_event_conf(
-    logical_operation: Union[List[float], float],
-    link_logical_operations: str,
-    thresholds: Union[List[float], float],
+    logical_operation: Union[List[str], str],
+    link_logical_operations: Optional[str],
+    thresholds: Union[List[Union[str, float]], float, str],
+    cfvars: List[CfVariable],
 ) -> NbEventConfig:
-    if logical_operation is None:
-        return None
     if not isinstance(thresholds, list):
-        thresholds = [thresholds]
-    if isinstance(logical_operation, list):
-        logical_operation = map(get_link_logical_operations, logical_operation)
+        threshold_list = [thresholds]
     else:
-        logical_operation = [get_link_logical_operations(logical_operation)]
+        threshold_list = thresholds
+    if isinstance(logical_operation, list):
+        logical_operations = list(map(get_logical_operation, logical_operation))
+    else:
+        logical_operations = [get_logical_operation(logical_operation)]
+    if link_logical_operations is not None:
+        link_logical_operation_list = get_link_logical_operations(
+            link_logical_operations
+        )
+    else:
+        link_logical_operation_list = None
     return NbEventConfig(
-        logical_operation=get_link_logical_operations(logical_operation),
-        link_logical_operations=get_link_logical_operations(link_logical_operations),
-        thresholds=thresholds,
+        logical_operation=logical_operations,
+        link_logical_operations=link_logical_operation_list,
+        thresholds=threshold_list,
+        data_arrays=cfvars,
     )

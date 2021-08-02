@@ -1,22 +1,22 @@
 from enum import Enum
 from functools import reduce
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, List, Optional, Union
 
 import numpy
+import numpy as np
 from xarray.core.dataarray import DataArray
 from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
-from icclim import indices
 from icclim.models.indice_config import CfVariable
 from icclim.user_indice.user_indice import (
     PRECIPITATION,
     TEMPERATURE,
+    ExtremeMode,
     LinkLogicalOperation,
     LogicalOperation,
-    NbEventConfig,
     UserIndiceConfig,
 )
 
@@ -24,197 +24,159 @@ PERCENTILE_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm
 
 
-def apply_coef(coef: float, da: DataArray) -> DataArray:
-    if coef is not None:
-        return da * coef
-    return da
-
-
-def filter_by_logical_op(
-    logical_operation: LogicalOperation,
-    threshold: float,
-    da: DataArray,
-) -> DataArray:
-    if logical_operation is not None and threshold is not None:
-        return da.where(logical_operation.compute(da, threshold), drop=True)
-    return da
-
-
-@percentile_bootstrap
-def filter_by_logical_op_on_percentile(
-    da: DataArray,
-    percentiles: DataArray,
-    logical_operation: LogicalOperation,
-    freq: str = "MS",
-    bootstrap: bool = False,  # noqa
-) -> DataArray:
-    if logical_operation is not None and percentiles is not None:
-        percentiles = resample_doy(percentiles, da)
-        filtered = logical_operation.compute(da, percentiles)
-        filtered = filtered.where(filtered, drop=True)
-        # if bootstrap: # TODO uncomment once fixed on xclim
-        da = da.expand_dims(_bootstrap=filtered._bootstrap)
-        #  end if
-        return da.sel(time=filtered.time)
-    return da
+class CalcOperation(Enum):
+    MAX = "max"
+    MIN = "min"
+    SUM = "sum"
+    MEAN = "mean"
+    EVENT_COUNT = "nb_event"
+    MAX_NUMBER_OF_CONSECUTIVE_EVENTS = "max_nb_consecutive_events"
+    RUN_MEAN = "run_mean"
+    RUN_SUM = "run_sum"
+    ANOMALY = "anomaly"
 
 
 def user_indice_max(
     da: DataArray,
-    coef: float = None,
-    logical_operation: LogicalOperation = None,
-    threshold: float = None,
-    percentiles: DataArray = None,
-    bootstrap=False,
+    in_base_da: Optional[DataArray] = None,
+    coef: Optional[float] = None,
+    logical_operation: Optional[LogicalOperation] = None,
+    threshold: Optional[Union[str, float]] = None,
     freq: str = "MS",
     date_event: bool = False,
+    var_type: Optional[str] = None,
 ):
-    da = apply_coef(coef, da)
-    if percentiles is not None:
-        da = filter_by_logical_op_on_percentile(
-            da, percentiles, logical_operation, freq, bootstrap
-        )
-    else:
-        da = filter_by_logical_op(logical_operation, threshold, da)
-    return da.max(dim="time")
+    result = _apply_coef(coef, da)
+    result = _filter_by_threshold(
+        result, in_base_da, logical_operation, threshold, freq, var_type
+    )
+    return result.resample(time=freq).max(dim="time", keep_attrs=True)
 
 
 def user_indice_min(
     da: DataArray,
+    in_base_da: Optional[DataArray] = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: float = None,
-    percentiles: DataArray = None,
-    bootstrap=False,
+    threshold: Optional[Union[str, float]] = None,
     freq: str = "MS",
     date_event: bool = False,
+    var_type: str = None,
 ):
-    da = apply_coef(coef, da)
-    if percentiles is not None:
-        da = filter_by_logical_op_on_percentile(
-            da=da,
-            percentiles=percentiles,
-            logical_operation=logical_operation,
-            freq=freq,
-            bootstrap=bootstrap,
-        )
-    else:
-        da = filter_by_logical_op(logical_operation, threshold, da)
-    return da.min(dim="time")
+    result = _apply_coef(coef, da)
+    result = _filter_by_threshold(
+        result, in_base_da, logical_operation, threshold, freq, var_type
+    )
+    result = result.resample(time=freq).min(dim="time", keep_attrs=True)
+    return result
 
 
 def user_indice_sum(
     da: DataArray,
+    in_base_da: Optional[DataArray] = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: float = None,
-    percentiles: DataArray = None,
-    bootstrap=False,
+    threshold: Optional[Union[str, float]] = None,
+    var_type: str = None,
     freq: str = "MS",
 ):
-    da = apply_coef(coef, da)
-    if percentiles is not None:
-        da = filter_by_logical_op_on_percentile(
-            da, percentiles, logical_operation, freq, bootstrap
-        )
-    else:
-        da = filter_by_logical_op(logical_operation, threshold, da)
-    return da.sum(dim="time")
+    result = _apply_coef(coef, da)
+    result = _filter_by_threshold(
+        result, in_base_da, logical_operation, threshold, freq, var_type
+    )
+    return result.resample(time=freq).sum(dim="time", keep_attrs=True)
 
 
 def user_indice_mean(
     da: DataArray,
+    in_base_da: Optional[DataArray] = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: float = None,
-    percentiles: DataArray = None,
-    bootstrap=False,
+    threshold: Optional[Union[str, float]] = None,
+    var_type: str = None,
     freq: str = "MS",
 ):
-    da = apply_coef(coef, da)
-    if percentiles is not None:
-        da = filter_by_logical_op_on_percentile(
-            da, percentiles, logical_operation, freq, bootstrap
-        )
-    else:
-        da = filter_by_logical_op(logical_operation, threshold, da)
-    return da.mean(dim="time")
-
-
-@percentile_bootstrap
-def threshold_compare_on_percentiles(
-    da: DataArray,
-    percentiles: DataArray,
-    logical_operation: LogicalOperation,
-    freq: str = "MS",
-    bootstrap: bool = False,
-):
-    percentiles = resample_doy(percentiles, da)
-    return logical_operation.compute(da, percentiles)
+    result = _apply_coef(coef, da)
+    result = _filter_by_threshold(
+        result, in_base_da, logical_operation, threshold, freq, var_type
+    )
+    return result.resample(time=freq).mean(dim="time", keep_attrs=True)
 
 
 def user_indice_count_events(
-    nb_event_config: NbEventConfig,
+    logical_operation: List[LogicalOperation],
+    thresholds: List[Union[float, str]],
+    das: List[DataArray],
+    in_base_das: List[Optional[DataArray]],
+    link_logical_operations: LinkLogicalOperation = None,
     coef: float = None,
-    bootstrap=False,
+    var_type: str = None,
     freq: str = "MS",
     date_event: bool = False,
 ):
+    percentiles = []
+    for i, threshold in enumerate(thresholds):
+        if isinstance(threshold, str) and len(in_base_das) > 0:
+            in_base_da = in_base_das[i]
+            if in_base_da is not None:
+                percentiles.append(_get_percentiles(threshold, var_type, in_base_da))
     acc = []
-    for i, da in enumerate(nb_event_config.data_arrays):
-        result = apply_coef(coef, da)
-        if nb_event_config.percentiles is not None:
-            result = threshold_compare_on_percentiles(
+    for i, da in enumerate(das):
+        result = _apply_coef(coef, da)
+        if len(percentiles) > 0:
+            result = _threshold_compare_on_percentiles(
                 da=result,
-                percentiles=nb_event_config.percentiles[i],
-                logical_operation=nb_event_config.logical_operation[i],
+                percentiles=percentiles[i],
+                logical_operation=logical_operation[i],
                 freq=freq,
-                bootstrap=bootstrap,
+                bootstrap=is_bootstrappable(var_type),
             )
         else:
-            result = nb_event_config.logical_operation[i].compute(
-                result, nb_event_config.thresholds[i]
-            )
+            result = logical_operation[i].compute(result, thresholds[i])  # type:ignore
         acc.append(result)
     if len(acc) == 1:
         result = acc[0]
-    elif nb_event_config.link_logical_operations == LinkLogicalOperation.AND_STAMP:
+    elif link_logical_operations == LinkLogicalOperation.AND_STAMP:
         result = reduce(numpy.logical_and, acc, True)
-    elif nb_event_config.link_logical_operations == LinkLogicalOperation.OR_STAMP:
+    elif link_logical_operations == LinkLogicalOperation.OR_STAMP:
         result = reduce(numpy.logical_or, acc, False)
     else:
         raise NotImplementedError()
     return result.resample(time=freq).sum(dim="time")
 
 
+def is_bootstrappable(var_type):
+    return var_type == TEMPERATURE
+
+
 def user_indice_max_consecutive_event_count(
     da: DataArray,
     logical_operation: LogicalOperation,
-    thresholds: float = None,
+    in_base_da: Optional[DataArray] = None,
+    threshold: Optional[Union[str, float]] = None,
     coef: float = None,
-    percentiles: DataArray = None,
-    bootstrap=False,
     freq: str = "MS",
     date_event: bool = False,
+    var_type: Optional[str] = None,
 ):
-    result = apply_coef(coef, da)
-    if percentiles is not None:
+    result = _apply_coef(coef, da)
+    if in_base_da is not None and isinstance(threshold, str):
         result = threshold_compare_on_percentiles(
-            da=result,
-            percentiles=percentiles,
+            da=da,
+            percentiles=_get_percentiles(threshold, var_type, in_base_da),
             logical_operation=logical_operation,
             freq=freq,
-            bootstrap=bootstrap,
+            bootstrap=is_bootstrappable(var_type),
         )
-    else:
-        result = logical_operation.compute(da, thresholds)
+    elif isinstance(threshold, float) or isinstance(threshold, int):
+        result = logical_operation.compute(da, threshold)
     result = result.resample(time=freq).map(longest_run, dim="time")
     return to_agg_units(result, da, "count")
 
 
 def user_indice_run_mean(
     da: DataArray,
-    extreme_mode: str,
+    extreme_mode: ExtremeMode,
     window_width: int,
     coef: float = None,
     freq: str = "MS",
@@ -233,7 +195,7 @@ def user_indice_run_mean(
 
 def user_indice_run_sum(
     da: DataArray,
-    extreme_mode: str,
+    extreme_mode: ExtremeMode,
     window_width: int,
     coef: float = None,
     freq: str = "MS",
@@ -260,136 +222,70 @@ def user_indice_anomaly(da_ref: DataArray, da: DataArray, percent: bool):
     return result
 
 
-def _user_indice_run_aggregator(
-    da: DataArray,
-    extreme_mode: str,
-    window_width: int,
-    aggregator: Callable[[Any], DataArray],  # Any is a DataArrayRolling
-    coef: float = None,
-    freq: str = "MS",
-    date_event: bool = False,
-):
-    result = apply_coef(coef, da)
-    result = result.rolling(time=window_width)
-    result = aggregator(result).resample(time=freq)
-    if extreme_mode == "min":
-        return result.min(dim="time")
-    elif extreme_mode == "max":
-        return result.max(dim="time")
-    else:
-        raise NotImplementedError()
-
-
-def compute_user_indice(
-    indice: UserIndiceConfig, cf_vars: List[CfVariable]
-) -> DataArray:
-    if isinstance(indice.thresh, str):
-        percentiles = get_percentiles(indice, cf_vars[0])
-        indice.da_ref = cf_vars[0].in_base_da
-        if indice.var_type == TEMPERATURE:
-            # TODO add if thresh > 90th percentile ? it doesn't make sense to bootstrap for example the 70th percentile
-            return _compute(
-                indice, cf_vars[0].da, percentiles=percentiles, bootstrap=True
-            )
-        else:
-            return _compute(indice, cf_vars[0].da, percentiles=percentiles)
-    elif isinstance(indice.thresh, list):
-        percentiles = []
-        for i, t in enumerate(indice.thresh):
-            if isinstance(t, str):
-                percentiles.append(get_percentiles(indice, cf_vars[i]))
-        indice.nb_event_config.percentiles = percentiles
-        indice.nb_event_config.data_arrays = cf_vars
-
-    return _compute(indice, cf_vars.da)
-
-
-def get_percentiles(indice, cf_vars):
-    if indice.thresh.find(PERCENTILE_STAMP) == -1:
-        raise Exception(
-            # TODO create a UserInputException
-            "Percentile threshold not properly formatted. Use p as a prefix or suffix of the value for example 90p or p90. For non percentile threshold use a float instead of a string"
-        )
-    per = float(indice.thresh.replace(PERCENTILE_STAMP, ""))
-    da_per = cf_vars.in_base_da
-    if indice.var_type == PRECIPITATION:
-        da_per = convert_units_to(cf_vars.in_base_da, "mm/d")
-        da_per = da_per.where(da_per > WET_DAY_THRESHOLD, drop=True)
-    percentiles = percentile_doy(arr=da_per, per=per).sel(percentiles=per)
-    return percentiles
-
-
-def _compute(
-    indice: UserIndiceConfig,
-    da: DataArray,
-    percentiles: DataArray = None,
-    bootstrap: bool = False,
-):
+def compute_user_indice(indice: UserIndiceConfig) -> DataArray:
     if indice.calc_operation == CalcOperation.MAX.value:
+        # TODO check thresh is float or str, cfvars length is 1
         return user_indice_max(
-            da=da,
+            da=indice.cf_vars[0].da,
+            in_base_da=indice.cf_vars[0].in_base_da,
             coef=indice.coef,
             logical_operation=indice.logical_operation,
             threshold=indice.thresh,
-            percentiles=percentiles,
-            bootstrap=bootstrap,
             freq=indice.freq.panda_freq,
             date_event=indice.date_event,
         )
     elif indice.calc_operation == CalcOperation.MIN.value:
         return user_indice_min(
-            da=da,
+            da=indice.cf_vars[0].da,
+            in_base_da=indice.cf_vars[0].in_base_da,
             coef=indice.coef,
             logical_operation=indice.logical_operation,
             threshold=indice.thresh,
-            percentiles=percentiles,
-            bootstrap=bootstrap,
             freq=indice.freq.panda_freq,
             date_event=indice.date_event,
         )
     elif indice.calc_operation == CalcOperation.MEAN.value:
         return user_indice_mean(
-            da=da,
+            da=indice.cf_vars[0].da,
+            in_base_da=indice.cf_vars[0].in_base_da,
             coef=indice.coef,
             logical_operation=indice.logical_operation,
             threshold=indice.thresh,
-            percentiles=percentiles,
-            bootstrap=bootstrap,
             freq=indice.freq.panda_freq,
         )
     elif indice.calc_operation == CalcOperation.SUM.value:
         return user_indice_sum(
-            da=da,
+            da=indice.cf_vars[0].da,
+            in_base_da=indice.cf_vars[0].in_base_da,
             coef=indice.coef,
             logical_operation=indice.logical_operation,
             threshold=indice.thresh,
-            percentiles=percentiles,
-            bootstrap=bootstrap,
             freq=indice.freq.panda_freq,
         )
     elif indice.calc_operation == CalcOperation.EVENT_COUNT.value:
         return user_indice_count_events(
-            nb_event_config=indice.nb_event_config,
+            das=list(map(lambda x: x.da, indice.cf_vars)),
+            in_base_das=list(map(lambda x: x.in_base_da, indice.cf_vars)),
+            logical_operation=indice.nb_event_config.logical_operation,
+            link_logical_operations=indice.nb_event_config.link_logical_operations,
+            thresholds=indice.nb_event_config.thresholds,
             coef=indice.coef,
-            bootstrap=bootstrap,
             freq=indice.freq.panda_freq,
             date_event=indice.date_event,
         )
     elif indice.calc_operation == CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value:
         return user_indice_max_consecutive_event_count(
-            da=da,
+            da=indice.cf_vars[0].da,
+            in_base_da=indice.cf_vars[0].in_base_da,
             logical_operation=indice.logical_operation,
-            thresholds=indice.thresh,
+            threshold=indice.thresh,
             coef=indice.coef,
-            link_logical_operations=indice.link_logical_operations,
-            percentiles=percentiles,
-            bootstrap=bootstrap,
             freq=indice.freq.panda_freq,
             date_event=indice.date_event,
         )
     elif indice.calc_operation == CalcOperation.RUN_MEAN.value:
         return user_indice_run_mean(
-            da=da,
+            da=indice.cf_vars[0].da,
             extreme_mode=indice.extreme_mode,
             window_width=indice.window_width,
             coef=indice.coef,
@@ -398,7 +294,7 @@ def _compute(
         )
     elif indice.calc_operation == CalcOperation.RUN_SUM.value:
         return user_indice_run_sum(
-            da=da,
+            da=indice.cf_vars[0].da,
             extreme_mode=indice.extreme_mode,
             window_width=indice.window_width,
             coef=indice.coef,
@@ -407,7 +303,7 @@ def _compute(
         )
     elif indice.calc_operation == CalcOperation.ANOMALY.value:
         return user_indice_anomaly(
-            da=da,
+            da=indice.cf_vars[0].da,
             da_ref=indice.da_ref,
             percent=indice.is_percent,
         )
@@ -415,13 +311,111 @@ def _compute(
         raise NotImplementedError("")  # TODO better exception
 
 
-class CalcOperation(Enum):
-    MAX = "max"
-    MIN = "min"
-    SUM = "sum"
-    MEAN = "mean"
-    EVENT_COUNT = "nb_event"
-    MAX_NUMBER_OF_CONSECUTIVE_EVENTS = "max_nb_consecutive_events"
-    RUN_MEAN = "run_mean"
-    RUN_SUM = "run_sum"
-    ANOMALY = "anomaly"
+def _apply_coef(coef: Optional[float], da: DataArray) -> DataArray:
+    if coef is not None:
+        return da * coef
+    return da
+
+
+def _filter_by_threshold(
+    da: DataArray,
+    in_base_da: Optional[DataArray],
+    logical_operation: Optional[LogicalOperation],
+    threshold: Optional[Union[str, float]],
+    freq: str,
+    var_type: Optional[str],
+):
+    if isinstance(threshold, str) and in_base_da is not None:
+        return _filter_by_logical_op_on_percentile(
+            da=da,
+            percentiles=_get_percentiles(threshold, var_type, in_base_da),
+            logical_operation=logical_operation,
+            freq=freq,
+            bootstrap=is_bootstrappable(var_type),
+        )
+    elif (
+        isinstance(threshold, float) or isinstance(threshold, int)
+    ) and logical_operation is not None:
+        return da.where(logical_operation.compute(da, threshold), drop=True)
+    elif threshold is None:
+        return da
+    else:
+        raise NotImplementedError()
+
+
+@percentile_bootstrap
+def _filter_by_logical_op_on_percentile(
+    da: DataArray,
+    percentiles: Optional[DataArray],
+    logical_operation: Optional[LogicalOperation],
+    freq: str = "MS",
+    bootstrap: bool = False,  # noqa
+) -> DataArray:
+    if logical_operation is not None and percentiles is not None:
+        percentiles = resample_doy(percentiles, da)
+        filtered = logical_operation.compute(da, percentiles)
+        filtered = filtered.where(filtered, drop=True)
+        # if bootstrap: # TODO uncomment once fixed on xclim
+        result = da.expand_dims(_bootstrap=filtered._bootstrap)
+        #  end if
+        return result.sel(time=filtered.time)
+    return da
+
+
+@percentile_bootstrap
+def _threshold_compare_on_percentiles(
+    da: DataArray,
+    percentiles: DataArray,
+    logical_operation: LogicalOperation,
+    freq: str = "MS",
+    bootstrap: bool = False,
+):
+    percentiles = resample_doy(percentiles, da)
+    return logical_operation.compute(da, percentiles)
+
+
+def _get_percentiles(thresh: str, var_type: Optional[str], in_base_da: DataArray):
+    if thresh.find(PERCENTILE_STAMP) == -1:
+        raise Exception(
+            # TODO create a UserInputException
+            "Percentile threshold not properly formatted. Use p as a prefix or suffix of the value for example 90p or p90. For non percentile threshold use a float instead of a string"
+        )
+    per = float(thresh.replace(PERCENTILE_STAMP, ""))
+    da_per = in_base_da
+    if var_type == PRECIPITATION:
+        da_per = convert_units_to(in_base_da, "mm/d")
+        da_per = da_per.where(da_per > WET_DAY_THRESHOLD, drop=True)
+    percentiles = percentile_doy(arr=da_per, per=per).sel(percentiles=per)
+    return percentiles
+
+
+def _user_indice_run_aggregator(
+    da: DataArray,
+    extreme_mode: ExtremeMode,
+    window_width: int,
+    aggregator: Callable[[Any], DataArray],  # Any should be DataArrayRolling
+    coef: float = None,
+    freq: str = "MS",
+    date_event: bool = False,
+):
+    result = _apply_coef(coef, da)
+    result = result.rolling(time=window_width)
+    result = aggregator(result).resample(time=freq)
+    if extreme_mode == ExtremeMode.MIN:
+        return result.min(dim="time")
+    elif extreme_mode == ExtremeMode.MAX:
+        return result.max(dim="time")
+    else:
+        raise NotImplementedError()
+
+
+@percentile_bootstrap
+def threshold_compare_on_percentiles(
+    da: DataArray,
+    percentiles: DataArray,
+    logical_operation: LogicalOperation,
+    freq: str = "MS",
+    bootstrap: bool = False,
+):
+    percentiles = resample_doy(percentiles, da)
+    return logical_operation.compute(da, percentiles)

@@ -1,13 +1,11 @@
 import numpy as np
-from xclim.core.calendar import percentile_doy
 
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import CfVariable
 from icclim.tests.stubs import stub_pr, stub_tas, stub_user_indice
 from icclim.user_indice.operation import (
-    apply_coef,
+    _apply_coef,
     compute_user_indice,
-    filter_by_logical_op,
     user_indice_anomaly,
     user_indice_count_events,
     user_indice_max,
@@ -21,6 +19,7 @@ from icclim.user_indice.operation import (
 from icclim.user_indice.user_indice import (
     PRECIPITATION,
     TEMPERATURE,
+    ExtremeMode,
     LinkLogicalOperation,
     LogicalOperation,
 )
@@ -31,19 +30,9 @@ class Test_apply_coef:
         # GIVEN
         da = stub_tas()
         # WHEN
-        result = apply_coef(4.0, da)
+        result = _apply_coef(4.0, da)
         # THEN
         assert np.testing.assert_equal(result.data, 4.0) is None
-
-
-class Test_filter_by_logical_op:
-    def test_simple(self):
-        # GIVEN
-        da = stub_tas()
-        # WHEN
-        result = filter_by_logical_op(LogicalOperation.GREATER_THAN, 1, da)
-        # THEN
-        assert len(result.data) == 0
 
 
 class Test_user_indice_max:
@@ -51,67 +40,54 @@ class Test_user_indice_max:
         da = stub_tas()
         da.data[1] = 20
         # WHEN
-        stub = stub_user_indice()
         result = user_indice_max(
             da=da,
-            coef=stub.coef,
-            logical_operation=stub.logical_operation,
-            threshold=stub.thresh,
-            freq=stub.freq.panda_freq,
-            date_event=stub.date_event,
+            coef=1,
+            logical_operation=None,
+            threshold=None,
+            freq="YS",
+            date_event=True,
         )
         # THEN
-        assert np.testing.assert_equal(result.data, 20) is None
+        assert result.data[0] == 20
 
 
 class Test_user_indice_min:
     def test_simple(self):
         da = stub_tas()
         da.data[1] = -20
-        stub = stub_user_indice()
         # WHEN
         result = user_indice_min(
             da=da,
-            coef=stub.coef,
-            logical_operation=stub.logical_operation,
-            threshold=stub.thresh,
-            freq=stub.freq.panda_freq,
-            date_event=stub.date_event,
+            freq="YS",
         )
         # THEN
-        assert result.data == -20
+        assert result.data[0] == -20
 
 
 class Test_user_indice_mean:
     def test_simple(self):
-        stub = stub_user_indice()
         da = stub_tas()
+        da[2] = 366
         # WHEN
         result = user_indice_mean(
             da=da,
-            coef=stub.coef,
-            logical_operation=stub.logical_operation,
-            threshold=stub.thresh,
-            freq=stub.freq.panda_freq,
+            freq="YS",
         )
         # THEN
-        assert result.data == 1
+        assert result.data[0] == 2
 
 
 class Test_user_indice_sum:
     def test_simple(self):
         da = stub_tas()
-        stub = stub_user_indice()
         # WHEN
         result = user_indice_sum(
             da=da,
-            coef=stub.coef,
-            logical_operation=stub.logical_operation,
-            threshold=stub.thresh,
-            freq=stub.freq.panda_freq,
+            freq="YS",
         )
         # THEN
-        assert result.data == 365 * 5 + 1
+        assert result.data[0] == 365
 
 
 class Test_user_indice_count_events:
@@ -122,7 +98,8 @@ class Test_user_indice_count_events:
         da[2] = 16
         # WHEN
         result = user_indice_count_events(
-            data_arrays=[da],
+            das=[da],
+            in_base_das=[None],
             logical_operation=[LogicalOperation.GREATER_THAN],
             thresholds=[15],
             freq="MS",
@@ -135,12 +112,12 @@ class Test_user_indice_count_events:
         da = stub_tas(10)
         da[1] = 15
         da[2] = 16
-        per = percentile_doy(da, 5, 80).sel(percentiles=80)
         # WHEN
         result = user_indice_count_events(
-            data_arrays=[da],
+            das=[da],
+            in_base_das=[da],
             logical_operation=[LogicalOperation.GREATER_THAN],
-            percentiles=[per],
+            thresholds=["80p"],
             freq="MS",
         )
         # THEN
@@ -153,7 +130,8 @@ class Test_user_indice_count_events:
         tmin = stub_tas(-10)
         # WHEN
         result = user_indice_count_events(
-            data_arrays=[tmax, tmin],
+            das=[tmax, tmin],
+            in_base_das=[None],
             logical_operation=[LogicalOperation.GREATER_THAN, LogicalOperation.EQUAL],
             thresholds=[12, -20],
             link_logical_operations=LinkLogicalOperation.OR_STAMP,
@@ -170,7 +148,8 @@ class Test_user_indice_count_events:
         tmin[1] = -20
         # WHEN
         result = user_indice_count_events(
-            data_arrays=[tmax, tmin],
+            das=[tmax, tmin],
+            in_base_das=[None],
             logical_operation=[LogicalOperation.GREATER_THAN, LogicalOperation.EQUAL],
             thresholds=[12, -20],
             link_logical_operations=LinkLogicalOperation.AND_STAMP,
@@ -183,27 +162,29 @@ class Test_user_indice_count_events:
 class Test_compute:
     def test_simple(self):
         cf_var = CfVariable(stub_tas())
-        stub = stub_user_indice()
+        stub = stub_user_indice([cf_var])
         stub.calc_operation = "max"
+        stub.freq = Frequency.MONTH
         # WHEN
-        result = compute_user_indice(stub, cf_var)
+        result = compute_user_indice(stub)
         # THEN
-        assert result.data == 1
+        assert result.data[0] == 1
 
     def test_simple_percentile_pr(self):
         cf_var = CfVariable(da=stub_pr(5))
         cf_var.da.data[15:30] += 10
         cf_var.da.data[366 + 15 : 366 + 30] = 2  # Ignore because not in base
         cf_var.in_base_da = cf_var.da.sel(time=cf_var.da.time.dt.year == 2042)
-        stub = stub_user_indice()
+        stub = stub_user_indice([cf_var])
         stub.calc_operation = "min"
         stub.thresh = "90p"
         stub.logical_operation = LogicalOperation.GREATER_OR_EQUAL_THAN
         stub.var_type = PRECIPITATION
+        stub.freq = Frequency.YEAR
         # WHEN
-        result = compute_user_indice(stub, cf_var)
+        result = compute_user_indice(stub)
         # THEN
-        assert result.data == 5
+        assert result.data[0] == 5
 
     def test_simple_percentile_temp(self):
         cf_var = CfVariable(da=stub_tas())
@@ -211,16 +192,16 @@ class Test_compute:
         cf_var.in_base_da = cf_var.da.sel(
             time=cf_var.da.time.dt.year.isin([2042, 2043])
         )
-        stub = stub_user_indice()
+        stub = stub_user_indice([cf_var])
         stub.calc_operation = "min"
         stub.thresh = "90p"
         stub.logical_operation = LogicalOperation.GREATER_OR_EQUAL_THAN
         stub.var_type = TEMPERATURE
         stub.freq = Frequency.MONTH
         # WHEN
-        result = compute_user_indice(stub, cf_var)
+        result = compute_user_indice(stub)
         # THEN
-        assert result.data == 5
+        assert result.data[0] == 5
 
 
 class Test_user_indice_run_mean:
@@ -235,7 +216,7 @@ class Test_user_indice_run_mean:
         # WHEN
         result = user_indice_run_mean(
             da=tmax,
-            extreme_mode="min",
+            extreme_mode=ExtremeMode.MIN,
             window_width=5,
             freq="MS",
         )
@@ -251,7 +232,7 @@ class Test_user_indice_run_mean:
         # WHEN
         result = user_indice_run_mean(
             da=tmax,
-            extreme_mode="max",
+            extreme_mode=ExtremeMode.MAX,
             window_width=2,
             freq="MS",
         )
@@ -273,7 +254,7 @@ class Test_user_indice_run_sum:
         # WHEN
         result = user_indice_run_sum(
             da=tmax,
-            extreme_mode="min",
+            extreme_mode=ExtremeMode.MIN,
             window_width=5,
             freq="MS",
         )
@@ -289,7 +270,7 @@ class Test_user_indice_run_sum:
         # WHEN
         result = user_indice_run_sum(
             da=tmax,
-            extreme_mode="max",
+            extreme_mode=ExtremeMode.MAX,
             window_width=2,
             freq="MS",
         )
@@ -308,7 +289,7 @@ class Test_user_indice_max_consecutive_event_count:
         result = user_indice_max_consecutive_event_count(
             da=tmax,
             logical_operation=LogicalOperation.EQUAL,
-            thresholds=10,
+            threshold=10.0,
             freq="YS",
         )
         # THEN

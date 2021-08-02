@@ -6,7 +6,7 @@
 #  Additions from Christian Page (2015-2017)
 
 import datetime
-from typing import Callable, List, Union
+from typing import Callable, List, Optional, Union
 
 import xarray
 import xclim.core.calendar as calendar
@@ -24,7 +24,7 @@ from icclim.util import logging_info
 
 def indice(
     in_files: Union[str, List[str]],
-    var_name: List[str],
+    var_name: Union[str, List[str]],
     indice_name: str = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime.datetime] = None,
@@ -144,15 +144,19 @@ def indice(
     result_ds = Dataset()
     # TODO add attributes to dataset
     if user_indice is not None:
-        user_indice: UserIndiceConfig = UserIndiceConfig(**user_indice)
-        user_indice.freq = config.freq
-        user_indice.da_ref = config.cfvariables[0].in_base_da
-        user_indice.nb_event_config.data_arrays = config.cfvariables
-        # TODO redondant to have nb_event_config.data_arrays and to pass config.cfvariables[0] in parameters
-        result_ds[user_indice.indice_name] = compute_user_indice(
-            user_indice, config.cfvariables[0]
+        is_percent = out_unit == "%"
+        user_indice_config: UserIndiceConfig = UserIndiceConfig(
+            **user_indice,
+            freq=config.freq,
+            cf_vars=config.cfvariables,
+            is_percent=is_percent,
+        )
+        result_ds[user_indice_config.indice_name] = compute_user_indice(
+            user_indice_config
         )
     else:
+        if indice_name is None:
+            raise Exception()  # user input error
         if isinstance(threshold, list):
             for th in threshold:
                 # TODO: use the same name as in icc 4
@@ -164,7 +168,7 @@ def indice(
     result_ds.to_netcdf(out_file)
 
 
-def compute_indice(indice_name: str, config: IndiceConfig, threshold: float):
+def compute_indice(indice_name: str, config: IndiceConfig, threshold: Optional[float]):
     config.threshold = to_celcius(threshold)
     da = indices.indice_from_string(indice_name).compute(config)
     if config.freq.resampler is not None:
@@ -174,9 +178,9 @@ def compute_indice(indice_name: str, config: IndiceConfig, threshold: float):
 
 def build_cf_variable(
     da: DataArray,
-    time_range: List[datetime.datetime],
+    time_range: Optional[List[datetime.datetime]],
     ignore_Feb29th: bool,
-    base_period_time_range: List[datetime.datetime],
+    base_period_time_range: Optional[List[datetime.datetime]],
     only_leap_years: bool,
 ) -> CfVariable:
     cf_var = CfVariable(build_data_array(da, time_range, ignore_Feb29th))
@@ -188,15 +192,14 @@ def build_cf_variable(
 
 
 def build_data_array(
-    da: DataArray, time_range: List[datetime.datetime], ignore_Feb29th: bool
+    da: DataArray, time_range: Optional[List[datetime.datetime]], ignore_Feb29th: bool
 ) -> DataArray:
     if time_range is not None:
         if len(time_range) != 2:
             raise Exception("Not a valid time range")
-        time_range = slice(time_range[0], time_range[1])
-        da = da.sel(time=time_range)
+        da = da.sel(time=slice(time_range[0], time_range[1]))
     if ignore_Feb29th:
-        da = calendar.convert_calendar(da, "noleap")
+        da = calendar.convert_calendar(da, "noleap")  # type:ignore
     return da
 
 
@@ -207,15 +210,14 @@ def build_in_base_da(
 ) -> DataArray:
     if len(base_period_time_range) != 2:
         raise Exception("Not a valid time range")
-    base_period_time_range = slice(base_period_time_range[0], base_period_time_range[1])
-    da = da.sel(time=base_period_time_range)
+    da = da.sel(time=slice(base_period_time_range[0], base_period_time_range[1]))
     if only_leap_years:
         da = reduce_only_leap_years(da)
     return da
 
 
-def reduce_only_leap_years(da: DataArray):
-    reduced_list = []
+def reduce_only_leap_years(da: DataArray) -> DataArray:
+    reduced_list: List[DataArray] = []
     for _, val in da.groupby(da.time.dt.year):
         if val.time.dt.dayofyear.max() == 366:
             reduced_list.append(val)
@@ -226,7 +228,7 @@ def reduce_only_leap_years(da: DataArray):
     return xarray.concat(reduced_list, "time")
 
 
-def to_celcius(threshold: float) -> Union[None, str]:
+def to_celcius(threshold: Optional[float]) -> Optional[str]:
     if threshold is not None:
         return f"{threshold} degC"
     return None

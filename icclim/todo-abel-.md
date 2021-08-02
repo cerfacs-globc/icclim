@@ -1,6 +1,7 @@
 # Add the user custom indicies
-
-# Add unit tests
+    - refactor to ease reading
+    - add date_event
+    - Add integretion tests
 
 # Add documentation
 
@@ -13,7 +14,7 @@ A ne pas supprimer mais l'utiliser pour de faux
 # Verify on climdex that they bootstrap precipitation as well as temperatures indices
 --> ils ne le font pas !
 A voir si ça a du sens de le garder et avertir ouranos dans tous les cas
-ligne 435 de https://github.com/pacificclimate/climdex.pcic/blob/master/R/climdex.r 
+ligne 435 de https://github.com/pacificclimate/climdex.pcic/blob/master/R/climdex.r
 
 # Add dim in User_indice to do computation on another dim than time ?
 

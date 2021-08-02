@@ -1,7 +1,9 @@
-from icclim.models.frequency import Frequency
 from typing import List, Optional
+
 from xarray import DataArray
 from xarray.core.dataset import Dataset
+
+from icclim.models.frequency import Frequency
 
 
 class CfVariable:
@@ -16,6 +18,6 @@ class CfVariable:
 class IndiceConfig:
     freq: Frequency
     window: Optional[int]
-    threshold: Optional[int]
+    threshold: Optional[str]
     cfvariables: List[CfVariable]
     ds: Dataset
