@@ -42,6 +42,16 @@ class Test_user_indice_max:
     #     ds = xarray.open_dataset(
     #         "/Users/aoun/workspace/icclim/climpact.sampledata.gridded.1991-2010.nc"
     #     )
+
+    #     result = user_indice_count_events(
+    #         das=[ds.tmax],
+    #         in_base_das=[None],
+    #         logical_operation=[LogicalOperation.GREATER_THAN],
+    #         thresholds=[305],
+    #         freq="MS",
+    #         date_event=True,
+    #     )
+
     #     result = user_indice_max(
     #         da=ds.tmax,
     #         coef=1,

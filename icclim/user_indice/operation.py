@@ -133,7 +133,7 @@ def user_indice_count_events(
                 percentiles.append(_get_percentiles(threshold, var_type, in_base_da))
     acc = []
     for i, da in enumerate(das):
-        result = _apply_coef(coef, da)
+        result: DataArray = _apply_coef(coef, da)
         if len(percentiles) > 0:
             result = _threshold_compare_on_percentiles(
                 da=result,
@@ -153,7 +153,29 @@ def user_indice_count_events(
         result = reduce(np.logical_or, acc, False)
     else:
         raise NotImplementedError()
-    return result.resample(time=freq).sum(dim="time")
+    resampled = result.resample(time=freq)
+    acc = []
+    if date_event:
+        for label, value in resampled:
+            first = value.isel(time=_get_first_occurrence(value)).time
+            reversed_time = value[::-1, :, :]
+            last = value.isel(time=_get_first_occurrence(reversed_time)).time
+            acc.append(
+                DataArray(
+                    data=value.sum(dim="time"),
+                    dims=["lat", "lon"],
+                    coords=dict(
+                        time=label,
+                        lat=value.lat,
+                        lon=value.lon,
+                        event_date_start=first,
+                        event_date_end=last,
+                    ),
+                )
+            )
+        return xarray.concat(acc, "time")
+    else:
+        return resampled.sum(dim="time")
 
 
 def is_bootstrappable(var_type):
@@ -359,8 +381,8 @@ def _filter_by_logical_op_on_percentile(
     da: DataArray,
     percentiles: Optional[DataArray],
     logical_operation: Optional[LogicalOperation],
-    freq: str = "MS",
-    bootstrap: bool = False,  # noqa
+    freq: str = "MS",  # used by percentile_bootstrap
+    bootstrap: bool = False,  # used by percentile_bootstrap
 ) -> DataArray:
     if logical_operation is not None and percentiles is not None:
         percentiles = resample_doy(percentiles, da)
@@ -378,8 +400,8 @@ def _threshold_compare_on_percentiles(
     da: DataArray,
     percentiles: DataArray,
     logical_operation: LogicalOperation,
-    freq: str = "MS",
-    bootstrap: bool = False,
+    freq: str = "MS",  # used by percentile_bootstrap
+    bootstrap: bool = False,  # used by percentile_bootstrap
 ):
     percentiles = resample_doy(percentiles, da)
     return logical_operation.compute(da, percentiles)
@@ -411,11 +433,25 @@ def _user_indice_run_aggregator(
 ):
     result = _apply_coef(coef, da)
     result = result.rolling(time=window_width)
-    result = aggregator(result).resample(time=freq)
+    resampled = aggregator(result).resample(time=freq)
     if extreme_mode == ExtremeMode.MIN:
-        return result.min(dim="time")
+        if date_event:
+            return _reduce_with_date_event(
+                resampled,
+                lambda x: x.argmin("time", keep_attrs=True),  # type:ignore
+                window=window_width,
+            )
+        else:
+            return resampled.min(dim="time")
     elif extreme_mode == ExtremeMode.MAX:
-        return result.max(dim="time")
+        if date_event:
+            return _reduce_with_date_event(
+                resampled,
+                lambda x: x.argmax("time", keep_attrs=True),  # type:ignore
+                window=window_width,
+            )
+        else:
+            return resampled.max(dim="time")
     else:
         raise NotImplementedError()
 
@@ -433,21 +469,47 @@ def threshold_compare_on_percentiles(
 
 
 def _reduce_with_date_event(
-    resampled: DataArray, reducer: Callable[[DataArray], DataArray]
+    resampled: DataArray,
+    reducer: Callable[[DataArray], DataArray],
+    window: Optional[int] = None,
 ) -> DataArray:
     acc: List[DataArray] = []
     for label, value in resampled:
         reduced_result = value.isel(time=reducer(value))
-        acc.append(
-            DataArray(
-                data=reduced_result,
-                dims=["lat", "lon"],
-                coords=dict(
-                    time=label,
-                    lat=value.lat,
-                    lon=value.lon,
-                    event_date=reduced_result.time,
-                ),
+        if window is not None:
+            coords = dict(
+                time=label,
+                lat=value.lat,
+                lon=value.lon,
+                event_date_start=reduced_result.time,
+                event_date_end=reduced_result.time + np.timedelta64(window, "D"),
             )
-        )
+        else:
+            coords = dict(
+                time=label,
+                lat=value.lat,
+                lon=value.lon,
+                event_date=reduced_result.time,
+            )
+        acc.append(DataArray(data=reduced_result, dims=["lat", "lon"], coords=coords))
     return xarray.concat(acc, "time")
+
+
+def _get_first_occurrence(arr: DataArray):
+    """
+    Return the first occurrence (index) of val in the 3D array along axis=0
+
+    arr is a binary (0/1) 3D array
+
+    """
+    ### we are looking for the first occurence of 1 (val=1)
+    tmp = arr.stack(latlon=("lat", "lon"))
+    res = tmp.argmax("time")
+
+    sum_arr = tmp.sum("time")  # we have 0 if no event (1) is found
+
+    test_res = sum_arr + res
+
+    ### correction
+    res[test_res == 0] = -1
+    return res.unstack()
