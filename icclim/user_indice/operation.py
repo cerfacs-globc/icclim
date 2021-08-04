@@ -10,7 +10,7 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
-from icclim.models.indice_config import CfVariable
+from icclim.user_indice.stat import get_longest_run_start_index, statistics_run_ufunc
 from icclim.user_indice.user_indice import (
     PRECIPITATION,
     TEMPERATURE,
@@ -148,9 +148,9 @@ def user_indice_count_events(
     if len(acc) == 1:
         result = acc[0]
     elif link_logical_operations == LinkLogicalOperation.AND_STAMP:
-        result = reduce(np.logical_and, acc, True)
+        result = reduce(np.logical_and, acc, True)  # type:ignore
     elif link_logical_operations == LinkLogicalOperation.OR_STAMP:
-        result = reduce(np.logical_or, acc, False)
+        result = reduce(np.logical_or, acc, False)  # type:ignore
     else:
         raise NotImplementedError()
     resampled = result.resample(time=freq)
@@ -158,8 +158,8 @@ def user_indice_count_events(
     if date_event:
         for label, value in resampled:
             first = value.isel(time=_get_first_occurrence(value)).time
-            reversed_time = value[::-1, :, :]
-            last = value.isel(time=_get_first_occurrence(reversed_time)).time
+            value_reversed_time = value[::-1, :, :]
+            last = value.isel(time=_get_first_occurrence(value_reversed_time)).time
             acc.append(
                 DataArray(
                     data=value.sum(dim="time"),
@@ -203,7 +203,25 @@ def user_indice_max_consecutive_event_count(
         )
     elif isinstance(threshold, float) or isinstance(threshold, int):
         result = logical_operation.compute(da, threshold)
-    result = result.resample(time=freq).map(longest_run, dim="time")
+    resampled = result.resample(time=freq)
+    if not date_event:
+        return resampled.map(longest_run, dim="time")
+    acc: List[DataArray] = []
+    for label, value in resampled:
+        run_length = longest_run(value, dim="time")
+        index = get_longest_run_start_index(value, dim="time")
+        start = value[index.astype(int)].time
+        time_shift = run_length * np.timedelta64(1, "D")
+        end = start + time_shift
+        coords = dict(
+            time=label,
+            lat=value.lat,
+            lon=value.lon,
+            event_date_start=start,
+            event_date_end=end,
+        )
+        acc.append(DataArray(data=run_length, dims=["lat", "lon"], coords=coords))
+    result = xarray.concat(acc, "time")
     return to_agg_units(result, da, "count")
 
 
@@ -495,21 +513,20 @@ def _reduce_with_date_event(
     return xarray.concat(acc, "time")
 
 
-def _get_first_occurrence(arr: DataArray):
+def _get_first_occurrence(arr: DataArray) -> DataArray:
     """
     Return the first occurrence (index) of val in the 3D array along axis=0
 
     arr is a binary (0/1) 3D array
 
     """
-    ### we are looking for the first occurence of 1 (val=1)
-    tmp = arr.stack(latlon=("lat", "lon"))
-    res = tmp.argmax("time")
+    stacked = arr.stack(latlon=("lat", "lon"))
+    res = stacked.argmax("time")
 
-    sum_arr = tmp.sum("time")  # we have 0 if no event (1) is found
-
-    test_res = sum_arr + res
-
-    ### correction
+    # TODO probably useless to set all False value to -1 because instead of 0,
+    #      because in the end it simply put the last date of the month instead of the first one for theses values,
+    #      and we simplky don't care what value they hold
+    test_res = stacked.sum("time") + res
     res[test_res == 0] = -1
+
     return res.unstack()

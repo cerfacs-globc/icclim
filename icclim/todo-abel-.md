@@ -5,6 +5,8 @@
 
 # Add documentation
 
+# Gérer fill_value surtout pour les user_indices
+
 # Progress bar
 A ne pas supprimer mais l'utiliser pour de faux
 
