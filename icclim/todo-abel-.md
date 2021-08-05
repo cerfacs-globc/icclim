@@ -1,7 +1,6 @@
 # Add the user custom indicies
-    - refactor to ease reading
-    - add date_event
     - Add integretion tests
+    - properly resample based on Frequency
 
 # Add documentation
 

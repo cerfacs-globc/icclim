@@ -8,9 +8,11 @@ from xarray.core.dataarray import DataArray
 
 
 # month_list must be ordered from first month of season to the last. Example: [11, 1, 2,4]
-def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]:
+def seasons_resampler(
+    month_list: List[int],
+) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
     def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
-        years = numpy.unique(da.time.dt.year)
+        da_years = numpy.unique(da.time.dt.year)
         acc: List[DataArray] = []
         time_bnds = []
         middle_date = []
@@ -18,7 +20,7 @@ def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]
         end_month = month_list[-1]
         filtered_da = month_filter(month_list)(da)
         # TODO, maybe raise a warning if the month_list is not made of consecutive month (case of user error)
-        for year in years:
+        for year in da_years:
             if start_month > end_month:
                 start_season_date = pandas.to_datetime(f"{year-1}-{start_month}")
             else:
@@ -26,7 +28,7 @@ def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]
             end_season_date = (
                 pandas.to_datetime(f"{year}-{end_month+1}")
                 - pandas.tseries.offsets.Day()
-            )
+            )  # type:ignore
             season_of_year = filtered_da.sel(
                 time=slice(start_season_date, end_season_date)
             ).sum("time")
@@ -35,7 +37,7 @@ def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]
             )
             time_bnds.append([start_season_date, end_season_date])
             acc.append(season_of_year)
-        seasons: DataArray = xarray.concat(acc, "time")
+        seasons = xarray.concat(acc, "time")
         seasons.coords["time"] = ("time", middle_date)
         # FIXME: In case of month_list with holes, such as [1,3,4,6]; How do we show this in metatadas ?
         seasons.time.attrs["bounds"] = "time_bnds"
@@ -52,6 +54,7 @@ def seasons_resampler(month_list: List[int]) -> Callable[[DataArray], DataArray]
 
 def month_filter(month_list: List[int]) -> Callable[[DataArray], DataArray]:
     def resampler(da: DataArray):
+        # TODO see what kind of time_bounds is expected here
         return da.sel(time=da.time.dt.month.isin(month_list))
 
     return resampler
@@ -72,34 +75,10 @@ class Frequency(Enum):
     MONTH = ("MS", ["month", "MS"])
     AMJJAS = ("MS", ["AMJJAS"], seasons_resampler([*range(4, 9)]))
     ONDJFM = ("MS", ["ONDJFM"], seasons_resampler([10, 11, 12, 1, 2, 3]))
-    DJF = (
-        "MS",
-        [
-            "DJF",
-        ],
-        seasons_resampler([12, 1, 2]),
-    )
-    MAM = (
-        "MS",
-        [
-            "MAM",
-        ],
-        seasons_resampler([*range(3, 5)]),
-    )
-    JJA = (
-        "MS",
-        [
-            "JJA",
-        ],
-        seasons_resampler([*range(6, 8)]),
-    )
-    SON = (
-        "MS",
-        [
-            "SON",
-        ],
-        seasons_resampler([*range(9, 11)]),
-    )
+    DJF = ("MS", ["DJF"], seasons_resampler([12, 1, 2]))
+    MAM = ("MS", ["MAM"], seasons_resampler([*range(3, 5)]))
+    JJA = ("MS", ["JJA"], seasons_resampler([*range(6, 8)]))
+    SON = ("MS", ["SON"], seasons_resampler([*range(9, 11)]))
     YEAR = ("YS", ["year", "YS"])
     CUSTOM = ("MS", [], None)
 
@@ -107,7 +86,7 @@ class Frequency(Enum):
         self,
         panda_time: str,
         accepted_values: List[str],
-        resampler: Callable[[DataArray], DataArray] = None,
+        resampler: Callable[[DataArray], Tuple[DataArray, DataArray]] = None,
     ):
         self.panda_freq: str = panda_time
         self.accepted_values: List[str] = accepted_values

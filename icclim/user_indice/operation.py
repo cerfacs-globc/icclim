@@ -10,38 +10,24 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
-from icclim.user_indice.stat import get_longest_run_start_index, statistics_run_ufunc
+from icclim.user_indice.stat import get_first_occurrence, get_longest_run_start_index
 from icclim.user_indice.user_indice import (
+    PERCENTILE_STAMP,
     PRECIPITATION,
     TEMPERATURE,
+    WET_DAY_THRESHOLD,
     ExtremeMode,
     LinkLogicalOperation,
     LogicalOperation,
-    UserIndiceConfig,
 )
 
-PERCENTILE_STAMP = "p"
-WET_DAY_THRESHOLD = 1  # 1mm
 
-
-class CalcOperation(Enum):
-    MAX = "max"
-    MIN = "min"
-    SUM = "sum"
-    MEAN = "mean"
-    EVENT_COUNT = "nb_event"
-    MAX_NUMBER_OF_CONSECUTIVE_EVENTS = "max_nb_consecutive_events"
-    RUN_MEAN = "run_mean"
-    RUN_SUM = "run_sum"
-    ANOMALY = "anomaly"
-
-
-def user_indice_max(
+def max(
     da: DataArray,
     in_base_da: Optional[DataArray] = None,
     coef: Optional[float] = None,
     logical_operation: Optional[LogicalOperation] = None,
-    threshold: Optional[Union[str, float]] = None,
+    threshold: Optional[Union[str, float, int]] = None,
     freq: str = "MS",
     date_event: bool = False,
     var_type: Optional[str] = None,
@@ -59,12 +45,12 @@ def user_indice_max(
         return result.max(dim="time", keep_attrs=True)
 
 
-def user_indice_min(
+def min(
     da: DataArray,
     in_base_da: Optional[DataArray] = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: Optional[Union[str, float]] = None,
+    threshold: Optional[Union[str, float, int]] = None,
     freq: str = "MS",
     date_event: bool = False,
     var_type: str = None,
@@ -82,15 +68,15 @@ def user_indice_min(
         return result.min(dim="time", keep_attrs=True)
 
 
-def user_indice_sum(
+def sum(
     da: DataArray,
     in_base_da: Optional[DataArray] = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: Optional[Union[str, float]] = None,
+    threshold: Optional[Union[str, float, int]] = None,
     var_type: str = None,
     freq: str = "MS",
-):
+) -> DataArray:
     result = _apply_coef(coef, da)
     result = _filter_by_threshold(
         result, in_base_da, logical_operation, threshold, freq, var_type
@@ -98,15 +84,15 @@ def user_indice_sum(
     return result.resample(time=freq).sum(dim="time", keep_attrs=True)
 
 
-def user_indice_mean(
+def mean(
     da: DataArray,
     in_base_da: Optional[DataArray] = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: Optional[Union[str, float]] = None,
+    threshold: Optional[Union[str, float, int]] = None,
     var_type: str = None,
     freq: str = "MS",
-):
+) -> DataArray:
     result = _apply_coef(coef, da)
     result = _filter_by_threshold(
         result, in_base_da, logical_operation, threshold, freq, var_type
@@ -114,7 +100,7 @@ def user_indice_mean(
     return result.resample(time=freq).mean(dim="time", keep_attrs=True)
 
 
-def user_indice_count_events(
+def count_events(
     logical_operation: List[LogicalOperation],
     thresholds: List[Union[float, str]],
     das: List[DataArray],
@@ -124,7 +110,7 @@ def user_indice_count_events(
     var_type: str = None,
     freq: str = "MS",
     date_event: bool = False,
-):
+) -> DataArray:
     percentiles = []
     for i, threshold in enumerate(thresholds):
         if isinstance(threshold, str) and len(in_base_das) > 0:
@@ -154,44 +140,43 @@ def user_indice_count_events(
     else:
         raise NotImplementedError()
     resampled = result.resample(time=freq)
-    acc = []
-    if date_event:
-        for label, value in resampled:
-            first = value.isel(time=_get_first_occurrence(value)).time
-            value_reversed_time = value[::-1, :, :]
-            last = value.isel(time=_get_first_occurrence(value_reversed_time)).time
-            acc.append(
-                DataArray(
-                    data=value.sum(dim="time"),
-                    dims=["lat", "lon"],
-                    coords=dict(
-                        time=label,
-                        lat=value.lat,
-                        lon=value.lon,
-                        event_date_start=first,
-                        event_date_end=last,
-                    ),
-                )
-            )
-        return xarray.concat(acc, "time")
-    else:
+    if not date_event:
         return resampled.sum(dim="time")
+    acc: List[DataArray] = []
+    for label, value in resampled:
+        first = value.isel(time=get_first_occurrence(value)).time
+        value_reversed_time = value[::-1, :, :]
+        last = value.isel(time=get_first_occurrence(value_reversed_time)).time
+        acc.append(
+            DataArray(
+                data=value.sum(dim="time"),
+                dims=["lat", "lon"],
+                coords=dict(
+                    time=label,
+                    lat=value.lat,
+                    lon=value.lon,
+                    event_date_start=first,
+                    event_date_end=last,
+                ),
+            )
+        )
+    return xarray.concat(acc, "time")
 
 
 def is_bootstrappable(var_type):
     return var_type == TEMPERATURE
 
 
-def user_indice_max_consecutive_event_count(
+def max_consecutive_event_count(
     da: DataArray,
     logical_operation: LogicalOperation,
     in_base_da: Optional[DataArray] = None,
-    threshold: Optional[Union[str, float]] = None,
+    threshold: Optional[Union[str, float, int]] = None,
     coef: float = None,
     freq: str = "MS",
     date_event: bool = False,
     var_type: Optional[str] = None,
-):
+) -> DataArray:
     result = _apply_coef(coef, da)
     if in_base_da is not None and isinstance(threshold, str):
         result = threshold_compare_on_percentiles(
@@ -225,15 +210,15 @@ def user_indice_max_consecutive_event_count(
     return to_agg_units(result, da, "count")
 
 
-def user_indice_run_mean(
+def run_mean(
     da: DataArray,
     extreme_mode: ExtremeMode,
     window_width: int,
     coef: float = None,
     freq: str = "MS",
     date_event: bool = False,
-):
-    return _user_indice_run_aggregator(
+) -> DataArray:
+    return _run_aggregator(
         da=da,
         extreme_mode=extreme_mode,
         window_width=window_width,
@@ -244,15 +229,15 @@ def user_indice_run_mean(
     )
 
 
-def user_indice_run_sum(
+def run_sum(
     da: DataArray,
     extreme_mode: ExtremeMode,
     window_width: int,
     coef: float = None,
     freq: str = "MS",
     date_event: bool = False,
-):
-    return _user_indice_run_aggregator(
+) -> DataArray:
+    return _run_aggregator(
         da=da,
         extreme_mode=extreme_mode,
         window_width=window_width,
@@ -263,7 +248,7 @@ def user_indice_run_sum(
     )
 
 
-def user_indice_anomaly(da_ref: DataArray, da: DataArray, percent: bool):
+def anomaly(da_ref: DataArray, da: DataArray, percent: bool) -> DataArray:
     ref_mean = da_ref.mean(dim="time")
     result: DataArray = da.mean(dim="time") - ref_mean
     result._copy_attrs_from(da_ref)
@@ -271,95 +256,6 @@ def user_indice_anomaly(da_ref: DataArray, da: DataArray, percent: bool):
         result = result / ref_mean * 100
         result.attrs["units"] = "%"
     return result
-
-
-def compute_user_indice(indice: UserIndiceConfig) -> DataArray:
-    if indice.calc_operation == CalcOperation.MAX.value:
-        # TODO check thresh is float or str, cfvars length is 1
-        return user_indice_max(
-            da=indice.cf_vars[0].da,
-            in_base_da=indice.cf_vars[0].in_base_da,
-            coef=indice.coef,
-            logical_operation=indice.logical_operation,
-            threshold=indice.thresh,
-            freq=indice.freq.panda_freq,
-            date_event=indice.date_event,
-        )
-    elif indice.calc_operation == CalcOperation.MIN.value:
-        return user_indice_min(
-            da=indice.cf_vars[0].da,
-            in_base_da=indice.cf_vars[0].in_base_da,
-            coef=indice.coef,
-            logical_operation=indice.logical_operation,
-            threshold=indice.thresh,
-            freq=indice.freq.panda_freq,
-            date_event=indice.date_event,
-        )
-    elif indice.calc_operation == CalcOperation.MEAN.value:
-        return user_indice_mean(
-            da=indice.cf_vars[0].da,
-            in_base_da=indice.cf_vars[0].in_base_da,
-            coef=indice.coef,
-            logical_operation=indice.logical_operation,
-            threshold=indice.thresh,
-            freq=indice.freq.panda_freq,
-        )
-    elif indice.calc_operation == CalcOperation.SUM.value:
-        return user_indice_sum(
-            da=indice.cf_vars[0].da,
-            in_base_da=indice.cf_vars[0].in_base_da,
-            coef=indice.coef,
-            logical_operation=indice.logical_operation,
-            threshold=indice.thresh,
-            freq=indice.freq.panda_freq,
-        )
-    elif indice.calc_operation == CalcOperation.EVENT_COUNT.value:
-        return user_indice_count_events(
-            das=list(map(lambda x: x.da, indice.cf_vars)),
-            in_base_das=list(map(lambda x: x.in_base_da, indice.cf_vars)),
-            logical_operation=indice.nb_event_config.logical_operation,
-            link_logical_operations=indice.nb_event_config.link_logical_operations,
-            thresholds=indice.nb_event_config.thresholds,
-            coef=indice.coef,
-            freq=indice.freq.panda_freq,
-            date_event=indice.date_event,
-        )
-    elif indice.calc_operation == CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value:
-        return user_indice_max_consecutive_event_count(
-            da=indice.cf_vars[0].da,
-            in_base_da=indice.cf_vars[0].in_base_da,
-            logical_operation=indice.logical_operation,
-            threshold=indice.thresh,
-            coef=indice.coef,
-            freq=indice.freq.panda_freq,
-            date_event=indice.date_event,
-        )
-    elif indice.calc_operation == CalcOperation.RUN_MEAN.value:
-        return user_indice_run_mean(
-            da=indice.cf_vars[0].da,
-            extreme_mode=indice.extreme_mode,
-            window_width=indice.window_width,
-            coef=indice.coef,
-            freq=indice.freq.panda_freq,
-            date_event=indice.date_event,
-        )
-    elif indice.calc_operation == CalcOperation.RUN_SUM.value:
-        return user_indice_run_sum(
-            da=indice.cf_vars[0].da,
-            extreme_mode=indice.extreme_mode,
-            window_width=indice.window_width,
-            coef=indice.coef,
-            freq=indice.freq.panda_freq,
-            date_event=indice.date_event,
-        )
-    elif indice.calc_operation == CalcOperation.ANOMALY.value:
-        return user_indice_anomaly(
-            da=indice.cf_vars[0].da,
-            da_ref=indice.da_ref,
-            percent=indice.is_percent,
-        )
-    else:
-        raise NotImplementedError("")  # TODO better exception
 
 
 def _apply_coef(coef: Optional[float], da: DataArray) -> DataArray:
@@ -372,10 +268,12 @@ def _filter_by_threshold(
     da: DataArray,
     in_base_da: Optional[DataArray],
     logical_operation: Optional[LogicalOperation],
-    threshold: Optional[Union[str, float]],
+    threshold: Optional[Union[str, float, int]],
     freq: str,
     var_type: Optional[str],
-):
+) -> DataArray:
+    if threshold is None and logical_operation is None:
+        return da
     if isinstance(threshold, str) and in_base_da is not None:
         return _filter_by_logical_op_on_percentile(
             da=da,
@@ -388,10 +286,10 @@ def _filter_by_threshold(
         isinstance(threshold, float) or isinstance(threshold, int)
     ) and logical_operation is not None:
         return da.where(logical_operation.compute(da, threshold), drop=True)
-    elif threshold is None:
-        return da
     else:
-        raise NotImplementedError()
+        raise NotImplementedError(
+            "threshold must be on of [str, int, float] and logical_operation must a LogicalOperation instance"
+        )
 
 
 @percentile_bootstrap
@@ -420,12 +318,14 @@ def _threshold_compare_on_percentiles(
     logical_operation: LogicalOperation,
     freq: str = "MS",  # used by percentile_bootstrap
     bootstrap: bool = False,  # used by percentile_bootstrap
-):
+) -> DataArray:
     percentiles = resample_doy(percentiles, da)
     return logical_operation.compute(da, percentiles)
 
 
-def _get_percentiles(thresh: str, var_type: Optional[str], in_base_da: DataArray):
+def _get_percentiles(
+    thresh: str, var_type: Optional[str], in_base_da: DataArray
+) -> DataArray:
     if thresh.find(PERCENTILE_STAMP) == -1:
         raise Exception(
             # TODO create a UserInputException
@@ -440,7 +340,7 @@ def _get_percentiles(thresh: str, var_type: Optional[str], in_base_da: DataArray
     return percentiles
 
 
-def _user_indice_run_aggregator(
+def _run_aggregator(
     da: DataArray,
     extreme_mode: ExtremeMode,
     window_width: int,
@@ -448,7 +348,7 @@ def _user_indice_run_aggregator(
     coef: float = None,
     freq: str = "MS",
     date_event: bool = False,
-):
+) -> DataArray:
     result = _apply_coef(coef, da)
     result = result.rolling(time=window_width)
     resampled = aggregator(result).resample(time=freq)
@@ -481,7 +381,7 @@ def threshold_compare_on_percentiles(
     logical_operation: LogicalOperation,
     freq: str = "MS",
     bootstrap: bool = False,
-):
+) -> DataArray:
     percentiles = resample_doy(percentiles, da)
     return logical_operation.compute(da, percentiles)
 
@@ -511,22 +411,3 @@ def _reduce_with_date_event(
             )
         acc.append(DataArray(data=reduced_result, dims=["lat", "lon"], coords=coords))
     return xarray.concat(acc, "time")
-
-
-def _get_first_occurrence(arr: DataArray) -> DataArray:
-    """
-    Return the first occurrence (index) of val in the 3D array along axis=0
-
-    arr is a binary (0/1) 3D array
-
-    """
-    stacked = arr.stack(latlon=("lat", "lon"))
-    res = stacked.argmax("time")
-
-    # TODO probably useless to set all False value to -1 because instead of 0,
-    #      because in the end it simply put the last date of the month instead of the first one for theses values,
-    #      and we simplky don't care what value they hold
-    test_res = stacked.sum("time") + res
-    res[test_res == 0] = -1
-
-    return res.unstack()

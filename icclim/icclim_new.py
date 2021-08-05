@@ -17,7 +17,7 @@ from icclim import indices
 from icclim.indices import IndiceConfig
 from icclim.models.frequency import Frequency, SliceMode, build_frequency
 from icclim.models.indice_config import CfVariable
-from icclim.user_indice.operation import compute_user_indice
+from icclim.user_indice.bridge import compute_user_indice
 from icclim.user_indice.user_indice import UserIndiceConfig
 from icclim.util import logging_info
 
@@ -156,7 +156,7 @@ def indice(
         )
     else:
         if indice_name is None:
-            raise Exception()  # user input error
+            raise Exception("indice_name must be provided.")  # user input error
         if isinstance(threshold, list):
             for th in threshold:
                 # TODO: use the same name as in icc 4

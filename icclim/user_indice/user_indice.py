@@ -37,6 +37,8 @@ class LogicalOperation(Enum):
         self.compute = compute
 
 
+PERCENTILE_STAMP = "p"
+WET_DAY_THRESHOLD = 1  # 1mm
 PRECIPITATION = "p"
 TEMPERATURE = "t"
 
@@ -44,32 +46,27 @@ TEMPERATURE = "t"
 @dataclass
 class NbEventConfig:
     logical_operation: List[LogicalOperation]
+    thresholds: List[Union[float, str]]
     link_logical_operations: Optional[LinkLogicalOperation] = None
-    thresholds: Optional[List[Union[float, str]]] = None
     data_arrays: Optional[List[CfVariable]] = None
 
 
-# TODO make a DTO ? it make the following independant LogicalOperation, base_period, thresh
 class UserIndiceConfig:
-    indice_name: str  # Name of custom indice.
-    calc_operation: str  # Type of calculation. See below for more details.
-    logical_operation: Optional[LogicalOperation] = None
-    thresh: Union[
-        float,
-        str,
-        List[Union[float, str]],
-    ]  # In case of percentile-based indice, it must be a string starting or ending with “p” (e.g. ‘p90’), then it will be mutated in a DataArray of the percentile of each day
-    link_logical_operations: Optional[LinkLogicalOperation]
-    extreme_mode: Optional[ExtremeMode] = None
-    window_width: Optional[int]  # Used for computing running mean/sum.
-    coef: Optional[float]  # Constant for multiplying input data array.
-    date_event: bool = False
-    var_type: Optional[str]
-    freq: Frequency
-    da_ref: Optional[DataArray] = None
-    is_percent: bool
-    nb_event_config: Optional[NbEventConfig] = None
+    indice_name: str
+    calc_operation: str
     cf_vars: List[CfVariable]
+    freq: Frequency
+    date_event: bool
+    is_percent: bool  # TODO use a unit ?
+    logical_operation: Optional[LogicalOperation] = None
+    thresh: Optional[Union[float, int, str, List[Union[float, int, str]]]] = None
+    link_logical_operations: Optional[LinkLogicalOperation] = None
+    extreme_mode: Optional[ExtremeMode] = None
+    window_width: Optional[int] = None
+    coef: Optional[float] = None
+    var_type: Optional[str] = None
+    da_ref: Optional[DataArray] = None
+    nb_event_config: Optional[NbEventConfig] = None
 
     def __init__(
         self,
@@ -93,7 +90,8 @@ class UserIndiceConfig:
         if logical_operation is not None:
             self.logical_operation = get_logical_operation(logical_operation)
         self.thresh = thresh
-        self.extreme_mode = get_extreme_mode(extreme_mode)
+        if extreme_mode is not None:
+            self.extreme_mode = get_extreme_mode(extreme_mode)
         self.window_width = window_width
         self.coef = coef
         self.date_event = date_event
@@ -114,9 +112,7 @@ def get_logical_operation(s: str) -> LogicalOperation:
     raise Exception(f"Unknown operator {s}")
 
 
-def get_extreme_mode(s: Optional[str]) -> Optional[ExtremeMode]:
-    if s is None:
-        return None
+def get_extreme_mode(s: str) -> ExtremeMode:
     for mode in ExtremeMode:
         if s.upper == mode.value.upper():
             return mode

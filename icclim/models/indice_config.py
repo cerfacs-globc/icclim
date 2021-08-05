@@ -8,7 +8,7 @@ from icclim.models.frequency import Frequency
 
 class CfVariable:
     da: DataArray
-    in_base_da: Optional[DataArray]
+    in_base_da: Optional[DataArray] = None
 
     def __init__(self, da: DataArray, in_base_da: DataArray = None) -> None:
         self.da = da
@@ -20,4 +20,3 @@ class IndiceConfig:
     window: Optional[int]
     threshold: Optional[str]
     cfvariables: List[CfVariable]
-    ds: Dataset
