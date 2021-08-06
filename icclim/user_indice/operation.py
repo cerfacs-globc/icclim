@@ -144,6 +144,7 @@ def count_events(
         return resampled.sum(dim="time")
     acc: List[DataArray] = []
     for label, value in resampled:
+        # TODO cannot work with dask arrays because of https://github.com/pydata/xarray/issues/2511
         first = value.isel(time=get_first_occurrence(value)).time
         value_reversed_time = value[::-1, :, :]
         last = value.isel(time=get_first_occurrence(value_reversed_time)).time

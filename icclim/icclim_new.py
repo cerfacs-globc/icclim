@@ -45,15 +45,15 @@ def indice(
     ignore_Feb29th: bool = False,
     # TODO should be an enumeration
     interpolation: str = "linear",
-    # TODO probably unecessary with xclim unit handling
+    # TODO probably unecessary with xclim unit handling, but necessary for user-indices
     out_unit: str = "days",
     # TODO use an enum and re-add default value
     netcdf_version=None,
-    # TODO see if we can deprecated this and have another etry point only for the user_indices
+    # TODO see if we can deprecated this
     user_indice: dict = None,
-    # TODO ease to extract from percentile_doy
+    # TODO easy to extract from percentile_doy, see if it is necessary on user-indicies
     save_percentile: bool = False,
-):
+) -> Dataset:
     """
     :param indice_name: Climate index name.
     :type indice_name: str
@@ -123,9 +123,10 @@ def indice(
     .. warning:: If ``out_file`` already exists, icclim will overwrite it!
 
     """
-
-    logging_info.start_message()
-    ds = xarray.open_mfdataset(in_files)
+    if isinstance(in_files, str):
+        ds = xarray.open_dataset(in_files)
+    else:
+        ds = xarray.open_mfdataset(in_files)
     config = IndiceConfig()
     config.freq = build_frequency(slice_mode)
     if isinstance(var_name, str):
@@ -141,6 +142,7 @@ def indice(
         for cf_var_name in var_name
     ]
     config.window = window_width
+    config.save_percentile = save_percentile
     result_ds = Dataset()
     # TODO add attributes to dataset
     if user_indice is not None:
@@ -151,21 +153,27 @@ def indice(
             cf_vars=config.cfvariables,
             is_percent=is_percent,
         )
-        result_ds[user_indice_config.indice_name] = compute_user_indice(
-            user_indice_config
-        )
+        user_indice_da = compute_user_indice(user_indice_config)
+        if config.freq.resampler is not None:
+            user_indice_da, time_bounds = config.freq.resampler(user_indice_da)
+            result_ds[user_indice_config.indice_name] = user_indice_da
+            result_ds["time_bounds"] = time_bounds
+        else:
+            result_ds[user_indice_config.indice_name] = user_indice_da
     else:
         if indice_name is None:
             raise Exception("indice_name must be provided.")  # user input error
         if isinstance(threshold, list):
             for th in threshold:
-                # TODO: use the same name as in icc 4
+                # TODO: in v4 threshold was a dimension
+                # TODO Fix maybe let the indices construct the Dataset to have date_start, time_bounds, threshold, percentiles as variable or coords
                 result_ds[f"{indice_name}_threshold_{th}"] = compute_indice(
                     indice_name, config, th
                 )
         else:
             result_ds[indice_name] = compute_indice(indice_name, config, threshold)
     result_ds.to_netcdf(out_file)
+    return result_ds
 
 
 def compute_indice(indice_name: str, config: IndiceConfig, threshold: Optional[float]):

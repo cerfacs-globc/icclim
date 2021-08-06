@@ -23,7 +23,7 @@ class CalcOperation(Enum):
     MIN = "min"
     SUM = "sum"
     MEAN = "mean"
-    EVENT_COUNT = "nb_event"
+    EVENT_COUNT = "nb_events"
     MAX_NUMBER_OF_CONSECUTIVE_EVENTS = "max_nb_consecutive_events"
     RUN_MEAN = "run_mean"
     RUN_SUM = "run_sum"

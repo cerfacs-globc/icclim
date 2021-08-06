@@ -1,6 +1,15 @@
 # Add the user custom indicies
     - Add integretion tests
     - properly resample based on Frequency
+    - use save_percentile
+    - use out_unit
+    - tester avec dask.
+        - on peut facilement tester en utilisant open_mfdataset plutot que open_dataset
+        - nb_event ne marche pas
+
+# /!\ [Fix] Let the indices construct the Dataset to have date_start, time_bounds, threshold, percentiles as variable or coords
+
+# Use save_percentile
 
 # Add documentation
 

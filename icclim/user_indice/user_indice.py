@@ -99,7 +99,7 @@ class UserIndiceConfig:
         self.is_percent = is_percent
         self.da_ref = cf_vars[0].in_base_da
         self.cf_vars = cf_vars
-        if isinstance(thresh, list) and logical_operation is not None:
+        if thresh is not None and logical_operation is not None:
             self.nb_event_config = get_nb_event_conf(
                 logical_operation, link_logical_operations, thresh, cf_vars
             )
