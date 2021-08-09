@@ -14,7 +14,7 @@ def seasons_resampler(
     def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
         da_years = numpy.unique(da.time.dt.year)
         acc: List[DataArray] = []
-        time_bnds = []
+        time_bounds = []
         middle_date = []
         start_month = month_list[0]
         end_month = month_list[-1]
@@ -35,19 +35,19 @@ def seasons_resampler(
             middle_date.append(
                 start_season_date + (end_season_date - start_season_date) / 2
             )
-            time_bnds.append([start_season_date, end_season_date])
+            time_bounds.append([start_season_date, end_season_date])
             acc.append(season_of_year)
         seasons = xarray.concat(acc, "time")
         seasons.coords["time"] = ("time", middle_date)
         # FIXME: In case of month_list with holes, such as [1,3,4,6]; How do we show this in metatadas ?
-        seasons.time.attrs["bounds"] = "time_bnds"
-        seasons.time._copy_attrs_from(da.time)
+        seasons.time.attrs = da.time.attrs
+        seasons.time.attrs["bounds"] = "time_bounds"
         time_bnds_da = DataArray(
-            data=time_bnds,
+            data=time_bounds,
             dims=["time", "bounds"],
             coords=[("time", seasons.time.data), ("bounds", [0, 1])],
-        )  # TODO make sure it works, and there is no duplicated time coords in the final dataset
-        return (seasons, time_bnds_da)
+        )
+        return seasons, time_bnds_da
 
     return resampler
 

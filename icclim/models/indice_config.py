@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from xarray import DataArray
-from xarray.core.dataset import Dataset
 
 from icclim.models.frequency import Frequency
 
@@ -19,5 +18,6 @@ class IndiceConfig:
     freq: Frequency
     window: Optional[int]
     threshold: Optional[str]
-    cfvariables: List[CfVariable]
+    cf_variables: List[CfVariable]
     save_percentile: bool = False
+    is_percent: bool = False

@@ -22,7 +22,7 @@ class Test_indice_from_string:
 
 def test_tn10p():
     conf = IndiceConfig()
-    conf.cfvariables = [CfVariable(da=stub_tas(), in_base_da=stub_tas())]
+    conf.cf_variables = [CfVariable(da=stub_tas(), in_base_da=stub_tas())]
     conf.window = 2
     conf.save_percentile = True
     conf.freq = Frequency.MONTH

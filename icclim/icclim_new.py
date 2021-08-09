@@ -1,9 +1,6 @@
 # -*- Coding: latin-1 -*-
 #  Copyright CERFACS (http://cerfacs.fr/)
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
-#
-#  Author: Natalia Tatarinova
-#  Additions from Christian Page (2015-2017)
 
 import datetime
 from typing import Callable, List, Optional, Union
@@ -19,7 +16,6 @@ from icclim.models.frequency import Frequency, SliceMode, build_frequency
 from icclim.models.indice_config import CfVariable
 from icclim.user_indice.bridge import compute_user_indice
 from icclim.user_indice.user_indice import UserIndiceConfig
-from icclim.util import logging_info
 
 
 def indice(
@@ -28,8 +24,7 @@ def indice(
     indice_name: str = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime.datetime] = None,
-    # TODO re-add default file name
-    out_file: str = None,
+    out_file: str = "icclim_out.nc",
     threshold: Union[float, List[float]] = None,
     N_lev: int = None,
     # TODO See if it still makes sense with xarray
@@ -45,13 +40,11 @@ def indice(
     ignore_Feb29th: bool = False,
     # TODO should be an enumeration
     interpolation: str = "linear",
-    # TODO probably unecessary with xclim unit handling, but necessary for user-indices
+    # TODO probably unnecessary with xclim unit handling, but necessary for user-indices
     out_unit: str = "days",
     # TODO use an enum and re-add default value
     netcdf_version=None,
-    # TODO see if we can deprecated this
     user_indice: dict = None,
-    # TODO easy to extract from percentile_doy, see if it is necessary on user-indicies
     save_percentile: bool = False,
 ) -> Dataset:
     """
@@ -131,8 +124,8 @@ def indice(
     config.freq = build_frequency(slice_mode)
     if isinstance(var_name, str):
         var_name = [var_name]
-    config.cfvariables = [
-        build_cf_variable(
+    config.cf_variables = [
+        _build_cf_variable(
             ds[cf_var_name],
             time_range,
             ignore_Feb29th,
@@ -143,72 +136,84 @@ def indice(
     ]
     config.window = window_width
     config.save_percentile = save_percentile
-    result_ds = Dataset()
+    config.is_percent = out_unit == "%"
     # TODO add attributes to dataset
     if user_indice is not None:
-        is_percent = out_unit == "%"
-        user_indice_config: UserIndiceConfig = UserIndiceConfig(
-            **user_indice,
-            freq=config.freq,
-            cf_vars=config.cfvariables,
-            is_percent=is_percent,
-            save_percentile=save_percentile,
-        )
-        user_indice_da = compute_user_indice(user_indice_config)
-        if config.freq.resampler is not None:
-            user_indice_da, time_bounds = config.freq.resampler(user_indice_da)
-            result_ds[user_indice_config.indice_name] = user_indice_da
-            result_ds["time_bounds"] = time_bounds
-        else:
-            result_ds[user_indice_config.indice_name] = user_indice_da
+        result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
     else:
-        if indice_name is None:
-            raise Exception("indice_name must be provided.")  # user input error
-        if isinstance(threshold, list):
-            for th in threshold:
-                # TODO: in v4 threshold was a dimension
-                # TODO Fix maybe let the indices construct the Dataset to have date_start, time_bounds, threshold, percentiles as variable or coords
-                da = compute_indice(indice_name, config, th)
-                if config.freq.resampler is not None:
-                    resampled_da, time_bounds = config.freq.resampler(da)
-                    result_ds[f"{indice_name}_threshold_{th}"] = resampled_da
-                    result_ds["time_bounds"] = time_bounds
-                else:
-                    result_ds[f"{indice_name}_threshold_{th}"] = da
-        else:
-            da = compute_indice(indice_name, config, threshold)
-            if config.freq.resampler is not None:
-                resampled_da, time_bounds = config.freq.resampler(da)
-                result_ds[indice_name] = resampled_da
-                result_ds["time_bounds"] = time_bounds
-            else:
-                result_ds[indice_name] = da
+        result_ds = _build_indice_dataset(config, indice_name, threshold)
     result_ds.to_netcdf(out_file)
     return result_ds
 
 
-def compute_indice(indice_name: str, config: IndiceConfig, threshold: Optional[float]):
-    config.threshold = to_celcius(threshold)
+def _build_indice_dataset(config: IndiceConfig, indice_name: str, threshold) -> Dataset:
+    result_ds = Dataset()
+    if indice_name is None:
+        raise Exception("indice_name must be provided.")  # user input error
+    if isinstance(threshold, list):
+        for th in threshold:
+            # TODO: in v4 threshold was a dimension
+            da = _compute_indice(indice_name, config, th)
+            if config.freq.resampler is not None:
+                resampled_da, time_bounds = config.freq.resampler(da)
+                result_ds[f"{indice_name}_threshold_{th}"] = resampled_da
+                result_ds["time_bounds"] = time_bounds
+            else:
+                result_ds[f"{indice_name}_threshold_{th}"] = da
+    else:
+        da = _compute_indice(indice_name, config, threshold)
+        if config.freq.resampler is not None:
+            resampled_da, time_bounds = config.freq.resampler(da)
+            result_ds[indice_name] = resampled_da
+            result_ds["time_bounds"] = time_bounds
+        else:
+            result_ds[indice_name] = da
+    return result_ds
+
+
+def _build_user_indice_dataset(
+    config: IndiceConfig, save_percentile: bool, user_indice: dict
+) -> Dataset:
+    result_ds = Dataset()
+    user_indice_config: UserIndiceConfig = UserIndiceConfig(
+        **user_indice,
+        freq=config.freq,
+        cf_vars=config.cf_variables,
+        is_percent=config.is_percent,
+        save_percentile=save_percentile,
+    )
+    user_indice_da = compute_user_indice(user_indice_config)
+    if config.freq.resampler is not None:
+        user_indice_da, time_bounds = config.freq.resampler(user_indice_da)
+        result_ds[user_indice_config.indice_name] = user_indice_da
+        result_ds["time_bounds"] = time_bounds
+    else:
+        result_ds[user_indice_config.indice_name] = user_indice_da
+    return result_ds
+
+
+def _compute_indice(indice_name: str, config: IndiceConfig, threshold: Optional[float]):
+    config.threshold = _to_celsius(threshold)
     da = indices.indice_from_string(indice_name).compute(config)
     return da
 
 
-def build_cf_variable(
+def _build_cf_variable(
     da: DataArray,
     time_range: Optional[List[datetime.datetime]],
     ignore_Feb29th: bool,
     base_period_time_range: Optional[List[datetime.datetime]],
     only_leap_years: bool,
 ) -> CfVariable:
-    cf_var = CfVariable(build_data_array(da, time_range, ignore_Feb29th))
+    cf_var = CfVariable(_build_data_array(da, time_range, ignore_Feb29th))
     if base_period_time_range is not None:
-        cf_var.in_base_da = build_in_base_da(
+        cf_var.in_base_da = _build_in_base_da(
             da, base_period_time_range, only_leap_years
         )
     return cf_var
 
 
-def build_data_array(
+def _build_data_array(
     da: DataArray, time_range: Optional[List[datetime.datetime]], ignore_Feb29th: bool
 ) -> DataArray:
     if time_range is not None:
@@ -220,7 +225,7 @@ def build_data_array(
     return da
 
 
-def build_in_base_da(
+def _build_in_base_da(
     da: DataArray,
     base_period_time_range: List[datetime.datetime],
     only_leap_years: bool,
@@ -229,11 +234,11 @@ def build_in_base_da(
         raise Exception("Not a valid time range")
     da = da.sel(time=slice(base_period_time_range[0], base_period_time_range[1]))
     if only_leap_years:
-        da = reduce_only_leap_years(da)
+        da = _reduce_only_leap_years(da)
     return da
 
 
-def reduce_only_leap_years(da: DataArray) -> DataArray:
+def _reduce_only_leap_years(da: DataArray) -> DataArray:
     reduced_list: List[DataArray] = []
     for _, val in da.groupby(da.time.dt.year):
         if val.time.dt.dayofyear.max() == 366:
@@ -245,7 +250,7 @@ def reduce_only_leap_years(da: DataArray) -> DataArray:
     return xarray.concat(reduced_list, "time")
 
 
-def to_celcius(threshold: Optional[float]) -> Optional[str]:
+def _to_celsius(threshold: Optional[float]) -> Optional[str]:
     if threshold is not None:
         return f"{threshold} degC"
     return None
