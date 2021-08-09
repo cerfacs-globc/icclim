@@ -106,7 +106,7 @@ def build_frequency(slice_mode: SliceMode) -> Frequency:
     raise Exception(f"Unknown frequency {slice_mode}")
 
 
-def get_frequency_from_string(slice_mode: str):
+def get_frequency_from_string(slice_mode: str) -> Frequency:
     for freq in Frequency:
         if freq.name == slice_mode.upper() or slice_mode.upper() in map(
             str.upper, freq.accepted_values
@@ -115,7 +115,7 @@ def get_frequency_from_string(slice_mode: str):
     raise Exception(f"Unknown frequency {slice_mode}")
 
 
-def get_frequency_from_list(slice_mode_list: List):
+def get_frequency_from_list(slice_mode_list: List) -> Frequency:
     if len(slice_mode_list) < 2:
         raise Exception(f"Unknown frequency {slice_mode_list}")
     sampling_freq = slice_mode_list[0]

@@ -168,11 +168,21 @@ def indice(
             for th in threshold:
                 # TODO: in v4 threshold was a dimension
                 # TODO Fix maybe let the indices construct the Dataset to have date_start, time_bounds, threshold, percentiles as variable or coords
-                result_ds[f"{indice_name}_threshold_{th}"] = compute_indice(
-                    indice_name, config, th
-                )
+                da = compute_indice(indice_name, config, th)
+                if config.freq.resampler is not None:
+                    resampled_da, time_bounds = config.freq.resampler(da)
+                    result_ds[f"{indice_name}_threshold_{th}"] = resampled_da
+                    result_ds["time_bounds"] = time_bounds
+                else:
+                    result_ds[f"{indice_name}_threshold_{th}"] = da
         else:
-            result_ds[indice_name] = compute_indice(indice_name, config, threshold)
+            da = compute_indice(indice_name, config, threshold)
+            if config.freq.resampler is not None:
+                resampled_da, time_bounds = config.freq.resampler(da)
+                result_ds[indice_name] = resampled_da
+                result_ds["time_bounds"] = time_bounds
+            else:
+                result_ds[indice_name] = da
     result_ds.to_netcdf(out_file)
     return result_ds
 
@@ -180,8 +190,6 @@ def indice(
 def compute_indice(indice_name: str, config: IndiceConfig, threshold: Optional[float]):
     config.threshold = to_celcius(threshold)
     da = indices.indice_from_string(indice_name).compute(config)
-    if config.freq.resampler is not None:
-        da = config.freq.resampler(da)
     return da
 
 
