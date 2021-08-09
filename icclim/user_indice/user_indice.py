@@ -37,7 +37,7 @@ class LogicalOperation(Enum):
         self.compute = compute
 
 
-PERCENTILE_STAMP = "p"
+PERCENTILE_THRESHOLD_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm
 PRECIPITATION = "p"
 TEMPERATURE = "t"
@@ -67,6 +67,7 @@ class UserIndiceConfig:
     var_type: Optional[str] = None
     da_ref: Optional[DataArray] = None
     nb_event_config: Optional[NbEventConfig] = None
+    save_percentile: bool = False
 
     def __init__(
         self,
@@ -83,6 +84,7 @@ class UserIndiceConfig:
         date_event=None,
         var_type=None,
         is_percent=False,
+        save_percentile=False,
     ) -> None:
         self.indice_name = indice_name
         self.calc_operation = calc_operation
@@ -103,6 +105,7 @@ class UserIndiceConfig:
             self.nb_event_config = get_nb_event_conf(
                 logical_operation, link_logical_operations, thresh, cf_vars
             )
+        self.save_percentile = save_percentile
 
 
 def get_logical_operation(s: str) -> LogicalOperation:

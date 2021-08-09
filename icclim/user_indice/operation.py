@@ -1,4 +1,3 @@
-from enum import Enum
 from functools import reduce
 from typing import Any, Callable, List, Optional, Union
 
@@ -10,9 +9,10 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
+from icclim.indices import PERCENTILES_COORD
 from icclim.user_indice.stat import get_first_occurrence, get_longest_run_start_index
 from icclim.user_indice.user_indice import (
-    PERCENTILE_STAMP,
+    PERCENTILE_THRESHOLD_STAMP,
     PRECIPITATION,
     TEMPERATURE,
     WET_DAY_THRESHOLD,
@@ -31,10 +31,17 @@ def max(
     freq: str = "MS",
     date_event: bool = False,
     var_type: Optional[str] = None,
+    save_percentile=False,
 ) -> DataArray:
     result = _apply_coef(coef, da)
     result = _filter_by_threshold(
-        result, in_base_da, logical_operation, threshold, freq, var_type
+        result,
+        in_base_da,
+        logical_operation,
+        threshold,
+        freq,
+        var_type,
+        save_percentile,
     )
     resampled = result.resample(time=freq)
     if date_event:
@@ -54,10 +61,17 @@ def min(
     freq: str = "MS",
     date_event: bool = False,
     var_type: str = None,
+    save_percentile=False,
 ) -> DataArray:
     result = _apply_coef(coef, da)
     result = _filter_by_threshold(
-        result, in_base_da, logical_operation, threshold, freq, var_type
+        result,
+        in_base_da,
+        logical_operation,
+        threshold,
+        freq,
+        var_type,
+        save_percentile,
     )
     resampled = result.resample(time=freq)
     if date_event:
@@ -76,10 +90,17 @@ def sum(
     threshold: Optional[Union[str, float, int]] = None,
     var_type: str = None,
     freq: str = "MS",
+    save_percentile=False,
 ) -> DataArray:
     result = _apply_coef(coef, da)
     result = _filter_by_threshold(
-        result, in_base_da, logical_operation, threshold, freq, var_type
+        result,
+        in_base_da,
+        logical_operation,
+        threshold,
+        freq,
+        var_type,
+        save_percentile,
     )
     return result.resample(time=freq).sum(dim="time", keep_attrs=True)
 
@@ -92,10 +113,17 @@ def mean(
     threshold: Optional[Union[str, float, int]] = None,
     var_type: str = None,
     freq: str = "MS",
+    save_percentile=False,
 ) -> DataArray:
     result = _apply_coef(coef, da)
     result = _filter_by_threshold(
-        result, in_base_da, logical_operation, threshold, freq, var_type
+        result,
+        in_base_da,
+        logical_operation,
+        threshold,
+        freq,
+        var_type,
+        save_percentile,
     )
     return result.resample(time=freq).mean(dim="time", keep_attrs=True)
 
@@ -110,6 +138,7 @@ def count_events(
     var_type: str = None,
     freq: str = "MS",
     date_event: bool = False,
+    save_percentile: bool = False,
 ) -> DataArray:
     percentiles = []
     for i, threshold in enumerate(thresholds):
@@ -119,7 +148,7 @@ def count_events(
                 percentiles.append(_get_percentiles(threshold, var_type, in_base_da))
     acc = []
     for i, da in enumerate(das):
-        result: DataArray = _apply_coef(coef, da)
+        result = _apply_coef(coef, da)
         if len(percentiles) > 0:
             result = _threshold_compare_on_percentiles(
                 da=result,
@@ -128,6 +157,10 @@ def count_events(
                 freq=freq,
                 bootstrap=is_bootstrappable(var_type),
             )
+            if save_percentile:
+                result.coords[f"percentile_{thresholds[i]}"] = resample_doy(
+                    percentiles[i], result
+                )
         else:
             result = logical_operation[i].compute(result, thresholds[i])  # type:ignore
         acc.append(result)
@@ -177,16 +210,20 @@ def max_consecutive_event_count(
     freq: str = "MS",
     date_event: bool = False,
     var_type: Optional[str] = None,
+    save_percentile=False,
 ) -> DataArray:
     result = _apply_coef(coef, da)
     if in_base_da is not None and isinstance(threshold, str):
+        per = _get_percentiles(threshold, var_type, in_base_da)
         result = threshold_compare_on_percentiles(
             da=da,
-            percentiles=_get_percentiles(threshold, var_type, in_base_da),
+            percentiles=per,
             logical_operation=logical_operation,
             freq=freq,
             bootstrap=is_bootstrappable(var_type),
         )
+        if save_percentile:
+            result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     elif isinstance(threshold, float) or isinstance(threshold, int):
         result = logical_operation.compute(da, threshold)
     resampled = result.resample(time=freq)
@@ -272,17 +309,22 @@ def _filter_by_threshold(
     threshold: Optional[Union[str, float, int]],
     freq: str,
     var_type: Optional[str],
+    save_percentile: bool,
 ) -> DataArray:
     if threshold is None and logical_operation is None:
         return da
     if isinstance(threshold, str) and in_base_da is not None:
-        return _filter_by_logical_op_on_percentile(
+        per = _get_percentiles(threshold, var_type, in_base_da)
+        result = _filter_by_logical_op_on_percentile(
             da=da,
             percentiles=_get_percentiles(threshold, var_type, in_base_da),
             logical_operation=logical_operation,
             freq=freq,
             bootstrap=is_bootstrappable(var_type),
         )
+        if save_percentile:
+            result.coords[PERCENTILES_COORD] = resample_doy(per, result)
+        return result
     elif (
         isinstance(threshold, float) or isinstance(threshold, int)
     ) and logical_operation is not None:
@@ -327,12 +369,12 @@ def _threshold_compare_on_percentiles(
 def _get_percentiles(
     thresh: str, var_type: Optional[str], in_base_da: DataArray
 ) -> DataArray:
-    if thresh.find(PERCENTILE_STAMP) == -1:
+    if thresh.find(PERCENTILE_THRESHOLD_STAMP) == -1:
         raise Exception(
             # TODO create a UserInputException
             "Percentile threshold not properly formatted. Use p as a prefix or suffix of the value for example 90p or p90. For non percentile threshold use a float instead of a string"
         )
-    per = float(thresh.replace(PERCENTILE_STAMP, ""))
+    per = float(thresh.replace(PERCENTILE_THRESHOLD_STAMP, ""))
     da_per = in_base_da
     if var_type == PRECIPITATION:
         da_per = convert_units_to(in_base_da, "mm/d")

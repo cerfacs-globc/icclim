@@ -152,6 +152,7 @@ def indice(
             freq=config.freq,
             cf_vars=config.cfvariables,
             is_percent=is_percent,
+            save_percentile=save_percentile,
         )
         user_indice_da = compute_user_indice(user_indice_config)
         if config.freq.resampler is not None:
