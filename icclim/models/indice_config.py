@@ -20,3 +20,4 @@ class IndiceConfig:
     window: Optional[int]
     threshold: Optional[str]
     cfvariables: List[CfVariable]
+    save_percentile: bool = False

@@ -1,6 +1,9 @@
-from icclim.indices import Indice, indice_from_string, su, tx90p
-
 import pytest
+
+from icclim.indices import Indice, indice_from_string, su, tn10p, tx90p
+from icclim.models.frequency import Frequency
+from icclim.models.indice_config import CfVariable, IndiceConfig
+from icclim.tests.stubs import stub_tas
 
 
 class Test_indice_from_string:
@@ -15,3 +18,13 @@ class Test_indice_from_string:
     def test_error(self):
         with pytest.raises(Exception):
             indice_from_string("cacahuête")
+
+
+def test_tn10p():
+    conf = IndiceConfig()
+    conf.cfvariables = [CfVariable(da=stub_tas(), in_base_da=stub_tas())]
+    conf.window = 2
+    conf.save_percentile = True
+    conf.freq = Frequency.MONTH
+    res = tn10p(conf)
+    assert res is not None
