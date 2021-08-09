@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable
+from typing import Callable, Optional, Union
 
 from xarray import DataArray
 from xarray.core.dataset import Dataset
@@ -14,31 +14,41 @@ PERCENTILES_COORD = "percentiles"
 
 def gd4(config: IndiceConfig) -> DataArray:
     return atmos.growing_degree_days(
-        config.cf_variables[0].da, config.threshold, config.freq.panda_freq
+        config.cf_variables[0].da,
+        _add_celsius_suffix(config.threshold),
+        config.freq.panda_freq,
     )
 
 
 def cfd(config: IndiceConfig) -> DataArray:
     return atmos.consecutive_frost_days(
-        config.cf_variables[0].da, config.threshold, config.freq.panda_freq
+        config.cf_variables[0].da,
+        _add_celsius_suffix(config.threshold),
+        config.freq.panda_freq,
     )
 
 
 def fd(config: IndiceConfig) -> DataArray:
     return atmos.frost_days(
-        config.cf_variables[0].da, config.threshold, config.freq.panda_freq
+        config.cf_variables[0].da,
+        _add_celsius_suffix(config.threshold),
+        config.freq.panda_freq,
     )
 
 
 def hd17(config: IndiceConfig) -> DataArray:
     return atmos.heating_degree_days(
-        config.cf_variables[0].da, config.threshold, config.freq.panda_freq
+        config.cf_variables[0].da,
+        _add_celsius_suffix(config.threshold),
+        config.freq.panda_freq,
     )
 
 
 def id(config: IndiceConfig) -> DataArray:
     return atmos.ice_days(
-        config.cf_variables[0].da, config.threshold, config.freq.panda_freq
+        config.cf_variables[0].da,
+        _add_celsius_suffix(config.threshold),
+        config.freq.panda_freq,
     )
 
 
@@ -119,13 +129,17 @@ def cdd(config: IndiceConfig) -> DataArray:
 
 def su(config: IndiceConfig) -> DataArray:
     return atmos.tx_days_above(
-        config.cf_variables[0].da, config.threshold, config.freq.panda_freq
+        config.cf_variables[0].da,
+        _add_celsius_suffix(config.threshold),
+        config.freq.panda_freq,
     )
 
 
 def tr(config: IndiceConfig) -> DataArray:
     return atmos.tropical_nights(
-        config.cf_variables[0].da, config.threshold, config.freq.panda_freq
+        config.cf_variables[0].da,
+        _add_celsius_suffix(config.threshold),
+        config.freq.panda_freq,
     )
 
 
@@ -209,7 +223,9 @@ def tnx(config: IndiceConfig) -> DataArray:
 
 def csu(config: IndiceConfig) -> DataArray:
     return atmos.maximum_consecutive_warm_days(
-        config.cf_variables[0].da, config.threshold, config.freq.panda_freq
+        config.cf_variables[0].da,
+        _add_celsius_suffix(config.threshold),
+        config.freq.panda_freq,
     )
 
 
@@ -218,7 +234,7 @@ def prcptot(config: IndiceConfig) -> DataArray:
         pr=config.cf_variables[0].da,
         tas=None,
         phase=None,
-        thresh=config.threshold,
+        thresh=_add_celsius_suffix(config.threshold),
         freq=config.freq.panda_freq,
     )
 
@@ -270,7 +286,8 @@ def r75p(config: IndiceConfig) -> DataArray:
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
+        bootstrap=True,
+        # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -289,7 +306,8 @@ def r75ptot(config: IndiceConfig) -> DataArray:
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
+        bootstrap=True,
+        # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -575,3 +593,9 @@ def indice_from_string(s: str) -> Indice:
         if e.indice_name.upper() == indice_to_check:
             return e
     raise Exception(f"Unknown indice {s}")
+
+
+def _add_celsius_suffix(threshold: Optional[Union[str, float, int]]) -> Optional[str]:
+    if threshold is not None:
+        return f"{threshold} degC"
+    return None

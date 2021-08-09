@@ -1,4 +1,3 @@
-
 Intro
 ======
 
@@ -13,10 +12,10 @@ Currently, the 49 climate indices as defined by `European Climate Assessment & D
 	- 4 snow indices (SD, SD1, SD5cm, SD50cm)
 	- 6 temperature indices (TG, TN, TX, DTR, ETR, vDTR)
 	- 4 compound indices (CD, CW, WD, WW)
-	
+
 Detailed description of each indice is available at https://www.ecad.eu/documents/atbd.pdf.
 
-Initialy ICCLIM was designed for online computing of climate indices through the `climate4impact portal <https://climate4impact.eu>`_. 
+Initialy ICCLIM was designed for online computing of climate indices through the `climate4impact portal <https://climate4impact.eu>`_.
 In spite of existence of other packages able to compute climate indices (`CDO <https://code.mpimet.mpg.de/projects/cdo>`_, `R package <https://etccdi.pacificclimate.org/resources/software-library>`_ ),
 it was decided to develop a new software in Python.
 Python language was first of all choosen to interface with `PyWPS <https://pywps.org/>`_: Python implementation of Web Proccessing Service
@@ -48,10 +47,10 @@ Climate indices allow a statistical study of variations of the dependent climato
 .. seealso::
 
     - `Climate Variability and Predictability (CLIVAR) <https://www.clivar.org/clivar-panels/etccdi/indices-data/indices-data>`_
-    - `Expert Team on Climate Change Detection and Indices (ETCCDI) <https://etccdi.pacificclimate.org/>`_ 
+    - `Expert Team on Climate Change Detection and Indices (ETCCDI) <https://etccdi.pacificclimate.org/>`_
     - `European Climate Assessment & Dataset (ECA&D) <https://www.ecad.eu>`_
-    
-    
+
+
     - `ATBD ECA&D indices <https://www.ecad.eu/documents/atbd.pdf>`_
     - `Article about percentile-based indices <http://etccdi.pacificclimate.org/docs/Zhangetal05JumpPaper.pdf>`_
     - `Sample quantiles in statistical packages <https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_

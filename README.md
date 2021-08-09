@@ -20,3 +20,8 @@ gcc -shared -o ./icclim/libC.so ./icclim/libC.o
 python setup.py install --user
 
 or as root: python setup.py install
+
+
+Indices
+--------------------------
+For a detailed description of each ECA index, please visit: https://www.ecad.eu/documents/atbd.pdf

@@ -1,14 +1,13 @@
 import datetime
 
-import icclim.icclim_new
 import icclim.icclim
 
 
 def run():
-    files = "climpact.sampledata.gridded.1991-2010.nc"
-    out_f = "icclim.v4.custo-ind.nc"
+    files = "netcdf_files/climpact.sampledata.gridded.1991-2010.nc"
+    out_f = "netcdf_files/output/yolo.nc"
     # bp = [datetime.datetime(1991, 1, 1), datetime.datetime(2000, 12, 31)]
-    tr = [datetime.datetime(1991, 1, 1), datetime.datetime(2010, 12, 31)]
+    # tr = [datetime.datetime(1991, 1, 1), datetime.datetime(2010, 12, 31)]
     # icclim.icclim_new.indice(
     #     indice_name="SU",
     #     in_files=files,
@@ -21,14 +20,14 @@ def run():
     #     # save_percentile=True,
     # )
 
-    icclim.icclim_new.indice(
+    icclim.icclim.indice(
         in_files=files,
         var_name="tmax",
         user_indice={
             "indice_name": "my_indice",
-            "calc_operation": "min",
+            "calc_operation": "nb_events",
             "logical_operation": "gt",
-            "thresh": 0 + 273.15,  ### input data in Kelvin ==> threshold in Kelvin!
+            "thresh": 0 + 273.15,
             "date_event": True,
         },
         slice_mode="month",
@@ -39,4 +38,3 @@ def run():
 
 if __name__ == "__main__":
     run()
-
