@@ -142,7 +142,7 @@ def zzz(indice_name, **kwargs):
         res = calc_indice.CDD_calculation(**kwargs)            
        
     elif indice_name == 'CWD':
-        res =CWD_calculation(**kwargs)            
+        res = calc_indice.CWD_calculation(**kwargs)            
        
        
     elif indice_name == 'SD':
