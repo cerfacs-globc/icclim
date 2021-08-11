@@ -4,3 +4,4 @@ black
 isort
 pylint
 pre-commit>=2.9
+pytest

@@ -1,11 +1,23 @@
-import dataclasses
 from typing import List, Optional
+
 from xarray import DataArray
+
+from icclim.models.frequency import Frequency
+
+
+class CfVariable:
+    da: DataArray
+    in_base_da: Optional[DataArray] = None
+
+    def __init__(self, da: DataArray, in_base_da: DataArray = None) -> None:
+        self.da = da
+        self.in_base_da = in_base_da
 
 
 class IndiceConfig:
-    data_arrays: List[DataArray]
-    freq: str
-    data_arrays_in_base: Optional[List[DataArray]]
+    freq: Frequency
     window: Optional[int]
-    threshold: Optional[int]
+    threshold: Optional[str]
+    cf_variables: List[CfVariable]
+    save_percentile: bool = False
+    is_percent: bool = False
