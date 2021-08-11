@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy
 import pandas
@@ -79,14 +79,14 @@ class Frequency(Enum):
     MAM = ("MS", ["MAM"], seasons_resampler([*range(3, 5)]))
     JJA = ("MS", ["JJA"], seasons_resampler([*range(6, 8)]))
     SON = ("MS", ["SON"], seasons_resampler([*range(9, 11)]))
-    YEAR = ("YS", ["year", "YS"])
     CUSTOM = ("MS", [], None)
+    YEAR = ("YS", ["year", "YS"])
 
     def __init__(
         self,
         panda_time: str,
         accepted_values: List[str],
-        resampler: Callable[[DataArray], Tuple[DataArray, DataArray]] = None,
+        resampler: Optional[Callable[[DataArray], Tuple[DataArray, DataArray]]] = None,
     ):
         self.panda_freq: str = panda_time
         self.accepted_values: List[str] = accepted_values

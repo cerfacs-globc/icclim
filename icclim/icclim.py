@@ -3,17 +3,14 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
 import datetime
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Union
 
 import xarray
-import xclim.core.calendar as calendar
-from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 from icclim import indices
 from icclim.indices import IndiceConfig
-from icclim.models.frequency import Frequency, SliceMode, build_frequency
-from icclim.models.indice_config import CfVariable
+from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.user_indice_config import UserIndiceConfig
 from icclim.user_indices.bridge import compute_user_indice
 
@@ -117,7 +114,9 @@ def indice(
         ds = xarray.open_dataset(in_files)
     else:
         ds = xarray.open_mfdataset(in_files)
-    config = build_indice_config(
+    if isinstance(var_name, str):
+        var_name = [var_name]
+    config = IndiceConfig(
         base_period_time_range,
         ds,
         ignore_Feb29th,
@@ -128,6 +127,7 @@ def indice(
         time_range,
         var_name,
         window_width,
+        transfer_limit_Mbytes,
     )
     if user_indice is not None:
         result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
@@ -138,65 +138,20 @@ def indice(
     return result_ds
 
 
-def build_indice_config(
-    base_period_time_range,
-    ds,
-    ignore_Feb29th,
-    only_leap_years,
-    out_unit,
-    save_percentile,
-    slice_mode,
-    time_range,
-    var_name,
-    window_width,
-):
-    config = IndiceConfig()
-    config.freq = build_frequency(slice_mode)
-    if isinstance(var_name, str):
-        var_name = [var_name]
-    config.cf_variables = [
-        _build_cf_variable(
-            ds[cf_var_name],
-            time_range,
-            ignore_Feb29th,
-            base_period_time_range,
-            only_leap_years,
-        )
-        for cf_var_name in var_name
-    ]
-    config.window = window_width
-    config.save_percentile = save_percentile
-    config.is_percent = out_unit == "%"
-    return config
-
-
 def _build_basic_indice_dataset(
     config: IndiceConfig, indice_name: str, threshold
 ) -> Dataset:
-    result_ds = Dataset()
     if indice_name is None:
         raise Exception("indice_name must be provided.")  # user input error
     if isinstance(threshold, list):
+        ds_list = []
         for th in threshold:
-            # TODO: in v4 threshold was a dimension
             config.threshold = th
-            da = _compute_indice(indice_name, config)
-            if config.freq.resampler is not None:
-                resampled_da, time_bounds = config.freq.resampler(da)
-                result_ds[f"{indice_name}_threshold_{th}"] = resampled_da
-                result_ds["time_bounds"] = time_bounds
-            else:
-                result_ds[f"{indice_name}_threshold_{th}"] = da
+            ds_list.append(_compute_indice(indice_name, config))
+        return xarray.concat(ds_list, dim="threshold")
     else:
         config.threshold = threshold
-        da = _compute_indice(indice_name, config)
-        if config.freq.resampler is not None:
-            resampled_da, time_bounds = config.freq.resampler(da)
-            result_ds[indice_name] = resampled_da
-            result_ds["time_bounds"] = time_bounds
-        else:
-            result_ds[indice_name] = da
-    return result_ds
+        return _compute_indice(indice_name, config)
 
 
 def _build_user_indice_dataset(
@@ -220,58 +175,15 @@ def _build_user_indice_dataset(
     return result_ds
 
 
-def _compute_indice(indice_name: str, config: IndiceConfig):
+def _compute_indice(indice_name: str, config: IndiceConfig) -> Dataset:
+    result_ds = Dataset()
     da = indices.indice_from_string(indice_name).compute(config)
-    return da
-
-
-def _build_cf_variable(
-    da: DataArray,
-    time_range: Optional[List[datetime.datetime]],
-    ignore_Feb29th: bool,
-    base_period_time_range: Optional[List[datetime.datetime]],
-    only_leap_years: bool,
-) -> CfVariable:
-    cf_var = CfVariable(_build_data_array(da, time_range, ignore_Feb29th))
-    if base_period_time_range is not None:
-        cf_var.in_base_da = _build_in_base_da(
-            da, base_period_time_range, only_leap_years
-        )
-    return cf_var
-
-
-def _build_data_array(
-    da: DataArray, time_range: Optional[List[datetime.datetime]], ignore_Feb29th: bool
-) -> DataArray:
-    if time_range is not None:
-        if len(time_range) != 2:
-            raise Exception("Not a valid time range")
-        da = da.sel(time=slice(time_range[0], time_range[1]))
-    if ignore_Feb29th:
-        da = calendar.convert_calendar(da, "noleap")  # type:ignore
-    return da
-
-
-def _build_in_base_da(
-    da: DataArray,
-    base_period_time_range: List[datetime.datetime],
-    only_leap_years: bool,
-) -> DataArray:
-    if len(base_period_time_range) != 2:
-        raise Exception("Not a valid time range")
-    da = da.sel(time=slice(base_period_time_range[0], base_period_time_range[1]))
-    if only_leap_years:
-        da = _reduce_only_leap_years(da)
-    return da
-
-
-def _reduce_only_leap_years(da: DataArray) -> DataArray:
-    reduced_list: List[DataArray] = []
-    for _, val in da.groupby(da.time.dt.year):
-        if val.time.dt.dayofyear.max() == 366:
-            reduced_list.append(val)
-    if reduced_list == []:
-        raise Exception(
-            "No leap year in current dataset. Do not use only_leap_years parameter."
-        )
-    return xarray.concat(reduced_list, "time")
+    if config.threshold is not None:
+        da.expand_dims({"threshold": config.threshold})
+    if config.freq.resampler is not None:
+        resampled_da, time_bounds = config.freq.resampler(da)
+        result_ds[indice_name] = resampled_da
+        result_ds["time_bounds"] = time_bounds
+    else:
+        result_ds[indice_name] = da
+    return result_ds
