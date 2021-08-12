@@ -100,13 +100,13 @@ def build_frequency(slice_mode: SliceMode) -> Frequency:
     if isinstance(slice_mode, Frequency):
         return slice_mode
     if isinstance(slice_mode, str):
-        return get_frequency_from_string(slice_mode)
+        return _get_frequency_from_string(slice_mode)
     if isinstance(slice_mode, list):
-        return get_frequency_from_list(slice_mode)
+        return _get_frequency_from_list(slice_mode)
     raise Exception(f"Unknown frequency {slice_mode}")
 
 
-def get_frequency_from_string(slice_mode: str) -> Frequency:
+def _get_frequency_from_string(slice_mode: str) -> Frequency:
     for freq in Frequency:
         if freq.name == slice_mode.upper() or slice_mode.upper() in map(
             str.upper, freq.accepted_values
@@ -115,7 +115,7 @@ def get_frequency_from_string(slice_mode: str) -> Frequency:
     raise Exception(f"Unknown frequency {slice_mode}")
 
 
-def get_frequency_from_list(slice_mode_list: List) -> Frequency:
+def _get_frequency_from_list(slice_mode_list: List) -> Frequency:
     if len(slice_mode_list) < 2:
         raise Exception(f"Unknown frequency {slice_mode_list}")
     sampling_freq = slice_mode_list[0]
@@ -125,7 +125,7 @@ def get_frequency_from_list(slice_mode_list: List) -> Frequency:
         custom_freq.resampler = month_filter(months)
     elif sampling_freq == "season":
         if months is Tuple:
-            # TODO add deprecation for the Tuple, because we support [11,12,1] and it will avoid the need of concat here
+            # TODO we could add deprecation for the Tuple, because we now support [11,12,1] and it will avoid the need of concat here
             custom_freq.resampler = seasons_resampler(months[1] + months[0])
         else:
             custom_freq.resampler = seasons_resampler(months)

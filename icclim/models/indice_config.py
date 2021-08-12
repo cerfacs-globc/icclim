@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 import xarray
@@ -7,6 +7,7 @@ from xarray import DataArray
 from xclim.core import calendar
 
 from icclim.models.frequency import Frequency, build_frequency
+from icclim.models.netcdf_version import NetcdfVersion, get_netcdf_version
 
 
 class CfVariable:
@@ -20,11 +21,12 @@ class CfVariable:
 
 class IndiceConfig:
     freq: Frequency
-    window: Optional[int]
-    threshold: Optional[str]
     cf_variables: List[CfVariable]
     save_percentile: bool = False
     is_percent: bool = False
+    netcdf_version: NetcdfVersion
+    window: Optional[int]
+    threshold: Optional[str]
     transfer_limit_Mbytes: Optional[int] = None
     out_unit: Optional[str] = None
 
@@ -39,6 +41,7 @@ class IndiceConfig:
         time_range,
         var_name,
         window_width,
+        netcdf_version: Union[str, NetcdfVersion],
         transfer_limit_Mbytes: Optional[int] = None,
         out_unit: Optional[str] = None,
     ):
@@ -58,6 +61,10 @@ class IndiceConfig:
         self.save_percentile = save_percentile
         self.is_percent = out_unit == "%"
         self.transfer_limit_Mbytes = transfer_limit_Mbytes
+        if isinstance(netcdf_version, str):
+            self.netcdf_version = get_netcdf_version(netcdf_version)
+        else:
+            self.netcdf_version = netcdf_version
 
 
 def _build_cf_variable(
