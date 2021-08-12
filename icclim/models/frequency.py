@@ -22,11 +22,11 @@ def seasons_resampler(
         # TODO, maybe raise a warning if the month_list is not made of consecutive month (case of user error)
         for year in da_years:
             if start_month > end_month:
-                start_season_date = pandas.to_datetime(f"{year-1}-{start_month}")
+                start_season_date = pandas.to_datetime(f"{year - 1}-{start_month}")
             else:
                 start_season_date = pandas.to_datetime(f"{year}-{start_month}")
             end_season_date = (
-                pandas.to_datetime(f"{year}-{end_month+1}")
+                pandas.to_datetime(f"{year}-{end_month + 1}")
                 - pandas.tseries.offsets.Day()
             )  # type:ignore
             season_of_year = filtered_da.sel(
