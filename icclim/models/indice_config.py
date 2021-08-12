@@ -26,6 +26,7 @@ class IndiceConfig:
     save_percentile: bool = False
     is_percent: bool = False
     transfer_limit_Mbytes: Optional[int] = None
+    out_unit: Optional[str] = None
 
     def __init__(
         self,
@@ -33,13 +34,13 @@ class IndiceConfig:
         ds,
         ignore_Feb29th,
         only_leap_years,
-        out_unit,
         save_percentile,
         slice_mode,
         time_range,
         var_name,
         window_width,
-        transfer_limit_Mbytes: Optional[int],
+        transfer_limit_Mbytes: Optional[int] = None,
+        out_unit: Optional[str] = None,
     ):
         self.freq = build_frequency(slice_mode)
         self.cf_variables = [

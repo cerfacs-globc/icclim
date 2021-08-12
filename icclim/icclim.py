@@ -3,9 +3,11 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
 import datetime
-from typing import Callable, List, Union
+from typing import Callable, List, Optional, Union
+from warnings import warn
 
 import xarray
+from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 from icclim import indices
@@ -23,7 +25,6 @@ def indice(
     time_range: List[datetime.datetime] = None,
     out_file: str = "icclim_out.nc",
     threshold: Union[float, List[float]] = None,
-    # TODO see how to go from this to Dask chunks
     transfer_limit_Mbytes: float = None,
     callback: Callable = None,
     callback_percentage_start_value: int = 0,
@@ -34,7 +35,6 @@ def indice(
     ignore_Feb29th: bool = False,
     # TODO should be an enumeration
     interpolation: str = "linear",
-    # TODO probably unnecessary with xclim unit handling, but necessary for user-indices
     out_unit: str = "days",
     # TODO use an enum and re-add default value
     netcdf_version=None,
@@ -117,17 +117,17 @@ def indice(
     if isinstance(var_name, str):
         var_name = [var_name]
     config = IndiceConfig(
-        base_period_time_range,
-        ds,
-        ignore_Feb29th,
-        only_leap_years,
-        out_unit,
-        save_percentile,
-        slice_mode,
-        time_range,
-        var_name,
-        window_width,
-        transfer_limit_Mbytes,
+        base_period_time_range=base_period_time_range,
+        ds=ds,
+        ignore_Feb29th=ignore_Feb29th,
+        only_leap_years=only_leap_years,
+        save_percentile=save_percentile,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        var_name=var_name,
+        window_width=window_width,
+        transfer_limit_Mbytes=transfer_limit_Mbytes,
+        out_unit=out_unit,
     )
     if user_indice is not None:
         result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
@@ -166,6 +166,7 @@ def _build_user_indice_dataset(
         save_percentile=save_percentile,
     )
     user_indice_da = compute_user_indice(user_indice_config)
+    user_indice_da.attrs["units"] = _get_unit(config.out_unit, user_indice_da)
     if config.freq.resampler is not None:
         user_indice_da, time_bounds = config.freq.resampler(user_indice_da)
         result_ds[user_indice_config.indice_name] = user_indice_da
@@ -175,9 +176,32 @@ def _build_user_indice_dataset(
     return result_ds
 
 
+def _get_unit(
+    user_output_unit: Optional[str], user_indice_da: DataArray
+) -> Optional[str]:
+    computed_unit = user_indice_da.attrs.get("units", None)
+    if computed_unit is None:
+        if user_output_unit is None:
+            warn(
+                "No unit either computed or provided for the indice. You can use out_unit parameter to fix this."
+            )
+            return None
+        else:
+            return user_output_unit
+    else:
+        if user_output_unit is not None:
+            warn(
+                f"Overriding the computed unit {user_indice_da.attrs['units']} with the user give unit {user_output_unit}"
+            )
+            return user_output_unit
+        else:
+            return computed_unit
+
+
 def _compute_indice(indice_name: str, config: IndiceConfig) -> Dataset:
     result_ds = Dataset()
     da = indices.indice_from_string(indice_name).compute(config)
+    da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:
         da.expand_dims({"threshold": config.threshold})
     if config.freq.resampler is not None:
