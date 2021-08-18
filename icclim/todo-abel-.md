@@ -26,6 +26,5 @@
 
 # Add metadata
  - variable meta: auto generate the metadata from yml/excel from github or locally
- - global meta: reprendre ce qui est fait sur la v4
 
 # Add error codes

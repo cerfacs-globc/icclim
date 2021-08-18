@@ -27,7 +27,7 @@ class IndiceConfig:
     is_percent: bool = False
     netcdf_version: NetcdfVersion
     window: Optional[int]
-    threshold: Optional[str]
+    threshold: Optional[float]
     transfer_limit_Mbytes: Optional[int] = None
     out_unit: Optional[str] = None
 

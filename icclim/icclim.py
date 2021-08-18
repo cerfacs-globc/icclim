@@ -2,22 +2,22 @@
 #  Copyright CERFACS (http://cerfacs.fr/)
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
-import datetime
 import logging
-from typing import Callable, List, Optional, Union
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Union
 from warnings import warn
 
 import xarray
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim import indices
-from icclim.indices import IndiceConfig
+from icclim import eca_indices
+from icclim.eca_indices import Indice, IndiceConfig
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_indice_config import UserIndiceConfig
-from icclim.user_indices.bridge import compute_user_indice
+from icclim.user_indices.api_bridge import compute_user_indice
 
 
 def indice(
@@ -25,22 +25,22 @@ def indice(
     var_name: Union[str, List[str]],
     indice_name: str = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: List[datetime.datetime] = None,
+    time_range: List[datetime] = None,
     out_file: str = "icclim_out.nc",
     threshold: Union[float, List[float]] = None,
     transfer_limit_Mbytes: float = None,
     callback: Callable[[int], None] = lambda p: logging.info(f"Processing: {p}%"),
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: List[datetime.datetime] = None,
+    base_period_time_range: List[datetime] = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: Optional[Union[str, QuantileInterpolation]] = None,
     out_unit: str = "days",
     # TODO maybe upgrade default value to netcdf4 ? it is the default of xarray
-    netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF3_CLASSIC,
-    user_indice: dict = None,
+    netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
+    user_indice: Dict[str, Any] = None,
     save_percentile: bool = False,
 ) -> Dataset:
     """
@@ -114,27 +114,33 @@ def indice(
     if user_indice is not None:
         result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
     else:
-        result_ds = _build_basic_indice_dataset(config, indice_name, threshold)
-    # TODO add global attributes to dataset
+        result_ds = _build_basic_indice_dataset(
+            config, indice_name, threshold, ds.attrs["history"]
+        )
     result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
     callback(callback_percentage_total)
     return result_ds
 
 
 def _build_basic_indice_dataset(
-    config: IndiceConfig, indice_name: str, threshold
+    config: IndiceConfig,
+    indice_name: str,
+    threshold: Union[float, List[float]],
+    current_history: str,
 ) -> Dataset:
     if indice_name is None:
-        raise Exception("indice_name must be provided.")  # user input error
+        # user input error, avoid doing all computations for nothing
+        raise Exception("indice_name must be provided.")
     if isinstance(threshold, list):
         ds_list = []
         for th in threshold:
             config.threshold = th
-            ds_list.append(_compute_basic_indice(indice_name, config))
-        return xarray.concat(ds_list, dim="threshold")
+            ds_list.append(_compute_basic_indice(indice_name, config, current_history))
+        result_ds = xarray.concat(ds_list, dim="threshold")
     else:
         config.threshold = threshold
-        return _compute_basic_indice(indice_name, config)
+        result_ds = _compute_basic_indice(indice_name, config, current_history)
+    return result_ds
 
 
 def _build_user_indice_dataset(
@@ -179,9 +185,12 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
             return output_unit
 
 
-def _compute_basic_indice(indice_name: str, config: IndiceConfig) -> Dataset:
+def _compute_basic_indice(
+    indice_name: str, config: IndiceConfig, current_history: str
+) -> Dataset:
     result_ds = Dataset()
-    da = indices.indice_from_string(indice_name).compute(config)
+    indice_to_compute = eca_indices.indice_from_string(indice_name)
+    da = indice_to_compute.compute(config)
     da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:
         da.expand_dims({"threshold": config.threshold})
@@ -191,4 +200,54 @@ def _compute_basic_indice(indice_name: str, config: IndiceConfig) -> Dataset:
         result_ds["time_bounds"] = time_bounds
     else:
         result_ds[indice_name] = da
+        result_ds = _add_basic_indice_metadata(
+            result_ds,
+            config,
+            indice_to_compute,
+            current_history,
+        )
     return result_ds
+
+
+def _add_basic_indice_metadata(
+    result_ds: Dataset,
+    config: IndiceConfig,
+    indice_computed: Indice,
+    former_history: str,
+) -> Dataset:
+    # TODO: complete with clix-meta metadata
+    if config.threshold is not None:
+        title = f"Index {indice_computed.indice_name} with user defined threshold"
+    else:
+        title = f"ECA {indice_computed.group} indice {indice_computed.indice_name}"
+    result_ds.attrs["title"] = title
+    result_ds.attrs[
+        "references"
+    ] = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)"
+    result_ds.attrs["institution"] = "Climate impact portal (https://climate4impact.eu)"
+
+    result_ds.attrs["history"] = _get_history(
+        config, former_history, indice_computed, result_ds
+    )
+    # TODO make sure it should stay empty as in v4
+    result_ds.attrs["source"] = ""
+    # TODO make sure 1.6 is ok or use a newer version of cf
+    result_ds.attrs["Conventions"] = "CF-1.6"
+
+    result_ds.lat.encoding["_FillValue"] = None
+    result_ds.lon.encoding["_FillValue"] = None
+
+    return result_ds
+
+
+def _get_history(config, former_history, indice_computed, result_ds):
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    start_time = result_ds.time[0].dt.strftime("%m-%d-%Y").data[()]
+    end_time = result_ds.time[-1].dt.strftime("%m-%d-%Y").data[()]
+    return (
+        f"{former_history}\n "
+        f"{current_time} "
+        f"Calculation of {indice_computed.indice_name} "
+        f"indice({config.freq.description}) "
+        f"from {start_time} to {end_time}."
+    )

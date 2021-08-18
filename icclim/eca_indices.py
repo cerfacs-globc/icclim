@@ -577,59 +577,72 @@ def ww(config: IndiceConfig) -> DataArray:
 
 
 class Indice(Enum):
-    GD4 = ("gd4", gd4)
-    TX90P = ("tx90p", tx90p)
-    CFD = ("cfd", cfd)
-    FD = ("fd", fd)
-    HD17 = ("hd17", hd17)
-    ID = ("id", id)
-    CSDI = ("csdi", csdi)
-    TG10P = ("tg10p", tg10p)
-    TN10P = ("tn10p", tn10p)
-    TX10P = ("tx10p", tx10p)
-    TXN = ("txn", txn)
-    TNN = ("tnn", tnn)
-    CDD = ("cdd", cdd)
-    SU = ("su", su)
-    TR = ("tr", tr)
-    WSDI = ("wsdi", wsdi)
-    TG90P = ("tg90p", tg90p)
-    TN90P = ("tn90p", tn90p)
-    TXX = ("txx", txx)
-    TNX = ("tnx", tnx)
-    CSU = ("csu", csu)
-    PRCPTOT = ("prcptot", prcptot)
-    RR1 = ("rr1", rr1)
-    SDII = ("sdii", sdii)
-    CWD = ("cwd", cwd)
-    R10MM = ("r10mm", r10mm)
-    R20MM = ("r20mm", r20mm)
-    RX1DAY = ("rx1day", rx1day)
-    RX5DAY = ("rx5day", rx5day)
-    R75P = ("r75p", r75p)
-    R75PTOT = ("r75ptot", r75ptot)
-    R95P = ("r95p", r95p)
-    R95PTOT = ("r95ptot", r95ptot)
-    R99P = ("r99p", r99p)
-    R99PTOT = ("r99ptot", r99ptot)
-    SD = ("sd", sd)
-    SD1 = ("sd1", sd1)
-    SD5CM = ("sd5cm", sd5cm)
-    SD50CM = ("sd50cm", sd50cm)
-    TG = ("tg", tg)
-    TN = ("tn", tn)
-    TX = ("tx", tx)
-    DTR = ("dtr", dtr)
-    ETR = ("etr", etr)
-    VDTR = ("vdtr", vdtr)
-    CD = ("cd", cd)
-    CW = ("cw", cw)
-    WD = ("wd", wd)
-    WW = ("ww", ww)
+    # temperature
+    TG = ("tg", tg, "temperature")
+    TN = ("tn", tn, "temperature")
+    TX = ("tx", tx, "temperature")
+    DTR = ("dtr", dtr, "temperature")
+    ETR = ("etr", etr, "temperature")
+    VDTR = ("vdtr", vdtr, "temperature")
+    # heat
+    SU = ("su", su, "heat")
+    TR = ("tr", tr, "heat")
+    WSDI = ("wsdi", wsdi, "heat")
+    TG90P = ("tg90p", tg90p, "heat")
+    TN90P = ("tn90p", tn90p, "heat")
+    TX90P = ("tx90p", tx90p, "heat")
+    TXX = ("txx", txx, "heat")
+    TNX = ("tnx", tnx, "heat")
+    CSU = ("csu", csu, "heat")
+    # cold
+    GD4 = ("gd4", gd4, "cold")
+    FD = ("fd", fd, "cold")
+    CFD = ("cfd", cfd, "cold")
+    HD17 = ("hd17", hd17, "cold")
+    ID = ("id", id, "cold")
+    TG10P = ("tg10p", tg10p, "cold")
+    TN10P = ("tn10p", tn10p, "cold")
+    TX10P = ("tx10p", tx10p, "cold")
+    TXN = ("txn", txn, "cold")
+    TNN = ("tnn", tnn, "cold")
+    CSDI = ("csdi", csdi, "cold")
+    # drought
+    CDD = ("cdd", cdd, "drought")
+    # rain
+    PRCPTOT = ("prcptot", prcptot, "rain")
+    RR1 = ("rr1", rr1, "rain")
+    SDII = ("sdii", sdii, "rain")
+    CWD = ("cwd", cwd, "rain")
+    R10MM = ("r10mm", r10mm, "rain")
+    R20MM = ("r20mm", r20mm, "rain")
+    RX1DAY = ("rx1day", rx1day, "rain")
+    RX5DAY = ("rx5day", rx5day, "rain")
+    R75P = ("r75p", r75p, "rain")
+    R75PTOT = ("r75ptot", r75ptot, "rain")
+    R95P = ("r95p", r95p, "rain")
+    R95PTOT = ("r95ptot", r95ptot, "rain")
+    R99P = ("r99p", r99p, "rain")
+    R99PTOT = ("r99ptot", r99ptot, "rain")
+    # snow
+    SD = ("sd", sd, "snow")
+    SD1 = ("sd1", sd1, "snow")
+    SD5CM = ("sd5cm", sd5cm, "snow")
+    SD50CM = ("sd50cm", sd50cm, "snow")
+    # compound
+    CD = ("cd", cd, "compound")
+    CW = ("cw", cw, "compound")
+    WD = ("wd", wd, "compound")
+    WW = ("ww", ww, "compound")
 
-    def __init__(self, indice_name, compute):
-        self.indice_name: str = indice_name
-        self.compute: Callable[[IndiceConfig], DataArray] = compute
+    def __init__(
+        self,
+        indice_name: str,
+        compute: Callable[[IndiceConfig], DataArray],
+        group: str,
+    ):
+        self.indice_name = indice_name
+        self.compute = compute
+        self.group = group
 
 
 def indice_from_string(s: str) -> Indice:

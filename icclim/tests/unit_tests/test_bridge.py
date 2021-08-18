@@ -6,7 +6,7 @@ from icclim.models.user_indice_config import (
     LogicalOperation,
 )
 from icclim.tests.unit_tests.stubs import stub_pr, stub_tas, stub_user_indice
-from icclim.user_indices.bridge import compute_user_indice
+from icclim.user_indices.api_bridge import compute_user_indice
 
 
 class Test_compute:
