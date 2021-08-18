@@ -155,7 +155,7 @@ def count_events(
                 percentiles=percentiles[i],
                 logical_operation=logical_operation[i],
                 freq=freq,
-                bootstrap=is_bootstrappable(var_type),
+                bootstrap=_is_bootstrappable(var_type),
             )
             if save_percentile:
                 result.coords[f"percentile_{thresholds[i]}"] = resample_doy(
@@ -178,10 +178,6 @@ def count_events(
     return _get_count_events_date_event(resampled)
 
 
-def is_bootstrappable(var_type):
-    return var_type == TEMPERATURE
-
-
 def max_consecutive_event_count(
     da: DataArray,
     logical_operation: LogicalOperation,
@@ -201,7 +197,7 @@ def max_consecutive_event_count(
             percentiles=per,
             logical_operation=logical_operation,
             freq=freq,
-            bootstrap=is_bootstrappable(var_type),
+            bootstrap=_is_bootstrappable(var_type),
         )
         if save_percentile:
             result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -305,7 +301,7 @@ def _filter_by_threshold(
             percentiles=_get_percentiles(threshold, var_type, in_base_da),
             logical_operation=logical_operation,
             freq=freq,
-            bootstrap=is_bootstrappable(var_type),
+            bootstrap=_is_bootstrappable(var_type),
         )
         if save_percentile:
             result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -454,3 +450,7 @@ def _get_count_events_date_event(resampled):
             )
         )
     return xarray.concat(acc, "time")
+
+
+def _is_bootstrappable(var_type):
+    return var_type == TEMPERATURE

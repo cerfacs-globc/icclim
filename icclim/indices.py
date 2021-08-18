@@ -8,6 +8,7 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
 from icclim.models.indice_config import IndiceConfig
+from icclim.models.quantile_interpolation import QuantileInterpolation
 
 PERCENTILES_COORD = "percentiles"
 
@@ -53,6 +54,8 @@ def id(config: IndiceConfig) -> DataArray:
 
 
 def csdi(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -69,6 +72,8 @@ def csdi(config: IndiceConfig) -> DataArray:
 
 
 def tg10p(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -84,6 +89,8 @@ def tg10p(config: IndiceConfig) -> DataArray:
 
 
 def tn10p(config: IndiceConfig) -> Dataset:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -99,6 +106,8 @@ def tn10p(config: IndiceConfig) -> Dataset:
 
 
 def tx10p(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -144,6 +153,8 @@ def tr(config: IndiceConfig) -> DataArray:
 
 
 def wsdi(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
@@ -160,6 +171,8 @@ def wsdi(config: IndiceConfig) -> DataArray:
 
 
 def tg90p(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
@@ -178,6 +191,8 @@ def tg90p(config: IndiceConfig) -> DataArray:
 
 
 def tn90p(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
@@ -196,6 +211,8 @@ def tn90p(config: IndiceConfig) -> DataArray:
 
 
 def tx90p(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
@@ -278,6 +295,8 @@ def rx5day(config: IndiceConfig) -> DataArray:
 
 
 def r75p(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 75).sel(
         percentiles=75
     )
@@ -298,6 +317,8 @@ def r75p(config: IndiceConfig) -> DataArray:
 
 
 def r75ptot(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 75).sel(
         percentiles=75
     )
@@ -318,6 +339,8 @@ def r75ptot(config: IndiceConfig) -> DataArray:
 
 
 def r95p(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 95).sel(
         percentiles=95
     )
@@ -337,6 +360,8 @@ def r95p(config: IndiceConfig) -> DataArray:
 
 
 def r95ptot(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 95).sel(
         percentiles=95
     )
@@ -356,6 +381,8 @@ def r95ptot(config: IndiceConfig) -> DataArray:
 
 
 def r99p(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 99).sel(
         percentiles=99
     )
@@ -375,6 +402,8 @@ def r99p(config: IndiceConfig) -> DataArray:
 
 
 def r99ptot(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 99).sel(
         percentiles=99
     )
@@ -452,11 +481,15 @@ def vdtr(config: IndiceConfig) -> DataArray:
 
 
 def cd(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     tas_per = percentile_doy(
         config.cf_variables[0].in_base_da, window=config.window, per=25
     ).sel(percentiles=25)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -472,11 +505,15 @@ def cd(config: IndiceConfig) -> DataArray:
 
 
 def cw(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     tas_per = percentile_doy(
         config.cf_variables[0].in_base_da, window=config.window, per=25
     ).sel(percentiles=25)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -492,11 +529,15 @@ def cw(config: IndiceConfig) -> DataArray:
 
 
 def wd(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     tas_per = percentile_doy(
         config.cf_variables[0].in_base_da, window=config.window, per=75
     ).sel(percentiles=75)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -512,11 +553,15 @@ def wd(config: IndiceConfig) -> DataArray:
 
 
 def ww(config: IndiceConfig) -> DataArray:
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     tas_per = percentile_doy(
         config.cf_variables[0].in_base_da, window=config.window, per=75
     ).sel(percentiles=75)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
+    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
+        raise NotImplementedError("hyndman and fan method is not yet implemented")
     pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,

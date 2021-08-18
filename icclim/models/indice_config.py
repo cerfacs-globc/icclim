@@ -8,6 +8,7 @@ from xclim.core import calendar
 
 from icclim.models.frequency import Frequency, build_frequency
 from icclim.models.netcdf_version import NetcdfVersion, get_netcdf_version
+from icclim.models.quantile_interpolation import QuantileInterpolation
 
 
 class CfVariable:
@@ -44,6 +45,7 @@ class IndiceConfig:
         netcdf_version: Union[str, NetcdfVersion],
         transfer_limit_Mbytes: Optional[int] = None,
         out_unit: Optional[str] = None,
+        interpolation: Optional[QuantileInterpolation] = None,
     ):
         self.freq = build_frequency(slice_mode)
         self.cf_variables = [
@@ -65,6 +67,7 @@ class IndiceConfig:
             self.netcdf_version = get_netcdf_version(netcdf_version)
         else:
             self.netcdf_version = netcdf_version
+        self.interpolation = interpolation
 
 
 def _build_cf_variable(

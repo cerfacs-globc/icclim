@@ -3,6 +3,7 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
 import datetime
+import logging
 from typing import Callable, List, Optional, Union
 from warnings import warn
 
@@ -14,6 +15,7 @@ from icclim import indices
 from icclim.indices import IndiceConfig
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
+from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_indice_config import UserIndiceConfig
 from icclim.user_indices.bridge import compute_user_indice
 
@@ -27,15 +29,14 @@ def indice(
     out_file: str = "icclim_out.nc",
     threshold: Union[float, List[float]] = None,
     transfer_limit_Mbytes: float = None,
-    callback: Callable = None,
+    callback: Callable[[int], None] = lambda p: logging.info(f"Processing: {p}%"),
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
     base_period_time_range: List[datetime.datetime] = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    # TODO should be an enumeration
-    interpolation: str = "linear",
+    interpolation: Optional[Union[str, QuantileInterpolation]] = None,
     out_unit: str = "days",
     # TODO maybe upgrade default value to netcdf4 ? it is the default of xarray
     netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF3_CLASSIC,
@@ -57,10 +58,6 @@ def indice(
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
     :param threshold:
         User defined threshold for certain indices.
-    :param N_lev:
-        Level number if 4D variable.
-    :param lev_dim_pos:
-        Position of Level dimension, either 0 or 1. 0 is leftmost dimension, 1 is second to the leftmost. Default 1.
     :param transfer_limit_Mbytes:
         Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
     :param callback:
@@ -85,11 +82,14 @@ def indice(
         A dictionary with parameters for user defined index
     :param netcdf_version:
         NetCDF version to create (default: "NETCDF3_CLASSIC").
+    :param save_percentile:
+        True if the percentiles should be saved within the resulting netcdf file
     :rtype: path to NetCDF file
 
     .. warning:: If ``out_file`` already exists, icclim will overwrite it!
 
     """
+    callback(callback_percentage_start_value)
     if isinstance(in_files, str):
         ds = xarray.open_dataset(in_files)
     else:
@@ -109,6 +109,7 @@ def indice(
         transfer_limit_Mbytes=transfer_limit_Mbytes,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
+        interpolation=interpolation,
     )
     if user_indice is not None:
         result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
@@ -116,6 +117,7 @@ def indice(
         result_ds = _build_basic_indice_dataset(config, indice_name, threshold)
     # TODO add global attributes to dataset
     result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
+    callback(callback_percentage_total)
     return result_ds
 
 
@@ -128,11 +130,11 @@ def _build_basic_indice_dataset(
         ds_list = []
         for th in threshold:
             config.threshold = th
-            ds_list.append(_compute_indice(indice_name, config))
+            ds_list.append(_compute_basic_indice(indice_name, config))
         return xarray.concat(ds_list, dim="threshold")
     else:
         config.threshold = threshold
-        return _compute_indice(indice_name, config)
+        return _compute_basic_indice(indice_name, config)
 
 
 def _build_user_indice_dataset(
@@ -157,29 +159,27 @@ def _build_user_indice_dataset(
     return result_ds
 
 
-def _get_unit(
-    user_output_unit: Optional[str], user_indice_da: DataArray
-) -> Optional[str]:
-    computed_unit = user_indice_da.attrs.get("units", None)
-    if computed_unit is None:
-        if user_output_unit is None:
+def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
+    da_unit = da.attrs.get("units", None)
+    if da_unit is None:
+        if output_unit is None:
             warn(
-                "No unit either computed or provided for the indice. You can use out_unit parameter to fix this."
+                "No unit computed or provided for the indice was found. Use out_unit parameter to add one."
             )
             return None
         else:
-            return user_output_unit
+            return output_unit
     else:
-        if user_output_unit is not None:
-            warn(
-                f"Overriding the computed unit {user_indice_da.attrs['units']} with the user give unit {user_output_unit}"
-            )
-            return user_output_unit
+        if output_unit is None:
+            return da_unit
         else:
-            return computed_unit
+            warn(
+                f"Overriding the computed unit {da_unit} with the user give unit {output_unit}"
+            )
+            return output_unit
 
 
-def _compute_indice(indice_name: str, config: IndiceConfig) -> Dataset:
+def _compute_basic_indice(indice_name: str, config: IndiceConfig) -> Dataset:
     result_ds = Dataset()
     da = indices.indice_from_string(indice_name).compute(config)
     da.attrs["units"] = _get_unit(config.out_unit, da)

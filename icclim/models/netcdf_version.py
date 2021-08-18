@@ -10,6 +10,6 @@ class NetcdfVersion(Enum):
 
 def get_netcdf_version(s: str):
     for version in NetcdfVersion:
-        if version.name == s.upper():
+        if version.name.upper() == s.upper():
             return version
     raise Exception(f"Unknown netcdf version {s}")
