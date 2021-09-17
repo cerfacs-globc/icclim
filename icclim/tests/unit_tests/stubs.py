@@ -27,9 +27,7 @@ def stub_tas(value: float = 1):
         data=(np.full(VALUE_COUNT, value).reshape((VALUE_COUNT, 1, 1))),
         dims=["time", "lat", "lon"],
         coords=COORDS,
-        attrs={
-            "units": "K",
-        },
+        attrs={"units": "K"},
     )
 
 
@@ -39,7 +37,5 @@ def stub_pr(value: float):
         coords=COORDS,
         dims=["time", "lat", "lon"],
         name="pr",
-        attrs={
-            "units": "kg m-2 d-1",
-        },
+        attrs={"units": "kg m-2 d-1"},
     )

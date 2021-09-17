@@ -1,6 +1,6 @@
 import pytest
 
-from icclim.indices import Indice, indice_from_string, tn10p
+from icclim.eca_indices import Indice, indice_from_string, tn10p
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import CfVariable, IndiceConfig
 from icclim.tests.unit_tests.stubs import stub_tas

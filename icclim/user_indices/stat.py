@@ -33,19 +33,19 @@ def get_index_of_longest_run(arr: Sequence[bool], window: int = 1) -> int:
     return pos[index_of_max]  # type:ignore
 
 
-def get_first_occurrence(arr: DataArray) -> DataArray:
+def get_first_occurrence(da: DataArray) -> DataArray:
     """
     Return the first occurrence (index) of val in the 3D array along axis=0
 
     arr is a binary (0/1) 3D array
 
     """
-    stacked = arr.stack(latlon=("lat", "lon"))
+    stacked = da.stack(latlon=("lat", "lon"))
     res = stacked.argmax("time")
 
-    # TODO probably useless to set all False value to -1 because instead of 0,
-    #      because in the end it simply put the last date of the month instead of the first one for theses values,
-    #      and we simplky don't care what value they hold
+    # TODO probably useless to set all False value to -1 instead of 0,
+    #      because with -1 it puts the last date of the month instead of the first one for theses values,
+    #      and we simply don't care what value they hold
     test_res = stacked.sum("time") + res
     res[test_res == 0] = -1
 

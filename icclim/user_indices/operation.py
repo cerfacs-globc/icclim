@@ -9,7 +9,7 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
-from icclim.indices import PERCENTILES_COORD
+from icclim.eca_indices import PERCENTILES_COORD
 from icclim.models.user_indice_config import (
     PERCENTILE_THRESHOLD_STAMP,
     PRECIPITATION,
@@ -155,7 +155,7 @@ def count_events(
                 percentiles=percentiles[i],
                 logical_operation=logical_operation[i],
                 freq=freq,
-                bootstrap=is_bootstrappable(var_type),
+                bootstrap=_is_bootstrappable(var_type),
             )
             if save_percentile:
                 result.coords[f"percentile_{thresholds[i]}"] = resample_doy(
@@ -175,30 +175,7 @@ def count_events(
     resampled = result.resample(time=freq)
     if not date_event:
         return resampled.sum(dim="time")
-    acc: List[DataArray] = []
-    for label, value in resampled:
-        # TODO cannot work with dask arrays because of https://github.com/pydata/xarray/issues/2511
-        first = value.isel(time=get_first_occurrence(value)).time
-        value_reversed_time = value[::-1, :, :]
-        last = value.isel(time=get_first_occurrence(value_reversed_time)).time
-        acc.append(
-            DataArray(
-                data=value.sum(dim="time"),
-                dims=["lat", "lon"],
-                coords=dict(
-                    time=label,
-                    lat=value.lat,
-                    lon=value.lon,
-                    event_date_start=first,
-                    event_date_end=last,
-                ),
-            )
-        )
-    return xarray.concat(acc, "time")
-
-
-def is_bootstrappable(var_type):
-    return var_type == TEMPERATURE
+    return _get_count_events_date_event(resampled)
 
 
 def max_consecutive_event_count(
@@ -215,12 +192,12 @@ def max_consecutive_event_count(
     result = _apply_coef(coef, da)
     if in_base_da is not None and isinstance(threshold, str):
         per = _get_percentiles(threshold, var_type, in_base_da)
-        result = threshold_compare_on_percentiles(
+        result = _threshold_compare_on_percentiles(
             da=da,
             percentiles=per,
             logical_operation=logical_operation,
             freq=freq,
-            bootstrap=is_bootstrappable(var_type),
+            bootstrap=_is_bootstrappable(var_type),
         )
         if save_percentile:
             result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -313,26 +290,34 @@ def _filter_by_threshold(
 ) -> DataArray:
     if threshold is None and logical_operation is None:
         return da
-    if isinstance(threshold, str) and in_base_da is not None:
+    if isinstance(threshold, str):
+        if in_base_da is None:
+            raise NotImplementedError(
+                "When threshold type is str for percentiles, a in_base must be provided"
+            )
         per = _get_percentiles(threshold, var_type, in_base_da)
         result = _filter_by_logical_op_on_percentile(
             da=da,
             percentiles=_get_percentiles(threshold, var_type, in_base_da),
             logical_operation=logical_operation,
             freq=freq,
-            bootstrap=is_bootstrappable(var_type),
+            bootstrap=_is_bootstrappable(var_type),
         )
         if save_percentile:
             result.coords[PERCENTILES_COORD] = resample_doy(per, result)
-        return result
     elif (
         isinstance(threshold, float) or isinstance(threshold, int)
     ) and logical_operation is not None:
-        return da.where(logical_operation.compute(da, threshold), drop=True)
+        result = da.where(logical_operation.compute(da, threshold))
     else:
         raise NotImplementedError(
-            "threshold must be on of [str, int, float] and logical_operation must a LogicalOperation instance"
+            "threshold type must be on of [str, int, float] and logical_operation must a LogicalOperation instance"
         )
+    if len(result) == 0:
+        raise Exception(
+            f"The dataset has been emptied by filtering with {logical_operation.operator}{threshold}."
+        )
+    return result
 
 
 @percentile_bootstrap
@@ -417,18 +402,6 @@ def _run_aggregator(
         raise NotImplementedError()
 
 
-@percentile_bootstrap
-def threshold_compare_on_percentiles(
-    da: DataArray,
-    percentiles: DataArray,
-    logical_operation: LogicalOperation,
-    freq: str = "MS",
-    bootstrap: bool = False,
-) -> DataArray:
-    percentiles = resample_doy(percentiles, da)
-    return logical_operation.compute(da, percentiles)
-
-
 def _reduce_with_date_event(
     resampled: DataArray,
     reducer: Callable[[DataArray], DataArray],
@@ -454,3 +427,30 @@ def _reduce_with_date_event(
             )
         acc.append(DataArray(data=reduced_result, dims=["lat", "lon"], coords=coords))
     return xarray.concat(acc, "time")
+
+
+def _get_count_events_date_event(resampled):
+    acc: List[DataArray] = []
+    for label, value in resampled:
+        # TODO cannot work with dask arrays because of https://github.com/pydata/xarray/issues/2511
+        first = value.isel(time=get_first_occurrence(value)).time
+        value_reversed_time = value[::-1, :, :]
+        last = value.isel(time=get_first_occurrence(value_reversed_time)).time
+        acc.append(
+            DataArray(
+                data=value.sum(dim="time"),
+                dims=["lat", "lon"],
+                coords=dict(
+                    time=label,
+                    lat=value.lat,
+                    lon=value.lon,
+                    event_date_start=first,
+                    event_date_end=last,
+                ),
+            )
+        )
+    return xarray.concat(acc, "time")
+
+
+def _is_bootstrappable(var_type):
+    return var_type == TEMPERATURE

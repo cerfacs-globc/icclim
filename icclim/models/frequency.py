@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy
 import pandas
@@ -72,24 +72,36 @@ class Frequency(Enum):
     SON 	autumn
     """
 
-    MONTH = ("MS", ["month", "MS"])
-    AMJJAS = ("MS", ["AMJJAS"], seasons_resampler([*range(4, 9)]))
-    ONDJFM = ("MS", ["ONDJFM"], seasons_resampler([10, 11, 12, 1, 2, 3]))
-    DJF = ("MS", ["DJF"], seasons_resampler([12, 1, 2]))
-    MAM = ("MS", ["MAM"], seasons_resampler([*range(3, 5)]))
-    JJA = ("MS", ["JJA"], seasons_resampler([*range(6, 8)]))
-    SON = ("MS", ["SON"], seasons_resampler([*range(9, 11)]))
-    YEAR = ("YS", ["year", "YS"])
-    CUSTOM = ("MS", [], None)
+    MONTH = ("MS", ["month", "MS"], "monthly time series")
+    AMJJAS = (
+        "MS",
+        ["AMJJAS"],
+        "summer half-year time series",
+        seasons_resampler([*range(4, 9)]),
+    )
+    ONDJFM = (
+        "MS",
+        ["ONDJFM"],
+        "winter half-year time series",
+        seasons_resampler([10, 11, 12, 1, 2, 3]),
+    )
+    DJF = ("MS", ["DJF"], "winter time series", seasons_resampler([12, 1, 2]))
+    MAM = ("MS", ["MAM"], "spring time series", seasons_resampler([*range(3, 5)]))
+    JJA = ("MS", ["JJA"], "summer time series", seasons_resampler([*range(6, 8)]))
+    SON = ("MS", ["SON"], "autumn time series", seasons_resampler([*range(9, 11)]))
+    CUSTOM = ("MS", [], None, None)
+    YEAR = ("YS", ["year", "YS"], "annual time series")
 
     def __init__(
         self,
         panda_time: str,
         accepted_values: List[str],
-        resampler: Callable[[DataArray], Tuple[DataArray, DataArray]] = None,
+        description: Optional[str] = None,
+        resampler: Optional[Callable[[DataArray], Tuple[DataArray, DataArray]]] = None,
     ):
         self.panda_freq: str = panda_time
         self.accepted_values: List[str] = accepted_values
+        self.description = description
         self.resampler = resampler
 
 
@@ -100,13 +112,13 @@ def build_frequency(slice_mode: SliceMode) -> Frequency:
     if isinstance(slice_mode, Frequency):
         return slice_mode
     if isinstance(slice_mode, str):
-        return get_frequency_from_string(slice_mode)
+        return _get_frequency_from_string(slice_mode)
     if isinstance(slice_mode, list):
-        return get_frequency_from_list(slice_mode)
+        return _get_frequency_from_list(slice_mode)
     raise Exception(f"Unknown frequency {slice_mode}")
 
 
-def get_frequency_from_string(slice_mode: str) -> Frequency:
+def _get_frequency_from_string(slice_mode: str) -> Frequency:
     for freq in Frequency:
         if freq.name == slice_mode.upper() or slice_mode.upper() in map(
             str.upper, freq.accepted_values
@@ -115,7 +127,7 @@ def get_frequency_from_string(slice_mode: str) -> Frequency:
     raise Exception(f"Unknown frequency {slice_mode}")
 
 
-def get_frequency_from_list(slice_mode_list: List) -> Frequency:
+def _get_frequency_from_list(slice_mode_list: List) -> Frequency:
     if len(slice_mode_list) < 2:
         raise Exception(f"Unknown frequency {slice_mode_list}")
     sampling_freq = slice_mode_list[0]
@@ -123,12 +135,16 @@ def get_frequency_from_list(slice_mode_list: List) -> Frequency:
     custom_freq = Frequency.CUSTOM
     if sampling_freq == "month":
         custom_freq.resampler = month_filter(months)
+        custom_freq.description = f"monthly time series (months: {months})"
     elif sampling_freq == "season":
         if months is Tuple:
-            # TODO add deprecation for the Tuple, because we support [11,12,1] and it will avoid the need of concat here
-            custom_freq.resampler = seasons_resampler(months[1] + months[0])
+            # TODO we could deprecate the Tuple input, because we now support [11,12,1] and it will avoid the need of concat here
+            month_list = months[1] + months[0]
+            custom_freq.resampler = seasons_resampler(month_list)
+            custom_freq.description = f"seasonal time series (season: {month_list})"
         else:
             custom_freq.resampler = seasons_resampler(months)
+            custom_freq.description = f"seasonal time series (season: {months})"
     else:
         raise Exception(f"Unknown frequency {slice_mode_list}")
     return custom_freq

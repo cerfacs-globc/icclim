@@ -2,20 +2,22 @@
 #  Copyright CERFACS (http://cerfacs.fr/)
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
-import datetime
-from typing import Callable, List, Optional, Union
+import logging
+from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional, Union
+from warnings import warn
 
 import xarray
-import xclim.core.calendar as calendar
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim import indices
-from icclim.indices import IndiceConfig
-from icclim.models.frequency import Frequency, SliceMode, build_frequency
-from icclim.models.indice_config import CfVariable
+from icclim import eca_indices
+from icclim.eca_indices import Indice, IndiceConfig
+from icclim.models.frequency import Frequency, SliceMode
+from icclim.models.netcdf_version import NetcdfVersion
+from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_indice_config import UserIndiceConfig
-from icclim.user_indices.bridge import compute_user_indice
+from icclim.user_indices.api_bridge import compute_user_indice
 
 
 def indice(
@@ -23,179 +25,121 @@ def indice(
     var_name: Union[str, List[str]],
     indice_name: str = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: List[datetime.datetime] = None,
+    time_range: List[datetime] = None,
     out_file: str = "icclim_out.nc",
     threshold: Union[float, List[float]] = None,
-    # TODO see how to go from this to Dask chunks
     transfer_limit_Mbytes: float = None,
-    callback: Callable = None,
+    callback: Callable[[int], None] = lambda p: logging.info(f"Processing: {p}%"),
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: List[datetime.datetime] = None,
+    base_period_time_range: List[datetime] = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    # TODO should be an enumeration
-    interpolation: str = "linear",
-    # TODO probably unnecessary with xclim unit handling, but necessary for user-indices
+    interpolation: Optional[Union[str, QuantileInterpolation]] = None,
     out_unit: str = "days",
-    # TODO use an enum and re-add default value
-    netcdf_version=None,
-    user_indice: dict = None,
+    # TODO maybe upgrade default value to netcdf4 ? it is the default of xarray
+    netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
+    user_indice: Dict[str, Any] = None,
     save_percentile: bool = False,
 ) -> Dataset:
     """
-    :param indice_name: Climate index name.
-    :type indice_name: str
-
-    :param in_files: Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
-    :type in_files: str OR list of str OR list of lists
-
-    :param var_name: Target variable name to process corresponding to ``in_files``.
-    :type var_name: str OR list of str
-
-    :param slice_mode: Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the index will be calculated as monthly values.
-    :type slice_mode: str
-
-    :param time_range: Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
-    :type time_range: [datetime.datetime, datetime.datetime]
-
-    :param out_file: Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-    :type out_file: str
-
-    :param threshold: User defined threshold for certain indices.
-    :type threshold: float or list of floats
-
-    :param N_lev: Level number if 4D variable.
-    :type N_lev: int
-
-    :param lev_dim_pos: Position of Level dimension, either 0 or 1. 0 is leftmost dimension, 1 is second to the leftmost. Default 1.
-    :type lev_dim_pos: int
-
-    :param transfer_limit_Mbytes: Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
-    :type transfer_limit_Mbytes: float
-
-    :param callback: Progress bar printing. If ``None``, progress bar will not be printed.
-    :type callback: :func:`callback.defaultCallback`
-
-    :param callback_percentage_start_value: Initial value of percentage of the progress bar (default: 0).
-    :type callback_percentage_start_value: int
-
-    :param callback_percentage_total: Total persentage value (default: 100).
-    :type callback_percentage_total: int
-
-    :param base_period_time_range: Temporal range of the base period.
-    :type base_period_time_range: [datetime.datetime, datetime.datetime]
-
-    :param window_width: Window width, must be odd (default: 5).
-    :type window_width: int
-
-    :param only_leap_years: Option for February 29th (default: False).
-    :type only_leap_years: bool
-
-    :param ignore_Feb29th: Ignoring or not February 29th (default: False).
-    :type ignore_Feb29th: bool
-
-    :param interpolation: Interpolation method to compute percentile values: "linear" or "hyndman_fan" (default: "hyndman_fan").
-    :type interpolation: str
-
-    :param out_unit: Output unit for certain indices: "days" or "%" (default: "days").
-    :type out_unit: str
-
-    :param user_indice: A dictionary with parameters for user defined index
-    :type user_indice: dict
-
-    :param netcdf_version: NetCDF version to create (default: "NETCDF3_CLASSIC").
-    :type netcdf_version: str
-
+    :param indice_name:
+        Climate index name.
+    :param in_files:
+        Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
+    :param var_name:
+        Target variable name to process corresponding to ``in_files``.
+    :param slice_mode:
+        Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the index will be calculated as monthly values.
+    :param time_range:
+        Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
+    :param out_file:
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+    :param threshold:
+        User defined threshold for certain indices.
+    :param transfer_limit_Mbytes:
+        Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
+    :param callback:
+        Progress bar printing. If ``None``, progress bar will not be printed.
+    :param callback_percentage_start_value:
+        Initial value of percentage of the progress bar (default: 0).
+    :param callback_percentage_total:
+        Total persentage value (default: 100).
+    :param base_period_time_range:
+        Temporal range of the base period.
+    :param window_width:
+        Window width, must be odd (default: 5).
+    :param only_leap_years:
+        Option for February 29th (default: False).
+    :param ignore_Feb29th:
+        Ignoring or not February 29th (default: False).
+    :param interpolation:
+        Interpolation method to compute percentile values: "linear" or "hyndman_fan" (default: "hyndman_fan").
+    :param out_unit:
+        Output unit for certain indices: "days" or "%" (default: "days").
+    :param user_indice:
+        A dictionary with parameters for user defined index
+    :param netcdf_version:
+        NetCDF version to create (default: "NETCDF3_CLASSIC").
+    :param save_percentile:
+        True if the percentiles should be saved within the resulting netcdf file
     :rtype: path to NetCDF file
 
     .. warning:: If ``out_file`` already exists, icclim will overwrite it!
 
     """
+    callback(callback_percentage_start_value)
     if isinstance(in_files, str):
         ds = xarray.open_dataset(in_files)
     else:
         ds = xarray.open_mfdataset(in_files)
-    config = build_indice_config(
-        base_period_time_range,
-        ds,
-        ignore_Feb29th,
-        only_leap_years,
-        out_unit,
-        save_percentile,
-        slice_mode,
-        time_range,
-        var_name,
-        window_width,
+    if isinstance(var_name, str):
+        var_name = [var_name]
+    config = IndiceConfig(
+        base_period_time_range=base_period_time_range,
+        ds=ds,
+        ignore_Feb29th=ignore_Feb29th,
+        only_leap_years=only_leap_years,
+        save_percentile=save_percentile,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        var_name=var_name,
+        window_width=window_width,
+        transfer_limit_Mbytes=transfer_limit_Mbytes,
+        out_unit=out_unit,
+        netcdf_version=netcdf_version,
+        interpolation=interpolation,
     )
     if user_indice is not None:
         result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
     else:
-        result_ds = _build_basic_indice_dataset(config, indice_name, threshold)
-    # TODO add attributes to dataset
-    result_ds.to_netcdf(out_file)
+        result_ds = _build_basic_indice_dataset(
+            config, indice_name, threshold, ds.attrs["history"]
+        )
+    result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
+    callback(callback_percentage_total)
     return result_ds
 
 
-def build_indice_config(
-    base_period_time_range,
-    ds,
-    ignore_Feb29th,
-    only_leap_years,
-    out_unit,
-    save_percentile,
-    slice_mode,
-    time_range,
-    var_name,
-    window_width,
-):
-    config = IndiceConfig()
-    config.freq = build_frequency(slice_mode)
-    if isinstance(var_name, str):
-        var_name = [var_name]
-    config.cf_variables = [
-        _build_cf_variable(
-            ds[cf_var_name],
-            time_range,
-            ignore_Feb29th,
-            base_period_time_range,
-            only_leap_years,
-        )
-        for cf_var_name in var_name
-    ]
-    config.window = window_width
-    config.save_percentile = save_percentile
-    config.is_percent = out_unit == "%"
-    return config
-
-
 def _build_basic_indice_dataset(
-    config: IndiceConfig, indice_name: str, threshold
+    config: IndiceConfig,
+    indice_name: str,
+    threshold: Union[float, List[float]],
+    current_history: str,
 ) -> Dataset:
-    result_ds = Dataset()
     if indice_name is None:
-        raise Exception("indice_name must be provided.")  # user input error
+        # user input error, avoid doing all computations for nothing
+        raise Exception("indice_name must be provided.")
     if isinstance(threshold, list):
+        ds_list = []
         for th in threshold:
-            # TODO: in v4 threshold was a dimension
             config.threshold = th
-            da = _compute_indice(indice_name, config)
-            if config.freq.resampler is not None:
-                resampled_da, time_bounds = config.freq.resampler(da)
-                result_ds[f"{indice_name}_threshold_{th}"] = resampled_da
-                result_ds["time_bounds"] = time_bounds
-            else:
-                result_ds[f"{indice_name}_threshold_{th}"] = da
+            ds_list.append(_compute_basic_indice(indice_name, config, current_history))
+        result_ds = xarray.concat(ds_list, dim="threshold")
     else:
         config.threshold = threshold
-        da = _compute_indice(indice_name, config)
-        if config.freq.resampler is not None:
-            resampled_da, time_bounds = config.freq.resampler(da)
-            result_ds[indice_name] = resampled_da
-            result_ds["time_bounds"] = time_bounds
-        else:
-            result_ds[indice_name] = da
+        result_ds = _compute_basic_indice(indice_name, config, current_history)
     return result_ds
 
 
@@ -211,6 +155,7 @@ def _build_user_indice_dataset(
         save_percentile=save_percentile,
     )
     user_indice_da = compute_user_indice(user_indice_config)
+    user_indice_da.attrs["units"] = _get_unit(config.out_unit, user_indice_da)
     if config.freq.resampler is not None:
         user_indice_da, time_bounds = config.freq.resampler(user_indice_da)
         result_ds[user_indice_config.indice_name] = user_indice_da
@@ -220,58 +165,89 @@ def _build_user_indice_dataset(
     return result_ds
 
 
-def _compute_indice(indice_name: str, config: IndiceConfig):
-    da = indices.indice_from_string(indice_name).compute(config)
-    return da
+def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
+    da_unit = da.attrs.get("units", None)
+    if da_unit is None:
+        if output_unit is None:
+            warn(
+                "No unit computed or provided for the indice was found. Use out_unit parameter to add one."
+            )
+            return None
+        else:
+            return output_unit
+    else:
+        if output_unit is None:
+            return da_unit
+        else:
+            warn(
+                f"Overriding the computed unit {da_unit} with the user give unit {output_unit}"
+            )
+            return output_unit
 
 
-def _build_cf_variable(
-    da: DataArray,
-    time_range: Optional[List[datetime.datetime]],
-    ignore_Feb29th: bool,
-    base_period_time_range: Optional[List[datetime.datetime]],
-    only_leap_years: bool,
-) -> CfVariable:
-    cf_var = CfVariable(_build_data_array(da, time_range, ignore_Feb29th))
-    if base_period_time_range is not None:
-        cf_var.in_base_da = _build_in_base_da(
-            da, base_period_time_range, only_leap_years
+def _compute_basic_indice(
+    indice_name: str, config: IndiceConfig, current_history: str
+) -> Dataset:
+    result_ds = Dataset()
+    indice_to_compute = eca_indices.indice_from_string(indice_name)
+    da = indice_to_compute.compute(config)
+    da.attrs["units"] = _get_unit(config.out_unit, da)
+    if config.threshold is not None:
+        da.expand_dims({"threshold": config.threshold})
+    if config.freq.resampler is not None:
+        resampled_da, time_bounds = config.freq.resampler(da)
+        result_ds[indice_name] = resampled_da
+        result_ds["time_bounds"] = time_bounds
+    else:
+        result_ds[indice_name] = da
+        result_ds = _add_basic_indice_metadata(
+            result_ds,
+            config,
+            indice_to_compute,
+            current_history,
         )
-    return cf_var
+    return result_ds
 
 
-def _build_data_array(
-    da: DataArray, time_range: Optional[List[datetime.datetime]], ignore_Feb29th: bool
-) -> DataArray:
-    if time_range is not None:
-        if len(time_range) != 2:
-            raise Exception("Not a valid time range")
-        da = da.sel(time=slice(time_range[0], time_range[1]))
-    if ignore_Feb29th:
-        da = calendar.convert_calendar(da, "noleap")  # type:ignore
-    return da
+def _add_basic_indice_metadata(
+    result_ds: Dataset,
+    config: IndiceConfig,
+    indice_computed: Indice,
+    former_history: str,
+) -> Dataset:
+    # TODO: complete with clix-meta metadata
+    if config.threshold is not None:
+        title = f"Index {indice_computed.indice_name} with user defined threshold"
+    else:
+        title = f"ECA {indice_computed.group} indice {indice_computed.indice_name}"
+    result_ds.attrs["title"] = title
+    result_ds.attrs[
+        "references"
+    ] = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)"
+    result_ds.attrs["institution"] = "Climate impact portal (https://climate4impact.eu)"
+
+    result_ds.attrs["history"] = _get_history(
+        config, former_history, indice_computed, result_ds
+    )
+    # TODO make sure it should stay empty as in v4
+    result_ds.attrs["source"] = ""
+    # TODO make sure 1.6 is ok or use a newer version of cf
+    result_ds.attrs["Conventions"] = "CF-1.6"
+
+    result_ds.lat.encoding["_FillValue"] = None
+    result_ds.lon.encoding["_FillValue"] = None
+
+    return result_ds
 
 
-def _build_in_base_da(
-    da: DataArray,
-    base_period_time_range: List[datetime.datetime],
-    only_leap_years: bool,
-) -> DataArray:
-    if len(base_period_time_range) != 2:
-        raise Exception("Not a valid time range")
-    da = da.sel(time=slice(base_period_time_range[0], base_period_time_range[1]))
-    if only_leap_years:
-        da = _reduce_only_leap_years(da)
-    return da
-
-
-def _reduce_only_leap_years(da: DataArray) -> DataArray:
-    reduced_list: List[DataArray] = []
-    for _, val in da.groupby(da.time.dt.year):
-        if val.time.dt.dayofyear.max() == 366:
-            reduced_list.append(val)
-    if reduced_list == []:
-        raise Exception(
-            "No leap year in current dataset. Do not use only_leap_years parameter."
-        )
-    return xarray.concat(reduced_list, "time")
+def _get_history(config, former_history, indice_computed, result_ds):
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    start_time = result_ds.time[0].dt.strftime("%m-%d-%Y").data[()]
+    end_time = result_ds.time[-1].dt.strftime("%m-%d-%Y").data[()]
+    return (
+        f"{former_history}\n "
+        f"{current_time} "
+        f"Calculation of {indice_computed.indice_name} "
+        f"indice({config.freq.description}) "
+        f"from {start_time} to {end_time}."
+    )
