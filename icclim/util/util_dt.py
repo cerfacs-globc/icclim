@@ -38,8 +38,8 @@ def get_list_dates_from_nc(nc, type_dates):
         list_dt = arr_dt.tolist() # numpy array -> list
         
     if type_dates == 'dt':
-        t = cftime.utime(time_units, time_calend) 
-        arr_dt = t.num2date(var_time[:]) 
+#        t = cftime.utime(time_units, time_calend) 
+        arr_dt = cftime.num2date(var_time[:], time_units, time_calend) 
         list_dt = arr_dt.tolist() # numpy array -> list
     del arr_dt
     
@@ -94,7 +94,7 @@ def get_list_dates(ifile, type_dates):
             list_dt = arr_dt.tolist()
             del arr_dt
         except:
-            t = cftime.utime(time_units, time_calend)
+#            t = cftime.utime(time_units, time_calend)
             list_dt = [cftime.num2date(var_time_i, units = time_units, calendar = time_calend) for var_time_i in var_time]
             #list_dt = arr_dt.tolist() # numpy array -> list 
 
@@ -141,8 +141,8 @@ def date2num(dt, calend, units):
     
     :rtype: float
     '''
-    t = cftime.utime(units, calend)
-    dt_num = t.date2num(dt)
+#    t = cftime.utime(units, calend)
+    dt_num = cftime.date2num(dt, units, calend)
     
     return dt_num
 
@@ -160,8 +160,8 @@ def num2date(num, calend, units):
     
     :rtype: datetime.datetime object
     '''   
-    t = cftime.utime(units, calend)    
-    dt = t.num2date(num)
+#    t = cftime.utime(units, calend)    
+    dt = cftime.num2date(num, units, calend)
 
     return dt
 
@@ -201,9 +201,9 @@ def get_time_range(files, time_range=None, temporal_var_name='time'):
         
     units = time.units
     
-    t = cftime.utime(units, calend)
+#    t = cftime.utime(units, calend)
     
-    any_dt = t.num2date(time[0])
+    any_dt = cftime.num2date(time[0], units, calend)
     nc.close()
     
     

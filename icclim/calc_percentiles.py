@@ -83,7 +83,7 @@ def get_index_with_window(ind_2_calc, window_wide, test):
 
 
 #get_index_for_other_years returns the indexes for the centered days t within the time series - dt_arr & dt_arr_num
-def get_index_for_other_years(nc_time, t, calend, list_year, ytd, dt_arr_num):
+def get_index_for_other_years(t_units, t, calend, list_year, ytd, dt_arr_num):
     if calend == 'all_leap' or calend == '366_day':
         same_date_other_year = [cftime._cftime.DatetimeAllLeap(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
     elif calend == '360_day':
@@ -97,7 +97,7 @@ def get_index_for_other_years(nc_time, t, calend, list_year, ytd, dt_arr_num):
     else:
         same_date_other_year = [cftime.datetime(year, t.month, t.day, t.hour, t.minute) for year in list_year if year!=ytd]
 
-    sdoy2num = nc_time.date2num(same_date_other_year)
+    sdoy2num = cftime.date2num(same_date_other_year, t_units, t_calendar)
 
     #We change sdoy2num and dt_arr_num dtype to int to avoid unknown index because of +/- half day across year
     sdoy2num = sdoy2num.astype(np.int32)
@@ -127,10 +127,10 @@ def check_leap_day(t_calendar, t, ytd, only_leap_years):
 
 
 #get_first_ytd_day returns the first index (first day) of the year to duplicate
-def get_first_ytd_day(dt_arr, dt_arr_num, nc_time, ytd):
+def get_first_ytd_day(dt_arr, dt_arr_num, t_units, t_calendar, ytd):
     for date in dt_arr:
         if date.year==ytd:
-            date_num = nc_time.date2num(date)
+            date_num = cftime.date2num(date, t_units, t_calendar)
             ind_ytd_start = np.where(date_num==dt_arr_num)[0][0]
             break
     return ind_ytd_start
@@ -210,7 +210,7 @@ def get_ind_2_calc_for_non_leap(i, ind_date, len_ytd, window_wide):
 
 #indices_to_return_for_percentile_calc returns the indices for the percentile calculation
 def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_wide, i, len_ytd, ytd,  
-                                            nc_time, t_calendar, t, 
+                                            t_units, t_calendar, t, 
                                             ignore_Feb29th, only_leap_years, bootstrapping,
                                             ind_ytd_start=0):
 
@@ -227,8 +227,8 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
     :type i: int
     :param len_ytd: length of the calendar year
     :type len_ytd: int
-    :param nc_time: netcdf time config date
-    :type window_width: int
+    :param t_units: netcdf time units
+    :type t_units: string
     :param ignore_Feb29th: Ignore or not February 29th
     :type ignore_Feb29th: bool    
     :param only_leap_years: option for February 29th
@@ -247,7 +247,7 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
         #only_leap_years means we only take in account the leap year for calculation
         if only_leap_years:
             list_year_leap_only = get_leap_year(list_year)
-            ind_date = get_index_for_other_years(nc_time, t, t_calendar, list_year_leap_only, ytd, dt_arr_num)
+            ind_date = get_index_for_other_years(t_units, t, t_calendar, list_year_leap_only, ytd, dt_arr_num)
             ind_2_calc = get_ind_2_calc(i , ind_date, 366, window_wide, ind_ytd_start, bootstrapping)
 #            ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
 
@@ -256,10 +256,10 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
             list_year_leap_only = get_leap_year(list_year)
             list_year_not_leap = get_non_leap_year(list_year)
 
-            ind_date = get_index_for_other_years(nc_time, t, t_calendar, list_year_leap_only, ytd, dt_arr_num)
+            ind_date = get_index_for_other_years(t_units, t, t_calendar, list_year_leap_only, ytd, dt_arr_num)
             ind_2_calc = get_ind_2_calc(i , ind_date, 366, window_wide, ind_ytd_start, bootstrapping)
 #            ind_2_calc = get_ind_2_calc(i , ind_date, len_ytd, window_wide, ind_ytd_start, bootstrapping)
-            ind_date_not_leap = get_index_for_other_years(nc_time, dt_arr[ind_ytd_start+i-1], t_calendar, list_year_not_leap, ytd, dt_arr_num)
+            ind_date_not_leap = get_index_for_other_years(t_units, dt_arr[ind_ytd_start+i-1], t_calendar, list_year_not_leap, ytd, dt_arr_num)
 #            ind_2_calc_non_leap = get_ind_2_calc_for_non_leap(i, ind_date_not_leap, len_ytd, window_wide)
             ind_2_calc_non_leap = get_ind_2_calc_for_non_leap(i, ind_date_not_leap, 365, window_wide)
 
@@ -268,7 +268,7 @@ def indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_
     #This part returns the indices to calculate when the duplicated year is not leap
 
     else:
-        ind_date = get_index_for_other_years(nc_time, t, t_calendar, list_year, ytd, dt_arr_num)
+        ind_date = get_index_for_other_years(t_units, t, t_calendar, list_year, ytd, dt_arr_num)
         ind_2_calc = get_ind_2_calc_for_non_leap(i , ind_date, 365, window_wide)
 
     return ind_2_calc
@@ -280,14 +280,14 @@ def return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled,
                                                     interpolation, ignore_Feb29th, only_leap_years, bootstrapping):
 
     #Get time config
-    nc_time = cftime.utime(t_units, t_calendar)
+    #nc_time = cftime.utime(t_units, t_calendar)
 
     #From datetime to numerical format
-    dt_arr_num = nc_time.date2num(dt_arr)
+    dt_arr_num = cftime.date2num(dt_arr, t_units, t_calendar)
 
     #Find first day of ytd in dt_arr_num, make it equel to ind_ytd_start
     if bootstrapping:
-        ind_ytd_start = get_first_ytd_day(dt_arr, dt_arr_num, nc_time, ytd)
+        ind_ytd_start = get_first_ytd_day(dt_arr, dt_arr_num, t_units, t_calendar, ytd)
     else:
         ind_ytd_start = 0
 
@@ -322,7 +322,7 @@ def return_perc_array_2_compute_bootstrapping(dt_arr, arr_filled,
 
         #ind_2_calc returns the index we want to perform the percentile on
         ind_2_calc = indices_to_return_for_percentile_calc(dt_arr_num, dt_arr, list_year, window_wide, i, len_ytd, ytd, 
-                                                            nc_time, t_calendar, t, ignore_Feb29th, only_leap_years, bootstrapping,
+                                                            t_units, t_calendar, t, ignore_Feb29th, only_leap_years, bootstrapping,
                                                             ind_ytd_start)
 
         #Percentile calculation
