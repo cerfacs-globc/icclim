@@ -3,10 +3,10 @@ from typing import List, Optional, Union
 
 import numpy as np
 import xarray
-from xarray import DataArray
+from xarray import DataArray, Dataset
 from xclim.core import calendar
 
-from icclim.models.frequency import Frequency, build_frequency
+from icclim.models.frequency import Frequency, SliceMode, build_frequency
 from icclim.models.netcdf_version import NetcdfVersion, get_netcdf_version
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
@@ -33,27 +33,27 @@ class IndiceConfig:
 
     def __init__(
         self,
-        base_period_time_range,
-        ds,
-        ignore_Feb29th,
-        only_leap_years,
-        save_percentile,
-        slice_mode,
-        time_range,
-        var_name,
-        window_width,
+        ds: Dataset,
+        slice_mode: SliceMode,
+        var_name: List[str],
         netcdf_version: Union[str, NetcdfVersion],
+        save_percentile: bool = False,
+        only_leap_years: bool = False,
+        ignore_Feb29th: bool = False,
+        window_width: Optional[int] = None,
+        time_range: Optional[List[datetime]] = None,
+        base_period_time_range: Optional[List[datetime]] = None,
         transfer_limit_Mbytes: Optional[int] = None,
         out_unit: Optional[str] = None,
         interpolation: Optional[QuantileInterpolation] = None,
     ):
         self.freq = build_frequency(slice_mode)
         if time_range is not None:
-            time_range = list(map(lambda x: x.strftime("%Y-%m-%d"), time_range))
+            time_range = [x.strftime("%Y-%m-%d") for x in time_range]
         if base_period_time_range is not None:
-            base_period_time_range = list(
-                map(lambda x: x.strftime("%Y-%m-%d"), base_period_time_range)
-            )
+            base_period_time_range = [
+                x.strftime("%Y-%m-%d") for x in base_period_time_range
+            ]
         self.cf_variables = [
             _build_cf_variable(
                 da=ds[cf_var_name],

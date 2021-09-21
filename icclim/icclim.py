@@ -17,7 +17,7 @@ from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_indice_config import UserIndiceConfig
-from icclim.user_indices.api_bridge import compute_user_indice
+from icclim.user_indices.bridge import compute_user_indice
 
 
 def indice(
@@ -92,9 +92,9 @@ def indice(
     """
     callback(callback_percentage_start_value)
     if isinstance(in_files, list):
-        ds = xarray.open_mfdataset(in_files, parallel=True)
+        ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
     else:
-        ds = xarray.open_dataset(in_files)
+        ds = xarray.open_dataset(in_files, decode_cf=True)
     if isinstance(var_name, str):
         var_name = [var_name]
     config = IndiceConfig(
@@ -171,7 +171,8 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
     if da_unit is None:
         if output_unit is None:
             warn(
-                "No unit computed or provided for the indice was found. Use out_unit parameter to add one."
+                "No unit computed or provided for the indice was found. "
+                "Use out_unit parameter to add one."
             )
             return ""
         else:
@@ -181,7 +182,8 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
             return da_unit
         else:
             warn(
-                f"Overriding the computed unit {da_unit} with the user give unit {output_unit}"
+                f"Overriding the computed unit {da_unit} "
+                f"with the user given unit {output_unit}"
             )
             return output_unit
 

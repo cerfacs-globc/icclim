@@ -6,7 +6,7 @@ from icclim.models.user_indice_config import (
     LogicalOperation,
 )
 from icclim.tests.unit_tests.stubs import stub_tas
-from icclim.user_indices.operation import (
+from icclim.user_indices.operators import (
     _apply_coef,
     anomaly,
     count_events,

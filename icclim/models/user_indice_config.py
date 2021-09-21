@@ -51,6 +51,7 @@ class NbEventConfig:
     data_arrays: Optional[List[CfVariable]] = None
 
 
+@dataclass
 class UserIndiceConfig:
     indice_name: str
     calc_operation: str

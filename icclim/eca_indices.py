@@ -54,12 +54,7 @@ def id(config: IndiceConfig) -> DataArray:
 
 
 def csdi(config: IndiceConfig) -> DataArray:
-    run_bootstrap = config.cf_variables[0].in_base_da is not None
-    if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
-        raise Exception(
-            "The bootstrapping can only use hyndman_fan method 8 (MEDIAN_UNBIASED)"
-            "to compute the percentiles"
-        )
+    run_bootstrap = _can_run_bootstrap(config)
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -76,12 +71,7 @@ def csdi(config: IndiceConfig) -> DataArray:
 
 
 def tg10p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = config.cf_variables[0].in_base_da is not None
-    if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
-        raise Exception(
-            "The bootstrapping can only use hyndman_fan method 8 (MEDIAN_UNBIASED)"
-            "to compute the percentiles"
-        )
+    run_bootstrap = _can_run_bootstrap(config)
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -560,14 +550,16 @@ def ww(config: IndiceConfig) -> DataArray:
     return result
 
 
+TEMPERATURE_GROUP = "temperature"
+HEAT_GROUP = "heat"
+COLD_GROUP = "cold"
+DROUGHT_GROUP = "drought"
+RAIN_GROUP = "rain"
+SNOW_GROUP = "snow"
+COMPOUND_GROUP = "compound"
+
+
 class Indice(Enum):
-    TEMPERATURE_GROUP = "temperature"
-    HEAT_GROUP = "heat"
-    COLD_GROUP = "cold"
-    DROUGHT_GROUP = "drought"
-    RAIN_GROUP = "rain"
-    SNOW_GROUP = "snow"
-    COMPOUND_GROUP = "compound"
     # temperature
     TG = ("tg", tg, TEMPERATURE_GROUP)
     TN = ("tn", tn, TEMPERATURE_GROUP)

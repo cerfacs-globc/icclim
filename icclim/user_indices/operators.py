@@ -54,7 +54,7 @@ def max(
             resampled, lambda x: x.argmax("time", keep_attrs=True)  # type:ignore
         )
     else:
-        return result.max(dim="time", keep_attrs=True)
+        return resampled.max(dim="time", keep_attrs=True)
 
 
 def min(
@@ -84,7 +84,7 @@ def min(
             resampled, lambda x: x.argmin("time", keep_attrs=True)  # type:ignore
         )
     else:
-        return result.min(dim="time", keep_attrs=True)
+        return resampled.min(dim="time", keep_attrs=True)
 
 
 def sum(
@@ -335,11 +335,11 @@ def _filter_by_logical_op_on_percentile(
 ) -> DataArray:
     if logical_operation is not None and percentiles is not None:
         percentiles = resample_doy(percentiles, da)
-        filtered = logical_operation.compute(da, percentiles)
-        filtered = filtered.where(filtered, drop=True)
+        mask = logical_operation.compute(da, percentiles)
+        result = da.where(mask, drop=True)
         if bootstrap:
-            result = da.expand_dims(_bootstrap=filtered._bootstrap)
-        return result.sel(time=filtered.time)
+            result = da.expand_dims(_bootstrap=result._bootstrap)
+        return result
     return da
 
 
