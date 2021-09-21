@@ -36,9 +36,10 @@ def indice(
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: Optional[Union[str, QuantileInterpolation]] = None,
+    interpolation: Optional[
+        Union[str, QuantileInterpolation]
+    ] = QuantileInterpolation.MEDIAN_UNBIASED,
     out_unit: str = "days",
-    # TODO maybe upgrade default value to netcdf4 ? it is the default of xarray
     netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
     user_indice: Dict[str, Any] = None,
     save_percentile: bool = False,
@@ -90,10 +91,10 @@ def indice(
 
     """
     callback(callback_percentage_start_value)
-    if isinstance(in_files, str):
-        ds = xarray.open_dataset(in_files)
+    if isinstance(in_files, list):
+        ds = xarray.open_mfdataset(in_files, parallel=True)
     else:
-        ds = xarray.open_mfdataset(in_files)
+        ds = xarray.open_dataset(in_files)
     if isinstance(var_name, str):
         var_name = [var_name]
     config = IndiceConfig(
@@ -172,7 +173,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
             warn(
                 "No unit computed or provided for the indice was found. Use out_unit parameter to add one."
             )
-            return None
+            return ""
         else:
             return output_unit
     else:

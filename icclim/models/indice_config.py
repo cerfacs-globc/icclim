@@ -48,14 +48,20 @@ class IndiceConfig:
         interpolation: Optional[QuantileInterpolation] = None,
     ):
         self.freq = build_frequency(slice_mode)
+        if time_range is not None:
+            time_range = list(map(lambda x: x.strftime("%Y-%m-%d"), time_range))
+        if base_period_time_range is not None:
+            base_period_time_range = list(
+                map(lambda x: x.strftime("%Y-%m-%d"), base_period_time_range)
+            )
         self.cf_variables = [
             _build_cf_variable(
-                ds[cf_var_name],
-                time_range,
-                ignore_Feb29th,
-                base_period_time_range,
-                only_leap_years,
-                transfer_limit_Mbytes,
+                da=ds[cf_var_name],
+                time_range=time_range,
+                ignore_Feb29th=ignore_Feb29th,
+                base_period_time_range=base_period_time_range,
+                only_leap_years=only_leap_years,
+                transfer_limit_Mbytes=transfer_limit_Mbytes,
             )
             for cf_var_name in var_name
         ]
