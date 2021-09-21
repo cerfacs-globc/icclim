@@ -1,6 +1,8 @@
 from functools import reduce
 from typing import Any, Callable, List, Optional, Union
+from warnings import warn
 
+import dask.array
 import numpy as np
 import xarray
 from xarray.core.dataarray import DataArray
@@ -19,7 +21,10 @@ from icclim.models.user_indice_config import (
     LinkLogicalOperation,
     LogicalOperation,
 )
-from icclim.user_indices.stat import get_first_occurrence, get_longest_run_start_index
+from icclim.user_indices.stat import (
+    get_first_occurrence_index,
+    get_longest_run_start_index,
+)
 
 
 def max(
@@ -332,9 +337,8 @@ def _filter_by_logical_op_on_percentile(
         percentiles = resample_doy(percentiles, da)
         filtered = logical_operation.compute(da, percentiles)
         filtered = filtered.where(filtered, drop=True)
-        # if bootstrap: # TODO uncomment once fixed on xclim
-        result = da.expand_dims(_bootstrap=filtered._bootstrap)
-        #  end if
+        if bootstrap:
+            result = da.expand_dims(_bootstrap=filtered._bootstrap)
         return result.sel(time=filtered.time)
     return da
 
@@ -355,9 +359,11 @@ def _get_percentiles(
     thresh: str, var_type: Optional[str], in_base_da: DataArray
 ) -> DataArray:
     if thresh.find(PERCENTILE_THRESHOLD_STAMP) == -1:
+        # TODO create a UserInputException
         raise Exception(
-            # TODO create a UserInputException
-            "Percentile threshold not properly formatted. Use p as a prefix or suffix of the value for example 90p or p90. For non percentile threshold use a float instead of a string"
+            "Percentile threshold not properly formatted."
+            " Use p as a prefix or suffix of the value for example 90p or p90."
+            " For non percentile threshold use a float instead of a string"
         )
     per = float(thresh.replace(PERCENTILE_THRESHOLD_STAMP, ""))
     da_per = in_base_da
@@ -430,20 +436,25 @@ def _reduce_with_date_event(
 
 
 def _get_count_events_date_event(resampled):
+    if isinstance(resampled, dask.array.Array):
+        warn("Computing event_date_start/end when using Dask arrays can be slow.")
     acc: List[DataArray] = []
-    for label, value in resampled:
-        # TODO cannot work with dask arrays because of https://github.com/pydata/xarray/issues/2511
-        first = value.isel(time=get_first_occurrence(value)).time
-        value_reversed_time = value[::-1, :, :]
-        last = value.isel(time=get_first_occurrence(value_reversed_time)).time
+    for label, sample in resampled:
+        # Fixme probably not safe to compute on huge dataset,
+        #  it should be fixed with
+        #  https://github.com/pydata/xarray/issues/2511
+        sample = sample.compute()
+        first = sample.isel(time=get_first_occurrence_index(sample)).time
+        value_reversed_time = sample[::-1, :, :]
+        last = sample.isel(time=get_first_occurrence_index(value_reversed_time)).time
         acc.append(
             DataArray(
-                data=value.sum(dim="time"),
+                data=sample.sum(dim="time"),
                 dims=["lat", "lon"],
                 coords=dict(
                     time=label,
-                    lat=value.lat,
-                    lon=value.lon,
+                    lat=sample.lat,
+                    lon=sample.lon,
                     event_date_start=first,
                     event_date_end=last,
                 ),
