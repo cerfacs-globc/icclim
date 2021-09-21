@@ -138,7 +138,6 @@ def _get_frequency_from_list(slice_mode_list: List) -> Frequency:
         custom_freq.description = f"monthly time series (months: {months})"
     elif sampling_freq == "season":
         if months is Tuple:
-            # TODO we could deprecate the Tuple input, because we now support [11,12,1] and it will avoid the need of concat here
             month_list = months[1] + months[0]
             custom_freq.resampler = seasons_resampler(month_list)
             custom_freq.description = f"seasonal time series (season: {month_list})"

@@ -313,7 +313,6 @@ def r75p(config: IndiceConfig) -> DataArray:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-        # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -334,7 +333,6 @@ def r75ptot(config: IndiceConfig) -> DataArray:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-        # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -653,10 +651,12 @@ def _add_celsius_suffix(threshold: Optional[Union[str, float, int]]) -> Optional
 
 
 def _can_run_bootstrap(config: IndiceConfig) -> bool:
+    # TODO add warning if the percentile is not close to 0 or 99 ?
+    # TODO add warning if unit is not ?
     run_bootstrap = config.cf_variables[0].in_base_da is not None
     if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
         raise Exception(
             "The bootstrapping can only use hyndman_fan method 8 (MEDIAN_UNBIASED)"
-            "to compute the percentiles"
+            "to compute the percentiles."
         )
     return run_bootstrap
