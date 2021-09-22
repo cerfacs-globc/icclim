@@ -1,5 +1,7 @@
 from enum import Enum
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
+
 
 class NetcdfVersion(Enum):
     NETCDF4 = "NETCDF4"
@@ -12,4 +14,4 @@ def get_netcdf_version(s: str):
     for version in NetcdfVersion:
         if version.name.upper() == s.upper():
             return version
-    raise Exception(f"Unknown netcdf version {s}")
+    raise InvalidIcclimArgumentError(f"Unknown netcdf version {s}")

@@ -7,6 +7,7 @@ from xclim import atmos, land
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
@@ -633,7 +634,7 @@ def indice_from_string(s: str) -> Indice:
     for e in Indice:
         if e.indice_name.upper() == indice_to_check:
             return e
-    raise Exception(f"Unknown indice {s}")
+    raise InvalidIcclimArgumentError(f"Unknown indice {s}")
 
 
 def _add_celsius_suffix(threshold: Optional[Union[str, float, int]]) -> Optional[str]:
@@ -647,7 +648,7 @@ def _can_run_bootstrap(config: IndiceConfig) -> bool:
     # TODO add warning if doing bootstrap on precipitations ?
     run_bootstrap = config.cf_variables[0].in_base_da is not None
     if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
-        raise Exception(
+        raise InvalidIcclimArgumentError(
             "When bootstrapping, the interpolation must be MEDIAN_UNBIASED."
             f" Here it was {config.interpolation}."
         )

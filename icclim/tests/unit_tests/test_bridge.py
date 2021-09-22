@@ -1,3 +1,6 @@
+import pytest
+
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import CfVariable
 from icclim.models.user_indice_config import (
@@ -6,10 +9,20 @@ from icclim.models.user_indice_config import (
     LogicalOperation,
 )
 from icclim.tests.unit_tests.test_utils import stub_pr, stub_tas, stub_user_indice
-from icclim.user_indices.bridge import compute_user_indice
+from icclim.user_indices.bridge import CalcOperation, compute_user_indice
 
 
 class Test_compute:
+    def test_error_bad_operation(self):
+        # GIVEN
+        cf_var = CfVariable(stub_tas())
+        user_indice = stub_user_indice([cf_var])
+        user_indice.calc_operation = "pouet pouet"
+        user_indice.freq = Frequency.MONTH
+        # WHEN
+        with pytest.raises(InvalidIcclimArgumentError):
+            compute_user_indice(user_indice)
+
     def test_simple(self):
         # GIVEN
         cf_var = CfVariable(stub_tas())
@@ -28,7 +41,7 @@ class Test_compute:
         cf_var.da.data[366 + 15 : 366 + 30] = 2  # Ignore because not in base
         cf_var.in_base_da = cf_var.da.sel(time=cf_var.da.time.dt.year == 2042)
         user_indice = stub_user_indice([cf_var])
-        user_indice.calc_operation = "min"
+        user_indice.calc_operation = CalcOperation.MIN
         user_indice.thresh = "90p"
         user_indice.logical_operation = LogicalOperation.GREATER_OR_EQUAL_THAN
         user_indice.var_type = PRECIPITATION

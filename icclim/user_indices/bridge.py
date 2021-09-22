@@ -1,32 +1,32 @@
 from enum import Enum
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, Union
 
 from xarray.core.dataarray import DataArray
 
-from icclim.models.indice_config import CfVariable
+from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError
 from icclim.models.user_indice_config import UserIndiceConfig
 from icclim.user_indices import operators
 
 
 def compute_user_indice(config: UserIndiceConfig) -> DataArray:
-    operation = None
+    operation = _get_calc_operation(config)
+    return operation.compute_fun(config)
+
+
+def _get_calc_operation(config: UserIndiceConfig):
     if isinstance(config.calc_operation, CalcOperation):
-        operation = config.calc_operation
+        return config.calc_operation
     for calc_op in CalcOperation:
         if calc_op.input_name.upper() == config.calc_operation.upper():
-            operation = calc_op
-            break
-    if operation is None:
-        raise NotImplementedError(
-            f"The calc_operation {config.calc_operation} is unknown."
-        )
-    else:
-        return operation.compute_fun(config)
+            return calc_op
+    raise InvalidIcclimArgumentError(
+        f"The calc_operation {config.calc_operation} is unknown."
+    )
 
 
 def anomaly(config: UserIndiceConfig):
     if config.da_ref is None:
-        raise Exception(
+        raise MissingIcclimInputError(
             f"You must provide a in base to compute {CalcOperation.ANOMALY.value}."
         )
     return operators.anomaly(
@@ -38,7 +38,9 @@ def anomaly(config: UserIndiceConfig):
 
 def run_sum(config: UserIndiceConfig):
     if config.extreme_mode is None or config.window_width is None:
-        raise Exception("Please provide a extreme mode and a window width")
+        raise MissingIcclimInputError(
+            "Please provide a extreme mode and a window width."
+        )
     return operators.run_sum(
         da=config.cf_vars[0].da,
         extreme_mode=config.extreme_mode,
@@ -51,7 +53,9 @@ def run_sum(config: UserIndiceConfig):
 
 def run_mean(config: UserIndiceConfig):
     if config.extreme_mode is None or config.window_width is None:
-        raise Exception("Please provide a extreme mode and a window width")
+        raise MissingIcclimInputError(
+            "Please provide a extreme mode and a window width."
+        )
     return operators.run_mean(
         da=config.cf_vars[0].da,
         extreme_mode=config.extreme_mode,
@@ -64,10 +68,13 @@ def run_mean(config: UserIndiceConfig):
 
 def max_consecutive_event_count(config: UserIndiceConfig):
     if config.logical_operation is None or config.thresh is None:
-        raise Exception("Please provide a threshold and a logical operation")
+        raise MissingIcclimInputError(
+            "Please provide a threshold and a logical operation."
+        )
     if isinstance(config.thresh, list):
-        raise Exception(
-            f"{CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} does not support threshold list. Please provide a single threshold"
+        raise InvalidIcclimArgumentError(
+            f"{CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} does not support threshold list. "
+            f"Please provide a single threshold"
         )
     return operators.max_consecutive_event_count(
         da=config.cf_vars[0].da,
@@ -82,8 +89,9 @@ def max_consecutive_event_count(config: UserIndiceConfig):
 
 def count_events(config: UserIndiceConfig):
     if config.nb_event_config is None:
-        raise Exception(
-            f"{CalcOperation.EVENT_COUNT.value} not properly configure. Please provide a threshold and a logical operation."
+        raise MissingIcclimInputError(
+            f"{CalcOperation.EVENT_COUNT.value} not properly configure."
+            f" Please provide a threshold and a logical operation."
         )
     return operators.count_events(
         das=list(map(lambda x: x.da, config.cf_vars)),
@@ -99,8 +107,8 @@ def count_events(config: UserIndiceConfig):
 
 def sum(config: UserIndiceConfig):
     return operators.sum(
-        da=_check_and_get_da(config.cf_vars),
-        in_base_da=_check_and_get_in_base_da(config.cf_vars),
+        da=_check_and_get_da(config),
+        in_base_da=_check_and_get_in_base_da(config),
         coef=config.coef,
         logical_operation=config.logical_operation,
         threshold=_check_and_get_simple_threshold(config.thresh),
@@ -110,8 +118,8 @@ def sum(config: UserIndiceConfig):
 
 def mean(config: UserIndiceConfig):
     return operators.mean(
-        da=_check_and_get_da(config.cf_vars),
-        in_base_da=_check_and_get_in_base_da(config.cf_vars),
+        da=_check_and_get_da(config),
+        in_base_da=_check_and_get_in_base_da(config),
         coef=config.coef,
         logical_operation=config.logical_operation,
         threshold=_check_and_get_simple_threshold(config.thresh),
@@ -121,8 +129,8 @@ def mean(config: UserIndiceConfig):
 
 def min(config: UserIndiceConfig):
     return operators.min(
-        da=_check_and_get_da(config.cf_vars),
-        in_base_da=_check_and_get_in_base_da(config.cf_vars),
+        da=_check_and_get_da(config),
+        in_base_da=_check_and_get_in_base_da(config),
         coef=config.coef,
         logical_operation=config.logical_operation,
         threshold=_check_and_get_simple_threshold(config.thresh),
@@ -133,8 +141,8 @@ def min(config: UserIndiceConfig):
 
 def max(config: UserIndiceConfig):
     return operators.max(
-        da=_check_and_get_da(config.cf_vars),
-        in_base_da=_check_and_get_in_base_da(config.cf_vars),
+        da=_check_and_get_da(config),
+        in_base_da=_check_and_get_in_base_da(config),
         coef=config.coef,
         logical_operation=config.logical_operation,
         threshold=_check_and_get_simple_threshold(config.thresh),
@@ -152,23 +160,27 @@ def _check_and_get_simple_threshold(thresh: Any) -> Union[None, str, float, int]
     ):
         return thresh
     else:
-        raise Exception(
-            "threshold type must be either None, a string (for percentiles) or a number"
+        raise InvalidIcclimArgumentError(
+            "threshold type must be either None, a string (for percentiles) or a number."
         )
 
 
-def _check_and_get_da(cf_vars: List[CfVariable]) -> DataArray:
-    if len(cf_vars) == 1:
-        return cf_vars[0].da
+def _check_and_get_da(config: UserIndiceConfig) -> DataArray:
+    if len(config.cf_vars) == 1:
+        return config.cf_vars[0].da
     else:
-        raise Exception("There must be exactly one variable for this indice.")
+        raise InvalidIcclimArgumentError(
+            f"There must be exactly one variable for {config.calc_operation}."
+        )
 
 
-def _check_and_get_in_base_da(cf_vars: List[CfVariable]) -> Union[DataArray, None]:
-    if len(cf_vars) == 1:
-        return cf_vars[0].in_base_da
+def _check_and_get_in_base_da(config: UserIndiceConfig) -> Union[DataArray, None]:
+    if len(config.cf_vars) == 1:
+        return config.cf_vars[0].in_base_da
     else:
-        raise Exception("There must be exactly one variable for this indice.")
+        raise InvalidIcclimArgumentError(
+            f"There must be exactly one variable for {config.calc_operation}"
+        )
 
 
 class CalcOperation(Enum):

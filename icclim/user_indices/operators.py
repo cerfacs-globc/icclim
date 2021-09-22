@@ -12,6 +12,10 @@ from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
 from icclim.eca_indices import PERCENTILES_COORD
+from icclim.icclim_exceptions import (
+    InvalidIcclimArgumentError,
+    InvalidIcclimOutputError,
+)
 from icclim.models.user_indice_config import (
     PERCENTILE_THRESHOLD_STAMP,
     PRECIPITATION,
@@ -319,7 +323,7 @@ def _filter_by_threshold(
             "threshold type must be on of [str, int, float] and logical_operation must a LogicalOperation instance"
         )
     if len(result) == 0:
-        raise Exception(
+        raise InvalidIcclimOutputError(
             f"The dataset has been emptied by filtering with {logical_operation.operator}{threshold}."
         )
     return result
@@ -359,8 +363,7 @@ def _get_percentiles(
     thresh: str, var_type: Optional[str], in_base_da: DataArray
 ) -> DataArray:
     if thresh.find(PERCENTILE_THRESHOLD_STAMP) == -1:
-        # TODO create a UserInputException
-        raise Exception(
+        raise InvalidIcclimArgumentError(
             "Percentile threshold not properly formatted."
             " Use p as a prefix or suffix of the value for example 90p or p90."
             " For non percentile threshold use a float instead of a string"

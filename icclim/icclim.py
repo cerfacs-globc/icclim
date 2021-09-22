@@ -11,8 +11,8 @@ import xarray
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim import eca_indices
-from icclim.eca_indices import Indice, IndiceConfig
+from icclim.eca_indices import Indice, IndiceConfig, indice_from_string
+from icclim.icclim_exceptions import MissingIcclimInputError
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -131,7 +131,7 @@ def _build_basic_indice_dataset(
 ) -> Dataset:
     if indice_name is None:
         # user input error, avoid doing all computations for nothing
-        raise Exception("indice_name must be provided.")
+        raise MissingIcclimInputError("indice_name must be provided.")
     if isinstance(threshold, list):
         ds_list = []
         for th in threshold:
@@ -192,7 +192,7 @@ def _compute_basic_indice(
     indice_name: str, config: IndiceConfig, current_history: str
 ) -> Dataset:
     result_ds = Dataset()
-    indice_to_compute = eca_indices.indice_from_string(indice_name)
+    indice_to_compute = indice_from_string(indice_name)
     da = indice_to_compute.compute(config)
     da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:

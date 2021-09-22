@@ -2,6 +2,7 @@ import pytest
 from xarray import Dataset
 
 from icclim.eca_indices import Indice, indice_from_string, tn10p
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.netcdf_version import NetcdfVersion
@@ -19,7 +20,7 @@ class Test_indice_from_string:
         assert res == Indice.TX90P
 
     def test_error(self):
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidIcclimArgumentError):
             indice_from_string("cacahuête")
 
 
@@ -38,7 +39,7 @@ def test_tn10p_interpolation_error(use_dask):
         ],
         window_width=2,
     )
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidIcclimArgumentError):
         tn10p(conf)
 
 
@@ -57,6 +58,7 @@ def test_tn10p(use_dask):
         ],
         window_width=2,
         interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
+        save_percentile=True,
     )
     res = tn10p(conf)
     assert res is not None

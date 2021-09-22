@@ -6,6 +6,7 @@ import xarray
 from xarray import DataArray, Dataset
 from xclim.core import calendar
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency, SliceMode, build_frequency
 from icclim.models.netcdf_version import NetcdfVersion, get_netcdf_version
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -102,7 +103,11 @@ def _build_data_array(
 ) -> DataArray:
     if time_range is not None:
         if len(time_range) != 2:
-            raise Exception("Not a valid time range")
+            raise InvalidIcclimArgumentError(
+                f"The given time_range {time_range}"
+                f" has a length of {len(time_range)}."
+                f" It must be exactly a length of 2."
+            )
         da = da.sel(time=slice(time_range[0], time_range[1]))
     if ignore_Feb29th:
         da = calendar.convert_calendar(da, "noleap")  # type:ignore
@@ -118,7 +123,11 @@ def _build_in_base_da(
     transfer_limit_Mbytes: Optional[int],
 ) -> DataArray:
     if len(base_period_time_range) != 2:
-        raise Exception("Not a valid time range")
+        raise InvalidIcclimArgumentError(
+            f"The given time_range {base_period_time_range}"
+            f" has a length of {len(base_period_time_range)}."
+            f" It must be exactly a length of 2."
+        )
     da = da.sel(time=slice(base_period_time_range[0], base_period_time_range[1]))
     if only_leap_years:
         da = _reduce_only_leap_years(da)
@@ -145,7 +154,7 @@ def _reduce_only_leap_years(da: DataArray) -> DataArray:
         if val.time.dt.dayofyear.max() == 366:
             reduced_list.append(val)
     if reduced_list == []:
-        raise Exception(
+        raise InvalidIcclimArgumentError(
             "No leap year in current dataset. Do not use only_leap_years parameter."
         )
     return xarray.concat(reduced_list, "time")
