@@ -3,16 +3,25 @@ from typing import Any, Callable, List, Union
 
 from xarray.core.dataarray import DataArray
 
-from icclim.models.indice_config import CfVariable, IndiceConfig
+from icclim.models.indice_config import CfVariable
 from icclim.models.user_indice_config import UserIndiceConfig
 from icclim.user_indices import operators
 
 
 def compute_user_indice(config: UserIndiceConfig) -> DataArray:
+    operation = None
+    if isinstance(config.calc_operation, CalcOperation):
+        operation = config.calc_operation
     for calc_op in CalcOperation:
         if calc_op.input_name.upper() == config.calc_operation.upper():
-            return calc_op.compute_fun(config)
-    raise NotImplementedError(f"The calc_operation {config.calc_operation} is unknown.")
+            operation = calc_op
+            break
+    if operation is None:
+        raise NotImplementedError(
+            f"The calc_operation {config.calc_operation} is unknown."
+        )
+    else:
+        return operation.compute_fun(config)
 
 
 def anomaly(config: UserIndiceConfig):
@@ -177,7 +186,7 @@ class CalcOperation(Enum):
     ANOMALY = ("anomaly", anomaly)
 
     def __init__(
-        self, input_name: str, compute_fun: Callable[[IndiceConfig], DataArray]
+        self, input_name: str, compute_fun: Callable[[UserIndiceConfig], DataArray]
     ):
         self.input_name = input_name
         self.compute_fun = compute_fun

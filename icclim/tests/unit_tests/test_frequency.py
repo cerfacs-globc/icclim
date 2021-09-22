@@ -8,7 +8,7 @@ from icclim.models.frequency import (
     month_filter,
     seasons_resampler,
 )
-from icclim.tests.unit_tests.stubs import stub_tas
+from icclim.tests.unit_tests.test_utils import stub_tas
 
 
 class Test_build_frequency_over_frequency:

@@ -5,7 +5,7 @@ from icclim.models.user_indice_config import (
     TEMPERATURE,
     LogicalOperation,
 )
-from icclim.tests.unit_tests.stubs import stub_pr, stub_tas, stub_user_indice
+from icclim.tests.unit_tests.test_utils import stub_pr, stub_tas, stub_user_indice
 from icclim.user_indices.bridge import compute_user_indice
 
 
@@ -13,11 +13,11 @@ class Test_compute:
     def test_simple(self):
         # GIVEN
         cf_var = CfVariable(stub_tas())
-        stub = stub_user_indice([cf_var])
-        stub.calc_operation = "max"
-        stub.freq = Frequency.MONTH
+        user_indice = stub_user_indice([cf_var])
+        user_indice.calc_operation = "max"
+        user_indice.freq = Frequency.MONTH
         # WHEN
-        result = compute_user_indice(stub)
+        result = compute_user_indice(user_indice)
         # THEN
         assert result.data[0] == 1
 

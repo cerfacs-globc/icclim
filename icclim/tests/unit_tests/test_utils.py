@@ -22,13 +22,16 @@ def stub_user_indice(cf_vars: List[CfVariable]):
     )
 
 
-def stub_tas(value: float = 1):
-    return xarray.DataArray(
+def stub_tas(value: float = 1, use_dask=False):
+    da = xarray.DataArray(
         data=(np.full(VALUE_COUNT, value).reshape((VALUE_COUNT, 1, 1))),
         dims=["time", "lat", "lon"],
         coords=COORDS,
         attrs={"units": "K"},
     )
+    if use_dask:
+        da.chunk()
+    return da
 
 
 def stub_pr(value: float):

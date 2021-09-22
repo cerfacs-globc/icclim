@@ -644,11 +644,11 @@ def _add_celsius_suffix(threshold: Optional[Union[str, float, int]]) -> Optional
 
 def _can_run_bootstrap(config: IndiceConfig) -> bool:
     # TODO add warning if the percentile is not close to 0 or 99 ?
-    # TODO add warning if unit is not ?
+    # TODO add warning if doing bootstrap on precipitations ?
     run_bootstrap = config.cf_variables[0].in_base_da is not None
     if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
         raise Exception(
-            "The bootstrapping can only use hyndman_fan method 8 (MEDIAN_UNBIASED)"
-            "to compute the percentiles."
+            "When bootstrapping, the interpolation must be MEDIAN_UNBIASED."
+            f" Here it was {config.interpolation}."
         )
     return run_bootstrap

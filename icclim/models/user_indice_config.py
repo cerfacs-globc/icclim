@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 from xarray.core.dataarray import DataArray
 
@@ -73,7 +73,8 @@ class UserIndiceConfig:
     def __init__(
         self,
         indice_name,
-        calc_operation,
+        # Any should be CalcOperation but it causes circular import
+        calc_operation: Union[str, Any],
         freq: Frequency,
         cf_vars: List[CfVariable],
         logical_operation: str = None,

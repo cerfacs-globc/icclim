@@ -1,10 +1,12 @@
 import pytest
-from models.netcdf_version import NetcdfVersion
+from xarray import Dataset
 
 from icclim.eca_indices import Indice, indice_from_string, tn10p
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import IndiceConfig
-from icclim.tests.unit_tests.stubs import stub_tas
+from icclim.models.netcdf_version import NetcdfVersion
+from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.tests.unit_tests.test_utils import stub_tas
 
 
 class Test_indice_from_string:
@@ -21,19 +23,40 @@ class Test_indice_from_string:
             indice_from_string("cacahuête")
 
 
-def test_tn10p():
-    da = stub_tas()
+@pytest.mark.parametrize("use_dask", [True, False])
+def test_tn10p_interpolation_error(use_dask):
+    ds = Dataset()
+    ds["tas"] = stub_tas(use_dask=use_dask)
     conf = IndiceConfig(
-        ds=da,
+        ds=ds,
         slice_mode=Frequency.MONTH,
-        var_name=[""],
+        var_name=["tas"],
         netcdf_version=NetcdfVersion.NETCDF4,
         base_period_time_range=[
-            da.time.values[0].astype("M8[D]").astype("O"),
-            da.time.values[-1].astype("M8[D]").astype("O"),
+            ds.time.values[0].astype("M8[D]").astype("O"),
+            ds.time.values[-1].astype("M8[D]").astype("O"),
         ],
         window_width=2,
-        save_percentile=True,
+    )
+    with pytest.raises(Exception):
+        tn10p(conf)
+
+
+@pytest.mark.parametrize("use_dask", [True, False])
+def test_tn10p(use_dask):
+    ds = Dataset()
+    ds["tas"] = stub_tas(use_dask=use_dask)
+    conf = IndiceConfig(
+        ds=ds,
+        slice_mode=Frequency.MONTH,
+        var_name=["tas"],
+        netcdf_version=NetcdfVersion.NETCDF4,
+        base_period_time_range=[
+            ds.time.values[0].astype("M8[D]").astype("O"),
+            ds.time.values[-1].astype("M8[D]").astype("O"),
+        ],
+        window_width=2,
+        interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
     )
     res = tn10p(conf)
     assert res is not None
