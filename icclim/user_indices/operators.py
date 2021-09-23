@@ -1,6 +1,8 @@
 from functools import reduce
 from typing import Any, Callable, List, Optional, Union
+from warnings import warn
 
+import dask.array
 import numpy as np
 import xarray
 from xarray.core.dataarray import DataArray
@@ -10,6 +12,10 @@ from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
 from icclim.eca_indices import PERCENTILES_COORD
+from icclim.icclim_exceptions import (
+    InvalidIcclimArgumentError,
+    InvalidIcclimOutputError,
+)
 from icclim.models.user_indice_config import (
     PERCENTILE_THRESHOLD_STAMP,
     PRECIPITATION,
@@ -19,7 +25,10 @@ from icclim.models.user_indice_config import (
     LinkLogicalOperation,
     LogicalOperation,
 )
-from icclim.user_indices.stat import get_first_occurrence, get_longest_run_start_index
+from icclim.user_indices.stat import (
+    get_first_occurrence_index,
+    get_longest_run_start_index,
+)
 
 
 def max(
@@ -49,7 +58,7 @@ def max(
             resampled, lambda x: x.argmax("time", keep_attrs=True)  # type:ignore
         )
     else:
-        return result.max(dim="time", keep_attrs=True)
+        return resampled.max(dim="time", keep_attrs=True)
 
 
 def min(
@@ -79,7 +88,7 @@ def min(
             resampled, lambda x: x.argmin("time", keep_attrs=True)  # type:ignore
         )
     else:
-        return result.min(dim="time", keep_attrs=True)
+        return resampled.min(dim="time", keep_attrs=True)
 
 
 def sum(
@@ -314,7 +323,7 @@ def _filter_by_threshold(
             "threshold type must be on of [str, int, float] and logical_operation must a LogicalOperation instance"
         )
     if len(result) == 0:
-        raise Exception(
+        raise InvalidIcclimOutputError(
             f"The dataset has been emptied by filtering with {logical_operation.operator}{threshold}."
         )
     return result
@@ -330,12 +339,11 @@ def _filter_by_logical_op_on_percentile(
 ) -> DataArray:
     if logical_operation is not None and percentiles is not None:
         percentiles = resample_doy(percentiles, da)
-        filtered = logical_operation.compute(da, percentiles)
-        filtered = filtered.where(filtered, drop=True)
-        # if bootstrap: # TODO uncomment once fixed on xclim
-        result = da.expand_dims(_bootstrap=filtered._bootstrap)
-        #  end if
-        return result.sel(time=filtered.time)
+        mask = logical_operation.compute(da, percentiles)
+        result = da.where(mask, drop=True)
+        if bootstrap:
+            result = da.expand_dims(_bootstrap=result._bootstrap)
+        return result
     return da
 
 
@@ -355,9 +363,10 @@ def _get_percentiles(
     thresh: str, var_type: Optional[str], in_base_da: DataArray
 ) -> DataArray:
     if thresh.find(PERCENTILE_THRESHOLD_STAMP) == -1:
-        raise Exception(
-            # TODO create a UserInputException
-            "Percentile threshold not properly formatted. Use p as a prefix or suffix of the value for example 90p or p90. For non percentile threshold use a float instead of a string"
+        raise InvalidIcclimArgumentError(
+            "Percentile threshold not properly formatted."
+            " Use p as a prefix or suffix of the value for example 90p or p90."
+            " For non percentile threshold use a float instead of a string"
         )
     per = float(thresh.replace(PERCENTILE_THRESHOLD_STAMP, ""))
     da_per = in_base_da
@@ -430,20 +439,25 @@ def _reduce_with_date_event(
 
 
 def _get_count_events_date_event(resampled):
+    if isinstance(resampled, dask.array.Array):
+        warn("Computing event_date_start/end when using Dask arrays can be slow.")
     acc: List[DataArray] = []
-    for label, value in resampled:
-        # TODO cannot work with dask arrays because of https://github.com/pydata/xarray/issues/2511
-        first = value.isel(time=get_first_occurrence(value)).time
-        value_reversed_time = value[::-1, :, :]
-        last = value.isel(time=get_first_occurrence(value_reversed_time)).time
+    for label, sample in resampled:
+        # Fixme probably not safe to compute on huge dataset,
+        #  it should be fixed with
+        #  https://github.com/pydata/xarray/issues/2511
+        sample = sample.compute()
+        first = sample.isel(time=get_first_occurrence_index(sample)).time
+        value_reversed_time = sample[::-1, :, :]
+        last = sample.isel(time=get_first_occurrence_index(value_reversed_time)).time
         acc.append(
             DataArray(
-                data=value.sum(dim="time"),
+                data=sample.sum(dim="time"),
                 dims=["lat", "lon"],
                 coords=dict(
                     time=label,
-                    lat=value.lat,
-                    lon=value.lon,
+                    lat=sample.lat,
+                    lon=sample.lon,
                     event_date_start=first,
                     event_date_end=last,
                 ),

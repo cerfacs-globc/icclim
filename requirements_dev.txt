@@ -1,7 +1,9 @@
-pip
-flake8
 black
+flake8
 isort
-pylint
+pip
 pre-commit>=2.9
+pylint
 pytest
+pytest-cov
+setuptools>=49.6.0

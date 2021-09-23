@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 from xarray.core.dataarray import DataArray
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import CfVariable
 
@@ -51,6 +52,7 @@ class NbEventConfig:
     data_arrays: Optional[List[CfVariable]] = None
 
 
+@dataclass
 class UserIndiceConfig:
     indice_name: str
     calc_operation: str
@@ -72,7 +74,8 @@ class UserIndiceConfig:
     def __init__(
         self,
         indice_name,
-        calc_operation,
+        # Any should be CalcOperation but it causes circular import
+        calc_operation: Union[str, Any],
         freq: Frequency,
         cf_vars: List[CfVariable],
         logical_operation: str = None,
@@ -112,21 +115,30 @@ def get_logical_operation(s: str) -> LogicalOperation:
     for op in LogicalOperation:
         if s.upper() in map(str.upper, op.accepted_input):
             return op
-    raise Exception(f"Unknown operator {s}")
+    raise InvalidIcclimArgumentError(
+        f"Unknown logical operator {s}."
+        f"Use one of {[op.accepted_input for op in LogicalOperation]}."
+    )
 
 
 def get_extreme_mode(s: str) -> ExtremeMode:
     for mode in ExtremeMode:
         if s.upper == mode.value.upper():
             return mode
-    raise Exception(f"Unknown extreme mode {s}")
+    raise InvalidIcclimArgumentError(
+        f"Unknown extreme mode {s}."
+        f"Use one of {[mode.value for mode in ExtremeMode]}."
+    )
 
 
 def get_link_logical_operations(s: str) -> LinkLogicalOperation:
     for mode in LinkLogicalOperation:
         if s.upper == mode.value.upper():
             return mode
-    raise Exception(f"Unknown link_logical_operation mode {s}")
+    raise InvalidIcclimArgumentError(
+        f"Unknown link_logical_operation mode {s}."
+        f"Use one of {[linkOp.value for linkOp in LinkLogicalOperation]}."
+    )
 
 
 def get_nb_event_conf(

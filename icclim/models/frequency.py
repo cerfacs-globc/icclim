@@ -6,8 +6,10 @@ import pandas
 import xarray
 from xarray.core.dataarray import DataArray
 
-
 # month_list must be ordered from first month of season to the last. Example: [11, 1, 2,4]
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
+
+
 def seasons_resampler(
     month_list: List[int],
 ) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
@@ -115,7 +117,10 @@ def build_frequency(slice_mode: SliceMode) -> Frequency:
         return _get_frequency_from_string(slice_mode)
     if isinstance(slice_mode, list):
         return _get_frequency_from_list(slice_mode)
-    raise Exception(f"Unknown frequency {slice_mode}")
+    raise InvalidIcclimArgumentError(
+        f"Unknown frequency {slice_mode}."
+        f"Use a Frequency from {[f for f in Frequency]}"
+    )
 
 
 def _get_frequency_from_string(slice_mode: str) -> Frequency:
@@ -124,12 +129,16 @@ def _get_frequency_from_string(slice_mode: str) -> Frequency:
             str.upper, freq.accepted_values
         ):
             return freq
-    raise Exception(f"Unknown frequency {slice_mode}")
+    raise InvalidIcclimArgumentError(f"Unknown frequency {slice_mode}.")
 
 
 def _get_frequency_from_list(slice_mode_list: List) -> Frequency:
     if len(slice_mode_list) < 2:
-        raise Exception(f"Unknown frequency {slice_mode_list}")
+        raise InvalidIcclimArgumentError(
+            f"The given slice list {slice_mode_list}"
+            f" has a length of {len(slice_mode_list)}."
+            f" The maximum length here is 2."
+        )
     sampling_freq = slice_mode_list[0]
     months = slice_mode_list[1]
     custom_freq = Frequency.CUSTOM
@@ -138,7 +147,6 @@ def _get_frequency_from_list(slice_mode_list: List) -> Frequency:
         custom_freq.description = f"monthly time series (months: {months})"
     elif sampling_freq == "season":
         if months is Tuple:
-            # TODO we could deprecate the Tuple input, because we now support [11,12,1] and it will avoid the need of concat here
             month_list = months[1] + months[0]
             custom_freq.resampler = seasons_resampler(month_list)
             custom_freq.description = f"seasonal time series (season: {month_list})"
@@ -146,5 +154,8 @@ def _get_frequency_from_list(slice_mode_list: List) -> Frequency:
             custom_freq.resampler = seasons_resampler(months)
             custom_freq.description = f"seasonal time series (season: {months})"
     else:
-        raise Exception(f"Unknown frequency {slice_mode_list}")
+        raise InvalidIcclimArgumentError(
+            f"Unknown frequency {slice_mode_list}. "
+            "The sampling frequency must be one of {'season', 'month'}"
+        )
     return custom_freq

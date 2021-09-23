@@ -7,6 +7,7 @@ from xclim import atmos, land
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
@@ -54,8 +55,7 @@ def id(config: IndiceConfig) -> DataArray:
 
 
 def csdi(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -64,7 +64,7 @@ def csdi(config: IndiceConfig) -> DataArray:
         per_10,
         window=6,
         freq=config.freq.panda_freq,
-        bootstrap=True,
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per_10, result)
@@ -72,8 +72,7 @@ def csdi(config: IndiceConfig) -> DataArray:
 
 
 def tg10p(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -81,7 +80,7 @@ def tg10p(config: IndiceConfig) -> DataArray:
         config.cf_variables[0].da,
         per_10,
         config.freq.panda_freq,
-        True,
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per_10, result)
@@ -89,8 +88,7 @@ def tg10p(config: IndiceConfig) -> DataArray:
 
 
 def tn10p(config: IndiceConfig) -> Dataset:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -98,7 +96,7 @@ def tn10p(config: IndiceConfig) -> Dataset:
         config.cf_variables[0].da,
         per_10,
         config.freq.panda_freq,
-        True,
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per_10, result)
@@ -106,8 +104,7 @@ def tn10p(config: IndiceConfig) -> Dataset:
 
 
 def tx10p(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
@@ -115,7 +112,7 @@ def tx10p(config: IndiceConfig) -> DataArray:
         config.cf_variables[0].da,
         per_10,
         config.freq.panda_freq,
-        True,
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per_10, result)
@@ -153,8 +150,7 @@ def tr(config: IndiceConfig) -> DataArray:
 
 
 def wsdi(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
@@ -163,7 +159,7 @@ def wsdi(config: IndiceConfig) -> DataArray:
         per_90,
         6,
         config.freq.panda_freq,
-        True,
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per_90, result)
@@ -171,8 +167,7 @@ def wsdi(config: IndiceConfig) -> DataArray:
 
 
 def tg90p(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
@@ -180,7 +175,7 @@ def tg90p(config: IndiceConfig) -> DataArray:
         config.cf_variables[0].da,
         per_90,
         config.freq.panda_freq,
-        True,
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per_90, result)
@@ -191,8 +186,7 @@ def tg90p(config: IndiceConfig) -> DataArray:
 
 
 def tn90p(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
@@ -200,7 +194,7 @@ def tn90p(config: IndiceConfig) -> DataArray:
         config.cf_variables[0].da,
         per_90,
         config.freq.panda_freq,
-        True,
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per_90, result)
@@ -211,16 +205,21 @@ def tn90p(config: IndiceConfig) -> DataArray:
 
 
 def tx90p(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
-    per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
-        percentiles=90
+    run_bootstrap = _can_run_bootstrap(config)
+    per_90 = percentile_doy(
+        config.cf_variables[0].in_base_da,
+        config.window,
+        90,
+        config.interpolation.alpha,
+        config.interpolation.beta,
     )
     result = atmos.tx90p(
-        config.cf_variables[0].da,
-        per_90,
-        config.freq.panda_freq,
-        True,
+        tasmax=config.cf_variables[0].da,
+        t90=per_90,
+        freq=config.freq.panda_freq,
+        bootstrap=run_bootstrap,
+        # TODO to do on xclim as either a stand alone param or refactor bootstrap param to be a config object
+        # interpolation= interpolation
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per_90, result)
@@ -295,8 +294,7 @@ def rx5day(config: IndiceConfig) -> DataArray:
 
 
 def r75p(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 75).sel(
         percentiles=75
     )
@@ -305,8 +303,7 @@ def r75p(config: IndiceConfig) -> DataArray:
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=True,
-        # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -317,8 +314,7 @@ def r75p(config: IndiceConfig) -> DataArray:
 
 
 def r75ptot(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 75).sel(
         percentiles=75
     )
@@ -327,8 +323,7 @@ def r75ptot(config: IndiceConfig) -> DataArray:
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=True,
-        # TODO maybe it's not a good idea to bootstrap on precipitations, especially in percentiles so far from 99
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -339,8 +334,7 @@ def r75ptot(config: IndiceConfig) -> DataArray:
 
 
 def r95p(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 95).sel(
         percentiles=95
     )
@@ -349,7 +343,7 @@ def r95p(config: IndiceConfig) -> DataArray:
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -360,8 +354,7 @@ def r95p(config: IndiceConfig) -> DataArray:
 
 
 def r95ptot(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 95).sel(
         percentiles=95
     )
@@ -370,7 +363,7 @@ def r95ptot(config: IndiceConfig) -> DataArray:
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -381,8 +374,7 @@ def r95ptot(config: IndiceConfig) -> DataArray:
 
 
 def r99p(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 99).sel(
         percentiles=99
     )
@@ -391,7 +383,7 @@ def r99p(config: IndiceConfig) -> DataArray:
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -402,8 +394,7 @@ def r99p(config: IndiceConfig) -> DataArray:
 
 
 def r99ptot(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
+    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 99).sel(
         percentiles=99
     )
@@ -412,7 +403,7 @@ def r99ptot(config: IndiceConfig) -> DataArray:
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=True,  # TODO maybe it's not a good idea to bootstrap on precipitations
+        bootstrap=run_bootstrap,
     )
     if config.save_percentile:
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
@@ -481,15 +472,11 @@ def vdtr(config: IndiceConfig) -> DataArray:
 
 
 def cd(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
     tas_per = percentile_doy(
         config.cf_variables[0].in_base_da, window=config.window, per=25
     ).sel(percentiles=25)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
     pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -505,15 +492,11 @@ def cd(config: IndiceConfig) -> DataArray:
 
 
 def cw(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
     tas_per = percentile_doy(
         config.cf_variables[0].in_base_da, window=config.window, per=25
     ).sel(percentiles=25)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
     pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -529,15 +512,11 @@ def cw(config: IndiceConfig) -> DataArray:
 
 
 def wd(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
     tas_per = percentile_doy(
         config.cf_variables[0].in_base_da, window=config.window, per=75
     ).sel(percentiles=75)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
     pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -553,15 +532,11 @@ def wd(config: IndiceConfig) -> DataArray:
 
 
 def ww(config: IndiceConfig) -> DataArray:
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
     tas_per = percentile_doy(
         config.cf_variables[0].in_base_da, window=config.window, per=75
     ).sel(percentiles=75)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
-    if config.interpolation == QuantileInterpolation.MEDIAN_UNBIASED:
-        raise NotImplementedError("hyndman and fan method is not yet implemented")
     pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -576,63 +551,72 @@ def ww(config: IndiceConfig) -> DataArray:
     return result
 
 
+TEMPERATURE_GROUP = "temperature"
+HEAT_GROUP = "heat"
+COLD_GROUP = "cold"
+DROUGHT_GROUP = "drought"
+RAIN_GROUP = "rain"
+SNOW_GROUP = "snow"
+COMPOUND_GROUP = "compound"
+
+
 class Indice(Enum):
     # temperature
-    TG = ("tg", tg, "temperature")
-    TN = ("tn", tn, "temperature")
-    TX = ("tx", tx, "temperature")
-    DTR = ("dtr", dtr, "temperature")
-    ETR = ("etr", etr, "temperature")
-    VDTR = ("vdtr", vdtr, "temperature")
+    TG = ("tg", tg, TEMPERATURE_GROUP)
+    TN = ("tn", tn, TEMPERATURE_GROUP)
+    TX = ("tx", tx, TEMPERATURE_GROUP)
+    DTR = ("dtr", dtr, TEMPERATURE_GROUP)
+    ETR = ("etr", etr, TEMPERATURE_GROUP)
+    VDTR = ("vdtr", vdtr, TEMPERATURE_GROUP)
     # heat
-    SU = ("su", su, "heat")
-    TR = ("tr", tr, "heat")
-    WSDI = ("wsdi", wsdi, "heat")
-    TG90P = ("tg90p", tg90p, "heat")
-    TN90P = ("tn90p", tn90p, "heat")
-    TX90P = ("tx90p", tx90p, "heat")
-    TXX = ("txx", txx, "heat")
-    TNX = ("tnx", tnx, "heat")
-    CSU = ("csu", csu, "heat")
+    SU = ("su", su, HEAT_GROUP)
+    TR = ("tr", tr, HEAT_GROUP)
+    WSDI = ("wsdi", wsdi, HEAT_GROUP)
+    TG90P = ("tg90p", tg90p, HEAT_GROUP)
+    TN90P = ("tn90p", tn90p, HEAT_GROUP)
+    TX90P = ("tx90p", tx90p, HEAT_GROUP)
+    TXX = ("txx", txx, HEAT_GROUP)
+    TNX = ("tnx", tnx, HEAT_GROUP)
+    CSU = ("csu", csu, HEAT_GROUP)
     # cold
-    GD4 = ("gd4", gd4, "cold")
-    FD = ("fd", fd, "cold")
-    CFD = ("cfd", cfd, "cold")
-    HD17 = ("hd17", hd17, "cold")
-    ID = ("id", id, "cold")
-    TG10P = ("tg10p", tg10p, "cold")
-    TN10P = ("tn10p", tn10p, "cold")
-    TX10P = ("tx10p", tx10p, "cold")
-    TXN = ("txn", txn, "cold")
-    TNN = ("tnn", tnn, "cold")
-    CSDI = ("csdi", csdi, "cold")
+    GD4 = ("gd4", gd4, COLD_GROUP)
+    FD = ("fd", fd, COLD_GROUP)
+    CFD = ("cfd", cfd, COLD_GROUP)
+    HD17 = ("hd17", hd17, COLD_GROUP)
+    ID = ("id", id, COLD_GROUP)
+    TG10P = ("tg10p", tg10p, COLD_GROUP)
+    TN10P = ("tn10p", tn10p, COLD_GROUP)
+    TX10P = ("tx10p", tx10p, COLD_GROUP)
+    TXN = ("txn", txn, COLD_GROUP)
+    TNN = ("tnn", tnn, COLD_GROUP)
+    CSDI = ("csdi", csdi, COLD_GROUP)
     # drought
-    CDD = ("cdd", cdd, "drought")
+    CDD = ("cdd", cdd, DROUGHT_GROUP)
     # rain
-    PRCPTOT = ("prcptot", prcptot, "rain")
-    RR1 = ("rr1", rr1, "rain")
-    SDII = ("sdii", sdii, "rain")
-    CWD = ("cwd", cwd, "rain")
-    R10MM = ("r10mm", r10mm, "rain")
-    R20MM = ("r20mm", r20mm, "rain")
-    RX1DAY = ("rx1day", rx1day, "rain")
-    RX5DAY = ("rx5day", rx5day, "rain")
-    R75P = ("r75p", r75p, "rain")
-    R75PTOT = ("r75ptot", r75ptot, "rain")
-    R95P = ("r95p", r95p, "rain")
-    R95PTOT = ("r95ptot", r95ptot, "rain")
-    R99P = ("r99p", r99p, "rain")
-    R99PTOT = ("r99ptot", r99ptot, "rain")
+    PRCPTOT = ("prcptot", prcptot, RAIN_GROUP)
+    RR1 = ("rr1", rr1, RAIN_GROUP)
+    SDII = ("sdii", sdii, RAIN_GROUP)
+    CWD = ("cwd", cwd, RAIN_GROUP)
+    R10MM = ("r10mm", r10mm, RAIN_GROUP)
+    R20MM = ("r20mm", r20mm, RAIN_GROUP)
+    RX1DAY = ("rx1day", rx1day, RAIN_GROUP)
+    RX5DAY = ("rx5day", rx5day, RAIN_GROUP)
+    R75P = ("r75p", r75p, RAIN_GROUP)
+    R75PTOT = ("r75ptot", r75ptot, RAIN_GROUP)
+    R95P = ("r95p", r95p, RAIN_GROUP)
+    R95PTOT = ("r95ptot", r95ptot, RAIN_GROUP)
+    R99P = ("r99p", r99p, RAIN_GROUP)
+    R99PTOT = ("r99ptot", r99ptot, RAIN_GROUP)
     # snow
-    SD = ("sd", sd, "snow")
-    SD1 = ("sd1", sd1, "snow")
-    SD5CM = ("sd5cm", sd5cm, "snow")
-    SD50CM = ("sd50cm", sd50cm, "snow")
+    SD = ("sd", sd, SNOW_GROUP)
+    SD1 = ("sd1", sd1, SNOW_GROUP)
+    SD5CM = ("sd5cm", sd5cm, SNOW_GROUP)
+    SD50CM = ("sd50cm", sd50cm, SNOW_GROUP)
     # compound
-    CD = ("cd", cd, "compound")
-    CW = ("cw", cw, "compound")
-    WD = ("wd", wd, "compound")
-    WW = ("ww", ww, "compound")
+    CD = ("cd", cd, COMPOUND_GROUP)
+    CW = ("cw", cw, COMPOUND_GROUP)
+    WD = ("wd", wd, COMPOUND_GROUP)
+    WW = ("ww", ww, COMPOUND_GROUP)
 
     def __init__(
         self,
@@ -650,10 +634,22 @@ def indice_from_string(s: str) -> Indice:
     for e in Indice:
         if e.indice_name.upper() == indice_to_check:
             return e
-    raise Exception(f"Unknown indice {s}")
+    raise InvalidIcclimArgumentError(f"Unknown indice {s}")
 
 
 def _add_celsius_suffix(threshold: Optional[Union[str, float, int]]) -> Optional[str]:
     if threshold is not None:
         return f"{threshold} degC"
     return None
+
+
+def _can_run_bootstrap(config: IndiceConfig) -> bool:
+    # TODO add warning if the percentile is not close to 0 or 99 ?
+    # TODO add warning if doing bootstrap on precipitations ?
+    run_bootstrap = config.cf_variables[0].in_base_da is not None
+    if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
+        raise InvalidIcclimArgumentError(
+            "When bootstrapping, the interpolation must be MEDIAN_UNBIASED."
+            f" Here it was {config.interpolation}."
+        )
+    return run_bootstrap

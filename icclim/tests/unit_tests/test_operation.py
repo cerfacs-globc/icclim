@@ -1,12 +1,13 @@
 import numpy as np
+import pytest
 
 from icclim.models.user_indice_config import (
     ExtremeMode,
     LinkLogicalOperation,
     LogicalOperation,
 )
-from icclim.tests.unit_tests.stubs import stub_tas
-from icclim.user_indices.operation import (
+from icclim.tests.unit_tests.test_utils import stub_tas
+from icclim.user_indices.operators import (
     _apply_coef,
     anomaly,
     count_events,
@@ -21,9 +22,10 @@ from icclim.user_indices.operation import (
 
 
 class Test_apply_coef:
-    def test_simple(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple(self, use_dask):
         # GIVEN
-        da = stub_tas()
+        da = stub_tas(use_dask=use_dask)
         # WHEN
         result = _apply_coef(4.0, da)
         # THEN
@@ -31,8 +33,9 @@ class Test_apply_coef:
 
 
 class Test_max:
-    def test_simple(self):
-        da = stub_tas()
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple(self, use_dask):
+        da = stub_tas(use_dask=use_dask)
         da.data[1] = 20
         # WHEN
         result = max(
@@ -48,8 +51,9 @@ class Test_max:
 
 
 class Test_min:
-    def test_simple(self):
-        da = stub_tas()
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple(self, use_dask):
+        da = stub_tas(use_dask=use_dask)
         da.data[1] = -20
         # WHEN
         result = min(
@@ -61,8 +65,9 @@ class Test_min:
 
 
 class Test_mean:
-    def test_simple(self):
-        da = stub_tas()
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple(self, use_dask):
+        da = stub_tas(use_dask=use_dask)
         da[2] = 366
         # WHEN
         result = mean(
@@ -74,8 +79,9 @@ class Test_mean:
 
 
 class Test_sum:
-    def test_simple(self):
-        da = stub_tas()
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple(self, use_dask):
+        da = stub_tas(use_dask=use_dask)
         # WHEN
         result = sum(
             da=da,
@@ -86,9 +92,10 @@ class Test_sum:
 
 
 class Test_count_events:
-    def test_simple(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple(self, use_dask):
         # GIVEN
-        da = stub_tas(10)
+        da = stub_tas(10, use_dask)
         da[1] = 15
         da[2] = 16
         # WHEN
@@ -102,9 +109,10 @@ class Test_count_events:
         # THEN
         assert result[0] == 1
 
-    def test_simple_percentile(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple_percentile(self, use_dask):
         # GIVEN
-        da = stub_tas(10)
+        da = stub_tas(10, use_dask)
         da[1] = 15
         da[2] = 16
         # WHEN
@@ -118,11 +126,12 @@ class Test_count_events:
         # THEN
         assert result[0] == 2
 
-    def test_multi_threshold_or(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_multi_threshold_or(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
+        tmax = stub_tas(10, use_dask)
         tmax[1] = 15
-        tmin = stub_tas(-10)
+        tmin = stub_tas(-10, use_dask)
         # WHEN
         result = count_events(
             das=[tmax, tmin],
@@ -135,11 +144,12 @@ class Test_count_events:
         # THEN
         assert result[0] == 1
 
-    def test_multi_threshold_and(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_multi_threshold_and(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
+        tmax = stub_tas(10, use_dask)
         tmax[1] = 15
-        tmin = stub_tas(-10)
+        tmin = stub_tas(-10, use_dask)
         tmin[1] = -20
         # WHEN
         result = count_events(
@@ -155,9 +165,10 @@ class Test_count_events:
 
 
 class Test_run_mean:
-    def test_simple_min(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple_min(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
+        tmax = stub_tas(10, use_dask)
         tmax[30] = 0
         tmax[29] = 0
         tmax[28] = 0
@@ -175,9 +186,10 @@ class Test_run_mean:
         assert result[1] == 2
         assert result[2] == 10
 
-    def test_simple_max(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple_max(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
+        tmax = stub_tas(10, use_dask)
         tmax[30] = 20
         # WHEN
         result = run_mean(
@@ -193,9 +205,10 @@ class Test_run_mean:
 
 
 class Test_run_sum:
-    def test_simple_min(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple_min(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
+        tmax = stub_tas(10, use_dask)
         tmax[30] = 0
         tmax[29] = 0
         tmax[28] = 0
@@ -213,9 +226,10 @@ class Test_run_sum:
         assert result[1] == 10
         assert result[2] == 50
 
-    def test_simple_max(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple_max(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
+        tmax = stub_tas(10, use_dask)
         tmax[30] = 20
         # WHEN
         result = run_sum(
@@ -231,9 +245,10 @@ class Test_run_sum:
 
 
 class Test_max_consecutive_event_count:
-    def test_simple(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
+        tmax = stub_tas(10, use_dask)
         tmax[30] = 15  # On 31th january
         # WHEN
         result = max_consecutive_event_count(
@@ -248,19 +263,21 @@ class Test_max_consecutive_event_count:
 
 
 class Test_anomaly:
-    def test_simple(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
-        tmax2 = stub_tas(11)
+        tmax = stub_tas(10, use_dask)
+        tmax2 = stub_tas(11, use_dask)
         # WHEN
         result = anomaly(da_ref=tmax, da=tmax2, percent=False)
         # THEN
         assert result == 1
 
-    def test_simple_percent(self):
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_simple_percent(self, use_dask):
         # GIVEN
-        tmax = stub_tas(10)
-        tmax2 = stub_tas(11)
+        tmax = stub_tas(10, use_dask)
+        tmax2 = stub_tas(11, use_dask)
         # WHEN
         result = anomaly(da_ref=tmax, da=tmax2, percent=True)
         # THEN

@@ -11,13 +11,13 @@ import xarray
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim import eca_indices
-from icclim.eca_indices import Indice, IndiceConfig
+from icclim.eca_indices import Indice, IndiceConfig, indice_from_string
+from icclim.icclim_exceptions import MissingIcclimInputError
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_indice_config import UserIndiceConfig
-from icclim.user_indices.api_bridge import compute_user_indice
+from icclim.user_indices.bridge import compute_user_indice
 
 
 def indice(
@@ -36,9 +36,10 @@ def indice(
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: Optional[Union[str, QuantileInterpolation]] = None,
+    interpolation: Optional[
+        Union[str, QuantileInterpolation]
+    ] = QuantileInterpolation.MEDIAN_UNBIASED,
     out_unit: str = "days",
-    # TODO maybe upgrade default value to netcdf4 ? it is the default of xarray
     netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
     user_indice: Dict[str, Any] = None,
     save_percentile: bool = False,
@@ -90,10 +91,10 @@ def indice(
 
     """
     callback(callback_percentage_start_value)
-    if isinstance(in_files, str):
-        ds = xarray.open_dataset(in_files)
+    if isinstance(in_files, list):
+        ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
     else:
-        ds = xarray.open_mfdataset(in_files)
+        ds = xarray.open_dataset(in_files, decode_cf=True)
     if isinstance(var_name, str):
         var_name = [var_name]
     config = IndiceConfig(
@@ -130,7 +131,7 @@ def _build_basic_indice_dataset(
 ) -> Dataset:
     if indice_name is None:
         # user input error, avoid doing all computations for nothing
-        raise Exception("indice_name must be provided.")
+        raise MissingIcclimInputError("indice_name must be provided.")
     if isinstance(threshold, list):
         ds_list = []
         for th in threshold:
@@ -170,9 +171,10 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
     if da_unit is None:
         if output_unit is None:
             warn(
-                "No unit computed or provided for the indice was found. Use out_unit parameter to add one."
+                "No unit computed or provided for the indice was found. "
+                "Use out_unit parameter to add one."
             )
-            return None
+            return ""
         else:
             return output_unit
     else:
@@ -180,7 +182,8 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
             return da_unit
         else:
             warn(
-                f"Overriding the computed unit {da_unit} with the user give unit {output_unit}"
+                f"Overriding the computed unit {da_unit} "
+                f"with the user given unit {output_unit}"
             )
             return output_unit
 
@@ -189,7 +192,7 @@ def _compute_basic_indice(
     indice_name: str, config: IndiceConfig, current_history: str
 ) -> Dataset:
     result_ds = Dataset()
-    indice_to_compute = eca_indices.indice_from_string(indice_name)
+    indice_to_compute = indice_from_string(indice_name)
     da = indice_to_compute.compute(config)
     da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:

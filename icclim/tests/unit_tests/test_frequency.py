@@ -2,13 +2,14 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import (
     Frequency,
     build_frequency,
     month_filter,
     seasons_resampler,
 )
-from icclim.tests.unit_tests.stubs import stub_tas
+from icclim.tests.unit_tests.test_utils import stub_tas
 
 
 class Test_build_frequency_over_frequency:
@@ -19,7 +20,7 @@ class Test_build_frequency_over_frequency:
 
 class Test_build_frequency_over_string:
     def test_error(self):
-        with pytest.raises(Exception):
+        with pytest.raises(InvalidIcclimArgumentError):
             build_frequency("yolo")
 
     def test_simple(self):
@@ -29,7 +30,7 @@ class Test_build_frequency_over_string:
 
 class Test_build_frequency_over_list:
     def test_error(self):
-        with pytest.raises(Exception):  # TODO use a more specific exception
+        with pytest.raises(InvalidIcclimArgumentError):
             build_frequency(["cacahuêtes"])
 
     def test_month(self):
