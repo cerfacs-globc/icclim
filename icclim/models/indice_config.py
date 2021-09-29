@@ -29,8 +29,8 @@ class IndiceConfig:
     netcdf_version: NetcdfVersion
     window: Optional[int]
     threshold: Optional[float]
-    transfer_limit_Mbytes: Optional[int] = None
-    out_unit: Optional[str] = None
+    transfer_limit_Mbytes: Optional[int]
+    out_unit: Optional[str]
 
     def __init__(
         self,
@@ -45,6 +45,7 @@ class IndiceConfig:
         time_range: Optional[List[datetime]] = None,
         base_period_time_range: Optional[List[datetime]] = None,
         transfer_limit_Mbytes: Optional[int] = None,
+        threshold: Optional[float] = None,
         out_unit: Optional[str] = None,
         interpolation: Optional[QuantileInterpolation] = None,
     ):
@@ -75,6 +76,7 @@ class IndiceConfig:
         else:
             self.netcdf_version = netcdf_version
         self.interpolation = interpolation
+        self.threshold = threshold
 
 
 def _build_cf_variable(
@@ -109,6 +111,11 @@ def _build_data_array(
                 f" It must be exactly a length of 2."
             )
         da = da.sel(time=slice(time_range[0], time_range[1]))
+        if len(da.time) == 0:
+            raise InvalidIcclimArgumentError(
+                f"The given time range {time_range!r} "
+                f"is out of the dataset time period."
+            )
     if ignore_Feb29th:
         da = calendar.convert_calendar(da, "noleap")  # type:ignore
     if transfer_limit_Mbytes is not None:
