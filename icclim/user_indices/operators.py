@@ -30,6 +30,18 @@ from icclim.user_indices.stat import (
     get_longest_run_start_index,
 )
 
+__all__ = [
+    "max",
+    "min",
+    "sum",
+    "mean",
+    "count_events",
+    "max_consecutive_event_count",
+    "run_mean",
+    "run_sum",
+    "anomaly",
+]
+
 
 def max(
     da: DataArray,
