@@ -19,6 +19,8 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_indice_config import UserIndiceConfig
 from icclim.user_indices.bridge import compute_user_indice
 
+__all__ = ["indice"]
+
 
 def indice(
     in_files: Union[str, List[str]],
