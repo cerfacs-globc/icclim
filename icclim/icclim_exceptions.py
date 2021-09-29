@@ -15,7 +15,7 @@ class InvalidIcclimArgumentError(IcclimError):
         self.msg = msg
 
     def __str__(self):
-        return repr(self.expr + ": " + self.msg)
+        return repr(self.msg)
 
 
 class MissingIcclimInputError(IcclimError):

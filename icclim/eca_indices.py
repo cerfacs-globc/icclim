@@ -15,42 +15,62 @@ PERCENTILES_COORD = "percentiles"
 
 
 def gd4(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        threshold = "4.0 degC"
+    else:
+        threshold = _add_celsius_suffix(config.threshold)
     return atmos.growing_degree_days(
         config.cf_variables[0].da,
-        _add_celsius_suffix(config.threshold),
-        config.freq.panda_freq,
+        thresh=threshold,
+        freq=config.freq.panda_freq,
     )
 
 
 def cfd(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        threshold = "0.0 degC"
+    else:
+        threshold = _add_celsius_suffix(config.threshold)
     return atmos.consecutive_frost_days(
         config.cf_variables[0].da,
-        _add_celsius_suffix(config.threshold),
-        config.freq.panda_freq,
+        thresh=threshold,
+        freq=config.freq.panda_freq,
     )
 
 
 def fd(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        threshold = "0.0 degC"
+    else:
+        threshold = _add_celsius_suffix(config.threshold)
     return atmos.frost_days(
         config.cf_variables[0].da,
-        _add_celsius_suffix(config.threshold),
-        config.freq.panda_freq,
+        thresh=threshold,
+        freq=config.freq.panda_freq,
     )
 
 
 def hd17(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        threshold = "17.0 degC"
+    else:
+        threshold = _add_celsius_suffix(config.threshold)
     return atmos.heating_degree_days(
         config.cf_variables[0].da,
-        _add_celsius_suffix(config.threshold),
-        config.freq.panda_freq,
+        thresh=threshold,
+        freq=config.freq.panda_freq,
     )
 
 
 def id(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        threshold = "0.0 degC"
+    else:
+        threshold = _add_celsius_suffix(config.threshold)
     return atmos.ice_days(
         config.cf_variables[0].da,
-        _add_celsius_suffix(config.threshold),
-        config.freq.panda_freq,
+        thresh=threshold,
+        freq=config.freq.panda_freq,
     )
 
 
@@ -134,18 +154,26 @@ def cdd(config: IndiceConfig) -> DataArray:
 
 
 def su(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        threshold = "25.0 degC"
+    else:
+        threshold = _add_celsius_suffix(config.threshold)
     return atmos.tx_days_above(
         config.cf_variables[0].da,
-        _add_celsius_suffix(config.threshold),
+        threshold,
         config.freq.panda_freq,
     )
 
 
 def tr(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        threshold = "20.0 degC"
+    else:
+        threshold = _add_celsius_suffix(config.threshold)
     return atmos.tropical_nights(
-        config.cf_variables[0].da,
-        _add_celsius_suffix(config.threshold),
-        config.freq.panda_freq,
+        tasmin=config.cf_variables[0].da,
+        thresh=threshold,
+        freq=config.freq.panda_freq,
     )
 
 
@@ -157,8 +185,8 @@ def wsdi(config: IndiceConfig) -> DataArray:
     result = atmos.warm_spell_duration_index(
         config.cf_variables[0].da,
         per_90,
-        6,
-        config.freq.panda_freq,
+        window=6,
+        freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
     if config.save_percentile:
@@ -174,7 +202,7 @@ def tg90p(config: IndiceConfig) -> DataArray:
     result = atmos.tg90p(
         config.cf_variables[0].da,
         per_90,
-        config.freq.panda_freq,
+        freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
     if config.save_percentile:
@@ -193,7 +221,7 @@ def tn90p(config: IndiceConfig) -> DataArray:
     result = atmos.tn90p(
         config.cf_variables[0].da,
         per_90,
-        config.freq.panda_freq,
+        freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
     if config.save_percentile:
@@ -209,9 +237,9 @@ def tx90p(config: IndiceConfig) -> DataArray:
     per_90 = percentile_doy(
         config.cf_variables[0].in_base_da,
         config.window,
-        90,
-        config.interpolation.alpha,
-        config.interpolation.beta,
+        per=90,
+        alpha=config.interpolation.alpha,
+        beta=config.interpolation.beta,
     )
     result = atmos.tx90p(
         tasmax=config.cf_variables[0].da,
@@ -238,20 +266,24 @@ def tnx(config: IndiceConfig) -> DataArray:
 
 
 def csu(config: IndiceConfig) -> DataArray:
+    if config.threshold is None:
+        threshold = "25.0 degC"
+    else:
+        threshold = _add_celsius_suffix(config.threshold)
     return atmos.maximum_consecutive_warm_days(
         config.cf_variables[0].da,
-        _add_celsius_suffix(config.threshold),
-        config.freq.panda_freq,
+        thresh=threshold,
+        freq=config.freq.panda_freq,
     )
 
 
 def prcptot(config: IndiceConfig) -> DataArray:
     return atmos.precip_accumulation(
         pr=config.cf_variables[0].da,
-        tas=None,
-        phase=None,
-        thresh=_add_celsius_suffix(config.threshold),
         freq=config.freq.panda_freq,
+        # TODO see if we should use tas and thresh
+        # tas=config.cf_variables[0].da,
+        # thresh=threshold,
     )
 
 

@@ -14,6 +14,7 @@ COORDS = dict(
     lon=[42],
     time=pd.date_range("2042-01-01", periods=VALUE_COUNT, freq=pd.DateOffset(days=1)),
 )
+K2C = 273.15
 
 
 def stub_user_indice(cf_vars: List[CfVariable]):
@@ -34,11 +35,14 @@ def stub_tas(value: float = 1, use_dask=False):
     return da
 
 
-def stub_pr(value: float):
-    return xarray.DataArray(
+def stub_pr(value: float, use_dask=False):
+    da = xarray.DataArray(
         data=(np.full(VALUE_COUNT, value).reshape((VALUE_COUNT, 1, 1))),
         coords=COORDS,
         dims=["time", "lat", "lon"],
         name="pr",
         attrs={"units": "kg m-2 d-1"},
     )
+    if use_dask:
+        da.chunk()
+    return da
