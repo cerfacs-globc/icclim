@@ -43,6 +43,7 @@ def indice(
     ] = QuantileInterpolation.MEDIAN_UNBIASED,
     out_unit: str = "days",
     netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
+    # TODO do something prettier than a dict (a UserIndiceDTO or something)
     user_indice: Dict[str, Any] = None,
     save_percentile: bool = False,
 ) -> Dataset:
@@ -194,8 +195,8 @@ def _compute_basic_indice(
     indice_name: str, config: IndiceConfig, current_history: str
 ) -> Dataset:
     result_ds = Dataset()
-    indice_to_compute = indice_from_string(indice_name)
-    da = indice_to_compute.compute(config)
+    indice = indice_from_string(indice_name)
+    da = indice.compute(config)
     da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:
         da.expand_dims({"threshold": config.threshold})
@@ -208,7 +209,7 @@ def _compute_basic_indice(
         result_ds = _add_basic_indice_metadata(
             result_ds,
             config,
-            indice_to_compute,
+            indice,
             current_history,
         )
     return result_ds

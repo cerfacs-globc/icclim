@@ -70,6 +70,7 @@ class IndiceConfig:
         self.window = window_width
         self.save_percentile = save_percentile
         self.is_percent = out_unit == "%"
+        self.out_unit = out_unit
         self.transfer_limit_Mbytes = transfer_limit_Mbytes
         if isinstance(netcdf_version, str):
             self.netcdf_version = get_netcdf_version(netcdf_version)
