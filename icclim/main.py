@@ -3,6 +3,7 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 
 import logging
+import time
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Union
 from warnings import warn
@@ -11,6 +12,7 @@ import xarray
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
+import icclim.logging_info as logging_info
 from icclim.eca_indices import Indice, IndiceConfig, indice_from_string
 from icclim.icclim_exceptions import MissingIcclimInputError
 from icclim.models.frequency import Frequency, SliceMode
@@ -41,7 +43,7 @@ def indice(
     interpolation: Optional[
         Union[str, QuantileInterpolation]
     ] = QuantileInterpolation.MEDIAN_UNBIASED,
-    out_unit: str = "days",
+    out_unit: Optional[str] = None,
     netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
     # TODO do something prettier than a dict (a UserIndiceDTO or something)
     user_indice: Dict[str, Any] = None,
@@ -93,6 +95,7 @@ def indice(
     .. warning:: If ``out_file`` already exists, icclim will overwrite it!
 
     """
+    logging_info.start_message()
     callback(callback_percentage_start_value)
     if isinstance(in_files, list):
         ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
@@ -123,6 +126,7 @@ def indice(
         )
     result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
     callback(callback_percentage_total)
+    logging_info.ending_message(time.process_time())
     return result_ds
 
 
@@ -150,6 +154,7 @@ def _build_basic_indice_dataset(
 def _build_user_indice_dataset(
     config: IndiceConfig, save_percentile: bool, user_indice: dict
 ) -> Dataset:
+    logging.info("Calculating user indice.")
     result_ds = Dataset()
     user_indice_config: UserIndiceConfig = UserIndiceConfig(
         **user_indice,
@@ -185,8 +190,8 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
             return da_unit
         else:
             warn(
-                f"Overriding the computed unit {da_unit} "
-                f"with the user given unit {output_unit}"
+                f'Overriding the computed unit "{da_unit}" '
+                f'with the user given unit "{output_unit}"'
             )
             return output_unit
 
@@ -194,6 +199,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
 def _compute_basic_indice(
     indice_name: str, config: IndiceConfig, current_history: str
 ) -> Dataset:
+    logging.info(f"Calculating climate indice: {indice_name}")
     result_ds = Dataset()
     indice = indice_from_string(indice_name)
     da = indice.compute(config)
