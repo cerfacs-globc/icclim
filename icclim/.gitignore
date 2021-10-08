@@ -18,8 +18,6 @@ out_icclim/
 # tests
 WPS/
 
-
-
 # Distribution / packaging
 .Python
 env/
