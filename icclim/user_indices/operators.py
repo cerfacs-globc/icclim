@@ -194,9 +194,9 @@ def count_events(
     else:
         raise NotImplementedError()
     resampled = result.resample(time=freq)
-    if not date_event:
-        return resampled.sum(dim="time")
-    return _get_count_events_date_event(resampled)
+    if date_event:
+        return _get_count_events_date_event(resampled)
+    return resampled.sum(dim="time")
 
 
 def max_consecutive_event_count(

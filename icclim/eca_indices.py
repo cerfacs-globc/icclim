@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import Callable, Optional, Union
+from warnings import warn
 
+import numpy as np
 from xarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim import atmos, land
@@ -12,6 +14,7 @@ from icclim.models.indice_config import IndiceConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
 PERCENTILES_COORD = "percentiles"
+IN_BASE_ATTRS = "reference_epoch"
 
 
 def gd4(config: IndiceConfig) -> DataArray:
@@ -75,67 +78,103 @@ def id(config: IndiceConfig) -> DataArray:
 
 
 def csdi(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
-    per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
+    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.cold_spell_duration_index(
         config.cf_variables[0].da,
-        per_10,
+        per,
         window=6,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
-        result.coords[PERCENTILES_COORD] = resample_doy(per_10, result)
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
+        result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     return result
 
 
 def tg10p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
-    per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
+    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tg10p(
         config.cf_variables[0].da,
-        per_10,
+        per,
         config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
-        result.coords[PERCENTILES_COORD] = resample_doy(per_10, result)
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
+        result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     return result
 
 
 def tn10p(config: IndiceConfig) -> Dataset:
-    run_bootstrap = _can_run_bootstrap(config)
-    per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
+    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tn10p(
         config.cf_variables[0].da,
-        per_10,
+        per,
         config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
-        result.coords[PERCENTILES_COORD] = resample_doy(per_10, result)
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
+        result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     return result
 
 
 def tx10p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
-    per_10 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
+    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
         percentiles=10
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tx10p(
         config.cf_variables[0].da,
-        per_10,
+        per,
         config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
-        result.coords[PERCENTILES_COORD] = resample_doy(per_10, result)
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
+        result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     return result
 
 
@@ -178,35 +217,53 @@ def tr(config: IndiceConfig) -> DataArray:
 
 
 def wsdi(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
-    per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
+    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.warm_spell_duration_index(
         config.cf_variables[0].da,
-        per_90,
+        per,
         window=6,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
-        result.coords[PERCENTILES_COORD] = resample_doy(per_90, result)
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
+        result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     return result
 
 
 def tg90p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
-    per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
+    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tg90p(
         config.cf_variables[0].da,
-        per_90,
+        per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
-        result.coords[PERCENTILES_COORD] = resample_doy(per_90, result)
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
+        result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
         result.attrs["units"] = "%"
@@ -214,18 +271,27 @@ def tg90p(config: IndiceConfig) -> DataArray:
 
 
 def tn90p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
-    per_90 = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
+    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
         percentiles=90
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tn90p(
         config.cf_variables[0].da,
-        per_90,
+        per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
-        result.coords[PERCENTILES_COORD] = resample_doy(per_90, result)
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
+        result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
         result.attrs["units"] = "%"
@@ -233,24 +299,33 @@ def tn90p(config: IndiceConfig) -> DataArray:
 
 
 def tx90p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
-    per_90 = percentile_doy(
+    per = percentile_doy(
         config.cf_variables[0].in_base_da,
         config.window,
         per=90,
         alpha=config.interpolation.alpha,
         beta=config.interpolation.beta,
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tx90p(
         tasmax=config.cf_variables[0].da,
-        t90=per_90,
+        t90=per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
         # TODO to do on xclim as either a stand alone param or refactor bootstrap param to be a config object
         # interpolation= interpolation
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
-        result.coords[PERCENTILES_COORD] = resample_doy(per_90, result)
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
+        result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
         result.attrs["units"] = "%"
@@ -326,10 +401,10 @@ def rx5day(config: IndiceConfig) -> DataArray:
 
 
 def r75p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 75).sel(
         percentiles=75
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
         per,
@@ -337,7 +412,16 @@ def r75p(config: IndiceConfig) -> DataArray:
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
@@ -346,10 +430,10 @@ def r75p(config: IndiceConfig) -> DataArray:
 
 
 def r75ptot(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 75).sel(
         percentiles=75
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
         per,
@@ -357,7 +441,16 @@ def r75ptot(config: IndiceConfig) -> DataArray:
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
@@ -366,10 +459,10 @@ def r75ptot(config: IndiceConfig) -> DataArray:
 
 
 def r95p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 95).sel(
         percentiles=95
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
         per,
@@ -377,7 +470,16 @@ def r95p(config: IndiceConfig) -> DataArray:
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
@@ -386,10 +488,10 @@ def r95p(config: IndiceConfig) -> DataArray:
 
 
 def r95ptot(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 95).sel(
         percentiles=95
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
         per,
@@ -397,7 +499,16 @@ def r95ptot(config: IndiceConfig) -> DataArray:
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
@@ -406,10 +517,10 @@ def r95ptot(config: IndiceConfig) -> DataArray:
 
 
 def r99p(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 99).sel(
         percentiles=99
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
         per,
@@ -417,7 +528,16 @@ def r99p(config: IndiceConfig) -> DataArray:
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
@@ -426,10 +546,10 @@ def r99p(config: IndiceConfig) -> DataArray:
 
 
 def r99ptot(config: IndiceConfig) -> DataArray:
-    run_bootstrap = _can_run_bootstrap(config)
     per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 99).sel(
         percentiles=99
     )
+    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
         per,
@@ -437,7 +557,16 @@ def r99ptot(config: IndiceConfig) -> DataArray:
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
     )
+    if run_bootstrap:
+        result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     if config.save_percentile:
+        if run_bootstrap:
+            # TODO Not sufficient in the case of bootstrapping,
+            #  we should retrieve all the bootstrapped years for these percentiles to be accurate
+            warn(
+                f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
+                f"are inaccurate for the bootstrapped period."
+            )
         result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     if config.is_percent:
         result = result / len(config.cf_variables[0].da.time) * 100
@@ -675,10 +804,16 @@ def _add_celsius_suffix(threshold: Optional[Union[str, float, int]]) -> Optional
     return None
 
 
-def _can_run_bootstrap(config: IndiceConfig) -> bool:
+def _can_run_bootstrap(config: IndiceConfig, percentile_period) -> bool:
     # TODO add warning if the percentile is not close to 0 or 99 ?
     # TODO add warning if doing bootstrap on precipitations ?
-    run_bootstrap = config.cf_variables[0].in_base_da is not None
+    overlapping_years = np.unique(
+        config.cf_variables[0].da.time.sel(time=percentile_period).dt.year
+    )
+    # No bootstrap if there is one single year or no year overlapping
+    run_bootstrap = (
+        config.cf_variables[0].in_base_da is not None and len(overlapping_years) > 1
+    )
     if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
         raise InvalidIcclimArgumentError(
             "When bootstrapping, the interpolation must be MEDIAN_UNBIASED."

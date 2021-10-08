@@ -41,13 +41,15 @@ class IndiceConfig:
         save_percentile: bool = False,
         only_leap_years: bool = False,
         ignore_Feb29th: bool = False,
-        window_width: Optional[int] = None,
+        window_width: Optional[int] = 5,
         time_range: Optional[List[datetime]] = None,
         base_period_time_range: Optional[List[datetime]] = None,
         transfer_limit_Mbytes: Optional[int] = None,
         threshold: Optional[float] = None,
         out_unit: Optional[str] = None,
-        interpolation: Optional[QuantileInterpolation] = None,
+        interpolation: Optional[
+            QuantileInterpolation
+        ] = QuantileInterpolation.MEDIAN_UNBIASED,
     ):
         self.freq = build_frequency(slice_mode)
         if time_range is not None:

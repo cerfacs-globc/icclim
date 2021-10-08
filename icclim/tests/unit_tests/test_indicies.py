@@ -1,3 +1,5 @@
+import datetime
+
 import numpy as np
 import pytest
 from xarray import Dataset
@@ -14,6 +16,7 @@ from icclim.eca_indices import (
     su,
     tn10p,
     tr,
+    tx90p,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
@@ -51,6 +54,7 @@ def test_tn10p_interpolation_error(use_dask):
             ds.time.values[-1].astype("M8[D]").astype("O"),
         ],
         window_width=2,
+        interpolation=QuantileInterpolation.LINEAR,
     )
     with pytest.raises(InvalidIcclimArgumentError):
         tn10p(conf)
@@ -214,7 +218,7 @@ class Test_gd4:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(use_dask=use_dask)
+        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
         conf = IndiceConfig(
             ds=ds,
@@ -225,7 +229,7 @@ class Test_gd4:
         )
         res = gd4(conf)
         assert res is not None
-        expected = (26 - 4) * 21
+        expected = (26 - 5) * 21
         assert res[0] == expected  # 21 days in January above 4 degC (at 26degC)
 
 
@@ -329,3 +333,60 @@ class Test_hd17:
         res = hd17(conf)
         assert res is not None
         assert res[0] == 5 * (5 + K2C)
+
+
+class TestTx90p:
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_no_bootstrap_no_overlap(self, use_dask):
+        ds = Dataset()
+        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds.tas[5:10] = 0
+        conf = IndiceConfig(
+            ds=ds,
+            slice_mode=Frequency.MONTH,
+            var_name=["tas"],
+            netcdf_version=NetcdfVersion.NETCDF4,
+            base_period_time_range=[
+                datetime.datetime(2042, 1, 1),
+                datetime.datetime(2042, 12, 31),
+            ],
+            time_range=[datetime.datetime(2043, 1, 1), datetime.datetime(2045, 12, 31)],
+        )
+        res = tx90p(conf)
+        assert "reference_epoch" not in res.coords.keys()
+
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_no_bootstrap_1_year_base(self, use_dask):
+        ds = Dataset()
+        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        conf = IndiceConfig(
+            ds=ds,
+            slice_mode=Frequency.MONTH,
+            var_name=["tas"],
+            netcdf_version=NetcdfVersion.NETCDF4,
+            base_period_time_range=[
+                datetime.datetime(2042, 1, 1),
+                datetime.datetime(2042, 12, 31),
+            ],
+            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
+        )
+        res = tx90p(conf)
+        assert "reference_epoch" not in res.coords.keys()
+
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_bootstrap_2_years(self, use_dask):
+        ds = Dataset()
+        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        conf = IndiceConfig(
+            ds=ds,
+            slice_mode=Frequency.MONTH,
+            var_name=["tas"],
+            netcdf_version=NetcdfVersion.NETCDF4,
+            base_period_time_range=[
+                datetime.datetime(2042, 1, 1),
+                datetime.datetime(2043, 12, 31),
+            ],
+            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
+        )
+        res = tx90p(conf)
+        assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
