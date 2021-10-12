@@ -186,7 +186,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
         else:
             return output_unit
     else:
-        if output_unit is None:
+        if output_unit is None or output_unit == da_unit:
             return da_unit
         else:
             warn(
@@ -197,7 +197,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
 
 
 def _compute_basic_indice(
-    indice_name: str, config: IndiceConfig, current_history: str
+    indice_name: str, config: IndiceConfig, former_history: str
 ) -> Dataset:
     logging.info(f"Calculating climate indice: {indice_name}")
     result_ds = Dataset()
@@ -212,12 +212,17 @@ def _compute_basic_indice(
         result_ds["time_bounds"] = time_bounds
     else:
         result_ds[indice_name] = da
-        result_ds = _add_basic_indice_metadata(
-            result_ds,
-            config,
-            indice,
-            current_history,
-        )
+    if former_history is None:
+        former_history = da.attrs["history"]
+    else:
+        former_history = f"{former_history}\n{da.attrs['history']}"
+    del da.attrs["history"]
+    result_ds = _add_basic_indice_metadata(
+        result_ds,
+        config,
+        indice,
+        former_history,
+    )
     return result_ds
 
 
@@ -237,7 +242,6 @@ def _add_basic_indice_metadata(
         "references"
     ] = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)"
     result_ds.attrs["institution"] = "Climate impact portal (https://climate4impact.eu)"
-
     result_ds.attrs["history"] = _get_history(
         config, former_history, indice_computed, result_ds
     )

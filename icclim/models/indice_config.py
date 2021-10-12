@@ -134,11 +134,16 @@ def _build_in_base_da(
 ) -> DataArray:
     if len(base_period_time_range) != 2:
         raise InvalidIcclimArgumentError(
-            f"The given time_range {base_period_time_range}"
+            f"The given base_period_time_range {base_period_time_range}"
             f" has a length of {len(base_period_time_range)}."
             f" It must be exactly a length of 2."
         )
     da = da.sel(time=slice(base_period_time_range[0], base_period_time_range[1]))
+    if len(da.time) == 0:
+        raise InvalidIcclimArgumentError(
+            f"The given base_period_time_range {base_period_time_range}"
+            f" is out of the sample time bounds"
+        )
     if only_leap_years:
         da = _reduce_only_leap_years(da)
     if transfer_limit_Mbytes is not None:
