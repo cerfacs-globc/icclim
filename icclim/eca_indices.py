@@ -79,9 +79,8 @@ def id(config: IndiceConfig) -> DataArray:
 
 
 def csdi(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
-        percentiles=10
-    )
+    per_value = 10
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.cold_spell_duration_index(
         config.cf_variables[0].da,
@@ -89,7 +88,7 @@ def csdi(config: IndiceConfig) -> DataArray:
         window=6,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -98,16 +97,15 @@ def csdi(config: IndiceConfig) -> DataArray:
 
 
 def tg10p(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
-        percentiles=10
-    )
+    per_value = 10
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tg10p(
         config.cf_variables[0].da,
         per,
         config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -116,16 +114,15 @@ def tg10p(config: IndiceConfig) -> DataArray:
 
 
 def tn10p(config: IndiceConfig) -> Dataset:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
-        percentiles=10
-    )
+    per_value = 10
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tn10p(
         config.cf_variables[0].da,
         per,
         config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -134,16 +131,15 @@ def tn10p(config: IndiceConfig) -> Dataset:
 
 
 def tx10p(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 10).sel(
-        percentiles=10
-    )
+    per_value = 10
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tx10p(
         config.cf_variables[0].da,
         per,
         config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -190,9 +186,8 @@ def tr(config: IndiceConfig) -> DataArray:
 
 
 def wsdi(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
-        percentiles=90
-    )
+    per_value = 90
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.warm_spell_duration_index(
         config.cf_variables[0].da,
@@ -200,7 +195,7 @@ def wsdi(config: IndiceConfig) -> DataArray:
         window=6,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -209,16 +204,15 @@ def wsdi(config: IndiceConfig) -> DataArray:
 
 
 def tg90p(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
-        percentiles=90
-    )
+    per_value = 90
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tg90p(
         config.cf_variables[0].da,
         per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -229,16 +223,15 @@ def tg90p(config: IndiceConfig) -> DataArray:
 
 
 def tn90p(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 90).sel(
-        percentiles=90
-    )
+    per_value = 90
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tn90p(
         config.cf_variables[0].da,
         per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -249,13 +242,8 @@ def tn90p(config: IndiceConfig) -> DataArray:
 
 
 def tx90p(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(
-        config.cf_variables[0].in_base_da,
-        config.window,
-        per=90,
-        alpha=config.interpolation.alpha,
-        beta=config.interpolation.beta,
-    ).sel(percentiles=90)
+    per_value = 90
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tx90p(
         tasmax=config.cf_variables[0].da,
@@ -264,7 +252,7 @@ def tx90p(config: IndiceConfig) -> DataArray:
         bootstrap=run_bootstrap,
         # TODO to do on xclim as either a stand alone param or refactor bootstrap param to be a config object
         # interpolation= interpolation
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -343,9 +331,8 @@ def rx5day(config: IndiceConfig) -> DataArray:
 
 
 def r75p(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 75).sel(
-        percentiles=75
-    )
+    per_value = 75
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
@@ -353,7 +340,7 @@ def r75p(config: IndiceConfig) -> DataArray:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -364,9 +351,8 @@ def r75p(config: IndiceConfig) -> DataArray:
 
 
 def r75ptot(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 75).sel(
-        percentiles=75
-    )
+    per_value = 75
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
@@ -374,7 +360,7 @@ def r75ptot(config: IndiceConfig) -> DataArray:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -385,9 +371,8 @@ def r75ptot(config: IndiceConfig) -> DataArray:
 
 
 def r95p(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 95).sel(
-        percentiles=95
-    )
+    per_value = 95
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
@@ -395,7 +380,7 @@ def r95p(config: IndiceConfig) -> DataArray:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -406,9 +391,8 @@ def r95p(config: IndiceConfig) -> DataArray:
 
 
 def r95ptot(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 95).sel(
-        percentiles=95
-    )
+    per_value = 95
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
@@ -416,7 +400,7 @@ def r95ptot(config: IndiceConfig) -> DataArray:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -427,9 +411,8 @@ def r95ptot(config: IndiceConfig) -> DataArray:
 
 
 def r99p(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 99).sel(
-        percentiles=99
-    )
+    per_value = 99
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
@@ -437,7 +420,7 @@ def r99p(config: IndiceConfig) -> DataArray:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -448,9 +431,8 @@ def r99p(config: IndiceConfig) -> DataArray:
 
 
 def r99ptot(config: IndiceConfig) -> DataArray:
-    per = percentile_doy(config.cf_variables[0].in_base_da, config.window, 99).sel(
-        percentiles=99
-    )
+    per_value = 99
+    per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
@@ -458,7 +440,7 @@ def r99ptot(config: IndiceConfig) -> DataArray:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    )
+    ).squeeze("percentiles", drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -527,19 +509,18 @@ def vdtr(config: IndiceConfig) -> DataArray:
 
 
 def cd(config: IndiceConfig) -> DataArray:
-    tas_per = percentile_doy(
-        config.cf_variables[0].in_base_da, window=config.window, per=25
-    ).sel(percentiles=25)
+    per_value = 25
+    tas_per = _compute_percentiles(config, per_value)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
-    pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
+    pr_per = percentile_doy(precip, window=config.window, per=25).sel(percentiles=25)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
         tas_25=tas_per,
         pr=config.cf_variables[1].da,
         pr_25=pr_per,
         freq=config.freq.panda_freq,
-    )
+    ).squeeze("percentiles", drop=True)
     if config.save_percentile:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
@@ -547,19 +528,18 @@ def cd(config: IndiceConfig) -> DataArray:
 
 
 def cw(config: IndiceConfig) -> DataArray:
-    tas_per = percentile_doy(
-        config.cf_variables[0].in_base_da, window=config.window, per=25
-    ).sel(percentiles=25)
+    per_value = 25
+    tas_per = _compute_percentiles(config, per_value)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
-    pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
+    pr_per = percentile_doy(precip, window=config.window, per=75).sel(percentiles=75)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
         tas_25=tas_per,
         pr=config.cf_variables[1].da,
         pr_75=pr_per,
         freq=config.freq.panda_freq,
-    )
+    ).squeeze("percentiles", drop=True)
     if config.save_percentile:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
@@ -567,19 +547,18 @@ def cw(config: IndiceConfig) -> DataArray:
 
 
 def wd(config: IndiceConfig) -> DataArray:
-    tas_per = percentile_doy(
-        config.cf_variables[0].in_base_da, window=config.window, per=75
-    ).sel(percentiles=75)
+    per_value = 75
+    tas_per = _compute_percentiles(config, per_value)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
-    pr_per = percentile_doy(precip, window=5, per=25).sel(percentiles=25)
+    pr_per = percentile_doy(precip, window=config.window, per=25).sel(percentiles=25)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
         tas_75=tas_per,
         pr=config.cf_variables[1].da,
         pr_25=pr_per,
         freq=config.freq.panda_freq,
-    )
+    ).squeeze("percentiles", drop=True)
     if config.save_percentile:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
@@ -587,19 +566,18 @@ def wd(config: IndiceConfig) -> DataArray:
 
 
 def ww(config: IndiceConfig) -> DataArray:
-    tas_per = percentile_doy(
-        config.cf_variables[0].in_base_da, window=config.window, per=75
-    ).sel(percentiles=75)
+    per_value = 75
+    tas_per = _compute_percentiles(config, per_value)
     precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
     precip = precip.where(precip > 1, drop=True)
-    pr_per = percentile_doy(precip, window=5, per=75).sel(percentiles=75)
+    pr_per = percentile_doy(precip, window=config.window, per=75).sel(percentiles=75)
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
         tas_75=tas_per,
         pr=config.cf_variables[1].da,
         pr_75=pr_per,
         freq=config.freq.panda_freq,
-    )
+    ).squeeze("percentiles", drop=True)
     if config.save_percentile:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
@@ -734,10 +712,25 @@ def _add_percentile_meta(
             f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
             f"are inaccurate for the bootstrapped period."
         )
-    result.coords[PERCENTILES_COORD] = resample_doy(per, result)
+    result.coords[PERCENTILES_COORD] = resample_doy(per, result).squeeze(
+        "percentiles", drop=True
+    )
     return result
 
 
 def _add_bootstrap_meta(result: DataArray, per: DataArray) -> DataArray:
-    _add_bootstrap_meta(result, per)
+    result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
     return result
+
+
+def _compute_percentiles(config: IndiceConfig, percentile: int) -> DataArray:
+    per = percentile_doy(
+        config.cf_variables[0].in_base_da,
+        config.window,
+        percentile,
+        alpha=config.interpolation.alpha,
+        beta=config.interpolation.beta,
+    )
+    if config.callback is not None:
+        config.callback(50)
+    return per

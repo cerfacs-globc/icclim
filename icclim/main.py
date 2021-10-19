@@ -117,6 +117,7 @@ def indice(
         out_unit=out_unit,
         netcdf_version=netcdf_version,
         interpolation=interpolation,
+        callback=callback,
     )
     if user_indice is not None:
         result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)

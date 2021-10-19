@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 import numpy as np
 import xarray
@@ -31,6 +31,7 @@ class IndiceConfig:
     threshold: Optional[float]
     transfer_limit_Mbytes: Optional[int]
     out_unit: Optional[str]
+    callback: Optional[Callable]
 
     def __init__(
         self,
@@ -50,6 +51,7 @@ class IndiceConfig:
         interpolation: Optional[
             QuantileInterpolation
         ] = QuantileInterpolation.MEDIAN_UNBIASED,
+        callback: Optional[Callable] = None,
     ):
         self.freq = build_frequency(slice_mode)
         if time_range is not None:
@@ -80,6 +82,7 @@ class IndiceConfig:
             self.netcdf_version = netcdf_version
         self.interpolation = interpolation
         self.threshold = threshold
+        self.callback = callback
 
 
 def _build_cf_variable(
