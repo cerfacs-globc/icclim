@@ -64,6 +64,3 @@ docs/_build/
 
 # PyBuilder
 target/
-
-# ESMPy
-PET0.ESMF_LogFile
