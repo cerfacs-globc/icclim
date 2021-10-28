@@ -11,6 +11,7 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.frequency import Frequency
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
@@ -24,7 +25,7 @@ def gd4(config: IndiceConfig) -> DataArray:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     return atmos.growing_degree_days(
-        config.cf_variables[0].da,
+        tas=config.cf_variables[0].da,
         thresh=threshold,
         freq=config.freq.panda_freq,
     )
@@ -36,7 +37,7 @@ def cfd(config: IndiceConfig) -> DataArray:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     return atmos.consecutive_frost_days(
-        config.cf_variables[0].da,
+        tasmin=config.cf_variables[0].da,
         thresh=threshold,
         freq=config.freq.panda_freq,
     )
@@ -48,7 +49,7 @@ def fd(config: IndiceConfig) -> DataArray:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     return atmos.frost_days(
-        config.cf_variables[0].da,
+        tasmin=config.cf_variables[0].da,
         thresh=threshold,
         freq=config.freq.panda_freq,
     )
@@ -60,7 +61,7 @@ def hd17(config: IndiceConfig) -> DataArray:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     return atmos.heating_degree_days(
-        config.cf_variables[0].da,
+        tas=config.cf_variables[0].da,
         thresh=threshold,
         freq=config.freq.panda_freq,
     )
@@ -110,6 +111,8 @@ def tg10p(config: IndiceConfig) -> DataArray:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
+    if config.is_percent:
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -127,6 +130,8 @@ def tn10p(config: IndiceConfig) -> Dataset:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
+    if config.is_percent:
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -144,6 +149,8 @@ def tx10p(config: IndiceConfig) -> DataArray:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
+    if config.is_percent:
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -167,9 +174,9 @@ def su(config: IndiceConfig) -> DataArray:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     return atmos.tx_days_above(
-        config.cf_variables[0].da,
-        threshold,
-        config.freq.panda_freq,
+        tasmax=config.cf_variables[0].da,
+        thresh=threshold,
+        freq=config.freq.panda_freq,
     )
 
 
@@ -190,8 +197,8 @@ def wsdi(config: IndiceConfig) -> DataArray:
     per = _compute_percentiles(config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.warm_spell_duration_index(
-        config.cf_variables[0].da,
-        per,
+        tasmax=config.cf_variables[0].da,
+        tx90=per,
         window=6,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
@@ -218,7 +225,7 @@ def tg90p(config: IndiceConfig) -> DataArray:
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
     if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -237,7 +244,7 @@ def tn90p(config: IndiceConfig) -> DataArray:
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
     if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -258,7 +265,7 @@ def tx90p(config: IndiceConfig) -> DataArray:
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
     if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -276,7 +283,7 @@ def csu(config: IndiceConfig) -> DataArray:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     return atmos.maximum_consecutive_warm_days(
-        config.cf_variables[0].da,
+        tasmax=config.cf_variables[0].da,
         thresh=threshold,
         freq=config.freq.panda_freq,
     )
@@ -346,7 +353,7 @@ def r75p(config: IndiceConfig) -> DataArray:
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
     if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -365,8 +372,6 @@ def r75ptot(config: IndiceConfig) -> DataArray:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
-    if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
     return result
 
 
@@ -386,7 +391,7 @@ def r95p(config: IndiceConfig) -> DataArray:
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
     if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -405,8 +410,6 @@ def r95ptot(config: IndiceConfig) -> DataArray:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
-    if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
     return result
 
 
@@ -426,7 +429,7 @@ def r99p(config: IndiceConfig) -> DataArray:
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
     if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
+        result = _to_percent(result, config.freq)
     return result
 
 
@@ -445,8 +448,6 @@ def r99ptot(config: IndiceConfig) -> DataArray:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
         result = _add_percentile_meta(run_bootstrap, result, per)
-    if config.is_percent:
-        result = _to_percent(result, config.cf_variables[0].da)
     return result
 
 
@@ -694,10 +695,19 @@ def _can_run_bootstrap(config: IndiceConfig, percentile_period) -> bool:
     return run_bootstrap
 
 
-def _to_percent(da: DataArray, original_da: DataArray) -> DataArray:
-    # TODO make sure it really works as intended
+def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
     with xarray.set_options(keep_attrs=True):
-        da = da / len(original_da.time) * 100
+        if sampling_freq == Frequency.MONTH:
+            da = da / da.time.dt.daysinmonth * 100
+        elif sampling_freq == Frequency.YEAR:
+            coef = da.time
+            coef[da.dt.is_leap_year] = 366
+            coef[~da.dt.is_leap_year] = 365
+            da = da / coef * 100
+        else:
+            # TODO improve this
+            warn("% unit can only be used with MONTH or YEAR slice_mode.")
+            return da
         da.attrs["units"] = "%"
         return da
 
