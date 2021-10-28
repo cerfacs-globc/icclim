@@ -9,12 +9,13 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from warnings import warn
 
 import xarray
+import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-import icclim.logging_info as logging_info
 from icclim.eca_indices import Indice, IndiceConfig, indice_from_string
-from icclim.icclim_exceptions import MissingIcclimInputError
+from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError
+from icclim.logging_info import ending_message, start_message
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -26,7 +27,7 @@ __all__ = ["indice"]
 
 def indice(
     in_files: Union[str, List[str]],
-    var_name: Union[str, List[str]],
+    var_name: Optional[Union[str, List[str]]] = None,
     indice_name: str = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime] = None,
@@ -95,14 +96,32 @@ def indice(
     .. warning:: If ``out_file`` already exists, icclim will overwrite it!
 
     """
-    logging_info.start_message()
+    start_message()
     callback(callback_percentage_start_value)
+    xclim.set_options(data_validation="warn")
     if isinstance(in_files, list):
         ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
     else:
         ds = xarray.open_dataset(in_files, decode_cf=True)
     if isinstance(var_name, str):
         var_name = [var_name]
+    elif var_name is None:
+        # Try to use the known standard names to find the variables
+        var_name = []
+        indice_variables = indice_from_string(indice_name).variables
+        for indice_var in indice_variables:
+            for alias in indice_var:
+                # check if dataset contains this alias
+                if ds.get(alias, None) is not None:
+                    var_name.append(alias)
+                    break
+        if len(var_name) < len(indice_variables):
+            raise InvalidIcclimArgumentError(
+                f"The necessary variable(s) are not recognized in the"
+                f" input file(s) {in_files} to compute {indice_name}."
+                f" If the variable(s) exist with an non-standard name in the"
+                f" file, use var_name parameter to provide their names."
+            )
     config = IndiceConfig(
         base_period_time_range=base_period_time_range,
         ds=ds,
@@ -127,7 +146,7 @@ def indice(
         )
     result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
     callback(callback_percentage_total)
-    logging_info.ending_message(time.process_time())
+    ending_message(time.process_time())
     return result_ds
 
 
@@ -200,7 +219,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
 def _compute_basic_indice(
     indice_name: str, config: IndiceConfig, former_history: str
 ) -> Dataset:
-    logging.info(f"Calculating climate indice: {indice_name}")
+    logging.info(f"Calculating climate index: {indice_name}")
     result_ds = Dataset()
     indice = indice_from_string(indice_name)
     da = indice.compute(config)

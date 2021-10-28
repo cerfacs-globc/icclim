@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, Optional, Union
+from typing import Callable, List, Optional, Union
 from warnings import warn
 
 import numpy as np
@@ -593,74 +593,102 @@ RAIN_GROUP = "rain"
 SNOW_GROUP = "snow"
 COMPOUND_GROUP = "compound"
 
+# Aliases
+PR = ["pradjust", "prec", "rr", "precip", "PREC", "Prec", "RR", "PRECIP", "Precip"]
+TAS = [
+    "tasadjust",
+    "tmean",
+    "tm",
+    "tg",
+    "meant",
+    "TMEAN",
+    "Tmean",
+    "TM",
+    "TG",
+    "MEANT",
+    "meanT",
+    "tasmidpoint",
+]
+TASMAX = ["tasmaxadjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX", "MAXT", "maxT"]
+TASMIN = ["tasminadjust", "tmin", "tn", "mint", "TMIN", "Tmin", "TN", "MINT", "minT"]
+HURS = ["hursadjust", "rh", "RH"]
+PSL = ["mslp", "slp", "pp", "MSLP", "SLP", "PP"]
+SND = ["sd", "SD"]
+SUND = ["ss", "SS"]
+WSGSMAX = ["fx", "FX"]
+SFCWIND = ["sfcwind", "fg", "FG"]
+SN = ["swe", "SWE"]
+
 
 class Indice(Enum):
     # temperature
-    TG = ("tg", tg, TEMPERATURE_GROUP)
-    TN = ("tn", tn, TEMPERATURE_GROUP)
-    TX = ("tx", tx, TEMPERATURE_GROUP)
-    DTR = ("dtr", dtr, TEMPERATURE_GROUP)
-    ETR = ("etr", etr, TEMPERATURE_GROUP)
-    VDTR = ("vdtr", vdtr, TEMPERATURE_GROUP)
+    TG = ("tg", tg, TEMPERATURE_GROUP, [TAS])
+    TN = ("tn", tn, TEMPERATURE_GROUP, [TASMIN])
+    TX = ("tx", tx, TEMPERATURE_GROUP, [TASMAX])
+    DTR = ("dtr", dtr, TEMPERATURE_GROUP, [TASMIN, TASMAX])
+    ETR = ("etr", etr, TEMPERATURE_GROUP, [TASMIN, TASMAX])
+    VDTR = ("vdtr", vdtr, TEMPERATURE_GROUP, [TASMIN, TASMAX])
     # heat
-    SU = ("su", su, HEAT_GROUP)
-    TR = ("tr", tr, HEAT_GROUP)
-    WSDI = ("wsdi", wsdi, HEAT_GROUP)
-    TG90P = ("tg90p", tg90p, HEAT_GROUP)
-    TN90P = ("tn90p", tn90p, HEAT_GROUP)
-    TX90P = ("tx90p", tx90p, HEAT_GROUP)
-    TXX = ("txx", txx, HEAT_GROUP)
-    TNX = ("tnx", tnx, HEAT_GROUP)
-    CSU = ("csu", csu, HEAT_GROUP)
+    SU = ("su", su, HEAT_GROUP, [TASMAX])
+    TR = ("tr", tr, HEAT_GROUP, [TASMIN])
+    WSDI = ("wsdi", wsdi, HEAT_GROUP, [TASMAX])
+    TG90P = ("tg90p", tg90p, HEAT_GROUP, [TAS])
+    TN90P = ("tn90p", tn90p, HEAT_GROUP, [TASMIN])
+    TX90P = ("tx90p", tx90p, HEAT_GROUP, [TASMAX])
+    TXX = ("txx", txx, HEAT_GROUP, [TASMAX])
+    TNX = ("tnx", tnx, HEAT_GROUP, [TASMIN])
+    CSU = ("csu", csu, HEAT_GROUP, [TASMAX])
     # cold
-    GD4 = ("gd4", gd4, COLD_GROUP)
-    FD = ("fd", fd, COLD_GROUP)
-    CFD = ("cfd", cfd, COLD_GROUP)
-    HD17 = ("hd17", hd17, COLD_GROUP)
-    ID = ("id", id, COLD_GROUP)
-    TG10P = ("tg10p", tg10p, COLD_GROUP)
-    TN10P = ("tn10p", tn10p, COLD_GROUP)
-    TX10P = ("tx10p", tx10p, COLD_GROUP)
-    TXN = ("txn", txn, COLD_GROUP)
-    TNN = ("tnn", tnn, COLD_GROUP)
-    CSDI = ("csdi", csdi, COLD_GROUP)
+    GD4 = ("gd4", gd4, COLD_GROUP, [TASMIN])
+    FD = ("fd", fd, COLD_GROUP, [TASMIN])
+    CFD = ("cfd", cfd, COLD_GROUP, [TASMIN])
+    HD17 = ("hd17", hd17, COLD_GROUP, [TASMIN])
+    ID = ("id", id, COLD_GROUP, [TASMAX])
+    TG10P = ("tg10p", tg10p, COLD_GROUP, [TAS])
+    TN10P = ("tn10p", tn10p, COLD_GROUP, [TASMIN])
+    TX10P = ("tx10p", tx10p, COLD_GROUP, [TASMAX])
+    TXN = ("txn", txn, COLD_GROUP, [TASMAX])
+    TNN = ("tnn", tnn, COLD_GROUP, [TASMIN])
+    CSDI = ("csdi", csdi, COLD_GROUP, [TASMIN])
     # drought
-    CDD = ("cdd", cdd, DROUGHT_GROUP)
+    CDD = ("cdd", cdd, DROUGHT_GROUP, [PR])
     # rain
-    PRCPTOT = ("prcptot", prcptot, RAIN_GROUP)
-    RR1 = ("rr1", rr1, RAIN_GROUP)
-    SDII = ("sdii", sdii, RAIN_GROUP)
-    CWD = ("cwd", cwd, RAIN_GROUP)
-    R10MM = ("r10mm", r10mm, RAIN_GROUP)
-    R20MM = ("r20mm", r20mm, RAIN_GROUP)
-    RX1DAY = ("rx1day", rx1day, RAIN_GROUP)
-    RX5DAY = ("rx5day", rx5day, RAIN_GROUP)
-    R75P = ("r75p", r75p, RAIN_GROUP)
-    R75PTOT = ("r75ptot", r75ptot, RAIN_GROUP)
-    R95P = ("r95p", r95p, RAIN_GROUP)
-    R95PTOT = ("r95ptot", r95ptot, RAIN_GROUP)
-    R99P = ("r99p", r99p, RAIN_GROUP)
-    R99PTOT = ("r99ptot", r99ptot, RAIN_GROUP)
+    PRCPTOT = ("prcptot", prcptot, RAIN_GROUP, [PR])
+    RR1 = ("rr1", rr1, RAIN_GROUP, [PR])
+    SDII = ("sdii", sdii, RAIN_GROUP, [PR])
+    CWD = ("cwd", cwd, RAIN_GROUP, [PR])
+    R10MM = ("r10mm", r10mm, RAIN_GROUP, [PR])
+    R20MM = ("r20mm", r20mm, RAIN_GROUP, [PR])
+    RX1DAY = ("rx1day", rx1day, RAIN_GROUP, [PR])
+    RX5DAY = ("rx5day", rx5day, RAIN_GROUP, [PR])
+    R75P = ("r75p", r75p, RAIN_GROUP, [PR])
+    R75PTOT = ("r75ptot", r75ptot, RAIN_GROUP, [PR])
+    R95P = ("r95p", r95p, RAIN_GROUP, [PR])
+    R95PTOT = ("r95ptot", r95ptot, RAIN_GROUP, [PR])
+    R99P = ("r99p", r99p, RAIN_GROUP, [PR])
+    R99PTOT = ("r99ptot", r99ptot, RAIN_GROUP, [PR])
     # snow
-    SD = ("sd", sd, SNOW_GROUP)
-    SD1 = ("sd1", sd1, SNOW_GROUP)
-    SD5CM = ("sd5cm", sd5cm, SNOW_GROUP)
-    SD50CM = ("sd50cm", sd50cm, SNOW_GROUP)
+    SD = ("sd", sd, SNOW_GROUP, [PR])
+    SD1 = ("sd1", sd1, SNOW_GROUP, [PR])
+    SD5CM = ("sd5cm", sd5cm, SNOW_GROUP, [PR])
+    SD50CM = ("sd50cm", sd50cm, SNOW_GROUP, [PR])
     # compound
-    CD = ("cd", cd, COMPOUND_GROUP)
-    CW = ("cw", cw, COMPOUND_GROUP)
-    WD = ("wd", wd, COMPOUND_GROUP)
-    WW = ("ww", ww, COMPOUND_GROUP)
+    CD = ("cd", cd, COMPOUND_GROUP, [TASMAX, PR])
+    CW = ("cw", cw, COMPOUND_GROUP, [TASMAX, PR])
+    WD = ("wd", wd, COMPOUND_GROUP, [TASMAX, PR])
+    WW = ("ww", ww, COMPOUND_GROUP, [TASMAX, PR])
 
     def __init__(
         self,
         indice_name: str,
         compute: Callable[[IndiceConfig], DataArray],
         group: str,
+        variables: List[List[str]],
     ):
         self.indice_name = indice_name
         self.compute = compute
         self.group = group
+        self.variables = variables
 
 
 def indice_from_string(s: str) -> Indice:
