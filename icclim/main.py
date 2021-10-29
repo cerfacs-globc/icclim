@@ -5,10 +5,11 @@
 import logging
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from warnings import warn
 
 import xarray
+import xarray as xr
 import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
@@ -96,9 +97,12 @@ def indice(
     .. warning:: If ``out_file`` already exists, icclim will overwrite it!
 
     """
+    # make daily check a warning instead of an error
+    xclim.set_options(data_validation="warn")
+    # keep attributes through xarray operations
+    xr.set_options(keep_attrs=True)
     start_message()
     callback(callback_percentage_start_value)
-    xclim.set_options(data_validation="warn")
     if isinstance(in_files, list):
         ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
     else:
@@ -106,22 +110,8 @@ def indice(
     if isinstance(var_name, str):
         var_name = [var_name]
     elif var_name is None:
-        # Try to use the known standard names to find the variables
-        var_name = []
-        indice_variables = indice_from_string(indice_name).variables
-        for indice_var in indice_variables:
-            for alias in indice_var:
-                # check if dataset contains this alias
-                if ds.get(alias, None) is not None:
-                    var_name.append(alias)
-                    break
-        if len(var_name) < len(indice_variables):
-            raise InvalidIcclimArgumentError(
-                f"The necessary variable(s) are not recognized in the"
-                f" input file(s) {in_files} to compute {indice_name}."
-                f" If the variable(s) exist with an non-standard name in the"
-                f" file, use var_name parameter to provide their names."
-            )
+        var_name = _guess_variables(indice_name, ds)
+    ds, reset_coords = _update_coords(ds)
     config = IndiceConfig(
         base_period_time_range=base_period_time_range,
         ds=ds,
@@ -142,8 +132,10 @@ def indice(
         result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
     else:
         result_ds = _build_basic_indice_dataset(
-            config, indice_name, threshold, ds.attrs["history"]
+            config, indice_name, threshold, ds.attrs.get("history", None)
         )
+    if reset_coords:
+        result_ds = result_ds.rename(reset_coords)
     result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
     callback(callback_percentage_total)
     ending_message(time.process_time())
@@ -154,7 +146,7 @@ def _build_basic_indice_dataset(
     config: IndiceConfig,
     indice_name: str,
     threshold: Union[float, List[float]],
-    current_history: str,
+    current_history: Optional[str],
 ) -> Dataset:
     if indice_name is None:
         # user input error, avoid doing all computations for nothing
@@ -217,7 +209,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
 
 
 def _compute_basic_indice(
-    indice_name: str, config: IndiceConfig, former_history: str
+    indice_name: str, config: IndiceConfig, former_history: Optional[str]
 ) -> Dataset:
     logging.info(f"Calculating climate index: {indice_name}")
     result_ds = Dataset()
@@ -287,3 +279,40 @@ def _get_history(config, former_history, indice_computed, result_ds):
         f"indice({config.freq.description}) "
         f"from {start_time} to {end_time}."
     )
+
+
+def _guess_variables(indice_name: str, ds: Dataset):
+    """
+    Try to guess the variable names using the expected kind of variable for
+    the indice.
+    """
+    res = []
+    indice_variables = indice_from_string(indice_name).variables
+    for indice_var in indice_variables:
+        for alias in indice_var:
+            # check if dataset contains this alias
+            if ds.get(alias, None) is not None:
+                res.append(alias)
+                break
+    if len(res) < len(indice_variables):
+        raise InvalidIcclimArgumentError(
+            f"The necessary variable(s) were not found or recognized in the"
+            f" input file(s) to compute {indice_name}."
+            f" If the variable(s) exist with non-standard names in the"
+            f" file, use var_name parameter to provide their names."
+        )
+    return res
+
+
+def _update_coords(ds: Dataset) -> Tuple[Dataset, Dict]:
+    revert = {}
+    if ds.coords.get("latitude") is not None:
+        ds = ds.rename({"latitude": "lat"})
+        revert.update({"lat": "latitude"})
+    if ds.coords.get("longitude") is not None:
+        ds = ds.rename({"longitude": "lon"})
+        revert.update({"lon": "longitude"})
+    if ds.coords.get("t") is not None:
+        ds = ds.rename({"t": "time"})
+        revert.update({"time": "t"})
+    return ds, revert
