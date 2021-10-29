@@ -6,7 +6,6 @@ import pandas
 import xarray
 from xarray.core.dataarray import DataArray
 
-# month_list must be ordered from first month of season to the last. Example: [11, 1, 2,4]
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
 
@@ -41,23 +40,35 @@ def seasons_resampler(
             acc.append(season_of_year)
         seasons = xarray.concat(acc, "time")
         seasons.coords["time"] = ("time", middle_date)
-        # FIXME: In case of month_list with holes, such as [1,3,4,6]; How do we show this in metatadas ?
-        seasons.time.attrs = da.time.attrs
-        seasons.time.attrs["bounds"] = "time_bounds"
         time_bnds_da = DataArray(
             data=time_bounds,
             dims=["time", "bounds"],
-            coords=[("time", seasons.time.data), ("bounds", [0, 1])],
+            coords=[("time", seasons.time.values), ("bounds", [0, 1])],
         )
         return seasons, time_bnds_da
 
     return resampler
 
 
-def month_filter(month_list: List[int]) -> Callable[[DataArray], DataArray]:
-    def resampler(da: DataArray):
-        # TODO see what kind of time_bounds is expected here
-        return da.sel(time=da.time.dt.month.isin(month_list))
+def month_filter(
+    month_list: List[int],
+) -> Callable[[DataArray], Tuple[DataArray, None]]:
+    def resampler(da: DataArray) -> Tuple[DataArray, None]:
+        # no time_bds for this kind of resampling
+        return da.sel(time=da.time.dt.month.isin(month_list)), None
+
+    return resampler
+
+
+def _add_time_bounds(freq: str) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
+    def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
+        ts = da.time.resample(time=freq)
+        time_bnds_da = DataArray(
+            data=list(zip(ts.min().values, ts.max().values)),
+            dims=["time", "bounds"],
+            coords=[("time", da.time.values), ("bounds", [0, 1])],
+        )
+        return da, time_bnds_da
 
     return resampler
 
@@ -74,7 +85,7 @@ class Frequency(Enum):
     SON 	autumn
     """
 
-    MONTH = ("MS", ["month", "MS"], "monthly time series")
+    MONTH = ("MS", ["month", "MS"], "monthly time series", _add_time_bounds("MS"))
     AMJJAS = (
         "MS",
         ["AMJJAS"],
@@ -92,7 +103,7 @@ class Frequency(Enum):
     JJA = ("MS", ["JJA"], "summer time series", seasons_resampler([*range(6, 8)]))
     SON = ("MS", ["SON"], "autumn time series", seasons_resampler([*range(9, 11)]))
     CUSTOM = ("MS", [], None, None)
-    YEAR = ("YS", ["year", "YS"], "annual time series")
+    YEAR = ("YS", ["year", "YS"], "annual time series", _add_time_bounds("YS"))
 
     def __init__(
         self,
@@ -104,6 +115,7 @@ class Frequency(Enum):
         self.panda_freq: str = panda_time
         self.accepted_values: List[str] = accepted_values
         self.description = description
+        # TODO maybe rename this property, it's not always a resampler (see _add_time_bounds)
         self.resampler = resampler
 
 

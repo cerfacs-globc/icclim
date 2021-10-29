@@ -221,7 +221,9 @@ def _compute_basic_indice(
     if config.freq.resampler is not None:
         resampled_da, time_bounds = config.freq.resampler(da)
         result_ds[indice_name] = resampled_da
-        result_ds["time_bounds"] = time_bounds
+        if time_bounds is not None:
+            result_ds["time_bnds"] = time_bounds
+            result_ds.time.attrs["bounds"] = "time_bounds"
     else:
         result_ds[indice_name] = da
     if former_history is None:
