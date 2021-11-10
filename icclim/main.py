@@ -27,7 +27,7 @@ __all__ = ["indice"]
 
 
 def indice(
-    in_files: Union[str, List[str]],
+    in_files: Union[str, List[str], Dataset],
     var_name: Optional[Union[str, List[str]]] = None,
     indice_name: str = None,
     slice_mode: SliceMode = Frequency.YEAR,
@@ -103,7 +103,9 @@ def indice(
     xr.set_options(keep_attrs=True)
     start_message()
     callback(callback_percentage_start_value)
-    if isinstance(in_files, list):
+    if isinstance(in_files, Dataset):
+        ds = in_files
+    elif isinstance(in_files, list):
         ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
     else:
         ds = xarray.open_dataset(in_files, decode_cf=True)
@@ -136,7 +138,8 @@ def indice(
         )
     if reset_coords:
         result_ds = result_ds.rename(reset_coords)
-    result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
+    if isinstance(in_files, Dataset):
+        result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
     callback(callback_percentage_total)
     ending_message(time.process_time())
     return result_ds
