@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import Callable, List, Optional, Tuple, Union
 
-import numpy
-import pandas
-import xarray
+import numpy as np
+import pandas as pd
+import xarray as xr
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -13,22 +13,21 @@ def seasons_resampler(
     month_list: List[int],
 ) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
     def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
-        da_years = numpy.unique(da.time.dt.year)
+        da_years = np.unique(da.time.dt.year)
         acc: List[DataArray] = []
         time_bounds = []
         middle_date = []
         start_month = month_list[0]
         end_month = month_list[-1]
-        filtered_da = month_filter(month_list)(da)
+        filtered_da, _ = month_filter(month_list)(da)
         # TODO, maybe raise a warning if the month_list is not made of consecutive month (case of user error)
         for year in da_years:
             if start_month > end_month:
-                start_season_date = pandas.to_datetime(f"{year - 1}-{start_month}")
+                start_season_date = pd.to_datetime(f"{year - 1}-{start_month}")
             else:
-                start_season_date = pandas.to_datetime(f"{year}-{start_month}")
+                start_season_date = pd.to_datetime(f"{year}-{start_month}")
             end_season_date = (
-                pandas.to_datetime(f"{year}-{end_month + 1}")
-                - pandas.tseries.offsets.Day()
+                pd.to_datetime(f"{year}-{end_month + 1}") - pd.tseries.offsets.Day()
             )  # type:ignore
             season_of_year = filtered_da.sel(
                 time=slice(start_season_date, end_season_date)
@@ -38,14 +37,14 @@ def seasons_resampler(
             )
             time_bounds.append([start_season_date, end_season_date])
             acc.append(season_of_year)
-        seasons = xarray.concat(acc, "time")
+        seasons = xr.concat(acc, "time")
         seasons.coords["time"] = ("time", middle_date)
-        time_bnds_da = DataArray(
+        time_bounds_da = DataArray(
             data=time_bounds,
             dims=["time", "bounds"],
             coords=[("time", seasons.time.values), ("bounds", [0, 1])],
         )
-        return seasons, time_bnds_da
+        return seasons, time_bounds_da
 
     return resampler
 
@@ -61,16 +60,17 @@ def month_filter(
 
 
 def _add_time_bounds(freq: str) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
-    def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
-        ts = da.time.resample(time=freq)
-        time_bnds_da = DataArray(
-            data=list(zip(ts.min().values, ts.max().values)),
+    def add_bounds(da: DataArray) -> Tuple[DataArray, DataArray]:
+        # da should already be resampled to freq
+        offset = pd.tseries.frequencies.to_offset(freq)
+        time_bounds_da = DataArray(
+            data=list(zip(da.time.values, (da.time.dt.date + offset).values)),
             dims=["time", "bounds"],
             coords=[("time", da.time.values), ("bounds", [0, 1])],
         )
-        return da, time_bnds_da
+        return da, time_bounds_da
 
-    return resampler
+    return add_bounds
 
 
 class Frequency(Enum):

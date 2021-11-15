@@ -138,7 +138,7 @@ def indice(
         )
     if reset_coords:
         result_ds = result_ds.rename(reset_coords)
-    if isinstance(in_files, Dataset):
+    if not isinstance(in_files, Dataset):
         result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
     callback(callback_percentage_total)
     ending_message(time.process_time())
@@ -225,7 +225,7 @@ def _compute_basic_indice(
         resampled_da, time_bounds = config.freq.resampler(da)
         result_ds[indice_name] = resampled_da
         if time_bounds is not None:
-            result_ds["time_bnds"] = time_bounds
+            result_ds["time_bounds"] = time_bounds
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
         result_ds[indice_name] = da
