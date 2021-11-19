@@ -155,11 +155,15 @@ def tx10p(config: IndiceConfig) -> DataArray:
 
 
 def txn(config: IndiceConfig) -> DataArray:
-    return atmos.tx_min(config.cf_variables[0].da, freq=config.freq.panda_freq)
+    result = atmos.tx_min(config.cf_variables[0].da,
+                          freq=config.freq.panda_freq)
+    return convert_units_to(result, "degC")
 
 
 def tnn(config: IndiceConfig) -> DataArray:
-    return atmos.tn_min(config.cf_variables[0].da, freq=config.freq.panda_freq)
+    result = atmos.tn_min(config.cf_variables[0].da,
+                          freq=config.freq.panda_freq)
+    return convert_units_to(result, "degC")
 
 
 def cdd(config: IndiceConfig) -> DataArray:
@@ -268,11 +272,15 @@ def tx90p(config: IndiceConfig) -> DataArray:
 
 
 def txx(config: IndiceConfig) -> DataArray:
-    return atmos.tx_max(config.cf_variables[0].da, freq=config.freq.panda_freq)
+    result = atmos.tx_max(config.cf_variables[0].da,
+                          freq=config.freq.panda_freq)
+    return convert_units_to(result, "degC")
 
 
 def tnx(config: IndiceConfig) -> DataArray:
-    return atmos.tn_max(config.cf_variables[0].da, freq=config.freq.panda_freq)
+    result = atmos.tn_max(config.cf_variables[0].da,
+                          freq=config.freq.panda_freq)
+    return convert_units_to(result, "degC")
 
 
 def csu(config: IndiceConfig) -> DataArray:
@@ -476,39 +484,51 @@ def sd50cm(config: IndiceConfig) -> DataArray:
 
 
 def tg(config: IndiceConfig) -> DataArray:
-    return atmos.tg_mean(config.cf_variables[0].da, freq=config.freq.panda_freq)
+    result = atmos.tg_mean(config.cf_variables[0].da,
+                           freq=config.freq.panda_freq)
+    return convert_units_to(result, "degC")
 
 
 def tn(config: IndiceConfig) -> DataArray:
-    return atmos.tg_min(config.cf_variables[0].da, freq=config.freq.panda_freq)
+    result = atmos.tn_mean(config.cf_variables[0].da,
+                           freq=config.freq.panda_freq)
+    return convert_units_to(result, "degC")
 
 
 def tx(config: IndiceConfig) -> DataArray:
-    return atmos.tg_max(config.cf_variables[0].da, freq=config.freq.panda_freq)
+    result = atmos.tx_mean(config.cf_variables[0].da,
+                           freq=config.freq.panda_freq)
+    return convert_units_to(result, "degC")
 
 
 def dtr(config: IndiceConfig) -> DataArray:
-    return atmos.daily_temperature_range(
-        tasmin=config.cf_variables[0].da,
-        tasmax=config.cf_variables[1].da,
+    result = atmos.daily_temperature_range(
+        tasmax=config.cf_variables[0].da,
+        tasmin=config.cf_variables[1].da,
         freq=config.freq.panda_freq,
     )
+    result.attrs["units"] = "°C"
+    return result
 
 
 def etr(config: IndiceConfig) -> DataArray:
-    return atmos.extreme_temperature_range(
-        tasmin=config.cf_variables[0].da,
-        tasmax=config.cf_variables[1].da,
+    result = atmos.extreme_temperature_range(
+        tasmax=config.cf_variables[0].da,
+        tasmin=config.cf_variables[1].da,
         freq=config.freq.panda_freq,
     )
+    result.attrs["units"] = "°C"
+    return result
 
 
 def vdtr(config: IndiceConfig) -> DataArray:
-    return atmos.daily_temperature_range_variability(
-        tasmin=config.cf_variables[0].da,
-        tasmax=config.cf_variables[1].da,
+    result = atmos.daily_temperature_range_variability(
+        tasmax=config.cf_variables[0].da,
+        tasmin=config.cf_variables[1].da,
         freq=config.freq.panda_freq,
     )
+    result.attrs["units"] = "°C"
+    return result
 
 
 def cd(config: IndiceConfig) -> DataArray:
@@ -623,9 +643,9 @@ class Indice(Enum):
     TG = ("tg", tg, TEMPERATURE_GROUP, [TAS])
     TN = ("tn", tn, TEMPERATURE_GROUP, [TASMIN])
     TX = ("tx", tx, TEMPERATURE_GROUP, [TASMAX])
-    DTR = ("dtr", dtr, TEMPERATURE_GROUP, [TASMIN, TASMAX])
-    ETR = ("etr", etr, TEMPERATURE_GROUP, [TASMIN, TASMAX])
-    VDTR = ("vdtr", vdtr, TEMPERATURE_GROUP, [TASMIN, TASMAX])
+    DTR = ("dtr", dtr, TEMPERATURE_GROUP, [TASMAX, TASMIN])
+    ETR = ("etr", etr, TEMPERATURE_GROUP, [TASMAX, TASMIN])
+    VDTR = ("vdtr", vdtr, TEMPERATURE_GROUP, [TASMAX, TASMIN])
     # heat
     SU = ("su", su, HEAT_GROUP, [TASMAX])
     TR = ("tr", tr, HEAT_GROUP, [TASMIN])
@@ -677,11 +697,11 @@ class Indice(Enum):
     WW = ("ww", ww, COMPOUND_GROUP, [TASMAX, PR])
 
     def __init__(
-        self,
-        indice_name: str,
-        compute: Callable[[IndiceConfig], DataArray],
-        group: str,
-        variables: List[List[str]],
+            self,
+            indice_name: str,
+            compute: Callable[[IndiceConfig], DataArray],
+            group: str,
+            variables: List[List[str]],
     ):
         self.indice_name = indice_name
         self.compute = compute
