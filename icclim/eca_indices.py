@@ -3,7 +3,8 @@ from typing import Callable, List, Optional, Union
 from warnings import warn
 
 import numpy as np
-import xarray
+import xarray as xr
+import xclim.core.utils
 from xarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim import atmos, land
@@ -81,7 +82,7 @@ def id(config: IndiceConfig) -> DataArray:
 
 def csdi(config: IndiceConfig) -> DataArray:
     per_value = 10
-    per = _compute_percentiles(config, per_value)
+    per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.cold_spell_duration_index(
         config.cf_variables[0].da,
@@ -99,7 +100,7 @@ def csdi(config: IndiceConfig) -> DataArray:
 
 def tg10p(config: IndiceConfig) -> DataArray:
     per_value = 10
-    per = _compute_percentiles(config, per_value)
+    per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tg10p(
         config.cf_variables[0].da,
@@ -118,7 +119,7 @@ def tg10p(config: IndiceConfig) -> DataArray:
 
 def tn10p(config: IndiceConfig) -> Dataset:
     per_value = 10
-    per = _compute_percentiles(config, per_value)
+    per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tn10p(
         config.cf_variables[0].da,
@@ -137,7 +138,7 @@ def tn10p(config: IndiceConfig) -> Dataset:
 
 def tx10p(config: IndiceConfig) -> DataArray:
     per_value = 10
-    per = _compute_percentiles(config, per_value)
+    per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tx10p(
         config.cf_variables[0].da,
@@ -155,14 +156,12 @@ def tx10p(config: IndiceConfig) -> DataArray:
 
 
 def txn(config: IndiceConfig) -> DataArray:
-    result = atmos.tx_min(config.cf_variables[0].da,
-                          freq=config.freq.panda_freq)
+    result = atmos.tx_min(config.cf_variables[0].da, freq=config.freq.panda_freq)
     return convert_units_to(result, "degC")
 
 
 def tnn(config: IndiceConfig) -> DataArray:
-    result = atmos.tn_min(config.cf_variables[0].da,
-                          freq=config.freq.panda_freq)
+    result = atmos.tn_min(config.cf_variables[0].da, freq=config.freq.panda_freq)
     return convert_units_to(result, "degC")
 
 
@@ -198,7 +197,7 @@ def tr(config: IndiceConfig) -> DataArray:
 
 def wsdi(config: IndiceConfig) -> DataArray:
     per_value = 90
-    per = _compute_percentiles(config, per_value)
+    per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.warm_spell_duration_index(
         config.cf_variables[0].da,
@@ -216,7 +215,7 @@ def wsdi(config: IndiceConfig) -> DataArray:
 
 def tg90p(config: IndiceConfig) -> DataArray:
     per_value = 90
-    per = _compute_percentiles(config, per_value)
+    per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tg90p(
         config.cf_variables[0].da,
@@ -235,7 +234,7 @@ def tg90p(config: IndiceConfig) -> DataArray:
 
 def tn90p(config: IndiceConfig) -> DataArray:
     per_value = 90
-    per = _compute_percentiles(config, per_value)
+    per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tn90p(
         config.cf_variables[0].da,
@@ -254,7 +253,7 @@ def tn90p(config: IndiceConfig) -> DataArray:
 
 def tx90p(config: IndiceConfig) -> DataArray:
     per_value = 90
-    per = _compute_percentiles(config, per_value)
+    per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
     result = atmos.tx90p(
         config.cf_variables[0].da,
@@ -272,14 +271,12 @@ def tx90p(config: IndiceConfig) -> DataArray:
 
 
 def txx(config: IndiceConfig) -> DataArray:
-    result = atmos.tx_max(config.cf_variables[0].da,
-                          freq=config.freq.panda_freq)
+    result = atmos.tx_max(config.cf_variables[0].da, freq=config.freq.panda_freq)
     return convert_units_to(result, "degC")
 
 
 def tnx(config: IndiceConfig) -> DataArray:
-    result = atmos.tn_max(config.cf_variables[0].da,
-                          freq=config.freq.panda_freq)
+    result = atmos.tn_max(config.cf_variables[0].da, freq=config.freq.panda_freq)
     return convert_units_to(result, "degC")
 
 
@@ -297,7 +294,7 @@ def csu(config: IndiceConfig) -> DataArray:
 
 def prcptot(config: IndiceConfig) -> DataArray:
     return atmos.precip_accumulation(
-        config.cf_variables[0].da,
+        _filter_in_wet_days(config.cf_variables[0].da),
         freq=config.freq.panda_freq,
         # TODO see if we should use tas and thresh
         # tas=config.cf_variables[0].da,
@@ -348,116 +345,101 @@ def rx5day(config: IndiceConfig) -> DataArray:
 
 
 def r75p(config: IndiceConfig) -> DataArray:
-    per_value = 75
-    per = _compute_percentiles(config, per_value)
-    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
+    base_wet_days = _filter_in_wet_days(config.cf_variables[0].in_base_da)
+    per = _compute_percentile(base_wet_days, config, 75.0)
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=run_bootstrap,
+        bootstrap=False,
     ).squeeze("percentiles", drop=True)
-    if run_bootstrap:
-        result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
-        result = _add_percentile_meta(run_bootstrap, result, per)
+        result = _add_percentile_meta(False, result, per)
     if config.is_percent:
         result = _to_percent(result, config.freq)
     return result
 
 
 def r75ptot(config: IndiceConfig) -> DataArray:
-    per_value = 75
-    per = _compute_percentiles(config, per_value)
-    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
+    base_wet_days = _filter_in_wet_days(config.cf_variables[0].in_base_da)
+    per = _compute_percentile(base_wet_days, config, 75.0)
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=run_bootstrap,
+        bootstrap=False,
     ).squeeze("percentiles", drop=True)
-    if run_bootstrap:
-        result = _add_bootstrap_meta(result, per)
+    result = result * 100
     if config.save_percentile:
-        result = _add_percentile_meta(run_bootstrap, result, per)
+        result = _add_percentile_meta(run_bootstrap=False, da=result, per=per)
     return result
 
 
 def r95p(config: IndiceConfig) -> DataArray:
-    per_value = 95
-    per = _compute_percentiles(config, per_value)
-    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
+    base_wet_days = _filter_in_wet_days(config.cf_variables[0].in_base_da)
+    per = _compute_percentile(base_wet_days, config, 95.0)
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=run_bootstrap,
+        bootstrap=False,
     ).squeeze("percentiles", drop=True)
-    if run_bootstrap:
-        result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
-        result = _add_percentile_meta(run_bootstrap, result, per)
+        result = _add_percentile_meta(False, result, per)
     if config.is_percent:
         result = _to_percent(result, config.freq)
     return result
 
 
 def r95ptot(config: IndiceConfig) -> DataArray:
-    per_value = 95
-    per = _compute_percentiles(config, per_value)
-    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
+    base_wet_days = _filter_in_wet_days(config.cf_variables[0].in_base_da)
+    per = _compute_percentile(base_wet_days, config, 95.0)
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=run_bootstrap,
+        bootstrap=False,
     ).squeeze("percentiles", drop=True)
-    if run_bootstrap:
-        result = _add_bootstrap_meta(result, per)
+    result = result * 100
     if config.save_percentile:
-        result = _add_percentile_meta(run_bootstrap, result, per)
+        result = _add_percentile_meta(run_bootstrap=False, da=result, per=per)
     return result
 
 
 def r99p(config: IndiceConfig) -> DataArray:
-    per_value = 99
-    per = _compute_percentiles(config, per_value)
-    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
+    base_wet_days = _filter_in_wet_days(config.cf_variables[0].in_base_da)
+    per = _compute_percentile(base_wet_days, config, 99.0)
     result = atmos.days_over_precip_thresh(
         config.cf_variables[0].da,
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=run_bootstrap,
+        bootstrap=False,
     ).squeeze("percentiles", drop=True)
-    if run_bootstrap:
-        result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
-        result = _add_percentile_meta(run_bootstrap, result, per)
+        result = _add_percentile_meta(run_bootstrap=False, da=result, per=per)
     if config.is_percent:
         result = _to_percent(result, config.freq)
     return result
 
 
 def r99ptot(config: IndiceConfig) -> DataArray:
-    per_value = 99
-    per = _compute_percentiles(config, per_value)
-    run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
+    base_wet_days = _filter_in_wet_days(config.cf_variables[0].in_base_da)
+    per = _compute_percentile(base_wet_days, config, 99.0)
     result = atmos.fraction_over_precip_thresh(
         config.cf_variables[0].da,
         per,
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
-        bootstrap=run_bootstrap,
+        bootstrap=False,
     ).squeeze("percentiles", drop=True)
-    if run_bootstrap:
-        result = _add_bootstrap_meta(result, per)
+    result = result * 100
     if config.save_percentile:
-        result = _add_percentile_meta(run_bootstrap, result, per)
+        result = _add_percentile_meta(run_bootstrap=False, da=result, per=per)
     return result
 
 
@@ -484,20 +466,17 @@ def sd50cm(config: IndiceConfig) -> DataArray:
 
 
 def tg(config: IndiceConfig) -> DataArray:
-    result = atmos.tg_mean(config.cf_variables[0].da,
-                           freq=config.freq.panda_freq)
+    result = atmos.tg_mean(config.cf_variables[0].da, freq=config.freq.panda_freq)
     return convert_units_to(result, "degC")
 
 
 def tn(config: IndiceConfig) -> DataArray:
-    result = atmos.tn_mean(config.cf_variables[0].da,
-                           freq=config.freq.panda_freq)
+    result = atmos.tn_mean(config.cf_variables[0].da, freq=config.freq.panda_freq)
     return convert_units_to(result, "degC")
 
 
 def tx(config: IndiceConfig) -> DataArray:
-    result = atmos.tx_mean(config.cf_variables[0].da,
-                           freq=config.freq.panda_freq)
+    result = atmos.tx_mean(config.cf_variables[0].da, freq=config.freq.panda_freq)
     return convert_units_to(result, "degC")
 
 
@@ -532,17 +511,22 @@ def vdtr(config: IndiceConfig) -> DataArray:
 
 
 def cd(config: IndiceConfig) -> DataArray:
-    tas_per = _compute_percentiles(config, 25)
-    precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
-    precip = precip.where(precip > 1, drop=True)
-    pr_per = percentile_doy(precip, window=config.window, per=25).sel(percentiles=25)
+    tas_per = _compute_percentile_doy(
+        config.cf_variables[0].in_base_da, config, 25
+    ).squeeze("percentiles", drop=True)
+    precip_cfvar = config.cf_variables[1]
+    precip_cfvar.in_base_da = _filter_in_wet_days(precip_cfvar.in_base_da)
+    precip_cfvar.da = _filter_in_wet_days(precip_cfvar.da)
+    pr_per = _compute_percentile_doy(precip_cfvar.in_base_da, config, 25).squeeze(
+        "percentiles", drop=True
+    )
     result = atmos.cold_and_dry_days(
         tas=config.cf_variables[0].da,
         tas_25=tas_per,
-        pr=config.cf_variables[1].da,
+        pr=precip_cfvar.da,
         pr_25=pr_per,
         freq=config.freq.panda_freq,
-    ).squeeze("percentiles", drop=True)
+    )
     if config.save_percentile:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
@@ -550,17 +534,22 @@ def cd(config: IndiceConfig) -> DataArray:
 
 
 def cw(config: IndiceConfig) -> DataArray:
-    tas_per = _compute_percentiles(config, 25)
-    precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
-    precip = precip.where(precip > 1, drop=True)
-    pr_per = percentile_doy(precip, window=config.window, per=75).sel(percentiles=75)
+    tas_per = _compute_percentile_doy(
+        config.cf_variables[0].in_base_da, config, 25
+    ).squeeze("percentiles", drop=True)
+    precip_cfvar = config.cf_variables[1]
+    precip_cfvar.in_base_da = _filter_in_wet_days(precip_cfvar.in_base_da)
+    precip_cfvar.da = _filter_in_wet_days(precip_cfvar.da)
+    pr_per = _compute_percentile_doy(precip_cfvar.in_base_da, config, 75).squeeze(
+        "percentiles", drop=True
+    )
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
         tas_25=tas_per,
-        pr=config.cf_variables[1].da,
+        pr=precip_cfvar.da,
         pr_75=pr_per,
         freq=config.freq.panda_freq,
-    ).squeeze("percentiles", drop=True)
+    )
     if config.save_percentile:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
@@ -568,17 +557,22 @@ def cw(config: IndiceConfig) -> DataArray:
 
 
 def wd(config: IndiceConfig) -> DataArray:
-    tas_per = _compute_percentiles(config, 75)
-    precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
-    precip = precip.where(precip > 1, drop=True)
-    pr_per = percentile_doy(precip, window=config.window, per=25).sel(percentiles=25)
+    tas_per = _compute_percentile_doy(
+        config.cf_variables[0].in_base_da, config, 75
+    ).squeeze("percentiles", drop=True)
+    precip_cfvar = config.cf_variables[1]
+    precip_cfvar.in_base_da = _filter_in_wet_days(precip_cfvar.in_base_da)
+    precip_cfvar.da = _filter_in_wet_days(precip_cfvar.da)
+    pr_per = _compute_percentile_doy(precip_cfvar.in_base_da, config, 25).squeeze(
+        "percentiles", drop=True
+    )
     result = atmos.warm_and_dry_days(
         tas=config.cf_variables[0].da,
         tas_75=tas_per,
-        pr=config.cf_variables[1].da,
+        pr=precip_cfvar.da,
         pr_25=pr_per,
         freq=config.freq.panda_freq,
-    ).squeeze("percentiles", drop=True)
+    )
     if config.save_percentile:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
@@ -586,17 +580,22 @@ def wd(config: IndiceConfig) -> DataArray:
 
 
 def ww(config: IndiceConfig) -> DataArray:
-    tas_per = _compute_percentiles(config, 75)
-    precip = convert_units_to(config.cf_variables[1].in_base_da, "mm/d")
-    precip = precip.where(precip > 1, drop=True)
-    pr_per = percentile_doy(precip, window=config.window, per=75).sel(percentiles=75)
+    tas_per = _compute_percentile_doy(
+        config.cf_variables[0].in_base_da, config, 75
+    ).squeeze("percentiles", drop=True)
+    precip_cfvar = config.cf_variables[1]
+    precip_cfvar.in_base_da = _filter_in_wet_days(precip_cfvar.in_base_da)
+    precip_cfvar.da = _filter_in_wet_days(precip_cfvar.da)
+    pr_per = _compute_percentile_doy(precip_cfvar.in_base_da, config, 75).squeeze(
+        "percentiles", drop=True
+    )
     result = atmos.warm_and_wet_days(
         tas=config.cf_variables[0].da,
         tas_75=tas_per,
-        pr=config.cf_variables[1].da,
+        pr=precip_cfvar.da,
         pr_75=pr_per,
         freq=config.freq.panda_freq,
-    ).squeeze("percentiles", drop=True)
+    )
     if config.save_percentile:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
@@ -691,17 +690,17 @@ class Indice(Enum):
     SD5CM = ("sd5cm", sd5cm, SNOW_GROUP, [PR])
     SD50CM = ("sd50cm", sd50cm, SNOW_GROUP, [PR])
     # compound
-    CD = ("cd", cd, COMPOUND_GROUP, [TASMAX, PR])
-    CW = ("cw", cw, COMPOUND_GROUP, [TASMAX, PR])
-    WD = ("wd", wd, COMPOUND_GROUP, [TASMAX, PR])
-    WW = ("ww", ww, COMPOUND_GROUP, [TASMAX, PR])
+    CD = ("cd", cd, COMPOUND_GROUP, [TAS, PR])
+    CW = ("cw", cw, COMPOUND_GROUP, [TAS, PR])
+    WD = ("wd", wd, COMPOUND_GROUP, [TAS, PR])
+    WW = ("ww", ww, COMPOUND_GROUP, [TAS, PR])
 
     def __init__(
-            self,
-            indice_name: str,
-            compute: Callable[[IndiceConfig], DataArray],
-            group: str,
-            variables: List[List[str]],
+        self,
+        indice_name: str,
+        compute: Callable[[IndiceConfig], DataArray],
+        group: str,
+        variables: List[List[str]],
     ):
         self.indice_name = indice_name
         self.compute = compute
@@ -724,14 +723,15 @@ def _add_celsius_suffix(threshold: Optional[Union[str, float, int]]) -> Optional
 
 
 def _can_run_bootstrap(config: IndiceConfig, percentile_period) -> bool:
-    # TODO add warning if the percentile is not close to 0 or 99 ?
-    # TODO add warning if doing bootstrap on precipitations ?
     overlapping_years = np.unique(
         config.cf_variables[0].da.time.sel(time=percentile_period).dt.year
     )
-    # No bootstrap if there is one single year or no year overlapping
+    # No bootstrap if there is one single year overlapping
+    # or no year overlapping
+    # or all year overlapping
     run_bootstrap = (
-        config.cf_variables[0].in_base_da is not None and len(overlapping_years) > 1
+        config.cf_variables[0].in_base_da is not config.cf_variables[0].da
+        and len(overlapping_years) > 1
     )
     if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
         raise InvalidIcclimArgumentError(
@@ -742,16 +742,16 @@ def _can_run_bootstrap(config: IndiceConfig, percentile_period) -> bool:
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
-    with xarray.set_options(keep_attrs=True):
+    with xr.set_options(keep_attrs=True):
         if sampling_freq == Frequency.MONTH:
             da = da / da.time.dt.daysinmonth * 100
         elif sampling_freq == Frequency.YEAR:
-            coef = da.time
-            coef[da.dt.is_leap_year] = 366
-            coef[~da.dt.is_leap_year] = 365
+            coef = xr.full_like(da, 1)
+            coef[da.time.dt.is_leap_year] = 366
+            coef[~da.time.dt.is_leap_year] = 365
             da = da / coef * 100
         else:
-            # TODO improve this
+            # TODO improve this for seasons and any sampling freq
             warn("% unit can only be used with MONTH or YEAR slice_mode.")
             return da
         da.attrs["units"] = "%"
@@ -759,7 +759,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
 
 
 def _add_percentile_meta(
-    run_bootstrap: bool, result: DataArray, per: DataArray
+    run_bootstrap: bool, da: DataArray, per: DataArray
 ) -> DataArray:
     if run_bootstrap:
         # TODO Not sufficient in the case of bootstrapping,
@@ -768,10 +768,12 @@ def _add_percentile_meta(
             f"The percentile values saved in the coordinate variable {PERCENTILES_COORD} "
             f"are inaccurate for the bootstrapped period."
         )
-    result.coords[PERCENTILES_COORD] = resample_doy(per, result).squeeze(
-        "percentiles", drop=True
-    )
-    return result
+    if "dayofyear" in per.coords:
+        per_coord = resample_doy(per, da).squeeze("percentiles", drop=True)
+    else:
+        per_coord = per.squeeze("percentiles", drop=True)
+    da.coords[PERCENTILES_COORD] = per_coord
+    return da
 
 
 def _add_bootstrap_meta(result: DataArray, per: DataArray) -> DataArray:
@@ -779,13 +781,11 @@ def _add_bootstrap_meta(result: DataArray, per: DataArray) -> DataArray:
     return result
 
 
-def _compute_percentiles(config: IndiceConfig, percentile: int) -> DataArray:
-    if config.cf_variables[0].in_base_da is not None:
-        percentiles_studied = config.cf_variables[0].in_base_da
-    else:
-        percentiles_studied = config.cf_variables[0].da
+def _compute_percentile_doy(
+    da: DataArray, config: IndiceConfig, percentile: int
+) -> DataArray:
     per = percentile_doy(
-        percentiles_studied,
+        da,
         config.window,
         percentile,
         alpha=config.interpolation.alpha,
@@ -794,3 +794,31 @@ def _compute_percentiles(config: IndiceConfig, percentile: int) -> DataArray:
     if config.callback is not None:
         config.callback(50)
     return per
+
+
+def _compute_percentile(
+    arr: DataArray, config: IndiceConfig, percentiles: float
+) -> DataArray:
+    return xr.apply_ufunc(
+        xclim.core.utils.calc_perc,
+        arr,
+        input_core_dims=[["time"]],
+        output_core_dims=[["percentiles"]],
+        keep_attrs=True,
+        kwargs=dict(
+            percentiles=[percentiles],
+            alpha=config.interpolation.alpha,
+            beta=config.interpolation.beta,
+        ),
+        dask="parallelized",
+        output_dtypes=[arr.dtype],
+        dask_gufunc_kwargs=dict(output_sizes={"percentiles": len([percentiles])}),
+    )
+
+
+def _filter_in_wet_days(da: DataArray):
+    """
+    Turns non wet days to NaN.
+    """
+    precip = convert_units_to(da, "mm/d")
+    return precip.where(precip > 1)

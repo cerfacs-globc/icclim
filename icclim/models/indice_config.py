@@ -14,9 +14,9 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 
 class CfVariable:
     da: DataArray
-    in_base_da: Optional[DataArray] = None
+    in_base_da: DataArray
 
-    def __init__(self, da: DataArray, in_base_da: DataArray = None) -> None:
+    def __init__(self, da: DataArray, in_base_da: DataArray) -> None:
         self.da = da
         self.in_base_da = in_base_da
 
@@ -93,14 +93,14 @@ def _build_cf_variable(
     only_leap_years: bool,
     transfer_limit_Mbytes: Optional[int],
 ) -> CfVariable:
-    cf_var = CfVariable(
-        _build_data_array(da, time_range, ignore_Feb29th, transfer_limit_Mbytes)
-    )
+    da = _build_data_array(da, time_range, ignore_Feb29th, transfer_limit_Mbytes)
     if base_period_time_range is not None:
-        cf_var.in_base_da = _build_in_base_da(
+        in_base_da = _build_in_base_da(
             da, base_period_time_range, only_leap_years, transfer_limit_Mbytes
         )
-    return cf_var
+    else:
+        in_base_da = da
+    return CfVariable(da, in_base_da)
 
 
 def _build_data_array(
@@ -157,6 +157,7 @@ def _build_in_base_da(
 def _chunk_data(transfer_limit_Mbytes: int, da: DataArray) -> DataArray:
     # TODO add warning if ckunks are too small ? xarray doc suggest at least 1000 x 1000 elements per chunk
     # TODO if dataset has more than 3 dims (such as a depth dim) it will only chunk on lat,lon and not on other dims
+    # Enfaite il faudrait exclure "time" et chunk sur le reste pour avoir des chunk d'un million d'éléments
     transfer_limit_bytes = transfer_limit_Mbytes * 1024 * 1024
     optimal_tile_dimension = int(
         np.sqrt(transfer_limit_bytes / (len(da.time) * da.dtype.itemsize))
