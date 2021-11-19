@@ -63,8 +63,11 @@ def _add_time_bounds(freq: str) -> Callable[[DataArray], Tuple[DataArray, DataAr
     def add_bounds(da: DataArray) -> Tuple[DataArray, DataArray]:
         # da should already be resampled to freq
         offset = pd.tseries.frequencies.to_offset(freq)
+        end = (da.time.dt.date + offset).values
+        start = da.time.values
+        da["time"] = start + (end - start) / 2
         time_bounds_da = DataArray(
-            data=list(zip(da.time.values, (da.time.dt.date + offset).values)),
+            data=list(zip(start, end)),
             dims=["time", "bounds"],
             coords=[("time", da.time.values), ("bounds", [0, 1])],
         )
