@@ -104,19 +104,19 @@ def indice(
     start_message()
     callback(callback_percentage_start_value)
     if isinstance(in_files, Dataset):
-        ds = in_files
+        input_ds = in_files
     elif isinstance(in_files, list):
-        ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
+        input_ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
     else:
-        ds = xarray.open_dataset(in_files, decode_cf=True)
+        input_ds = xarray.open_dataset(in_files, decode_cf=True)
     if isinstance(var_name, str):
         var_name = [var_name]
     elif var_name is None:
-        var_name = _guess_variables(indice_name, ds)
-    ds, reset_coords = _update_coords(ds)
+        var_name = _guess_variables(indice_name, input_ds)
+    input_ds, reset_coords = _update_coords(input_ds)
     config = IndiceConfig(
         base_period_time_range=base_period_time_range,
-        ds=ds,
+        ds=input_ds,
         ignore_Feb29th=ignore_Feb29th,
         only_leap_years=only_leap_years,
         save_percentile=save_percentile,
@@ -134,12 +134,16 @@ def indice(
         result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
     else:
         result_ds = _build_basic_indice_dataset(
-            config, indice_name, threshold, ds.attrs.get("history", None)
+            config, indice_name, threshold, input_ds.attrs.get("history", None)
         )
     if reset_coords:
         result_ds = result_ds.rename(reset_coords)
     if not isinstance(in_files, Dataset):
-        result_ds.to_netcdf(out_file, format=config.netcdf_version.value)
+        result_ds.to_netcdf(
+            out_file,
+            format=config.netcdf_version.value,
+            encoding={"time": input_ds.time.encoding},
+        )
     callback(callback_percentage_total)
     ending_message(time.process_time())
     return result_ds
