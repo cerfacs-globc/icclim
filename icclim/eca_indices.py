@@ -628,13 +628,6 @@ TAS = [
 ]
 TASMAX = ["tasmaxadjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX", "MAXT", "maxT"]
 TASMIN = ["tasminadjust", "tmin", "tn", "mint", "TMIN", "Tmin", "TN", "MINT", "minT"]
-HURS = ["hursadjust", "rh", "RH"]
-PSL = ["mslp", "slp", "pp", "MSLP", "SLP", "PP"]
-SND = ["sd", "SD"]
-SUND = ["ss", "SS"]
-WSGSMAX = ["fx", "FX"]
-SFCWIND = ["sfcwind", "fg", "FG"]
-SN = ["swe", "SWE"]
 
 
 class Indice(Enum):
@@ -656,7 +649,7 @@ class Indice(Enum):
     TNX = ("tnx", tnx, HEAT_GROUP, [TASMIN])
     CSU = ("csu", csu, HEAT_GROUP, [TASMAX])
     # cold
-    GD4 = ("gd4", gd4, COLD_GROUP, [TASMIN])
+    GD4 = ("gd4", gd4, COLD_GROUP, [TAS])
     FD = ("fd", fd, COLD_GROUP, [TASMIN])
     CFD = ("cfd", cfd, COLD_GROUP, [TASMIN])
     HD17 = ("hd17", hd17, COLD_GROUP, [TASMIN])
