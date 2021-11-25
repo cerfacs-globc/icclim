@@ -5,7 +5,13 @@ from warnings import warn
 import numpy as np
 import xarray as xr
 import xclim.core.utils
-from models.constants import (
+from xarray import DataArray
+from xclim import atmos, land
+from xclim.core.calendar import percentile_doy, resample_doy
+from xclim.core.units import convert_units_to
+
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.constants import (
     COLD_GROUP,
     COMPOUND_GROUP,
     DROUGHT_GROUP,
@@ -18,12 +24,6 @@ from models.constants import (
     TASMIN,
     TEMPERATURE_GROUP,
 )
-from xarray import DataArray
-from xclim import atmos, land
-from xclim.core.calendar import percentile_doy, resample_doy
-from xclim.core.units import convert_units_to
-
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation

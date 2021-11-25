@@ -38,14 +38,14 @@ class Test_build_frequency_over_list:
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
-        assert freq.resampler is not None
+        assert freq.post_processing is not None
 
     def test_season(self):
         freq = build_frequency(["season", [1, 2, 3, 4]])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
-        assert freq.resampler is not None
+        assert freq.post_processing is not None
 
     def test_winter_deprecated(self):
         # deprecated way
@@ -53,20 +53,20 @@ class Test_build_frequency_over_list:
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
-        assert freq.resampler is not None
+        assert freq.post_processing is not None
 
     def test_winter(self):
         freq = build_frequency(["season", [11, 12, 1, 2]])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
-        assert freq.resampler is not None
+        assert freq.post_processing is not None
 
 
 class Test_filter_months:
     def test_simple(self):
         # WHEN
-        da = month_filter([1, 2, 7])(stub_tas())
+        da = month_filter(stub_tas(), [1, 2, 7])
         # THEN
         months = np.unique(da.time.dt.month)
         assert len(months) == 3

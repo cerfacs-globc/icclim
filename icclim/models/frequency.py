@@ -1,6 +1,8 @@
+import datetime
 from enum import Enum
 from typing import Callable, List, Optional, Tuple, Union
 
+import cftime
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -14,31 +16,37 @@ def seasons_resampler(
 ) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
     def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
         da_years = np.unique(da.time.dt.year)
-        acc: List[DataArray] = []
+        seasons_acc: List[DataArray] = []
         time_bounds = []
-        middle_date = []
+        new_time_axis = []
         start_month = month_list[0]
         end_month = month_list[-1]
-        filtered_da, _ = month_filter(month_list)(da)
-        # TODO, maybe raise a warning if the month_list is not made of consecutive month (case of user error)
+        filtered_da = month_filter(da, month_list)
+        # TODO, maybe raise a warning if the month_list is not made of consecutive month
+        #       (case of user error)
         for year in da_years:
             if start_month > end_month:
-                start_season_date = pd.to_datetime(f"{year - 1}-{start_month}")
+                int_year = year - 1
             else:
-                start_season_date = pd.to_datetime(f"{year}-{start_month}")
-            end_season_date = (
-                pd.to_datetime(f"{year}-{end_month + 1}") - pd.tseries.offsets.Day()
-            )  # type:ignore
-            season_of_year = filtered_da.sel(
-                time=slice(start_season_date, end_season_date)
-            ).sum("time")
-            middle_date.append(
-                start_season_date + (end_season_date - start_season_date) / 2
-            )
-            time_bounds.append([start_season_date, end_season_date])
-            acc.append(season_of_year)
-        seasons = xr.concat(acc, "time")
-        seasons.coords["time"] = ("time", middle_date)
+                int_year = year
+            first_time = filtered_da.time.values[0]
+            if isinstance(first_time, cftime.datetime):
+                start = cftime.datetime(
+                    year, start_month, 1, calendar=first_time.calendar
+                )
+                end = cftime.datetime(
+                    year, end_month + 1, 1, calendar=first_time.calendar
+                )
+            else:
+                start = pd.to_datetime(f"{int_year}-{start_month}")
+                end = pd.to_datetime(f"{year}-{end_month + 1}")
+            end = end - datetime.timedelta(days=1)
+            season = filtered_da.sel(time=slice(start, end)).sum("time")
+            new_time_axis.append(start + (end - start) / 2)
+            time_bounds.append([start, end])
+            seasons_acc.append(season)
+        seasons = xr.concat(seasons_acc, "time")
+        seasons.coords["time"] = ("time", new_time_axis)
         time_bounds_da = DataArray(
             data=time_bounds,
             dims=["time", "bounds"],
@@ -49,22 +57,16 @@ def seasons_resampler(
     return resampler
 
 
-def month_filter(
-    month_list: List[int],
-) -> Callable[[DataArray], Tuple[DataArray, None]]:
-    def resampler(da: DataArray) -> Tuple[DataArray, None]:
-        # no time_bds for this kind of resampling
-        return da.sel(time=da.time.dt.month.isin(month_list)), None
-
-    return resampler
+def month_filter(da: DataArray, month_list: List[int]) -> DataArray:
+    return da.sel(time=da.time.dt.month.isin(month_list))
 
 
 def _add_time_bounds(freq: str) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
     def add_bounds(da: DataArray) -> Tuple[DataArray, DataArray]:
         # da should already be resampled to freq
         offset = pd.tseries.frequencies.to_offset(freq)
-        end = (da.time.dt.date + offset).values
-        start = da.time.values
+        start = pd.to_datetime(da.time.dt.floor("D"))
+        end = start + offset
         da["time"] = start + (end - start) / 2
         time_bounds_da = DataArray(
             data=list(zip(start, end)),
@@ -102,9 +104,9 @@ class Frequency(Enum):
         seasons_resampler([10, 11, 12, 1, 2, 3]),
     )
     DJF = ("MS", ["DJF"], "winter time series", seasons_resampler([12, 1, 2]))
-    MAM = ("MS", ["MAM"], "spring time series", seasons_resampler([*range(3, 5)]))
-    JJA = ("MS", ["JJA"], "summer time series", seasons_resampler([*range(6, 8)]))
-    SON = ("MS", ["SON"], "autumn time series", seasons_resampler([*range(9, 11)]))
+    MAM = ("MS", ["MAM"], "spring time series", seasons_resampler([*range(3, 6)]))
+    JJA = ("MS", ["JJA"], "summer time series", seasons_resampler([*range(6, 9)]))
+    SON = ("MS", ["SON"], "autumn time series", seasons_resampler([*range(9, 12)]))
     CUSTOM = ("MS", [], None, None)
     YEAR = ("YS", ["year", "YS"], "annual time series", _add_time_bounds("YS"))
 
@@ -113,13 +115,14 @@ class Frequency(Enum):
         panda_time: str,
         accepted_values: List[str],
         description: Optional[str] = None,
-        resampler: Optional[Callable[[DataArray], Tuple[DataArray, DataArray]]] = None,
+        post_processing: Optional[
+            Callable[[DataArray], Tuple[DataArray, DataArray]]
+        ] = None,
     ):
         self.panda_freq: str = panda_time
         self.accepted_values: List[str] = accepted_values
         self.description = description
-        # TODO maybe rename this property, it's not always a resampler (see _add_time_bounds)
-        self.resampler = resampler
+        self.post_processing = post_processing
 
 
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
@@ -158,15 +161,17 @@ def _get_frequency_from_list(slice_mode_list: List) -> Frequency:
     months = slice_mode_list[1]
     custom_freq = Frequency.CUSTOM
     if sampling_freq == "month":
-        custom_freq.resampler = month_filter(months)
+        custom_freq.post_processing = lambda da: month_filter(da, months)
         custom_freq.description = f"monthly time series (months: {months})"
     elif sampling_freq == "season":
         if months is Tuple:
-            month_list = months[1] + months[0]
-            custom_freq.resampler = seasons_resampler(month_list)
-            custom_freq.description = f"seasonal time series (season: {month_list})"
+            rearranged_months = months[1] + months[0]
+            custom_freq.post_processing = seasons_resampler(rearranged_months)
+            custom_freq.description = (
+                f"seasonal time series (season: {rearranged_months})"
+            )
         else:
-            custom_freq.resampler = seasons_resampler(months)
+            custom_freq.post_processing = seasons_resampler(months)
             custom_freq.description = f"seasonal time series (season: {months})"
     else:
         raise InvalidIcclimArgumentError(

@@ -121,6 +121,8 @@ def _build_data_array(
                 f"{original_da.time.min().dt.floor('D').values} "
                 f"- {original_da.time.max().dt.floor('D').values}."
             )
+    else:
+        da = original_da
     if ignore_Feb29th:
         da = calendar.convert_calendar(da, "noleap")  # type:ignore
     return da
@@ -154,9 +156,12 @@ def _build_in_base_da(
 
 
 def _chunk_data(transfer_limit_Mbytes: int, da: DataArray) -> DataArray:
-    # TODO add warning if ckunks are too small ? xarray doc suggest at least 1000 x 1000 elements per chunk
-    # TODO if dataset has more than 3 dims (such as a depth dim) it will only chunk on lat,lon and not on other dims
-    # Enfaite il faudrait exclure "time" et chunk sur le reste pour avoir des chunk d'un million d'éléments
+    # TODO add warning if ckunks are too small ?
+    #      xarray doc suggest at least 1000 x 1000 elements per chunk
+    # TODO if dataset has more than 3 dims (such as a depth dim)
+    #      it will only chunk on lat,lon and not on other dims
+    #      Enfaite il faudrait exclure "time" et chunk sur le reste
+    #      pour avoir des chunk d'un million d'éléments
     transfer_limit_bytes = transfer_limit_Mbytes * 1024 * 1024
     optimal_tile_dimension = int(
         np.sqrt(transfer_limit_bytes / (len(da.time) * da.dtype.itemsize))
@@ -171,7 +176,7 @@ def _reduce_only_leap_years(da: DataArray) -> DataArray:
     for _, val in da.groupby(da.time.dt.year):
         if val.time.dt.dayofyear.max() == 366:
             reduced_list.append(val)
-    if reduced_list == []:
+    if not reduced_list:
         raise InvalidIcclimArgumentError(
             "No leap year in current dataset. Do not use only_leap_years parameter."
         )

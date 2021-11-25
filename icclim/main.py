@@ -59,9 +59,12 @@ def indice(
     :param var_name:
         Target variable name to process corresponding to ``in_files``.
     :param slice_mode:
-        Type of temporal aggregation: "year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS". If ``None``, the index will be calculated as monthly values.
+        Type of temporal aggregation:
+        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        If ``None``, the index will be calculated as monthly values.
     :param time_range:
-        Temporal range: upper and lower bounds for temporal subsetting. If ``None``, whole period of input files will be processed.
+        Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
     :param out_file:
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
     :param threshold:
@@ -83,7 +86,8 @@ def indice(
     :param ignore_Feb29th:
         Ignoring or not February 29th (default: False).
     :param interpolation:
-        Interpolation method to compute percentile values: "linear" or "hyndman_fan" (default: "hyndman_fan").
+        Interpolation method to compute percentile values: "linear" or "hyndman_fan".
+        default: "hyndman_fan".
     :param out_unit:
         Output unit for certain indices: "days" or "%" (default: "days").
     :param user_indice:
@@ -131,7 +135,7 @@ def indice(
         callback=callback,
     )
     if user_indice is not None:
-        result_ds = _build_user_indice_dataset(config, save_percentile, user_indice)
+        result_ds = _build_user_indice_dataset(config, user_indice)
     else:
         result_ds = _build_basic_indice_dataset(
             config, indice_name, threshold, input_ds.attrs.get("history", None)
@@ -170,9 +174,7 @@ def _build_basic_indice_dataset(
     return result_ds
 
 
-def _build_user_indice_dataset(
-    config: IndiceConfig, save_percentile: bool, user_indice: dict
-) -> Dataset:
+def _build_user_indice_dataset(config: IndiceConfig, user_indice: dict) -> Dataset:
     logging.info("Calculating user indice.")
     result_ds = Dataset()
     user_indice_config = UserIndiceConfig(
@@ -180,12 +182,12 @@ def _build_user_indice_dataset(
         freq=config.freq,
         cf_vars=config.cf_variables,
         is_percent=config.is_percent,
-        save_percentile=save_percentile,
+        save_percentile=config.save_percentile,
     )
     user_indice_da = compute_user_indice(user_indice_config)
     user_indice_da.attrs["units"] = _get_unit(config.out_unit, user_indice_da)
-    if config.freq.resampler is not None:
-        user_indice_da, time_bounds = config.freq.resampler(user_indice_da)
+    if config.freq.post_processing is not None:
+        user_indice_da, time_bounds = config.freq.post_processing(user_indice_da)
         result_ds[user_indice_config.indice_name] = user_indice_da
         result_ds["time_bounds"] = time_bounds
     else:
@@ -225,8 +227,8 @@ def _compute_basic_indice(
     da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:
         da.expand_dims({"threshold": config.threshold})
-    if config.freq.resampler is not None:
-        resampled_da, time_bounds = config.freq.resampler(da)
+    if config.freq.post_processing is not None:
+        resampled_da, time_bounds = config.freq.post_processing(da)
         result_ds[indice_name] = resampled_da
         if time_bounds is not None:
             result_ds["time_bounds"] = time_bounds

@@ -18,7 +18,7 @@ class Test_UserIndiceConfig:
         }
         tas = stub_tas(use_dask=use_dask)
         config = UserIndiceConfig(
-            **dico, freq=Frequency.MONTH, cf_vars=[CfVariable(tas)]
+            **dico, freq=Frequency.MONTH, cf_vars=[CfVariable(tas, tas)]
         )
         assert config.indice_name == "my_indice"
         assert config.calc_operation == "min"

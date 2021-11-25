@@ -95,7 +95,7 @@ class Test_SU:
         )
         res = su(conf)
         assert res is not None
-        assert res[0] == 26  # January
+        assert res[0][0] == 26  # January
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_su_custom_threshold(self, use_dask):
@@ -111,7 +111,7 @@ class Test_SU:
         )
         res = su(conf)
         assert res is not None
-        assert res[0] == 5  # January
+        assert res[0][0] == 5  # January
 
 
 class Test_TR:
@@ -128,7 +128,7 @@ class Test_TR:
         )
         res = tr(conf)
         assert res is not None
-        assert res[0] == 26  # January
+        assert res[0][0] == 26  # January
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
@@ -144,14 +144,14 @@ class Test_TR:
         )
         res = tr(conf)
         assert res is not None
-        assert res[0] == 5  # January
+        assert res[0][0] == 5  # January
 
 
 class Test_prcptot:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
         ds = Dataset()
-        ds["pr"] = stub_pr(value=1, use_dask=use_dask)
+        ds["pr"] = stub_pr(value=2, use_dask=use_dask)
         ds.pr[:10] = 0
         conf = IndiceConfig(
             ds=ds,
@@ -161,7 +161,7 @@ class Test_prcptot:
         )
         res = prcptot(conf)
         assert res is not None
-        np.testing.assert_almost_equal(res[0], 21.0, 14)
+        np.testing.assert_almost_equal(res[0][0], 42.0, 14)
 
 
 class Test_csu:
@@ -178,7 +178,7 @@ class Test_csu:
         )
         res = csu(conf)
         assert res is not None
-        assert res[0] == 16  # January
+        assert res[0][0] == 16  # January
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
@@ -195,7 +195,7 @@ class Test_csu:
         )
         res = csu(conf)
         assert res is not None
-        assert res[0] == 10  # January
+        assert res[0][0] == 10  # January
 
 
 class Test_gd4:
@@ -213,7 +213,7 @@ class Test_gd4:
         res = gd4(conf)
         assert res is not None
         expected = (26 - 4) * 21
-        assert res[0] == expected  # 21 days in January above 4 degC (at 26degC)
+        assert res[0][0] == expected  # 21 days in January above 4 degC (at 26degC)
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
@@ -230,7 +230,7 @@ class Test_gd4:
         res = gd4(conf)
         assert res is not None
         expected = (26 - 5) * 21
-        assert res[0] == expected  # 21 days in January above 4 degC (at 26degC)
+        assert res[0][0] == expected  # 21 days in January above 4 degC (at 26degC)
 
 
 class Test_cfd:
@@ -247,7 +247,7 @@ class Test_cfd:
         )
         res = cfd(conf)
         assert res is not None
-        assert res[0] == 10
+        assert res[0][0] == 10
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
@@ -264,7 +264,7 @@ class Test_cfd:
         )
         res = cfd(conf)
         assert res is not None
-        assert res[0] == 10
+        assert res[0][0] == 10
 
 
 class Test_fd:
@@ -282,7 +282,7 @@ class Test_fd:
         )
         res = fd(conf)
         assert res is not None
-        assert res[0] == 15
+        assert res[0][0] == 15
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
@@ -299,7 +299,7 @@ class Test_fd:
         )
         res = fd(conf)
         assert res is not None
-        assert res[0] == 10
+        assert res[0][0] == 10
 
 
 class Test_hd17:
@@ -316,7 +316,7 @@ class Test_hd17:
         )
         res = hd17(conf)
         assert res is not None
-        assert res[0] == 5 * (17 + K2C)
+        assert res[0][0] == 5 * (17 + K2C)
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
@@ -332,7 +332,7 @@ class Test_hd17:
         )
         res = hd17(conf)
         assert res is not None
-        assert res[0] == 5 * (5 + K2C)
+        assert res[0][0] == 5 * (5 + K2C)
 
 
 class TestTx90p:
@@ -352,8 +352,8 @@ class TestTx90p:
             ],
             time_range=[datetime.datetime(2043, 1, 1), datetime.datetime(2045, 12, 31)],
         )
-        res = tx90p(conf)
-        assert "reference_epoch" not in res.coords.keys()
+        res, _ = tx90p(conf)
+        assert "reference_epoch" not in res.attrs.keys()
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_no_bootstrap_1_year_base(self, use_dask):
@@ -370,8 +370,8 @@ class TestTx90p:
             ],
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
         )
-        res = tx90p(conf)
-        assert "reference_epoch" not in res.coords.keys()
+        res, _ = tx90p(conf)
+        assert "reference_epoch" not in res.attrs.keys()
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_bootstrap_2_years(self, use_dask):
@@ -388,5 +388,5 @@ class TestTx90p:
             ],
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
         )
-        res = tx90p(conf)
+        res, _ = tx90p(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
