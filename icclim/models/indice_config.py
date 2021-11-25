@@ -93,64 +93,63 @@ def _build_cf_variable(
     only_leap_years: bool,
     transfer_limit_Mbytes: Optional[int],
 ) -> CfVariable:
-    da = _build_data_array(da, time_range, ignore_Feb29th, transfer_limit_Mbytes)
+    if transfer_limit_Mbytes is not None:
+        da = _chunk_data(transfer_limit_Mbytes, da)
+    out_of_base_da = _build_data_array(da, time_range, ignore_Feb29th)
     if base_period_time_range is not None:
-        in_base_da = _build_in_base_da(
-            da, base_period_time_range, only_leap_years, transfer_limit_Mbytes
-        )
+        in_base_da = _build_in_base_da(da, base_period_time_range, only_leap_years)
     else:
-        in_base_da = da
-    return CfVariable(da, in_base_da)
+        in_base_da = out_of_base_da
+    return CfVariable(out_of_base_da, in_base_da)
 
 
 def _build_data_array(
-    da: DataArray,
-    time_range: Optional[List[datetime]],
-    ignore_Feb29th: bool,
-    transfer_limit_Mbytes: Optional[int],
+    original_da: DataArray, time_range: Optional[List[datetime]], ignore_Feb29th: bool
 ) -> DataArray:
     if time_range is not None:
         if len(time_range) != 2:
             raise InvalidIcclimArgumentError(
-                f"The given time_range {time_range}"
-                f" has a length of {len(time_range)}."
-                f" It must be exactly a length of 2."
+                f"The given `time_range` {time_range}"
+                f" has {len(time_range)} elements."
+                f" It must have exactly 2 dates."
             )
-        da = da.sel(time=slice(time_range[0], time_range[1]))
+        da = original_da.sel(time=slice(time_range[0], time_range[1]))
         if len(da.time) == 0:
             raise InvalidIcclimArgumentError(
-                f"The given time range {time_range!r} "
-                f"is out of the dataset time period."
+                f"The given `time_range` {time_range} "
+                f"is out of the dataset time period: "
+                f"{original_da.time.min().dt.floor('D').values} "
+                f"- {original_da.time.max().dt.floor('D').values}."
             )
     if ignore_Feb29th:
         da = calendar.convert_calendar(da, "noleap")  # type:ignore
-    if transfer_limit_Mbytes is not None:
-        da = _chunk_data(transfer_limit_Mbytes, da)
     return da
 
 
 def _build_in_base_da(
-    da: DataArray,
+    original_da: DataArray,
     base_period_time_range: List[datetime],
     only_leap_years: bool,
-    transfer_limit_Mbytes: Optional[int],
 ) -> DataArray:
+    # TODO merge with _build_data_array ?
     if len(base_period_time_range) != 2:
         raise InvalidIcclimArgumentError(
-            f"The given base_period_time_range {base_period_time_range}"
-            f" has a length of {len(base_period_time_range)}."
-            f" It must be exactly a length of 2."
+            f"The given `base_period_time_range` {base_period_time_range}"
+            f" has {len(base_period_time_range)} elements."
+            f" It must have exactly 2 dates."
         )
-    da = da.sel(time=slice(base_period_time_range[0], base_period_time_range[1]))
+    da = original_da.sel(
+        time=slice(base_period_time_range[0], base_period_time_range[1])
+    )
     if len(da.time) == 0:
         raise InvalidIcclimArgumentError(
-            f"The given base_period_time_range {base_period_time_range}"
-            f" is out of the sample time bounds"
+            f"The given `base_period_time_range` {base_period_time_range}"
+            f" is out of the sample time bounds: "
+            f"{original_da.time.min().dt.floor('D').values} "
+            f"- {original_da.time.max().dt.floor('D').values}."
         )
     if only_leap_years:
-        da = _reduce_only_leap_years(da)
-    if transfer_limit_Mbytes is not None:
-        da = _chunk_data(transfer_limit_Mbytes, da)
+        da = _reduce_only_leap_years(original_da)
     return da
 
 
