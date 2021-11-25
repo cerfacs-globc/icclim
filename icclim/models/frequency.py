@@ -64,9 +64,29 @@ def month_filter(da: DataArray, month_list: List[int]) -> DataArray:
 def _add_time_bounds(freq: str) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
     def add_bounds(da: DataArray) -> Tuple[DataArray, DataArray]:
         # da should already be resampled to freq
-        offset = pd.tseries.frequencies.to_offset(freq)
-        start = pd.to_datetime(da.time.dt.floor("D"))
-        end = start + offset
+        if isinstance(da.indexes.get("time"), xr.CFTimeIndex):
+            offset = xr.coding.cftime_offsets.to_offset(freq)
+            start = np.array(
+                [
+                    cftime.datetime(
+                        date.year,
+                        date.month,
+                        date.day,
+                        date.hour,
+                        date.minute,
+                        date.second,
+                        calendar=date.calendar,
+                    )
+                    for date in da.indexes.get("time")
+                ]
+            )
+            end = start + offset
+            end = end - datetime.timedelta(days=1)
+        else:
+            offset = pd.tseries.frequencies.to_offset(freq)
+            start = pd.to_datetime(da.time.dt.floor("D"))
+            end = start + offset
+            end = end - pd.Timedelta(days=1)
         da["time"] = start + (end - start) / 2
         time_bounds_da = DataArray(
             data=list(zip(start, end)),
