@@ -106,9 +106,9 @@ def indice(
     if isinstance(in_files, Dataset):
         input_ds = in_files
     elif isinstance(in_files, list):
-        input_ds = xarray.open_mfdataset(in_files, parallel=True, decode_cf=True)
+        input_ds = xarray.open_mfdataset(in_files, parallel=True)
     else:
-        input_ds = xarray.open_dataset(in_files, decode_cf=True)
+        input_ds = xarray.open_dataset(in_files)
     if isinstance(var_name, str):
         var_name = [var_name]
     elif var_name is None:
@@ -175,7 +175,7 @@ def _build_user_indice_dataset(
 ) -> Dataset:
     logging.info("Calculating user indice.")
     result_ds = Dataset()
-    user_indice_config: UserIndiceConfig = UserIndiceConfig(
+    user_indice_config = UserIndiceConfig(
         **user_indice,
         freq=config.freq,
         cf_vars=config.cf_variables,
@@ -221,7 +221,7 @@ def _compute_basic_indice(
     logging.info(f"Calculating climate index: {indice_name}")
     result_ds = Dataset()
     indice = indice_from_string(indice_name)
-    da = indice.compute(config)
+    da, per = indice.compute(config)
     da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:
         da.expand_dims({"threshold": config.threshold})
@@ -233,17 +233,15 @@ def _compute_basic_indice(
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
         result_ds[indice_name] = da
+    if per is not None:
+        per = per.squeeze("percentiles", drop=True).rename("percentiles")
+        result_ds = xr.merge([result_ds, per])
     if former_history is None:
         former_history = da.attrs["history"]
     else:
         former_history = f"{former_history}\n{da.attrs['history']}"
     del da.attrs["history"]
-    result_ds = _add_basic_indice_metadata(
-        result_ds,
-        config,
-        indice,
-        former_history,
-    )
+    result_ds = _add_basic_indice_metadata(result_ds, config, indice, former_history)
     return result_ds
 
 
