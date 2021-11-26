@@ -7,6 +7,7 @@ from xarray import DataArray, Dataset
 from xclim.core import calendar
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.cf_calendar import CfCalendar
 from icclim.models.frequency import Frequency, SliceMode, build_frequency
 from icclim.models.netcdf_version import NetcdfVersion, get_netcdf_version
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -124,7 +125,7 @@ def _build_data_array(
     else:
         da = original_da
     if ignore_Feb29th:
-        da = calendar.convert_calendar(da, "noleap")  # type:ignore
+        da = calendar.convert_calendar(da, CfCalendar.NO_LEAP.get_name())  # type:ignore
     return da
 
 

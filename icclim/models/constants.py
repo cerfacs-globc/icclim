@@ -1,4 +1,6 @@
 # fmt: off
+# flake8: noqa
+
 # ECA&D indices groups
 TEMPERATURE_GROUP = "temperature"
 HEAT_GROUP = "heat"

@@ -11,6 +11,7 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.cf_calendar import get_calendar_from_str
 from icclim.models.constants import (
     COLD_GROUP,
     COMPOUND_GROUP,
@@ -38,9 +39,7 @@ def gd4(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     result = atmos.growing_degree_days(
-        config.cf_variables[0].da,
-        thresh=threshold,
-        freq=config.freq.panda_freq,
+        config.cf_variables[0].da, thresh=threshold, freq=config.freq.panda_freq
     )
     return result, None
 
@@ -51,9 +50,7 @@ def cfd(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     result = atmos.consecutive_frost_days(
-        config.cf_variables[0].da,
-        thresh=threshold,
-        freq=config.freq.panda_freq,
+        config.cf_variables[0].da, thresh=threshold, freq=config.freq.panda_freq
     )
     return result, None
 
@@ -64,9 +61,7 @@ def fd(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     result = atmos.frost_days(
-        config.cf_variables[0].da,
-        thresh=threshold,
-        freq=config.freq.panda_freq,
+        config.cf_variables[0].da, thresh=threshold, freq=config.freq.panda_freq
     )
     return result, None
 
@@ -77,9 +72,7 @@ def hd17(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     result = atmos.heating_degree_days(
-        config.cf_variables[0].da,
-        thresh=threshold,
-        freq=config.freq.panda_freq,
+        config.cf_variables[0].da, thresh=threshold, freq=config.freq.panda_freq
     )
     return result, None
 
@@ -90,9 +83,7 @@ def id(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     result = atmos.ice_days(
-        config.cf_variables[0].da,
-        thresh=threshold,
-        freq=config.freq.panda_freq,
+        config.cf_variables[0].da, thresh=threshold, freq=config.freq.panda_freq
     )
     return result, None
 
@@ -197,9 +188,7 @@ def su(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     result = atmos.tx_days_above(
-        config.cf_variables[0].da,
-        thresh=threshold,
-        freq=config.freq.panda_freq,
+        config.cf_variables[0].da, thresh=threshold, freq=config.freq.panda_freq
     )
     return result, None
 
@@ -210,9 +199,7 @@ def tr(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     result = atmos.tropical_nights(
-        config.cf_variables[0].da,
-        thresh=threshold,
-        freq=config.freq.panda_freq,
+        config.cf_variables[0].da, thresh=threshold, freq=config.freq.panda_freq
     )
     return result, None
 
@@ -310,9 +297,7 @@ def csu(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     else:
         threshold = _add_celsius_suffix(config.threshold)
     result = atmos.maximum_consecutive_warm_days(
-        config.cf_variables[0].da,
-        thresh=threshold,
-        freq=config.freq.panda_freq,
+        config.cf_variables[0].da, thresh=threshold, freq=config.freq.panda_freq
     )
     return result, None
 
@@ -323,7 +308,7 @@ def prcptot(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         freq=config.freq.panda_freq,
         # TODO see if we should use tas and thresh
         # tas=config.cf_variables[0].da,
-        # thresh=threshold,
+        # thresh=threshold
     )
     return result, None
 
@@ -767,20 +752,50 @@ def _can_run_bootstrap(config: IndiceConfig, percentile_period) -> bool:
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
-    with xr.set_options(keep_attrs=True):
-        if sampling_freq == Frequency.MONTH:
-            da = da / da.time.dt.daysinmonth * 100
-        elif sampling_freq == Frequency.YEAR:
-            coef = xr.full_like(da, 1)
-            coef[da.time.dt.is_leap_year] = 366
-            coef[~da.time.dt.is_leap_year] = 365
-            da = da / coef * 100
-        else:
-            # TODO improve this for seasons and any sampling freq
-            warn("% unit can only be used with MONTH or YEAR slice_mode.")
-            return da
-        da.attrs["units"] = "%"
+    if sampling_freq == Frequency.MONTH:
+        da = da / da.time.dt.daysinmonth * 100
+    elif sampling_freq == Frequency.YEAR:
+        coef = xr.full_like(da, 1)
+        leap_years = _is_leap_year(da)
+        coef[leap_years] = 366
+        coef[~leap_years] = 365
+        da = da / coef * 100
+    elif sampling_freq == Frequency.AMJJAS:
+        da = da / 183 * 100
+    elif sampling_freq == Frequency.ONDJFM:
+        coef = xr.full_like(da, 1)
+        leap_years = _is_leap_year(da)
+        coef[leap_years] = 183
+        coef[~leap_years] = 182
+        da = da / coef * 100
+    elif sampling_freq == Frequency.DJF:
+        coef = xr.full_like(da, 1)
+        leap_years = _is_leap_year(da)
+        coef[leap_years] = 91
+        coef[~leap_years] = 90
+        da = da / coef * 100
+    elif sampling_freq in [Frequency.MAM, Frequency.JJA]:
+        da = da / 92 * 100
+    elif sampling_freq == Frequency.SON:
+        da = da / 91 * 100
+    else:
+        # TODO improve this for custom resampling
+        warn(
+            "For now, '%' unit can only be used with slice_mode being one of "
+            "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}."
+        )
         return da
+    da.attrs["units"] = "%"
+    return da
+
+
+def _is_leap_year(da: DataArray) -> np.ndarray:
+    time_index = da.indexes.get("time")
+    if isinstance(time_index, xr.CFTimeIndex):
+        cf_calendar = get_calendar_from_str(time_index.calendar)
+        return cf_calendar.is_leap(da.time.dt.year)
+    else:
+        return da.time.dt.is_leap_year
 
 
 def _add_bootstrap_meta(result: DataArray, per: DataArray) -> DataArray:
@@ -811,7 +826,6 @@ def _compute_percentile(
         arr,
         input_core_dims=[["time"]],
         output_core_dims=[["percentiles"]],
-        keep_attrs=True,
         kwargs=dict(
             percentiles=[percentiles],
             alpha=config.interpolation.alpha,
