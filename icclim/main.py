@@ -143,10 +143,16 @@ def indice(
     if reset_coords:
         result_ds = result_ds.rename(reset_coords)
     if not isinstance(in_files, Dataset):
+        if input_ds.time.encoding:
+            if input_ds.time.encoding.get("chunksizes"):
+                del input_ds.time.encoding["chunksizes"]
+            time_encoding = input_ds.time.encoding
+        else:
+            time_encoding = {"units": "days since 1850-1-1"}
         result_ds.to_netcdf(
             out_file,
             format=config.netcdf_version.value,
-            encoding={"time": input_ds.time.encoding},
+            encoding={"time": time_encoding},
         )
     callback(callback_percentage_total)
     ending_message(time.process_time())
