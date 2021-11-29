@@ -4,44 +4,46 @@ Installation
 
 Dependencies
 ------------
-To use the ICCLIM you first need to install the following python libraries:
-    - `NumPy <https://numpy.org>`_
-    - `netCDF4 (make sure you have at least version 1.2.9+) <https://unidata.github.io/netcdf4-python/>`_
-    - `cftime <https://unidata.github.io/cftime/>`_ 
-    - `ctypes <https://docs.python.org/3/library/ctypes.html>`_
-    - `OpenClimateGIS <https://github.com/NCPP/ocgis>`_ and its dependencies if you want to use `ICCLIM inside OpenClimateGIS <https://ocgis.readthedocs.io/en/latest/computation.html#calculation-using-icclim-for-eca-indices>`_
-    - `ESMPy <https://earthsystemmodeling.org/esmpy/>`_ if you want to use :ref:`regridding module <icclim_regrid>`
-    
+The dependencies to run icclim are listed under our
+(requirements.txt)[https://github.com/cerfacs-globc/icclim/blob/develop/requirements.txt] file.
+
 Installation (Linux, OS X)
 --------------------------
-.. note:: Make sure that **Python 3.6+** and **GCC** are installed.
+.. note:: Make sure that **Python 3.8+**.
 
+To install from the distributed wheel (.whl) file. # Beta only
+---
+`pip install path/to/wheel/file.whl`
+
+To install from sources
+---
+With git:
+1. `git clone git://github.com/cerfacs-globc/icclim`
+2. `cd icclim`
+
+Or without git:
 1. Go to `<https://github.com/cerfacs-globc/icclim/releases/>`_.
-2. Download the last release: click to **Source code (zip)** or **Source code (tar.gz)**.
+2. you can download the last release: click to **Source code (zip)** or **Source code (tar.gz)**.
 3. Extract the file.
 4. Go to extracted directory.
 5. Run the following commands:
 
 .. code-block:: sh
-    
-    gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o
-    
-    gcc -shared -o ./icclim/libC.so ./icclim/libC.o
-    
+
     [sudo] python setup.py install
 
 or if you don't have root or sudo access, as a normal user:
 
-.. code-block:: sh    
+.. code-block:: sh
 
     python setup.py install --user
-    
-5. Check if the library is installed correctly:
+
+6. Check if the library is installed correctly:
 
 .. code-block:: sh
 
     >>> import icclim
-    
+
 To get the version of installed library, do the following:
 
 .. code-block:: sh
