@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Callable, List, Optional, Union
 
-import numpy as np
+import dask
 import xarray
 from xarray import DataArray, Dataset
 from xclim.core import calendar
@@ -157,19 +157,12 @@ def _build_in_base_da(
 
 
 def _chunk_data(transfer_limit_Mbytes: int, da: DataArray) -> DataArray:
-    # TODO add warning if ckunks are too small ?
-    #      xarray doc suggest at least 1000 x 1000 elements per chunk
-    # TODO if dataset has more than 3 dims (such as a depth dim)
-    #      it will only chunk on lat,lon and not on other dims
-    #      Enfaite il faudrait exclure "time" et chunk sur le reste
-    #      pour avoir des chunk d'un million d'éléments
-    transfer_limit_bytes = transfer_limit_Mbytes * 1024 * 1024
-    optimal_tile_dimension = int(
-        np.sqrt(transfer_limit_bytes / (len(da.time) * da.dtype.itemsize))
-    )
-    return da.chunk(
-        chunks={"lat": optimal_tile_dimension, "lon": optimal_tile_dimension}
-    )
+    with dask.config.set({"array.chunk-size": f"{transfer_limit_Mbytes} MiB"}):
+        chunks = {d: "auto" for d in da.dims}
+        # We avoid chunking on time.
+        # This should make bootstrap and rolling windows much faster
+        chunks["time"] = -1
+        return da.chunk(chunks=chunks)
 
 
 def _reduce_only_leap_years(da: DataArray) -> DataArray:
