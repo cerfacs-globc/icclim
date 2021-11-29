@@ -759,25 +759,25 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
         leap_years = _is_leap_year(da)
         coef[leap_years] = 366
         coef[~leap_years] = 365
-        da = da / coef * 100
+        da = da / coef
     elif sampling_freq == Frequency.AMJJAS:
-        da = da / 183 * 100
+        da = da / 183
     elif sampling_freq == Frequency.ONDJFM:
         coef = xr.full_like(da, 1)
         leap_years = _is_leap_year(da)
         coef[leap_years] = 183
         coef[~leap_years] = 182
-        da = da / coef * 100
+        da = da / coef
     elif sampling_freq == Frequency.DJF:
         coef = xr.full_like(da, 1)
         leap_years = _is_leap_year(da)
         coef[leap_years] = 91
         coef[~leap_years] = 90
-        da = da / coef * 100
+        da = da / coef
     elif sampling_freq in [Frequency.MAM, Frequency.JJA]:
-        da = da / 92 * 100
+        da = da / 92
     elif sampling_freq == Frequency.SON:
-        da = da / 91 * 100
+        da = da / 91
     else:
         # TODO improve this for custom resampling
         warn(
@@ -785,7 +785,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
             "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}."
         )
         return da
-    da.attrs["units"] = "%"
+    da.attrs["units"] = "1"
     return da
 
 

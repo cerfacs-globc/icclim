@@ -213,14 +213,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
         else:
             return output_unit
     else:
-        if output_unit is None or output_unit == da_unit:
-            return da_unit
-        else:
-            warn(
-                f'Overriding the computed unit "{da_unit}" '
-                f'with the user given unit "{output_unit}"'
-            )
-            return output_unit
+        return da_unit
 
 
 def _compute_basic_indice(
