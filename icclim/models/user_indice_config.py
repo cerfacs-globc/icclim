@@ -22,18 +22,18 @@ class ExtremeMode(Enum):
 class LogicalOperation(Enum):
     GREATER_THAN = (["gt", ">"], ">", lambda da, th: da > th)
     LOWER_THAN = (["lt", "<"], "<", lambda da, th: da < th)
-    GREATER_OR_EQUAL_THAN = (["get", ">=", "=>"], ">=", lambda da, th: da >= th)
-    LOWER_OR_EQUAL_THAN = (["let", "<=", "=<"], "<=", lambda da, th: da <= th)
-    EQUAL = (["e", "equal", "=", "=="], "==", lambda da, th: da == th)
+    GREATER_OR_EQUAL_THAN = (["get", "ge", ">=", "=>"], ">=", lambda da, th: da >= th)
+    LOWER_OR_EQUAL_THAN = (["let", "le", "<=", "=<"], "<=", lambda da, th: da <= th)
+    EQUAL = (["e", "equal", "eq", "=", "=="], "==", lambda da, th: da == th)
 
     def __init__(
         self,
-        accepted_input: str,
+        aliases: str,
         operator: str,
         compute: Callable[[DataArray, Union[DataArray, float, int]], DataArray],
     ) -> None:
         super().__init__()
-        self.accepted_input = accepted_input
+        self.aliases = aliases
         self.operator = operator
         self.compute = compute
 
@@ -113,11 +113,11 @@ class UserIndiceConfig:
 
 def get_logical_operation(s: str) -> LogicalOperation:
     for op in LogicalOperation:
-        if s.upper() in map(str.upper, op.accepted_input):
+        if s.upper() in map(str.upper, op.aliases):
             return op
     raise InvalidIcclimArgumentError(
         f"Unknown logical operator {s}."
-        f"Use one of {[op.accepted_input for op in LogicalOperation]}."
+        f"Use one of {[op.aliases for op in LogicalOperation]}."
     )
 
 
