@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
 import dask
 import xarray
@@ -40,6 +40,7 @@ class IndiceConfig:
         slice_mode: SliceMode,
         var_name: List[str],
         netcdf_version: Union[str, NetcdfVersion],
+        index: Any,  # EcadIndex proper typing causes circular dependency
         save_percentile: bool = False,
         only_leap_years: bool = False,
         ignore_Feb29th: bool = False,
@@ -69,6 +70,7 @@ class IndiceConfig:
                 base_period_time_range=base_period_time_range,
                 only_leap_years=only_leap_years,
                 transfer_limit_Mbytes=transfer_limit_Mbytes,
+                index=index,
             )
             for cf_var_name in var_name
         ]
@@ -84,6 +86,7 @@ class IndiceConfig:
         self.interpolation = interpolation
         self.threshold = threshold
         self.callback = callback
+        self.index = index
 
 
 def _build_cf_variable(
@@ -93,9 +96,10 @@ def _build_cf_variable(
     base_period_time_range: Optional[List[datetime]],
     only_leap_years: bool,
     transfer_limit_Mbytes: Optional[int],
+    index: Any,  # EcadIndex
 ) -> CfVariable:
     if transfer_limit_Mbytes is not None:
-        da = _chunk_data(transfer_limit_Mbytes, da)
+        da = _chunk_data(transfer_limit_Mbytes, da, index)
     out_of_base_da = _build_data_array(da, time_range, ignore_Feb29th)
     if base_period_time_range is not None:
         in_base_da = _build_in_base_da(da, base_period_time_range, only_leap_years)
@@ -156,12 +160,15 @@ def _build_in_base_da(
     return da
 
 
-def _chunk_data(transfer_limit_Mbytes: int, da: DataArray) -> DataArray:
-    with dask.config.set({"array.chunk-size": f"{transfer_limit_Mbytes} MiB"}):
+def _chunk_data(
+    transfer_limit_Mbytes: int, da: DataArray, index: Any  # EcadIndex
+) -> DataArray:
+    with dask.config.set({"array.chunk-size": f"{transfer_limit_Mbytes} MB"}):
         chunks = {d: "auto" for d in da.dims}
-        # We avoid chunking on time.
-        # This should make bootstrap and rolling windows much faster
-        chunks["time"] = -1
+        if index.time_aware:
+            # We avoid chunking on time for indices relying on bootstrap
+            # or rolling windows
+            chunks["time"] = -1
         return da.chunk(chunks=chunks)
 
 
