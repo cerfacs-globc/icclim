@@ -16,7 +16,7 @@ from xarray.core.dataset import Dataset
 
 from icclim.ecad_functions import IndiceConfig
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.logging_info import ending_message, start_message
+from icclim.logging_info import Verbosity, ending_message, start_message
 from icclim.models.ecad_indices import EcadIndex, index_from_string
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
@@ -51,6 +51,7 @@ def indice(
     # TODO do something prettier than a dict (a UserIndiceDTO or something)
     user_indice: Dict[str, Any] = None,
     save_percentile: bool = False,
+    logs_verbosity: Verbosity = Verbosity.LOW,
 ) -> Dataset:
     """
     :param indice_name:
@@ -106,7 +107,7 @@ def indice(
     xclim.set_options(data_validation="warn")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
-    start_message()
+    start_message(verbosity=logs_verbosity)
     callback(callback_percentage_start_value)
     if isinstance(in_files, Dataset):
         input_ds = in_files
@@ -158,7 +159,7 @@ def indice(
             encoding={"time": time_encoding},
         )
     callback(callback_percentage_total)
-    ending_message(time.process_time())
+    ending_message(time.process_time(), verbosity=logs_verbosity)
     return result_ds
 
 

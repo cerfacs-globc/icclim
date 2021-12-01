@@ -18,14 +18,14 @@ class Verbosity(Enum):
     NONE = ("NONE",)
 
 
-def start_message(verbosity: Verbosity = Verbosity.HIGH):
+def start_message(verbosity: Verbosity):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     time_now = time.asctime(time.gmtime()) + " " + tz
     icclim_version = pkg_resources.get_distribution('icclim').version
     if verbosity == Verbosity.NONE:
         return
     if verbosity == Verbosity.LOW:
-        logging.info(f"Icclim {icclim_version} --  {time_now}")
+        logging.info(f"Icclim {icclim_version}")
         logging.info("--- BEGIN EXECUTION ---")
         return
     logging.info("   ********************************************************************************************")
@@ -39,13 +39,13 @@ def start_message(verbosity: Verbosity = Verbosity.HIGH):
     logging.info("   *                                                                                          *")
     logging.info("   ********************************************************************************************")
 
-def ending_message(time_cpu, tz=tz, verbosity: Verbosity = Verbosity.HIGH):
+def ending_message(time_cpu, verbosity: Verbosity, tz=tz):
     time_now = time.asctime(time.gmtime()) + " " + tz
     icclim_version = pkg_resources.get_distribution('icclim').version
     if verbosity == Verbosity.NONE:
         return
     if verbosity == Verbosity.LOW:
-        logging.info(f"Icclim {icclim_version} --  {time_now}")
+        logging.info(f"Icclim {icclim_version}")
         logging.info("CPU SECS = %-10.3f", time_cpu)
         logging.info("--- END EXECUTION ---")
         return
