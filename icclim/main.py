@@ -14,14 +14,15 @@ import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim.eca_indices import Indice, IndiceConfig, indice_from_string
-from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError
+from icclim.ecad_functions import IndiceConfig
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.logging_info import ending_message, start_message
+from icclim.models.ecad_indices import EcadIndex, index_from_string
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_indice_config import UserIndiceConfig
-from icclim.user_indices.bridge import compute_user_indice
+from icclim.user_indices.bridge import compute_user_index
 
 __all__ = ["indice"]
 
@@ -118,6 +119,7 @@ def indice(
     elif var_name is None:
         var_name = _guess_variables(indice_name, input_ds)
     input_ds, reset_coords = _update_coords(input_ds)
+    index = index_from_string(indice_name)
     config = IndiceConfig(
         base_period_time_range=base_period_time_range,
         ds=input_ds,
@@ -133,12 +135,13 @@ def indice(
         netcdf_version=netcdf_version,
         interpolation=interpolation,
         callback=callback,
+        index=index,
     )
     if user_indice is not None:
-        result_ds = _build_user_indice_dataset(config, user_indice)
+        result_ds = _compute_user_index_dataset(config, user_indice)
     else:
-        result_ds = _build_basic_indice_dataset(
-            config, indice_name, threshold, input_ds.attrs.get("history", None)
+        result_ds = _compute_ecad_index_dataset(
+            config, index, threshold, input_ds.attrs.get("history", None)
         )
     if reset_coords:
         result_ds = result_ds.rename(reset_coords)
@@ -159,28 +162,25 @@ def indice(
     return result_ds
 
 
-def _build_basic_indice_dataset(
+def _compute_ecad_index_dataset(
     config: IndiceConfig,
-    indice_name: str,
+    index: EcadIndex,
     threshold: Union[float, List[float]],
     current_history: Optional[str],
 ) -> Dataset:
-    if indice_name is None:
-        # user input error, avoid doing all computations for nothing
-        raise MissingIcclimInputError("indice_name must be provided.")
     if isinstance(threshold, list):
         ds_list = []
         for th in threshold:
             config.threshold = th
-            ds_list.append(_compute_basic_indice(indice_name, config, current_history))
+            ds_list.append(_compute_ecad_index(index, config, current_history))
         result_ds = xarray.concat(ds_list, dim="threshold")
     else:
         config.threshold = threshold
-        result_ds = _compute_basic_indice(indice_name, config, current_history)
+        result_ds = _compute_ecad_index(index, config, current_history)
     return result_ds
 
 
-def _build_user_indice_dataset(config: IndiceConfig, user_indice: dict) -> Dataset:
+def _compute_user_index_dataset(config: IndiceConfig, user_indice: dict) -> Dataset:
     logging.info("Calculating user indice.")
     result_ds = Dataset()
     user_indice_config = UserIndiceConfig(
@@ -190,7 +190,7 @@ def _build_user_indice_dataset(config: IndiceConfig, user_indice: dict) -> Datas
         is_percent=config.is_percent,
         save_percentile=config.save_percentile,
     )
-    user_indice_da = compute_user_indice(user_indice_config)
+    user_indice_da = compute_user_index(user_indice_config)
     user_indice_da.attrs["units"] = _get_unit(config.out_unit, user_indice_da)
     if config.freq.post_processing is not None:
         user_indice_da, time_bounds = config.freq.post_processing(user_indice_da)
@@ -216,24 +216,23 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
         return da_unit
 
 
-def _compute_basic_indice(
-    indice_name: str, config: IndiceConfig, former_history: Optional[str]
+def _compute_ecad_index(
+    index: EcadIndex, config: IndiceConfig, former_history: Optional[str]
 ) -> Dataset:
-    logging.info(f"Calculating climate index: {indice_name}")
+    logging.info(f"Calculating climate index: {index.index_name}")
     result_ds = Dataset()
-    indice = indice_from_string(indice_name)
-    da, per = indice.compute(config)
+    da, per = index.compute(config)
     da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:
         da.expand_dims({"threshold": config.threshold})
     if config.freq.post_processing is not None:
         resampled_da, time_bounds = config.freq.post_processing(da)
-        result_ds[indice_name] = resampled_da
+        result_ds[index.index_name] = resampled_da
         if time_bounds is not None:
             result_ds["time_bounds"] = time_bounds
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
-        result_ds[indice_name] = da
+        result_ds[index.index_name] = da
     if per is not None:
         per = per.squeeze("percentiles", drop=True).rename("percentiles")
         result_ds = xr.merge([result_ds, per])
@@ -242,28 +241,28 @@ def _compute_basic_indice(
     else:
         former_history = f"{former_history}\n{da.attrs['history']}"
     del da.attrs["history"]
-    result_ds = _add_basic_indice_metadata(result_ds, config, indice, former_history)
+    result_ds = _add_basic_indice_metadata(result_ds, config, index, former_history)
     return result_ds
 
 
 def _add_basic_indice_metadata(
     result_ds: Dataset,
     config: IndiceConfig,
-    indice_computed: Indice,
+    computed_index: EcadIndex,
     former_history: str,
 ) -> Dataset:
     # TODO: complete with clix-meta metadata
     if config.threshold is not None:
-        title = f"Index {indice_computed.indice_name} with user defined threshold"
+        title = f"Index {computed_index.index_name} with user defined threshold"
     else:
-        title = f"ECA {indice_computed.group} indice {indice_computed.indice_name}"
+        title = f"ECA {computed_index.group} index {computed_index.index_name}"
     result_ds.attrs["title"] = title
     result_ds.attrs[
         "references"
     ] = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)"
     result_ds.attrs["institution"] = "Climate impact portal (https://climate4impact.eu)"
     result_ds.attrs["history"] = _get_history(
-        config, former_history, indice_computed, result_ds
+        config, former_history, computed_index, result_ds
     )
     # TODO make sure it should stay empty as in v4
     result_ds.attrs["source"] = ""
@@ -283,7 +282,7 @@ def _get_history(config, former_history, indice_computed, result_ds):
     return (
         f"{former_history}\n "
         f"{current_time} "
-        f"Calculation of {indice_computed.indice_name} "
+        f"Calculation of {indice_computed.index_name} "
         f"indice({config.freq.description}) "
         f"from {start_time} to {end_time}."
     )
@@ -295,7 +294,7 @@ def _guess_variables(indice_name: str, ds: Dataset):
     the indice.
     """
     res = []
-    indice_variables = indice_from_string(indice_name).variables
+    indice_variables = index_from_string(indice_name).variables
     for indice_var in indice_variables:
         for alias in indice_var:
             # check if dataset contains this alias

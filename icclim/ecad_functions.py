@@ -1,5 +1,4 @@
-from enum import Enum
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 from warnings import warn
 
 import numpy as np
@@ -12,25 +11,15 @@ from xclim.core.units import convert_units_to
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import get_calendar_from_str
-from icclim.models.constants import (
-    COLD_GROUP,
-    COMPOUND_GROUP,
-    DROUGHT_GROUP,
-    HEAT_GROUP,
-    PR,
-    RAIN_GROUP,
-    SNOW_GROUP,
-    TAS,
-    TASMAX,
-    TASMIN,
-    TEMPERATURE_GROUP,
-)
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
 PERCENTILES_COORD = "percentiles"
 IN_BASE_ATTRS = "reference_epoch"
+
+
+ComputeIndexFun = Callable[[IndiceConfig], Tuple[DataArray, Optional[DataArray]]]
 
 
 def gd4(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
@@ -645,85 +634,6 @@ def ww(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
     return result, None
-
-
-class Indice(Enum):
-    # temperature
-    TG = ("tg", tg, TEMPERATURE_GROUP, [TAS])
-    TN = ("tn", tn, TEMPERATURE_GROUP, [TASMIN])
-    TX = ("tx", tx, TEMPERATURE_GROUP, [TASMAX])
-    DTR = ("dtr", dtr, TEMPERATURE_GROUP, [TASMAX, TASMIN])
-    ETR = ("etr", etr, TEMPERATURE_GROUP, [TASMAX, TASMIN])
-    VDTR = ("vdtr", vdtr, TEMPERATURE_GROUP, [TASMAX, TASMIN])
-    # heat
-    SU = ("su", su, HEAT_GROUP, [TASMAX])
-    TR = ("tr", tr, HEAT_GROUP, [TASMIN])
-    WSDI = ("wsdi", wsdi, HEAT_GROUP, [TASMAX])
-    TG90P = ("tg90p", tg90p, HEAT_GROUP, [TAS])
-    TN90P = ("tn90p", tn90p, HEAT_GROUP, [TASMIN])
-    TX90P = ("tx90p", tx90p, HEAT_GROUP, [TASMAX])
-    TXX = ("txx", txx, HEAT_GROUP, [TASMAX])
-    TNX = ("tnx", tnx, HEAT_GROUP, [TASMIN])
-    CSU = ("csu", csu, HEAT_GROUP, [TASMAX])
-    # cold
-    GD4 = ("gd4", gd4, COLD_GROUP, [TAS])
-    FD = ("fd", fd, COLD_GROUP, [TASMIN])
-    CFD = ("cfd", cfd, COLD_GROUP, [TASMIN])
-    HD17 = ("hd17", hd17, COLD_GROUP, [TASMIN])
-    ID = ("id", id, COLD_GROUP, [TASMAX])
-    TG10P = ("tg10p", tg10p, COLD_GROUP, [TAS])
-    TN10P = ("tn10p", tn10p, COLD_GROUP, [TASMIN])
-    TX10P = ("tx10p", tx10p, COLD_GROUP, [TASMAX])
-    TXN = ("txn", txn, COLD_GROUP, [TASMAX])
-    TNN = ("tnn", tnn, COLD_GROUP, [TASMIN])
-    CSDI = ("csdi", csdi, COLD_GROUP, [TASMIN])
-    # drought
-    CDD = ("cdd", cdd, DROUGHT_GROUP, [PR])
-    # rain
-    PRCPTOT = ("prcptot", prcptot, RAIN_GROUP, [PR])
-    RR1 = ("rr1", rr1, RAIN_GROUP, [PR])
-    SDII = ("sdii", sdii, RAIN_GROUP, [PR])
-    CWD = ("cwd", cwd, RAIN_GROUP, [PR])
-    R10MM = ("r10mm", r10mm, RAIN_GROUP, [PR])
-    R20MM = ("r20mm", r20mm, RAIN_GROUP, [PR])
-    RX1DAY = ("rx1day", rx1day, RAIN_GROUP, [PR])
-    RX5DAY = ("rx5day", rx5day, RAIN_GROUP, [PR])
-    R75P = ("r75p", r75p, RAIN_GROUP, [PR])
-    R75PTOT = ("r75ptot", r75ptot, RAIN_GROUP, [PR])
-    R95P = ("r95p", r95p, RAIN_GROUP, [PR])
-    R95PTOT = ("r95ptot", r95ptot, RAIN_GROUP, [PR])
-    R99P = ("r99p", r99p, RAIN_GROUP, [PR])
-    R99PTOT = ("r99ptot", r99ptot, RAIN_GROUP, [PR])
-    # snow
-    SD = ("sd", sd, SNOW_GROUP, [PR])
-    SD1 = ("sd1", sd1, SNOW_GROUP, [PR])
-    SD5CM = ("sd5cm", sd5cm, SNOW_GROUP, [PR])
-    SD50CM = ("sd50cm", sd50cm, SNOW_GROUP, [PR])
-    # compound
-    CD = ("cd", cd, COMPOUND_GROUP, [TAS, PR])
-    CW = ("cw", cw, COMPOUND_GROUP, [TAS, PR])
-    WD = ("wd", wd, COMPOUND_GROUP, [TAS, PR])
-    WW = ("ww", ww, COMPOUND_GROUP, [TAS, PR])
-
-    def __init__(
-        self,
-        indice_name: str,
-        compute: Callable[[IndiceConfig], Tuple[DataArray, Optional[DataArray]]],
-        group: str,
-        variables: List[List[str]],
-    ):
-        self.indice_name = indice_name
-        self.compute = compute
-        self.group = group
-        self.variables = variables
-
-
-def indice_from_string(s: str) -> Indice:
-    indice_to_check = s.upper()
-    for e in Indice:
-        if e.indice_name.upper() == indice_to_check:
-            return e
-    raise InvalidIcclimArgumentError(f"Unknown indice {s}")
 
 
 def _add_celsius_suffix(threshold: Optional[Union[str, float, int]]) -> Optional[str]:

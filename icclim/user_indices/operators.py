@@ -11,7 +11,7 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
-from icclim.eca_indices import PERCENTILES_COORD
+from icclim.ecad_functions import PERCENTILES_COORD
 from icclim.icclim_exceptions import (
     InvalidIcclimArgumentError,
     InvalidIcclimOutputError,

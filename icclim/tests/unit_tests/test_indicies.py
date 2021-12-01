@@ -4,21 +4,9 @@ import numpy as np
 import pytest
 from xarray import Dataset
 
-from icclim.eca_indices import (
-    Indice,
-    cfd,
-    csu,
-    fd,
-    gd4,
-    hd17,
-    indice_from_string,
-    prcptot,
-    su,
-    tn10p,
-    tr,
-    tx90p,
-)
+from icclim.ecad_functions import cfd, csu, fd, gd4, hd17, prcptot, su, tn10p, tr, tx90p
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.ecad_indices import EcadIndex, index_from_string
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.netcdf_version import NetcdfVersion
@@ -28,16 +16,16 @@ from icclim.tests.unit_tests.test_utils import K2C, stub_pr, stub_tas
 
 class Test_indice_from_string:
     def test_simple(self):
-        res = indice_from_string("SU")
-        assert res == Indice.SU
+        res = index_from_string("SU")
+        assert res == EcadIndex.SU
 
     def test_lowercase(self):
-        res = indice_from_string("tx90p")
-        assert res == Indice.TX90P
+        res = index_from_string("tx90p")
+        assert res == EcadIndex.TX90P
 
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            indice_from_string("cacahuête")
+            index_from_string("cacahuête")
 
 
 @pytest.mark.parametrize("use_dask", [True, False])

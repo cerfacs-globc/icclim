@@ -8,7 +8,7 @@ from icclim.models.user_indice_config import UserIndiceConfig
 from icclim.user_indices import operators
 
 
-def compute_user_indice(config: UserIndiceConfig) -> DataArray:
+def compute_user_index(config: UserIndiceConfig) -> DataArray:
     operation = _get_calc_operation(config)
     return operation.compute_fun(config)
 
@@ -73,8 +73,8 @@ def max_consecutive_event_count(config: UserIndiceConfig):
         )
     if isinstance(config.thresh, list):
         raise InvalidIcclimArgumentError(
-            f"{CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} does not support threshold list. "
-            f"Please provide a single threshold"
+            f"{CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} "
+            f"does not support threshold list. Please provide a single threshold."
         )
     return operators.max_consecutive_event_count(
         da=config.cf_vars[0].da,
@@ -161,7 +161,8 @@ def _check_and_get_simple_threshold(thresh: Any) -> Union[None, str, float, int]
         return thresh
     else:
         raise InvalidIcclimArgumentError(
-            "threshold type must be either None, a string (for percentiles) or a number."
+            "threshold type must be either None, "
+            "a string (for percentile) or a number."
         )
 
 

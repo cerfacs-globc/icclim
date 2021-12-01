@@ -9,7 +9,7 @@ from icclim.models.user_indice_config import (
     LogicalOperation,
 )
 from icclim.tests.unit_tests.test_utils import stub_pr, stub_tas, stub_user_indice
-from icclim.user_indices.bridge import CalcOperation, compute_user_indice
+from icclim.user_indices.bridge import CalcOperation, compute_user_index
 
 
 class Test_compute:
@@ -21,7 +21,7 @@ class Test_compute:
         user_indice.freq = Frequency.MONTH
         # WHEN
         with pytest.raises(InvalidIcclimArgumentError):
-            compute_user_indice(user_indice)
+            compute_user_index(user_indice)
 
     def test_simple(self):
         # GIVEN
@@ -30,7 +30,7 @@ class Test_compute:
         user_indice.calc_operation = "max"
         user_indice.freq = Frequency.MONTH
         # WHEN
-        result = compute_user_indice(user_indice)
+        result = compute_user_index(user_indice)
         # THEN
         assert result.data[0] == 1
 
@@ -47,7 +47,7 @@ class Test_compute:
         user_indice.var_type = PRECIPITATION
         user_indice.freq = Frequency.YEAR
         # WHEN
-        result = compute_user_indice(user_indice)
+        result = compute_user_index(user_indice)
         # THEN
         assert result.data[0] == 5
 
@@ -64,7 +64,7 @@ class Test_compute:
         user_indice.var_type = TEMPERATURE
         user_indice.freq = Frequency.MONTH
         # WHEN
-        result = compute_user_indice(user_indice)
+        result = compute_user_index(user_indice)
         # THEN
         assert result.data[0] == 1
         assert result.data[1] == 5
