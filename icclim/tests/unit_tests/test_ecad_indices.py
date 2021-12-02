@@ -6,7 +6,7 @@ from xarray import Dataset
 
 from icclim.ecad_functions import cfd, csu, fd, gd4, hd17, prcptot, su, tn10p, tr, tx90p
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.ecad_indices import EcadIndex, lookup
+from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.netcdf_version import NetcdfVersion
@@ -16,16 +16,16 @@ from icclim.tests.unit_tests.test_utils import K2C, stub_pr, stub_tas
 
 class Test_indice_from_string:
     def test_simple(self):
-        res = lookup("SU")
+        res = EcadIndex.lookup("SU")
         assert res == EcadIndex.SU
 
     def test_lowercase(self):
-        res = lookup("tx90p")
+        res = EcadIndex.lookup("tx90p")
         assert res == EcadIndex.TX90P
 
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            lookup("cacahuête")
+            EcadIndex.lookup("cacahuête")
 
 
 @pytest.mark.parametrize("use_dask", [True, False])
@@ -36,6 +36,7 @@ def test_tn10p_interpolation_error(use_dask):
         ds=ds,
         slice_mode=Frequency.MONTH,
         var_name=["tas"],
+        index=EcadIndex.TN10P,
         netcdf_version=NetcdfVersion.NETCDF4,
         base_period_time_range=[
             ds.time.values[0].astype("M8[D]").astype("O"),
@@ -64,6 +65,7 @@ def test_tn10p(use_dask):
         window_width=2,
         interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
         save_percentile=True,
+        index=EcadIndex.TN10P,
     )
     res = tn10p(conf)
     assert res is not None
@@ -80,6 +82,7 @@ class Test_SU:
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.SU,
         )
         res = su(conf)
         assert res is not None
@@ -96,6 +99,7 @@ class Test_SU:
             var_name=["tas"],
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.SU,
         )
         res = su(conf)
         assert res is not None
@@ -113,6 +117,7 @@ class Test_TR:
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.TR,
         )
         res = tr(conf)
         assert res is not None
@@ -129,6 +134,7 @@ class Test_TR:
             var_name=["tas"],
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.TR,
         )
         res = tr(conf)
         assert res is not None
@@ -146,6 +152,7 @@ class Test_prcptot:
             slice_mode=Frequency.MONTH,
             var_name=["pr"],
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.PRCPTOT,
         )
         res = prcptot(conf)
         assert res is not None
@@ -163,6 +170,7 @@ class Test_csu:
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.CSU,
         )
         res = csu(conf)
         assert res is not None
@@ -180,6 +188,7 @@ class Test_csu:
             var_name=["tas"],
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.CSU,
         )
         res = csu(conf)
         assert res is not None
@@ -197,6 +206,7 @@ class Test_gd4:
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.GD4,
         )
         res = gd4(conf)
         assert res is not None
@@ -214,6 +224,7 @@ class Test_gd4:
             var_name=["tas"],
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.GD4,
         )
         res = gd4(conf)
         assert res is not None
@@ -232,6 +243,7 @@ class Test_cfd:
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.CFD,
         )
         res = cfd(conf)
         assert res is not None
@@ -249,6 +261,7 @@ class Test_cfd:
             var_name=["tas"],
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.CFD,
         )
         res = cfd(conf)
         assert res is not None
@@ -267,6 +280,7 @@ class Test_fd:
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.FD,
         )
         res = fd(conf)
         assert res is not None
@@ -284,6 +298,7 @@ class Test_fd:
             var_name=["tas"],
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.FD,
         )
         res = fd(conf)
         assert res is not None
@@ -301,6 +316,7 @@ class Test_hd17:
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.HD17,
         )
         res = hd17(conf)
         assert res is not None
@@ -317,6 +333,7 @@ class Test_hd17:
             var_name=["tas"],
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
+            index=EcadIndex.HD17,
         )
         res = hd17(conf)
         assert res is not None
@@ -339,6 +356,7 @@ class TestTx90p:
                 datetime.datetime(2042, 12, 31),
             ],
             time_range=[datetime.datetime(2043, 1, 1), datetime.datetime(2045, 12, 31)],
+            index=EcadIndex.TX90P,
         )
         res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
@@ -357,6 +375,7 @@ class TestTx90p:
                 datetime.datetime(2042, 12, 31),
             ],
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
+            index=EcadIndex.TX90P,
         )
         res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
@@ -375,6 +394,7 @@ class TestTx90p:
                 datetime.datetime(2043, 12, 31),
             ],
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
+            index=EcadIndex.TX90P,
         )
         res, _ = tx90p(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]

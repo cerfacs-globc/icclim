@@ -3,40 +3,40 @@ import pandas as pd
 import pytest
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.frequency import Frequency, lookup, month_filter, seasons_resampler
+from icclim.models.frequency import Frequency, month_filter, seasons_resampler
 from icclim.tests.unit_tests.test_utils import stub_tas
 
 
 class Test_build_frequency_over_frequency:
     def test_simple(self):
-        freq = lookup(Frequency.YEAR)
+        freq = Frequency.lookup(Frequency.YEAR)
         assert freq == Frequency.YEAR
 
 
 class Test_build_frequency_over_string:
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            lookup("yolo")
+            Frequency.lookup("yolo")
 
     def test_simple(self):
-        freq = lookup("year")
+        freq = Frequency.lookup("year")
         assert freq == Frequency.YEAR
 
 
 class Test_build_frequency_over_list:
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            lookup(["cacahuêtes"])
+            Frequency.lookup(["cacahuêtes"])
 
     def test_month(self):
-        freq = lookup(["month", [1, 4, 3]])
+        freq = Frequency.lookup(["month", [1, 4, 3]])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_season(self):
-        freq = lookup(["season", [1, 2, 3, 4]])
+        freq = Frequency.lookup(["season", [1, 2, 3, 4]])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
@@ -44,14 +44,14 @@ class Test_build_frequency_over_list:
 
     def test_winter_deprecated(self):
         # deprecated way
-        freq = lookup(["season", ([11, 12], [3, 4])])
+        freq = Frequency.lookup(["season", ([11, 12], [3, 4])])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_winter(self):
-        freq = lookup(["season", [11, 12, 1, 2]])
+        freq = Frequency.lookup(["season", [11, 12, 1, 2]])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []

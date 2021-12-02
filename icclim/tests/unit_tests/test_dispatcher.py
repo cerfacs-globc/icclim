@@ -1,13 +1,10 @@
 import pytest
+from models.constants import PRECIPITATION, TEMPERATURE
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import CfVariable
-from icclim.models.user_indice_config import (
-    PRECIPITATION,
-    TEMPERATURE,
-    LogicalOperation,
-)
+from icclim.models.user_indice_config import LogicalOperation
 from icclim.tests.unit_tests.test_utils import stub_pr, stub_tas, stub_user_indice
 from icclim.user_indices.dispatcher import CalcOperation, compute_user_index
 
