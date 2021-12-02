@@ -32,7 +32,7 @@ log = IcclimLogger.get_instance(Verbosity.LOW)
 def indice(
     in_files: Union[str, List[str], Dataset],
     var_name: Optional[Union[str, List[str]]] = None,
-    indice_name: str = None,
+    index_name: str = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime] = None,
     out_file: str = "icclim_out.nc",
@@ -56,7 +56,7 @@ def indice(
     logs_verbosity: Union[Verbosity, str] = Verbosity.LOW,
 ) -> Dataset:
     """
-    :param indice_name:
+    :param index_name:
         Climate index name.
     :param in_files:
         Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
@@ -115,7 +115,7 @@ def indice(
     callback(callback_percentage_start_value)
     index: Optional[EcadIndex]
     if user_indice is None:
-        index = EcadIndex.lookup(indice_name)
+        index = EcadIndex.lookup(index_name)
     else:
         index = None
     if isinstance(in_files, Dataset):
@@ -190,8 +190,13 @@ def _compute_ecad_index_dataset(
 
 
 def _compute_user_index_dataset(config: IndiceConfig, user_indice: dict) -> Dataset:
-    logging.info("Calculating user indice.")
+    logging.info("Calculating user index.")
     result_ds = Dataset()
+    deprecated_name = user_indice.get("indice_name", None)
+    if deprecated_name is not None:
+        user_indice["index_name"] = deprecated_name
+        del user_indice["indice_name"]
+        log.deprecation_warning("indice_name", "index_name")
     user_indice_config = UserIndiceConfig(
         **user_indice,
         freq=config.freq,
@@ -203,10 +208,10 @@ def _compute_user_index_dataset(config: IndiceConfig, user_indice: dict) -> Data
     user_indice_da.attrs["units"] = _get_unit(config.out_unit, user_indice_da)
     if config.freq.post_processing is not None:
         user_indice_da, time_bounds = config.freq.post_processing(user_indice_da)
-        result_ds[user_indice_config.indice_name] = user_indice_da
+        result_ds[user_indice_config.index_name] = user_indice_da
         result_ds["time_bounds"] = time_bounds
     else:
-        result_ds[user_indice_config.indice_name] = user_indice_da
+        result_ds[user_indice_config.index_name] = user_indice_da
     return result_ds
 
 
@@ -292,7 +297,7 @@ def _get_history(config, former_history, indice_computed, result_ds):
         f"{former_history}\n "
         f"{current_time} "
         f"Calculation of {indice_computed.index_name} "
-        f"indice({config.freq.description}) "
+        f"index({config.freq.description}) "
         f"from {start_time} to {end_time}."
     )
 
@@ -300,20 +305,20 @@ def _get_history(config, former_history, indice_computed, result_ds):
 def _guess_variables(index: EcadIndex, ds: Dataset):
     """
     Try to guess the variable names using the expected kind of variable for
-    the indice.
+    the index.
     """
     res = []
-    indice_variables = index.variables
-    for indice_var in indice_variables:
+    index_variables = index.variables
+    for indice_var in index_variables:
         for alias in indice_var:
             # check if dataset contains this alias
             if ds.get(alias, None) is not None:
                 res.append(alias)
                 break
-    if len(res) < len(indice_variables):
+    if len(res) < len(index_variables):
         raise InvalidIcclimArgumentError(
             f"The necessary variable(s) were not found or recognized in the"
-            f" input file(s) to compute {index.indice_name}."
+            f" input file(s) to compute {index.index_name}."
             f" If the variable(s) exist with non-standard names in the"
             f" file, use var_name parameter to provide their names."
         )

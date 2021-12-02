@@ -63,8 +63,8 @@ from icclim.models.constants import (
     RAIN_GROUP,
     SNOW_GROUP,
     TAS,
-    TASMAX,
-    TASMIN,
+    TAS_MAX,
+    TAS_MIN,
     TEMPERATURE_GROUP,
 )
 
@@ -82,39 +82,39 @@ class EcadIndex(Enum):
             The Cf variables needed to compute the index.
             The variable are individually described by a list of aliases.
         time_aware: bool
-            Whether the indice is computed on a single time tick or use a rolling
+            Whether the index is computed on a single time tick or use a rolling
             windows or may be bootstrapped. This is useful to optimize dask chunking.
     """
 
     # temperature
     TG = ("TG", tg, TEMPERATURE_GROUP, [TAS], False)
-    TN = ("TN", tn, TEMPERATURE_GROUP, [TASMIN], False)
-    TX = ("TX", tx, TEMPERATURE_GROUP, [TASMAX], False)
-    DTR = ("DTR", dtr, TEMPERATURE_GROUP, [TASMAX, TASMIN], False)
-    ETR = ("ETR", etr, TEMPERATURE_GROUP, [TASMAX, TASMIN], False)
-    VDTR = ("vDTR", vdtr, TEMPERATURE_GROUP, [TASMAX, TASMIN], False)
+    TN = ("TN", tn, TEMPERATURE_GROUP, [TAS_MIN], False)
+    TX = ("TX", tx, TEMPERATURE_GROUP, [TAS_MAX], False)
+    DTR = ("DTR", dtr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN], False)
+    ETR = ("ETR", etr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN], False)
+    VDTR = ("vDTR", vdtr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN], False)
     # heat
-    SU = ("SU", su, HEAT_GROUP, [TASMAX], False)
-    TR = ("TR", tr, HEAT_GROUP, [TASMIN], False)
-    WSDI = ("WSDI", wsdi, HEAT_GROUP, [TASMAX], True)
+    SU = ("SU", su, HEAT_GROUP, [TAS_MAX], False)
+    TR = ("TR", tr, HEAT_GROUP, [TAS_MIN], False)
+    WSDI = ("WSDI", wsdi, HEAT_GROUP, [TAS_MAX], True)
     TG90P = ("TG90p", tg90p, HEAT_GROUP, [TAS], True)
-    TN90P = ("TN90p", tn90p, HEAT_GROUP, [TASMIN], True)
-    TX90P = ("TX90p", tx90p, HEAT_GROUP, [TASMAX], True)
-    TXX = ("TXx", txx, HEAT_GROUP, [TASMAX], False)
-    TNX = ("TNx", tnx, HEAT_GROUP, [TASMIN], False)
-    CSU = ("CSU", csu, HEAT_GROUP, [TASMAX], True)
+    TN90P = ("TN90p", tn90p, HEAT_GROUP, [TAS_MIN], True)
+    TX90P = ("TX90p", tx90p, HEAT_GROUP, [TAS_MAX], True)
+    TXX = ("TXx", txx, HEAT_GROUP, [TAS_MAX], False)
+    TNX = ("TNx", tnx, HEAT_GROUP, [TAS_MIN], False)
+    CSU = ("CSU", csu, HEAT_GROUP, [TAS_MAX], True)
     # cold
     GD4 = ("GD4", gd4, COLD_GROUP, [TAS], False)
-    FD = ("FD", fd, COLD_GROUP, [TASMIN], False)
-    CFD = ("CFD", cfd, COLD_GROUP, [TASMIN], True)
-    HD17 = ("HD17", hd17, COLD_GROUP, [TASMIN], False)
-    ID = ("ID", id, COLD_GROUP, [TASMAX], False)
+    FD = ("FD", fd, COLD_GROUP, [TAS_MIN], False)
+    CFD = ("CFD", cfd, COLD_GROUP, [TAS_MIN], True)
+    HD17 = ("HD17", hd17, COLD_GROUP, [TAS_MIN], False)
+    ID = ("ID", id, COLD_GROUP, [TAS_MAX], False)
     TG10P = ("TG10p", tg10p, COLD_GROUP, [TAS], True)
-    TN10P = ("TN10p", tn10p, COLD_GROUP, [TASMIN], True)
-    TX10P = ("TX10p", tx10p, COLD_GROUP, [TASMAX], True)
-    TXN = ("TXn", txn, COLD_GROUP, [TASMAX], False)
-    TNN = ("TNn", tnn, COLD_GROUP, [TASMIN], False)
-    CSDI = ("CSDI", csdi, COLD_GROUP, [TASMIN], True)
+    TN10P = ("TN10p", tn10p, COLD_GROUP, [TAS_MIN], True)
+    TX10P = ("TX10p", tx10p, COLD_GROUP, [TAS_MAX], True)
+    TXN = ("TXn", txn, COLD_GROUP, [TAS_MAX], False)
+    TNN = ("TNn", tnn, COLD_GROUP, [TAS_MIN], False)
+    CSDI = ("CSDI", csdi, COLD_GROUP, [TAS_MIN], True)
     # drought
     CDD = ("CDD", cdd, DROUGHT_GROUP, [PR], True)
     # rain
@@ -145,13 +145,13 @@ class EcadIndex(Enum):
 
     def __init__(
         self,
-        indice_name: str,
+        index_name: str,
         compute: ComputeIndexFun,
         group: str,
         variables: List[List[str]],
         time_aware: bool,
     ):
-        self.index_name = indice_name
+        self.index_name = index_name
         self.compute = compute
         self.group = group
         self.variables = variables

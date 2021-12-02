@@ -19,7 +19,7 @@ K2C = 273.15
 
 def stub_user_indice(cf_vars: List[CfVariable]):
     return UserIndiceConfig(
-        indice_name="Yolo", calc_operation="noop", freq=Frequency.MONTH, cf_vars=cf_vars
+        index_name="Yolo", calc_operation="noop", freq=Frequency.MONTH, cf_vars=cf_vars
     )
 
 

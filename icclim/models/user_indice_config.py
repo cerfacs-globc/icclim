@@ -78,7 +78,7 @@ class NbEventConfig:
 
 @dataclass
 class UserIndiceConfig:
-    indice_name: str
+    index_name: str
     calc_operation: str
     cf_vars: List[CfVariable]
     freq: Frequency
@@ -97,7 +97,7 @@ class UserIndiceConfig:
 
     def __init__(
         self,
-        indice_name,
+        index_name,
         # Any should be CalcOperation but it causes circular import
         calc_operation: Union[str, Any],
         freq: Frequency,
@@ -113,7 +113,7 @@ class UserIndiceConfig:
         is_percent=False,
         save_percentile=False,
     ) -> None:
-        self.indice_name = indice_name
+        self.index_name = index_name
         self.calc_operation = calc_operation
         self.freq = freq
         if logical_operation is not None:

@@ -68,27 +68,34 @@ class IcclimLogger:
             logging.info(f"Icclim {self.icclim_version}")
             logging.info("--- BEGIN EXECUTION ---")
             return
-        # fmt: off
         logging.info(
-            "   ********************************************************************************************")
+            "   ********************************************************************************************"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(f"   *          Icclim                {self.icclim_version}   *")
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            f"   *          {time_now}                                                    *")
+            f"   *          {time_now}                                                    *"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            "   *          BEGIN EXECUTION                                                                 *")
+            "   *          BEGIN EXECUTION                                                                 *"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            "   ********************************************************************************************")
-        # fmt: on
+            "   ********************************************************************************************"
+        )
 
     def ending_message(self, time_cpu):
         # flake8: noqa
@@ -100,28 +107,40 @@ class IcclimLogger:
             logging.info("CPU SECS = %-10.3f", time_cpu)
             logging.info("--- END EXECUTION ---")
             return
-        # fmt: off
         logging.info(
-            "   ********************************************************************************************")
+            "   ********************************************************************************************"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(f"   *          Icclim                {self.icclim_version}   *")
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            f"   *          {time_now}                                                    *")
+            f"   *          {time_now}                                                    *"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            "   *          END EXECUTION                                                                   *")
+            "   *          END EXECUTION                                                                   *"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            f"   *          CP SECS = {time_cpu}                                                            *")
+            f"   *          CP SECS = {time_cpu}                                                            *"
+        )
         logging.info(
-            "   *                                                                                          *")
+            "   *                                                                                          *"
+        )
         logging.info(
-            "   ********************************************************************************************")
-        # fmt: on
+            "   ********************************************************************************************"
+        )
+
+    def deprecation_warning(self, old: str, new: str):
+        logging.warning(f"{old} is deprecated, use {new}.")
