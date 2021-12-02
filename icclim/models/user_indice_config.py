@@ -13,10 +13,30 @@ class LinkLogicalOperation(Enum):
     OR_STAMP = "or"
     AND_STAMP = "and"
 
+    @staticmethod
+    def lookup(s: str) -> Any:
+        for mode in LinkLogicalOperation:
+            if s.upper == mode.value.upper():
+                return mode
+        raise InvalidIcclimArgumentError(
+            f"Unknown link_logical_operation mode {s}."
+            f"Use one of {[linkOp.value for linkOp in LinkLogicalOperation]}."
+        )
+
 
 class ExtremeMode(Enum):
     MIN = "min"
     MAX = "max"
+
+    @staticmethod
+    def lookup(s: str) -> Any:
+        for mode in ExtremeMode:
+            if s.upper == mode.value.upper():
+                return mode
+        raise InvalidIcclimArgumentError(
+            f"Unknown extreme mode {s}."
+            f"Use one of {[mode.value for mode in ExtremeMode]}."
+        )
 
 
 class LogicalOperation(Enum):
@@ -37,11 +57,15 @@ class LogicalOperation(Enum):
         self.operator = operator
         self.compute = compute
 
-
-PERCENTILE_THRESHOLD_STAMP = "p"
-WET_DAY_THRESHOLD = 1  # 1mm
-PRECIPITATION = "p"
-TEMPERATURE = "t"
+    @staticmethod
+    def lookup(s: str) -> Any:
+        for op in LogicalOperation:
+            if s.upper() in map(str.upper, op.aliases):
+                return op
+        raise InvalidIcclimArgumentError(
+            f"Unknown logical operator {s}."
+            f"Use one of {[op.aliases for op in LogicalOperation]}."
+        )
 
 
 @dataclass
@@ -93,10 +117,10 @@ class UserIndiceConfig:
         self.calc_operation = calc_operation
         self.freq = freq
         if logical_operation is not None:
-            self.logical_operation = get_logical_operation(logical_operation)
+            self.logical_operation = LogicalOperation.lookup(logical_operation)
         self.thresh = thresh
         if extreme_mode is not None:
-            self.extreme_mode = get_extreme_mode(extreme_mode)
+            self.extreme_mode = ExtremeMode.lookup(extreme_mode)
         self.window_width = window_width
         self.coef = coef
         self.date_event = date_event
@@ -111,36 +135,6 @@ class UserIndiceConfig:
         self.save_percentile = save_percentile
 
 
-def get_logical_operation(s: str) -> LogicalOperation:
-    for op in LogicalOperation:
-        if s.upper() in map(str.upper, op.aliases):
-            return op
-    raise InvalidIcclimArgumentError(
-        f"Unknown logical operator {s}."
-        f"Use one of {[op.aliases for op in LogicalOperation]}."
-    )
-
-
-def get_extreme_mode(s: str) -> ExtremeMode:
-    for mode in ExtremeMode:
-        if s.upper == mode.value.upper():
-            return mode
-    raise InvalidIcclimArgumentError(
-        f"Unknown extreme mode {s}."
-        f"Use one of {[mode.value for mode in ExtremeMode]}."
-    )
-
-
-def get_link_logical_operations(s: str) -> LinkLogicalOperation:
-    for mode in LinkLogicalOperation:
-        if s.upper == mode.value.upper():
-            return mode
-    raise InvalidIcclimArgumentError(
-        f"Unknown link_logical_operation mode {s}."
-        f"Use one of {[linkOp.value for linkOp in LinkLogicalOperation]}."
-    )
-
-
 def get_nb_event_conf(
     logical_operation: Union[List[str], str],
     link_logical_operations: Optional[str],
@@ -152,11 +146,11 @@ def get_nb_event_conf(
     else:
         threshold_list = thresholds
     if isinstance(logical_operation, list):
-        logical_operations = list(map(get_logical_operation, logical_operation))
+        logical_operations = list(map(LogicalOperation.lookup, logical_operation))
     else:
-        logical_operations = [get_logical_operation(logical_operation)]
+        logical_operations = [LogicalOperation.lookup(logical_operation)]
     if link_logical_operations is not None:
-        link_logical_operation_list = get_link_logical_operations(
+        link_logical_operation_list = LinkLogicalOperation.lookup(
             link_logical_operations
         )
     else:

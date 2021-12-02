@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import cftime
 import numpy as np
@@ -9,6 +9,8 @@ import xarray as xr
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+
+SliceMode = Union[Any, str, List[Union[str, Tuple, int]]]
 
 
 def seasons_resampler(
@@ -144,21 +146,18 @@ class Frequency(Enum):
         self.description = description
         self.post_processing = post_processing
 
-
-SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
-
-
-def build_frequency(slice_mode: SliceMode) -> Frequency:
-    if isinstance(slice_mode, Frequency):
-        return slice_mode
-    if isinstance(slice_mode, str):
-        return _get_frequency_from_string(slice_mode)
-    if isinstance(slice_mode, list):
-        return _get_frequency_from_list(slice_mode)
-    raise InvalidIcclimArgumentError(
-        f"Unknown frequency {slice_mode}."
-        f"Use a Frequency from {[f for f in Frequency]}"
-    )
+    @staticmethod
+    def lookup(slice_mode: SliceMode) -> Any:
+        if isinstance(slice_mode, Frequency):
+            return slice_mode
+        if isinstance(slice_mode, str):
+            return _get_frequency_from_string(slice_mode)
+        if isinstance(slice_mode, list):
+            return _get_frequency_from_list(slice_mode)
+        raise InvalidIcclimArgumentError(
+            f"Unknown frequency {slice_mode}."
+            f"Use a Frequency from {[f for f in Frequency]}"
+        )
 
 
 def _get_frequency_from_string(slice_mode: str) -> Frequency:

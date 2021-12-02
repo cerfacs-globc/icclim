@@ -9,7 +9,7 @@ from icclim.models.user_indice_config import (
     LogicalOperation,
 )
 from icclim.tests.unit_tests.test_utils import stub_pr, stub_tas, stub_user_indice
-from icclim.user_indices.bridge import CalcOperation, compute_user_index
+from icclim.user_indices.dispatcher import CalcOperation, compute_user_index
 
 
 class Test_compute:

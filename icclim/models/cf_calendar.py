@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Callable, List
+from typing import Any, Callable, List
 
 import numpy as np
 import xarray as xr
@@ -65,9 +65,9 @@ class CfCalendar(Enum):
     def get_name(self) -> str:
         return self.aliases[0]
 
-
-def get_calendar_from_str(query: str) -> CfCalendar:
-    res = list(filter(lambda x: query.lower() in x.aliases, CfCalendar))
-    if len(res) == 0:
-        raise TypeError(f"No calendars found for query '{query}'")
-    return res[0]
+    @staticmethod
+    def lookup(query: str) -> Any:
+        res = list(filter(lambda x: query.lower() in x.aliases, CfCalendar))
+        if len(res) == 0:
+            raise TypeError(f"No calendars found for query '{query}'")
+        return res[0]

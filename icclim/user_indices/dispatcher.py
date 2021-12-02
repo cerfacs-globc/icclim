@@ -9,19 +9,8 @@ from icclim.user_indices import operators
 
 
 def compute_user_index(config: UserIndiceConfig) -> DataArray:
-    operation = _get_calc_operation(config)
+    operation = CalcOperation.lookup(config)
     return operation.compute_fun(config)
-
-
-def _get_calc_operation(config: UserIndiceConfig):
-    if isinstance(config.calc_operation, CalcOperation):
-        return config.calc_operation
-    for calc_op in CalcOperation:
-        if calc_op.input_name.upper() == config.calc_operation.upper():
-            return calc_op
-    raise InvalidIcclimArgumentError(
-        f"The calc_operation {config.calc_operation} is unknown."
-    )
 
 
 def anomaly(config: UserIndiceConfig):
@@ -203,3 +192,14 @@ class CalcOperation(Enum):
     ):
         self.input_name = input_name
         self.compute_fun = compute_fun
+
+    @staticmethod
+    def lookup(config: UserIndiceConfig):
+        if isinstance(config.calc_operation, CalcOperation):
+            return config.calc_operation
+        for calc_op in CalcOperation:
+            if calc_op.input_name.upper() == config.calc_operation.upper():
+                return calc_op
+        raise InvalidIcclimArgumentError(
+            f"The calc_operation {config.calc_operation} is unknown."
+        )

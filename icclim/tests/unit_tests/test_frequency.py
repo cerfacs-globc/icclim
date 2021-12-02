@@ -3,45 +3,40 @@ import pandas as pd
 import pytest
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.frequency import (
-    Frequency,
-    build_frequency,
-    month_filter,
-    seasons_resampler,
-)
+from icclim.models.frequency import Frequency, lookup, month_filter, seasons_resampler
 from icclim.tests.unit_tests.test_utils import stub_tas
 
 
 class Test_build_frequency_over_frequency:
     def test_simple(self):
-        freq = build_frequency(Frequency.YEAR)
+        freq = lookup(Frequency.YEAR)
         assert freq == Frequency.YEAR
 
 
 class Test_build_frequency_over_string:
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            build_frequency("yolo")
+            lookup("yolo")
 
     def test_simple(self):
-        freq = build_frequency("year")
+        freq = lookup("year")
         assert freq == Frequency.YEAR
 
 
 class Test_build_frequency_over_list:
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            build_frequency(["cacahuêtes"])
+            lookup(["cacahuêtes"])
 
     def test_month(self):
-        freq = build_frequency(["month", [1, 4, 3]])
+        freq = lookup(["month", [1, 4, 3]])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_season(self):
-        freq = build_frequency(["season", [1, 2, 3, 4]])
+        freq = lookup(["season", [1, 2, 3, 4]])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
@@ -49,14 +44,14 @@ class Test_build_frequency_over_list:
 
     def test_winter_deprecated(self):
         # deprecated way
-        freq = build_frequency(["season", ([11, 12], [3, 4])])
+        freq = lookup(["season", ([11, 12], [3, 4])])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_winter(self):
-        freq = build_frequency(["season", [11, 12, 1, 2]])
+        freq = lookup(["season", [11, 12, 1, 2]])
         assert freq == Frequency.CUSTOM
         assert freq.panda_freq == "MS"
         assert freq.accepted_values == []

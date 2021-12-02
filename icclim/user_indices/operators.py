@@ -11,16 +11,18 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
-from icclim.ecad_functions import PERCENTILES_COORD
 from icclim.icclim_exceptions import (
     InvalidIcclimArgumentError,
     InvalidIcclimOutputError,
 )
-from icclim.models.user_indice_config import (
+from icclim.models.constants import (
     PERCENTILE_THRESHOLD_STAMP,
+    PERCENTILES_COORD,
     PRECIPITATION,
     TEMPERATURE,
     WET_DAY_THRESHOLD,
+)
+from icclim.models.user_indice_config import (
     ExtremeMode,
     LinkLogicalOperation,
     LogicalOperation,

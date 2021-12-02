@@ -8,8 +8,8 @@ from xclim.core import calendar
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendar
-from icclim.models.frequency import Frequency, SliceMode, build_frequency
-from icclim.models.netcdf_version import NetcdfVersion, get_netcdf_version
+from icclim.models.frequency import Frequency, SliceMode
+from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
 
@@ -40,7 +40,7 @@ class IndiceConfig:
         slice_mode: SliceMode,
         var_name: List[str],
         netcdf_version: Union[str, NetcdfVersion],
-        index: Any,  # EcadIndex proper typing causes circular dependency
+        index: Optional[Any],  # EcadIndex proper typing causes circular dependency
         save_percentile: bool = False,
         only_leap_years: bool = False,
         ignore_Feb29th: bool = False,
@@ -55,7 +55,7 @@ class IndiceConfig:
         ] = QuantileInterpolation.MEDIAN_UNBIASED,
         callback: Optional[Callable] = None,
     ):
-        self.freq = build_frequency(slice_mode)
+        self.freq = Frequency.lookup(slice_mode)
         if time_range is not None:
             time_range = [x.strftime("%Y-%m-%d") for x in time_range]
         if base_period_time_range is not None:
@@ -80,7 +80,7 @@ class IndiceConfig:
         self.out_unit = out_unit
         self.transfer_limit_Mbytes = transfer_limit_Mbytes
         if isinstance(netcdf_version, str):
-            self.netcdf_version = get_netcdf_version(netcdf_version)
+            self.netcdf_version = NetcdfVersion.lookup(netcdf_version)
         else:
             self.netcdf_version = netcdf_version
         self.interpolation = interpolation
@@ -96,7 +96,7 @@ def _build_cf_variable(
     base_period_time_range: Optional[List[datetime]],
     only_leap_years: bool,
     transfer_limit_Mbytes: Optional[int],
-    index: Any,  # EcadIndex
+    index: Optional[Any],  # EcadIndex
 ) -> CfVariable:
     if transfer_limit_Mbytes is not None:
         da = _chunk_data(transfer_limit_Mbytes, da, index)
@@ -161,11 +161,11 @@ def _build_in_base_da(
 
 
 def _chunk_data(
-    transfer_limit_Mbytes: int, da: DataArray, index: Any  # EcadIndex
+    transfer_limit_Mbytes: int, da: DataArray, index: Optional[Any]  # EcadIndex
 ) -> DataArray:
     with dask.config.set({"array.chunk-size": f"{transfer_limit_Mbytes} MB"}):
         chunks = {d: "auto" for d in da.dims}
-        if index.time_aware:
+        if index is not None and index.time_aware:
             # We avoid chunking on time for indices relying on bootstrap
             # or rolling windows
             chunks["time"] = -1

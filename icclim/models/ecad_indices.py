@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import Any, List
 
 from icclim.ecad_functions import (
     ComputeIndexFun,
@@ -157,10 +157,10 @@ class EcadIndex(Enum):
         self.variables = variables
         self.time_aware = time_aware
 
-
-def index_from_string(s: str) -> EcadIndex:
-    indice_to_check = s.upper()
-    for e in EcadIndex:
-        if e.index_name.upper() == indice_to_check:
-            return e
-    raise InvalidIcclimArgumentError(f"Unknown index {s}")
+    @staticmethod
+    def lookup(s: str) -> Any:
+        indice_to_check = s.upper()
+        for e in EcadIndex:
+            if e.index_name.upper() == indice_to_check:
+                return e
+        raise InvalidIcclimArgumentError(f"Unknown index {s}")

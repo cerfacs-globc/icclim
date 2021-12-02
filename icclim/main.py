@@ -17,12 +17,12 @@ from xarray.core.dataset import Dataset
 from icclim.ecad_functions import IndiceConfig
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
-from icclim.models.ecad_indices import EcadIndex, index_from_string
+from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_indice_config import UserIndiceConfig
-from icclim.user_indices.bridge import compute_user_index
+from icclim.user_indices.dispatcher import compute_user_index
 
 __all__ = ["indice"]
 
@@ -113,21 +113,25 @@ def indice(
 
     log.start_message()
     callback(callback_percentage_start_value)
-    if isinstance(in_files, Dataset):
-        input_ds = in_files
-    elif isinstance(in_files, list):
-        input_ds = xarray.open_mfdataset(in_files, parallel=True)
+    index: Optional[EcadIndex]
+    if user_indice is None:
+        index = EcadIndex.lookup(indice_name)
     else:
-        input_ds = xarray.open_dataset(in_files)
+        index = None
+    if isinstance(in_files, Dataset):
+        input_dataset = in_files
+    elif isinstance(in_files, list):
+        input_dataset = xarray.open_mfdataset(in_files, parallel=True)
+    else:
+        input_dataset = xarray.open_dataset(in_files)
     if isinstance(var_name, str):
         var_name = [var_name]
-    elif var_name is None:
-        var_name = _guess_variables(indice_name, input_ds)
-    input_ds, reset_coords = _update_coords(input_ds)
-    index = index_from_string(indice_name)
+    elif var_name is None and index is not None:
+        var_name = _guess_variables(index, input_dataset)
+    input_dataset, reset_coords = _update_coords(input_dataset)
     config = IndiceConfig(
         base_period_time_range=base_period_time_range,
-        ds=input_ds,
+        ds=input_dataset,
         ignore_Feb29th=ignore_Feb29th,
         only_leap_years=only_leap_years,
         save_percentile=save_percentile,
@@ -146,15 +150,15 @@ def indice(
         result_ds = _compute_user_index_dataset(config, user_indice)
     else:
         result_ds = _compute_ecad_index_dataset(
-            config, index, threshold, input_ds.attrs.get("history", None)
+            config, index, threshold, input_dataset.attrs.get("history", None)
         )
     if reset_coords:
         result_ds = result_ds.rename(reset_coords)
     if not isinstance(in_files, Dataset):
-        if input_ds.time.encoding:
-            if input_ds.time.encoding.get("chunksizes"):
-                del input_ds.time.encoding["chunksizes"]
-            time_encoding = input_ds.time.encoding
+        if input_dataset.time.encoding:
+            if input_dataset.time.encoding.get("chunksizes"):
+                del input_dataset.time.encoding["chunksizes"]
+            time_encoding = input_dataset.time.encoding
         else:
             time_encoding = {"units": "days since 1850-1-1"}
         result_ds.to_netcdf(
@@ -293,13 +297,13 @@ def _get_history(config, former_history, indice_computed, result_ds):
     )
 
 
-def _guess_variables(indice_name: str, ds: Dataset):
+def _guess_variables(index: EcadIndex, ds: Dataset):
     """
     Try to guess the variable names using the expected kind of variable for
     the indice.
     """
     res = []
-    indice_variables = index_from_string(indice_name).variables
+    indice_variables = index.variables
     for indice_var in indice_variables:
         for alias in indice_var:
             # check if dataset contains this alias
@@ -309,7 +313,7 @@ def _guess_variables(indice_name: str, ds: Dataset):
     if len(res) < len(indice_variables):
         raise InvalidIcclimArgumentError(
             f"The necessary variable(s) were not found or recognized in the"
-            f" input file(s) to compute {indice_name}."
+            f" input file(s) to compute {index.indice_name}."
             f" If the variable(s) exist with non-standard names in the"
             f" file, use var_name parameter to provide their names."
         )

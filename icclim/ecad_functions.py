@@ -10,14 +10,11 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.cf_calendar import get_calendar_from_str
+from icclim.models.cf_calendar import CfCalendar
+from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
 from icclim.models.frequency import Frequency
 from icclim.models.indice_config import IndiceConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
-
-PERCENTILES_COORD = "percentiles"
-IN_BASE_ATTRS = "reference_epoch"
-
 
 ComputeIndexFun = Callable[[IndiceConfig], Tuple[DataArray, Optional[DataArray]]]
 
@@ -87,7 +84,7 @@ def csdi(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         window=6,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -104,7 +101,7 @@ def tg10p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.is_percent:
@@ -123,7 +120,7 @@ def tn10p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.is_percent:
@@ -142,7 +139,7 @@ def tx10p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.is_percent:
@@ -203,7 +200,7 @@ def wsdi(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         window=6,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.save_percentile:
@@ -220,7 +217,7 @@ def tg90p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.is_percent:
@@ -239,7 +236,7 @@ def tn90p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.is_percent:
@@ -258,7 +255,7 @@ def tx90p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         per,
         freq=config.freq.panda_freq,
         bootstrap=run_bootstrap,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)
     if config.is_percent:
@@ -362,7 +359,7 @@ def r75p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=False,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if config.is_percent:
         result = _to_percent(result, config.freq)
     if config.save_percentile:
@@ -381,7 +378,7 @@ def r75ptot(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=False,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     result = result * 100
     if config.save_percentile:
         return result, per
@@ -399,7 +396,7 @@ def r95p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=False,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if config.is_percent:
         result = _to_percent(result, config.freq)
     if config.save_percentile:
@@ -418,7 +415,7 @@ def r95ptot(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=False,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     result = result * 100
     if config.save_percentile:
         return result, per
@@ -436,7 +433,7 @@ def r99p(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=False,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     if config.save_percentile:
         return result, per
     if config.is_percent:
@@ -455,7 +452,7 @@ def r99ptot(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
         thresh="1 mm/day",
         freq=config.freq.panda_freq,
         bootstrap=False,
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     result = result * 100
     if config.save_percentile:
         return result, per
@@ -539,14 +536,14 @@ def vdtr(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
 def cd(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     tas_per = _compute_percentile_doy(
         config.cf_variables[0].in_base_da, config, 25
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     precip_cfvar = config.cf_variables[1]
     precip_cfvar.in_base_da = _filter_in_wet_days(
         precip_cfvar.in_base_da, dry_day_value=np.NAN
     )
     precip_cfvar.da = _filter_in_wet_days(precip_cfvar.da, dry_day_value=0)
     pr_per = _compute_percentile_doy(precip_cfvar.in_base_da, config, 25).squeeze(
-        "percentiles", drop=True
+        PERCENTILES_COORD, drop=True
     )
     result = atmos.cold_and_dry_days(
         tas=config.cf_variables[0].da,
@@ -564,14 +561,14 @@ def cd(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
 def cw(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     tas_per = _compute_percentile_doy(
         config.cf_variables[0].in_base_da, config, 25
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     precip_cfvar = config.cf_variables[1]
     precip_cfvar.in_base_da = _filter_in_wet_days(
         precip_cfvar.in_base_da, dry_day_value=np.nan
     )
     precip_cfvar.da = _filter_in_wet_days(precip_cfvar.da, dry_day_value=0)
     pr_per = _compute_percentile_doy(precip_cfvar.in_base_da, config, 75).squeeze(
-        "percentiles", drop=True
+        PERCENTILES_COORD, drop=True
     )
     result = atmos.cold_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -589,14 +586,14 @@ def cw(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
 def wd(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     tas_per = _compute_percentile_doy(
         config.cf_variables[0].in_base_da, config, 75
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     precip_cfvar = config.cf_variables[1]
     precip_cfvar.in_base_da = _filter_in_wet_days(
         precip_cfvar.in_base_da, dry_day_value=np.nan
     )
     precip_cfvar.da = _filter_in_wet_days(precip_cfvar.da, dry_day_value=0)
     pr_per = _compute_percentile_doy(precip_cfvar.in_base_da, config, 25).squeeze(
-        "percentiles", drop=True
+        PERCENTILES_COORD, drop=True
     )
     result = atmos.warm_and_dry_days(
         tas=config.cf_variables[0].da,
@@ -614,14 +611,14 @@ def wd(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
 def ww(config: IndiceConfig) -> Tuple[DataArray, Optional[DataArray]]:
     tas_per = _compute_percentile_doy(
         config.cf_variables[0].in_base_da, config, 75
-    ).squeeze("percentiles", drop=True)
+    ).squeeze(PERCENTILES_COORD, drop=True)
     precip_cfvar = config.cf_variables[1]
     precip_cfvar.in_base_da = _filter_in_wet_days(
         precip_cfvar.in_base_da, dry_day_value=np.nan
     )
     precip_cfvar.da = _filter_in_wet_days(precip_cfvar.da, dry_day_value=0)
     pr_per = _compute_percentile_doy(precip_cfvar.in_base_da, config, 75).squeeze(
-        "percentiles", drop=True
+        PERCENTILES_COORD, drop=True
     )
     result = atmos.warm_and_wet_days(
         tas=config.cf_variables[0].da,
@@ -702,14 +699,14 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
 def _is_leap_year(da: DataArray) -> np.ndarray:
     time_index = da.indexes.get("time")
     if isinstance(time_index, xr.CFTimeIndex):
-        cf_calendar = get_calendar_from_str(time_index.calendar)
+        cf_calendar: CfCalendar = CfCalendar.lookup(time_index.calendar)
         return cf_calendar.is_leap(da.time.dt.year)
     else:
         return da.time.dt.is_leap_year
 
 
 def _add_bootstrap_meta(result: DataArray, per: DataArray) -> DataArray:
-    result.attrs[IN_BASE_ATTRS] = per.climatology_bounds
+    result.attrs[IN_BASE_IDENTIFIER] = per.climatology_bounds
     return result
 
 
@@ -735,7 +732,7 @@ def _compute_percentile(
         xclim.core.utils.calc_perc,
         arr,
         input_core_dims=[["time"]],
-        output_core_dims=[["percentiles"]],
+        output_core_dims=[[PERCENTILES_COORD]],
         kwargs=dict(
             percentiles=[percentiles],
             alpha=config.interpolation.alpha,
@@ -743,7 +740,7 @@ def _compute_percentile(
         ),
         dask="parallelized",
         output_dtypes=[arr.dtype],
-        dask_gufunc_kwargs=dict(output_sizes={"percentiles": len([percentiles])}),
+        dask_gufunc_kwargs=dict(output_sizes={PERCENTILES_COORD: len([percentiles])}),
     )
 
 
