@@ -5,7 +5,7 @@ class IcclimError(Exception):
 
 
 class InvalidIcclimArgumentError(IcclimError):
-    """Exceptions raised erreonous input arguments.
+    """Exceptions raised erroneous input arguments.
 
     Attributes:
         msg  -- explanation of the error

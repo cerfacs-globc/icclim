@@ -16,7 +16,7 @@ from xarray.core.dataset import Dataset
 
 from icclim.ecad_functions import IndiceConfig
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.logging_info import Verbosity, ending_message, start_message
+from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.ecad_indices import EcadIndex, index_from_string
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
@@ -25,6 +25,8 @@ from icclim.models.user_indice_config import UserIndiceConfig
 from icclim.user_indices.bridge import compute_user_index
 
 __all__ = ["indice"]
+
+log = IcclimLogger.get_instance(Verbosity.LOW)
 
 
 def indice(
@@ -51,7 +53,7 @@ def indice(
     # TODO do something prettier than a dict (a UserIndiceDTO or something)
     user_indice: Dict[str, Any] = None,
     save_percentile: bool = False,
-    logs_verbosity: Verbosity = Verbosity.LOW,
+    logs_verbosity: Union[Verbosity, str] = Verbosity.LOW,
 ) -> Dataset:
     """
     :param indice_name:
@@ -103,11 +105,13 @@ def indice(
     .. warning:: If ``out_file`` already exists, icclim will overwrite it!
 
     """
-    # make daily check a warning instead of an error
+    # make xclim input daily check a warning instead of an error
     xclim.set_options(data_validation="warn")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
-    start_message(verbosity=logs_verbosity)
+    log.set_verbosity(logs_verbosity)
+
+    log.start_message()
     callback(callback_percentage_start_value)
     if isinstance(in_files, Dataset):
         input_ds = in_files
@@ -159,7 +163,7 @@ def indice(
             encoding={"time": time_encoding},
         )
     callback(callback_percentage_total)
-    ending_message(time.process_time(), verbosity=logs_verbosity)
+    log.ending_message(time.process_time())
     return result_ds
 
 
