@@ -8,13 +8,13 @@ from icclim.ecad_functions import cfd, csu, fd, gd4, hd17, prcptot, su, tn10p, t
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency
-from icclim.models.indice_config import IndiceConfig
+from icclim.models.index_config import IndexConfig
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.tests.unit_tests.test_utils import K2C, stub_pr, stub_tas
 
 
-class Test_indice_from_string:
+class Test_index_from_string:
     def test_simple(self):
         res = EcadIndex.lookup("SU")
         assert res == EcadIndex.SU
@@ -32,7 +32,7 @@ class Test_indice_from_string:
 def test_tn10p_interpolation_error(use_dask):
     ds = Dataset()
     ds["tas"] = stub_tas(use_dask=use_dask)
-    conf = IndiceConfig(
+    conf = IndexConfig(
         ds=ds,
         slice_mode=Frequency.MONTH,
         var_name=["tas"],
@@ -53,7 +53,7 @@ def test_tn10p_interpolation_error(use_dask):
 def test_tn10p(use_dask):
     ds = Dataset()
     ds["tas"] = stub_tas(use_dask=use_dask)
-    conf = IndiceConfig(
+    conf = IndexConfig(
         ds=ds,
         slice_mode=Frequency.MONTH,
         var_name=["tas"],
@@ -77,7 +77,7 @@ class Test_SU:
         ds = Dataset()
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[:5] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -93,7 +93,7 @@ class Test_SU:
         ds = Dataset()
         ds["tas"] = stub_tas(use_dask=use_dask)
         ds.tas[:5] = 50 + K2C
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -112,7 +112,7 @@ class Test_TR:
         ds = Dataset()
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[:5] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -128,7 +128,7 @@ class Test_TR:
         ds = Dataset()
         ds["tas"] = stub_tas(use_dask=use_dask)
         ds.tas[:5] = 50 + K2C
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -147,7 +147,7 @@ class Test_prcptot:
         ds = Dataset()
         ds["pr"] = stub_pr(value=2, use_dask=use_dask)
         ds.pr[:10] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["pr"],
@@ -165,7 +165,7 @@ class Test_csu:
         ds = Dataset()
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[10:15] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -182,7 +182,7 @@ class Test_csu:
         ds["tas"] = stub_tas(use_dask=use_dask)
         ds.tas[:5] = 50 + K2C
         ds.tas[10:20] = 50 + K2C
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -201,7 +201,7 @@ class Test_gd4:
         ds = Dataset()
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -218,7 +218,7 @@ class Test_gd4:
         ds = Dataset()
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -238,7 +238,7 @@ class Test_cfd:
         ds = Dataset()
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -255,7 +255,7 @@ class Test_cfd:
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
         ds.tas[10:15] = 4
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -275,7 +275,7 @@ class Test_fd:
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
         ds.tas[20:25] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -292,7 +292,7 @@ class Test_fd:
         ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
         ds.tas[10:15] = 4
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -311,7 +311,7 @@ class Test_hd17:
         ds = Dataset()
         ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -327,7 +327,7 @@ class Test_hd17:
         ds = Dataset()
         ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -346,7 +346,7 @@ class TestTx90p:
         ds = Dataset()
         ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -365,7 +365,7 @@ class TestTx90p:
     def test_no_bootstrap_1_year_base(self, use_dask):
         ds = Dataset()
         ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],
@@ -384,7 +384,7 @@ class TestTx90p:
     def test_bootstrap_2_years(self, use_dask):
         ds = Dataset()
         ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
-        conf = IndiceConfig(
+        conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
             var_name=["tas"],

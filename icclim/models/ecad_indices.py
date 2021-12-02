@@ -159,8 +159,7 @@ class EcadIndex(Enum):
 
     @staticmethod
     def lookup(query: str) -> Any:
-        indice_to_check = query.upper()
         for e in EcadIndex:
-            if e.index_name.upper() == indice_to_check:
+            if e.index_name.upper() == query.upper():
                 return e
         raise InvalidIcclimArgumentError(f"Unknown index {query}.")

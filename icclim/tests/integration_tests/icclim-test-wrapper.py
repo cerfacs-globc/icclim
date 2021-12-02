@@ -118,5 +118,5 @@ for files in args.testfiles:
             if not args.list_only:
                 import icclim.icclim
 
-                icclim.icclim.indice(**section_dict)
+                icclim.icclim.index(**section_dict)
             logging.info("<====== " + section + "\n")

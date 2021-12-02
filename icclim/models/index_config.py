@@ -22,7 +22,7 @@ class CfVariable:
         self.in_base_da = in_base_da
 
 
-class IndiceConfig:
+class IndexConfig:
     freq: Frequency
     cf_variables: List[CfVariable]
     save_percentile: bool = False

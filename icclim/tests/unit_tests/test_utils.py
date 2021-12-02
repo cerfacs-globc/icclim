@@ -5,8 +5,8 @@ import pandas as pd
 import xarray
 
 from icclim.models.frequency import Frequency
-from icclim.models.indice_config import CfVariable
-from icclim.models.user_indice_config import UserIndiceConfig
+from icclim.models.index_config import CfVariable
+from icclim.models.user_index_config import UserIndexConfig
 
 VALUE_COUNT = 365 * 5 + 1
 COORDS = dict(
@@ -17,8 +17,8 @@ COORDS = dict(
 K2C = 273.15
 
 
-def stub_user_indice(cf_vars: List[CfVariable]):
-    return UserIndiceConfig(
+def stub_user_index(cf_vars: List[CfVariable]):
+    return UserIndexConfig(
         index_name="Yolo", calc_operation="noop", freq=Frequency.MONTH, cf_vars=cf_vars
     )
 

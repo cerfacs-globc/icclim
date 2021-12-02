@@ -65,8 +65,8 @@ class IcclimLogger:
         if self.verbosity == Verbosity.SILENT:
             return
         if self.verbosity == Verbosity.LOW:
-            logging.info(f"Icclim {self.icclim_version}")
-            logging.info("--- BEGIN EXECUTION ---")
+            logging.info(f"--- Icclim {self.icclim_version}")
+            logging.info("--- BEGIN EXECUTION")
             return
         logging.info(
             "   ********************************************************************************************"
@@ -103,9 +103,9 @@ class IcclimLogger:
         if self.verbosity == Verbosity.SILENT:
             return
         if self.verbosity == Verbosity.LOW:
-            logging.info(f"Icclim {self.icclim_version}")
-            logging.info("CPU SECS = %-10.3f", time_cpu)
-            logging.info("--- END EXECUTION ---")
+            logging.info(f"--- Icclim {self.icclim_version}")
+            logging.info("--- CPU SECS = %-10.3f", time_cpu)
+            logging.info("--- END EXECUTION")
             return
         logging.info(
             "   ********************************************************************************************"
@@ -143,4 +143,4 @@ class IcclimLogger:
         )
 
     def deprecation_warning(self, old: str, new: str):
-        logging.warning(f"{old} is deprecated, use {new}.")
+        logging.warning(f"`{old}` is deprecated. Use `{new}` instead!")

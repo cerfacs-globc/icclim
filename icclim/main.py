@@ -14,22 +14,31 @@ import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim.ecad_functions import IndiceConfig
+from icclim.ecad_functions import IndexConfig
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.user_indice_config import UserIndiceConfig
+from icclim.models.user_index_config import UserIndexConfig
 from icclim.user_indices.dispatcher import compute_user_index
 
-__all__ = ["indice"]
+__all__ = ["index"]
 
-log = IcclimLogger.get_instance(Verbosity.LOW)
+log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
-def indice(
+def indice(*args, **kwargs):
+    """
+    Proxy for `index`
+    To be deleted in 5.1
+    """
+    log.deprecation_warning(old="icclim.indice", new="icclim.index")
+    return index(*args, **kwargs)
+
+
+def index(
     in_files: Union[str, List[str], Dataset],
     var_name: Optional[Union[str, List[str]]] = None,
     index_name: str = None,
@@ -51,9 +60,12 @@ def indice(
     out_unit: Optional[str] = None,
     netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
     # TODO do something prettier than a dict (a UserIndiceDTO or something)
-    user_indice: Dict[str, Any] = None,
+    user_index: Dict[str, Any] = None,
     save_percentile: bool = False,
     logs_verbosity: Union[Verbosity, str] = Verbosity.LOW,
+    # deprecated
+    indice_name: str = None,
+    user_indice: Dict[str, Any] = None,
 ) -> Dataset:
     """
     :param index_name:
@@ -94,7 +106,7 @@ def indice(
         default: "hyndman_fan".
     :param out_unit:
         Output unit for certain indices: "days" or "%" (default: "days").
-    :param user_indice:
+    :param user_index:
         A dictionary with parameters for user defined index
     :param netcdf_version:
         NetCDF version to create (default: "NETCDF3_CLASSIC").
@@ -113,23 +125,23 @@ def indice(
 
     log.start_message()
     callback(callback_percentage_start_value)
+    if indice_name is not None:
+        log.deprecation_warning(old="indice_name", new="index_name")
+        index_name = indice_name
+    if user_indice is not None:
+        log.deprecation_warning(old="user_indice", new="user_index")
+        user_index = user_indice
     index: Optional[EcadIndex]
-    if user_indice is None:
+    if user_index is None:
         index = EcadIndex.lookup(index_name)
     else:
         index = None
-    if isinstance(in_files, Dataset):
-        input_dataset = in_files
-    elif isinstance(in_files, list):
-        input_dataset = xarray.open_mfdataset(in_files, parallel=True)
-    else:
-        input_dataset = xarray.open_dataset(in_files)
+    input_dataset, reset_coords = _read_input(in_files)
     if isinstance(var_name, str):
         var_name = [var_name]
     elif var_name is None and index is not None:
         var_name = _guess_variables(index, input_dataset)
-    input_dataset, reset_coords = _update_coords(input_dataset)
-    config = IndiceConfig(
+    config = IndexConfig(
         base_period_time_range=base_period_time_range,
         ds=input_dataset,
         ignore_Feb29th=ignore_Feb29th,
@@ -146,8 +158,8 @@ def indice(
         callback=callback,
         index=index,
     )
-    if user_indice is not None:
-        result_ds = _compute_user_index_dataset(config, user_indice)
+    if user_index is not None:
+        result_ds = _compute_user_index_dataset(config, user_index)
     else:
         result_ds = _compute_ecad_index_dataset(
             config, index, threshold, input_dataset.attrs.get("history", None)
@@ -171,8 +183,19 @@ def indice(
     return result_ds
 
 
+def _read_input(in_files):
+    if isinstance(in_files, Dataset):
+        input_dataset = in_files
+    elif isinstance(in_files, list):
+        input_dataset = xarray.open_mfdataset(in_files, parallel=True)
+    else:
+        input_dataset = xarray.open_dataset(in_files)
+    input_dataset, reset_coords = _update_coords(input_dataset)
+    return input_dataset, reset_coords
+
+
 def _compute_ecad_index_dataset(
-    config: IndiceConfig,
+    config: IndexConfig,
     index: EcadIndex,
     threshold: Union[float, List[float]],
     current_history: Optional[str],
@@ -189,16 +212,16 @@ def _compute_ecad_index_dataset(
     return result_ds
 
 
-def _compute_user_index_dataset(config: IndiceConfig, user_indice: dict) -> Dataset:
+def _compute_user_index_dataset(config: IndexConfig, user_index: dict) -> Dataset:
     logging.info("Calculating user index.")
     result_ds = Dataset()
-    deprecated_name = user_indice.get("indice_name", None)
+    deprecated_name = user_index.get("indice_name", None)
     if deprecated_name is not None:
-        user_indice["index_name"] = deprecated_name
-        del user_indice["indice_name"]
+        user_index["index_name"] = deprecated_name
+        del user_index["indice_name"]
         log.deprecation_warning("indice_name", "index_name")
-    user_indice_config = UserIndiceConfig(
-        **user_indice,
+    user_indice_config = UserIndexConfig(
+        **user_index,
         freq=config.freq,
         cf_vars=config.cf_variables,
         is_percent=config.is_percent,
@@ -220,7 +243,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
     if da_unit is None:
         if output_unit is None:
             warn(
-                "No unit computed or provided for the indice was found. "
+                "No unit computed or provided for the index was found. "
                 "Use out_unit parameter to add one."
             )
             return ""
@@ -231,7 +254,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
 
 
 def _compute_ecad_index(
-    index: EcadIndex, config: IndiceConfig, former_history: Optional[str]
+    index: EcadIndex, config: IndexConfig, former_history: Optional[str]
 ) -> Dataset:
     logging.info(f"Calculating climate index: {index.index_name}")
     result_ds = Dataset()
@@ -261,7 +284,7 @@ def _compute_ecad_index(
 
 def _add_basic_indice_metadata(
     result_ds: Dataset,
-    config: IndiceConfig,
+    config: IndexConfig,
     computed_index: EcadIndex,
     former_history: str,
 ) -> Dataset:
@@ -302,7 +325,7 @@ def _get_history(config, former_history, indice_computed, result_ds):
     )
 
 
-def _guess_variables(index: EcadIndex, ds: Dataset):
+def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
     """
     Try to guess the variable names using the expected kind of variable for
     the index.

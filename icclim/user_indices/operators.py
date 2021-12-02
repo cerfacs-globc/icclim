@@ -22,7 +22,7 @@ from icclim.models.constants import (
     TEMPERATURE,
     WET_DAY_THRESHOLD,
 )
-from icclim.models.user_indice_config import (
+from icclim.models.user_index_config import (
     ExtremeMode,
     LinkLogicalOperation,
     LogicalOperation,
