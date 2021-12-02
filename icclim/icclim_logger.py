@@ -10,7 +10,7 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
 
 class Verbosity(Enum):
-    LOW = ("LOW", "WARNING")
+    LOW = ("LOW", "INFO")
     HIGH = ("HIGH", "INFO")
     SILENT = ("SILENT", "ERROR")
 
