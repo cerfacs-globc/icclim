@@ -143,4 +143,6 @@ class IcclimLogger:
         )
 
     def deprecation_warning(self, old: str, new: str):
-        logging.warning(f"`{old}` is deprecated. Use `{new}` instead!")
+        logging.warning(
+            f"DEPRECATION_WARNING: `{old}` is deprecated. Use `{new}` instead."
+        )

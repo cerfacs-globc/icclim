@@ -5,15 +5,14 @@ from setuptools import find_packages, setup
 
 from icclim import __version__
 
-REQUIREMENTS = [
+MINIMAL_REQUIREMENTS = [
     "numpy>=1.16",
     "xarray>=0.17",
     "xclim>=0.31",
     "scipy>=1.2",
-    "dataclasses>=0.8" "netcdf4>=1.5.7",
-    "setuptools>=49.6.0" "pandas>=0.23",
     "cftime>=1.4.1",
     "dask[array]>=2.6",
+    "netCDF4>=1.5.7",
 ]
 
 setup(
@@ -27,7 +26,7 @@ setup(
     long_description=open("README.md").read(),
     include_package_data=True,
     url="https://github.com/cerfacs-globc/icclim",
-    requirements=REQUIREMENTS,
+    install_requires=MINIMAL_REQUIREMENTS,
     classifiers=[
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
