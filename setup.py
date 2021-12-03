@@ -5,6 +5,17 @@ from setuptools import find_packages, setup
 
 from icclim import __version__
 
+REQUIREMENTS = [
+    "numpy>=1.16",
+    "xarray>=0.17",
+    "xclim>=0.31",
+    "scipy>=1.2",
+    "dataclasses>=0.8" "netcdf4>=1.5.7",
+    "setuptools>=49.6.0" "pandas>=0.23",
+    "cftime>=1.4.1",
+    "dask[array]>=2.6",
+]
+
 setup(
     name="icclim",
     version=__version__,
@@ -16,19 +27,15 @@ setup(
     long_description=open("README.md").read(),
     include_package_data=True,
     url="https://github.com/cerfacs-globc/icclim",
+    requirements=REQUIREMENTS,
     classifiers=[
         "Programming Language :: Python",
-        "Development Status :: 1 - Planning",
-        "License :: OSI Approved",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: Apache Software License",
         "Natural Language :: French",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.7",
-        "Topic :: Climate Index",
+        "Topic :: Scientific/Engineering :: Atmospheric Science",
     ],
-    # entry_points = {
-    #    'console_scripts': [
-    #        'proclame-sm = sm_lib.core:proclamer',
-    #    ],
-    # },
 )
