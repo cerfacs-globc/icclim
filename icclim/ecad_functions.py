@@ -380,6 +380,7 @@ def r75ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
         bootstrap=False,
     ).squeeze(PERCENTILES_COORD, drop=True)
     result = result * 100
+    result.attrs["units"] = "%"
     if config.save_percentile:
         return result, per
     return result, None
@@ -417,6 +418,7 @@ def r95ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
         bootstrap=False,
     ).squeeze(PERCENTILES_COORD, drop=True)
     result = result * 100
+    result.attrs["units"] = "%"
     if config.save_percentile:
         return result, per
     return result, None
@@ -454,6 +456,7 @@ def r99ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
         bootstrap=False,
     ).squeeze(PERCENTILES_COORD, drop=True)
     result = result * 100
+    result.attrs["units"] = "%"
     if config.save_percentile:
         return result, per
     return result, None
