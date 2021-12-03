@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from icclim.models.user_indice_config import (
+from icclim.models.user_index_config import (
     ExtremeMode,
     LinkLogicalOperation,
     LogicalOperation,

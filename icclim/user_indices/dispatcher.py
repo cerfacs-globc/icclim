@@ -4,27 +4,16 @@ from typing import Any, Callable, Union
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError
-from icclim.models.user_indice_config import UserIndiceConfig
+from icclim.models.user_index_config import UserIndexConfig
 from icclim.user_indices import operators
 
 
-def compute_user_indice(config: UserIndiceConfig) -> DataArray:
-    operation = _get_calc_operation(config)
+def compute_user_index(config: UserIndexConfig) -> DataArray:
+    operation = CalcOperation.lookup(config)
     return operation.compute_fun(config)
 
 
-def _get_calc_operation(config: UserIndiceConfig):
-    if isinstance(config.calc_operation, CalcOperation):
-        return config.calc_operation
-    for calc_op in CalcOperation:
-        if calc_op.input_name.upper() == config.calc_operation.upper():
-            return calc_op
-    raise InvalidIcclimArgumentError(
-        f"The calc_operation {config.calc_operation} is unknown."
-    )
-
-
-def anomaly(config: UserIndiceConfig):
+def anomaly(config: UserIndexConfig):
     if config.da_ref is None:
         raise MissingIcclimInputError(
             f"You must provide a in base to compute {CalcOperation.ANOMALY.value}."
@@ -36,7 +25,7 @@ def anomaly(config: UserIndiceConfig):
     )
 
 
-def run_sum(config: UserIndiceConfig):
+def run_sum(config: UserIndexConfig):
     if config.extreme_mode is None or config.window_width is None:
         raise MissingIcclimInputError(
             "Please provide a extreme mode and a window width."
@@ -51,7 +40,7 @@ def run_sum(config: UserIndiceConfig):
     )
 
 
-def run_mean(config: UserIndiceConfig):
+def run_mean(config: UserIndexConfig):
     if config.extreme_mode is None or config.window_width is None:
         raise MissingIcclimInputError(
             "Please provide a extreme mode and a window width."
@@ -66,15 +55,15 @@ def run_mean(config: UserIndiceConfig):
     )
 
 
-def max_consecutive_event_count(config: UserIndiceConfig):
+def max_consecutive_event_count(config: UserIndexConfig):
     if config.logical_operation is None or config.thresh is None:
         raise MissingIcclimInputError(
             "Please provide a threshold and a logical operation."
         )
     if isinstance(config.thresh, list):
         raise InvalidIcclimArgumentError(
-            f"{CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} does not support threshold list. "
-            f"Please provide a single threshold"
+            f"{CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} "
+            f"does not support threshold list. Please provide a single threshold."
         )
     return operators.max_consecutive_event_count(
         da=config.cf_vars[0].da,
@@ -87,7 +76,7 @@ def max_consecutive_event_count(config: UserIndiceConfig):
     )
 
 
-def count_events(config: UserIndiceConfig):
+def count_events(config: UserIndexConfig):
     if config.nb_event_config is None:
         raise MissingIcclimInputError(
             f"{CalcOperation.EVENT_COUNT.value} not properly configure."
@@ -105,7 +94,7 @@ def count_events(config: UserIndiceConfig):
     )
 
 
-def sum(config: UserIndiceConfig):
+def sum(config: UserIndexConfig):
     return operators.sum(
         da=_check_and_get_da(config),
         in_base_da=_check_and_get_in_base_da(config),
@@ -116,7 +105,7 @@ def sum(config: UserIndiceConfig):
     )
 
 
-def mean(config: UserIndiceConfig):
+def mean(config: UserIndexConfig):
     return operators.mean(
         da=_check_and_get_da(config),
         in_base_da=_check_and_get_in_base_da(config),
@@ -127,7 +116,7 @@ def mean(config: UserIndiceConfig):
     )
 
 
-def min(config: UserIndiceConfig):
+def min(config: UserIndexConfig):
     return operators.min(
         da=_check_and_get_da(config),
         in_base_da=_check_and_get_in_base_da(config),
@@ -139,7 +128,7 @@ def min(config: UserIndiceConfig):
     )
 
 
-def max(config: UserIndiceConfig):
+def max(config: UserIndexConfig):
     return operators.max(
         da=_check_and_get_da(config),
         in_base_da=_check_and_get_in_base_da(config),
@@ -161,11 +150,12 @@ def _check_and_get_simple_threshold(thresh: Any) -> Union[None, str, float, int]
         return thresh
     else:
         raise InvalidIcclimArgumentError(
-            "threshold type must be either None, a string (for percentiles) or a number."
+            "threshold type must be either None, "
+            "a string (for percentile) or a number."
         )
 
 
-def _check_and_get_da(config: UserIndiceConfig) -> DataArray:
+def _check_and_get_da(config: UserIndexConfig) -> DataArray:
     if len(config.cf_vars) == 1:
         return config.cf_vars[0].da
     else:
@@ -174,7 +164,7 @@ def _check_and_get_da(config: UserIndiceConfig) -> DataArray:
         )
 
 
-def _check_and_get_in_base_da(config: UserIndiceConfig) -> Union[DataArray, None]:
+def _check_and_get_in_base_da(config: UserIndexConfig) -> Union[DataArray, None]:
     if len(config.cf_vars) == 1:
         return config.cf_vars[0].in_base_da
     else:
@@ -198,7 +188,18 @@ class CalcOperation(Enum):
     ANOMALY = ("anomaly", anomaly)
 
     def __init__(
-        self, input_name: str, compute_fun: Callable[[UserIndiceConfig], DataArray]
+        self, input_name: str, compute_fun: Callable[[UserIndexConfig], DataArray]
     ):
         self.input_name = input_name
         self.compute_fun = compute_fun
+
+    @staticmethod
+    def lookup(config: UserIndexConfig):
+        if isinstance(config.calc_operation, CalcOperation):
+            return config.calc_operation
+        for calc_op in CalcOperation:
+            if calc_op.input_name.upper() == config.calc_operation.upper():
+                return calc_op
+        raise InvalidIcclimArgumentError(
+            f"The calc_operation {config.calc_operation} is unknown."
+        )

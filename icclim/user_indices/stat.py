@@ -19,7 +19,6 @@ def get_longest_run_start_index(
         vectorize=True,
         dask="parallelized",
         output_dtypes=[float],
-        keep_attrs=True,
     )
 
 

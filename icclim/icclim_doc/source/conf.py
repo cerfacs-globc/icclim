@@ -294,7 +294,6 @@ MOCK_MODULES = [
     "netCDF4",
     "cftime",
     "numpy.ma",
-    "ESMF",
 ]
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = Mock()

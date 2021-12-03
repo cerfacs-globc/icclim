@@ -68,8 +68,6 @@ docs/_build/
 # PyBuilder
 target/
 
-# ESMPy
-PET0.ESMF_LogFile
 /.settings/
 /.project
 /.pydevproject
@@ -77,3 +75,5 @@ PET0.ESMF_LogFile
 .vscode
 
 .idea
+
+dask-worker-space/

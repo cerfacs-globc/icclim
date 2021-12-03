@@ -11,16 +11,18 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
-from icclim.eca_indices import PERCENTILES_COORD
 from icclim.icclim_exceptions import (
     InvalidIcclimArgumentError,
     InvalidIcclimOutputError,
 )
-from icclim.models.user_indice_config import (
+from icclim.models.constants import (
     PERCENTILE_THRESHOLD_STAMP,
+    PERCENTILES_COORD,
     PRECIPITATION,
     TEMPERATURE,
     WET_DAY_THRESHOLD,
+)
+from icclim.models.user_index_config import (
     ExtremeMode,
     LinkLogicalOperation,
     LogicalOperation,
@@ -29,6 +31,18 @@ from icclim.user_indices.stat import (
     get_first_occurrence_index,
     get_longest_run_start_index,
 )
+
+__all__ = [
+    "max",
+    "min",
+    "sum",
+    "mean",
+    "count_events",
+    "max_consecutive_event_count",
+    "run_mean",
+    "run_sum",
+    "anomaly",
+]
 
 
 def max(
@@ -55,10 +69,10 @@ def max(
     resampled = result.resample(time=freq)
     if date_event:
         return _reduce_with_date_event(
-            resampled, lambda x: x.argmax("time", keep_attrs=True)  # type:ignore
+            resampled, lambda x: x.argmax("time")  # type:ignore
         )
     else:
-        return resampled.max(dim="time", keep_attrs=True)
+        return resampled.max(dim="time")
 
 
 def min(
@@ -85,10 +99,10 @@ def min(
     resampled = result.resample(time=freq)
     if date_event:
         return _reduce_with_date_event(
-            resampled, lambda x: x.argmin("time", keep_attrs=True)  # type:ignore
+            resampled, lambda x: x.argmin("time")  # type:ignore
         )
     else:
-        return resampled.min(dim="time", keep_attrs=True)
+        return resampled.min(dim="time")
 
 
 def sum(
@@ -111,7 +125,7 @@ def sum(
         var_type,
         save_percentile,
     )
-    return result.resample(time=freq).sum(dim="time", keep_attrs=True)
+    return result.resample(time=freq).sum(dim="time")
 
 
 def mean(
@@ -134,7 +148,7 @@ def mean(
         var_type,
         save_percentile,
     )
-    return result.resample(time=freq).mean(dim="time", keep_attrs=True)
+    return result.resample(time=freq).mean(dim="time")
 
 
 def count_events(
@@ -182,9 +196,9 @@ def count_events(
     else:
         raise NotImplementedError()
     resampled = result.resample(time=freq)
-    if not date_event:
-        return resampled.sum(dim="time")
-    return _get_count_events_date_event(resampled)
+    if date_event:
+        return _get_count_events_date_event(resampled)
+    return resampled.sum(dim="time")
 
 
 def max_consecutive_event_count(
@@ -320,11 +334,13 @@ def _filter_by_threshold(
         result = da.where(logical_operation.compute(da, threshold))
     else:
         raise NotImplementedError(
-            "threshold type must be on of [str, int, float] and logical_operation must a LogicalOperation instance"
+            "threshold type must be on of [str, int, float] and logical_operation must "
+            "a LogicalOperation instance"
         )
     if len(result) == 0:
         raise InvalidIcclimOutputError(
-            f"The dataset has been emptied by filtering with {logical_operation.operator}{threshold}."
+            f"The dataset has been emptied by filtering with "
+            f"{logical_operation.operator}{threshold}."
         )
     return result
 
@@ -393,7 +409,7 @@ def _run_aggregator(
         if date_event:
             return _reduce_with_date_event(
                 resampled,
-                lambda x: x.argmin("time", keep_attrs=True),  # type:ignore
+                lambda x: x.argmin("time"),  # type:ignore
                 window=window_width,
             )
         else:
@@ -402,7 +418,7 @@ def _run_aggregator(
         if date_event:
             return _reduce_with_date_event(
                 resampled,
-                lambda x: x.argmax("time", keep_attrs=True),  # type:ignore
+                lambda x: x.argmax("time"),  # type:ignore
                 window=window_width,
             )
         else:

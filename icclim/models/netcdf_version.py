@@ -9,9 +9,9 @@ class NetcdfVersion(Enum):
     NETCDF3_CLASSIC = "NETCDF3_CLASSIC"
     NETCDF3_64BIT = "NETCDF3_64BIT"
 
-
-def get_netcdf_version(s: str):
-    for version in NetcdfVersion:
-        if version.name.upper() == s.upper():
-            return version
-    raise InvalidIcclimArgumentError(f"Unknown netcdf version {s}")
+    @staticmethod
+    def lookup(s: str):
+        for version in NetcdfVersion:
+            if version.name.upper() == s.upper():
+                return version
+        raise InvalidIcclimArgumentError(f"Unknown netcdf version {s}")
