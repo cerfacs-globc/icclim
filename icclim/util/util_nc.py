@@ -421,16 +421,16 @@ def check_unlimited(infile):
 
     return dim_name
 
-def save_percentile_netcdf(out_file, percentile_array):
+def save_percentile_netcdf(out_file, latdim, londim, percentile_array):
 
-    onc = Dataset(out_file[:-3]+"percentile_array.nc", 'w' ,format='NETCDF4_CLASSIC')
+    import xarray as xr
 
-    time = onc.createDimension('time', percentile_array.shape[0])
-    lat = onc.createDimension('lat', percentile_array.shape[1])
-    lon = onc.createDimension('lon', percentile_array.shape[2])
-
-    Perc = onc.createVariable('Perc', numpy.float32, ('time', 'lat','lon')) 
-
-    Perc[:] = percentile_array
-
-    onc.close()
+    xr.DataArray(
+        dims=["dayofyear", "lat", "lon"],
+        data = percentile_array[0:365],
+        coords=dict(
+            lat=latdim,
+            lon=londim,
+            dayofyear=list(range(1,366))
+        )
+    ).rename("percentiles").to_netcdf(out_file[:-3]+"_percentile_array.nc")

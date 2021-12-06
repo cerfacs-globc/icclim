@@ -344,7 +344,7 @@ def from_OrderedDict_to_array(pt, dt_arr_, indice_slice):
     ind = [pt_keys for pt_keys in pt.keys()]
     array_2_return = numpy.zeros((len(dt_arr_), indice_slice.shape[1], indice_slice.shape[2]))
     
-    for i in range(len(ind)):
+    for i in range(len(ind)-1):
         array_2_return[i,:,:] = numpy.array(pt[ind[i][0], ind[i][1]]) 
 
     return array_2_return

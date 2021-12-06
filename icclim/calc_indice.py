@@ -5,7 +5,6 @@
 #  Author: Natalia Tatarinova
 
 import numpy
-import pdb
 
 from .util import calc
 
@@ -494,8 +493,10 @@ def ID_calculation(arr, fill_val=None, threshold=0, out_unit="days"):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
     
-    T = threshold + 273.15
-    
+    # T = threshold + 273.15
+    T = threshold
+    arr = arr - 273.15
+
     ID = calc.get_nb_events(arr, logical_operation='lt', thresh=T, fill_val=fill_val, out_unit=out_unit)
     
     return ID
@@ -518,12 +519,14 @@ def HD17_calculation(arr, fill_val=None, threshold=17):
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
 
-    T = threshold + 273.15  # Celsius -> Kelvin
-    
+    T = threshold  # Celsius -> Kelvin
+    # T = threshold + 273.15  # Celsius -> Kelvin
+
     arr_masked = calc.get_masked_arr(arr, fill_val)
     
+    arr_masked = arr_masked - 273.15
     a = T - arr_masked
-    a[a<0] = 0  # we set to zero values < 0    
+    a[a<0] = 0  # we set to zero values < 0
     HD17 = a.sum(axis=0)
     numpy.ma.set_fill_value(HD17, arr_masked.fill_value)
     
@@ -548,19 +551,22 @@ def GD4_calculation(arr, fill_val=None, threshold=4):
        
     .. warning:: If "arr" is a masked array, the parameter "fill_val" is ignored, because it has no sense in this case.
     '''
-        
-    T = threshold + 273.15  # Celsius -> Kelvin
-    
+
+    T = threshold  # Celsius -> Kelvin
+
     arr_masked = calc.get_masked_arr(arr, fill_val)
-    
-    new_mask = (arr_masked<=T)    
-    new_arr_masked = numpy.ma.array(arr_masked, mask=new_mask, fill_value=arr_masked.fill_value) # we masked the temperatures <= 4 C 
-    GD4 = new_arr_masked.sum(axis=0)
+
+    # new_mask = (arr_masked<=T)
+    # new_arr_masked = numpy.ma.array(arr_masked, mask=new_mask, fill_value=arr_masked.fill_value) # we masked the temperatures <= 4 C
+
+    # GD4 = (new_arr_masked - 4).sum(axis=0)
+    GD4= (arr_masked-4).clip(min=0).sum(axis=0)
+
     numpy.ma.set_fill_value(GD4, arr_masked.fill_value)
-    
+
     if not isinstance(arr, numpy.ma.MaskedArray):
-        GD4 = GD4.filled(fill_value=arr_masked.fill_value) 
-    
+        GD4 = GD4.filled(fill_value=arr_masked.fill_value)
+
     return GD4
     
 
