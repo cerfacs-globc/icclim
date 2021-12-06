@@ -10,12 +10,12 @@ It is lead by CERFACS, a research institution located in Toulouse, France.
 
 For documentation please visit: http://icclim.readthedocs.org
 
-Quick Install Instructions (version 5.x and above)
---------------------------------------------------
+Quick Install Instructions (version 5.x and above): Recommended version but documentation not up-to-date yet
+------------------------------------------------------------------------------------------------------------
 
 Branch is https://github.com/cerfacs-globc/icclim/tree/develop 
 
-pip install icclim
+pip install icclim=5.0.0rc1
 
 Quick Install Instructions (version 4.x and under)
 --------------------------------------------------
