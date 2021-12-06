@@ -3,15 +3,20 @@ icclim
 
 icclim (Index Calculation CLIMate) is a Python library for climate indices calculation.
 
-This open-source project has been possible thanks to funding by the European Commission Projects FP7-IS-ENES2 (2013-2017) and FP7-CLIPC (2013-2016). It is used as a backend on the C4I platform http://climate4impact.eu and on the CLIPC Portal http://www.clipc.eu
+This open-source project has been possible thanks to funding by the European Commission Projects FP7-IS-ENES2 (2013-2017), FP7-CLIPC (2013-2016) and EUDAT2020 (2015-2018). Now under development through new funding from H2020-IS-ENES3 (2019-2022). It is used as a backend on the C4I platform https://dev.climate4impact.eu and on the CLIPC Portal http://www.clipc.eu
 
-Development is not funded at the moment, but code is still being actively developed as much as possible.
+Development is very active at the moment, with version 5.0.0RC1 in the develop branch.
 It is lead by CERFACS, a research institution located in Toulouse, France.
 
 For documentation please visit: http://icclim.readthedocs.org
 
-Quick Install Instructions
---------------------------
+Quick Install Instructions (version 5.x and above)
+--------------------------------------------------
+
+pip install icclim
+
+Quick Install Instructions (version 4.x and under)
+--------------------------------------------------
 
 gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o
 
