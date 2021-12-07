@@ -37,7 +37,7 @@ def stub_tas(value: float = 1, use_dask=False):
 
 def stub_pr(value: float, use_dask=False):
     da = xarray.DataArray(
-        data=(np.full(VALUE_COUNT, value).reshape((VALUE_COUNT, 1, 1))),
+        data=np.full(VALUE_COUNT, value).reshape((VALUE_COUNT, 1, 1)),
         coords=COORDS,
         dims=["time", "lat", "lon"],
         name="pr",

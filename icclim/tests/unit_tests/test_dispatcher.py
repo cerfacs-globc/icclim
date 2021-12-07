@@ -1,7 +1,7 @@
 import pytest
-from models.constants import PRECIPITATION, TEMPERATURE
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.constants import PRECIPITATION, TEMPERATURE
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
 from icclim.models.user_index_config import LogicalOperation
