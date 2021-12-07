@@ -16,9 +16,6 @@ __pycache__/
 out_icclim/
 
 # tests
-test_*.py
-test_*
-tests/
 WPS/
 
 # sphinx build folder
@@ -71,8 +68,12 @@ docs/_build/
 # PyBuilder
 target/
 
-# ESMPy
-PET0.ESMF_LogFile
 /.settings/
 /.project
 /.pydevproject
+
+.vscode
+
+.idea
+
+dask-worker-space/

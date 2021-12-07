@@ -1,4 +1,7 @@
-from . import calc_ind, calc_indice, calc_percentiles, icclim_exceptions, maps, set_globattr, set_longname_units, set_longname_units_custom_indices, time_subset
-from icclim.icclim import indice as indice
+# keep line below to alias "main" module to icclim
+from . import main as icclim
 
-__version__ = "4.2.20" # print(icclim.__version__)
+# keep line below to expose "main" content in icclim package namespace
+from .main import index, indice
+
+__version__ = "5.0.0rc1"

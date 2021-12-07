@@ -13,7 +13,7 @@ For documentation please visit: http://icclim.readthedocs.org
 Quick Install Instructions (version 5.x and above): Recommended version but documentation not up-to-date yet
 ------------------------------------------------------------------------------------------------------------
 
-Branch is https://github.com/cerfacs-globc/icclim/tree/develop 
+Branch is https://github.com/cerfacs-globc/icclim/tree/develop
 
 pip install icclim=5.0.0rc1
 
@@ -29,3 +29,7 @@ gcc -shared -o ./icclim/libC.so ./icclim/libC.o
 python setup.py install --user
 
 or as root: python setup.py install
+
+Indices
+-------
+For a detailed description of each ECA index, please visit: https://www.ecad.eu/documents/atbd.pdf

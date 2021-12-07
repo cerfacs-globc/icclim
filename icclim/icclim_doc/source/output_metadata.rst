@@ -1,4 +1,3 @@
-
 Output metadata
 ================
 
@@ -9,7 +8,7 @@ Output metadata contains at least the following variables:
     - lon
     - time
     - time_bnds
-    - indice 
+    - indice
 
 lat, lon, lat_bnds, lon_bnds
 ---------------------------------
@@ -39,7 +38,7 @@ time and time_bnds
 |  ``SON``             |    YYYY-10-16         |    YYYY-09-01   |  YYYY-12-01      |
 +----------------------+-----------------------+-----------------+------------------+
 
-.. note:: The second bound in time_bnds is excluded! 
+.. note:: The second bound in time_bnds is excluded!
 
 Example: annual time steps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,38 +46,38 @@ Example: annual time steps
 .. code-block:: rest
 
     $ ncdump -v time indice_FD_year_1950-1955.nc -t
-    
+
     time = "1950-07-01", "1951-07-01", "1952-07-01", "1953-07-01",
         "1954-07-01", "1955-07-01" ;
-        
-    $ ncdump -v time_bnds indice_FD_year_1950-1955.nc -t    
-    
+
+    $ ncdump -v time_bnds indice_FD_year_1950-1955.nc -t
+
     time_bnds =
         "1950-01-01 12", "1951-01-01 12",
-        "1951-01-01 12", "1952-01-01 12",    
+        "1951-01-01 12", "1952-01-01 12",
         "1952-01-01 12", "1953-01-01 12",
         "1953-01-01 12", "1954-01-01 12",
         "1954-01-01 12", "1955-01-01 12",
         "1955-01-01 12", "1956-01-01 12" ;
-        
-        
+
+
 Example: monthly time steps
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: rest
 
     $ ncdump -v time indice_FD_month_1950-1955.nc -t
-    
+
     time = "1950-01-16", "1950-02-16", "1950-03-16", "1950-04-16",
         "1950-05-16", "1950-06-16", "1950-07-16", "1950-08-16",
         "1950-05-16", "1950-06-16", "1950-07-16", "1950-08-16",
         [...]
-        
-    $ ncdump -v time_bnds indice_FD_month_1950-1955.nc -t    
-    
+
+    $ ncdump -v time_bnds indice_FD_month_1950-1955.nc -t
+
     time_bnds =
         "1950-01-01 12", "1950-02-01 12",
-        "1950-02-01 12", "1950-03-01 12",    
+        "1950-02-01 12", "1950-03-01 12",
         "1950-03-01 12", "1950-04-01 12",
         "1950-04-01 12", "1950-05-01 12",
         [...]
@@ -89,12 +88,12 @@ Example: seasonal time steps
 .. code-block:: rest
 
     $ ncdump -v time indice_FD_DJF_1950-1955.nc -t
-    
+
     time = "1951-01-16", "1952-01-16", "1953-01-16", "1954-01-16",
         "1955-01-16" ;
-        
-    $ ncdump -v time_bnds indice_FD_DJF_1950-1955.nc -t    
-    
+
+    $ ncdump -v time_bnds indice_FD_DJF_1950-1955.nc -t
+
     time_bnds =
         "1950-12-01 12", "1951-03-01 12",
         "1951-12-01 12", "1952-03-01 12",
@@ -107,12 +106,12 @@ Example: seasonal time steps
 .. code-block:: rest
 
     $ ncdump -v time indice_FD_SON_1950-1955.nc -t
-    
+
     time = "1950-10-16", "1951-10-16", "1952-10-16", "1953-10-16",
-        "1954-10-16", "1955-10-16" ; 
-        
-    $ ncdump -v time_bnds indice_FD_SON_1950-1955.nc -t    
-    
+        "1954-10-16", "1955-10-16" ;
+
+    $ ncdump -v time_bnds indice_FD_SON_1950-1955.nc -t
+
     time_bnds =
         "1950-09-01 12", "1950-12-01 12",
         "1951-09-01 12", "1951-12-01 12",
@@ -121,17 +120,17 @@ Example: seasonal time steps
         "1954-09-01 12", "1954-12-01 12",
         "1955-09-01 12", "1955-12-01 12" ;
 
-                       
+
 
 
 indice
 -------
-     
+
 The *indice* variable has the same name as indice_name parameter (e.g. "FD").
 It has the following attributes:
 
     - long_name
-    - units 
+    - units
     - _FillValue
     - missing_value
     - ( grid_mapping )
@@ -147,7 +146,7 @@ Example:
             FD:missing_value = 1.e+20f ;
             FD:standard_name = "ECA_indice" ;
 
-    
+
 
 .. note:: The *_FillValue* and *missing_value* are the same as in source files.
 
@@ -156,12 +155,12 @@ Global attributes
 ------------------
 
 According to the CF convention, the output NetCDF file contains 6 main global attributes:
-    - title 
+    - title
     - institution
     - source
     - history
     - references
-    - comment 
+    - comment
 
 Example:
 
@@ -175,5 +174,3 @@ Example:
 		:comment = " " ;
 		:history = "2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements. \n",
                         "2014-04-01 12:16:03 Calculation of FD indice (monthly time series) from 1950-1-1 to 1955-12-31." ;
-
-
