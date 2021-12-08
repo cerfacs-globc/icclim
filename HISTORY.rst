@@ -2,8 +2,13 @@
 Release history
 =======
 
-5.0.0
--------------------
+5.0.0rc2
+--------
+
+* Make HD17 expect tas instead of tas_min
+
+5.0.0rc1
+--------
 We fully rewrote Icclim to benefit from Xclim, Xarray, Numpy and Dask.
 A lot of effort has been to minimize the API changes. Thus for all scripts using a former version of icclim updating to this new version should be smooth.
 In fact a few improvements were made on the API:
@@ -16,6 +21,7 @@ In fact a few improvements were made on the API:
 - ``var_name`` parameter is now optional for ECA&D indices, icclim will try to look for a valid variable depending on the index wanted
 - ``transfer_limit_Mbytes`` parameter is now used to adjust how Dask should chunk the dataset.
 - The output of ``icclim.index()`` is now the resulting Xarray Dataset of the index computation. ``out_file`` can still be used to write output to a netcdf.
+- `logs_verbosity` parameter can now control how much logs icclim will produce. The possible values are {"HIGH", "LOW", "SILENT"}.
 
 Icclim C code has been removed. This makes the installation and maintenance much easier.
 Climate indices metadata has benn enriched with Xclim metadata.
@@ -24,4 +30,4 @@ Performances have been significantly improved, especially thanks to Dask.
 
 Notes
 ~~~~~
-- It is highly recommended to use Dask distributed scheduler to fully benefit from the performance improvements.
+It is highly recommended to use Dask distributed scheduler to fully benefit from the performance improvements.

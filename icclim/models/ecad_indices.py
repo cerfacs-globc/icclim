@@ -107,7 +107,7 @@ class EcadIndex(Enum):
     GD4 = ("GD4", gd4, COLD_GROUP, [TAS], False)
     FD = ("FD", fd, COLD_GROUP, [TAS_MIN], False)
     CFD = ("CFD", cfd, COLD_GROUP, [TAS_MIN], True)
-    HD17 = ("HD17", hd17, COLD_GROUP, [TAS_MIN], False)
+    HD17 = ("HD17", hd17, COLD_GROUP, [TAS], False)
     ID = ("ID", id, COLD_GROUP, [TAS_MAX], False)
     TG10P = ("TG10p", tg10p, COLD_GROUP, [TAS], True)
     TN10P = ("TN10p", tn10p, COLD_GROUP, [TAS_MIN], True)
