@@ -339,11 +339,12 @@ def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
                 res.append(alias)
                 break
     if len(res) < len(index_variables):
+        variables = list(filter(lambda x: x not in ds.coords, ds.variables.keys()))
         raise InvalidIcclimArgumentError(
-            f"The necessary variable(s) were not found or recognized in the"
+            f"The necessary variable(s) were not recognized in the"
             f" input file(s) to compute {index.index_name}."
-            f" If the variable(s) exist with non-standard names in the"
-            f" file, use var_name parameter to provide their names."
+            f" Use `var_name` parameter to use one the dataset non coordinate variable:"
+            f" {variables}"
         )
     return res
 

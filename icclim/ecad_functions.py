@@ -653,6 +653,12 @@ def _can_run_bootstrap(config: IndexConfig, percentile_period) -> bool:
         config.cf_variables[0].in_base_da is not config.cf_variables[0].da
         and len(overlapping_years) > 1
     )
+    if run_bootstrap:
+        in_base = config.cf_variables[0].in_base_da
+        chunking = {d: "auto" for d in in_base.dims}
+        chunking["time"] = -1
+        config.cf_variables[0].in_base_da = in_base.chunk(chunking)
+        config.cf_variables[0].da = config.cf_variables[0].da.chunk(chunking)
     if run_bootstrap and config.interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
         raise InvalidIcclimArgumentError(
             "When bootstrapping, the interpolation must be MEDIAN_UNBIASED."

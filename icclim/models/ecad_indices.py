@@ -87,61 +87,61 @@ class EcadIndex(Enum):
     """
 
     # temperature
-    TG = ("TG", tg, TEMPERATURE_GROUP, [TAS], False)
-    TN = ("TN", tn, TEMPERATURE_GROUP, [TAS_MIN], False)
-    TX = ("TX", tx, TEMPERATURE_GROUP, [TAS_MAX], False)
-    DTR = ("DTR", dtr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN], False)
-    ETR = ("ETR", etr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN], False)
-    VDTR = ("vDTR", vdtr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN], False)
+    TG = ("TG", tg, TEMPERATURE_GROUP, [TAS])
+    TN = ("TN", tn, TEMPERATURE_GROUP, [TAS_MIN])
+    TX = ("TX", tx, TEMPERATURE_GROUP, [TAS_MAX])
+    DTR = ("DTR", dtr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN])
+    ETR = ("ETR", etr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN])
+    VDTR = ("vDTR", vdtr, TEMPERATURE_GROUP, [TAS_MAX, TAS_MIN])
     # heat
-    SU = ("SU", su, HEAT_GROUP, [TAS_MAX], False)
-    TR = ("TR", tr, HEAT_GROUP, [TAS_MIN], False)
-    WSDI = ("WSDI", wsdi, HEAT_GROUP, [TAS_MAX], True)
-    TG90P = ("TG90p", tg90p, HEAT_GROUP, [TAS], True)
-    TN90P = ("TN90p", tn90p, HEAT_GROUP, [TAS_MIN], True)
-    TX90P = ("TX90p", tx90p, HEAT_GROUP, [TAS_MAX], True)
-    TXX = ("TXx", txx, HEAT_GROUP, [TAS_MAX], False)
-    TNX = ("TNx", tnx, HEAT_GROUP, [TAS_MIN], False)
-    CSU = ("CSU", csu, HEAT_GROUP, [TAS_MAX], True)
+    SU = ("SU", su, HEAT_GROUP, [TAS_MAX])
+    TR = ("TR", tr, HEAT_GROUP, [TAS_MIN])
+    WSDI = ("WSDI", wsdi, HEAT_GROUP, [TAS_MAX])
+    TG90P = ("TG90p", tg90p, HEAT_GROUP, [TAS])
+    TN90P = ("TN90p", tn90p, HEAT_GROUP, [TAS_MIN])
+    TX90P = ("TX90p", tx90p, HEAT_GROUP, [TAS_MAX])
+    TXX = ("TXx", txx, HEAT_GROUP, [TAS_MAX])
+    TNX = ("TNx", tnx, HEAT_GROUP, [TAS_MIN])
+    CSU = ("CSU", csu, HEAT_GROUP, [TAS_MAX])
     # cold
-    GD4 = ("GD4", gd4, COLD_GROUP, [TAS], False)
-    FD = ("FD", fd, COLD_GROUP, [TAS_MIN], False)
-    CFD = ("CFD", cfd, COLD_GROUP, [TAS_MIN], True)
-    HD17 = ("HD17", hd17, COLD_GROUP, [TAS], False)
-    ID = ("ID", id, COLD_GROUP, [TAS_MAX], False)
-    TG10P = ("TG10p", tg10p, COLD_GROUP, [TAS], True)
-    TN10P = ("TN10p", tn10p, COLD_GROUP, [TAS_MIN], True)
-    TX10P = ("TX10p", tx10p, COLD_GROUP, [TAS_MAX], True)
-    TXN = ("TXn", txn, COLD_GROUP, [TAS_MAX], False)
-    TNN = ("TNn", tnn, COLD_GROUP, [TAS_MIN], False)
-    CSDI = ("CSDI", csdi, COLD_GROUP, [TAS_MIN], True)
+    GD4 = ("GD4", gd4, COLD_GROUP, [TAS])
+    FD = ("FD", fd, COLD_GROUP, [TAS_MIN])
+    CFD = ("CFD", cfd, COLD_GROUP, [TAS_MIN])
+    HD17 = ("HD17", hd17, COLD_GROUP, [TAS])
+    ID = ("ID", id, COLD_GROUP, [TAS_MAX])
+    TG10P = ("TG10p", tg10p, COLD_GROUP, [TAS])
+    TN10P = ("TN10p", tn10p, COLD_GROUP, [TAS_MIN])
+    TX10P = ("TX10p", tx10p, COLD_GROUP, [TAS_MAX])
+    TXN = ("TXn", txn, COLD_GROUP, [TAS_MAX])
+    TNN = ("TNn", tnn, COLD_GROUP, [TAS_MIN])
+    CSDI = ("CSDI", csdi, COLD_GROUP, [TAS_MIN])
     # drought
-    CDD = ("CDD", cdd, DROUGHT_GROUP, [PR], True)
+    CDD = ("CDD", cdd, DROUGHT_GROUP, [PR])
     # rain
-    PRCPTOT = ("PRCPTOT", prcptot, RAIN_GROUP, [PR], False)
-    RR1 = ("RR1", rr1, RAIN_GROUP, [PR], False)
-    SDII = ("SDII", sdii, RAIN_GROUP, [PR], False)
-    CWD = ("CWD", cwd, RAIN_GROUP, [PR], True)
-    R10MM = ("R10mm", r10mm, RAIN_GROUP, [PR], False)
-    R20MM = ("R20mm", r20mm, RAIN_GROUP, [PR], False)
-    RX1DAY = ("RX1day", rx1day, RAIN_GROUP, [PR], False)
-    RX5DAY = ("RX5day", rx5day, RAIN_GROUP, [PR], True)
-    R75P = ("R75p", r75p, RAIN_GROUP, [PR], True)
-    R75PTOT = ("R75pTOT", r75ptot, RAIN_GROUP, [PR], True)
-    R95P = ("R95p", r95p, RAIN_GROUP, [PR], True)
-    R95PTOT = ("R95pTOT", r95ptot, RAIN_GROUP, [PR], True)
-    R99P = ("R99p", r99p, RAIN_GROUP, [PR], True)
-    R99PTOT = ("R99pTOT", r99ptot, RAIN_GROUP, [PR], True)
+    PRCPTOT = ("PRCPTOT", prcptot, RAIN_GROUP, [PR])
+    RR1 = ("RR1", rr1, RAIN_GROUP, [PR])
+    SDII = ("SDII", sdii, RAIN_GROUP, [PR])
+    CWD = ("CWD", cwd, RAIN_GROUP, [PR])
+    R10MM = ("R10mm", r10mm, RAIN_GROUP, [PR])
+    R20MM = ("R20mm", r20mm, RAIN_GROUP, [PR])
+    RX1DAY = ("RX1day", rx1day, RAIN_GROUP, [PR])
+    RX5DAY = ("RX5day", rx5day, RAIN_GROUP, [PR])
+    R75P = ("R75p", r75p, RAIN_GROUP, [PR])
+    R75PTOT = ("R75pTOT", r75ptot, RAIN_GROUP, [PR])
+    R95P = ("R95p", r95p, RAIN_GROUP, [PR])
+    R95PTOT = ("R95pTOT", r95ptot, RAIN_GROUP, [PR])
+    R99P = ("R99p", r99p, RAIN_GROUP, [PR])
+    R99PTOT = ("R99pTOT", r99ptot, RAIN_GROUP, [PR])
     # snow
-    SD = ("SD", sd, SNOW_GROUP, [PR], False)
-    SD1 = ("SD1", sd1, SNOW_GROUP, [PR], False)
-    SD5CM = ("SD5cm", sd5cm, SNOW_GROUP, [PR], False)
-    SD50CM = ("SD50cm", sd50cm, SNOW_GROUP, [PR], False)
+    SD = ("SD", sd, SNOW_GROUP, [PR])
+    SD1 = ("SD1", sd1, SNOW_GROUP, [PR])
+    SD5CM = ("SD5cm", sd5cm, SNOW_GROUP, [PR])
+    SD50CM = ("SD50cm", sd50cm, SNOW_GROUP, [PR])
     # compound
-    CD = ("CD", cd, COMPOUND_GROUP, [TAS, PR], True)
-    CW = ("CW", cw, COMPOUND_GROUP, [TAS, PR], True)
-    WD = ("WD", wd, COMPOUND_GROUP, [TAS, PR], True)
-    WW = ("WW", ww, COMPOUND_GROUP, [TAS, PR], True)
+    CD = ("CD", cd, COMPOUND_GROUP, [TAS, PR])
+    CW = ("CW", cw, COMPOUND_GROUP, [TAS, PR])
+    WD = ("WD", wd, COMPOUND_GROUP, [TAS, PR])
+    WW = ("WW", ww, COMPOUND_GROUP, [TAS, PR])
 
     def __init__(
         self,
@@ -149,13 +149,11 @@ class EcadIndex(Enum):
         compute: ComputeIndexFun,
         group: str,
         variables: List[List[str]],
-        time_aware: bool,
     ):
         self.index_name = index_name
         self.compute = compute
         self.group = group
         self.variables = variables
-        self.time_aware = time_aware
 
     @staticmethod
     def lookup(query: str) -> Any:
