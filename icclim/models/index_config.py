@@ -165,10 +165,6 @@ def _chunk_data(
 ) -> DataArray:
     with dask.config.set({"array.chunk-size": f"{transfer_limit_Mbytes} MB"}):
         chunks = {d: "auto" for d in da.dims}
-        if index is not None and index.time_aware:
-            # We avoid chunking on time for indices relying on bootstrap
-            # or rolling windows
-            chunks["time"] = -1
         return da.chunk(chunks=chunks)
 
 
