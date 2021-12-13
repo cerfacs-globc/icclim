@@ -12,12 +12,19 @@ jobs:
     # TODO add code coverage
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.7
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-    - name: Install pytest
-      run: pip install pytest
-    - name: run unit tests
-      run: pytest
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+      - name: Install pytest
+        run: pip install pytest
+    # install of xarray and xclim are necessary due to the aliasing happening in __init__.py
+      - name: Install xarray
+        run: pip install xarray
+      - name: Install xclim
+        run: pip install xclim
+      - name: Install icclim
+        run: python -m pip install -e .
+      - name: run unit tests
+        run: pytest
