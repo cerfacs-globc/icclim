@@ -2,7 +2,7 @@
 
 ICCLIM called from OpenClimateGIS - Examples
 ==============================================
-ICCLIM indices (`ECA&D climate indices <https://www.ecad.eu/documents/atbd.pdf>`_) are implemented in the `OpenClimateGIS <https://github.com/NCPP/ocgis>`_ (Version 1.1.0) Python package. 
+ICCLIM indices (`ECA&D climate indices <https://www.ecad.eu/documents/atbd.pdf>`_) are implemented in the `OpenClimateGIS <https://github.com/NCPP/ocgis>`_ (Version 1.1.0) Python package.
 
 
 >>> import ocgis
@@ -132,7 +132,7 @@ so first we need to find an optimal tile dimention (number of pixels) to get a c
 >>> element_in_kb = size['total']/reduce(lambda x,y: x*y,size['variables']['tas']['value']['shape'])
 >>> element_in_mb = element_in_kb*0.001
 >>> import numpy as np
->>> tile_dim = np.sqrt(limit_opendap_mb/(element_in_mb*nb_time_coordinates_rd)) # maximum chunk size 
+>>> tile_dim = np.sqrt(limit_opendap_mb/(element_in_mb*nb_time_coordinates_rd)) # maximum chunk size
 
 .. note:: Chunks are cut along the time axis, i.e. a maximum chunk size in pixels is **tile_dimention** x **tile_dimention** x **number_time_steps**.
 
