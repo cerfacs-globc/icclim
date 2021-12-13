@@ -4,8 +4,6 @@ import time
 from enum import Enum
 from typing import Union
 
-import pkg_resources
-
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
 
@@ -31,7 +29,8 @@ class Verbosity(Enum):
 
 class IcclimLogger:
     __instance = None
-    verbosity = Verbosity.LOW
+    verbosity: Verbosity = Verbosity.LOW
+    timezone: str
 
     @staticmethod
     def get_instance(verbosity: Verbosity):
@@ -48,7 +47,6 @@ class IcclimLogger:
             os.environ["TZ"] = "GMT"
             time.tzset()
             self.timezone = time.tzname[0]
-            self.icclim_version = pkg_resources.get_distribution("icclim").version
             logging.basicConfig(
                 level=verbosity.log_level, format="%(asctime)s %(message)s"
             )
@@ -60,12 +58,14 @@ class IcclimLogger:
         logging.root.setLevel(verbosity.log_level)
 
     def start_message(self):
+        from icclim import __version__ as icclim_version
+
         # flake8: noqa
         time_now = time.asctime(time.gmtime()) + " " + self.timezone
         if self.verbosity == Verbosity.SILENT:
             return
         if self.verbosity == Verbosity.LOW:
-            logging.info(f"--- Icclim {self.icclim_version}")
+            logging.info(f"--- Icclim {icclim_version}")
             logging.info("--- BEGIN EXECUTION")
             return
         logging.info(
@@ -74,7 +74,7 @@ class IcclimLogger:
         logging.info(
             "   *                                                                                          *"
         )
-        logging.info(f"   *          Icclim                {self.icclim_version}   *")
+        logging.info(f"   *          Icclim                {icclim_version}   *")
         logging.info(
             "   *                                                                                          *"
         )
@@ -98,12 +98,14 @@ class IcclimLogger:
         )
 
     def ending_message(self, time_cpu):
+        from icclim import __version__ as icclim_version
+
         # flake8: noqa
         time_now = time.asctime(time.gmtime()) + " " + self.timezone
         if self.verbosity == Verbosity.SILENT:
             return
         if self.verbosity == Verbosity.LOW:
-            logging.info(f"--- Icclim {self.icclim_version}")
+            logging.info(f"--- Icclim {icclim_version}")
             logging.info("--- CPU SECS = %-10.3f", time_cpu)
             logging.info("--- END EXECUTION")
             return
@@ -113,7 +115,7 @@ class IcclimLogger:
         logging.info(
             "   *                                                                                          *"
         )
-        logging.info(f"   *          Icclim                {self.icclim_version}   *")
+        logging.info(f"   *          Icclim                {icclim_version}   *")
         logging.info(
             "   *                                                                                          *"
         )
