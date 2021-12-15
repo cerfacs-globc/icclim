@@ -4,7 +4,7 @@ isort
 nbsphinx
 pip
 pre-commit>=2.9
-pydata_sphinx_theme
+pydata-sphinx-theme
 pylint
 pytest
 pytest-cov
