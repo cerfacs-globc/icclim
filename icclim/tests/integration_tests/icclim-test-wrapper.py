@@ -20,7 +20,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
 
 # Check command arguments.
-description = """ICCLIM-test wrapper.py
+description = """Icclim-test wrapper.py
 Reads, parses and and executes test cases defined as Python config files"""
 
 parser = ArgumentParser(description=description)

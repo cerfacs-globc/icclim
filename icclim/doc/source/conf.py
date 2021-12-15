@@ -16,7 +16,7 @@
 
 
 # -- Project information -----------------------------------------------------
-project = "ICCLIM"
+project = "Icclim"
 copyright = "2021, CERFACS"
 author = "Aoun Abel, @bzah"
 version = "5.0.0"

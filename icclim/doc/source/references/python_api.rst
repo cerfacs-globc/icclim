@@ -4,7 +4,7 @@ Python API
 
 
 :func:`icclim.index` -- Compute climat index
-----------------------------------------
+--------------------------------------------
 
 
 This is the main function to compute an index:
@@ -28,11 +28,11 @@ The ``in_files`` parameter could be *string*, *list of strings* or *list of list
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 | single input file per variable                           |  several input files per variable                                                                       |
 +=================================+==========================================================+=========================================================================================================+
-| simple index                   |   ``var_name`` = 'tasmax'                                |   ``var_name`` = 'tasmax'                                                                               |
+| simple index                    |   ``var_name`` = 'tasmax'                                |   ``var_name`` = 'tasmax'                                                                               |
 | (based on a single variable)    +----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 | ``in_files`` = 'tasmax_1990-2010.nc'                     |  ``in_files`` = ['tasmax_1990-2000.nc', 'tasmax_2000-2010.nc']                                          |
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-| multivariable index            |       ``var_name`` = ['tas', 'pr']                       |        ``var_name`` = ['tas', 'pr']                                                                     |
+| multivariable index             |       ``var_name`` = ['tas', 'pr']                       |   ``var_name`` = ['tas', 'pr']                                                                          |
 | (based on several variables)    +----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 |  ``in_files`` = ['tas_1990-2010.nc', 'pr_1990-2010.nc']  |   ``in_files`` = [['tas_1990-2000.nc', 'tas_2000-2010.nc'], ['pr_1990-2000.nc'], 'pr_2000-2010.nc']]    |
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
@@ -70,22 +70,22 @@ The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 a
 
 Monthly time series with months selected by user:
 
-	>>> slice_mode = ['month',[4,5,11]] # index will be computed only for April, May and November
+    >>> slice_mode = ['month',[4,5,11]] # index will be computed only for April, May and November
 
-	or
+    or
 
-	>>> slice_mode = ['month',[4]] # index will be computed only for April
+    >>> slice_mode = ['month',[4]] # index will be computed only for April
 
 
 User defined seasons:
 
-	>>> slice_mode = ['season',[4,5,6,7]]
+    >>> slice_mode = ['season',[4,5,6,7]]
 
-	or
+    or
 
-	>>> slice_mode = ['season',([11,12],[1])]
+    >>> slice_mode = ['season',([11,12],[1])]
 
-	.. note:: For a season composed of two years, months must be separated in *two lists* and united in a *tuple*: ([months of YYYY], [months of YYYY+1])
+    .. note:: For a season composed of two years, months must be separated in *two lists* and united in a *tuple*: ([months of YYYY], [months of YYYY+1])
 
 
 
@@ -108,7 +108,7 @@ or a list of values:
 ``transfer_limit_Mbytes``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In case of OPeNDAP datasets, if requested datasets exceed the transfer limit, ICCLIM applies chunking method to transfer and process.
+In case of OPeNDAP datasets, if requested datasets exceed the transfer limit, Icclim applies chunking method to transfer and process.
 Chunk size is dynamically adapted to the data maximum transfer size. Data cutting is realized along the time dimension (spatial chunking).
 
 The ``transfer_limit_Mbytes`` parameter, required to estimate the optimal data chunksize, should be set to the request limit value:
@@ -122,11 +122,11 @@ The ``transfer_limit_Mbytes`` parameter, required to estimate the optimal data c
 
     .. code-block:: rest
 
-	context: Error { code = 403; message = "Request too big=1875.0 Mbytes, max=500.0"^;};
+    context: Error { code = 403; message = "Request too big=1875.0 Mbytes, max=500.0"^;};
 
-	...
+    ...
 
-	RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS
+    RuntimeError: NetCDF: Malformed or inaccessible DAP DATADDS
 
 
 .. note:: If ``transfer_limit_Mbytes`` is set, chunking is applied even for local datasets that could be useful for machines with little RAM.
@@ -162,14 +162,14 @@ and  :ref:`ignore_Feb29th <ignore_Feb29th_label>` parameters.
 
 
 
-In *ICCLIM* these thresholds represent a dictionary with 365 (if :ref:`ignore_Feb29th <ignore_Feb29th_label>` is True)
+In *Icclim* these thresholds represent a dictionary with 365 (if :ref:`ignore_Feb29th <ignore_Feb29th_label>` is True)
 or 366 (if :ref:`ignore_Feb29th <ignore_Feb29th_label>` is False) calendar days as keys, and 2D arrays as values.
 
 .. note:: A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma. For example, getting of the 2D array with percentiles for April 13th, looks like *my_perc_dict[4,13]*.
 
 
 The percentile thresholds are different for "in-base" years (years inside the base period) and "out-of-base" years.
-For "in-base" years, *ICCLIM* uses the *bootstrapping procedure*, which is
+For "in-base" years, *Icclim* uses the *bootstrapping procedure*, which is
 explained in this article: `Avoiding Inhomogeneity in Percentile-Based Indices of
 Temperature Extremes (Zhang et al.) <http://etccdi.pacificclimate.org/docs/Zhangetal05JumpPaper.pdf>`_  - see
 the resampling algorithm in the section **4. Removing the "jump"**.
@@ -178,7 +178,7 @@ the resampling algorithm in the section **4. Removing the "jump"**.
 
 
 
-**2. For precipitation indices**, the thresholds are computed from the set of wet days (i.e. days when daily precipitation amount >= 1.0 mm) in the base period. In *ICCLIM* these thresholds represent an 2D array.
+**2. For precipitation indices**, the thresholds are computed from the set of wet days (i.e. days when daily precipitation amount >= 1.0 mm) in the base period. In *Icclim* these thresholds represent an 2D array.
 
 
 
@@ -302,7 +302,7 @@ for the calendar day of **February 29th**:
 
 Computing of a percentile value could use ``linear`` interpolation or the interpolation proposed
 by `Hyndman and Fan (1996) <https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_, named
-in *ICCLIM* as ``hyndman_fan`` interpolation.
+in *Icclim* as ``hyndman_fan`` interpolation.
 
 
 
@@ -327,13 +327,13 @@ You can also calculate custom climate indices by setting all necessary parameter
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
 |Key                       |Type of value                              |Description                                                                           |
 +==========================+===========================================+======================================================================================+
-|"index_name"             |*str*                                      |Name of custom index.                                                                |
+|"index_name"              |*str*                                      |Name of custom index.                                                                 |
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
 |"calc_operation"          |*str*                                      |Type of calculation. See below for more details.                                      |
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
 |"logical_operation"       |*str*                                      |"gt", "lt", "get", "let" or "e"                                                       |
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"thresh"                  |*float* or *str*                           |In case of percentile-based index, must be string which starts with "p" (e.g. 'p90').|
+|"thresh"                  |*float* or *str*                           |In case of percentile-based index, must be string which starts with "p" (e.g. 'p90'). |
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
 |"link_logical_operations" |*str*                                      |"and" or "or"                                                                         |
 +--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
@@ -372,23 +372,23 @@ value									description
 
 - The key ``date_event`` allows to keep date(s) of the event, it if is ``True``:
 
- 	- For simple statistics (min, max) in output netCDF file will be created "date_event" variable with numerical dates of the first occurrence of the event for each pixel.
+    - For simple statistics (min, max) in output netCDF file will be created "date_event" variable with numerical dates of the first occurrence of the event for each pixel.
 
- 	- For other operations in output netCDF file will be created "date_event_start" and "date_event_end" variables with numerical dates of the event for each pixel.
+    - For other operations in output netCDF file will be created "date_event_start" and "date_event_end" variables with numerical dates of the event for each pixel.
 
-	.. note:: The "date_event", "date_event_start" and "date_event_end" netCDF variables have the same shape as index's one.
+    .. note:: The "date_event", "date_event_start" and "date_event_end" netCDF variables have the same shape as index's one.
 
-	.. warning:: "Date_event"/"date_event_start"/"date_event_end" has no value:
+    .. warning:: "Date_event"/"date_event_start"/"date_event_end" has no value:
 
-			- for certain pixels, if event is not found,
-			- for all pixels of "in-base" years (years in base period) for temperature percentile-based indices - it is not possible to determine the correct date of the event because of averaging of index in "in-base" year.
+            - for certain pixels, if event is not found,
+            - for all pixels of "in-base" years (years in base period) for temperature percentile-based indices - it is not possible to determine the correct date of the event because of averaging of index in "in-base" year.
 
 
 - The key ``var_type`` is used to chose the method for computing  percentile thresholds. The methods are different for temperature and precipitation variables (more detailed :ref:`here <pctl_methods_label>`):
 
-	- If 't' (temperature variable), percentile thresholds are computed for each calendar day, using  *the bootstrapping procedure*.
+    - If 't' (temperature variable), percentile thresholds are computed for each calendar day, using  *the bootstrapping procedure*.
 
-	- If 'p' (precipitation variable), percentile threshold are calculated for whole set of values corresponding to wet days (i.e. days with daily precipitation amount >= 1.0 mm) in base period.
+    - If 'p' (precipitation variable), percentile threshold are calculated for whole set of values corresponding to wet days (i.e. days with daily precipitation amount >= 1.0 mm) in base period.
 
 
 
@@ -410,7 +410,7 @@ Correspondence table "cal_operation" -- required/optional parameters:
 |                               |'thresh',                      |'date_event'           |
 |                               |                               |                       |
 |                               |'link_logical_operations'      |                       |
-|                               |(if multivariable index),     |                       |
+|                               |(if multivariable index),      |                       |
 |                               |                               |                       |
 |                               |'var_type'                     |                       |
 |                               |(if percentile-based indices)  |                       |
@@ -476,11 +476,11 @@ Example 3: index TG90p with callback
 >>> f = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
 >>>
 >>> # base period
->>> base_dt1 = datetime.datetime(1961,01,01)
+>>> base_dt1 = datetime.datetime(1961,1,1)
 >>> base_dt2 = datetime.datetime(1970,12,31)
 >>>
 >>> # studied period
->>> dt1 = datetime.datetime(1980,01,01)
+>>> dt1 = datetime.datetime(1980,1,1)
 >>> dt2 = datetime.datetime(2000,12,31)
 >>>
 >>> out_f = 'TG90p_AMJJAS_CNRM-CM5_historical_r1i1p1_1980-2000.nc' # OUTPUT FILE: summer half-year values of TG90p
@@ -490,11 +490,11 @@ Example 3: index TG90p with callback
 >>> f = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
 >>>
 >>> # base period
->>> base_dt1 = datetime.datetime(1961,01,01)
+>>> base_dt1 = datetime.datetime(1961,1,1)
 >>> base_dt2 = datetime.datetime(1970,12,31)
 >>>
 >>> # studied period
->>> dt1 = datetime.datetime(1980,01,01)
+>>> dt1 = datetime.datetime(1980,1,1)
 >>> dt2 = datetime.datetime(2000,12,31)
 >>>
 >>> out_f = 'TG90p_AMJJAS_CNRM-CM5_historical_r1i1p1_1980-2000.nc' # OUTPUT FILE: summer half-year values of TG90p
@@ -515,16 +515,16 @@ Example 5: Custom index (max)
 
 .. code-block:: python
 
-	from icclim.util import callback
+    from icclim.util import callback
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'max'
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'max'
+                        }
 
-	file_tas = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_tas = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 6: Custom index (min positive + date)
@@ -538,17 +538,17 @@ Get minimum temperature which is above zero Celsius and find its date.
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'min',
-	                    'logical_operation': 'gt',
-	                    'thresh': 0 + 273.15, ### input data in Kelvin ==> threshold in Kelvin!
-	                    'date_event': True
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'min',
+                        'logical_operation': 'gt',
+                        'thresh': 0 + 273.15, ### input data in Kelvin ==> threshold in Kelvin!
+                        'date_event': True
+                       }
 
-	file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	icclim.index(user_index=my_index_params, in_files=file_tasmin, var_name='tasmin', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_tasmin, var_name='tasmin', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 7: Custom index (mean of selected period)
@@ -558,16 +558,16 @@ Example 7: Custom index (mean of selected period)
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'mean'
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'mean'
+                       }
 
-	file_tas = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_tas = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	tr = [datetime.datetime(1901,01,01), datetime.datetime(1920,12,31)]
+    tr = [datetime.datetime(1901,1,1), datetime.datetime(1920,12,31)]
 
-	icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode=None, time_range=tr, out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode=None, time_range=tr, out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 8: Custom index (number of days when tas < 15 degrees Celsius)
@@ -577,16 +577,16 @@ Example 8: Custom index (number of days when tas < 15 degrees Celsius)
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
-	                    'logical_operation': 'lt',
-	                    'thresh': 15 + 273.15 ### input data in Kelvin ==> threshold in Kelvin!
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
+                        'logical_operation': 'lt',
+                        'thresh': 15 + 273.15 ### input data in Kelvin ==> threshold in Kelvin!
+                       }
 
-	file_tas = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_tas = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode='SON', out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode='SON', out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 9: Custom index (percentage of days when tasmax > 80th pctl + date)
@@ -600,19 +600,19 @@ Example 9: Custom index (percentage of days when tasmax > 80th pctl + date)
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
-	                    'logical_operation': 'gt',
-	                    'thresh': 'p80',
-	                    'var_type': 't',
-	                    'date_event': True
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
+                        'logical_operation': 'gt',
+                        'thresh': 'p80',
+                        'var_type': 't',
+                        'date_event': True
+                       }
 
-	file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
-	bp = [datetime.datetime(1960,01,01), datetime.datetime(1969,12,31)]
+    file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
+    bp = [datetime.datetime(1960,1,1), datetime.datetime(1969,12,31)]
 
-	icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', slice_mode='year', base_period_time_range=bp, out_unit='%', out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', slice_mode='year', base_period_time_range=bp, out_unit='%', out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 10: Custom index (number of days when daily precipitation amount > 85th pctl)
@@ -626,17 +626,17 @@ Example 10: Custom index (number of days when daily precipitation amount > 85th 
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
-	                    'logical_operation': 'gt',
-	                    'thresh': 'p85',
-	                    'var_type': 'p'
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
+                        'logical_operation': 'gt',
+                        'thresh': 'p85',
+                        'var_type': 'p'
+                       }
 
-	file_pr = 'pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_pr = 'pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	icclim.index(user_index=my_index_params, in_files=file_pr, var_name='pr', slice_mode='year', base_period_time_range=bp, out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_pr, var_name='pr', slice_mode='year', base_period_time_range=bp, out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 11: Custom index (max number of consecutive days when tasmax >= 25 degrees Celsius + date)
@@ -648,33 +648,33 @@ Example 11: Custom index (max number of consecutive days when tasmax >= 25 degre
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'max_nb_consecutive_events',
-	                    'logical_operation': 'get',
-	                    'thresh': 25 + 273.15, ### input data in Kelvin ==> threshold in Kelvin!
-	                    'date_event': True
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'max_nb_consecutive_events',
+                        'logical_operation': 'get',
+                        'thresh': 25 + 273.15, ### input data in Kelvin ==> threshold in Kelvin!
+                        'date_event': True
+                       }
 
-	file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
 
 Example 12: Custom index (max of sum of precipitation in 10 consecutive days)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'run_sum',
-			    'extreme_mode': 'max',
-			    'window_width': 10
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'run_sum',
+                'extreme_mode': 'max',
+                'window_width': 10
+                       }
 
-	file_pr = 'pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_pr = 'pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	icclim.index(user_index=my_index_params, in_files=file_pr, var_name='pr', slice_mode=['season',[4,5,6,7,8]], out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_pr, var_name='pr', slice_mode=['season',[4,5,6,7,8]], out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 13: Custom index (min of mean of tasmin in 7 consecutive days + date)
@@ -687,17 +687,17 @@ Example 13: Custom index (min of mean of tasmin in 7 consecutive days + date)
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'run_mean',
-			    'extreme_mode': 'min',
-			    'window_width': 7,
-			    'date_event': True
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'run_mean',
+                'extreme_mode': 'min',
+                'window_width': 7,
+                'date_event': True
+                       }
 
-	file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	icclim.index(user_index=my_index_params, in_files=file_tasmin, var_name='tasmin', slice_mode=['season',([11,12],[1,2])], out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_tasmin, var_name='tasmin', slice_mode=['season',([11,12],[1,2])], out_file=out_f, callback=callback.defaultCallback2)
 
 Example 14: Custom index (anomaly of tasmax between 2 period of 30 years)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -706,16 +706,16 @@ Example 14: Custom index (anomaly of tasmax between 2 period of 30 years)
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
+    my_index_params = {'index_name': 'my_index',
                             'calc_operation': 'anomaly'
-	                   }
+                       }
 
-	file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
-	tr = [datetime.datetime(1971,01,01), datetime.datetime(2000,12,31)] ### studied period: future period
-        tr_base = [datetime.datetime(1901,01,01), datetime.datetime(1930,12,31)] ### reference period: past period
+    file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
+    tr = [datetime.datetime(1971,1,1), datetime.datetime(2000,12,31)] ### studied period: future period
+        tr_base = [datetime.datetime(1901,1,1), datetime.datetime(1930,12,31)] ### reference period: past period
 
-	icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', time_range=tr, base_period_time_range=tr_base, out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', time_range=tr, base_period_time_range=tr_base, out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 15: Multivariable custom index (number of days when tasmin >= 10 degrees Celsius and tasmax > 25 degrees Celsius)
@@ -725,18 +725,18 @@ Example 15: Multivariable custom index (number of days when tasmin >= 10 degrees
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
-	                    'logical_operation': ['get', 'gt'],
-	                    'thresh': [10+273.15, 25+273.15], ### input data in Kelvin ==> threshold in Kelvin!
-	                    'link_logical_operations': 'and'
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
+                        'logical_operation': ['get', 'gt'],
+                        'thresh': [10+273.15, 25+273.15], ### input data in Kelvin ==> threshold in Kelvin!
+                        'link_logical_operations': 'and'
+                       }
 
-	file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	icclim.index(user_index=my_index_params, in_files=[file_tasmin, file_tasmax], var_name=['tasmin', 'tasmax'], slice_mode='JJA', out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
+    icclim.index(user_index=my_index_params, in_files=[file_tasmin, file_tasmax], var_name=['tasmin', 'tasmax'], slice_mode='JJA', out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
 
 
 Example 16: Multivariable custom index (percentage of days when tasmin >= 10 degrees Celsius and tasmax > 90th pctl   + date)
@@ -748,21 +748,21 @@ Example 16: Multivariable custom index (percentage of days when tasmin >= 10 deg
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
-	                    'logical_operation': ['get', 'gt'],
-	                    'thresh': [10+273.15, 'p90'], ### input data in Kelvin ==> threshold in Kelvin!
-	                    'var_type': 't',  ### or ['-','t']
-	                    'link_logical_operations': 'and',
-	                    'date_event': True
-	                   }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
+                        'logical_operation': ['get', 'gt'],
+                        'thresh': [10+273.15, 'p90'], ### input data in Kelvin ==> threshold in Kelvin!
+                        'var_type': 't',  ### or ['-','t']
+                        'link_logical_operations': 'and',
+                        'date_event': True
+                       }
 
-	file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	bp = [datetime.datetime(1960,01,01), datetime.datetime(1969,12,31)]
-	icclim.index(user_index=my_index_params, in_files=[file_tasmin, file_tasmax], var_name=['tasmin', 'tasmax'], slice_mode='JJA', base_period_time_range=bp, out_unit='%', out_file=out_f, callback=callback.defaultCallback2)
+    bp = [datetime.datetime(1960,1,1), datetime.datetime(1969,12,31)]
+    icclim.index(user_index=my_index_params, in_files=[file_tasmin, file_tasmax], var_name=['tasmin', 'tasmax'], slice_mode='JJA', base_period_time_range=bp, out_unit='%', out_file=out_f, callback=callback.defaultCallback2)
 
 
 .. _examples_CD_CW_WD_WW_label:
@@ -775,10 +775,10 @@ Example 17: CW as a custom index (number of days when tas < 25th pctl and precip
 4 compound indices defined in https://www.ecad.eu/documents/atbd.pdf (see the section 5.3.3 "Compound indices") are
 based on daily precipitation (RR) and mean temperature (TG) variables:
 
-	- CD (cold/dry days): (TG < 25th pctl) and (RR < 25th pctl)
-	- CW (cold/wet days): (TG < 25th pctl) and (RR > 75th pctl)
-	- WD (warm/dry days): (TG > 75th pctl) and (RR < 25th pctl)
-	- WW (warm/wet days): (TG > 75th pctl) and (RR > 75th pctl)
+    - CD (cold/dry days): (TG < 25th pctl) and (RR < 25th pctl)
+    - CW (cold/wet days): (TG < 25th pctl) and (RR > 75th pctl)
+    - WD (warm/dry days): (TG > 75th pctl) and (RR < 25th pctl)
+    - WW (warm/wet days): (TG > 75th pctl) and (RR > 75th pctl)
 
 .. note:: RR is a daily precipitation on a *wet* day, and its percentile value is computed from set of wet days also.
 
@@ -787,20 +787,20 @@ based on daily precipitation (RR) and mean temperature (TG) variables:
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
-	                    'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
-	                    'logical_operation': ['lt', 'gt'],
-	                    'thresh': ['p25', 'p75'],
-	                    'var_type': ['t', 'p'],
-	                    'link_logical_operations': 'and'
-	                    }
+    my_index_params = {'index_name': 'my_index',
+                        'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
+                        'logical_operation': ['lt', 'gt'],
+                        'thresh': ['p25', 'p75'],
+                        'var_type': ['t', 'p'],
+                        'link_logical_operations': 'and'
+                        }
 
-	file_pr= 'pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	file_tas = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_pr= 'pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    file_tas = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	bp = [datetime.datetime(1960,01,01), datetime.datetime(1969,12,31)]
-	icclim.index(user_index=my_index_params, in_files=[file_tas, file_pr], var_name=['tas', 'pr'], slice_mode='year', out_unit='days', base_period_time_range=bp, out_file=out_f, callback=callback.defaultCallback2)
+    bp = [datetime.datetime(1960,1,1), datetime.datetime(1969,12,31)]
+    icclim.index(user_index=my_index_params, in_files=[file_tas, file_pr], var_name=['tas', 'pr'], slice_mode='year', out_unit='days', base_period_time_range=bp, out_file=out_f, callback=callback.defaultCallback2)
 
 Example 18: Multivariable custom index (number of days when tasmax > 90th pctl and tasmin >= 10 and precipitation < 30th pctl)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -809,20 +809,20 @@ Example 18: Multivariable custom index (number of days when tasmax > 90th pctl a
 
 .. code-block:: python
 
-	my_index_params = {'index_name': 'my_index',
+    my_index_params = {'index_name': 'my_index',
                             'calc_operation': 'nb_events', ### 'calc_operation': 'max_nb_consecutive_events'
                             'logical_operation': ['gt', 'get', 'lt'],
                             'thresh': ['p90', 10+273.15, 'p30'],
                             'var_type': ['t', '-', 'p'],
                             'link_logical_operations': 'and'
                             }
-	file_pr= 'pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
-	out_f = 'my_index.nc'
+    file_pr= 'pr_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    file_tasmax = 'tasmax_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    file_tasmin = 'tasmin_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
+    out_f = 'my_index.nc'
 
-	bp = [datetime.datetime(1960,01,01), datetime.datetime(1969,12,31)]
-	icclim.index(user_index=my_index_params, in_files=[file_tasmax, file_tasmin, file_pr], var_name=['tasmax', 'tasmin', 'pr'], slice_mode='SON', out_unit='days', base_period_time_range=bp, out_file=out_f, callback=callback.defaultCallback2)
+    bp = [datetime.datetime(1960,1,1), datetime.datetime(1969,12,31)]
+    icclim.index(user_index=my_index_params, in_files=[file_tasmax, file_tasmin, file_pr], var_name=['tasmax', 'tasmin', 'pr'], slice_mode='SON', out_unit='days', base_period_time_range=bp, out_file=out_f, callback=callback.defaultCallback2)
 
 
 .. _table_index_sourceVar_label:
@@ -831,7 +831,7 @@ Correspondence table "index - source variable"
 -----------------------------------------------
 
 +------------------------------------------------------------+---------------------------------------------+
-|   index                                                   |   Source variable                           |
+|   index                                                    |   Source variable                           |
 +============================================================+=============================================+
 |TG, GD4, HD17, TG10p, TG90p                                 |  daily mean temperature                     |
 +------------------------------------------------------------+---------------------------------------------+

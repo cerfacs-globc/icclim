@@ -1,16 +1,16 @@
-=======
 Release history
-=======
+===============
 
 5.0.0rc2
 --------
 
 * Make HD17 expect tas instead of tas_min
 
-5.0.0rc1
---------
+5.0.0
+-----
 We fully rewrote Icclim to benefit from Xclim, Xarray, Numpy and Dask.
-A lot of effort has been to minimize the API changes. Thus for all scripts using a former version of icclim updating to this new version should be smooth.
+A lot of effort has been to minimize the API changes. Thus for all scripts using a former version of icclim
+updating to this new version should be smooth.
 In fact a few improvements were made on the API:
 - We replaced everywhere the french singular word "indice" by the proper english "index". You should get a warning if you still use "indice" such as in "indice_name".
 - When ``save_percentile`` is used, the resulting percentiles are saved within the same netcdf file as the climate index.
@@ -30,4 +30,5 @@ Performances have been significantly improved, especially thanks to Dask.
 
 Notes
 ~~~~~
-It is highly recommended to use Dask distributed scheduler to fully benefit from the performance improvements.
+It is highly recommended to use Dask distributed scheduler to fully benefit from the performance improvements of version
+5.0.0.

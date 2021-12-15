@@ -1,5 +1,5 @@
 What is a climate index
-~~~~~~~~~~~~~~~~~~~~~~~
+=======================
 A climate index is a calculated value that can be used to describe the state and the changes in the climate system.
 The climate at a defined place is the average state of the atmosphere over a longer period of, for example, months or years. Changes on climate are much slower than on the weather, that can change strongly day by day.
 
@@ -35,7 +35,7 @@ air temperature and precipitation variables are included:
 
 Detailed description of each indice is available at https://www.ecad.eu/documents/atbd.pdf.
 
-Initially ICCLIM was designed for online computing of climate indices through the `climate4impact portal <https://climate4impact.eu>`_.
+Initially Icclim was designed for online computing of climate indices through the `climate4impact portal <https://climate4impact.eu>`_.
 In spite of existence of other packages able to compute climate indices (`CDO <https://code.mpimet.mpg.de/projects/cdo>`_, `R package <https://etccdi.pacificclimate.org/resources/software-library>`_ ),
 it was decided to develop a new software in Python.
 Python language was first of all chosen to interface with `PyWPS <https://pywps.org/>`_: Python implementation of Web Processing Service
