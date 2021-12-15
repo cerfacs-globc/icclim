@@ -1,9 +1,14 @@
 black
 flake8
 isort
+nbsphinx
 pip
 pre-commit>=2.9
+pydata_sphinx_theme
 pylint
 pytest
 pytest-cov
 setuptools>=49.6.0
+
+# Documentation
+sphinx

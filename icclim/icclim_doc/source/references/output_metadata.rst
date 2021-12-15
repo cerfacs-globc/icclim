@@ -8,7 +8,7 @@ Output metadata contains at least the following variables:
     - lon
     - time
     - time_bnds
-    - indice
+    - index
 
 lat, lon, lat_bnds, lon_bnds
 ---------------------------------
@@ -123,10 +123,10 @@ Example: seasonal time steps
 
 
 
-indice
+index
 -------
 
-The *indice* variable has the same name as indice_name parameter (e.g. "FD").
+The *index* variable has the same name as index_name parameter (e.g. "FD").
 It has the following attributes:
 
     - long_name
@@ -144,7 +144,7 @@ Example:
             FD:long_name = "Frost days (minimum temperature < 0 degrees)" ;
             FD:units = "days" ;
             FD:missing_value = 1.e+20f ;
-            FD:standard_name = "ECA_indice" ;
+            FD:standard_name = "ECA_index" ;
 
 
 
@@ -167,10 +167,10 @@ Example:
 .. code-block:: rest
 
     // global attributes:
-		:title = "ECA cold indice FD" ;
-		:institution = "Climate impact portal (https://climate4impact.eu)" ;
-		:source =  ;
-		:references = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)" ;
-		:comment = " " ;
-		:history = "2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements. \n",
-                        "2014-04-01 12:16:03 Calculation of FD indice (monthly time series) from 1950-1-1 to 1955-12-31." ;
+        :title = "ECA cold index FD" ;
+        :institution = "Climate impact portal (https://climate4impact.eu)" ;
+        :source =  ;
+        :references = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)" ;
+        :comment = " " ;
+        :history = "2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements. \n",
+                        "2014-04-01 12:16:03 Calculation of FD index (monthly time series) from 1950-1-1 to 1955-12-31." ;
