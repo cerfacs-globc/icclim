@@ -9,6 +9,4 @@ pylint
 pytest
 pytest-cov
 setuptools>=49.6.0
-
-# Documentation
 sphinx
