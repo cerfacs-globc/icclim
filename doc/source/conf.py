@@ -13,15 +13,16 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("."))
+import icclim
 
+sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 project = "Icclim"
 copyright = "2021, CERFACS"
 author = "Aoun Abel, @bzah"
-version = "5.0.0"
-release = "5.0.0rc1"
+version = icclim.__version__
+release = icclim.__version__
 
 # -- General configuration ---------------------------------------------------
 

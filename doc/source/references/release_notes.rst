@@ -30,6 +30,14 @@ Additionally
     - With this rewrite a few indices were fixed as they were giving improper results.
     - Performances have been significantly improved, especially thanks to Dask.
 
+Breaking changes
+~~~~~~~~~~~~~~~~
+Some utility features of icclim has been removed in 5.0.0.
+This include `util.regrid` module as well as `util.spatial_stat` module.
+For regridding, users are encouraged to try  `xESMF <https://pangeo-xesmf.readthedocs.io/en/latest>`_.
+For spatial stats, Xarray provides a `DataArrayWeighted <https://xarray.pydata.org/en/stable/generated/xarray.DataArray.weighted.html>`_
+
+
 Notes
 ~~~~~
 It is highly recommended to use Dask distributed scheduler to fully benefit from the performance improvements of version

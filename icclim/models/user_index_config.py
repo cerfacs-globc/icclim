@@ -83,7 +83,7 @@ class UserIndexConfig:
     cf_vars: List[CfVariable]
     freq: Frequency
     date_event: bool
-    is_percent: bool  # TODO use a unit ?
+    is_percent: bool
     logical_operation: Optional[LogicalOperation] = None
     thresh: Optional[Union[float, int, str, List[Union[float, int, str]]]] = None
     link_logical_operations: Optional[LinkLogicalOperation] = None

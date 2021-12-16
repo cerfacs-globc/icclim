@@ -1,3 +1,9 @@
+"""
+    `icclim.models.frequency` wraps the concept of pandas frequency in order to resample
+    time series.  `slice_mode` paramater of `icclim.index` is always converted to a
+    `Frequency`.
+"""
+
 import datetime
 from enum import Enum
 from typing import Any, Callable, List, Optional, Tuple, Union
@@ -16,6 +22,21 @@ SliceMode = Union[Any, str, List[Union[str, Tuple, int]]]
 def seasons_resampler(
     month_list: List[int],
 ) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
+    """
+    Seasonal resampling method generator.
+    Returns a callable of DataArray which will resample the data to
+    the a season composed of the given month.
+    It also attached the corresponding time_bounds.
+    Parameters
+    ----------
+    month_list : List[int]
+        List of month identified by `{1..12}`.
+    Returns
+    -------
+    function: Callable[[DataArray], DataArray]
+        function resampling the input da to the wanted season.
+    """
+
     def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
         da_years = np.unique(da.time.dt.year)
         seasons_acc: List[DataArray] = []
@@ -102,35 +123,47 @@ def _add_time_bounds(freq: str) -> Callable[[DataArray], Tuple[DataArray, DataAr
 
 class Frequency(Enum):
     """
-    YEAR (default) 	annual
-    MONTH 	monthly (all months)
-    ONDJFM 	winter half-year
-    AMJJAS 	summer half-year
-    DJF 	winter
-    MAM 	spring
-    JJA 	summer
-    SON 	autumn
+    The sampling frequency of the resulting dataset.
     """
 
     MONTH = ("MS", ["month", "MS"], "monthly time series", _add_time_bounds("MS"))
+    """ Resample to monthly values"""
+
     AMJJAS = (
         "MS",
         ["AMJJAS"],
         "summer half-year time series",
         seasons_resampler([*range(4, 9)]),
     )
+    """ Resample to summer half-year, from April to September included."""
+
     ONDJFM = (
         "MS",
         ["ONDJFM"],
         "winter half-year time series",
         seasons_resampler([10, 11, 12, 1, 2, 3]),
     )
+    """ Resample to winter half-year, from October to March included."""
+
     DJF = ("MS", ["DJF"], "winter time series", seasons_resampler([12, 1, 2]))
+    """ Resample to winter season, from December to February included."""
+
     MAM = ("MS", ["MAM"], "spring time series", seasons_resampler([*range(3, 6)]))
+    """ Resample to spring season, from March to May included."""
+
     JJA = ("MS", ["JJA"], "summer time series", seasons_resampler([*range(6, 9)]))
+    """ Resample to summer season, from June to Agust included."""
+
     SON = ("MS", ["SON"], "autumn time series", seasons_resampler([*range(9, 12)]))
+    """ Resample to fall season, from September to November included."""
+
     CUSTOM = ("MS", [], None, None)
+    """ Resample to custom values. Do not use as is, use `slice_mode` with month or season
+        keywords instead.
+    """
+
     YEAR = ("YS", ["year", "YS"], "annual time series", _add_time_bounds("YS"))
+    """ Resample to yearly values."""
 
     def __init__(
         self,
