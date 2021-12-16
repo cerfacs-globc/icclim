@@ -1,7 +1,7 @@
-icclim
+Icclim
 ======
 
-icclim (Index Calculation CLIMate) is a Python library for climate indices calculation.
+Icclim (Index Calculation CLIMate) is a Python library for climate indices calculation.
 
 This open-source project has been possible thanks to funding by the European Commission Projects FP7-IS-ENES2 (2013-2017), FP7-CLIPC (2013-2016) and EUDAT2020 (2015-2018). Now under development through new funding from H2020-IS-ENES3 (2019-2022). It is used as a backend on the C4I platform https://dev.climate4impact.eu and on the CLIPC Portal http://www.clipc.eu
 
