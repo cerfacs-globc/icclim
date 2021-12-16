@@ -13,4 +13,6 @@ To find more in depth technical knowledge see :ref:`references`.
     :maxdepth: 2
     :caption: Contents:
 
+    Compute ECA&D indices <recipes_ecad>
+    Customize indices <recipes_custom>
     Use icclim through OCGIS <ocgis>

@@ -1,3 +1,7 @@
+"""
+All ECA&D functions. Each function wraps its Xclim equivalent functions adding icclim
+metadata to it.
+"""
 from typing import Callable, Optional, Tuple, Union
 from warnings import warn
 
@@ -292,9 +296,6 @@ def prcptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     result = atmos.precip_accumulation(
         _filter_in_wet_days(config.cf_variables[0].da, dry_day_value=0),
         freq=config.freq.panda_freq,
-        # TODO see if we should use tas and thresh
-        # tas=config.cf_variables[0].da,
-        # thresh=threshold
     )
     return result, None
 

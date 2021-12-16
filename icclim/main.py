@@ -1,6 +1,9 @@
 # -*- Coding: latin-1 -*-
 #  Copyright CERFACS (http://cerfacs.fr/)
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+"""
+Main module of icclim.
+"""
 
 import logging
 import time
@@ -288,7 +291,6 @@ def _add_basic_indice_metadata(
     computed_index: EcadIndex,
     former_history: str,
 ) -> Dataset:
-    # TODO: complete with clix-meta metadata
     if config.threshold is not None:
         title = f"Index {computed_index.index_name} with user defined threshold"
     else:
@@ -301,9 +303,7 @@ def _add_basic_indice_metadata(
     result_ds.attrs["history"] = _get_history(
         config, former_history, computed_index, result_ds
     )
-    # TODO make sure it should stay empty as in v4
     result_ds.attrs["source"] = ""
-    # TODO make sure 1.6 is ok or use a newer version of cf
     result_ds.attrs["Conventions"] = "CF-1.6"
 
     result_ds.lat.encoding["_FillValue"] = None

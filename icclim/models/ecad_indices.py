@@ -73,17 +73,15 @@ class EcadIndex(Enum):
     """
     ECA&D indices.
         index_name: str
-            The index name, case insensitive.
+            The index name used in the output.
         compute: Callable
             The function to compute the index. It wraps Xclim functions.
         group: str
-            The index group category.
+            The index group category. one of
+            `{"temperature", "heat", "cold", "drought", "rain", "snow", "compound"}`
         variables: List[List[str]]
             The Cf variables needed to compute the index.
             The variable are individually described by a list of aliases.
-        time_aware: bool
-            Whether the index is computed on a single time tick or use a rolling
-            windows or may be bootstrapped. This is useful to optimize dask chunking.
     """
 
     # temperature

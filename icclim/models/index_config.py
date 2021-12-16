@@ -14,6 +14,19 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 
 
 class CfVariable:
+    """
+    CfVariable groups together two xarray DataArray for the same variable.
+    One represent the whole studied period. The other is only the in base period used by
+    percentile based indices to compute percentiles.
+
+    Parameters
+    ----------
+    da: DataArray
+        The variable studied.
+    in_base_da: DataArray
+        The variable studied limited to the in base period.
+    """
+
     da: DataArray
     in_base_da: DataArray
 
@@ -23,6 +36,36 @@ class CfVariable:
 
 
 class IndexConfig:
+    """
+    Configuration class for ECA&D indices.
+
+    Parameters
+    ----------
+    freq: Frequency
+        The expected resampling frequency of the output.
+    cf_variables: List[CfVariable]
+        List of CfVariable necessary to compute the index.
+    save_percentile: bool = False
+        On percentile based indices, if True, this saves the percentile in the output
+        netcdf.
+    is_percent: bool = False
+        On indices resulting in a numbers of days, if True, this converts the results to
+        % of the sampling frequency
+    netcdf_version: NetcdfVersion
+        Netcdf version to be used when creating the output
+    window: Optional[int]
+        On indices relying on a rolling window of days, configure the window width.
+    threshold: Optional[float]
+        On indices relying on a threshold, configure the threshold value. Unit less.
+        The unit "degC" is added by icclim.
+    transfer_limit_Mbytes: Optional[int]
+        The dask maximum chunk size.
+    out_unit: Optional[str]
+        The output unit overriding Xclim results.
+    callback: Optional[Callable]
+        A callable to produce a progress bar
+    """
+
     freq: Frequency
     cf_variables: List[CfVariable]
     save_percentile: bool = False
