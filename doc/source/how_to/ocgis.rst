@@ -1,8 +1,9 @@
 .. _icclim_ocgis:
 
-ICCLIM called from OpenClimateGIS - Examples
+Icclim called from OpenClimateGIS - Examples
 ==============================================
-ICCLIM indices (`ECA&D climate indices <https://www.ecad.eu/documents/atbd.pdf>`_) are implemented in the `OpenClimateGIS <https://github.com/NCPP/ocgis>`_ (Version 1.1.0) Python package.
+Icclim indices (`ECA&D climate indices <https://www.ecad.eu/documents/atbd.pdf>`_) are implemented in the
+`OpenClimateGIS <https://github.com/NCPP/ocgis>`_ (Version 1.1.0) Python package.
 
 
 >>> import ocgis
@@ -13,12 +14,12 @@ It is also possible to pass a list of datasets:
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas')
 
 Subsetting with `time_range <https://ocgis.readthedocs.io/en/latest/examples.html#subsetting-with-a-time-level-range>` and/or `time_region <https://ocgis.readthedocs.io/en/latest/operations.html#time-region>`
-------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 For temporal subsetting we use the ``time_range`` parameter:
 
 >>> import datetime
->>> dt1 = datetime.datetime(1985,01,01)
+>>> dt1 = datetime.datetime(1985,1,1)
 >>> dt2 = datetime.datetime(1995,12,31)
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas', time_range=[dt1, dt2])
 
@@ -29,7 +30,7 @@ or/and the ``time_region`` parameter:
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas', time_region={'year':[1989,1990,1991],'month':[6,7,8]})
 
 Temporal aggregation with `calc_grouping <https://ocgis.readthedocs.io/en/latest/operations.html#calc-grouping>`
----------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
 
 Annual values:
 
@@ -83,7 +84,7 @@ Example 3: percentile-based indices
 Calculation of percentile-based indices is more complicated.
 The example below shows how to calculate the TG10p indice.
 
->>> dt1 = datetime.datetime(1980, 01, 01)
+>>> dt1 = datetime.datetime(1980, 1, 1)
 >>> dt2 = datetime.datetime(1989, 12, 31)
 >>> time_range_indice = [dt1, dt2] # we will calculate the indice for 10 years
 >>> rd = ocgis.RequestDataset(tas_files, 'tas', time_range=time_range_indice)
@@ -92,7 +93,7 @@ The example below shows how to calculate the TG10p indice.
 We do the same for reference period (usually the
 reference period is the 1961-1990 (30 years)):
 
->>> dt1_ref = datetime.datetime(1961, 01, 01)
+>>> dt1_ref = datetime.datetime(1961, 1, 1)
 >>> dt2_ref = datetime.datetime(1990, 12, 31)
 >>> time_range_ref = [dt1_ref, dt2_ref]
 >>> rd_ref = ocgis.RequestDataset(tas_files, 'tas', time_range=time_range_ref)
@@ -136,8 +137,7 @@ so first we need to find an optimal tile dimention (number of pixels) to get a c
 
 .. note:: Chunks are cut along the time axis, i.e. a maximum chunk size in pixels is **tile_dimention** x **tile_dimention** x **number_time_steps**.
 
-.. figure:: /images/chunks.png
-   :scale: 90%
+.. figure:: /_static/chunks.png
 
 
 Now we can use the compute function:
