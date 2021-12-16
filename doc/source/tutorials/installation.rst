@@ -49,7 +49,7 @@ To get the version of installed library, do the following:
 .. code-block:: sh
 
     >>> icclim.__version__
-    5.0.0rc1
+    5.0.0rc2
 
 
 .. note:: Icclim was not tested on Windows platform...
