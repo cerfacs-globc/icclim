@@ -4,10 +4,16 @@ Release history
 5.0.0rc2
 --------
 
-* Make HD17 expect tas instead of tas_min
+* [fix] Make HD17 expect tas instead of tas_min.
+* [fix] Fix performance issue with indices computed on consecutive days such as CDD.
+* [maint] Add Github action CI to run unit tests.
+* [maint] Add pre-commit CI to fix lint issues on PRs.
+* [maint] Update sphinx and remove old static files.
+* [doc] Restructure documentation to follow diataxis principles.
+* [doc] Add some articles to documentation
 
-5.0.0
------
+5.0.0rc1
+--------
 We fully rewrote Icclim to benefit from Xclim, Xarray, Numpy and Dask.
 A lot of effort has been to minimize the API changes.
 Thus for all scripts using a former version of icclim updating to this new version should be smooth.
