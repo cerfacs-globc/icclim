@@ -1,5 +1,5 @@
 
-Files where to update Icclim version number:
+Files where to update icclim version number:
 
     - icclim/setup.py
     - icclim/icclim/__init__.py

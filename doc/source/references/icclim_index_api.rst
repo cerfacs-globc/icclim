@@ -1,7 +1,7 @@
 icclim.index(), the main entry point
 ====================================
 
-Icclim has a main entry point with :func:`icclim.index`.
+icclim has a main entry point with :func:`icclim.index`.
 It is used to compute both ECA&D indices and user defined indices.
 There are quite a lot of options but for simple indices a few of them are needed.
 You may want to also have a look at our recipes in :ref:`how_to` to have an idea of how to use `icclim.index`.
@@ -140,14 +140,14 @@ and  :ref:`ignore_Feb29th <ignore_Feb29th_label>` parameters.
 
 
 
-In *Icclim* these thresholds represent a dictionary with 365 (if :ref:`ignore_Feb29th <ignore_Feb29th_label>` is True)
+In *icclim* these thresholds represent a dictionary with 365 (if :ref:`ignore_Feb29th <ignore_Feb29th_label>` is True)
 or 366 (if :ref:`ignore_Feb29th <ignore_Feb29th_label>` is False) calendar days as keys, and 2D arrays as values.
 
 .. note:: A calendar day key of the dictionary is composed from the corresponding month and day, separated by a comma. For example, getting of the 2D array with percentiles for April 13th, looks like *my_perc_dict[4,13]*.
 
 
 The percentile thresholds are different for "in-base" years (years inside the base period) and "out-of-base" years.
-For "in-base" years, *Icclim* uses the *bootstrapping procedure*, which is
+For "in-base" years, *icclim* uses the *bootstrapping procedure*, which is
 explained in this article: `Avoiding Inhomogeneity in Percentile-Based Indices of
 Temperature Extremes (Zhang et al.) <http://etccdi.pacificclimate.org/docs/Zhangetal05JumpPaper.pdf>`_  - see
 the resampling algorithm in the section **4. Removing the "jump"**.
@@ -156,7 +156,7 @@ the resampling algorithm in the section **4. Removing the "jump"**.
 
 
 
-**2. For precipitation indices**, the thresholds are computed from the set of wet days (i.e. days when daily precipitation amount >= 1.0 mm) in the base period. In *Icclim* these thresholds represent an 2D array.
+**2. For precipitation indices**, the thresholds are computed from the set of wet days (i.e. days when daily precipitation amount >= 1.0 mm) in the base period. In *icclim* these thresholds represent an 2D array.
 
 
 
@@ -279,7 +279,7 @@ for the calendar day of **February 29th**:
 ~~~~~~~~~~~~~~~~~~~~
 Computing of a percentile value could use ``linear``, also known as type 7 in other software or the interpolation proposed
 by `Hyndman and Fan (1996) <https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_, named
-in *Icclim* as ``hyndman_fan`` interpolation, also known as type 8.
+in *icclim* as ``hyndman_fan`` interpolation, also known as type 8.
 
 
 ``out_unit``

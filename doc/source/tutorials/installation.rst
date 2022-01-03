@@ -5,7 +5,7 @@ Installation
 Dependencies
 ------------
 The dependencies to run icclim are listed under our
-(requirements.txt)[https://github.com/cerfacs-globc/icclim/blob/develop/requirements.txt] file.
+`requirements.txt <https://github.com/cerfacs-globc/icclim/blob/master/requirements.txt>`_ file.
 
 Installation (Linux, OS X)
 --------------------------
@@ -60,4 +60,4 @@ To get the version of installed library, do the following:
     5.0.0rc2
 
 
-.. note:: Icclim was not tested on Windows platform...
+.. note:: icclim was not tested on Windows platform...

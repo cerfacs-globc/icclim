@@ -17,9 +17,9 @@ sys.path.insert(0, os.path.abspath("../.."))
 import icclim
 
 # -- Project information -----------------------------------------------------
-project = "Icclim"
+project = "icclim"
 copyright = "2021, CERFACS"
-author = "Aoun Abel, @bzah"
+author = "Christian P."
 version = icclim.__version__
 release = icclim.__version__
 

@@ -18,7 +18,7 @@ Climate indices allow a statistical study of variations of the dependent climato
    - `Article about percentile-based indices <http://etccdi.pacificclimate.org/docs/Zhangetal05JumpPaper.pdf>`_
    - `Sample quantiles in statistical packages <https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_
 
-Icclim capabilities
+icclim capabilities
 ===================
 
 Currently, the 49 climate indices as defined by
@@ -35,7 +35,7 @@ air temperature and precipitation variables can be computed with icclim:
 
 Detailed description of each indice is available at https://www.ecad.eu/documents/atbd.pdf.
 
-Initially Icclim was designed for online computing of climate indices through the `climate4impact portal <https://climate4impact.eu>`_.
+Initially icclim was designed for online computing of climate indices through the `climate4impact portal <https://climate4impact.eu>`_.
 In spite of existence of other packages able to compute climate indices (`CDO <https://code.mpimet.mpg.de/projects/cdo>`_, `R package <https://etccdi.pacificclimate.org/resources/software-library>`_ ),
 it was decided to develop a new software in Python.
 Python language was first of all chosen to interface with `PyWPS <https://pywps.org/>`_: Python implementation of Web Processing Service

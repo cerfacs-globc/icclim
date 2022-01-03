@@ -14,7 +14,7 @@ Release history
 
 5.0.0rc1
 --------
-We fully rewrote Icclim to benefit from Xclim, Xarray, Numpy and Dask.
+We fully rewrote icclim to benefit from Xclim, Xarray, Numpy and Dask.
 A lot of effort has been to minimize the API changes.
 Thus for all scripts using a former version of icclim updating to this new version should be smooth.
 
@@ -31,7 +31,7 @@ In fact, we made a few improvements on the API
     - `logs_verbosity` parameter can now control how much logs icclim will produce. The possible values are ``{"HIGH", "LOW", "SILENT"}``.
 
 Additionally
-    - Icclim C code has also been removed. This makes the installation and maintenance much easier.
+    - icclim C code has also been removed. This makes the installation and maintenance much easier.
     - Climate indices metadata has been enriched with Xclim metadata.
     - With this rewrite a few indices were fixed as they were giving improper results.
     - Performances have been significantly improved, especially thanks to Dask.

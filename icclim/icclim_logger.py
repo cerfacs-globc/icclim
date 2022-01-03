@@ -65,7 +65,7 @@ class IcclimLogger:
         if self.verbosity == Verbosity.SILENT:
             return
         if self.verbosity == Verbosity.LOW:
-            logging.info(f"--- Icclim {icclim_version}")
+            logging.info(f"--- icclim {icclim_version}")
             logging.info("--- BEGIN EXECUTION")
             return
         logging.info(
@@ -74,7 +74,7 @@ class IcclimLogger:
         logging.info(
             "   *                                                                                          *"
         )
-        logging.info(f"   *          Icclim                {icclim_version}   *")
+        logging.info(f"   *          icclim                {icclim_version}   *")
         logging.info(
             "   *                                                                                          *"
         )
@@ -105,7 +105,7 @@ class IcclimLogger:
         if self.verbosity == Verbosity.SILENT:
             return
         if self.verbosity == Verbosity.LOW:
-            logging.info(f"--- Icclim {icclim_version}")
+            logging.info(f"--- icclim {icclim_version}")
             logging.info("--- CPU SECS = %-10.3f", time_cpu)
             logging.info("--- END EXECUTION")
             return
@@ -115,7 +115,7 @@ class IcclimLogger:
         logging.info(
             "   *                                                                                          *"
         )
-        logging.info(f"   *          Icclim                {icclim_version}   *")
+        logging.info(f"   *          icclim                {icclim_version}   *")
         logging.info(
             "   *                                                                                          *"
         )
