@@ -41,4 +41,4 @@ Add If you encounter a bug or an issue while using icclim, don't hesitate to ope
 Maintainers
 ~~~~~~~~~~~
 - Christian Page, `@pagecp <https://github.com/pagecp/>`_ <christian.page[at]cerfacs.fr>
-   - Abel Aoun, `@bzah <https://github.com/bzah>`_ <abel.aoun[at]cerfacs.fr>
+- Abel Aoun, `@bzah <https://github.com/bzah>`_ <abel.aoun[at]cerfacs.fr>

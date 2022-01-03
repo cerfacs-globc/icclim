@@ -2,13 +2,14 @@ Output metadata
 ================
 
 Output metadata contains at least the following variables:
-    - lat
-    - lat_bnds
-    - lon_bnds
-    - lon
-    - time
-    - time_bnds
-    - index
+
+- lat
+- lat_bnds
+- lon_bnds
+- lon
+- time
+- time_bnds
+- index
 
 lat, lon, lat_bnds, lon_bnds
 ---------------------------------

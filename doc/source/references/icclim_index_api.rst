@@ -60,8 +60,7 @@ summer, autumn and monthly frequency:
 +----------------------+-----------------------+
 
 | The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
-| Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001,
-February 2001 and March 2001.
+| Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001.
 
 Monthly time series with months selected by user:
     >>> slice_mode = ['month',[4,5,11]] # index will be computed only for April, May and November
