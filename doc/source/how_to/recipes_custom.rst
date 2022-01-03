@@ -1,4 +1,5 @@
 .. _custom_indices:
+
 Custom indices recipes
 ----------------------
 
