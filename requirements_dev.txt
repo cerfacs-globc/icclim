@@ -1,7 +1,11 @@
 black
+cftime~=1.5.0
 flake8
 isort
 nbsphinx
+netCDF4~=1.5.7
+numpy~=1.21.1
+pandas~=1.3.1
 pip
 pre-commit>=2.9
 pydata-sphinx-theme
@@ -10,3 +14,5 @@ pytest
 pytest-cov
 setuptools>=49.6.0
 sphinx
+xarray~=0.19.0
+xclim~=0.30.0
