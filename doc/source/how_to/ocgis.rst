@@ -1,8 +1,8 @@
 .. _icclim_ocgis:
 
-Icclim called from OpenClimateGIS - Examples
+icclim called from OpenClimateGIS - Examples
 ==============================================
-Icclim indices (`ECA&D climate indices <https://www.ecad.eu/documents/atbd.pdf>`_) are implemented in the
+icclim indices (`ECA&D climate indices <https://www.ecad.eu/documents/atbd.pdf>`_) are implemented in the
 `OpenClimateGIS <https://github.com/NCPP/ocgis>`_ (Version 1.1.0) Python package.
 
 
@@ -13,8 +13,12 @@ It is also possible to pass a list of datasets:
 
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas')
 
-Subsetting with `time_range <https://ocgis.readthedocs.io/en/latest/examples.html#subsetting-with-a-time-level-range>` and/or `time_region <https://ocgis.readthedocs.io/en/latest/operations.html#time-region>`
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Subsetting with ``time_range`` and/or ``time_region``
+-----------------------------------------------------
+
+.. note::
+    See `ocgis time_range <https://ocgis.readthedocs.io/en/latest/examples.html#subsetting-with-a-time-level-range>`_ doc
+    and `ocgis time_region <https://ocgis.readthedocs.io/en/latest/operations.html#time-region>`_ doc.
 
 For temporal subsetting we use the ``time_range`` parameter:
 
@@ -29,8 +33,11 @@ or/and the ``time_region`` parameter:
 
 >>> rd = ocgis.RequestDataset(['tas_19800101_19891231.nc', 'tas_19900101_19991231.nc'], variable='tas', time_region={'year':[1989,1990,1991],'month':[6,7,8]})
 
-Temporal aggregation with `calc_grouping <https://ocgis.readthedocs.io/en/latest/operations.html#calc-grouping>`
-----------------------------------------------------------------------------------------------------------------
+Temporal aggregation with ``calc_grouping``
+-------------------------------------------
+
+.. note::
+   See `ocgis calc_grouping <https://ocgis.readthedocs.io/en/latest/operations.html#calc-grouping>`_ doc.
 
 Annual values:
 
@@ -80,7 +87,7 @@ To calculate an indice based on 2 variables:
 .. _percentil_label:
 
 Example 3: percentile-based indices
--------------------------------------
+-----------------------------------
 Calculation of percentile-based indices is more complicated.
 The example below shows how to calculate the TG10p indice.
 

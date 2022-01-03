@@ -8,14 +8,14 @@
 .. _NumPy: http://www.numpy.org
 .. _netCDF: http://www.unidata.ucar.edu/software/netcdf
 
-Icclim's documentation
+icclim's documentation
 ======================
-Icclim (Index Calculation for CLIMate) is a Python library for computing a number of climate indices.
+icclim (Index Calculation for CLIMate) is a Python library for computing a number of climate indices.
 It built on a open source stack made of `xclim`_, `xarray`_, `dask`_ and of course `NumPy`_.
 
 .. note::
 
-   Icclim documentation is currently under construction. We try to follow the `diataxis`_ principles to build a comprehensive user focused doc.
+   icclim documentation is currently under construction. We try to follow the `diataxis`_ principles to build a comprehensive user focused doc.
 
 .. toctree::
    :maxdepth: 2
@@ -27,12 +27,12 @@ It built on a open source stack made of `xclim`_, `xarray`_, `dask`_ and of cour
    explanation/index
 
 
-A few notes about Icclim
+A few notes about icclim
 ------------------------
 1. Input datasets must be compliant to the `CF convention <https://cfconventions.org/>`_.
-2. Currently, *Icclim* doesn't support spatial subsetting, i.e. it processes whole spatial area.
-3. *Icclim* works with unsecured OPeNDAP datasets as well.
-4. Icclim developer repository can be found here: `<https://github.com/cerfacs-globc/icclim>`_
+2. Currently, *icclim* doesn't support spatial subsetting, i.e. it processes whole spatial area.
+3. *icclim* works with unsecured OPeNDAP datasets as well.
+4. icclim developer repository can be found here: `<https://github.com/cerfacs-globc/icclim>`_
 
 Contacts
 --------
@@ -41,4 +41,4 @@ Add If you encounter a bug or an issue while using icclim, don't hesitate to ope
 Maintainers
 ~~~~~~~~~~~
 - Christian Page, `@pagecp <https://github.com/pagecp/>`_ <christian.page[at]cerfacs.fr>
-   - Abel Aoun, `@bzah <https://github.com/bzah>`_ <abel.aoun[at]cerfacs.fr>
+- Abel Aoun, `@bzah <https://github.com/bzah>`_ <abel.aoun[at]cerfacs.fr>
