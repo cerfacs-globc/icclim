@@ -25,6 +25,7 @@ It built on a open source stack made of `xclim`_, `xarray`_, `dask`_ and of cour
    how_to/index
    references/index
    explanation/index
+   dev/index
 
 
 A few notes about icclim
