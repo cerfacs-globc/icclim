@@ -8,4 +8,4 @@ Here are some guidelines for those who which to contribute to icclim development
     :caption: Contents:
 
     release_process
-    continuous integration <ci>
+    ci
