@@ -10,12 +10,13 @@
 
 icclim's documentation
 ======================
-icclim (Index Calculation for CLIMate) is a Python library for computing a number of climate indices.
-It built on a open source stack made of `xclim`_, `xarray`_, `dask`_ and of course `NumPy`_.
+icclim (Index Calculation for CLIMate) is a Python library to compute climate indices.
+It is built on a open source stack made of `xclim`_, `xarray`_, `dask`_ and of course `NumPy`_.
 
 .. note::
 
-   icclim documentation is currently under construction. We try to follow the `diataxis`_ principles to build a comprehensive user focused doc.
+   icclim documentation is currently under construction. We try to follow the `diataxis`_ principles to build a
+   comprehensive user focused documentation.
 
 .. toctree::
    :maxdepth: 2

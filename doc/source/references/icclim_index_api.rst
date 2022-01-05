@@ -1,10 +1,10 @@
 icclim.index(), the main entry point
 ====================================
 
-icclim has a main entry point with :func:`icclim.index`.
+icclim exposes a main entry point with :func:`icclim.index`.
 It is used to compute both ECA&D indices and user defined indices.
-There are quite a lot of options but for simple indices a few of them are needed.
-You may want to also have a look at our recipes in :ref:`how_to` to have an idea of how to use `icclim.index`.
+There are quite a lot of options, but only a few of them are needed to compute simple indices.
+Our :ref:`how_to` recipes are also a good start to have an idea on how to use `icclim.index`.
 
 Compute climat indices
 ----------------------
@@ -25,11 +25,11 @@ The ``in_files`` parameter could be *string*, *list of strings* or *list of list
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 | single input file per variable                           |  several input files per variable                                                                       |
 +=================================+==========================================================+=========================================================================================================+
-| simple index                    |   ``var_name`` = 'tasmax'                                |   ``var_name`` = 'tasmax'                                                                               |
+| simple index                    |  ``var_name`` = 'tasmax'                                 |   ``var_name`` = 'tasmax'                                                                               |
 | (based on a single variable)    +----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-|                                 | ``in_files`` = 'tasmax_1990-2010.nc'                     |  ``in_files`` = ['tasmax_1990-2000.nc', 'tasmax_2000-2010.nc']                                          |
+|                                 |  ``in_files`` = 'tasmax_1990-2010.nc'                    |  ``in_files`` = ['tasmax_1990-2000.nc', 'tasmax_2000-2010.nc']                                          |
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-| multivariable index             |       ``var_name`` = ['tas', 'pr']                       |   ``var_name`` = ['tas', 'pr']                                                                          |
+| multivariable index             |  ``var_name`` = ['tas', 'pr']                            |   ``var_name`` = ['tas', 'pr']                                                                          |
 | (based on several variables)    +----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 |  ``in_files`` = ['tas_1990-2010.nc', 'pr_1990-2010.nc']  |   ``in_files`` = [['tas_1990-2000.nc', 'tas_2000-2010.nc'], ['pr_1990-2000.nc'], 'pr_2000-2010.nc']]    |
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
