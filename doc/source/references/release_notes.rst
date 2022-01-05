@@ -1,6 +1,19 @@
 Release history
 ===============
 
+5.0.0rc3 (not released)
+-----------------------
+* [maint] Add github templates for issues and pull requests.
+* [maint] Simplify ecad functions output to a single DataArray in most cases.
+* [fix] Fix lint for doc conf.
+* [fix] Add all requirements to requirements_dev.txt
+* [doc] Update Readme from md to rst format. Also changed content.
+* [doc] Add a dev documentation article "how to release".
+* [doc] Add a dev documentation article "continuous integration".
+* [doc] Update installation tutorial.
+* [doc] Various improvements in doc wording and display.
+* [doc] Start to documente ecad indices functions.
+
 5.0.0rc2
 --------
 
@@ -10,7 +23,7 @@ Release history
 * [maint] Add pre-commit CI to fix lint issues on PRs.
 * [maint] Update sphinx and remove old static files.
 * [doc] Restructure documentation to follow diataxis principles.
-* [doc] Add some articles to documentation
+* [doc] Add some articles to documentation.
 
 5.0.0rc1
 --------
