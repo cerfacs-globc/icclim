@@ -261,7 +261,11 @@ def _compute_ecad_index(
 ) -> Dataset:
     logging.info(f"Calculating climate index: {index.index_name}")
     result_ds = Dataset()
-    da, per = index.compute(config)
+    res = index.compute(config)
+    if isinstance(res, tuple):
+        da, per = res
+    else:
+        da, per = (res, None)
     da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:
         da.expand_dims({"threshold": config.threshold})
