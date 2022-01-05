@@ -20,12 +20,11 @@ from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
-ComputeIndexFun = Callable[
-    [IndexConfig], Union[DataArray, Tuple[DataArray, Optional[DataArray]]]
-]
+ComputeIndexResult = Union[DataArray, Tuple[DataArray, Optional[DataArray]]]
+ComputeIndexFun = Callable[[IndexConfig], ComputeIndexResult]
 
 
-def gd4(config: IndexConfig) -> DataArray:
+def gd4(config: IndexConfig) -> ComputeIndexResult:
     if config.threshold is None:
         threshold = "4.0 °C"
     else:
@@ -36,7 +35,7 @@ def gd4(config: IndexConfig) -> DataArray:
     return result
 
 
-def cfd(config: IndexConfig) -> DataArray:
+def cfd(config: IndexConfig) -> ComputeIndexResult:
     if config.threshold is None:
         threshold = "0.0 °C"
     else:
@@ -47,7 +46,7 @@ def cfd(config: IndexConfig) -> DataArray:
     return result
 
 
-def fd(config: IndexConfig) -> DataArray:
+def fd(config: IndexConfig) -> ComputeIndexResult:
     if config.threshold is None:
         threshold = "0.0 °C"
     else:
@@ -58,7 +57,7 @@ def fd(config: IndexConfig) -> DataArray:
     return result
 
 
-def hd17(config: IndexConfig) -> DataArray:
+def hd17(config: IndexConfig) -> ComputeIndexResult:
     if config.threshold is None:
         threshold = "17.0 °C"
     else:
@@ -69,7 +68,7 @@ def hd17(config: IndexConfig) -> DataArray:
     return result
 
 
-def id(config: IndexConfig) -> DataArray:
+def id(config: IndexConfig) -> ComputeIndexResult:
     if config.threshold is None:
         threshold = "0.0 °C"
     else:
@@ -80,7 +79,7 @@ def id(config: IndexConfig) -> DataArray:
     return result
 
 
-def csdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def csdi(config: IndexConfig) -> ComputeIndexResult:
     per_value = 10
     per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
@@ -98,7 +97,7 @@ def csdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def tg10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tg10p(config: IndexConfig) -> ComputeIndexResult:
     per_value = 10
     per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
@@ -117,7 +116,7 @@ def tg10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def tn10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tn10p(config: IndexConfig) -> ComputeIndexResult:
     per_value = 10
     per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
@@ -136,7 +135,7 @@ def tn10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def tx10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tx10p(config: IndexConfig) -> ComputeIndexResult:
     per_value = 10
     per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
@@ -155,26 +154,26 @@ def tx10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def txn(config: IndexConfig) -> DataArray:
+def txn(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.tx_min(config.cf_variables[0].da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
 
-def tnn(config: IndexConfig) -> DataArray:
+def tnn(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.tn_min(config.cf_variables[0].da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
 
-def cdd(config: IndexConfig) -> DataArray:
+def cdd(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.maximum_consecutive_dry_days(
         config.cf_variables[0].da, thresh="1.0 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
-def su(config: IndexConfig) -> DataArray:
+def su(config: IndexConfig) -> ComputeIndexResult:
     if config.threshold is None:
         threshold = "25.0 °C"
     else:
@@ -185,7 +184,7 @@ def su(config: IndexConfig) -> DataArray:
     return result
 
 
-def tr(config: IndexConfig) -> DataArray:
+def tr(config: IndexConfig) -> ComputeIndexResult:
     if config.threshold is None:
         threshold = "20.0 °C"
     else:
@@ -196,7 +195,7 @@ def tr(config: IndexConfig) -> DataArray:
     return result
 
 
-def wsdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def wsdi(config: IndexConfig) -> ComputeIndexResult:
     per_value = 90
     per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
@@ -214,7 +213,7 @@ def wsdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def tg90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tg90p(config: IndexConfig) -> ComputeIndexResult:
     per_value = 90
     per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
@@ -233,7 +232,7 @@ def tg90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def tn90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tn90p(config: IndexConfig) -> ComputeIndexResult:
     per_value = 90
     per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
@@ -252,7 +251,7 @@ def tn90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def tx90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tx90p(config: IndexConfig) -> ComputeIndexResult:
     per_value = 90
     per = _compute_percentile_doy(config.cf_variables[0].in_base_da, config, per_value)
     run_bootstrap = _can_run_bootstrap(config, slice(*per.climatology_bounds))
@@ -271,19 +270,19 @@ def tx90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def txx(config: IndexConfig) -> DataArray:
+def txx(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.tx_max(config.cf_variables[0].da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
 
-def tnx(config: IndexConfig) -> DataArray:
+def tnx(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.tn_max(config.cf_variables[0].da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
 
-def csu(config: IndexConfig) -> DataArray:
+def csu(config: IndexConfig) -> ComputeIndexResult:
     if config.threshold is None:
         threshold = "25.0 °C"
     else:
@@ -294,7 +293,7 @@ def csu(config: IndexConfig) -> DataArray:
     return result
 
 
-def prcptot(config: IndexConfig) -> DataArray:
+def prcptot(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.precip_accumulation(
         _filter_in_wet_days(config.cf_variables[0].da, dry_day_value=0),
         freq=config.freq.panda_freq,
@@ -302,56 +301,56 @@ def prcptot(config: IndexConfig) -> DataArray:
     return result
 
 
-def rr1(config: IndexConfig) -> DataArray:
+def rr1(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.wetdays(
         config.cf_variables[0].da, thresh="1.0 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
-def sdii(config: IndexConfig) -> DataArray:
+def sdii(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.daily_pr_intensity(
         config.cf_variables[0].da, thresh="1.0 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
-def cwd(config: IndexConfig) -> DataArray:
+def cwd(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.maximum_consecutive_wet_days(
         config.cf_variables[0].da, thresh="1.0 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
-def r10mm(config: IndexConfig) -> DataArray:
+def r10mm(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.wetdays(
         config.cf_variables[0].da, thresh="10 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
-def r20mm(config: IndexConfig) -> DataArray:
+def r20mm(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.wetdays(
         config.cf_variables[0].da, thresh="20 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
-def rx1day(config: IndexConfig) -> DataArray:
+def rx1day(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.max_1day_precipitation_amount(
         config.cf_variables[0].da, freq=config.freq.panda_freq
     )
     return result
 
 
-def rx5day(config: IndexConfig) -> DataArray:
+def rx5day(config: IndexConfig) -> ComputeIndexResult:
     result = atmos.max_n_day_precipitation_amount(
         config.cf_variables[0].da, window=5, freq=config.freq.panda_freq
     )
     return result
 
 
-def r75p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r75p(config: IndexConfig) -> ComputeIndexResult:
     base_wet_days = _filter_in_wet_days(
         config.cf_variables[0].in_base_da, dry_day_value=np.nan
     )
@@ -370,7 +369,7 @@ def r75p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def r75ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r75ptot(config: IndexConfig) -> ComputeIndexResult:
     base_wet_days = _filter_in_wet_days(
         config.cf_variables[0].in_base_da, dry_day_value=np.nan
     )
@@ -389,7 +388,7 @@ def r75ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def r95p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r95p(config: IndexConfig) -> ComputeIndexResult:
     base_wet_days = _filter_in_wet_days(
         config.cf_variables[0].in_base_da, dry_day_value=np.nan
     )
@@ -408,7 +407,7 @@ def r95p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def r95ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r95ptot(config: IndexConfig) -> ComputeIndexResult:
     base_wet_days = _filter_in_wet_days(
         config.cf_variables[0].in_base_da, dry_day_value=np.nan
     )
@@ -427,7 +426,7 @@ def r95ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def r99p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r99p(config: IndexConfig) -> ComputeIndexResult:
     base_wet_days = _filter_in_wet_days(
         config.cf_variables[0].in_base_da, dry_day_value=np.nan
     )
@@ -446,7 +445,7 @@ def r99p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def r99ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r99ptot(config: IndexConfig) -> ComputeIndexResult:
     base_wet_days = _filter_in_wet_days(
         config.cf_variables[0].in_base_da, dry_day_value=np.nan
     )
@@ -465,7 +464,7 @@ def r99ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def sd(config: IndexConfig) -> DataArray:
+def sd(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Mean of daily Snow Depth (SD)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -487,7 +486,7 @@ def sd(config: IndexConfig) -> DataArray:
     return result
 
 
-def sd1(config: IndexConfig) -> DataArray:
+def sd1(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Snow Days with at least 1 cm of snow (SD1)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -511,7 +510,7 @@ def sd1(config: IndexConfig) -> DataArray:
     return result
 
 
-def sd5cm(config: IndexConfig) -> DataArray:
+def sd5cm(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Snow Days with at least 5 cm of snow (SD5cm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -535,7 +534,7 @@ def sd5cm(config: IndexConfig) -> DataArray:
     return result
 
 
-def sd50cm(config: IndexConfig) -> DataArray:
+def sd50cm(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Snow Days with at least 50 cm of snow (SD50cm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -559,7 +558,7 @@ def sd50cm(config: IndexConfig) -> DataArray:
     return result
 
 
-def tg(config: IndexConfig) -> DataArray:
+def tg(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: mean of daily averaged(G) Temperature (TG)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -582,7 +581,7 @@ def tg(config: IndexConfig) -> DataArray:
     return result
 
 
-def tn(config: IndexConfig) -> DataArray:
+def tn(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: daily minimun(N) Temperature averaged (TN)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -605,7 +604,7 @@ def tn(config: IndexConfig) -> DataArray:
     return result
 
 
-def tx(config: IndexConfig) -> DataArray:
+def tx(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: daily maximum(X) Temperature averaged (TX)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -628,7 +627,7 @@ def tx(config: IndexConfig) -> DataArray:
     return result
 
 
-def dtr(config: IndexConfig) -> DataArray:
+def dtr(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Diurnal Temperature Range (DTR)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -656,7 +655,7 @@ def dtr(config: IndexConfig) -> DataArray:
     return result
 
 
-def etr(config: IndexConfig) -> DataArray:
+def etr(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Extreme Temperature Range (ETR)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -684,7 +683,7 @@ def etr(config: IndexConfig) -> DataArray:
     return result
 
 
-def vdtr(config: IndexConfig) -> DataArray:
+def vdtr(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index:
         Mean absolute day-to-day difference in Diurnal temperature range (vDTR)
@@ -713,7 +712,7 @@ def vdtr(config: IndexConfig) -> DataArray:
     return result
 
 
-def cd(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def cd(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Cold and Wet days (CD)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -757,7 +756,7 @@ def cd(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def cw(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def cw(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Cold and Wet days (CD)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -801,7 +800,7 @@ def cw(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def wd(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def wd(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Warm and Dry days (WD)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
@@ -845,7 +844,7 @@ def wd(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     return result
 
 
-def ww(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def ww(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Warm and Wet days (WW)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
