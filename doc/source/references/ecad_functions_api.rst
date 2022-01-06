@@ -13,6 +13,12 @@ Each index of the EcadIndex enum exposes a `compute` method to calculate the cor
 
 .. autoclass:: icclim.models.index_config.CfVariable
 
+
+Indices functions
+-----------------
+Below is the documentation of each individual index function.
+
+
 .. automodule:: icclim.models.ecad_indices
     :members: EcadIndex,
         gd4,

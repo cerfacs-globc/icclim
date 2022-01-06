@@ -467,6 +467,7 @@ def r99ptot(config: IndexConfig) -> ComputeIndexResult:
 def sd(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Mean of daily Snow Depth (SD)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Mean of daily snow depth (cm)
@@ -489,6 +490,7 @@ def sd(config: IndexConfig) -> ComputeIndexResult:
 def sd1(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Snow Days with at least 1 cm of snow (SD1)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Number of days with SD ≥ 1 cm (days)
@@ -513,6 +515,7 @@ def sd1(config: IndexConfig) -> ComputeIndexResult:
 def sd5cm(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Snow Days with at least 5 cm of snow (SD5cm)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Number of days with SD ≥ 5 cm (days)
@@ -537,6 +540,7 @@ def sd5cm(config: IndexConfig) -> ComputeIndexResult:
 def sd50cm(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Snow Days with at least 50 cm of snow (SD50cm)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Number of days with SD ≥ 50 cm (days)
@@ -561,6 +565,7 @@ def sd50cm(config: IndexConfig) -> ComputeIndexResult:
 def tg(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: mean of daily averaged(G) Temperature (TG)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Mean of daily averaged temperature (°C)
@@ -584,6 +589,7 @@ def tg(config: IndexConfig) -> ComputeIndexResult:
 def tn(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: daily minimun(N) Temperature averaged (TN)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Mean of daily minimum temperature (°C)
@@ -607,6 +613,7 @@ def tn(config: IndexConfig) -> ComputeIndexResult:
 def tx(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: daily maximum(X) Temperature averaged (TX)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Mean of daily maximum temperature (°C)
@@ -630,6 +637,7 @@ def tx(config: IndexConfig) -> ComputeIndexResult:
 def dtr(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Diurnal Temperature Range (DTR)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Mean of diurnal temperature range (°C)
@@ -658,6 +666,7 @@ def dtr(config: IndexConfig) -> ComputeIndexResult:
 def etr(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Extreme Temperature Range (ETR)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Intra-period extreme temperature range (°C)
@@ -687,6 +696,7 @@ def vdtr(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index:
         Mean absolute day-to-day difference in Diurnal temperature range (vDTR)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Mean absolute day-to-day difference in Diurnal temperature range (°C)
@@ -715,6 +725,7 @@ def vdtr(config: IndexConfig) -> ComputeIndexResult:
 def cd(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Cold and Wet days (CD)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Days with TG < 25th percentile of daily mean temperature and RR < 25th percentile of
@@ -759,6 +770,7 @@ def cd(config: IndexConfig) -> ComputeIndexResult:
 def cw(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Cold and Wet days (CD)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Days with TG < 25th percentile of daily mean temperature and RR > 75th percentile of
@@ -803,6 +815,7 @@ def cw(config: IndexConfig) -> ComputeIndexResult:
 def wd(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Warm and Dry days (WD)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Days with TG > 75th percentile of daily mean temperature and RR <25th percentile
@@ -847,6 +860,7 @@ def wd(config: IndexConfig) -> ComputeIndexResult:
 def ww(config: IndexConfig) -> ComputeIndexResult:
     """
     Climate index: Warm and Wet days (WW)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
 
     Days with TG > 75th percentile of daily mean temperature and RR > 75th percentile of
