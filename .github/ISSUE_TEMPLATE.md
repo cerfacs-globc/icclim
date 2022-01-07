@@ -14,7 +14,7 @@ Describe your issue or the feature requested.
 Mandatory.
 -->
 
-### Minimal reproductible example
+### Minimal reproducible example
 <!--
 In case of a bug, please fill this with the code producing the bug.
 Optional for feature request or question.
@@ -22,6 +22,6 @@ Optional for feature request or question.
 
 ### Output received
 <!--
-If the code produces an error, please put here the full stacktrace.
+If the code produces an error, please put here the full stack-trace.
 Optional for feature request or question.
 -->

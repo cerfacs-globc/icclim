@@ -43,8 +43,8 @@ def indice(*args, **kwargs):
 
 def index(
     in_files: Union[str, List[str], Dataset],
+    index_name: str,
     var_name: Optional[Union[str, List[str]]] = None,
-    index_name: str = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime] = None,
     out_file: str = "icclim_out.nc",
@@ -71,53 +71,85 @@ def index(
     user_indice: Dict[str, Any] = None,
 ) -> Dataset:
     """
-    :param index_name:
+    Parameters
+    ----------
+    in_files : Union[str, List[str], Dataset]
+        Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs),
+        or xarray.Dataset.
+    index_name : str
         Climate index name.
-    :param in_files:
-        Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs).
-    :param var_name:
-        Target variable name to process corresponding to ``in_files``.
-    :param slice_mode:
+        For ECA&D index, case insensitive name used to lookup the index.
+        For user index, it's the name of the output variable.
+    var_name : str
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the climate
+        index wanted.
+        Mandatory for a user index.
+    slice_mode : str
         Type of temporal aggregation:
         {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
-        If ``None``, the index will be calculated as monthly values.
-    :param time_range:
-        Temporal range: upper and lower bounds for temporal subsetting.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range : List[datetime.datetime]
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
-    :param out_file:
+        Default is ``None``.
+    out_file : str
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-    :param threshold:
-        User defined threshold for certain indices.
-    :param transfer_limit_Mbytes:
-        Maximum OPeNDAP/THREDDS request limit in Mbytes in case of OPeNDAP datasets.
-    :param callback:
-        Progress bar printing. If ``None``, progress bar will not be printed.
-    :param callback_percentage_start_value:
-        Initial value of percentage of the progress bar (default: 0).
-    :param callback_percentage_total:
-        Total persentage value (default: 100).
-    :param base_period_time_range:
-        Temporal range of the base period.
-    :param window_width:
-        Window width, must be odd (default: 5).
-    :param only_leap_years:
-        Option for February 29th (default: False).
-    :param ignore_Feb29th:
-        Ignoring or not February 29th (default: False).
-    :param interpolation:
-        Interpolation method to compute percentile values: "linear" or "hyndman_fan".
-        default: "hyndman_fan".
-    :param out_unit:
-        Output unit for certain indices: "days" or "%" (default: "days").
-    :param user_index:
-        A dictionary with parameters for user defined index
-    :param netcdf_version:
-        NetCDF version to create (default: "NETCDF3_CLASSIC").
-    :param save_percentile:
-        True if the percentiles should be saved within the resulting netcdf file
-    :rtype: path to NetCDF file
-
-    .. warning:: If ``out_file`` already exists, icclim will overwrite it!
+        Default is "icclim_out.nc"
+        If ``out_file`` already exists, icclim will overwrite it!
+    threshold : Union[float, List[float]]
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
+    transfer_limit_Mbytes : float
+        ``optional`` Maximum Dask chunk size in memory.
+        The value should be around 200 MB.
+        If empty, no chunking is performed, the whole dataset will be in memory and the
+        performance might be poor.
+    callback : function
+        ``optional`` Progress bar printing. If ``None``, progress bar will not be
+        printed.
+    callback_percentage_start_value : int
+        ``optional`` Initial value of percentage of the progress bar (default: 0).
+    callback_percentage_total : int
+        ``optional`` Total percentage value (default: 100).
+    base_period_time_range : List[datetime.datetime]
+        ``optional`` Temporal range of the base period.
+        Mandatory for bootstrapped indices, which are the temperature percentile based
+        indices.
+        Ignored for other indices.
+    window_width : int
+        ``optional`` User defined window width for related indices (default: 5).
+        Ignored for non related indices.
+    only_leap_years : bool
+        ``optional`` Option for February 29th (default: False).
+    ignore_Feb29th : bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    interpolation : Union[str, QuantileInterpolation]
+        ``optional`` Interpolation method to compute percentile values:
+        ``{"linear", "hyndman_fan"}``
+        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        Ignored for non percentile based indices.
+    out_unit : str
+        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
+    netcdf_version : icclim.models.netcdf_version.NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    user_index : Union[None, None]
+        ``optional`` A dictionary with parameters for user defined index.
+        See :ref:`Custom indices`.
+        Ignored for ECA&D indices.
+    save_percentile : bool
+        ``optional`` True if the percentiles should be saved within the resulting netcdf
+         file (default: False).
+    logs_verbosity : Union[str, Verbosity]
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    indice_name : Union[str, None]
+        DEPRECATED, use index_name instead.
+    user_indice : Union[None, None]
+        DEPRECATED, use user_index instead.
 
     """
     # make xclim input daily check a warning instead of an error
