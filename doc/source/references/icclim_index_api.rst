@@ -9,13 +9,12 @@ Our :ref:`how_to` recipes are also a good start to have an idea on how to use `i
 Compute climat indices
 ----------------------
 
-.. automodule:: icclim
-    :members: index
+.. autofunction:: icclim.index(**kwargs)
 
 .. note:: For the variable names see the :ref:`correspondence table "index - source variable" <table_index_sourceVar_label>`
 
 
-Below some additional information about input parameters.
+Below are some additional information about input parameters.
 
 ``in_files`` and ``var_name``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -33,6 +32,8 @@ The ``in_files`` parameter could be *string*, *list of strings* or *list of list
 | (based on several variables)    +----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 |  ``in_files`` = ['tas_1990-2010.nc', 'pr_1990-2010.nc']  |   ``in_files`` = [['tas_1990-2000.nc', 'tas_2000-2010.nc'], ['pr_1990-2000.nc'], 'pr_2000-2010.nc']]    |
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
+
+.. _slice_mode:
 
 ``slice_mode``
 ~~~~~~~~~~~~~~
@@ -125,8 +126,8 @@ If it is ``True``, we kick out February 29th.
 
 .. _pctl_methods_label:
 
-**Computing percentile thresholds**
------------------------------------
+Computing percentile thresholds
+-------------------------------
 
 Percentile thresholds are used as thresholds for calculation of percentile-based indices
 and are computed from values inside a reference period, named *base period* which is usually 30 years (``base_period_time_range`` parameter).
@@ -288,8 +289,8 @@ Percentile-based indices (TX10p, TX90p, TN10p, TN90p, TG10p, TG90p, R75p, R95p a
 or as percentage of days (``out_unit`` = "%").
 
 
-**Custom indices**
--------------------
+Custom indices
+--------------
 You can also calculate custom climate indices by setting all necessary parameters to ``user_index``.
 
 
