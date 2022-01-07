@@ -9,3 +9,4 @@ For more technical knowledge, see :ref:`references`.
     :caption: Contents:
 
     climate_indices
+    xclim_and_icclim
