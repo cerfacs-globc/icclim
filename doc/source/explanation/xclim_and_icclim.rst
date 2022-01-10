@@ -48,10 +48,21 @@ Beside, icclim still provides a way to write **user defined indices** using a si
 (actually a python dictionary) with ``icclim.index(user_index=...)``.
 The metadata is however not as rich as with ECA&D indices.
 
-One of the goal of icclim is also to provide an API which require zero knowledge of xarray letting user new to python and
-its ecosystem reliably compute climate indices.
+One of the goal of icclim is also to provide an API which require zero knowledge of xarray letting user new to python
+and its ecosystem reliably compute climate indices.
 This is one of the reason why icclim exposes a single entry point for all it's features with ``icclim.index``.
 It means users new to xarray might prefer icclim while experts could find xclim more convenient.
+
+xclim scope is larger than the one of icclim. xclim add metadata to the computed index in multiple languages (currently
+FR and EN), it computes many indices not part of the ECA&D specification, it provides biais adjustment and downscaling
+algorithms and is capable of detecting many common errors which can be found in netCDF files through health checks.
+All those features make `xclim`_ a very good tool by itself and we encourage the reader to check `xclim documentation
+<https://xclim.readthedocs.io/en/stable/index.html>`_ for more information on it's features.
+
+.. note::
+    xclim provides a virtual module named ``icclim`` which exposes in a xclim style the ECA&D indices that were
+    historically provided by icclim. But this module do not use our library ``icclim`` directly, otherwise we would
+    have a weird circular dependency.
 
 We are very grateful for the work done on xclim and we hope to continue the collaboration while both libraries grow in
 users and maturity.
