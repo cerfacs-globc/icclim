@@ -4,16 +4,16 @@
 Disambiguation on xclim and icclim
 ==================================
 
-On a first glance it seems `xclim`_ and icclim serve the same purpose but the difference is in the details.
-With version 5 of icclim, xclim became a building block of icclim. xclim handles some the core features, notably
-the calculation climate indices. Beside, we also make use of xclim capabilities to handle i/o units and to check
+At first glance it seems `xclim`_ and icclim serve the same purpose but the difference is in the details.
+With version 5 of icclim, xclim became a building block of icclim. xclim handles some of the core features, notably
+the calculation of climate indices. Beside, we also make use of xclim capabilities to handle i/o units and to check
 input data and metadata validity.
 
 This relationship between the two libraries means they can benefit from one another.
 While developing icclim v5, we decided to integrate as much as possible relevant features in xclim directly, instead of
-keeping them on our code base. This is for example the case for the bootstrapping of percentile which was a
+keeping them on our code base. This is for example the case for the bootstrapping of percentiles, which was a
 collaborative work from both parties.
-This way, xclim gains new features and users through us and we can rely on all the
+This way, xclim gains new features and users, and we can rely on all the
 work they have already accomplished. Plus, we benefit from their knowledge thanks to code reviews and discussions on
 their repository.
 
@@ -30,7 +30,7 @@ output with **metadata**.
 Pre-processing includes:
 
 - Handling of multiple input formats (netcdf files, xarray.Dataset, text file (TBD)).
-- Simple automated data chunking, then fed to Dask.
+- Simple automated data chunking
 - Variable detection in input based on the work done in `clix-meta`_.
 - Wet day filtering for precipitation indices.
 - Simple unit handling (rely on xclim pint registry).
@@ -53,7 +53,7 @@ and its ecosystem reliably compute climate indices.
 This is one of the reason why icclim exposes a single entry point for all it's features with ``icclim.index``.
 It means users new to xarray might prefer icclim while experts could find xclim more convenient.
 
-xclim scope is larger than the one of icclim. xclim add metadata to the computed index in multiple languages (currently
+xclim' scope is larger than the one of icclim. xclim add metadata to the computed index in multiple languages (currently
 FR and EN), it computes many indices not part of the ECA&D specification, it provides biais adjustment and downscaling
 algorithms and is capable of detecting many common errors which can be found in netCDF files through health checks.
 All those features make `xclim`_ a very good tool by itself and we encourage the reader to check `xclim documentation
