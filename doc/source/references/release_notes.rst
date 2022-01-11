@@ -12,7 +12,8 @@ Release history
 * [doc] Add a dev documentation article "continuous integration".
 * [doc] Update installation tutorial.
 * [doc] Various improvements in doc wording and display.
-* [doc] Start to documente ecad indices functions.
+* [doc] Start to documente ECA&D indices functions.
+* [doc] Add article to distinguish icclim from xclim.
 
 5.0.0rc2
 --------

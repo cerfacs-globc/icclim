@@ -1,5 +1,6 @@
 What is a climate index
 =======================
+
 A climate index is a calculated value that can be used to describe the state and the changes in the climate system.
 The climate at a defined place is the average state of the atmosphere over a longer period of, for example, months or years. Changes on climate are much slower than on the weather, that can change strongly day by day.
 
