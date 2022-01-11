@@ -4,18 +4,16 @@
 Disambiguation on xclim and icclim
 ==================================
 
-At first glance it seems `xclim`_ and icclim serve the same purpose but the difference is in the details.
+At first glance it seems `xclim`_ and icclim serve the same purpose but their differences are in the details.
 With version 5 of icclim, xclim became a building block of icclim. xclim handles some of the core features, notably
-the calculation of climate indices. Beside, we also make use of xclim capabilities to handle i/o units and to check
+the calculation of climate indices. icclim also make use of xclim capabilities to handle i/o units and to check
 input data and metadata validity.
 
-This relationship between the two libraries means they can benefit from one another.
-While developing icclim v5, we decided to integrate as much as possible relevant features in xclim directly, instead of
-keeping them on our code base. This is for example the case for the bootstrapping of percentiles, which was a
-collaborative work from both parties.
-This way, xclim gains new features and users, and we can rely on all the
-work they have already accomplished. Plus, we benefit from their knowledge thanks to code reviews and discussions on
-their repository.
+While developing icclim v5, we tried to integrate all relevant features directly in xclim.
+This is for example the case for the bootstrapping of percentiles, which is a key feature of icclim and
+its development was a collaborative work from both parties.
+This way, xclim gains new features and users and icclim can rely on all the efforts that was already put into xclim.
+We also benefits from the knowledge of xclim developers thanks to code reviews and discussions on their repository.
 
 This joint effort helped tremendously to create what icclim is today and we believe it strengthens the collaborative
 ecosystem of geo sciences.
@@ -24,17 +22,19 @@ ecosystem of geo sciences.
 
 On the other side, we had to clarify what would be the purpose of icclim without its internal climate index computation
 feature.
-Thus, icclim is now a library which wraps index calculation in a familiar API while **pre-processing** inputs and dress
-output with **metadata**.
+Thus, icclim is now a library which wraps index calculation in a familiar API while **pre-processing** inputs and
+decorates output with **metadata**.
 
 Pre-processing includes:
 
-- Handling of multiple input formats (netcdf files, xarray.Dataset, text file (TBD)).
+- Handling of multiple input formats (netcdf files, xarray.Dataset, text file (TBD))
 - Simple automated data chunking
-- Variable detection in input based on the work done in `clix-meta`_.
-- Wet day filtering for precipitation indices.
-- Simple unit handling (rely on xclim pint registry).
-- Time sub-setting of data.
+- Variable detection in input (based on the work done in `clix-meta`_)
+- Wet day filtering for precipitation indices
+- Simple unit handling (rely on xclim pint registry)
+- Time sub-setting of data
+- Custom sampling frequency of output
+- Index configuration, such as threshold values or output unit
 
 Output metadata includes:
 
@@ -43,10 +43,11 @@ Output metadata includes:
 - Units
 - time_bounds
 - provenance (TBD)
+- ...
 
-Beside, icclim still provides a way to write **user defined indices** using a simili JSON data structure
+Beside, icclim v5 still provides a way to write **user defined indices** using a simili JSON data structure
 (actually a python dictionary) with ``icclim.index(user_index=...)``.
-The metadata is however not as rich as with ECA&D indices.
+The output metadata is however not as rich as with ECA&D indices.
 
 One of the goal of icclim is also to provide an API which require zero knowledge of xarray letting user new to python
 and its ecosystem reliably compute climate indices.
@@ -61,7 +62,7 @@ All those features make `xclim`_ a very good tool by itself and we encourage the
 
 .. note::
     xclim provides a virtual module named ``icclim`` which exposes in a xclim style the ECA&D indices that were
-    historically provided by icclim. But this module do not use our library ``icclim`` directly, otherwise we would
+    historically provided by icclim. But this module **does not** use our library icclim directly, otherwise we would
     have a weird circular dependency.
 
 We are very grateful for the work done on xclim and we hope to continue the collaboration while both libraries grow in
