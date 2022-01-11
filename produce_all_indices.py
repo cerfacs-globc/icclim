@@ -14,8 +14,9 @@ def run():
 
     tas = filter(lambda x: eca_indices.TAS in x.variables, eca_indices.Indice)
     pr = filter(lambda x: eca_indices.PR in x.variables, eca_indices.Indice)
+    for ind in [eca_indices.Indice.GD4]:
     # for ind in eca_indices.Indice:
-    for ind in pr:
+    # for ind in pr:
         out_f = f"netcdf_files/output/{ind.name}_ANN_icclimv4_climpSampleData_1991_2010.nc"
         out_unit = "days"
         save_percentile = False

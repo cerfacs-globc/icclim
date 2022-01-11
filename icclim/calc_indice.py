@@ -560,6 +560,7 @@ def GD4_calculation(arr, fill_val=None, threshold=4):
     # new_arr_masked = numpy.ma.array(arr_masked, mask=new_mask, fill_value=arr_masked.fill_value) # we masked the temperatures <= 4 C
 
     # GD4 = (new_arr_masked - 4).sum(axis=0)
+    arr_masked = arr_masked - 273.15
     GD4= (arr_masked-4).clip(min=0).sum(axis=0)
 
     numpy.ma.set_fill_value(GD4, arr_masked.fill_value)
