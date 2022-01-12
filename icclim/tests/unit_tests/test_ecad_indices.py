@@ -358,7 +358,7 @@ class TestTx90p:
             time_range=[datetime.datetime(2043, 1, 1), datetime.datetime(2045, 12, 31)],
             index=EcadIndex.TX90P,
         )
-        res = tx90p(conf)
+        res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
 
     @pytest.mark.parametrize("use_dask", [True, False])
@@ -377,7 +377,7 @@ class TestTx90p:
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
             index=EcadIndex.TX90P,
         )
-        res = tx90p(conf)
+        res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
 
     @pytest.mark.parametrize("use_dask", [True, False])
@@ -396,5 +396,5 @@ class TestTx90p:
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
             index=EcadIndex.TX90P,
         )
-        res = tx90p(conf)
+        res, _ = tx90p(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]

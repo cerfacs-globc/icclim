@@ -67,7 +67,7 @@ class IndexConfig:
     """
 
     freq: Frequency
-    cf_variables: List[CfVariable]
+    _cf_variables: List[CfVariable]
     save_percentile: bool = False
     is_percent: bool = False
     netcdf_version: NetcdfVersion
@@ -105,7 +105,7 @@ class IndexConfig:
             base_period_time_range = [
                 x.strftime("%Y-%m-%d") for x in base_period_time_range
             ]
-        self.cf_variables = [
+        self._cf_variables = [
             _build_cf_variable(
                 da=ds[cf_var_name],
                 time_range=time_range,
@@ -129,6 +129,26 @@ class IndexConfig:
         self.threshold = threshold
         self.callback = callback
         self.index = index
+
+    @property
+    def tas(self) -> CfVariable:
+        return self._cf_variables[0]
+
+    @property
+    def tasmax(self) -> CfVariable:
+        return self._cf_variables[0]
+
+    @property
+    def tasmin(self) -> CfVariable:
+        if len(self._cf_variables) > 1:
+            return self._cf_variables[1]
+        return self._cf_variables[0]
+
+    @property
+    def pr(self) -> CfVariable:
+        if len(self._cf_variables) > 1:
+            return self._cf_variables[1]
+        return self._cf_variables[0]
 
 
 def _build_cf_variable(
