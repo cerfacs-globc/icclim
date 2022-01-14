@@ -1,6 +1,17 @@
 Release history
 ===============
 
+
+5.1.0 (not released)
+--------------------
+* [maint] Refactored ecad_functions (removed duplicated code, simplified function signatures...)
+* [maint] Refactored IndexConfig to hide some technical knowledge which was leaked to other modules.
+* [maint] Made a basic integration of clix-meta yaml to populate the generated docstring for c3s.
+* [maint] This makes pyyaml an required dependency of icclim.
+* [fix] Fixed an issue with aliasing of "icclim" module and "icclim" package
+* [maint] Added some metadata to qualify the cead_indices and recognize the arguments necessary to compute them.
+
+
 5.0.0rc3 (not released)
 -----------------------
 * [maint] Add github templates for issues and pull requests.
