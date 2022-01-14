@@ -28,6 +28,10 @@ class Verbosity(Enum):
 
 
 class IcclimLogger:
+    """
+    Singleton to display and control logs in icclim library.
+    """
+
     __instance = None
     verbosity: Verbosity = Verbosity.LOW
     timezone: str
@@ -40,7 +44,9 @@ class IcclimLogger:
 
     def __init__(self, verbosity: Verbosity):
         if IcclimLogger.__instance is not None:
-            raise Exception("This class is a singleton!")
+            raise Exception(
+                "This class is a singleton! Use IcclimLogger::get_instance."
+            )
         else:
             IcclimLogger.__instance = self
             self.verbosity = verbosity
@@ -148,3 +154,6 @@ class IcclimLogger:
         logging.warning(
             f"DEPRECATION_WARNING: `{old}` is deprecated. Use `{new}` instead."
         )
+
+    def callback(self, percent):
+        logging.info(f"Processing: {percent}%")

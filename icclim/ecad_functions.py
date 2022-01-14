@@ -2,7 +2,7 @@
 All ECA&D functions. Each function wraps its xclim equivalent functions adding icclim
 metadata to it.
 """
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple
 from warnings import warn
 
 import numpy as np
@@ -19,10 +19,6 @@ from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable, IndexConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
-
-ComputeIndexFun = Callable[
-    [IndexConfig], Union[DataArray, Tuple[DataArray, Optional[DataArray]]]
-]
 
 
 def gd4(config: IndexConfig) -> DataArray:
@@ -637,7 +633,7 @@ def cd(config: IndexConfig) -> DataArray:
             returns a Tuple of index_result, computed_percentiles
         Otherwise, returns the index_result
     """
-    return _compute_compound_index(
+    return compute_compound_index(
         tas=config.tas,
         pr=config.pr,
         freq=config.freq.panda_freq,
@@ -672,7 +668,7 @@ def cw(config: IndexConfig) -> DataArray:
             returns a Tuple of index_result, computed_percentiles
         Otherwise, returns the index_result
     """
-    return _compute_compound_index(
+    return compute_compound_index(
         tas=config.tas,
         pr=config.pr,
         freq=config.freq.panda_freq,
@@ -707,7 +703,7 @@ def wd(config: IndexConfig) -> DataArray:
             returns a Tuple made of  index_result, computed_percentiles
         Otherwise, returns the index_result
     """
-    return _compute_compound_index(
+    return compute_compound_index(
         tas=config.tas,
         pr=config.pr,
         freq=config.freq.panda_freq,
@@ -730,7 +726,7 @@ def ww(config: IndexConfig) -> DataArray:
     Days with TG > 75th percentile of daily mean temperature and RR > 75th percentile of
     daily precipitation sum (warm/wet days)
     """
-    return _compute_compound_index(
+    return compute_compound_index(
         tas=config.tas,
         pr=config.pr,
         freq=config.freq.panda_freq,
@@ -907,7 +903,7 @@ def _compute_spell_duration(
     return result, None
 
 
-def _compute_compound_index(
+def compute_compound_index(
     tas: CfVariable,
     pr: CfVariable,
     freq: str,
@@ -991,24 +987,6 @@ def _compute_rxxptot(
     per_interpolation: QuantileInterpolation,
     save_percentile: bool,
 ) -> Tuple[DataArray, Optional[DataArray]]:
-    """
-    R99ptot, R95ptot, R75ptot.
-    Not computed on doy percentiles.
-
-    Source ECAD.
-
-    Parameters
-    ----------
-    pr :
-    freq :
-    pr_per_thresh :
-    per_interpolation :
-    save_percentile :
-
-    Returns
-    -------
-
-    """
     base_wet_days = _filter_in_wet_days(pr.in_base_da, dry_day_value=np.nan)
     per = _compute_percentile_over_period(
         base_wet_days, per_interpolation, pr_per_thresh
@@ -1035,22 +1013,6 @@ def _compute_rxxp(
     save_percentile: bool,
     is_percent: bool,
 ) -> Tuple[DataArray, Optional[DataArray]]:
-    """
-    R95P,
-
-    Parameters
-    ----------
-    pr :
-    freq :
-    pr_per_thresh :
-    per_interpolation :
-    save_percentile :
-    is_percent :
-
-    Returns
-    -------
-
-    """
     base_wet_days = _filter_in_wet_days(pr.in_base_da, dry_day_value=np.nan)
     per = _compute_percentile_over_period(
         base_wet_days, per_interpolation, pr_per_thresh

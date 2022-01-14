@@ -50,7 +50,7 @@ def index(
     out_file: str = "icclim_out.nc",
     threshold: Union[float, List[float]] = None,
     transfer_limit_Mbytes: float = None,
-    callback: Callable[[int], None] = lambda p: logging.info(f"Processing: {p}%"),
+    callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
     base_period_time_range: List[datetime] = None,
@@ -96,7 +96,9 @@ def index(
         Default is ``None``.
     out_file : str
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-        Default is "icclim_out.nc"
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
     threshold : Union[float, List[float]]
         ``optional`` User defined threshold for certain indices.
@@ -291,7 +293,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
 def _compute_ecad_index(
     index: EcadIndex, config: IndexConfig, former_history: Optional[str]
 ) -> Dataset:
-    logging.info(f"Calculating climate index: {index.index_name}")
+    logging.info(f"Calculating climate index: {index.short_name}")
     result_ds = Dataset()
     res = index.compute(config)
     if isinstance(res, tuple):
@@ -303,12 +305,12 @@ def _compute_ecad_index(
         da.expand_dims({"threshold": config.threshold})
     if config.freq.post_processing is not None:
         resampled_da, time_bounds = config.freq.post_processing(da)
-        result_ds[index.index_name] = resampled_da
+        result_ds[index.short_name] = resampled_da
         if time_bounds is not None:
             result_ds["time_bounds"] = time_bounds
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
-        result_ds[index.index_name] = da
+        result_ds[index.short_name] = da
     if per is not None:
         per = per.squeeze("percentiles", drop=True).rename("percentiles")
         result_ds = xr.merge([result_ds, per])
@@ -328,9 +330,9 @@ def _add_basic_indice_metadata(
     former_history: str,
 ) -> Dataset:
     if config.threshold is not None:
-        title = f"Index {computed_index.index_name} with user defined threshold"
+        title = f"Index {computed_index.short_name} with user defined threshold"
     else:
-        title = f"ECA {computed_index.group} index {computed_index.index_name}"
+        title = f"ECA {computed_index.group} index {computed_index.short_name}"
     result_ds.attrs["title"] = title
     result_ds.attrs[
         "references"
@@ -355,7 +357,7 @@ def _get_history(config, former_history, indice_computed, result_ds):
     return (
         f"{former_history}\n "
         f"{current_time} "
-        f"Calculation of {indice_computed.index_name} "
+        f"Calculation of {indice_computed.short_name} "
         f"index({config.freq.description}) "
         f"from {start_time} to {end_time}."
     )
@@ -378,7 +380,7 @@ def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
         variables = list(filter(lambda x: x not in ds.coords, ds.variables.keys()))
         raise InvalidIcclimArgumentError(
             f"The necessary variable(s) were not recognized in the"
-            f" input file(s) to compute {index.index_name}."
+            f" input file(s) to compute {index.short_name}."
             f" Use `var_name` parameter to use one the dataset non coordinate variable:"
             f" {variables}"
         )
