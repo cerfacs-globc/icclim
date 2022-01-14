@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import Any, Callable, List, Optional, Tuple, Union
 
-from clix_meta.clix_meta_indices import ClixMetaIndices
 from xarray import DataArray
 
+from icclim.clix_meta.clix_meta_indices import ClixMetaIndices
 from icclim.ecad_functions import (
     cd,
     cdd,
