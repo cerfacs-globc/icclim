@@ -150,10 +150,15 @@ class IcclimLogger:
             "   ********************************************************************************************"
         )
 
-    def deprecation_warning(self, old: str, new: str):
-        logging.warning(
-            f"DEPRECATION_WARNING: `{old}` is deprecated. Use `{new}` instead."
-        )
+    def deprecation_warning(self, old: str, new: str = None) -> None:
+        if new:
+            logging.warning(
+                f"DEPRECATION_WARNING: `{old}` is deprecated. Use `{new}` instead."
+            )
+        else:
+            logging.warning(
+                f"DEPRECATION_WARNING: `{old}` is deprecated and will be removed. Its value is ignored."
+            )
 
-    def callback(self, percent):
+    def callback(self, percent) -> None:
         logging.info(f"Processing: {percent}%")

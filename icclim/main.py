@@ -49,7 +49,6 @@ def index(
     time_range: List[datetime] = None,
     out_file: str = "icclim_out.nc",
     threshold: Union[float, List[float]] = None,
-    transfer_limit_Mbytes: float = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -66,9 +65,10 @@ def index(
     user_index: Dict[str, Any] = None,
     save_percentile: bool = False,
     logs_verbosity: Union[Verbosity, str] = Verbosity.LOW,
-    # deprecated
+    # deprecated parameters
     indice_name: str = None,
     user_indice: Dict[str, Any] = None,
+    transfer_limit_Mbytes: float = None,
 ) -> Dataset:
     """
     Parameters
@@ -159,15 +159,17 @@ def index(
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
     log.set_verbosity(logs_verbosity)
-
     log.start_message()
     callback(callback_percentage_start_value)
+    # Deprecation handling
     if indice_name is not None:
         log.deprecation_warning(old="indice_name", new="index_name")
         index_name = indice_name
     if user_indice is not None:
         log.deprecation_warning(old="user_indice", new="user_index")
         user_index = user_indice
+    if transfer_limit_Mbytes is not None:
+        log.deprecation_warning(old="transfer_limit_Mbytes")
     index: Optional[EcadIndex]
     if user_index is None:
         index = EcadIndex.lookup(index_name)
@@ -188,7 +190,6 @@ def index(
         time_range=time_range,
         var_name=var_name,
         window_width=window_width,
-        transfer_limit_Mbytes=transfer_limit_Mbytes,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
         interpolation=interpolation,
@@ -220,15 +221,15 @@ def index(
     return result_ds
 
 
-def _read_input(in_files):
+def _read_input(in_files) -> Tuple[Dataset, Dict]:
     if isinstance(in_files, Dataset):
         input_dataset = in_files
     elif isinstance(in_files, list):
         input_dataset = xarray.open_mfdataset(in_files, parallel=True)
     else:
         input_dataset = xarray.open_dataset(in_files)
-    input_dataset, reset_coords = _update_coords(input_dataset)
-    return input_dataset, reset_coords
+    input_dataset = input_dataset.chunk("auto")
+    return _update_coords(input_dataset)
 
 
 def _compute_ecad_index_dataset(
@@ -388,6 +389,7 @@ def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
 
 
 def _update_coords(ds: Dataset) -> Tuple[Dataset, Dict]:
+    # TODO see if cf-xarray could replace this
     revert = {}
     if ds.coords.get("latitude") is not None:
         ds = ds.rename({"latitude": "lat"})

@@ -743,17 +743,17 @@ def ww(config: IndexConfig) -> DataArray:
 def _can_run_bootstrap(
     cf_var: CfVariable, percentile_period: slice, interpolation: QuantileInterpolation
 ) -> bool:
-    overlapping_years = np.unique(cf_var.da.time.sel(time=percentile_period).dt.year)
+    da = cf_var.da
+    time_index = da.indexes.get("time")
+    if isinstance(time_index, xr.CFTimeIndex):
+        years = time_index.year
+    else:
+        years = da.time.dt.year
+    overlapping_years = np.unique(years)
     # No bootstrap if there is one single year overlapping
     # or no year overlapping
     # or all year overlapping
     run_bootstrap = cf_var.in_base_da is not cf_var.da and len(overlapping_years) > 1
-    if run_bootstrap:
-        in_base = cf_var.in_base_da
-        chunking = {d: "auto" for d in in_base.dims}
-        chunking["time"] = -1
-        cf_var.in_base_da = in_base.chunk(chunking)
-        cf_var.da = cf_var.da.chunk(chunking)
     if run_bootstrap and interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
         raise InvalidIcclimArgumentError(
             "When bootstrapping, the interpolation must be MEDIAN_UNBIASED."

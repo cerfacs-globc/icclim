@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Any, Callable, List, Optional, Union
 
-import dask
 import xarray
 from xarray import DataArray, Dataset
 from xclim.core import calendar
@@ -90,7 +89,6 @@ class IndexConfig:
         window_width: Optional[int] = 5,
         time_range: Optional[List[datetime]] = None,
         base_period_time_range: Optional[List[datetime]] = None,
-        transfer_limit_Mbytes: Optional[int] = None,
         threshold: Optional[float] = None,
         out_unit: Optional[str] = None,
         interpolation: Optional[
@@ -112,7 +110,6 @@ class IndexConfig:
                 ignore_Feb29th=ignore_Feb29th,
                 base_period_time_range=base_period_time_range,
                 only_leap_years=only_leap_years,
-                transfer_limit_Mbytes=transfer_limit_Mbytes,
             )
             for cf_var_name in var_name
         ]
@@ -120,7 +117,6 @@ class IndexConfig:
         self.save_percentile = save_percentile
         self.is_percent = out_unit == "%"
         self.out_unit = out_unit
-        self.transfer_limit_Mbytes = transfer_limit_Mbytes
         if isinstance(netcdf_version, str):
             self.netcdf_version = NetcdfVersion.lookup(netcdf_version)
         else:
@@ -157,10 +153,7 @@ def _build_cf_variable(
     ignore_Feb29th: bool,
     base_period_time_range: Optional[List[datetime]],
     only_leap_years: bool,
-    transfer_limit_Mbytes: Optional[int],
 ) -> CfVariable:
-    if transfer_limit_Mbytes is not None:
-        da = _chunk_data(transfer_limit_Mbytes, da)
     out_of_base_da = _build_data_array(da, time_range, ignore_Feb29th)
     if base_period_time_range is not None:
         in_base_da = _build_in_base_da(da, base_period_time_range, only_leap_years)
@@ -219,12 +212,6 @@ def _build_in_base_da(
     if only_leap_years:
         da = _reduce_only_leap_years(original_da)
     return da
-
-
-def _chunk_data(transfer_limit_Mbytes: int, da: DataArray) -> DataArray:
-    with dask.config.set({"array.chunk-size": f"{transfer_limit_Mbytes} MB"}):
-        chunks = {d: "auto" for d in da.dims}
-        return da.chunk(chunks=chunks)
 
 
 def _reduce_only_leap_years(da: DataArray) -> DataArray:

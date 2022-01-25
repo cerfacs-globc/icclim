@@ -4,17 +4,23 @@ channels:
  - conda-forge
  - defaults
 dependencies:
- - xclim>=0.30
- - numpy>=1.16
- - xarray>=0.17
- - dask>=2.6.0
- - netCDF4>=1.5.7
- - pyyaml>=6.0
- - pre-commit
- - pydata-sphinx-theme
- - pylint
- - pytest
- - sphinx
+ # Core dependencies
+ - xclim
+ - numpy
+ - xarray
+ - dask
+ - netCDF4
+ - pyyaml
+ # Dev dependencies
  - black
  - flake8
  - isort
+ - pip
+ - pre-commit
+ - pylint
+ - pytest
+ - pytest-cov
+ - setuptools
+ # Extra dependencies
+ - matplotlib
+ - cartopy
