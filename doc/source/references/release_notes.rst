@@ -3,6 +3,7 @@ Release history
 
 5.0.0rc3 (not released)
 -----------------------
+* [maint] Drop support for python 3.7
 * [maint] Add github templates for issues and pull requests.
 * [maint] Simplify ecad functions output to a single DataArray in most cases.
 * [fix] Fix lint for doc conf.

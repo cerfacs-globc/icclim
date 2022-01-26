@@ -4,7 +4,8 @@ channels:
  - conda-forge
  - defaults
 dependencies:
- - xclim>=0.30
+ - python=3.8
+ - xclim>=0.32
  - numpy>=1.16
  - xarray>=0.17
  - dask>=2.6.0
