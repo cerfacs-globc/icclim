@@ -27,6 +27,7 @@ setup(
     include_package_data=True,
     url="https://github.com/cerfacs-globc/icclim",
     install_requires=MINIMAL_REQUIREMENTS,
+    python_requires=">=3.8",
     classifiers=[
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
@@ -34,7 +35,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: French",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
     ],
 )
