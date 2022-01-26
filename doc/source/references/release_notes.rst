@@ -14,6 +14,7 @@ Release history
 
 5.0.0rc3 (not released)
 -----------------------
+* [maint] Drop support for python 3.7
 * [maint] Add github templates for issues and pull requests.
 * [maint] Simplify ecad functions output to a single DataArray in most cases.
 * [fix] Fix lint for doc conf.
@@ -23,7 +24,8 @@ Release history
 * [doc] Add a dev documentation article "continuous integration".
 * [doc] Update installation tutorial.
 * [doc] Various improvements in doc wording and display.
-* [doc] Start to documente ecad indices functions.
+* [doc] Start to documente ECA&D indices functions.
+* [doc] Add article to distinguish icclim from xclim.
 
 5.0.0rc2
 --------

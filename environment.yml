@@ -5,6 +5,7 @@ channels:
  - defaults
 dependencies:
  # Core dependencies
+ - python=3.8
  - xclim
  - numpy
  - xarray
