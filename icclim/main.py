@@ -32,6 +32,17 @@ __all__ = ["index"]
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
+def indices():
+    """
+    List the available indices.
+    todo: include a representation of custom indices.
+    Returns
+    -------
+        A list of indices to be used as input of icclim.index `index_name` parameter.
+    """
+    return [f"{i.short_name}: {i.definition}" for i in EcadIndex]
+
+
 def indice(*args, **kwargs):
     """
     Proxy for `index`
