@@ -48,6 +48,12 @@ MODIFIABLE_UNIT_FIELD = "out_unit"
 
 TAB = "    "
 
+END_NOTE = """
+    Notes:
+    ------
+    This function has been auto-generated.
+    """
+
 
 def run():
     with open("../icclim_wrapped.py", "w") as f:
@@ -59,24 +65,67 @@ import icclim
 import xarray
 import typing
 import datetime
-from icclim.icclim_logger import Verbosity\n
+from icclim.icclim_logger import Verbosity
 from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-
-
 '''
         for index in EcadIndex:
             acc += get_ecad_index_declaration(index)
+        acc += get_user_index_declaration()
         f.write(acc)
 
 
-def get_ecad_index_declaration(index: EcadIndex):
-    arguments = dict(inspect.signature(icclim.index).parameters)
+def get_user_index_declaration() -> str:
+    icclim_index_args = dict(inspect.signature(icclim.index).parameters)
     pop_args = []
     # Pop deprecated args
     pop_args.append("indice_name")
     pop_args.append("user_indice")
+    pop_args.append("transfer_limit_Mbytes")
+    # Pop unnecessary args
+    pop_args.append("callback")
+    pop_args.append("callback_percentage_start_value")
+    pop_args.append("callback_percentage_total")
+    pop_args.append("index_name")
+    pop_args.append("threshold")
+    pop_args.append("window_width")
+    # Pop not implemented yet
+    pop_args.append("interpolation")
+    for pop_arg in pop_args:
+        icclim_index_args.pop(pop_arg)
+    fun_signature_args = build_fun_signature_args(icclim_index_args)
+    fun_signature = f"\n\ndef custom_index({fun_signature_args}) -> xarray.Dataset:\n"
+    args_docs = get_params_docstring(
+        list(icclim_index_args.keys()), icclim.index.__doc__
+    )
+    docstring = (
+        f'{TAB}"""\n'
+        f"{TAB}This function can be used to create indices using simple operators.\n"
+        f"{TAB}Use the `user_index` parameter to describe how the index should be "
+        f"computed.\n"
+        f"{TAB}You can find some examples in our documentation at :ref:`custom_indices`"
+        f".\n\n"
+        f"{args_docs}"
+        f"{END_NOTE}"
+        f'"""\n'
+    )
+    fun_call_args = f",\n{TAB}{TAB}".join([a + "=" + a for a in icclim_index_args])
+    fun_call = f"{TAB}return icclim.index(\n{TAB}{TAB}{fun_call_args})\n"
+    return f"{fun_signature}{docstring}{fun_call}"
+
+
+def build_fun_signature_args(args):
+    return f"\n{TAB}" + f",\n{TAB}".join(map(get_arg, args.values()))
+
+
+def get_ecad_index_declaration(index: EcadIndex) -> str:
+    icclim_index_args = dict(inspect.signature(icclim.index).parameters)
+    pop_args = []
+    # Pop deprecated args
+    pop_args.append("indice_name")
+    pop_args.append("user_indice")
+    pop_args.append("transfer_limit_Mbytes")
     # Pop unnecessary args
     pop_args.append("user_index")
     pop_args.append("callback")
@@ -94,28 +143,26 @@ def get_ecad_index_declaration(index: EcadIndex):
         pop_args.append(MODIFIABLE_UNIT_FIELD)
 
     for pop_arg in pop_args:
-        arguments.pop(pop_arg)
+        icclim_index_args.pop(pop_arg)
     # TODO replace these concatenation mess with a proper template (jinja or similar)...
-    fun_signature_args = f"\n{TAB}" + f",\n{TAB}".join(map(get_arg, arguments.values()))
+    fun_signature_args = build_fun_signature_args(icclim_index_args)
     fun_signature = (
         f"\n\ndef {index.name.lower()}({fun_signature_args}) -> xarray.Dataset:\n"
     )
-    params = get_params_docstring(list(arguments.keys()), icclim.index.__doc__)
-    end_note = """
-    Notes:
-    ------
-    This function has been auto-generated."""
+    args_docs = get_params_docstring(
+        list(icclim_index_args.keys()), icclim.index.__doc__
+    )
     docstring = (
         f'{TAB}"""\n'
-        f"{TAB}{index.definition}\n"
-        f"{TAB}Source: {index.source}\n\n"
-        f"{params}"
-        f"{end_note}\n"
+        f"{TAB}{index.short_name}: {index.definition}.\n"
+        f"{TAB}Source: {index.source}.\n\n"
+        f"{args_docs}"
+        f"{END_NOTE}\n"
         f'{TAB}"""\n'
     )
     index_name_arg = f'\n{TAB}{TAB}index_name="{index.name}",\n{TAB}{TAB}'
     fun_call_args = index_name_arg + f",\n{TAB}{TAB}".join(
-        [a + "=" + a for a in arguments]
+        [a + "=" + a for a in icclim_index_args]
     )
     fun_call = f"{TAB}return icclim.index({fun_call_args})\n"
     return f"{fun_signature}{docstring}{fun_call}"
