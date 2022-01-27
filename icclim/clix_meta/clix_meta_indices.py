@@ -8,8 +8,9 @@ from typing import Any, Dict, Optional, TypedDict
 
 import yaml
 
-THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-CLIX_YAML_PATH = Path(THIS_FOLDER) / "index_definitions.yml"
+CLIX_YAML_PATH = (
+    Path(os.path.dirname(os.path.abspath(__file__))) / "index_definitions.yml"
+)
 
 
 class EtMetadata(TypedDict):
