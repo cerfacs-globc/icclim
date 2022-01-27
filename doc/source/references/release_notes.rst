@@ -2,16 +2,6 @@ Release history
 ===============
 
 
-5.1.0 (not released)
---------------------
-* [maint] Refactored ecad_functions (removed duplicated code, simplified function signatures...)
-* [maint] Refactored IndexConfig to hide some technical knowledge which was leaked to other modules.
-* [maint] Made a basic integration of clix-meta yaml to populate the generated docstring for c3s.
-* [maint] This makes pyyaml an required dependency of icclim.
-* [fix] Fixed an issue with aliasing of "icclim" module and "icclim" package
-* [maint] Added some metadata to qualify the cead_indices and recognize the arguments necessary to compute them.
-
-
 5.0.0rc3 (not released)
 -----------------------
 * [maint] Drop support for python 3.7
@@ -26,6 +16,15 @@ Release history
 * [doc] Various improvements in doc wording and display.
 * [doc] Start to documente ECA&D indices functions.
 * [doc] Add article to distinguish icclim from xclim.
+* [maint] Refactored ecad_functions (removed duplicated code, simplified function signatures...)
+* [maint] Refactored IndexConfig to hide some technical knowledge which was leaked to other modules.
+* [enh] Made a basic integration of clix-meta yaml to populate the generated docstring for c3s.
+* [maint] This makes pyyaml an required dependency of icclim.
+* [fix] Fixed an issue with aliasing of "icclim" module and "icclim" package
+* [maint] Added some metadata to qualify the ecad_indices and recognize the arguments necessary to compute them.
+* [maint] Added readthedocs CI configuration. This is necessary to use python 3.8.
+* [enh] Added `tools/extract-icclim-funs.py` script to extract from icclim stand-alone function for each indices.
+* [enh] Added `icclim.indices` function (notice plural) to list the available indices.
 
 5.0.0rc2
 --------
@@ -44,7 +43,7 @@ We fully rewrote icclim to benefit from Xclim, Xarray, Numpy and Dask.
 A lot of effort has been to minimize the API changes.
 Thus for all scripts using a former version of icclim updating to this new version should be smooth.
 
-In fact, we made a few improvements on the API
+We made a few improvements on the API
     - We replaced everywhere the french singular word "indice" by the proper english "index". You should get a warning if you still use "indice" such as in "indice_name".
     - When ``save_percentile`` is used, the resulting percentiles are saved within the same netcdf file as the climate index.
     - Most of the keywords (such as slice_mode, index_name, are now case insensitive to avoid unnecessary errors.
@@ -66,11 +65,12 @@ Breaking changes
 ~~~~~~~~~~~~~~~~
 Some utility features of icclim has been removed in 5.0.0.
 This include `util.regrid` module as well as `util.spatial_stat` module.
-For regridding, users are encouraged to try  `xESMF <https://pangeo-xesmf.readthedocs.io/en/latest>`_.
+For regridding, users are encouraged to try `xESMF <https://pangeo-xesmf.readthedocs.io/en/latest>`_ or to use xarray
+selection directly.
 For spatial stats, Xarray provides a `DataArrayWeighted <https://xarray.pydata.org/en/stable/generated/xarray.DataArray.weighted.html>`_
 
 
 Notes
 ~~~~~
-It is highly recommended to use Dask distributed scheduler to fully benefit from the performance improvements of version
-5.0.0.
+It is highly recommended to use Dask (eventually with the distributed scheduler) to fully benefit from the performance
+improvements of version 5.0.0.
