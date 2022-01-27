@@ -743,13 +743,9 @@ def ww(config: IndexConfig) -> DataArray:
 def _can_run_bootstrap(
     cf_var: CfVariable, percentile_period: slice, interpolation: QuantileInterpolation
 ) -> bool:
-    da = cf_var.da
-    time_index = da.indexes.get("time")
-    if isinstance(time_index, xr.CFTimeIndex):
-        years = time_index.year
-    else:
-        years = da.time.dt.year
-    overlapping_years = np.unique(years)
+    overlapping_years = np.unique(
+        cf_var.da.sel(time=percentile_period).indexes.get("time").year
+    )
     # No bootstrap if there is one single year overlapping
     # or no year overlapping
     # or all year overlapping

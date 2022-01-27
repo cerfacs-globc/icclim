@@ -175,7 +175,17 @@ def index(
         index = EcadIndex.lookup(index_name)
     else:
         index = None
-    input_dataset, reset_coords = _read_input(in_files)
+    # Todo: `chunk_da` forces dask to be used.
+    #       Maybe add an option to use pure numpy ?
+    chunk_da = True
+    if isinstance(in_files, Dataset):
+        input_dataset = in_files
+        chunk_da = False
+    elif isinstance(in_files, list):
+        input_dataset = xarray.open_mfdataset(in_files, parallel=True)
+    else:
+        input_dataset = xarray.open_dataset(in_files)
+    input_dataset, reset_coords_dict = _update_coords(input_dataset)
     if isinstance(var_name, str):
         var_name = [var_name]
     elif var_name is None and index is not None:
@@ -195,6 +205,7 @@ def index(
         interpolation=interpolation,
         callback=callback,
         index=index,
+        chunk_it=chunk_da,
     )
     if user_index is not None:
         result_ds = _compute_user_index_dataset(config, user_index)
@@ -202,8 +213,8 @@ def index(
         result_ds = _compute_ecad_index_dataset(
             config, index, threshold, input_dataset.attrs.get("history", None)
         )
-    if reset_coords:
-        result_ds = result_ds.rename(reset_coords)
+    if reset_coords_dict:
+        result_ds = result_ds.rename(reset_coords_dict)
     if not isinstance(in_files, Dataset):
         if input_dataset.time.encoding:
             if input_dataset.time.encoding.get("chunksizes"):
@@ -219,17 +230,6 @@ def index(
     callback(callback_percentage_total)
     log.ending_message(time.process_time())
     return result_ds
-
-
-def _read_input(in_files) -> Tuple[Dataset, Dict]:
-    if isinstance(in_files, Dataset):
-        input_dataset = in_files
-    elif isinstance(in_files, list):
-        input_dataset = xarray.open_mfdataset(in_files, parallel=True)
-    else:
-        input_dataset = xarray.open_dataset(in_files)
-    input_dataset = input_dataset.chunk("auto")
-    return _update_coords(input_dataset)
 
 
 def _compute_ecad_index_dataset(
@@ -381,7 +381,7 @@ def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
         variables = list(filter(lambda x: x not in ds.coords, ds.variables.keys()))
         raise InvalidIcclimArgumentError(
             f"The necessary variable(s) were not recognized in the"
-            f" input file(s) to compute {index.short_name}."
+            f" input file(s) to compute `{index.short_name}` index."
             f" Use `var_name` parameter to use one the dataset non coordinate variable:"
             f" {variables}"
         )

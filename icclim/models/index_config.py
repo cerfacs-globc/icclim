@@ -95,6 +95,7 @@ class IndexConfig:
             QuantileInterpolation
         ] = QuantileInterpolation.MEDIAN_UNBIASED,
         callback: Optional[Callable] = None,
+        chunk_it: bool = False,
     ):
         self.freq = Frequency.lookup(slice_mode)
         if time_range is not None:
@@ -110,6 +111,7 @@ class IndexConfig:
                 ignore_Feb29th=ignore_Feb29th,
                 base_period_time_range=base_period_time_range,
                 only_leap_years=only_leap_years,
+                chunk_it=chunk_it,
             )
             for cf_var_name in var_name
         ]
@@ -153,7 +155,11 @@ def _build_cf_variable(
     ignore_Feb29th: bool,
     base_period_time_range: Optional[List[datetime]],
     only_leap_years: bool,
+    chunk_it: bool,
 ) -> CfVariable:
+    if chunk_it:
+        # todo maybe do it only on indices where parallelization will be useful
+        da = da.chunk("auto")  # typing fixed in next xarray version
     out_of_base_da = _build_data_array(da, time_range, ignore_Feb29th)
     if base_period_time_range is not None:
         in_base_da = _build_in_base_da(da, base_period_time_range, only_leap_years)
