@@ -54,7 +54,7 @@ def indice(*args, **kwargs):
 
 def index(
     in_files: Union[str, List[str], Dataset],
-    index_name: str,
+    index_name: str = None,  # optional when computing user_indices
     var_name: Optional[Union[str, List[str]]] = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime] = None,
@@ -272,7 +272,7 @@ def _compute_user_index_dataset(config: IndexConfig, user_index: dict) -> Datase
     user_indice_config = UserIndexConfig(
         **user_index,
         freq=config.freq,
-        cf_vars=config.cf_variables,
+        cf_vars=config._cf_variables,
         is_percent=config.is_percent,
         save_percentile=config.save_percentile,
     )

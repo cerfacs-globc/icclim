@@ -26,6 +26,7 @@ class CfVariable:
         The variable studied limited to the in base period.
     """
 
+    # TODO: seems unnecessary abstraction between ds and da. Replace by a Dataset.
     da: DataArray
     in_base_da: DataArray
 
