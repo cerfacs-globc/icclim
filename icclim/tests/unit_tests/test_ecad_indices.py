@@ -29,27 +29,6 @@ class Test_index_from_string:
 
 
 @pytest.mark.parametrize("use_dask", [True, False])
-def test_tn10p_interpolation_error(use_dask):
-    ds = Dataset()
-    ds["tas"] = stub_tas(use_dask=use_dask)
-    conf = IndexConfig(
-        ds=ds,
-        slice_mode=Frequency.MONTH,
-        var_name=["tas"],
-        index=EcadIndex.TN10P,
-        netcdf_version=NetcdfVersion.NETCDF4,
-        base_period_time_range=[
-            ds.time.values[0].astype("M8[D]").astype("O"),
-            ds.time.values[-1].astype("M8[D]").astype("O"),
-        ],
-        window_width=2,
-        interpolation=QuantileInterpolation.LINEAR,
-    )
-    with pytest.raises(InvalidIcclimArgumentError):
-        tn10p(conf)
-
-
-@pytest.mark.parametrize("use_dask", [True, False])
 def test_tn10p(use_dask):
     ds = Dataset()
     ds["tas"] = stub_tas(use_dask=use_dask)
