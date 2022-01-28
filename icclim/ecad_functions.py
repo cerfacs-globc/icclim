@@ -13,7 +13,6 @@ from xclim import atmos, land
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendar
 from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
 from icclim.models.frequency import Frequency
@@ -743,19 +742,15 @@ def ww(config: IndexConfig) -> DataArray:
 def _can_run_bootstrap(
     cf_var: CfVariable, percentile_period: slice, interpolation: QuantileInterpolation
 ) -> bool:
+    """
+    Avoid bootstrapping if there is one single year overlapping or no year overlapping
+    or all year overlapping.
+    """
+    da_years = np.unique(cf_var.da.indexes.get("time").year)
     overlapping_years = np.unique(
         cf_var.da.sel(time=percentile_period).indexes.get("time").year
     )
-    # No bootstrap if there is one single year overlapping
-    # or no year overlapping
-    # or all year overlapping
-    run_bootstrap = cf_var.in_base_da is not cf_var.da and len(overlapping_years) > 1
-    if run_bootstrap and interpolation != QuantileInterpolation.MEDIAN_UNBIASED:
-        raise InvalidIcclimArgumentError(
-            "When bootstrapping, the interpolation must be MEDIAN_UNBIASED."
-            f" Here it was {interpolation}."
-        )
-    return run_bootstrap
+    return len(overlapping_years) > 1 and len(overlapping_years) < len(da_years)
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
