@@ -4,12 +4,13 @@ channels:
  - conda-forge
  - defaults
 dependencies:
- - python=3.8
- - xclim>=0.32
- - numpy>=1.16
- - xarray>=0.17
- - dask>=2.6.0
+ - python>=3.8
+ - xclim>=0.33
+ - numpy>=1.21.1
+ - xarray>=0.19
+ - dask[array]>=2021.10.0
  - netCDF4>=1.5.7
+ - cftime>=1.5.0
  - pre-commit
  - pydata-sphinx-theme
  - pylint
