@@ -6,12 +6,11 @@ from setuptools import find_packages, setup
 from icclim import __version__
 
 MINIMAL_REQUIREMENTS = [
-    "numpy>=1.16",
-    "xarray>=0.17",
-    "xclim>=0.31",
-    "scipy>=1.2",
-    "cftime>=1.4.1",
-    "dask[array]>=2.6",
+    "numpy>=1.21.1",
+    "xarray>=0.19",
+    "xclim>=0.33",
+    "cftime>=1.5.0",
+    "dask[array]>=2021.10.0",
     "netCDF4>=1.5.7",
     "pyyaml>=6.0",
     "setuptools-git",
