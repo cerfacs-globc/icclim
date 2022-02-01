@@ -1,5 +1,6 @@
-ECAD functions to compute indices
-=================================
+ECA&D functions to compute indices
+==================================
+
 The `icclim.models.ecad_indices.py <https://github.com/cerfacs-globc/icclim/blob/master/icclim/models/ecad_indices.py>`_
 module contains the enumeration of all ECA&D indices icclim can compute.
 

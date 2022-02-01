@@ -13,6 +13,7 @@ To find more in depth technical knowledge see :ref:`references`.
     :maxdepth: 2
     :caption: Contents:
 
+    Chunk data and parallelize computation <dask>
     Jupyter notebooks <notebooks>
     Compute ECA&D indices <recipes_ecad>
     Customize indices <recipes_custom>

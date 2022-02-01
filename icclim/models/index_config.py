@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Any, Callable, List, Optional, Union
 
-import dask
 import xarray
 from xarray import DataArray, Dataset
 from xclim.core import calendar
@@ -27,6 +26,7 @@ class CfVariable:
         The variable studied limited to the in base period.
     """
 
+    # TODO: seems unnecessary abstraction between ds and da. Replace by a Dataset.
     da: DataArray
     in_base_da: DataArray
 
@@ -67,7 +67,7 @@ class IndexConfig:
     """
 
     freq: Frequency
-    cf_variables: List[CfVariable]
+    _cf_variables: List[CfVariable]
     save_percentile: bool = False
     is_percent: bool = False
     netcdf_version: NetcdfVersion
@@ -90,13 +90,13 @@ class IndexConfig:
         window_width: Optional[int] = 5,
         time_range: Optional[List[datetime]] = None,
         base_period_time_range: Optional[List[datetime]] = None,
-        transfer_limit_Mbytes: Optional[int] = None,
         threshold: Optional[float] = None,
         out_unit: Optional[str] = None,
         interpolation: Optional[
             QuantileInterpolation
         ] = QuantileInterpolation.MEDIAN_UNBIASED,
         callback: Optional[Callable] = None,
+        chunk_it: bool = False,
     ):
         self.freq = Frequency.lookup(slice_mode)
         if time_range is not None:
@@ -105,14 +105,14 @@ class IndexConfig:
             base_period_time_range = [
                 x.strftime("%Y-%m-%d") for x in base_period_time_range
             ]
-        self.cf_variables = [
+        self._cf_variables = [
             _build_cf_variable(
                 da=ds[cf_var_name],
                 time_range=time_range,
                 ignore_Feb29th=ignore_Feb29th,
                 base_period_time_range=base_period_time_range,
                 only_leap_years=only_leap_years,
-                transfer_limit_Mbytes=transfer_limit_Mbytes,
+                chunk_it=chunk_it,
             )
             for cf_var_name in var_name
         ]
@@ -120,7 +120,6 @@ class IndexConfig:
         self.save_percentile = save_percentile
         self.is_percent = out_unit == "%"
         self.out_unit = out_unit
-        self.transfer_limit_Mbytes = transfer_limit_Mbytes
         if isinstance(netcdf_version, str):
             self.netcdf_version = NetcdfVersion.lookup(netcdf_version)
         else:
@@ -130,6 +129,26 @@ class IndexConfig:
         self.callback = callback
         self.index = index
 
+    @property
+    def tas(self) -> CfVariable:
+        return self._cf_variables[0]
+
+    @property
+    def tasmax(self) -> CfVariable:
+        return self._cf_variables[0]
+
+    @property
+    def tasmin(self) -> CfVariable:
+        if len(self._cf_variables) > 1:
+            return self._cf_variables[1]
+        return self._cf_variables[0]
+
+    @property
+    def pr(self) -> CfVariable:
+        if len(self._cf_variables) > 1:
+            return self._cf_variables[1]
+        return self._cf_variables[0]
+
 
 def _build_cf_variable(
     da: DataArray,
@@ -137,10 +156,11 @@ def _build_cf_variable(
     ignore_Feb29th: bool,
     base_period_time_range: Optional[List[datetime]],
     only_leap_years: bool,
-    transfer_limit_Mbytes: Optional[int],
+    chunk_it: bool,
 ) -> CfVariable:
-    if transfer_limit_Mbytes is not None:
-        da = _chunk_data(transfer_limit_Mbytes, da)
+    if chunk_it:
+        # todo maybe do it only on indices where parallelization will be useful
+        da = da.chunk("auto")  # typing fixed in next xarray version
     out_of_base_da = _build_data_array(da, time_range, ignore_Feb29th)
     if base_period_time_range is not None:
         in_base_da = _build_in_base_da(da, base_period_time_range, only_leap_years)
@@ -199,12 +219,6 @@ def _build_in_base_da(
     if only_leap_years:
         da = _reduce_only_leap_years(original_da)
     return da
-
-
-def _chunk_data(transfer_limit_Mbytes: int, da: DataArray) -> DataArray:
-    with dask.config.set({"array.chunk-size": f"{transfer_limit_Mbytes} MB"}):
-        chunks = {d: "auto" for d in da.dims}
-        return da.chunk(chunks=chunks)
 
 
 def _reduce_only_leap_years(da: DataArray) -> DataArray:

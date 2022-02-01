@@ -32,6 +32,17 @@ __all__ = ["index"]
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
+def indices():
+    """
+    List the available indices.
+    todo: include a representation of custom indices.
+    Returns
+    -------
+        A list of indices to be used as input of icclim.index `index_name` parameter.
+    """
+    return [f"{i.short_name}: {i.definition}" for i in EcadIndex]
+
+
 def indice(*args, **kwargs):
     """
     Proxy for `index`
@@ -43,14 +54,13 @@ def indice(*args, **kwargs):
 
 def index(
     in_files: Union[str, List[str], Dataset],
-    index_name: str,
+    index_name: str = None,  # optional when computing user_indices
     var_name: Optional[Union[str, List[str]]] = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime] = None,
     out_file: str = "icclim_out.nc",
     threshold: Union[float, List[float]] = None,
-    transfer_limit_Mbytes: float = None,
-    callback: Callable[[int], None] = lambda p: logging.info(f"Processing: {p}%"),
+    callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
     base_period_time_range: List[datetime] = None,
@@ -66,9 +76,10 @@ def index(
     user_index: Dict[str, Any] = None,
     save_percentile: bool = False,
     logs_verbosity: Union[Verbosity, str] = Verbosity.LOW,
-    # deprecated
+    # deprecated parameters
     indice_name: str = None,
     user_indice: Dict[str, Any] = None,
+    transfer_limit_Mbytes: float = None,
 ) -> Dataset:
     """
     Parameters
@@ -96,7 +107,9 @@ def index(
         Default is ``None``.
     out_file : str
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-        Default is "icclim_out.nc"
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
     threshold : Union[float, List[float]]
         ``optional`` User defined threshold for certain indices.
@@ -157,21 +170,33 @@ def index(
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
     log.set_verbosity(logs_verbosity)
-
     log.start_message()
     callback(callback_percentage_start_value)
+    # Deprecation handling
     if indice_name is not None:
         log.deprecation_warning(old="indice_name", new="index_name")
         index_name = indice_name
     if user_indice is not None:
         log.deprecation_warning(old="user_indice", new="user_index")
         user_index = user_indice
+    if transfer_limit_Mbytes is not None:
+        log.deprecation_warning(old="transfer_limit_Mbytes")
     index: Optional[EcadIndex]
     if user_index is None:
         index = EcadIndex.lookup(index_name)
     else:
         index = None
-    input_dataset, reset_coords = _read_input(in_files)
+    # Todo: `chunk_da` forces dask to be used.
+    #       Maybe add an option to use pure numpy ?
+    chunk_da = True
+    if isinstance(in_files, Dataset):
+        input_dataset = in_files
+        chunk_da = False
+    elif isinstance(in_files, list):
+        input_dataset = xarray.open_mfdataset(in_files, parallel=True)
+    else:
+        input_dataset = xarray.open_dataset(in_files)
+    input_dataset, reset_coords_dict = _update_coords(input_dataset)
     if isinstance(var_name, str):
         var_name = [var_name]
     elif var_name is None and index is not None:
@@ -186,12 +211,12 @@ def index(
         time_range=time_range,
         var_name=var_name,
         window_width=window_width,
-        transfer_limit_Mbytes=transfer_limit_Mbytes,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
         interpolation=interpolation,
         callback=callback,
         index=index,
+        chunk_it=chunk_da,
     )
     if user_index is not None:
         result_ds = _compute_user_index_dataset(config, user_index)
@@ -199,8 +224,8 @@ def index(
         result_ds = _compute_ecad_index_dataset(
             config, index, threshold, input_dataset.attrs.get("history", None)
         )
-    if reset_coords:
-        result_ds = result_ds.rename(reset_coords)
+    if reset_coords_dict:
+        result_ds = result_ds.rename(reset_coords_dict)
     if not isinstance(in_files, Dataset):
         if input_dataset.time.encoding:
             if input_dataset.time.encoding.get("chunksizes"):
@@ -216,17 +241,6 @@ def index(
     callback(callback_percentage_total)
     log.ending_message(time.process_time())
     return result_ds
-
-
-def _read_input(in_files):
-    if isinstance(in_files, Dataset):
-        input_dataset = in_files
-    elif isinstance(in_files, list):
-        input_dataset = xarray.open_mfdataset(in_files, parallel=True)
-    else:
-        input_dataset = xarray.open_dataset(in_files)
-    input_dataset, reset_coords = _update_coords(input_dataset)
-    return input_dataset, reset_coords
 
 
 def _compute_ecad_index_dataset(
@@ -258,7 +272,7 @@ def _compute_user_index_dataset(config: IndexConfig, user_index: dict) -> Datase
     user_indice_config = UserIndexConfig(
         **user_index,
         freq=config.freq,
-        cf_vars=config.cf_variables,
+        cf_vars=config._cf_variables,
         is_percent=config.is_percent,
         save_percentile=config.save_percentile,
     )
@@ -291,7 +305,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
 def _compute_ecad_index(
     index: EcadIndex, config: IndexConfig, former_history: Optional[str]
 ) -> Dataset:
-    logging.info(f"Calculating climate index: {index.index_name}")
+    logging.info(f"Calculating climate index: {index.short_name}")
     result_ds = Dataset()
     res = index.compute(config)
     if isinstance(res, tuple):
@@ -303,12 +317,12 @@ def _compute_ecad_index(
         da.expand_dims({"threshold": config.threshold})
     if config.freq.post_processing is not None:
         resampled_da, time_bounds = config.freq.post_processing(da)
-        result_ds[index.index_name] = resampled_da
+        result_ds[index.short_name] = resampled_da
         if time_bounds is not None:
             result_ds["time_bounds"] = time_bounds
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
-        result_ds[index.index_name] = da
+        result_ds[index.short_name] = da
     if per is not None:
         per = per.squeeze("percentiles", drop=True).rename("percentiles")
         result_ds = xr.merge([result_ds, per])
@@ -328,9 +342,9 @@ def _add_basic_indice_metadata(
     former_history: str,
 ) -> Dataset:
     if config.threshold is not None:
-        title = f"Index {computed_index.index_name} with user defined threshold"
+        title = f"Index {computed_index.short_name} with user defined threshold"
     else:
-        title = f"ECA {computed_index.group} index {computed_index.index_name}"
+        title = f"ECA {computed_index.group} index {computed_index.short_name}"
     result_ds.attrs["title"] = title
     result_ds.attrs[
         "references"
@@ -355,7 +369,7 @@ def _get_history(config, former_history, indice_computed, result_ds):
     return (
         f"{former_history}\n "
         f"{current_time} "
-        f"Calculation of {indice_computed.index_name} "
+        f"Calculation of {indice_computed.short_name} "
         f"index({config.freq.description}) "
         f"from {start_time} to {end_time}."
     )
@@ -378,7 +392,7 @@ def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
         variables = list(filter(lambda x: x not in ds.coords, ds.variables.keys()))
         raise InvalidIcclimArgumentError(
             f"The necessary variable(s) were not recognized in the"
-            f" input file(s) to compute {index.index_name}."
+            f" input file(s) to compute `{index.short_name}` index."
             f" Use `var_name` parameter to use one the dataset non coordinate variable:"
             f" {variables}"
         )
@@ -386,6 +400,7 @@ def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
 
 
 def _update_coords(ds: Dataset) -> Tuple[Dataset, Dict]:
+    # TODO see if cf-xarray could replace this
     revert = {}
     if ds.coords.get("latitude") is not None:
         ds = ds.rename({"latitude": "lat"})

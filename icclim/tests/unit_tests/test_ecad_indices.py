@@ -29,27 +29,6 @@ class Test_index_from_string:
 
 
 @pytest.mark.parametrize("use_dask", [True, False])
-def test_tn10p_interpolation_error(use_dask):
-    ds = Dataset()
-    ds["tas"] = stub_tas(use_dask=use_dask)
-    conf = IndexConfig(
-        ds=ds,
-        slice_mode=Frequency.MONTH,
-        var_name=["tas"],
-        index=EcadIndex.TN10P,
-        netcdf_version=NetcdfVersion.NETCDF4,
-        base_period_time_range=[
-            ds.time.values[0].astype("M8[D]").astype("O"),
-            ds.time.values[-1].astype("M8[D]").astype("O"),
-        ],
-        window_width=2,
-        interpolation=QuantileInterpolation.LINEAR,
-    )
-    with pytest.raises(InvalidIcclimArgumentError):
-        tn10p(conf)
-
-
-@pytest.mark.parametrize("use_dask", [True, False])
 def test_tn10p(use_dask):
     ds = Dataset()
     ds["tas"] = stub_tas(use_dask=use_dask)
@@ -358,7 +337,7 @@ class TestTx90p:
             time_range=[datetime.datetime(2043, 1, 1), datetime.datetime(2045, 12, 31)],
             index=EcadIndex.TX90P,
         )
-        res = tx90p(conf)
+        res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
 
     @pytest.mark.parametrize("use_dask", [True, False])
@@ -377,7 +356,7 @@ class TestTx90p:
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
             index=EcadIndex.TX90P,
         )
-        res = tx90p(conf)
+        res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
 
     @pytest.mark.parametrize("use_dask", [True, False])
@@ -396,5 +375,5 @@ class TestTx90p:
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
             index=EcadIndex.TX90P,
         )
-        res = tx90p(conf)
+        res, _ = tx90p(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
