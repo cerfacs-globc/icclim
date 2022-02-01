@@ -21,7 +21,7 @@ icclim uses xarray to manipulate data and xarray provides multiple backends to h
 By default, xarray uses numpy, this is overwritten in icclim to use dask whenever a path to a file is provided as input.
 Numpy is fast and reliable for small dataset but may exhaust the memory on large dataset.
 The other backend possibility of xarray is dask. dask can divide data into small chunk to minimize the memory footprint
-of computations. This chunking also enable parallel computation by running the calculus on each chunk concurrently.
+of computations. This chunking also enable parallel computation by running the calculation on each chunk concurrently.
 This parallelization can speed up the computation but because each parallel thread will need multiple chunks to be
 in-memory at once, it can bring back memory issues that chunking was meant to avoid.
 
@@ -313,12 +313,12 @@ Internal re-chunking
 ~~~~~~~~~~~~~~~~~~~~
 The warning would be: ``PerformanceWarning: Increasing number of chunks by factor of xx``.
 This warning is usually raised when computing percentiles.
-In percentiles calculus step, the data used to compute the percentile grow significantly in-memory.
+In percentiles calculation step, the intermediary data generated to compute percentiles is much larger than the initial data.
 First, because of the rolling window used to retrieve all values of each day, the analysed data is multiplied by
 window size (usually by 5).
 Then, on temperatures indices such as Tx90p, we compute percentiles for each day of year (doy).
 This means we must read almost all chunks of time dimension.
-To avoid consuming all RAM at once with this, icclim/xclim internally re-chunk data that's why dask warns
+To avoid consuming all RAM at once with these, icclim/xclim internally re-chunk data that's why dask warns
 that many chunks are being created.
 In that case this warning can be ignored.
 
