@@ -1,43 +1,46 @@
 Release process
 ===============
 
-# Make sure all tests pass
-# Create and checkout release branch
-# Bump version
+#. Make sure all tests pass
+#. Create and checkout a release branch
+#. Bump version in ``/icclim/__init__.py``
+#. Update release_notes in ``doc/source/references/release_notes.rst``
+#. Merge release branch to master with a PR
+#. Clean dist directory content
+#. Create wheel file on master
 
-    Files where to update icclim version number:
-    ``{/icclim/__init__.py, doc/source/references/release_notes.rst }``
+    .. code-block:: sh
 
-# Update release_notes in doc
-# Merge release branch to master
-# Create wheel file on master
+        python3 setup.py bdist_wheel
 
-.. code-block:: sh
+#. Create source archive
 
-    python3 setup.py bdist_wheel
+    .. code-block:: sh
 
-# Create source archive
+        python3 -m setup.py sdist
 
-.. code-block:: sh
+#. Try to upload on testpypi first
 
-    python3 -m setup.py sdist
+    .. code-block:: sh
 
-# Try to upload on testpypi first
+        python3 -m twine upload --repository testpypi dist/*
 
-.. code-block:: sh
+#. Try to install testpypi version on a clean virtual environment
 
-    python3 -m twine upload --repository testpypi dist/*
+    .. code-block:: sh
 
-# Try to install testpypi version on a clean virtual environment
+        python3 -m pip install --index-url https://test.pypi.org/simple/ icclim
 
-.. code-block:: sh
+.. note::
 
-    python3 -m pip install --index-url https://test.pypi.org/simple/ icclim
+    It may fail due to missing dependencies in test.pypi
 
-# Upload to pypi for real
+#. Upload to pypi for real
 
-.. code-block:: sh
+    .. code-block:: sh
 
-    python3 -m twine upload dist/*
+        python3 -m twine upload dist/*
 
-Conda artifact should be updated automatically
+.. note::
+
+    Conda artifact should be updated automatically from pypi.
