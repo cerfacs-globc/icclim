@@ -1,9 +1,8 @@
 Release history
 ===============
 
-5.0.1 (unreleased)
-------------------
-
+5.0.1
+-----
 * [fix] Modify LICENCE and NOTICE to follow Apache guidelines. LICENCE has also been renamed to english LICENSE.
 
 
