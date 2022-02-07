@@ -13,7 +13,6 @@ MINIMAL_REQUIREMENTS = [
     "dask[array]>=2021.10.0",
     "netCDF4>=1.5.7",
     "pyyaml>=6.0",
-    "setuptools-git",
 ]
 
 setup(
