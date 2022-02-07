@@ -5,7 +5,8 @@ Release process
 # Create and checkout release branch
 # Bump version
 
-Files where to update icclim version number: ``{/icclim/__init__.py, doc/source/references/release_notes.rst }
+    Files where to update icclim version number:
+    ``{/icclim/__init__.py, doc/source/references/release_notes.rst }``
 
 # Update release_notes in doc
 # Merge release branch to master
