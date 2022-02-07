@@ -1,6 +1,12 @@
 Release history
 ===============
 
+5.0.1 (unreleased)
+------------------
+
+* [fix] Modify LICENCE and NOTICE to follow Apache guidelines. LICENCE has also been renamed to english LICENSE.
+
+
 5.0.0
 -----
 We fully rewrote icclim to benefit from Xclim, Xarray, Numpy and Dask.

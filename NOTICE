@@ -1,6 +1,5 @@
+Apache icclim
+Copyright [2014-2022] The Apache Software Foundation
 
-Files where to update icclim version number:
-
-    - icclim/setup.py
-    - icclim/icclim/__init__.py
-    - icclim/icclim/icclim_doc/source/conf.py
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
