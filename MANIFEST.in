@@ -1,4 +1,9 @@
-include *.md
-include *.rst
-recursive-include icclim *.json
-recursive-include icclim *.so
+include LICENSE
+include NOTICE
+include README.rst
+
+recursive-include icclim *.yml
+recursive-include doc *.rst *.yml conf.py Makefile make.bat *.jpg *.png *.gif
+
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
