@@ -1,28 +1,31 @@
 """
 Icclim indices extractor.
-It creates a new python module which wraps each icclim indices as a function.
-These functions signature is coherent with icclim.index with all the unnecessary
-parameters trimmed from it.
+It creates a new python module which wraps each icclim index as a function.
+Each generated functions signature is consistent with icclim.index signature but, all
+the unused parameters are trimmed from the signature.
 
-To use is from icclim root do:
+To run the script from icclim root use:
+
 .. code-block:: sh
 
-    python3 -m ./tool/extract-icclim-funs.py
+    >>> python3 ./tool/extract-icclim-funs.py
+
 """
 
 import inspect
+import os
 import re
+from pathlib import Path
 from typing import List
 
-from models.constants import (
+import icclim
+from icclim.models.constants import (
     MODIFIABLE_QUANTILE_WINDOW,
     MODIFIABLE_THRESHOLD,
     MODIFIABLE_UNIT,
     QUANTILE_BASED,
 )
-from models.ecad_indices import EcadIndex
-
-import icclim
+from icclim.models.ecad_indices import EcadIndex
 
 ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]
 # Note: callback args are not included below
@@ -54,9 +57,11 @@ END_NOTE = """
     This function has been auto-generated.
     """
 
+OUTPUT_PATH = Path(os.path.dirname(os.path.abspath(__file__))) / "icclim_wrapped.py"
+
 
 def run():
-    with open("../icclim_wrapped.py", "w") as f:
+    with open(OUTPUT_PATH, "w") as f:
         acc = '''"""
 This module has been auto-generated.
 It exposes convenient index functions proxying to icclim.index function.
@@ -154,8 +159,8 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
     )
     docstring = (
         f'{TAB}"""\n'
-        f"{TAB}{index.short_name}: {index.definition}.\n"
-        f"{TAB}Source: {index.source}.\n\n"
+        f"{TAB}{index.short_name}: {index.definition}\n"
+        f"{TAB}{index.source}.\n\n"
         f"{args_docs}"
         f"{END_NOTE}\n"
         f'{TAB}"""\n'
