@@ -8,7 +8,7 @@ To run the script from icclim root use:
 
 .. code-block:: sh
 
-    >>> python3 ./tool/extract-icclim-funs.py
+    python3 ./tool/extract-icclim-funs.py
 
 """
 
