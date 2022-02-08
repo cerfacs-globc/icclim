@@ -33,7 +33,9 @@ Release process
 
 .. note::
 
-    It may fail due to missing dependencies in test.pypi
+    It may fail due to missing dependencies in test.pypi.
+    In that case, create the environment from icclim environment.yml file to
+    pull all needed dependencies from conda.
 
 #. Upload to pypi for real
 

@@ -1,6 +1,11 @@
 Release history
 ===============
 
+5.0.2 (unreleased)
+------------------
+* [fix] Update extracting script for C3S. imports were broken.
+* [doc] Update release process doc.
+
 5.0.1
 -----
 * [fix] Modify LICENCE and NOTICE to follow Apache guidelines. LICENCE has also been renamed to english LICENSE.
