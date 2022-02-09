@@ -5,6 +5,9 @@ Release history
 ------------------
 * [fix] Update extracting script for C3S. imports were broken.
 * [doc] Update release process doc.
+* [fix] Bug on windows breaking unit tests.
+* [fix] Bug on windows unable to get the timezone in our logger.
+* [fix] Pin to numpy 1.21 for now. Numba seems to dislike version 1.22
 
 5.0.1
 -----

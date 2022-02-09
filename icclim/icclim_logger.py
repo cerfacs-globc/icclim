@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 from enum import Enum
 from typing import Union
@@ -34,7 +33,6 @@ class IcclimLogger:
 
     __instance = None
     verbosity: Verbosity = Verbosity.LOW
-    timezone: str
 
     @staticmethod
     def get_instance(verbosity: Verbosity):
@@ -50,9 +48,6 @@ class IcclimLogger:
         else:
             IcclimLogger.__instance = self
             self.verbosity = verbosity
-            os.environ["TZ"] = "GMT"
-            time.tzset()
-            self.timezone = time.tzname[0]
             logging.basicConfig(
                 level=verbosity.log_level, format="%(asctime)s %(message)s"
             )
@@ -67,7 +62,7 @@ class IcclimLogger:
         from icclim import __version__ as icclim_version
 
         # flake8: noqa
-        time_now = time.asctime(time.gmtime()) + " " + self.timezone
+        time_now = time.asctime(time.gmtime())
         if self.verbosity == Verbosity.SILENT:
             return
         if self.verbosity == Verbosity.LOW:
@@ -107,7 +102,7 @@ class IcclimLogger:
         from icclim import __version__ as icclim_version
 
         # flake8: noqa
-        time_now = time.asctime(time.gmtime()) + " " + self.timezone
+        time_now = time.asctime(time.gmtime())
         if self.verbosity == Verbosity.SILENT:
             return
         if self.verbosity == Verbosity.LOW:

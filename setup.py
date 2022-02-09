@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 from icclim import __version__
 
 MINIMAL_REQUIREMENTS = [
-    "numpy>=1.21.1",
+    "numpy>=1.21,<1.22",  # todo unpin 1.22 once numba works with it
     "xarray>=0.19",
     "xclim>=0.33",
     "cftime>=1.5.0",
