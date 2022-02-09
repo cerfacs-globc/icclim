@@ -12,7 +12,7 @@ VALUE_COUNT = 365 * 5 + 1
 COORDS = dict(
     lat=[42],
     lon=[42],
-    time=pd.date_range("2042-01-01", periods=VALUE_COUNT, freq=pd.DateOffset(days=1)),
+    time=pd.date_range("2042-01-01", periods=VALUE_COUNT, freq="D"),
 )
 K2C = 273.15
 
