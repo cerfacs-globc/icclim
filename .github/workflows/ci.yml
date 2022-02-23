@@ -19,7 +19,7 @@ jobs:
       - name: Install pytest
         run: pip install pytest
       - name: Install pytest-cov
-        run: pip install pytest
+        run: pip install pytest-cov
       # Todo replace all those install by install from requirements.txt
       - name: Install pandas # todo removed once 1.4 is fixed
         run: pip install pandas==1.3.5
