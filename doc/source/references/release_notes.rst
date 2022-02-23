@@ -1,6 +1,11 @@
 Release history
 ===============
 
+5.1.0 (unreleased)
+------------------
+* [enh] Add code coverage in CI. This writes a comment with the full report in the PR.
+
+
 5.0.2
 -----
 * [fix] Update extracting script for C3S. imports were broken.
