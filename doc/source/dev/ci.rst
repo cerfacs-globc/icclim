@@ -4,7 +4,7 @@ Continuous integration
 icclim continuous integration aims to assist development by:
 - Avoiding introducing bugs in the code base .
 - Ensuring all new code follow the same code style.
-- Measuring the amount of untested (thus suspicious) code (TBD).
+- Measuring how much icclim code base is tested by automated unit tests. This is known as code coverage.
 - Making sure the documentation generation is functioning well.
 
 These goals are reached using multiple tools:
