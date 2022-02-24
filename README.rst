@@ -1,7 +1,7 @@
 icclim
 ======
 
-|build| |pypi| |black| |docs|
+|build| |pypi| |black| |docs| |conda|
 
 
 icclim (Index Calculation CLIMate) is a Python library for climate indices calculation.
@@ -55,3 +55,7 @@ For a detailed description of each ECA index, please visit: https://www.ecad.eu/
 .. |build| image:: https://github.com/cerfacs-globc/icclim/actions/workflows/ci.yml/badge.svg?branch=master
         :target: https://github.com/cerfacs-globc/icclim/actions/workflows/ci.yml
         :alt: Build Status
+
+.. |conda| image:: https://img.shields.io/conda/vn/conda-forge/icclim.svg
+        :target: https://anaconda.org/conda-forge/icclim
+        :alt: Conda-forge Build Version
