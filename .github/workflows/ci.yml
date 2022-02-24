@@ -11,6 +11,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+       # actions/checkout@v2 checkouts to a new merge commit
       - uses: actions/checkout@v2
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
@@ -33,6 +34,7 @@ jobs:
         run: |
             pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=icclim icclim/tests/unit_tests | tee pytest-coverage.txt
       - name: Pytest coverage comment
+        id: coverageComment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-coverage-path: ./pytest-coverage.txt
@@ -45,3 +47,22 @@ jobs:
           report-only-changed-files: false
           junitxml-path: ./pytest.xml
           junitxml-title: My JUnit Xml Summary Title
+      - name: create local ref
+        run: |
+          git fetch origin ${{ github.head_ref }}
+          git checkout ${{ github.head_ref }}
+      - name: Update Readme with Coverage Html
+        run: |
+          sed -i '/  Pytest Coverage Comment:Begin/,/  Pytest Coverage Comment:End/c\  Pytest Coverage Comment:Begin\n\n.. |coverage| image:: https://img.shields.io/badge/Coverage-${{ steps.coverageComment.outputs.coverage }}25-${{ steps.coverageComment.outputs.color }}.svg\n        :target: https://github.com/cerfacs-globc/icclim/blob/master/README.rst#code-coverage\n        :alt: Code coverage\n\n..\n  Pytest Coverage Comment:End' ./README.rst
+      - name: setup git config
+        run: |
+          # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+      - name: commit
+        run: |
+          # Stage the file, commit and push
+          git add README.rst
+          # Ignore error cases
+          git commit -m "[skip ci] DOC: Update coverage" || true
+          git push origin ${{ github.head_ref }}
