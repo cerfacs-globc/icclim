@@ -1,12 +1,16 @@
+from typing import Callable
+from unittest.mock import MagicMock, patch
+
 import pytest
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError
 from icclim.models.constants import PRECIPITATION, TEMPERATURE
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
 from icclim.models.user_index_config import LogicalOperation
 from icclim.tests.unit_tests.test_utils import stub_pr, stub_tas, stub_user_index
-from icclim.user_indices.dispatcher import CalcOperation, compute_user_index
+from icclim.user_indices import dispatcher
+from icclim.user_indices.dispatcher import CalcOperation
 
 
 class Test_compute:
@@ -18,7 +22,7 @@ class Test_compute:
         user_index.freq = Frequency.MONTH
         # WHEN
         with pytest.raises(InvalidIcclimArgumentError):
-            compute_user_index(user_index)
+            dispatcher.compute_user_index(user_index)
 
     def test_simple(self):
         # GIVEN
@@ -27,7 +31,7 @@ class Test_compute:
         user_index.calc_operation = "max"
         user_index.freq = Frequency.MONTH
         # WHEN
-        result = compute_user_index(user_index)
+        result = dispatcher.compute_user_index(user_index)
         # THEN
         assert result.data[0] == 1
 
@@ -44,7 +48,7 @@ class Test_compute:
         user_index.var_type = PRECIPITATION
         user_index.freq = Frequency.YEAR
         # WHEN
-        result = compute_user_index(user_index)
+        result = dispatcher.compute_user_index(user_index)
         # THEN
         assert result.data[0] == 5
 
@@ -61,7 +65,108 @@ class Test_compute:
         user_index.var_type = TEMPERATURE
         user_index.freq = Frequency.MONTH
         # WHEN
-        result = compute_user_index(user_index)
+        result = dispatcher.compute_user_index(user_index)
         # THEN
         assert result.data[0] == 1
         assert result.data[1] == 5
+
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_error_anomaly(self, config_mock: MagicMock):
+        config_mock.da_ref = None
+        with pytest.raises(MissingIcclimInputError):
+            dispatcher.anomaly(config_mock)
+
+    @patch("icclim.user_indices.operators.anomaly")
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_success_anomaly(self, config_mock: MagicMock, op_mock: MagicMock):
+        dispatcher.anomaly(config_mock)
+        op_mock.assert_called_once()
+
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_error_run_sum(self, config_mock: MagicMock):
+        config_mock.extreme_mode = None
+        with pytest.raises(MissingIcclimInputError):
+            dispatcher.run_sum(config_mock)
+        config_mock.extreme_mode = {}
+        config_mock.window_width = None
+        with pytest.raises(MissingIcclimInputError):
+            dispatcher.run_sum(config_mock)
+
+    @patch("icclim.user_indices.operators.run_sum")
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_success_run_sum(self, config_mock: MagicMock, op_mock: MagicMock):
+        dispatcher.run_sum(config_mock)
+        op_mock.assert_called_once()
+
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_error_run_mean(self, config_mock: MagicMock):
+        config_mock.extreme_mode = None
+        with pytest.raises(MissingIcclimInputError):
+            dispatcher.run_mean(config_mock)
+        config_mock.extreme_mode = {}
+        config_mock.window_width = None
+        with pytest.raises(MissingIcclimInputError):
+            dispatcher.run_mean(config_mock)
+
+    @patch("icclim.user_indices.operators.run_mean")
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_success_run_mean(self, config_mock: MagicMock, op_mock: MagicMock):
+        dispatcher.run_mean(config_mock)
+        op_mock.assert_called_once()
+
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_error_max_consecutive_event_count(self, config_mock: MagicMock):
+        config_mock.logical_operation = None
+        with pytest.raises(MissingIcclimInputError):
+            dispatcher.max_consecutive_event_count(config_mock)
+        config_mock.logical_operation = {}
+        config_mock.thresh = None
+        with pytest.raises(MissingIcclimInputError):
+            dispatcher.max_consecutive_event_count(config_mock)
+        config_mock.logical_operation = {}
+        config_mock.thresh = []
+        with pytest.raises(InvalidIcclimArgumentError):
+            dispatcher.max_consecutive_event_count(config_mock)
+
+    @patch("icclim.user_indices.operators.max_consecutive_event_count")
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_success_max_consecutive_event_count(
+        self, config_mock: MagicMock, op_mock: MagicMock
+    ):
+        dispatcher.max_consecutive_event_count(config_mock)
+        op_mock.assert_called_once()
+
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_error_count_events(self, config_mock: MagicMock):
+        config_mock.nb_event_config = None
+        with pytest.raises(MissingIcclimInputError):
+            dispatcher.count_events(config_mock)
+
+    @patch("icclim.user_indices.operators.count_events")
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_success_count_events(self, config_mock: MagicMock, op_mock: MagicMock):
+        dispatcher.count_events(config_mock)
+        op_mock.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "reducer", [dispatcher.sum, dispatcher.mean, dispatcher.min, dispatcher.max]
+    )
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_error_simple_reducer(self, config_mock: MagicMock, reducer: Callable):
+        config_mock.cf_vars = [1, 2, 3]
+        with pytest.raises(InvalidIcclimArgumentError):
+            reducer(config_mock)
+        config_mock.cf_vars = [MagicMock()]
+        config_mock.thresh = []
+        with pytest.raises(InvalidIcclimArgumentError):
+            reducer(config_mock)
+
+    @pytest.mark.parametrize("reducer", ["sum", "mean", "min", "max"])
+    @patch("icclim.models.user_index_config.UserIndexConfig")
+    def test_success_simple_reducer(self, config_mock: MagicMock, reducer: str):
+        config_mock.calc_operation = reducer
+        config_mock.cf_vars = [MagicMock()]
+        config_mock.thresh = 42
+        with patch("icclim.user_indices.operators." + reducer) as op_mock:
+            dispatcher.compute_user_index(config_mock)
+            op_mock.assert_called_once()
