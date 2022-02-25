@@ -27,12 +27,10 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.user_indices.dispatcher import compute_user_index
 
-__all__ = ["index"]
-
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
-def indices():
+def indices() -> List:
     """
     List the available indices.
     todo: include a representation of custom indices.
@@ -45,15 +43,15 @@ def indices():
 
 def indice(*args, **kwargs):
     """
-    Proxy for `index`
-    To be deleted in 5.1
+    Deprecated proxy for `icclim.index` function.
+    To be deleted in a futur version.
     """
     log.deprecation_warning(old="icclim.indice", new="icclim.index")
     return index(*args, **kwargs)
 
 
 def index(
-    in_files: Union[str, List[str], Dataset],
+    in_files: Union[str, List[str], Dataset, DataArray],
     index_name: str = None,  # optional when computing user_indices
     var_name: Optional[Union[str, List[str]]] = None,
     slice_mode: SliceMode = Frequency.YEAR,
@@ -84,7 +82,7 @@ def index(
     """
     Parameters
     ----------
-    in_files : Union[str, List[str], Dataset]
+    in_files : Union[str, List[str], Dataset, DataArray]
         Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs),
         or xarray.Dataset.
     index_name : str
@@ -191,6 +189,18 @@ def index(
     chunk_da = True
     if isinstance(in_files, Dataset):
         input_dataset = in_files
+        chunk_da = False
+    elif isinstance(in_files, DataArray):
+        if index is not None:
+            if len(index.variables) > 1:
+                raise InvalidIcclimArgumentError(
+                    f"Index {index.name} need {len(index.variables)} variables."
+                    f"Please provides them with an xarray.Dataset or a netCDF file."
+                )
+            name = index.variables[0][0]  # first alias of the unique variable
+        else:
+            name = var_name
+        input_dataset = in_files.to_dataset(name=name, promote_attrs=True)
         chunk_da = False
     elif isinstance(in_files, list):
         input_dataset = xarray.open_mfdataset(in_files, parallel=True)
