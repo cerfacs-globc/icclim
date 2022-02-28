@@ -11,7 +11,6 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from warnings import warn
 
-import xarray
 import xarray as xr
 import xclim
 from xarray.core.dataarray import DataArray
@@ -33,7 +32,7 @@ log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 def indices() -> List:
     """
     List the available indices.
-    todo: include a representation of custom indices.
+
     Returns
     -------
         A list of indices to be used as input of icclim.index `index_name` parameter.
@@ -51,22 +50,22 @@ def indice(*args, **kwargs):
 
 
 def index(
-    in_files: Union[str, List[str], Dataset, DataArray],
+    in_files: Union[str, List[str], Dataset, DataArray] = None,
     index_name: str = None,  # optional when computing user_indices
-    var_name: Optional[Union[str, List[str]]] = None,
+    var_name: Union[str, List[str], None] = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: List[datetime] = None,
-    out_file: str = "icclim_out.nc",
-    threshold: Union[float, List[float]] = None,
+    out_file: Optional[str] = None,
+    threshold: Union[float, List[float], None] = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: List[datetime] = None,
+    base_period_time_range: Union[List[datetime], None] = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: Optional[
-        Union[str, QuantileInterpolation]
+    interpolation: Union[
+        str, QuantileInterpolation, None
     ] = QuantileInterpolation.MEDIAN_UNBIASED,
     out_unit: Optional[str] = None,
     netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
@@ -84,7 +83,7 @@ def index(
     ----------
     in_files : Union[str, List[str], Dataset, DataArray]
         Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs),
-        or xarray.Dataset.
+        or xarray.Dataset or xarray.DataArray.
     index_name : str
         Climate index name.
         For ECA&D index, case insensitive name used to lookup the index.
@@ -163,54 +162,25 @@ def index(
         DEPRECATED, use user_index instead.
 
     """
-    # make xclim input daily check a warning instead of an error
-    xclim.set_options(data_validation="warn")
-    # keep attributes through xarray operations
-    xr.set_options(keep_attrs=True)
-    log.set_verbosity(logs_verbosity)
-    log.start_message()
-    callback(callback_percentage_start_value)
-    # Deprecation handling
-    if indice_name is not None:
-        log.deprecation_warning(old="indice_name", new="index_name")
-        index_name = indice_name
-    if user_indice is not None:
-        log.deprecation_warning(old="user_indice", new="user_index")
-        user_index = user_indice
-    if transfer_limit_Mbytes is not None:
-        log.deprecation_warning(old="transfer_limit_Mbytes")
+    _setup(callback, callback_percentage_start_value, logs_verbosity)
+    index_name, user_index = _handle_deprecated_params(
+        index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
+    )
+    # -- Choose index to compute
+    if user_index is None and index_name is None:
+        raise InvalidIcclimArgumentError(
+            "No index to compute."
+            " You must provide either `user_index` to compute a customized index"
+            " or `index_name` for one of the ECAD indices"
+            " or `index_group` to compute multiple indices at once."
+        )
     index: Optional[EcadIndex]
-    if user_index is None:
+    if index_name is not None:
         index = EcadIndex.lookup(index_name)
     else:
         index = None
-    # Todo: `chunk_da` forces dask to be used.
-    #       Maybe add an option to use pure numpy ?
-    chunk_da = True
-    if isinstance(in_files, Dataset):
-        input_dataset = in_files
-        chunk_da = False
-    elif isinstance(in_files, DataArray):
-        if index is not None:
-            if len(index.variables) > 1:
-                raise InvalidIcclimArgumentError(
-                    f"Index {index.name} need {len(index.variables)} variables."
-                    f"Please provides them with an xarray.Dataset or a netCDF file."
-                )
-            name = index.variables[0][0]  # first alias of the unique variable
-        else:
-            name = var_name
-        input_dataset = in_files.to_dataset(name=name, promote_attrs=True)
-        chunk_da = False
-    elif isinstance(in_files, list):
-        input_dataset = xarray.open_mfdataset(in_files, parallel=True)
-    else:
-        input_dataset = xarray.open_dataset(in_files)
-    input_dataset, reset_coords_dict = _update_coords(input_dataset)
-    if isinstance(var_name, str):
-        var_name = [var_name]
-    elif var_name is None and index is not None:
-        var_name = _guess_variables(index, input_dataset)
+    input_dataset, chunk_it = _read_dataset(in_files, index, var_name)
+    input_dataset, reset_coords_dict = _update_to_standard_coords(input_dataset)
     config = IndexConfig(
         base_period_time_range=base_period_time_range,
         ds=input_dataset,
@@ -219,38 +189,109 @@ def index(
         save_percentile=save_percentile,
         slice_mode=slice_mode,
         time_range=time_range,
-        var_name=var_name,
+        var_names=_guess_variable_names(var_name, index, input_dataset),
         window_width=window_width,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
         interpolation=interpolation,
         callback=callback,
         index=index,
-        chunk_it=chunk_da,
+        chunk_it=chunk_it,
     )
     if user_index is not None:
-        result_ds = _compute_user_index_dataset(config, user_index)
+        result_ds = _compute_user_index_dataset(config=config, user_index=user_index)
     else:
         result_ds = _compute_ecad_index_dataset(
-            config, index, threshold, input_dataset.attrs.get("history", None)
+            config=config,
+            index=index,
+            threshold=threshold,
+            current_history=input_dataset.attrs.get("history", None),
         )
     if reset_coords_dict:
         result_ds = result_ds.rename(reset_coords_dict)
-    if not isinstance(in_files, Dataset):
-        if input_dataset.time.encoding:
-            if input_dataset.time.encoding.get("chunksizes"):
-                del input_dataset.time.encoding["chunksizes"]
-            time_encoding = input_dataset.time.encoding
-        else:
-            time_encoding = {"units": "days since 1850-1-1"}
-        result_ds.to_netcdf(
-            out_file,
-            format=config.netcdf_version.value,
-            encoding={"time": time_encoding},
+    if out_file is not None:
+        _write_output_file(
+            result_ds, input_dataset.time.encoding, config.netcdf_version, out_file
         )
     callback(callback_percentage_total)
     log.ending_message(time.process_time())
     return result_ds
+
+
+def _write_output_file(
+    result_ds: xr.Dataset,
+    input_time_encoding: Dict,
+    netcdf_version: NetcdfVersion,
+    file_path: str,
+) -> None:
+    """
+    Write `result_ds` to a netCDF file on `out_file` path.
+    """
+    if input_time_encoding:
+        if input_time_encoding.get("chunksizes"):
+            del input_time_encoding["chunksizes"]
+        time_encoding = input_time_encoding
+    else:
+        time_encoding = {"units": "days since 1850-1-1"}
+    result_ds.to_netcdf(
+        file_path,
+        format=netcdf_version.value,
+        encoding={"time": time_encoding},
+    )
+
+
+def _handle_deprecated_params(
+    index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
+):
+    if indice_name is not None:
+        log.deprecation_warning(old="indice_name", new="index_name")
+        index_name = indice_name
+    if user_indice is not None:
+        log.deprecation_warning(old="user_indice", new="user_index")
+        user_index = user_indice
+    if transfer_limit_Mbytes is not None:
+        log.deprecation_warning(old="transfer_limit_Mbytes")
+    # TODO deprecate in_files
+    return index_name, user_index
+
+
+def _setup(callback, callback_percentage_start_value, logs_verbosity):
+    # make xclim input daily check a warning instead of an error
+    xclim.set_options(data_validation="warn")
+    # keep attributes through xarray operations
+    xr.set_options(keep_attrs=True)
+    log.set_verbosity(logs_verbosity)
+    log.start_message()
+    callback(callback_percentage_start_value)
+
+
+def _read_dataset(
+    data: Union[str, List[str], Dataset, DataArray],
+    index: Optional[EcadIndex],
+    var_name: Optional[str],
+):
+    chunk_da = True
+    if isinstance(data, Dataset):
+        input_dataset = data
+        chunk_da = False
+    elif isinstance(data, DataArray):
+        if index is not None:
+            if len(index.variables) > 1:
+                raise InvalidIcclimArgumentError(
+                    f"Index {index.name} need {len(index.variables)} variables."
+                    f"Please provides them with an xarray.Dataset or a netCDF file."
+                )
+            name = index.variables[0][0]  # first alias of the unique variable
+        else:
+            # user index case
+            name = var_name
+        input_dataset = data.to_dataset(name=name, promote_attrs=True)
+        chunk_da = False
+    elif isinstance(data, list):
+        input_dataset = xr.open_mfdataset(data, parallel=True)
+    else:
+        input_dataset = xr.open_dataset(data)
+    return input_dataset, chunk_da
 
 
 def _compute_ecad_index_dataset(
@@ -264,7 +305,7 @@ def _compute_ecad_index_dataset(
         for th in threshold:
             config.threshold = th
             ds_list.append(_compute_ecad_index(index, config, current_history))
-        result_ds = xarray.concat(ds_list, dim="threshold")
+        result_ds = xr.concat(ds_list, dim="threshold")
     else:
         config.threshold = threshold
         result_ds = _compute_ecad_index(index, config, current_history)
@@ -341,11 +382,11 @@ def _compute_ecad_index(
     else:
         former_history = f"{former_history}\n{da.attrs['history']}"
     del da.attrs["history"]
-    result_ds = _add_basic_indice_metadata(result_ds, config, index, former_history)
+    result_ds = _add_basic_index_metadata(result_ds, config, index, former_history)
     return result_ds
 
 
-def _add_basic_indice_metadata(
+def _add_basic_index_metadata(
     result_ds: Dataset,
     config: IndexConfig,
     computed_index: EcadIndex,
@@ -385,11 +426,15 @@ def _get_history(config, former_history, indice_computed, result_ds):
     )
 
 
-def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
+def _guess_variable_names(
+    in_var_name: Union[str, List[str]], index: Union[EcadIndex, None], ds: Dataset
+) -> List[str]:
     """
     Try to guess the variable names using the expected kind of variable for
     the index.
     """
+    if isinstance(in_var_name, str):
+        return [in_var_name]
     res = []
     index_variables = index.variables
     for indice_var in index_variables:
@@ -409,7 +454,10 @@ def _guess_variables(index: EcadIndex, ds: Dataset) -> List[str]:
     return res
 
 
-def _update_coords(ds: Dataset) -> Tuple[Dataset, Dict]:
+def _update_to_standard_coords(ds: Dataset) -> Tuple[Dataset, Dict]:
+    """
+    Mutate input ds to use more icclim friendly coordinate name.
+    """
     # TODO see if cf-xarray could replace this
     revert = {}
     if ds.coords.get("latitude") is not None:
