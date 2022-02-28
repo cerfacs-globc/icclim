@@ -56,10 +56,7 @@ class Test_min:
         da = stub_tas(use_dask=use_dask)
         da.data[1] = -20
         # WHEN
-        result = min(
-            da=da,
-            freq="YS",
-        )
+        result = min(da=da, freq="YS")
         # THEN
         assert result.data[0] == -20
 
@@ -83,10 +80,7 @@ class Test_sum:
     def test_simple(self, use_dask):
         da = stub_tas(use_dask=use_dask)
         # WHEN
-        result = sum(
-            da=da,
-            freq="YS",
-        )
+        result = sum(da=da, freq="YS")
         # THEN
         assert result.data[0] == 365
 

@@ -13,13 +13,13 @@ def _proleptic_gregorian_leap(years: DataArray) -> DataArray:
 
 
 def _julian_leap(years: DataArray) -> DataArray:
-    return years % 4
+    return years % 4 == 0
 
 
 def _standard_leap(years: DataArray) -> DataArray:
-    res = xr.full_like(years, 0)
-    res[years < 1582] = _julian_leap(years)
-    res[years >= 1582] = _proleptic_gregorian_leap(years)
+    res = xr.full_like(years, False)
+    res[years < 1582] = _julian_leap(years[years < 1582])
+    res[years >= 1582] = _proleptic_gregorian_leap(years[years >= 1582])
     return res
 
 
@@ -39,15 +39,15 @@ class CfCalendar(Enum):
 
     NO_LEAP = (
         ["noleap", "no_leap", "days_365", "days365", "365_day", "365day"],
-        lambda da: xr.full_like(da, False).values,
+        lambda da: np.full_like(da.shape, False, dtype=bool),
     )
     DAYS_360 = (
         ["360_day", "days_360", "360day", "days360"],
-        lambda da: xr.full_like(da, False).values,
+        lambda da: np.full_like(da.shape, False, dtype=bool),
     )
     ALL_LEAP = (
         ["all_leap", "allleap", "days_366", "days366", "366_day", "366day"],
-        lambda da: xr.full_like(da, True).values,
+        lambda da: np.full_like(da.shape, True, dtype=bool),
     )
     PROLEPTIC_GREGORIAN = (
         ["proleptic_gregorian", "prolepticgregorian"],

@@ -9,7 +9,7 @@ from icclim.user_indices import operators
 
 
 def compute_user_index(config: UserIndexConfig) -> DataArray:
-    operation = CalcOperation.lookup(config)
+    operation = CalcOperation.lookup(config.calc_operation)
     return operation.compute_fun(config)
 
 
@@ -95,41 +95,23 @@ def count_events(config: UserIndexConfig):
 
 
 def sum(config: UserIndexConfig):
-    return operators.sum(
-        da=_check_and_get_da(config),
-        in_base_da=_check_and_get_in_base_da(config),
-        coef=config.coef,
-        logical_operation=config.logical_operation,
-        threshold=_check_and_get_simple_threshold(config.thresh),
-        freq=config.freq.panda_freq,
-    )
+    return _simple_reducer(operators.sum, config)
 
 
 def mean(config: UserIndexConfig):
-    return operators.mean(
-        da=_check_and_get_da(config),
-        in_base_da=_check_and_get_in_base_da(config),
-        coef=config.coef,
-        logical_operation=config.logical_operation,
-        threshold=_check_and_get_simple_threshold(config.thresh),
-        freq=config.freq.panda_freq,
-    )
+    return _simple_reducer(operators.mean, config)
 
 
 def min(config: UserIndexConfig):
-    return operators.min(
-        da=_check_and_get_da(config),
-        in_base_da=_check_and_get_in_base_da(config),
-        coef=config.coef,
-        logical_operation=config.logical_operation,
-        threshold=_check_and_get_simple_threshold(config.thresh),
-        freq=config.freq.panda_freq,
-        date_event=config.date_event,
-    )
+    return _simple_reducer(operators.min, config)
 
 
 def max(config: UserIndexConfig):
-    return operators.max(
+    return _simple_reducer(operators.max, config)
+
+
+def _simple_reducer(op: Callable, config: UserIndexConfig):
+    return op(
         da=_check_and_get_da(config),
         in_base_da=_check_and_get_in_base_da(config),
         coef=config.coef,
@@ -194,12 +176,12 @@ class CalcOperation(Enum):
         self.compute_fun = compute_fun
 
     @staticmethod
-    def lookup(config: UserIndexConfig):
-        if isinstance(config.calc_operation, CalcOperation):
-            return config.calc_operation
+    def lookup(calc_operation: str):
+        if isinstance(calc_operation, CalcOperation):
+            return calc_operation
         for calc_op in CalcOperation:
-            if calc_op.input_name.upper() == config.calc_operation.upper():
+            if calc_op.input_name.upper() == calc_operation.upper():
                 return calc_op
         raise InvalidIcclimArgumentError(
-            f"The calc_operation {config.calc_operation} is unknown."
+            f"The calc_operation {calc_operation} is unknown."
         )

@@ -4,7 +4,13 @@ Release history
 5.1.0 (unreleased)
 ------------------
 * [enh] Add code coverage in CI. This writes a comment with the full report in the PR.
+* [enh] Add coverage and conda badges in Readme.
+* [tst] Add unit test form modules `main`, `dispatcher`, `cf_calendar`.
+* [fix] `cf_calendar` was poorly tested thus was full of bugs.
+* [tst] Add simple integration test for `icclim.index` using index "SU".
+* [maint] Remove old, unmaintained integration tests and auxiliary tools. See `9ac35c2f`_ for details.
 
+.. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 
 5.0.2
 -----
