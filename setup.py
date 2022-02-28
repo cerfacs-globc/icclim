@@ -8,7 +8,7 @@ from icclim import __version__
 MINIMAL_REQUIREMENTS = [
     "numpy>=1.21,<1.22",  # todo unpin 1.22 once numba works with it
     "xarray>=0.19",
-    "xclim>=0.33",
+    "xclim>=0.34",
     "cftime>=1.5.0",
     "dask[array]>=2021.10.0",
     "netCDF4>=1.5.7",

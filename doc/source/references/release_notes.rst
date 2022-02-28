@@ -9,6 +9,7 @@ Release history
 * [fix] `cf_calendar` was poorly tested thus was full of bugs.
 * [tst] Add simple integration test for `icclim.index` using index "SU".
 * [maint] Remove old, unmaintained integration tests and auxiliary tools. See `9ac35c2f`_ for details.
+* [maint] Upgrade to xclim 0.34.
 
 .. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 
