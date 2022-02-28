@@ -1,10 +1,9 @@
 name: ci-build
 
 on:
-  push:
+  pull_request:
     branches:
       - master
-  pull_request:
 
 jobs:
   # lint is handled by pre-commit ci conf
