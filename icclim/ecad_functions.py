@@ -966,6 +966,8 @@ def compute_compound_index(
     if save_percentile:
         # FIXME, not consistent with other percentile based indices
         #        We should probably return a Tuple (res, [tas_per, pr_per])
+        #        However, here the percentiles use the existing time dimension and not
+        #        doy
         result.coords["tas_per"] = resample_doy(tas_per, result)
         result.coords["pr_per"] = resample_doy(pr_per, result)
     return result
