@@ -22,17 +22,17 @@ class CfVariable:
     ----------
     da: DataArray
         The variable studied.
-    in_base_da: DataArray
+    reference_da: DataArray
         The variable studied limited to the in base period.
     """
 
     # TODO: seems unnecessary abstraction between ds and da. Replace by a Dataset.
     da: DataArray
-    in_base_da: DataArray
+    reference_da: DataArray
 
-    def __init__(self, da: DataArray, in_base_da: DataArray) -> None:
+    def __init__(self, da: DataArray, reference_da: DataArray) -> None:
         self.da = da
-        self.in_base_da = in_base_da
+        self.reference_da = reference_da
 
 
 class IndexConfig:

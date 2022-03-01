@@ -67,7 +67,7 @@ def max_consecutive_event_count(config: UserIndexConfig):
         )
     return operators.max_consecutive_event_count(
         da=config.cf_vars[0].da,
-        in_base_da=config.cf_vars[0].in_base_da,
+        in_base_da=config.cf_vars[0].reference_da,
         logical_operation=config.logical_operation,
         threshold=config.thresh,
         coef=config.coef,
@@ -84,7 +84,7 @@ def count_events(config: UserIndexConfig):
         )
     return operators.count_events(
         das=list(map(lambda x: x.da, config.cf_vars)),
-        in_base_das=list(map(lambda x: x.in_base_da, config.cf_vars)),
+        in_base_das=list(map(lambda x: x.reference_da, config.cf_vars)),
         logical_operation=config.nb_event_config.logical_operation,
         link_logical_operations=config.nb_event_config.link_logical_operations,
         thresholds=config.nb_event_config.thresholds,
@@ -148,7 +148,7 @@ def _check_and_get_da(config: UserIndexConfig) -> DataArray:
 
 def _check_and_get_in_base_da(config: UserIndexConfig) -> Union[DataArray, None]:
     if len(config.cf_vars) == 1:
-        return config.cf_vars[0].in_base_da
+        return config.cf_vars[0].reference_da
     else:
         raise InvalidIcclimArgumentError(
             f"There must be exactly one variable for {config.calc_operation}"
