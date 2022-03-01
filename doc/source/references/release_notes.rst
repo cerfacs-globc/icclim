@@ -12,6 +12,7 @@ Release history
 * [maint] Upgrade to xclim 0.34.
 * [fix] WSDI and CSDI percentile were computed on the studied period instead of the reference period.
 * [maint] Refactored ``icclim.main`` module to ease maintainability.
+* [maint] **BREAKING CHANGE** Parameter ``out_file`` of icclim.index default value is now ``None``. When None, icclim.index only returns a xarray.Dataset.
 
 .. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 
