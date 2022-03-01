@@ -22,17 +22,17 @@ class CfVariable:
     ----------
     da: DataArray
         The variable studied.
-    in_base_da: DataArray
+    reference_da: DataArray
         The variable studied limited to the in base period.
     """
 
     # TODO: seems unnecessary abstraction between ds and da. Replace by a Dataset.
     da: DataArray
-    in_base_da: DataArray
+    reference_da: DataArray
 
-    def __init__(self, da: DataArray, in_base_da: DataArray) -> None:
+    def __init__(self, da: DataArray, reference_da: DataArray) -> None:
         self.da = da
-        self.in_base_da = in_base_da
+        self.reference_da = reference_da
 
 
 class IndexConfig:
@@ -81,7 +81,7 @@ class IndexConfig:
         self,
         ds: Dataset,
         slice_mode: SliceMode,
-        var_name: List[str],
+        var_names: List[str],
         netcdf_version: Union[str, NetcdfVersion],
         index: Optional[Any],  # EcadIndex proper typing causes circular dependency
         save_percentile: bool = False,
@@ -114,7 +114,7 @@ class IndexConfig:
                 only_leap_years=only_leap_years,
                 chunk_it=chunk_it,
             )
-            for cf_var_name in var_name
+            for cf_var_name in var_names
         ]
         self.window = window_width
         self.save_percentile = save_percentile

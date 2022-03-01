@@ -5,11 +5,14 @@ Release history
 ------------------
 * [enh] Add code coverage in CI. This writes a comment with the full report in the PR.
 * [enh] Add coverage and conda badges in Readme.
-* [tst] Add unit test form modules `main`, `dispatcher`, `cf_calendar`.
-* [fix] `cf_calendar` was poorly tested thus was full of bugs.
-* [tst] Add simple integration test for `icclim.index` using index "SU".
+* [tst] Add unit test form modules ``main``, ``dispatcher``, ``cf_calendar``.
+* [fix] ``cf_calendar`` was poorly tested thus was full of bugs.
+* [tst] Add simple integration test for ``icclim.index`` using index "SU".
 * [maint] Remove old, unmaintained integration tests and auxiliary tools. See `9ac35c2f`_ for details.
 * [maint] Upgrade to xclim 0.34.
+* [fix] WSDI and CSDI percentile were computed on the studied period instead of the reference period.
+* [maint] Refactored ``icclim.main`` module to ease maintainability.
+* [maint] **BREAKING CHANGE** Parameter ``out_file`` of icclim.index default value is now ``None``. When None, icclim.index only returns a xarray.Dataset.
 
 .. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 

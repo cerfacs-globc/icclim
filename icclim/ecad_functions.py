@@ -874,7 +874,7 @@ def _compute_spell_duration(
     xclim_index_fun: Callable,
 ) -> Tuple[DataArray, Optional[DataArray]]:
     per = _compute_percentile_doy(
-        cf_var.da,
+        cf_var.reference_da,
         per_thresh,
         per_window,
         per_interpolation,
@@ -945,14 +945,14 @@ def compute_compound_index(
         Otherwise, returns the index_result
     """
     tas_per = _compute_percentile_doy(
-        tas.in_base_da,
+        tas.reference_da,
         tas_per_thresh,
         per_window,
         per_interpolation,
         callback,
     )
     tas_per = tas_per.squeeze(PERCENTILES_COORD, drop=True)
-    pr_in_base = _filter_in_wet_days(pr.in_base_da, dry_day_value=np.NAN)
+    pr_in_base = _filter_in_wet_days(pr.reference_da, dry_day_value=np.NAN)
     pr_out_of_base = _filter_in_wet_days(pr.da, dry_day_value=0)
     pr_per = _compute_percentile_doy(
         pr_in_base,
@@ -978,7 +978,7 @@ def _compute_rxxptot(
     per_interpolation: QuantileInterpolation,
     save_percentile: bool,
 ) -> Tuple[DataArray, Optional[DataArray]]:
-    base_wet_days = _filter_in_wet_days(pr.in_base_da, dry_day_value=np.nan)
+    base_wet_days = _filter_in_wet_days(pr.reference_da, dry_day_value=np.nan)
     per = _compute_percentile_over_period(
         base_wet_days, per_interpolation, pr_per_thresh
     )
@@ -1004,7 +1004,7 @@ def _compute_rxxp(
     save_percentile: bool,
     is_percent: bool,
 ) -> Tuple[DataArray, Optional[DataArray]]:
-    base_wet_days = _filter_in_wet_days(pr.in_base_da, dry_day_value=np.nan)
+    base_wet_days = _filter_in_wet_days(pr.reference_da, dry_day_value=np.nan)
     per = _compute_percentile_over_period(
         base_wet_days, per_interpolation, pr_per_thresh
     )
@@ -1035,7 +1035,7 @@ def _compute_temperature_percentile_index(
     xclim_index_fun: Callable,
 ) -> Tuple[DataArray, Optional[DataArray]]:
     per = _compute_percentile_doy(
-        cf_var.in_base_da,
+        cf_var.reference_da,
         tas_per_thresh,
         per_window,
         per_interpolation,

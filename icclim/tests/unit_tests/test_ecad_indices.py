@@ -4,7 +4,20 @@ import numpy as np
 import pytest
 from xarray import Dataset
 
-from icclim.ecad_functions import cfd, csu, fd, gd4, hd17, prcptot, su, tn10p, tr, tx90p
+from icclim.ecad_functions import (
+    cfd,
+    csdi,
+    csu,
+    fd,
+    gd4,
+    hd17,
+    prcptot,
+    su,
+    tn10p,
+    tr,
+    tx90p,
+    wsdi,
+)
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency
@@ -35,7 +48,7 @@ def test_tn10p(use_dask):
     conf = IndexConfig(
         ds=ds,
         slice_mode=Frequency.MONTH,
-        var_name=["tas"],
+        var_names=["tas"],
         netcdf_version=NetcdfVersion.NETCDF4,
         base_period_time_range=[
             ds.time.values[0].astype("M8[D]").astype("O"),
@@ -59,7 +72,7 @@ class Test_SU:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.SU,
         )
@@ -75,7 +88,7 @@ class Test_SU:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.SU,
@@ -94,7 +107,7 @@ class Test_TR:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TR,
         )
@@ -110,7 +123,7 @@ class Test_TR:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TR,
@@ -129,7 +142,7 @@ class Test_prcptot:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["pr"],
+            var_names=["pr"],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.PRCPTOT,
         )
@@ -147,7 +160,7 @@ class Test_csu:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.CSU,
         )
@@ -164,7 +177,7 @@ class Test_csu:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.CSU,
@@ -183,7 +196,7 @@ class Test_gd4:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.GD4,
         )
@@ -200,7 +213,7 @@ class Test_gd4:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.GD4,
@@ -220,7 +233,7 @@ class Test_cfd:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.CFD,
         )
@@ -237,7 +250,7 @@ class Test_cfd:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.CFD,
@@ -257,7 +270,7 @@ class Test_fd:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.FD,
         )
@@ -274,7 +287,7 @@ class Test_fd:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.FD,
@@ -293,7 +306,7 @@ class Test_hd17:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.HD17,
         )
@@ -309,7 +322,7 @@ class Test_hd17:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.HD17,
@@ -328,7 +341,7 @@ class TestTx90p:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             base_period_time_range=[
                 datetime.datetime(2042, 1, 1),
@@ -347,7 +360,7 @@ class TestTx90p:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             base_period_time_range=[
                 datetime.datetime(2042, 1, 1),
@@ -366,7 +379,7 @@ class TestTx90p:
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
-            var_name=["tas"],
+            var_names=["tas"],
             netcdf_version=NetcdfVersion.NETCDF4,
             base_period_time_range=[
                 datetime.datetime(2042, 1, 1),
@@ -376,4 +389,46 @@ class TestTx90p:
             index=EcadIndex.TX90P,
         )
         res, _ = tx90p(conf)
+        assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
+
+
+class TestWsdi:
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_wsdi_bootstrap_2_years(self, use_dask):
+        ds = Dataset()
+        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        conf = IndexConfig(
+            ds=ds,
+            slice_mode=Frequency.MONTH,
+            var_names=["tas"],
+            netcdf_version=NetcdfVersion.NETCDF4,
+            base_period_time_range=[
+                datetime.datetime(2042, 1, 1),
+                datetime.datetime(2043, 12, 31),
+            ],
+            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
+            index=EcadIndex.TX90P,
+        )
+        res, _ = wsdi(conf)
+        assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
+
+
+class TestCsdi:
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_csdi_bootstrap_2_years(self, use_dask):
+        ds = Dataset()
+        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        conf = IndexConfig(
+            ds=ds,
+            slice_mode=Frequency.MONTH,
+            var_names=["tas"],
+            netcdf_version=NetcdfVersion.NETCDF4,
+            base_period_time_range=[
+                datetime.datetime(2042, 1, 1),
+                datetime.datetime(2043, 12, 31),
+            ],
+            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
+            index=EcadIndex.TX90P,
+        )
+        res, _ = csdi(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]

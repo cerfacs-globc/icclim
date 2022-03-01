@@ -126,7 +126,7 @@ class UserIndexConfig:
         self.date_event = date_event
         self.var_type = var_type
         self.is_percent = is_percent
-        self.da_ref = cf_vars[0].in_base_da
+        self.da_ref = cf_vars[0].reference_da
         self.cf_vars = cf_vars
         if thresh is not None and logical_operation is not None:
             self.nb_event_config = get_nb_event_conf(
