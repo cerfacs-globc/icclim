@@ -171,8 +171,7 @@ def index(
         raise InvalidIcclimArgumentError(
             "No index to compute."
             " You must provide either `user_index` to compute a customized index"
-            " or `index_name` for one of the ECAD indices"
-            " or `index_group` to compute multiple indices at once."
+            " or `index_name` for one of the ECA&D indices."
         )
     index: Optional[EcadIndex]
     if index_name is not None:
