@@ -8,9 +8,10 @@ import xarray as xr
 
 import icclim
 from icclim.models.ecad_indices import EcadIndex
+from icclim.models.index_group import IndexGroup
 
 
-def test_indices():
+def test_list_indices():
     res = icclim.list_indices()
     assert len(res) == len(EcadIndex)
 
@@ -26,6 +27,9 @@ def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock):
     index_mock.assert_called_once()
 
 
+HEAT_INDICES = ["SU", "TR", "WSDI", "TG90p", "TN90p", "TX90p", "TXx", "TNx", "CSU"]
+
+
 @pytest.mark.slow
 class Test_Integration:
     """
@@ -39,15 +43,15 @@ class Test_Integration:
 
     """
 
-    VALUE_COUNT = 365 * 2
     OUTPUT_FILE = "out.nc"
+    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     data = xr.DataArray(
-        data=(np.full(VALUE_COUNT, 20).reshape((VALUE_COUNT, 1, 1))),
+        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
         coords=dict(
             lat=[42],
             lon=[42],
-            time=pd.date_range("2042-01-01", periods=VALUE_COUNT, freq="D"),
+            time=TIME_RANGE,
         ),
         attrs={"units": "degC"},
     )
@@ -68,3 +72,21 @@ class Test_Integration:
             indice_name="SU", in_files=self.data, out_file=self.OUTPUT_FILE
         )
         np.testing.assert_array_equal(0, res.SU)
+
+    def test_indices_from_DataArray(self):
+        res = icclim.indices(
+            index_group=IndexGroup.HEAT, in_files=self.data, out_file=self.OUTPUT_FILE
+        )
+        for i in HEAT_INDICES:
+            assert res[i] is not None
+
+    def test_indices_from_Dataset(self):
+        ds = self.data.to_dataset(name="tas")
+        res = icclim.indices(
+            index_group=IndexGroup.HEAT,
+            in_files=ds,
+            var_name="tas",
+            out_file=self.OUTPUT_FILE,
+        )
+        for i in HEAT_INDICES:
+            assert res[i] is not None

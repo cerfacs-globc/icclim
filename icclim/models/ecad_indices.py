@@ -85,8 +85,7 @@ class EcadIndex(Enum):
         compute: Callable
             The function to compute the index. It wraps Xclim functions.
         group: IndexGroup
-            The index group category. one of
-            ``{"temperature", "heat", "cold", "drought", "rain", "snow", "compound"}``
+            The index group category.
         variables: List[List[str]]
             The Cf variables needed to compute the index.
             The variable are individually described by a list of aliases.
@@ -453,7 +452,13 @@ class EcadIndex(Enum):
 
     @staticmethod
     def lookup(query: str) -> Any:
+        if isinstance(query, EcadIndex):
+            return query
         for e in EcadIndex:
             if e.short_name.upper() == query.upper():
                 return e
-        raise InvalidIcclimArgumentError(f"Unknown index {query}.")
+        raise InvalidIcclimArgumentError(
+            f"Unknown index {query}."
+            f" You can list the available indices"
+            f" with `icclim.list_indices()`."
+        )

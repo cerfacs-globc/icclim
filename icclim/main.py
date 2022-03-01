@@ -21,6 +21,7 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency, SliceMode
+from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
@@ -39,7 +40,52 @@ def list_indices() -> List[str]:
     -------
         A list of indices to be used as input of icclim.index `index_name` parameter.
     """
-    return [f"{i.short_name}: {i.definition}" for i in EcadIndex]
+    return [f"{i.short_name}\n\t{i.group}\n\t{i.definition}" for i in EcadIndex]
+
+
+def indices(index_group: Union[str, IndexGroup, List[str]], **kwargs) -> xr.Dataset:
+    """
+
+    Compute multiple indices at the same time.
+    The input dataset(s) must include all the necessary variables.
+    It can only be used with keyword arguments (kwargs)
+
+    Parameters
+    ----------
+    index_group : Union[str, IndexGroup, List[str]]
+        Either the name of an IndexGroup, a instance of IndexGroup or a list
+        of index short names.
+        You cannot pass a list of groups for now.
+    kwargs : icclim.index keyword arguments.
+
+    Returns
+    -------
+    xr.Dataset
+        A Dataset with one data variable per index.
+
+    .. notes
+        If output_file is part of of kwargs, the result is also written in a netCDF file
+        with this name.
+
+    """
+    if isinstance(index_group, list):
+        indices = [EcadIndex.lookup(i) for i in index_group]
+    else:
+        indices = IndexGroup.lookup(index_group).get_indices()
+    out = None
+    if "output_file" in kwargs.keys():
+        out = kwargs["output_file"]
+        kwargs["output_file"] = None
+    acc = []
+    for i in indices:
+        kwargs["index_name"] = i.short_name
+        acc.append(index(**kwargs))
+    ds = xr.merge(acc)
+    if out is not None:
+        _write_output_file(
+            ds,
+        )
+    return ds
 
 
 def indice(*args, **kwargs):
