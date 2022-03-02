@@ -9,3 +9,4 @@ Here are some guidelines for those who which to contribute to icclim development
 
     release_process
     ci
+    contributing
