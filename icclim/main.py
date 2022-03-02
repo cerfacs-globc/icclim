@@ -8,7 +8,7 @@ Main module of icclim.
 import logging
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from warnings import warn
 
 import xarray as xr
@@ -24,6 +24,7 @@ from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
+from icclim.models.user_index_dict import UserIndexDict
 from icclim.user_indices.dispatcher import compute_user_index
 
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
@@ -69,13 +70,12 @@ def index(
     ] = QuantileInterpolation.MEDIAN_UNBIASED,
     out_unit: Optional[str] = None,
     netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
-    # TODO do something prettier than a dict (a UserIndiceDTO or something)
-    user_index: Dict[str, Any] = None,
+    user_index: UserIndexDict = None,
     save_percentile: bool = False,
     logs_verbosity: Union[Verbosity, str] = Verbosity.LOW,
     # deprecated parameters
     indice_name: str = None,
-    user_indice: Dict[str, Any] = None,
+    user_indice: UserIndexDict = None,
     transfer_limit_Mbytes: float = None,
 ) -> Dataset:
     """
@@ -146,7 +146,7 @@ def index(
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
     netcdf_version : icclim.models.netcdf_version.NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    user_index : Union[None, None]
+    user_index : UserIndexDict
         ``optional`` A dictionary with parameters for user defined index.
         See :ref:`Custom indices`.
         Ignored for ECA&D indices.
@@ -311,7 +311,9 @@ def _compute_ecad_index_dataset(
     return result_ds
 
 
-def _compute_user_index_dataset(config: IndexConfig, user_index: dict) -> Dataset:
+def _compute_user_index_dataset(
+    config: IndexConfig, user_index: UserIndexDict
+) -> Dataset:
     logging.info("Calculating user index.")
     result_ds = Dataset()
     deprecated_name = user_index.get("indice_name", None)

@@ -6,8 +6,8 @@ Custom indices recipes
 >>> import icclim
 >>> import datetime
 
-Example 5: Custom index (max)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Max of tas within the year
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -23,8 +23,9 @@ Example 5: Custom index (max)
     icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 6: Custom index (min positive + date)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Min of positive values within the year and the date of this minimum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Get minimum temperature which is above zero Celsius and find its date.
 
 .. warning:: If input data are in Kelvin, then ``thresh`` must be in Kelvin too.
@@ -47,8 +48,8 @@ Get minimum temperature which is above zero Celsius and find its date.
     icclim.index(user_index=my_index_params, in_files=file_tasmin, var_name='tasmin', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 7: Custom index (mean of selected period)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Mean of a selected period
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: ``slice_mode`` must be ``None`` to apply the operation to the whole period of selected time range.
 
@@ -66,8 +67,8 @@ Example 7: Custom index (mean of selected period)
     icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode=None, time_range=tr, out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 8: Custom index (number of days when tas < 15 degrees Celsius)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Number of days when tas < 15 degrees Celsius of each Autumn
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed.
 
@@ -85,8 +86,8 @@ Example 8: Custom index (number of days when tas < 15 degrees Celsius)
     icclim.index(user_index=my_index_params, in_files=file_tas, var_name='tas', slice_mode='SON', out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 9: Custom index (percentage of days when tasmax > 80th pctl + date)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Percentage of days when tasmax > 80th pctl and at which date it happens
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed.
 
@@ -111,8 +112,8 @@ Example 9: Custom index (percentage of days when tasmax > 80th pctl + date)
     icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', slice_mode='year', base_period_time_range=bp, out_unit='%', out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 10: Custom index (number of days when daily precipitation amount > 85th pctl)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Number of days when daily precipitation amount > 85th pctl
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed.
 
@@ -135,8 +136,8 @@ Example 10: Custom index (number of days when daily precipitation amount > 85th 
     icclim.index(user_index=my_index_params, in_files=file_pr, var_name='pr', slice_mode='year', base_period_time_range=bp, out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 11: Custom index (max number of consecutive days when tasmax >= 25 degrees Celsius + date)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Max number of consecutive days when tasmax >= 25 degrees Celsius + date of the events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: Two additional variables will be created in output netCDF file: "date_event_start" (the first date of the found sequence) and "date_event_end" (the last date of the found sequence).
 
@@ -156,8 +157,8 @@ Example 11: Custom index (max number of consecutive days when tasmax >= 25 degre
 
     icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', slice_mode='year', out_file=out_f, callback=callback.defaultCallback2)
 
-Example 12: Custom index (max of sum of precipitation in 10 consecutive days)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Max of sum of precipitation in 10 consecutive days
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -173,8 +174,8 @@ Example 12: Custom index (max of sum of precipitation in 10 consecutive days)
     icclim.index(user_index=my_index_params, in_files=file_pr, var_name='pr', slice_mode=['season',[4,5,6,7,8]], out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 13: Custom index (min of mean of tasmin in 7 consecutive days + date)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Min of mean of tasmin in 7 consecutive days + date of the events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: Two additional variables will be created in output netCDF file: "date_event_start" (the date corrsponding to the beggining of the "window" satisfying the condition) and "date_event_end" (the date corrsponding to the end of the "window" satisfying the condition).
 
@@ -195,8 +196,8 @@ Example 13: Custom index (min of mean of tasmin in 7 consecutive days + date)
 
     icclim.index(user_index=my_index_params, in_files=file_tasmin, var_name='tasmin', slice_mode=['season',([11,12],[1,2])], out_file=out_f, callback=callback.defaultCallback2)
 
-Example 14: Custom index (anomaly of tasmax between 2 period of 30 years)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Anomaly of tasmax between 2 period of 30 years
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: Result could be returned as percentage value relative to mean value of reference period, if ``out_unit='%'``.
 
@@ -214,8 +215,8 @@ Example 14: Custom index (anomaly of tasmax between 2 period of 30 years)
     icclim.index(user_index=my_index_params, in_files=file_tasmax, var_name='tasmax', time_range=tr, base_period_time_range=tr_base, out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 15: Multivariable custom index (number of days when tasmin >= 10 degrees Celsius and tasmax > 25 degrees Celsius)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Number of days when tasmin >= 10 degrees Celsius and tasmax > 25 degrees Celsius
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed.
 
@@ -235,8 +236,8 @@ Example 15: Multivariable custom index (number of days when tasmin >= 10 degrees
     icclim.index(user_index=my_index_params, in_files=[file_tasmin, file_tasmax], var_name=['tasmin', 'tasmax'], slice_mode='JJA', out_unit='days', out_file=out_f, callback=callback.defaultCallback2)
 
 
-Example 16: Multivariable custom index (percentage of days when tasmin >= 10 degrees Celsius and tasmax > 90th pctl   + date)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Percentage of days when tasmin >= 10 degrees Celsius and tasmax > 90th pctl + date of the events
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed.
 
@@ -263,8 +264,8 @@ Example 16: Multivariable custom index (percentage of days when tasmin >= 10 deg
 
 .. _examples_CD_CW_WD_WW_label:
 
-Example 17: CW as a custom index (number of days when tas < 25th pctl and precip. > 75th pctl)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Number of days when tas < 25th pctl and precip. > 75th pctl
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed.
 
@@ -298,8 +299,8 @@ based on daily precipitation (RR) and mean temperature (TG) variables:
     bp = [datetime.datetime(1960,1,1), datetime.datetime(1969,12,31)]
     icclim.index(user_index=my_index_params, in_files=[file_tas, file_pr], var_name=['tas', 'pr'], slice_mode='year', out_unit='days', base_period_time_range=bp, out_file=out_f, callback=callback.defaultCallback2)
 
-Example 18: Multivariable custom index (number of days when tasmax > 90th pctl and tasmin >= 10 and precipitation < 30th pctl)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Number of days when tasmax > 90th pctl and tasmin >= 10 and precipitation < 30th pctl
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed.
 

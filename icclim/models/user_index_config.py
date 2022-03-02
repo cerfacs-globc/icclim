@@ -1,12 +1,32 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Literal, Optional, Union
 
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
+
+LogicalOperationLiteral = Literal[
+    "gt",
+    ">",
+    "lt",
+    "<",
+    "get",
+    "ge",
+    ">=",
+    "=>",
+    "let",
+    "le",
+    "<=",
+    "=<",
+    "e",
+    "equal",
+    "eq",
+    "=",
+    "==",
+]
 
 
 class LinkLogicalOperation(Enum):
@@ -97,7 +117,7 @@ class UserIndexConfig:
 
     def __init__(
         self,
-        index_name,
+        index_name: str,
         # Any should be CalcOperation but it causes circular import
         calc_operation: Union[str, Any],
         freq: Frequency,
