@@ -1,5 +1,5 @@
-Larger than memory computation
-==============================
+Chunk data and parallelize computation
+======================================
 
 TL;DR
 -----

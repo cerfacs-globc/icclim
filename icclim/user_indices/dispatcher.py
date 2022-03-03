@@ -1,11 +1,23 @@
 from enum import Enum
-from typing import Any, Callable, Union
+from typing import Any, Callable, Literal, Union
 
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.user_indices import operators
+
+CalcOperationLiteral = Literal[
+    "max",
+    "min",
+    "sum",
+    "mean",
+    "nb_events",
+    "max_nb_consecutive_events",
+    "run_mean",
+    "run_sum",
+    "anomaly",
+]
 
 
 def compute_user_index(config: UserIndexConfig) -> DataArray:

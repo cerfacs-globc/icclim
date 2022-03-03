@@ -94,21 +94,8 @@ or a list of values:
 ``transfer_limit_Mbytes``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``transfer_limit_Mbytes`` parameter is required to estimate the optimal data chunk size.
-It is used with Dask in order to set the maximum chunk size value.
-Note that multiples chunks can be in memory at the same time, a "good" transfer_limit_Mbytes is around 200MB.
-
->>> transfer_limit_Mbytes = 200
-
-In addition, it is recommended to use `Dask distributed scheduler <http://distributed.dask.org/en/stable/>`_ to maximize
-icclim performances.
-It can also be on a local machine, to distribute the workload on multiple threads.
-To use it, you must install it first:
->>> conda install dask distributed -c conda-forge
-
-Then for a local cluster, a good starting point can be this configuration:
->>> from distributed import Client
->>> Client(memory_limit='12GB', timeout=20, n_workers=1, threads_per_worker=10)
+Deprecated. ``transfer_limit_Mbytes`` is now ignored.
+See the how to :ref:`chunk data and parallelize computation <dask>` to configure dask chunking.
 
 ``callback``
 ~~~~~~~~~~~~~
