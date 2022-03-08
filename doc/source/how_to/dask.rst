@@ -191,7 +191,7 @@ A few notes:
 * The CLient must be started in the same python interpreter as the computation. This is how dask know which scheduler to use.
 * If needed, the localCluster can be started independently and the Client connected to a running LocalCluster. See: http://distributed.dask.org/en/stable/client.html
 * Each worker is an independent python process and memory_limit is set for each of these processes. So, if you have 16GB of RAM don't set ``memory_limit='16GB'`` unless you run a single worker.
-* Memory sharing is much more efficient between threads than between processes (workers).
+* Memory sharing is much more efficient between threads than between processes (workers), see `dask doc <http://distributed.dask.org/en/stable/worker.html#thread-pool>`_
 * On a single worker, a good threads number should be a multiple of your CPU cores (usually \*2).
 * All threads of the same worker are idle whenever one of the thread is reading or writing on disk.
 * It's useless to spawn too many threads, there are hardware limits on how many of them can run concurrently and if they are too numerous, the OS will waste time orchestrating them.

@@ -27,10 +27,12 @@ class CfVariable:
     """
 
     # TODO: seems unnecessary abstraction between ds and da. Replace by a Dataset.
+    name: str
     da: DataArray
     reference_da: DataArray
 
-    def __init__(self, da: DataArray, reference_da: DataArray) -> None:
+    def __init__(self, name: str, da: DataArray, reference_da: DataArray) -> None:
+        self.name = name
         self.da = da
         self.reference_da = reference_da
 
@@ -107,14 +109,15 @@ class IndexConfig:
             ]
         self._cf_variables = [
             _build_cf_variable(
-                da=ds[cf_var_name],
+                da=ds[var_name],
+                name=var_name,
                 time_range=time_range,
                 ignore_Feb29th=ignore_Feb29th,
                 base_period_time_range=base_period_time_range,
                 only_leap_years=only_leap_years,
                 chunk_it=chunk_it,
             )
-            for cf_var_name in var_names
+            for var_name in var_names
         ]
         self.window = window_width
         self.save_percentile = save_percentile
@@ -152,25 +155,25 @@ class IndexConfig:
 
 def _build_cf_variable(
     da: DataArray,
-    time_range: Optional[List[datetime]],
+    name: str,
+    time_range: Optional[List[str]],
     ignore_Feb29th: bool,
-    base_period_time_range: Optional[List[datetime]],
+    base_period_time_range: Optional[List[str]],
     only_leap_years: bool,
     chunk_it: bool,
 ) -> CfVariable:
     if chunk_it:
-        # todo maybe do it only on indices where parallelization will be useful
-        da = da.chunk("auto")  # typing fixed in next xarray version
-    out_of_base_da = _build_data_array(da, time_range, ignore_Feb29th)
+        da = da.chunk("auto")  # noqa - typing fixed in futur xarray version
+    study_da = _build_study_da(da, time_range, ignore_Feb29th)
     if base_period_time_range is not None:
-        in_base_da = _build_in_base_da(da, base_period_time_range, only_leap_years)
+        reference_da = _build_reference_da(da, base_period_time_range, only_leap_years)
     else:
-        in_base_da = out_of_base_da
-    return CfVariable(out_of_base_da, in_base_da)
+        reference_da = study_da
+    return CfVariable(name, study_da, reference_da)
 
 
-def _build_data_array(
-    original_da: DataArray, time_range: Optional[List[datetime]], ignore_Feb29th: bool
+def _build_study_da(
+    original_da: DataArray, time_range: Optional[List[str]], ignore_Feb29th: bool
 ) -> DataArray:
     if time_range is not None:
         if len(time_range) != 2:
@@ -194,9 +197,9 @@ def _build_data_array(
     return da
 
 
-def _build_in_base_da(
+def _build_reference_da(
     original_da: DataArray,
-    base_period_time_range: List[datetime],
+    base_period_time_range: List[str],
     only_leap_years: bool,
 ) -> DataArray:
     # TODO merge with _build_data_array ?
