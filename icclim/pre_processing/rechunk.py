@@ -3,7 +3,7 @@ import shutil
 from typing import List, Union
 
 import dask
-import distributed
+import psutil
 import xarray as xr
 from rechunker import rechunk
 from xarray.core.dataarray import DataArray
@@ -19,14 +19,16 @@ def _get_mem_limit(factor: float = 0.9) -> int:
     if factor > 1 or factor < 0:
         raise ValueError(f"factor was {factor} but, it must be between 0 and 1.")
     try:
+        import distributed
+
         max_sys_mem = (
             distributed.get_client()
             .submit(lambda: distributed.get_worker().memory_limit)
             .result()
         )
-    except ValueError:
+    except (ValueError, ImportError):
         # Assumes default scheduler is used
-        max_sys_mem = distributed.system.MEMORY_LIMIT
+        max_sys_mem = psutil.virtual_memory().total
     return int(factor * max_sys_mem)
 
 
