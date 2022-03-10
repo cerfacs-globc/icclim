@@ -8,7 +8,7 @@ Main module of icclim.
 import logging
 import time
 from datetime import datetime
-from typing import Callable, Dict, List, Literal, Optional, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 from warnings import warn
 
 import xarray as xr
@@ -31,7 +31,7 @@ from icclim.user_indices.dispatcher import compute_user_index
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
-def list_indices() -> List:
+def list_indices() -> List[str]:
     """
     List the available indices.
 
@@ -74,7 +74,6 @@ def index(
     user_index: UserIndexDict = None,
     save_percentile: bool = False,
     logs_verbosity: Union[Verbosity, str] = Verbosity.LOW,
-    rechunk_it: Literal["nope", "yes and delete zarr", "yes and save zarr"] = "nope",
     # deprecated parameters
     indice_name: str = None,
     user_indice: UserIndexDict = None,
@@ -248,7 +247,7 @@ def _write_output_file(
 
 def _handle_deprecated_params(
     index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
-):
+) -> Tuple[str, UserIndexDict]:
     if indice_name is not None:
         log.deprecation_warning(old="indice_name", new="index_name")
         index_name = indice_name
