@@ -39,22 +39,53 @@ def create_optimized_zarr_store(
     target_zarr_store_name: str = "icclim-target-store.zarr",
     dim="time",
     keep_target_store: bool = False,
-):
+) -> xr.Dataset:
     """
-    EXPERIMENTAL FEATURE
+    -- EXPERIMENTAL FEATURE --
 
-    todo fill doc
+    Context manager to create an zarr store given an input netcdf or xarray structure.
+    The resulting zarr store is NOT chunked on `dim` dimension.
+    By default `dim` being "time", the zarr store is optimized for time series analyses,
+    such as the computation of ECA&D climat indices.
+
+    By default, once the context manager ends, the zarr store is destroyed.
+    This can be controlled by setting `keep_target_store` to True
+
+    The output is the resulting zarr store as a xarray Dataset.
+
+    Examples
+    --------
+
+    >>> with icclim.create_optimized_zarr_store(in_files="tasmax.nc",
+    >>>                             var_names="tasmax",
+    >>>                             target_zarr_store_name="tasmax-store.zarr",
+    >>>                             dim="time") as pouet:
+    >>>     su_out = icclim.index(in_files= tasmax, index_name = "su")
 
     Parameters
     ----------
-    in_files :
-    var_names :
-    target_zarr_store_name :
-    dim :
-    keep_target_store :
+    in_files : Union[str, List[str], Dataset, DataArray]
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_names : Union[str, List[str]]
+        List of data variable to include in the target zarr store.
+        All other data variable are dropped.
+        The coordinate variable are untouched and are part of the target zarr store.
+    target_zarr_store_name : str
+        Name of the target zarr store.
+        Used to avoid overriding an existing zarr store.
+    dim : str
+        The dimension on which is optimization is performed.
+        This dimension will be unchunked on target zarr store.
+    keep_target_store : bool
+        Set to True to keep the target zarr store after the execution of the context
+        manager.
+        Set to False to remove the target zarr store once execution is finished.
+        Default is False.
 
     Returns
     -------
+    returns xr.Dataset opened on the newly created target zarr store.
 
     """
     # According to
@@ -81,23 +112,6 @@ def _unsafe_create_optimized_zarr_store(
     dim: str,
     max_mem: int,
 ):
-    """
-    Create a single zarr store for for the variables var_names initialy stored in
-    in_files.
-    This zarr store chunking is optimized for analysis on `dim` dimension.
-    Thus, it's optimal for icclim when dim=="time.
-
-    Parameters
-    ----------
-    in_files :
-    var_names :
-    zarr_store_name :
-    dim :
-
-    Returns
-    -------
-
-    """
     with dask.config.set(
         {
             "distributed.worker.memory.target": "0.95",
@@ -110,6 +124,8 @@ def _unsafe_create_optimized_zarr_store(
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_names, ds.data_vars.keys()))
         ds = ds.chunk("auto")
+        # It seems rechunker performs better when the dataset is first converted
+        # in a zarr store, without rechunking anything.
         ds.to_zarr(TMP_STORE_1, mode="w")
         # Leave dask find the best chunking schema for all dimensions but `dim`
         chunking = {d: "auto" for d in ds.dims}
