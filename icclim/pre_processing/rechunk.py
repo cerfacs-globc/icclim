@@ -1,6 +1,6 @@
 import contextlib
 import shutil
-from typing import List, Union
+from typing import Dict, List, Union
 
 import dask
 import psutil
@@ -56,6 +56,7 @@ def create_optimized_zarr_store(
     Examples
     --------
 
+    >>> import icclim
     >>> with icclim.create_optimized_zarr_store(in_files="tasmax.nc",
     >>>                             var_names="tasmax",
     >>>                             target_zarr_store_name="tasmax-store.zarr",
@@ -136,8 +137,7 @@ def _unsafe_create_optimized_zarr_store(
             ds_zarr[data_var].encoding = {}
             acc = {}
             for dim in ds_zarr[data_var].dims:
-                # fixme: `.chunksizes` is only available on xarray v0.20.0
-                acc.update({dim: ds_zarr[data_var].chunksizes[dim][0]})
+                acc.update({dim: _get_chunksizes(ds_zarr)[dim][0]})
             target_chunks.update({data_var: acc})
         for c in ds_zarr.coords:
             ds_zarr[c].encoding = {}
@@ -150,3 +150,24 @@ def _unsafe_create_optimized_zarr_store(
             temp_store=TMP_STORE_2,
         ).execute()
         return xr.open_zarr(zarr_store_name)
+
+
+# FIXME remove once minimal xarray version is v0.20.0 and use .chunksizes instead
+def _get_chunksizes(ds: Dataset) -> Dict:
+    def _chunksizes(da):
+        if hasattr(da.data, "chunks"):
+            return {dim: c for dim, c in zip(da.dims, da.data.chunks)}
+        else:
+            return {}
+
+    chunks = {}
+    for v in ds.variables.values():
+        if hasattr(v.data, "chunks"):
+            for dim, c in _chunksizes(v).items():
+                if dim in chunks and c != chunks[dim]:
+                    raise ValueError(
+                        f"Object has inconsistent chunks along dimension {dim}. "
+                        "This can be fixed by calling unify_chunks()."
+                    )
+                chunks[dim] = c
+    return chunks
