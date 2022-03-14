@@ -10,31 +10,30 @@ from icclim.models.ecad_indices import EcadIndex
 
 def read_dataset(
     data: Union[str, List[str], Dataset, DataArray],
-    index: Optional[EcadIndex],
-    var_names: Union[str, List[str], None],
+    index: Optional[EcadIndex] = None,
+    var_names: Union[str, List[str], None] = None,
 ) -> Tuple[Dataset, bool]:
-    # TODO add unit test
     if isinstance(data, Dataset):
         input_dataset = data
         chunk_da = False
     elif isinstance(data, DataArray):
         if index is None:
             # user index case
-            if isinstance(var_names, str):
-                var_names = [var_names]
-            if len(var_names) > 1 or var_names[0] is None:
+            if var_names is None or (
+                isinstance(var_names, list) and len(var_names) > 1
+            ):
                 raise InvalidIcclimArgumentError(
-                    "When the input is a DataArray, var_names must be a string"
+                    "When the input is a DataArray, var_names must be a string."
                 )
-            name = var_names
+            data_name = var_names
         else:
             if len(index.variables) > 1:
                 raise InvalidIcclimArgumentError(
                     f"Index {index.name} need {len(index.variables)} variables."
-                    f"Please provides them with an xarray.Dataset or a netCDF file."
+                    f"Please provide them with an xarray.Dataset or a netCDF file."
                 )
-            name = index.variables[0][0]  # first alias of the unique variable
-        input_dataset = data.to_dataset(name=name, promote_attrs=True)
+            data_name = index.variables[0][0]  # first alias of the unique variable
+        input_dataset = data.to_dataset(name=data_name, promote_attrs=True)
         chunk_da = False
     elif isinstance(data, list):
         input_dataset = xr.open_mfdataset(data, parallel=True)
@@ -55,7 +54,6 @@ def update_to_standard_coords(ds: Dataset) -> Tuple[Dataset, Dict]:
     """
     Mutate input ds to use more icclim friendly coordinate name.
     """
-    # TODO add unit test
     # TODO see if cf-xarray could replace this
     revert = {}
     if ds.coords.get("latitude") is not None:
