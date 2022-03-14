@@ -9,6 +9,7 @@ from rechunker import rechunk
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.pre_processing.input_parsing import read_dataset
 
 TMP_STORE_1 = "icclim-tmp-store-1.zarr"
@@ -124,7 +125,13 @@ def _unsafe_create_optimized_zarr_store(
         ds, _ = read_dataset(in_files, index=None, var_names=var_names)
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_names, ds.data_vars.keys()))
+        if len(ds.data_vars.keys()) == 0:
+            raise InvalidIcclimArgumentError(
+                f"The variable(s) {var_names} were not found in the dataset."
+            )
         ds = ds.chunk("auto")
+        if len(ds.chunks[dim]) == 1:
+            return ds
         # It seems rechunker performs better when the dataset is first converted
         # in a zarr store, without rechunking anything.
         ds.to_zarr(TMP_STORE_1, mode="w")
