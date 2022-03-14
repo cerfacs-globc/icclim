@@ -234,15 +234,17 @@ def _write_output_file(
     Write `result_ds` to a netCDF file on `out_file` path.
     """
     if input_time_encoding:
-        if input_time_encoding.get("chunksizes"):
-            del input_time_encoding["chunksizes"]
-        time_encoding = input_time_encoding
+        time_encoding = {
+            "calendar": input_time_encoding.get("calendar"),
+            "units": input_time_encoding.get("units"),
+            "dtype": input_time_encoding.get("dtype"),
+        }
     else:
         time_encoding = {"units": "days since 1850-1-1"}
     result_ds.to_netcdf(
         file_path,
         format=netcdf_version.value,
-        encoding={"time": time_encoding},  # todo might not work with zarr input
+        encoding={"time": time_encoding},
     )
 
 
