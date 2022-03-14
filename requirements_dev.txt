@@ -12,7 +12,7 @@ pydata-sphinx-theme
 pylint
 pytest
 pytest-cov
-rechunker=0.33.3
+rechunker==0.33.3
 setuptools>=49.6.0
 sphinx
 xarray~=0.19.0

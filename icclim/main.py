@@ -256,7 +256,6 @@ def _handle_deprecated_params(
         user_index = user_indice
     if transfer_limit_Mbytes is not None:
         log.deprecation_warning(old="transfer_limit_Mbytes")
-    # TODO deprecate in_files
     return index_name, user_index
 
 
