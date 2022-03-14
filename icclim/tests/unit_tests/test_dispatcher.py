@@ -16,7 +16,7 @@ from icclim.user_indices.dispatcher import CalcOperation
 class Test_compute:
     def test_error_bad_operation(self):
         # GIVEN
-        cf_var = CfVariable(stub_tas(), stub_tas())
+        cf_var = CfVariable("tas", stub_tas(), stub_tas())
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "pouet pouet"
         user_index.freq = Frequency.MONTH
@@ -26,7 +26,7 @@ class Test_compute:
 
     def test_simple(self):
         # GIVEN
-        cf_var = CfVariable(stub_tas(), stub_tas())
+        cf_var = CfVariable("tas", stub_tas(), stub_tas())
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "max"
         user_index.freq = Frequency.MONTH
@@ -37,7 +37,7 @@ class Test_compute:
 
     def test_simple_percentile_pr(self):
         # GIVEN
-        cf_var = CfVariable(stub_pr(5), stub_pr(5))
+        cf_var = CfVariable("tas", stub_pr(5), stub_pr(5))
         cf_var.da.data[15:30] += 10
         cf_var.da.data[366 + 15 : 366 + 30] = 2  # Ignore because not in base
         cf_var.reference_da = cf_var.da.sel(time=cf_var.da.time.dt.year == 2042)
@@ -53,7 +53,7 @@ class Test_compute:
         assert result.data[0] == 5
 
     def test_simple_percentile_temp(self):
-        cf_var = CfVariable(stub_tas(5), stub_tas(5))
+        cf_var = CfVariable("tas", stub_tas(5), stub_tas(5))
         cf_var.da.data[15:30] = 1
         cf_var.reference_da = cf_var.da.sel(
             time=cf_var.da.time.dt.year.isin([2042, 2043])
