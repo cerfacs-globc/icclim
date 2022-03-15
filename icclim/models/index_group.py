@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Any, Union
+from typing import Any
 
 
 class IndexGroup(Enum):
@@ -12,7 +14,7 @@ class IndexGroup(Enum):
     COMPOUND = "compound"
 
     @staticmethod
-    def lookup(query: Union[str, Any]):
+    def lookup(query: str | Any) -> IndexGroup:
         if isinstance(query, IndexGroup):
             return query
         for gr in IndexGroup:
@@ -24,7 +26,8 @@ class IndexGroup(Enum):
             f" but query was {query}."
         )
 
-    def get_indices(self):
+    def get_indices(self) -> list[Any]:
+        # import here avoid circular dep.
         from icclim.models.ecad_indices import EcadIndex
 
         return list(filter(lambda i: i.group == self, EcadIndex))

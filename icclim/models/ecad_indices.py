@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Callable, Optional, Tuple, Union
 
 from xarray import DataArray
 
@@ -433,8 +435,8 @@ class EcadIndex(Enum):
         short_name: str,
         compute: ComputeIndexFun,
         group: IndexGroup,
-        variables: List[List[str]],
-        qualifiers: List[str] = None,
+        variables: list[list[str]],
+        qualifiers: list[str] = None,
     ):
         self.short_name = short_name
         self.compute = compute
@@ -451,7 +453,7 @@ class EcadIndex(Enum):
         self.source = ECAD_ATBD
 
     @staticmethod
-    def lookup(query: str) -> Any:
+    def lookup(query: str) -> EcadIndex:
         if isinstance(query, EcadIndex):
             return query
         for e in EcadIndex:
@@ -462,3 +464,11 @@ class EcadIndex(Enum):
             f" You can list the available indices"
             f" with `icclim.list_indices()`."
         )
+
+    @staticmethod
+    def list() -> list[str]:
+        """
+        Get a a string list of ``EcadIndex`` enum's indices formatted in a readable
+        fashion.
+        """
+        return [f"{i.group.value} | {i.short_name} | {i.definition}" for i in EcadIndex]

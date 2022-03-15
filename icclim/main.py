@@ -32,17 +32,6 @@ from icclim.user_indices.dispatcher import compute_user_index
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
-def list_indices() -> List[str]:
-    """
-    List the available indices.
-
-    Returns
-    -------
-        A list of indices to be used as input of icclim.index `index_name` parameter.
-    """
-    return [f"{i.short_name}\n\t{i.group}\n\t{i.definition}" for i in EcadIndex]
-
-
 def indices(index_group: Union[str, IndexGroup, List[str]], **kwargs) -> xr.Dataset:
     """
 
