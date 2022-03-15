@@ -15,6 +15,7 @@ Release history
 * [maint] **BREAKING CHANGE** Parameter ``out_file`` of icclim.index default value is now ``None``. When None, icclim.index only returns a xarray.Dataset.
 * [doc] Add contribution guide.
 * [enh] Add API endpoint `icclim.create_optimized_zarr_store`. It is a context manager wrapping `rechunker` in order to rechunk a dataset without any chunk a time dimension.
+* [fix] Add zarr dependency, needed to update zarr store metadata after rechunking.
 
 .. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 
