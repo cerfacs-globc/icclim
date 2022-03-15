@@ -57,6 +57,7 @@ def indices(index_group: Union[str, IndexGroup, List[str]], **kwargs) -> xr.Data
         with this name.
 
     """
+    # todo add unit tests
     if isinstance(index_group, list):
         indices = [EcadIndex.lookup(i) for i in index_group]
     else:
@@ -72,7 +73,10 @@ def indices(index_group: Union[str, IndexGroup, List[str]], **kwargs) -> xr.Data
     ds = xr.merge(acc)
     if out is not None:
         _write_output_file(
-            ds,
+            result_ds=ds,
+            input_time_encoding=ds.time.encoding,
+            netcdf_version=kwargs.get("netcdf_version", NetcdfVersion.NETCDF4),
+            file_path=out,
         )
     return ds
 
