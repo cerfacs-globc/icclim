@@ -15,6 +15,7 @@ dependencies:
  - pyyaml>=6.0
  - rechunker==0.33.3
  - psutil
+ - zarr
  # Dev dependencies
  - pre-commit
  - pydata-sphinx-theme

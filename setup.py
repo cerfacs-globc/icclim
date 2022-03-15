@@ -14,6 +14,7 @@ MINIMAL_REQUIREMENTS = [
     "netCDF4>=1.5.7",
     "pyyaml>=6.0",
     "psutil",
+    "zarr",
     # todo unpin rechunker once https://github.com/pangeo-data/rechunker/issues/92 is
     #      fixed
     "rechunker>=0.3,<0.4",
