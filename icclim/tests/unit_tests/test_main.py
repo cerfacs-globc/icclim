@@ -11,7 +11,7 @@ from icclim.models.ecad_indices import EcadIndex
 
 
 def test_indices():
-    res = icclim.indices()
+    res = icclim.list_indices()
     assert len(res) == len(EcadIndex)
 
 

@@ -25,12 +25,13 @@ from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
+from icclim.pre_processing.input_parsing import read_dataset, update_to_standard_coords
 from icclim.user_indices.dispatcher import compute_user_index
 
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
-def indices() -> List:
+def list_indices() -> List[str]:
     """
     List the available indices.
 
@@ -82,8 +83,8 @@ def index(
     Parameters
     ----------
     in_files : Union[str, List[str], Dataset, DataArray]
-        Absolute path(s) to NetCDF dataset(s) (including OPeNDAP URLs),
-        or xarray.Dataset or xarray.DataArray.
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
     index_name : str
         Climate index name.
         For ECA&D index, case insensitive name used to lookup the index.
@@ -178,17 +179,25 @@ def index(
         index = EcadIndex.lookup(index_name)
     else:
         index = None
-    input_dataset, chunk_it = _read_dataset(in_files, index, var_name)
-    input_dataset, reset_coords_dict = _update_to_standard_coords(input_dataset)
+    input_dataset, chunk_it = read_dataset(in_files, index, var_name)
+    ds, reset_coords_dict = update_to_standard_coords(input_dataset)
+    if ds.chunks:
+        time_chunk_count = len(ds.chunks["time"])
+        if time_chunk_count > 1:
+            warn(
+                f"Your dataset has {time_chunk_count} chunks for time dimension."
+                f" You could significantly speed up your computations by rechunking it"
+                f" with `icclim.create_optimized_zarr_store`."
+            )
     config = IndexConfig(
         base_period_time_range=base_period_time_range,
-        ds=input_dataset,
+        ds=ds,
         ignore_Feb29th=ignore_Feb29th,
         only_leap_years=only_leap_years,
         save_percentile=save_percentile,
         slice_mode=slice_mode,
         time_range=time_range,
-        var_names=_guess_variable_names(var_name, index, input_dataset),
+        var_names=_guess_variable_names(var_name, index, ds),
         window_width=window_width,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -204,14 +213,12 @@ def index(
             config=config,
             index=index,
             threshold=threshold,
-            current_history=input_dataset.attrs.get("history", None),
+            current_history=ds.attrs.get("history", None),
         )
     if reset_coords_dict:
         result_ds = result_ds.rename(reset_coords_dict)
     if out_file is not None:
-        _write_output_file(
-            result_ds, input_dataset.time.encoding, config.netcdf_version, out_file
-        )
+        _write_output_file(result_ds, ds.time.encoding, config.netcdf_version, out_file)
     callback(callback_percentage_total)
     log.ending_message(time.process_time())
     return result_ds
@@ -227,9 +234,11 @@ def _write_output_file(
     Write `result_ds` to a netCDF file on `out_file` path.
     """
     if input_time_encoding:
-        if input_time_encoding.get("chunksizes"):
-            del input_time_encoding["chunksizes"]
-        time_encoding = input_time_encoding
+        time_encoding = {
+            "calendar": input_time_encoding.get("calendar"),
+            "units": input_time_encoding.get("units"),
+            "dtype": input_time_encoding.get("dtype"),
+        }
     else:
         time_encoding = {"units": "days since 1850-1-1"}
     result_ds.to_netcdf(
@@ -241,7 +250,7 @@ def _write_output_file(
 
 def _handle_deprecated_params(
     index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
-):
+) -> Tuple[str, UserIndexDict]:
     if indice_name is not None:
         log.deprecation_warning(old="indice_name", new="index_name")
         index_name = indice_name
@@ -250,7 +259,6 @@ def _handle_deprecated_params(
         user_index = user_indice
     if transfer_limit_Mbytes is not None:
         log.deprecation_warning(old="transfer_limit_Mbytes")
-    # TODO deprecate in_files
     return index_name, user_index
 
 
@@ -262,35 +270,6 @@ def _setup(callback, callback_percentage_start_value, logs_verbosity):
     log.set_verbosity(logs_verbosity)
     log.start_message()
     callback(callback_percentage_start_value)
-
-
-def _read_dataset(
-    data: Union[str, List[str], Dataset, DataArray],
-    index: Optional[EcadIndex],
-    var_name: Optional[str],
-):
-    chunk_da = True
-    if isinstance(data, Dataset):
-        input_dataset = data
-        chunk_da = False
-    elif isinstance(data, DataArray):
-        if index is not None:
-            if len(index.variables) > 1:
-                raise InvalidIcclimArgumentError(
-                    f"Index {index.name} need {len(index.variables)} variables."
-                    f"Please provides them with an xarray.Dataset or a netCDF file."
-                )
-            name = index.variables[0][0]  # first alias of the unique variable
-        else:
-            # user index case
-            name = var_name
-        input_dataset = data.to_dataset(name=name, promote_attrs=True)
-        chunk_da = False
-    elif isinstance(data, list):
-        input_dataset = xr.open_mfdataset(data, parallel=True)
-    else:
-        input_dataset = xr.open_dataset(data)
-    return input_dataset, chunk_da
 
 
 def _compute_ecad_index_dataset(
@@ -453,21 +432,3 @@ def _guess_variable_names(
             f" {variables}"
         )
     return res
-
-
-def _update_to_standard_coords(ds: Dataset) -> Tuple[Dataset, Dict]:
-    """
-    Mutate input ds to use more icclim friendly coordinate name.
-    """
-    # TODO see if cf-xarray could replace this
-    revert = {}
-    if ds.coords.get("latitude") is not None:
-        ds = ds.rename({"latitude": "lat"})
-        revert.update({"lat": "latitude"})
-    if ds.coords.get("longitude") is not None:
-        ds = ds.rename({"longitude": "lon"})
-        revert.update({"lon": "longitude"})
-    if ds.coords.get("t") is not None:
-        ds = ds.rename({"t": "time"})
-        revert.update({"time": "t"})
-    return ds, revert
