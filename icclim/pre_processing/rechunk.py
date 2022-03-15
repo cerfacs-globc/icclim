@@ -5,6 +5,7 @@ from typing import Dict, List, Union
 import dask
 import psutil
 import xarray as xr
+import zarr
 from rechunker import rechunk
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
@@ -14,6 +15,12 @@ from icclim.pre_processing.input_parsing import read_dataset
 
 TMP_STORE_1 = "icclim-tmp-store-1.zarr"
 TMP_STORE_2 = "icclim-tmp-store-2.zarr"
+DEFAULT_DASK_CONF = {
+    "distributed.worker.memory.target": "0.95",
+    "distributed.worker.memory.spill": "0.95",
+    "distributed.worker.memory.pause": "0.95",
+    "distributed.worker.memory.terminate": "0.98",
+}
 
 
 def _get_mem_limit(factor: float = 0.9) -> int:
@@ -114,14 +121,7 @@ def _unsafe_create_optimized_zarr_store(
     dim: str,
     max_mem: int,
 ):
-    with dask.config.set(
-        {
-            "distributed.worker.memory.target": "0.95",
-            "distributed.worker.memory.spill": "0.95",
-            "distributed.worker.memory.pause": "0.95",
-            "distributed.worker.memory.terminate": "0.98",
-        }
-    ):
+    with dask.config.set(DEFAULT_DASK_CONF):
         ds, _ = read_dataset(in_files, index=None, var_names=var_names)
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_names, ds.data_vars.keys()))
@@ -133,11 +133,11 @@ def _unsafe_create_optimized_zarr_store(
         if len(ds.chunks[dim]) == 1:
             return ds
         # It seems rechunker performs better when the dataset is first converted
-        # in a zarr store, without rechunking anything.
+        # to a zarr store, without rechunking anything.
         ds.to_zarr(TMP_STORE_1, mode="w")
         # Leave dask find the best chunking schema for all dimensions but `dim`
         chunking = {d: "auto" for d in ds.dims}
-        chunking[dim] = -1  # no chunking on dim to use map_block
+        chunking[dim] = -1  # no chunking on dim to optimize reading on this dimension
         ds_zarr = xr.open_zarr(TMP_STORE_1).chunk(chunking)
         target_chunks = {}
         for data_var in ds_zarr.data_vars:
@@ -156,10 +156,11 @@ def _unsafe_create_optimized_zarr_store(
             target_store=zarr_store_name,
             temp_store=TMP_STORE_2,
         ).execute()
+        zarr.consolidate_metadata(zarr_store_name)
         return xr.open_zarr(zarr_store_name)
 
 
-# FIXME remove once minimal xarray version is v0.20.0 and use .chunksizes instead
+# FIXME To remove once minimal xarray version is v0.20.0 (use .chunksizes instead)
 def _get_chunksizes(ds: Dataset) -> Dict:
     def _chunksizes(da):
         if hasattr(da.data, "chunks"):
