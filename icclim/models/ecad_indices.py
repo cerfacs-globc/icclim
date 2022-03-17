@@ -82,7 +82,7 @@ clix_indices: ClixMetaIndices = ClixMetaIndices.get_instance()
 class EcadIndex(Enum):
     """
     ECA&D indices.
-        index_name: str
+        short_name: str
             The index name used in the output.
         compute: Callable
             The function to compute the index. It wraps Xclim functions.
