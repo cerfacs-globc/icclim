@@ -7,13 +7,7 @@ import pytest
 import xarray as xr
 
 import icclim
-from icclim.models.ecad_indices import EcadIndex
 from icclim.models.index_group import IndexGroup
-
-
-def test_list_indices():
-    res = icclim.list_indices()
-    assert len(res) == len(EcadIndex)
 
 
 @patch("icclim.main.index")

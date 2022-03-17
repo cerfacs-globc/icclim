@@ -27,6 +27,11 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.tests.unit_tests.test_utils import K2C, stub_pr, stub_tas
 
 
+def test_listing():
+    res = EcadIndex.list()
+    assert len(res) == len(EcadIndex)
+
+
 class Test_index_from_string:
     def test_simple(self):
         res = EcadIndex.lookup("SU")
