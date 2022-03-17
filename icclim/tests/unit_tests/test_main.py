@@ -7,6 +7,7 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim.models.ecad_indices import EcadIndex
 from icclim.models.index_group import IndexGroup
 
 
@@ -76,11 +77,16 @@ class Test_Integration:
 
     def test_indices_from_Dataset(self):
         ds = self.data.to_dataset(name="tas")
+        ds["tasmax"] = self.data
+        ds["tasmin"] = self.data
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["prec"] = self.data.copy(deep=True)
+        ds["prec"].attrs["units"] = "cm"
         res = icclim.indices(
-            index_group=IndexGroup.HEAT,
+            index_group="all",
             in_files=ds,
-            var_name="tas",
             out_file=self.OUTPUT_FILE,
         )
-        for i in HEAT_INDICES:
-            assert res[i] is not None
+        for i in EcadIndex:
+            assert res[i.short_name] is not None
