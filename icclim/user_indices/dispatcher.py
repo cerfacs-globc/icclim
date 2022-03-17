@@ -31,7 +31,7 @@ def anomaly(config: UserIndexConfig):
             f"You must provide a in base to compute {CalcOperation.ANOMALY.value}."
         )
     return operators.anomaly(
-        da=config.cf_vars[0].da,
+        da=config.cf_vars[0].study_da,
         da_ref=config.da_ref,
         percent=config.is_percent,
     )
@@ -43,7 +43,7 @@ def run_sum(config: UserIndexConfig):
             "Please provide a extreme mode and a window width."
         )
     return operators.run_sum(
-        da=config.cf_vars[0].da,
+        da=config.cf_vars[0].study_da,
         extreme_mode=config.extreme_mode,
         window_width=config.window_width,
         coef=config.coef,
@@ -58,7 +58,7 @@ def run_mean(config: UserIndexConfig):
             "Please provide a extreme mode and a window width."
         )
     return operators.run_mean(
-        da=config.cf_vars[0].da,
+        da=config.cf_vars[0].study_da,
         extreme_mode=config.extreme_mode,
         window_width=config.window_width,
         coef=config.coef,
@@ -78,7 +78,7 @@ def max_consecutive_event_count(config: UserIndexConfig):
             f"does not support threshold list. Please provide a single threshold."
         )
     return operators.max_consecutive_event_count(
-        da=config.cf_vars[0].da,
+        da=config.cf_vars[0].study_da,
         in_base_da=config.cf_vars[0].reference_da,
         logical_operation=config.logical_operation,
         threshold=config.thresh,
@@ -95,7 +95,7 @@ def count_events(config: UserIndexConfig):
             f" Please provide a threshold and a logical operation."
         )
     return operators.count_events(
-        das=list(map(lambda x: x.da, config.cf_vars)),
+        das=list(map(lambda x: x.study_da, config.cf_vars)),
         in_base_das=list(map(lambda x: x.reference_da, config.cf_vars)),
         logical_operation=config.nb_event_config.logical_operation,
         link_logical_operations=config.nb_event_config.link_logical_operations,
@@ -151,7 +151,7 @@ def _check_and_get_simple_threshold(thresh: Any) -> Union[None, str, float, int]
 
 def _check_and_get_da(config: UserIndexConfig) -> DataArray:
     if len(config.cf_vars) == 1:
-        return config.cf_vars[0].da
+        return config.cf_vars[0].study_da
     else:
         raise InvalidIcclimArgumentError(
             f"There must be exactly one variable for {config.calc_operation}."

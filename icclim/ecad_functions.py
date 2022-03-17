@@ -22,7 +22,7 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 
 def gd4(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
-        da=config.tas.da,
+        da=config.tas.study_da,
         threshold=4.0 if config.threshold is None else config.threshold,
         freq=config.freq,
         xclim_index_fun=atmos.growing_degree_days,
@@ -31,7 +31,7 @@ def gd4(config: IndexConfig) -> DataArray:
 
 def cfd(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
-        da=config.tasmin.da,
+        da=config.tasmin.study_da,
         threshold=0.0 if config.threshold is None else config.threshold,
         freq=config.freq,
         xclim_index_fun=atmos.consecutive_frost_days,
@@ -40,7 +40,7 @@ def cfd(config: IndexConfig) -> DataArray:
 
 def fd(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
-        da=config.tasmin.da,
+        da=config.tasmin.study_da,
         threshold=0.0 if config.threshold is None else config.threshold,
         freq=config.freq,
         xclim_index_fun=atmos.frost_days,
@@ -49,7 +49,7 @@ def fd(config: IndexConfig) -> DataArray:
 
 def hd17(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
-        da=config.tas.da,
+        da=config.tas.study_da,
         threshold=17.0 if config.threshold is None else config.threshold,
         freq=config.freq,
         xclim_index_fun=atmos.heating_degree_days,
@@ -58,7 +58,7 @@ def hd17(config: IndexConfig) -> DataArray:
 
 def id(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
-        da=config.tasmax.da,
+        da=config.tasmax.study_da,
         threshold=0.0 if config.threshold is None else config.threshold,
         freq=config.freq,
         xclim_index_fun=atmos.ice_days,
@@ -122,27 +122,27 @@ def tx10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
 
 
 def txn(config: IndexConfig) -> DataArray:
-    result = atmos.tx_min(config.tasmax.da, freq=config.freq.panda_freq)
+    result = atmos.tx_min(config.tasmax.study_da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
 
 def tnn(config: IndexConfig) -> DataArray:
-    result = atmos.tn_min(config.tasmin.da, freq=config.freq.panda_freq)
+    result = atmos.tn_min(config.tasmin.study_da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
 
 def cdd(config: IndexConfig) -> DataArray:
     result = atmos.maximum_consecutive_dry_days(
-        config.pr.da, thresh="1.0 mm/day", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="1.0 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
 def su(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
-        da=config.tasmax.da,
+        da=config.tasmax.study_da,
         threshold=25.0 if config.threshold is None else config.threshold,
         freq=config.freq,
         xclim_index_fun=atmos.tx_days_above,
@@ -151,7 +151,7 @@ def su(config: IndexConfig) -> DataArray:
 
 def tr(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
-        da=config.tasmin.da,
+        da=config.tasmin.study_da,
         threshold=20.0 if config.threshold is None else config.threshold,
         freq=config.freq,
         xclim_index_fun=atmos.tropical_nights,
@@ -215,20 +215,20 @@ def tx90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
 
 
 def txx(config: IndexConfig) -> DataArray:
-    result = atmos.tx_max(config.tasmax.da, freq=config.freq.panda_freq)
+    result = atmos.tx_max(config.tasmax.study_da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
 
 def tnx(config: IndexConfig) -> DataArray:
-    result = atmos.tn_max(config.tasmin.da, freq=config.freq.panda_freq)
+    result = atmos.tn_max(config.tasmin.study_da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
 
 def csu(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
-        da=config.tasmax.da,
+        da=config.tasmax.study_da,
         threshold=25.0 if config.threshold is None else config.threshold,
         freq=config.freq,
         xclim_index_fun=atmos.maximum_consecutive_warm_days,
@@ -237,7 +237,7 @@ def csu(config: IndexConfig) -> DataArray:
 
 def prcptot(config: IndexConfig) -> DataArray:
     result = atmos.precip_accumulation(
-        _filter_in_wet_days(config.pr.da, dry_day_value=0),
+        _filter_in_wet_days(config.pr.study_da, dry_day_value=0),
         freq=config.freq.panda_freq,
     )
     return result
@@ -245,49 +245,49 @@ def prcptot(config: IndexConfig) -> DataArray:
 
 def rr1(config: IndexConfig) -> DataArray:
     result = atmos.wetdays(
-        config.pr.da, thresh="1.0 mm/day", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="1.0 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
 def sdii(config: IndexConfig) -> DataArray:
     result = atmos.daily_pr_intensity(
-        config.pr.da, thresh="1.0 mm/day", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="1.0 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
 def cwd(config: IndexConfig) -> DataArray:
     result = atmos.maximum_consecutive_wet_days(
-        config.pr.da, thresh="1.0 mm/day", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="1.0 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
 def r10mm(config: IndexConfig) -> DataArray:
     result = atmos.wetdays(
-        config.pr.da, thresh="10 mm/day", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="10 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
 def r20mm(config: IndexConfig) -> DataArray:
     result = atmos.wetdays(
-        config.pr.da, thresh="20 mm/day", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="20 mm/day", freq=config.freq.panda_freq
     )
     return result
 
 
 def rx1day(config: IndexConfig) -> DataArray:
     result = atmos.max_1day_precipitation_amount(
-        config.pr.da, freq=config.freq.panda_freq
+        config.pr.study_da, freq=config.freq.panda_freq
     )
     return result
 
 
 def rx5day(config: IndexConfig) -> DataArray:
     result = atmos.max_n_day_precipitation_amount(
-        config.pr.da, window=5, freq=config.freq.panda_freq
+        config.pr.study_da, window=5, freq=config.freq.panda_freq
     )
     return result
 
@@ -374,7 +374,7 @@ def sd(config: IndexConfig) -> DataArray:
     -------
     returns DataArray of the resulting index
     """
-    result = land.snow_depth(config.pr.da, freq=config.freq.panda_freq)
+    result = land.snow_depth(config.pr.study_da, freq=config.freq.panda_freq)
     return result
 
 
@@ -398,7 +398,7 @@ def sd1(config: IndexConfig) -> DataArray:
     returns DataArray of the resulting index
     """
     result = land.snow_cover_duration(
-        config.pr.da, thresh="1 cm", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="1 cm", freq=config.freq.panda_freq
     )
     return result
 
@@ -423,7 +423,7 @@ def sd5cm(config: IndexConfig) -> DataArray:
     returns DataArray of the resulting index
     """
     result = land.snow_cover_duration(
-        config.pr.da, thresh="5 cm", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="5 cm", freq=config.freq.panda_freq
     )
     return result
 
@@ -448,7 +448,7 @@ def sd50cm(config: IndexConfig) -> DataArray:
     returns DataArray of the resulting index
     """
     result = land.snow_cover_duration(
-        config.pr.da, thresh="50 cm", freq=config.freq.panda_freq
+        config.pr.study_da, thresh="50 cm", freq=config.freq.panda_freq
     )
     return result
 
@@ -472,7 +472,7 @@ def tg(config: IndexConfig) -> DataArray:
     -------
     returns DataArray of the resulting index
     """
-    result = atmos.tg_mean(config.tas.da, freq=config.freq.panda_freq)
+    result = atmos.tg_mean(config.tas.study_da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
@@ -496,7 +496,7 @@ def tn(config: IndexConfig) -> DataArray:
     -------
     returns DataArray of the resulting index
     """
-    result = atmos.tn_mean(config.tasmin.da, freq=config.freq.panda_freq)
+    result = atmos.tn_mean(config.tasmin.study_da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
@@ -520,7 +520,7 @@ def tx(config: IndexConfig) -> DataArray:
     -------
     returns DataArray of the resulting index
     """
-    result = atmos.tx_mean(config.tasmax.da, freq=config.freq.panda_freq)
+    result = atmos.tx_mean(config.tasmax.study_da, freq=config.freq.panda_freq)
     result = convert_units_to(result, "°C")
     return result
 
@@ -546,8 +546,8 @@ def dtr(config: IndexConfig) -> DataArray:
     returns DataArray of the resulting index
     """
     result = atmos.daily_temperature_range(
-        tasmax=config.tasmax.da,
-        tasmin=config.tasmin.da,
+        tasmax=config.tasmax.study_da,
+        tasmin=config.tasmin.study_da,
         freq=config.freq.panda_freq,
     )
     result.attrs["units"] = "°C"
@@ -575,8 +575,8 @@ def etr(config: IndexConfig) -> DataArray:
     returns DataArray of the resulting index
     """
     result = atmos.extreme_temperature_range(
-        tasmax=config.tasmax.da,
-        tasmin=config.tasmin.da,
+        tasmax=config.tasmax.study_da,
+        tasmin=config.tasmin.study_da,
         freq=config.freq.panda_freq,
     )
     result.attrs["units"] = "°C"
@@ -605,7 +605,9 @@ def vdtr(config: IndexConfig) -> DataArray:
     returns DataArray of the resulting index
     """
     result = atmos.daily_temperature_range_variability(
-        tasmax=config.tasmax.da, tasmin=config.tasmin.da, freq=config.freq.panda_freq
+        tasmax=config.tasmax.study_da,
+        tasmin=config.tasmin.study_da,
+        freq=config.freq.panda_freq,
     )
     result.attrs["units"] = "°C"
     return result
@@ -746,9 +748,9 @@ def _can_run_bootstrap(
     Avoid bootstrapping if there is one single year overlapping or no year overlapping
     or all year overlapping.
     """
-    da_years = np.unique(cf_var.da.indexes.get("time").year)
+    da_years = np.unique(cf_var.study_da.indexes.get("time").year)
     overlapping_years = np.unique(
-        cf_var.da.sel(time=percentile_period).indexes.get("time").year
+        cf_var.study_da.sel(time=percentile_period).indexes.get("time").year
     )
     return len(overlapping_years) > 1 and len(overlapping_years) < len(da_years)
 
@@ -884,7 +886,11 @@ def _compute_spell_duration(
         cf_var, slice(*per.climatology_bounds), per_interpolation
     )
     result = xclim_index_fun(
-        cf_var.da, per, window=min_spell_duration, freq=freq, bootstrap=run_bootstrap
+        cf_var.study_da,
+        per,
+        window=min_spell_duration,
+        freq=freq,
+        bootstrap=run_bootstrap,
     )
     result = result.squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
@@ -953,7 +959,7 @@ def compute_compound_index(
     )
     tas_per = tas_per.squeeze(PERCENTILES_COORD, drop=True)
     pr_in_base = _filter_in_wet_days(pr.reference_da, dry_day_value=np.NAN)
-    pr_out_of_base = _filter_in_wet_days(pr.da, dry_day_value=0)
+    pr_out_of_base = _filter_in_wet_days(pr.study_da, dry_day_value=0)
     pr_per = _compute_percentile_doy(
         pr_in_base,
         pr_per_thresh,
@@ -962,7 +968,7 @@ def compute_compound_index(
         callback,
     )
     pr_per = pr_per.squeeze(PERCENTILES_COORD, drop=True)
-    result = xclim_index_fun(tas.da, tas_per, pr_out_of_base, pr_per, freq)
+    result = xclim_index_fun(tas.study_da, tas_per, pr_out_of_base, pr_per, freq=freq)
     if save_percentile:
         # FIXME, not consistent with other percentile based indices
         #        We should probably return a Tuple (res, [tas_per, pr_per])
@@ -985,7 +991,7 @@ def _compute_rxxptot(
         base_wet_days, per_interpolation, pr_per_thresh
     )
     result = atmos.fraction_over_precip_thresh(
-        pr.da,
+        pr.study_da,
         per,
         thresh="1 mm/day",
         freq=freq,
@@ -1011,7 +1017,7 @@ def _compute_rxxp(
         base_wet_days, per_interpolation, pr_per_thresh
     )
     result = atmos.days_over_precip_thresh(
-        pr.da,
+        pr.study_da,
         per,
         thresh="1 mm/day",
         freq=freq.panda_freq,
@@ -1047,7 +1053,7 @@ def _compute_temperature_percentile_index(
         cf_var, slice(*per.climatology_bounds), per_interpolation
     )
     result = xclim_index_fun(
-        cf_var.da,
+        cf_var.study_da,
         per,
         freq=freq.panda_freq,
         bootstrap=run_bootstrap,

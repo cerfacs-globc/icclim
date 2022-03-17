@@ -38,9 +38,11 @@ class Test_compute:
     def test_simple_percentile_pr(self):
         # GIVEN
         cf_var = CfVariable("tas", stub_pr(5), stub_pr(5))
-        cf_var.da.data[15:30] += 10
-        cf_var.da.data[366 + 15 : 366 + 30] = 2  # Ignore because not in base
-        cf_var.reference_da = cf_var.da.sel(time=cf_var.da.time.dt.year == 2042)
+        cf_var.study_da.data[15:30] += 10
+        cf_var.study_da.data[366 + 15 : 366 + 30] = 2  # Ignore because not in base
+        cf_var.reference_da = cf_var.study_da.sel(
+            time=cf_var.study_da.time.dt.year == 2042
+        )
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = CalcOperation.MIN
         user_index.thresh = "90p"
@@ -54,9 +56,9 @@ class Test_compute:
 
     def test_simple_percentile_temp(self):
         cf_var = CfVariable("tas", stub_tas(5), stub_tas(5))
-        cf_var.da.data[15:30] = 1
-        cf_var.reference_da = cf_var.da.sel(
-            time=cf_var.da.time.dt.year.isin([2042, 2043])
+        cf_var.study_da.data[15:30] = 1
+        cf_var.reference_da = cf_var.study_da.sel(
+            time=cf_var.study_da.time.dt.year.isin([2042, 2043])
         )
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "min"

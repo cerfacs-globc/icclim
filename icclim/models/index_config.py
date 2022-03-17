@@ -7,6 +7,7 @@ from xclim.core import calendar
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendar
+from icclim.models.constants import PR, TAS, TAS_MAX, TAS_MIN
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -20,20 +21,20 @@ class CfVariable:
 
     Parameters
     ----------
-    da: DataArray
+    study_da: DataArray
         The variable studied.
     reference_da: DataArray
         The variable studied limited to the in base period.
     """
 
-    # TODO: seems unnecessary abstraction between ds and da. Replace by a Dataset.
+    # TODO: seems unnecessary abstraction between ds and da. Replace by a Dataset ?
     name: str
-    da: DataArray
+    study_da: DataArray
     reference_da: DataArray
 
-    def __init__(self, name: str, da: DataArray, reference_da: DataArray) -> None:
+    def __init__(self, name: str, study_da: DataArray, reference_da: DataArray) -> None:
         self.name = name
-        self.da = da
+        self.study_da = study_da
         self.reference_da = reference_da
 
 
@@ -134,21 +135,39 @@ class IndexConfig:
 
     @property
     def tas(self) -> CfVariable:
+        tas_vars = list(filter(lambda v: v.name in TAS, self._cf_variables))
+        if len(tas_vars) == 1:
+            return tas_vars[0]
+        # Otherwise rely on positional guess
         return self._cf_variables[0]
 
     @property
     def tasmax(self) -> CfVariable:
+        tas_max_vars = list(filter(lambda v: v.name in TAS_MAX, self._cf_variables))
+        if len(tas_max_vars) == 1:
+            return tas_max_vars[0]
+        # Otherwise rely on positional guess
         return self._cf_variables[0]
 
     @property
     def tasmin(self) -> CfVariable:
+        tas_min_vars = list(filter(lambda v: v.name in TAS_MIN, self._cf_variables))
+        if len(tas_min_vars) == 1:
+            return tas_min_vars[0]
+        # Otherwise rely on positional guess
         if len(self._cf_variables) > 1:
+            # compound indices case
             return self._cf_variables[1]
         return self._cf_variables[0]
 
     @property
     def pr(self) -> CfVariable:
+        pr_vars = list(filter(lambda v: v.name in PR, self._cf_variables))
+        if len(pr_vars) == 1:
+            return pr_vars[0]
+        # Otherwise rely on positional guess
         if len(self._cf_variables) > 1:
+            # compound indices case
             return self._cf_variables[1]
         return self._cf_variables[0]
 
