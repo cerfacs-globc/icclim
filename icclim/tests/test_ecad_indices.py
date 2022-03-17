@@ -24,7 +24,7 @@ from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.tests.unit_tests.test_utils import K2C, stub_pr, stub_tas
+from icclim.tests.test_utils import K2C, stub_pr, stub_tas
 
 
 def test_listing():

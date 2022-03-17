@@ -3,7 +3,7 @@ import pytest
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
 from icclim.models.user_index_config import LogicalOperation, UserIndexConfig
-from icclim.tests.unit_tests.test_utils import stub_tas
+from icclim.tests.test_utils import stub_tas
 
 
 class Test_UserindexConfig:
