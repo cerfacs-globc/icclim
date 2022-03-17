@@ -33,7 +33,7 @@ from icclim.user_indices.dispatcher import compute_user_index
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
-def indices(index_group: str | IndexGroup | list[str], **kwargs) -> xr.Dataset:
+def indices(index_group: str | IndexGroup | list[str], **kwargs) -> Dataset:
     """
 
     Compute multiple indices at the same time.
@@ -71,9 +71,9 @@ def indices(index_group: str | IndexGroup | list[str], **kwargs) -> xr.Dataset:
     else:
         indices = IndexGroup.lookup(index_group).get_indices()
     out = None
-    if "output_file" in kwargs.keys():
-        out = kwargs["output_file"]
-        del kwargs["output_file"]
+    if "out_file" in kwargs.keys():
+        out = kwargs["out_file"]
+        del kwargs["out_file"]
     acc = []
     for i in indices:
         kwargs["index_name"] = i.short_name
