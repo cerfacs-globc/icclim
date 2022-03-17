@@ -166,10 +166,15 @@ def index(
     callback_percentage_total : int
         ``optional`` Total percentage value (default: 100).
     base_period_time_range : List[datetime.datetime]
-        ``optional`` Temporal range of the base period.
-        Mandatory for bootstrapped indices, which are the temperature percentile based
-        indices.
-        Ignored for other indices.
+        ``optional`` Temporal range of the reference period on which percentiles are
+        computed.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if  `time_range` is None.
+        On temperature based indices relying on percentiles (TX90p, WSDI...), the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        On indices not relying on percentiles, this parameter is ignored.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
