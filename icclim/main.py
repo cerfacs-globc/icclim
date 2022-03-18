@@ -33,7 +33,9 @@ from icclim.user_indices.dispatcher import compute_user_index
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
-def indices(index_group: str | IndexGroup | list[str], **kwargs) -> Dataset:
+def indices(
+    index_group: str | IndexGroup | list[str], ignore_error: bool = False, **kwargs
+) -> Dataset:
     """
 
     Compute multiple indices at the same time.
@@ -77,8 +79,14 @@ def indices(index_group: str | IndexGroup | list[str], **kwargs) -> Dataset:
     acc = []
     for i in indices:
         kwargs["index_name"] = i.short_name
-        acc.append(index(**kwargs))
-    ds = xr.merge(acc)
+        if ignore_error:
+            try:
+                acc.append(index(**kwargs))
+            except Exception:
+                warn(f"Could not compute {i.short_name}.")
+        else:
+            acc.append(index(**kwargs))
+    ds: Dataset = xr.merge(acc)
     if out is not None:
         _write_output_file(
             result_ds=ds,

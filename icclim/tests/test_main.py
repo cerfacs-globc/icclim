@@ -75,7 +75,7 @@ class Test_Integration:
         for i in HEAT_INDICES:
             assert res[i] is not None
 
-    def test_indices_from_Dataset(self):
+    def test_indices_all_from_Dataset(self):
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
@@ -84,9 +84,37 @@ class Test_Integration:
         ds["prec"] = self.data.copy(deep=True)
         ds["prec"].attrs["units"] = "cm"
         res = icclim.indices(
-            index_group="all",
-            in_files=ds,
-            out_file=self.OUTPUT_FILE,
+            index_group="all", in_files=ds, out_file=self.OUTPUT_FILE, ignore_error=True
         )
         for i in EcadIndex:
             assert res[i.short_name] is not None
+
+    def test_indices_all_ignore_error(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["tasmax"] = self.data
+        ds["tasmin"] = self.data
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        res: xr.Dataset = icclim.indices(
+            index_group="all", in_files=ds, out_file=self.OUTPUT_FILE, ignore_error=True
+        )
+        for i in EcadIndex:
+            # No variable in input to compute for snow indices
+            if i.group == IndexGroup.SNOW:
+                assert res.data_vars.get(i.short_name, None) is None
+            else:
+                assert res[i.short_name] is not None
+
+    def test_indices_all_error(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["tasmax"] = self.data
+        ds["tasmin"] = self.data
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        with pytest.raises(Exception):
+            icclim.indices(
+                index_group="all",
+                in_files=ds,
+                out_file=self.OUTPUT_FILE,
+                ignore_error=False,
+            )
