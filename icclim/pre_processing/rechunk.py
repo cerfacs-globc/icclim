@@ -156,6 +156,8 @@ def _unsafe_create_optimized_zarr_store(
             target_store=zarr_store_name,
             temp_store=TMP_STORE_2,
         ).execute()
+        shutil.rmtree(TMP_STORE_1, ignore_errors=True)
+        shutil.rmtree(TMP_STORE_2, ignore_errors=True)
         zarr.consolidate_metadata(zarr_store_name)
         return xr.open_zarr(zarr_store_name)
 
