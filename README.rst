@@ -41,7 +41,7 @@ For a detailed description of each ECA index, please visit: https://www.ecad.eu/
 ..
   Pytest Coverage Comment:Begin
 
-.. |coverage| image:: https://img.shields.io/badge/Coverage-87%25-green.svg
+.. |coverage| image:: https://img.shields.io/badge/Coverage-88%25-green.svg
         :target: https://github.com/cerfacs-globc/icclim/blob/master/README.rst#code-coverage
         :alt: Code coverage
 
