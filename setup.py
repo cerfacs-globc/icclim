@@ -3,8 +3,6 @@
 
 from setuptools import find_packages, setup
 
-from icclim import __version__
-
 MINIMAL_REQUIREMENTS = [
     "numpy>=1.21,<1.22",  # todo unpin 1.22 once numba works with it
     "xarray>=0.19",
@@ -22,7 +20,7 @@ MINIMAL_REQUIREMENTS = [
 
 setup(
     name="icclim",
-    version=__version__,
+    version="5.0.2",
     packages=find_packages(),
     author="Christian P.",
     author_email="christian.page@cerfacs.fr",
