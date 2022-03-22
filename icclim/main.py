@@ -4,11 +4,12 @@
 """
 Main module of icclim.
 """
+from __future__ import annotations
 
 import logging
 import time
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Callable
 from warnings import warn
 
 import xarray as xr
@@ -21,6 +22,7 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency, SliceMode
+from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
@@ -31,15 +33,68 @@ from icclim.user_indices.dispatcher import compute_user_index
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
-def list_indices() -> List[str]:
+def indices(
+    index_group: str | IndexGroup | list[str], ignore_error: bool = False, **kwargs
+) -> Dataset:
     """
-    List the available indices.
+
+    Compute multiple indices at the same time.
+    The input dataset(s) must include all the necessary variables.
+    It can only be used with keyword arguments (kwargs)
+
+    Parameters
+    ----------
+    index_group : Union["all", str, IndexGroup, List[str]]
+        Either the name of an IndexGroup, a instance of IndexGroup or a list
+        of index short names.
+        The value "all" can also be used to compute every indices.
+        Note that the input given by ``in_files`` must include all the necessary
+        variables to compute the indices of this group.
+    kwargs : Dict
+        ``icclim.index`` keyword arguments.
 
     Returns
     -------
-        A list of indices to be used as input of icclim.index `index_name` parameter.
+    xr.Dataset
+        A Dataset with one data variable per index.
+
+    .. notes
+        If ``output_file`` is part of kwargs, the result is written in a single netCDF
+        file, which will contain all the index results of this group.
+
     """
-    return [f"{i.short_name}: {i.definition}" for i in EcadIndex]
+    if isinstance(index_group, list):
+        indices = [EcadIndex.lookup(i) for i in index_group]
+    elif index_group == IndexGroup.WILD_CARD_GROUP or (
+        isinstance(index_group, str)
+        and index_group.lower() == IndexGroup.WILD_CARD_GROUP.value
+    ):
+        indices = iter(EcadIndex)
+    else:
+        indices = IndexGroup.lookup(index_group).get_indices()
+    out = None
+    if "out_file" in kwargs.keys():
+        out = kwargs["out_file"]
+        del kwargs["out_file"]
+    acc = []
+    for i in indices:
+        kwargs["index_name"] = i.short_name
+        if ignore_error:
+            try:
+                acc.append(index(**kwargs))
+            except Exception:
+                warn(f"Could not compute {i.short_name}.")
+        else:
+            acc.append(index(**kwargs))
+    ds: Dataset = xr.merge(acc)
+    if out is not None:
+        _write_output_file(
+            result_ds=ds,
+            input_time_encoding=ds.time.encoding,
+            netcdf_version=kwargs.get("netcdf_version", NetcdfVersion.NETCDF4),
+            file_path=out,
+        )
+    return ds
 
 
 def indice(*args, **kwargs):
@@ -52,28 +107,28 @@ def indice(*args, **kwargs):
 
 
 def index(
-    in_files: Union[str, List[str], Dataset, DataArray] = None,
+    in_files: str | list[str] | Dataset | DataArray,
     index_name: str = None,  # optional when computing user_indices
-    var_name: Union[str, List[str], None] = None,
+    var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: List[datetime] = None,
-    out_file: Optional[str] = None,
-    threshold: Union[float, List[float], None] = None,
+    time_range: list[datetime] = None,
+    out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: Union[List[datetime], None] = None,
+    base_period_time_range: list[datetime] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: Union[
-        str, QuantileInterpolation, None
-    ] = QuantileInterpolation.MEDIAN_UNBIASED,
-    out_unit: Optional[str] = None,
-    netcdf_version: Union[str, NetcdfVersion] = NetcdfVersion.NETCDF4,
+    interpolation: (
+        str | QuantileInterpolation | None
+    ) = QuantileInterpolation.MEDIAN_UNBIASED,
+    out_unit: str | None = None,
+    netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
     user_index: UserIndexDict = None,
     save_percentile: bool = False,
-    logs_verbosity: Union[Verbosity, str] = Verbosity.LOW,
+    logs_verbosity: Verbosity | str = Verbosity.LOW,
     # deprecated parameters
     indice_name: str = None,
     user_indice: UserIndexDict = None,
@@ -127,10 +182,15 @@ def index(
     callback_percentage_total : int
         ``optional`` Total percentage value (default: 100).
     base_period_time_range : List[datetime.datetime]
-        ``optional`` Temporal range of the base period.
-        Mandatory for bootstrapped indices, which are the temperature percentile based
-        indices.
-        Ignored for other indices.
+        ``optional`` Temporal range of the reference period on which percentiles are
+        computed.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if  `time_range` is None.
+        On temperature based indices relying on percentiles (TX90p, WSDI...), the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        On indices not relying on percentiles, this parameter is ignored.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -174,7 +234,7 @@ def index(
             " You must provide either `user_index` to compute a customized index"
             " or `index_name` for one of the ECA&D indices."
         )
-    index: Optional[EcadIndex]
+    index: EcadIndex | None
     if index_name is not None:
         index = EcadIndex.lookup(index_name)
     else:
@@ -226,7 +286,7 @@ def index(
 
 def _write_output_file(
     result_ds: xr.Dataset,
-    input_time_encoding: Dict,
+    input_time_encoding: dict,
     netcdf_version: NetcdfVersion,
     file_path: str,
 ) -> None:
@@ -250,7 +310,7 @@ def _write_output_file(
 
 def _handle_deprecated_params(
     index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
-) -> Tuple[str, UserIndexDict]:
+) -> tuple[str, UserIndexDict]:
     if indice_name is not None:
         log.deprecation_warning(old="indice_name", new="index_name")
         index_name = indice_name
@@ -275,8 +335,8 @@ def _setup(callback, callback_percentage_start_value, logs_verbosity):
 def _compute_ecad_index_dataset(
     config: IndexConfig,
     index: EcadIndex,
-    threshold: Union[float, List[float]],
-    current_history: Optional[str],
+    threshold: float | list[float],
+    current_history: str | None,
 ) -> Dataset:
     if isinstance(threshold, list):
         ds_list = []
@@ -318,7 +378,7 @@ def _compute_user_index_dataset(
     return result_ds
 
 
-def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
+def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
     da_unit = da.attrs.get("units", None)
     if da_unit is None:
         if output_unit is None:
@@ -334,7 +394,7 @@ def _get_unit(output_unit: Optional[str], da: DataArray) -> Optional[str]:
 
 
 def _compute_ecad_index(
-    index: EcadIndex, config: IndexConfig, former_history: Optional[str]
+    index: EcadIndex, config: IndexConfig, former_history: str | None
 ) -> Dataset:
     logging.info(f"Calculating climate index: {index.short_name}")
     result_ds = Dataset()
@@ -406,9 +466,19 @@ def _get_history(config, former_history, indice_computed, result_ds):
     )
 
 
+def has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
+    if group == IndexGroup.SNOW:
+        try:
+            xclim.core.units.check_units.__wrapped__(da, "[length]")
+        except xclim.core.utils.ValidationError:
+            return False
+    # For now we can delay to xclim other unit checks
+    return True
+
+
 def _guess_variable_names(
-    in_var_name: Union[str, List[str]], index: Union[EcadIndex, None], ds: Dataset
-) -> List[str]:
+    in_var_name: str | list[str], index: EcadIndex | None, ds: Dataset
+) -> list[str]:
     """
     Try to guess the variable names using the expected kind of variable for
     the index.
@@ -420,7 +490,9 @@ def _guess_variable_names(
     for indice_var in index_variables:
         for alias in indice_var:
             # check if dataset contains this alias
-            if ds.get(alias, None) is not None:
+            if ds.get(alias, None) is not None and has_valid_unit(
+                index.group, ds[alias]
+            ):
                 res.append(alias)
                 break
     if len(res) < len(index_variables):

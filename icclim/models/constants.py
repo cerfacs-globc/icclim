@@ -1,15 +1,6 @@
 # fmt: off
 # flake8: noqa
 
-# ECA&D indices groups
-TEMPERATURE_GROUP = "temperature"
-HEAT_GROUP = "heat"
-COLD_GROUP = "cold"
-DROUGHT_GROUP = "drought"
-RAIN_GROUP = "rain"
-SNOW_GROUP = "snow"
-COMPOUND_GROUP = "compound"
-
 # placeholder for user_indices
 PERCENTILE_THRESHOLD_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm

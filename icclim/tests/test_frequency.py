@@ -4,7 +4,7 @@ import pytest
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency, month_filter, seasons_resampler
-from icclim.tests.unit_tests.test_utils import stub_tas
+from icclim.tests.test_utils import stub_tas
 
 
 class Test_build_frequency_over_frequency:

@@ -3,7 +3,7 @@ import pytest
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
 from icclim.models.user_index_config import LogicalOperation, UserIndexConfig
-from icclim.tests.unit_tests.test_utils import stub_tas
+from icclim.tests.test_utils import stub_tas
 
 
 class Test_UserindexConfig:
@@ -26,4 +26,4 @@ class Test_UserindexConfig:
         assert config.thresh == 273.15
         assert config.date_event
         assert config.freq == Frequency.MONTH
-        assert config.cf_vars[0].da is tas
+        assert config.cf_vars[0].study_da is tas
