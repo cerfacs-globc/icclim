@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import datetime
 from enum import Enum
-from typing import Callable, Tuple, Union
+from typing import Callable, List, Tuple, Union
 
 import cftime
 import numpy as np
@@ -17,7 +17,7 @@ from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
-SliceMode = Union[str, list[Union[str, Tuple, int]]]
+SliceMode = Union[str, List[Union[str, Tuple, int]]]
 
 
 def seasons_resampler(
