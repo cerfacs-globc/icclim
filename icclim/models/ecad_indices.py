@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Tuple, Union
 
 from xarray import DataArray
 
@@ -73,7 +73,7 @@ from icclim.models.index_config import IndexConfig
 from icclim.models.index_group import IndexGroup
 
 ComputeIndexFun = Callable[
-    [IndexConfig], Union[DataArray, tuple[DataArray, Optional[DataArray]]]
+    [IndexConfig], Union[DataArray, Tuple[DataArray, Optional[DataArray]]]
 ]
 
 clix_indices: ClixMetaIndices = ClixMetaIndices.get_instance()
