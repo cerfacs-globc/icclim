@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import contextlib
 import shutil
-from typing import Dict, List, Union
 
 import dask
 import psutil
@@ -42,8 +43,8 @@ def _get_mem_limit(factor: float = 0.9) -> int:
 
 @contextlib.contextmanager
 def create_optimized_zarr_store(
-    in_files: Union[str, List[str], Dataset, DataArray],
-    var_names: Union[str, List[str]],
+    in_files: str | list[str] | Dataset | DataArray,
+    var_names: str | list[str],
     target_zarr_store_name: str = "icclim-target-store.zarr",
     dim="time",
     keep_target_store: bool = False,
@@ -73,10 +74,10 @@ def create_optimized_zarr_store(
 
     Parameters
     ----------
-    in_files : Union[str, List[str], Dataset, DataArray]
+    in_files : str | list[str] | Dataset | DataArray
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
-    var_names : Union[str, List[str]]
+    var_names : str | list[str]
         List of data variable to include in the target zarr store.
         All other data variable are dropped.
         The coordinate variable are untouched and are part of the target zarr store.
@@ -115,8 +116,8 @@ def create_optimized_zarr_store(
 
 
 def _unsafe_create_optimized_zarr_store(
-    in_files: Union[str, List[str], Dataset, DataArray],
-    var_names: Union[str, List[str]],
+    in_files: str | list[str] | Dataset | DataArray,
+    var_names: str | list[str],
     zarr_store_name: str,
     dim: str,
     max_mem: int,
@@ -163,7 +164,7 @@ def _unsafe_create_optimized_zarr_store(
 
 
 # FIXME To remove once minimal xarray version is v0.20.0 (use .chunksizes instead)
-def _get_chunksizes(ds: Dataset) -> Dict:
+def _get_chunksizes(ds: Dataset) -> dict:
     def _chunksizes(da):
         if hasattr(da.data, "chunks"):
             return {dim: c for dim, c in zip(da.dims, da.data.chunks)}

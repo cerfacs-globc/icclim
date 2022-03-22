@@ -12,11 +12,12 @@ To run the script from icclim root use:
 
 """
 
+from __future__ import annotations
+
 import inspect
 import os
 import re
 from pathlib import Path
-from typing import List
 
 import icclim
 from icclim.models.constants import (
@@ -120,7 +121,7 @@ def get_user_index_declaration() -> str:
     return f"{fun_signature}{docstring}{fun_call}"
 
 
-def build_fun_signature_args(args):
+def build_fun_signature_args(args) -> str:
     return f"\n{TAB}" + f",\n{TAB}".join(map(get_arg, args.values()))
 
 
@@ -173,7 +174,7 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
     return f"{fun_signature}{docstring}{fun_call}"
 
 
-def get_arg(a: inspect.Parameter):
+def get_arg(a: inspect.Parameter) -> str:
     annotation = a.annotation
     if type(annotation) is type:
         annotation = annotation.__name__
@@ -190,7 +191,7 @@ def get_arg(a: inspect.Parameter):
     return f"{prefix} = {default}"
 
 
-def get_params_docstring(args: List[str], index_docstring: str):
+def get_params_docstring(args: list[str], index_docstring: str) -> str:
     result = f"{TAB}Parameters\n{TAB}----------\n"
     matches = list(re.compile(".+ : .*").finditer(index_docstring))
     for arg in args:

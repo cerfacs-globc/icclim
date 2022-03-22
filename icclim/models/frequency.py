@@ -3,10 +3,11 @@
     time series.  `slice_mode` paramater of `icclim.index` is always converted to a
     `Frequency`.
 """
+from __future__ import annotations
 
 import datetime
 from enum import Enum
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Tuple, Union
 
 import cftime
 import numpy as np
@@ -16,12 +17,12 @@ from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
-SliceMode = Union[Any, str, List[Union[str, Tuple, int]]]
+SliceMode = Union[str, List[Union[str, Tuple, int]]]
 
 
 def seasons_resampler(
-    month_list: List[int],
-) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
+    month_list: list[int],
+) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
     """
     Seasonal resampling method generator.
     Returns a callable of DataArray which will resample the data to
@@ -37,9 +38,9 @@ def seasons_resampler(
         function resampling the input da to the wanted season.
     """
 
-    def resampler(da: DataArray) -> Tuple[DataArray, DataArray]:
+    def resampler(da: DataArray) -> tuple[DataArray, DataArray]:
         da_years = np.unique(da.time.dt.year)
-        seasons_acc: List[DataArray] = []
+        seasons_acc: list[DataArray] = []
         time_bounds = []
         new_time_axis = []
         start_month = month_list[0]
@@ -80,12 +81,12 @@ def seasons_resampler(
     return resampler
 
 
-def month_filter(da: DataArray, month_list: List[int]) -> DataArray:
+def month_filter(da: DataArray, month_list: list[int]) -> DataArray:
     return da.sel(time=da.time.dt.month.isin(month_list))
 
 
-def _add_time_bounds(freq: str) -> Callable[[DataArray], Tuple[DataArray, DataArray]]:
-    def add_bounds(da: DataArray) -> Tuple[DataArray, DataArray]:
+def _add_time_bounds(freq: str) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
+    def add_bounds(da: DataArray) -> tuple[DataArray, DataArray]:
         # da should already be resampled to freq
         if isinstance(da.indexes.get("time"), xr.CFTimeIndex):
             offset = xr.coding.cftime_offsets.to_offset(freq)
@@ -168,19 +169,19 @@ class Frequency(Enum):
     def __init__(
         self,
         panda_time: str,
-        accepted_values: List[str],
-        description: Optional[str] = None,
-        post_processing: Optional[
-            Callable[[DataArray], Tuple[DataArray, DataArray]]
-        ] = None,
+        accepted_values: list[str],
+        description: str | None = None,
+        post_processing: (
+            Callable[[DataArray], tuple[DataArray, DataArray]] | None
+        ) = None,
     ):
         self.panda_freq: str = panda_time
-        self.accepted_values: List[str] = accepted_values
+        self.accepted_values: list[str] = accepted_values
         self.description = description
         self.post_processing = post_processing
 
     @staticmethod
-    def lookup(slice_mode: SliceMode) -> Any:
+    def lookup(slice_mode: SliceMode) -> Frequency:
         if isinstance(slice_mode, Frequency):
             return slice_mode
         if isinstance(slice_mode, str):
@@ -202,7 +203,7 @@ def _get_frequency_from_string(slice_mode: str) -> Frequency:
     raise InvalidIcclimArgumentError(f"Unknown frequency {slice_mode}.")
 
 
-def _get_frequency_from_list(slice_mode_list: List) -> Frequency:
+def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
     if len(slice_mode_list) < 2:
         raise InvalidIcclimArgumentError(
             f"The given slice list {slice_mode_list}"

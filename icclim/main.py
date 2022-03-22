@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Literal
 from warnings import warn
 
 import xarray as xr
@@ -34,7 +34,9 @@ log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 
 def indices(
-    index_group: str | IndexGroup | list[str], ignore_error: bool = False, **kwargs
+    index_group: Literal["all"] | str | IndexGroup | list[str],
+    ignore_error: bool = False,
+    **kwargs,
 ) -> Dataset:
     """
 
@@ -44,7 +46,7 @@ def indices(
 
     Parameters
     ----------
-    index_group : Union["all", str, IndexGroup, List[str]]
+    index_group : "all" | str | IndexGroup | list[str]
         Either the name of an IndexGroup, a instance of IndexGroup or a list
         of index short names.
         The value "all" can also be used to compute every indices.
@@ -108,7 +110,7 @@ def indice(*args, **kwargs):
 
 def index(
     in_files: str | list[str] | Dataset | DataArray,
-    index_name: str = None,  # optional when computing user_indices
+    index_name: str | None = None,  # optional when computing user_indices
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] = None,
@@ -137,14 +139,14 @@ def index(
     """
     Parameters
     ----------
-    in_files : Union[str, List[str], Dataset, DataArray]
+    in_files : str | list[str] | Dataset | DataArray,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     index_name : str
         Climate index name.
         For ECA&D index, case insensitive name used to lookup the index.
         For user index, it's the name of the output variable.
-    var_name : str
+    var_name : str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
@@ -154,34 +156,31 @@ def index(
         {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : List[datetime.datetime]
+    time_range : list[datetime.datetime]
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         Default is ``None``.
-    out_file : str
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : Union[float, List[float]]
+    threshold : float | list[float] | None
         ``optional`` User defined threshold for certain indices.
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
     transfer_limit_Mbytes : float
-        ``optional`` Maximum Dask chunk size in memory.
-        The value should be around 200 MB.
-        If empty, no chunking is performed, the whole dataset will be in memory and the
-        performance might be poor.
-    callback : function
+        Deprecated, does not have any effect.
+    callback : Callable[[int], None]
         ``optional`` Progress bar printing. If ``None``, progress bar will not be
         printed.
     callback_percentage_start_value : int
         ``optional`` Initial value of percentage of the progress bar (default: 0).
     callback_percentage_total : int
         ``optional`` Total percentage value (default: 100).
-    base_period_time_range : List[datetime.datetime]
+    base_period_time_range : list[datetime.datetime]
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -198,14 +197,14 @@ def index(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : Union[str, QuantileInterpolation]
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str
+    out_unit : str | None
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : icclim.models.netcdf_version.NetcdfVersion
+    netcdf_version : str | icclim.models.netcdf_version.NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     user_index : UserIndexDict
         ``optional`` A dictionary with parameters for user defined index.
@@ -214,12 +213,12 @@ def index(
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
          file (default: False).
-    logs_verbosity : Union[str, Verbosity]
+    logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    indice_name : Union[str, None]
+    indice_name : str | None
         DEPRECATED, use index_name instead.
-    user_indice : Union[None, None]
+    user_indice : dict | None
         DEPRECATED, use user_index instead.
 
     """

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, List, Literal, Optional, Union
+from typing import Any, Callable, Literal
 
 from xarray.core.dataarray import DataArray
 
@@ -34,12 +36,12 @@ class LinkLogicalOperation(Enum):
     AND_STAMP = "and"
 
     @staticmethod
-    def lookup(s: str) -> Any:
+    def lookup(query: str) -> LinkLogicalOperation:
         for mode in LinkLogicalOperation:
-            if s.upper == mode.value.upper():
+            if query.upper == mode.value.upper():
                 return mode
         raise InvalidIcclimArgumentError(
-            f"Unknown link_logical_operation mode {s}."
+            f"Unknown link_logical_operation mode {query}."
             f"Use one of {[linkOp.value for linkOp in LinkLogicalOperation]}."
         )
 
@@ -49,12 +51,12 @@ class ExtremeMode(Enum):
     MAX = "max"
 
     @staticmethod
-    def lookup(s: str) -> Any:
+    def lookup(query: str) -> ExtremeMode:
         for mode in ExtremeMode:
-            if s.upper == mode.value.upper():
+            if query.upper == mode.value.upper():
                 return mode
         raise InvalidIcclimArgumentError(
-            f"Unknown extreme mode {s}."
+            f"Unknown extreme mode {query}."
             f"Use one of {[mode.value for mode in ExtremeMode]}."
         )
 
@@ -70,7 +72,7 @@ class LogicalOperation(Enum):
         self,
         aliases: str,
         operator: str,
-        compute: Callable[[DataArray, Union[DataArray, float, int]], DataArray],
+        compute: Callable[[DataArray, DataArray | float | int], DataArray],
     ) -> None:
         super().__init__()
         self.aliases = aliases
@@ -78,50 +80,50 @@ class LogicalOperation(Enum):
         self.compute = compute
 
     @staticmethod
-    def lookup(s: str) -> Any:
+    def lookup(query: str) -> LogicalOperation:
         for op in LogicalOperation:
-            if s.upper() in map(str.upper, op.aliases):
+            if query.upper() in map(str.upper, op.aliases):
                 return op
         raise InvalidIcclimArgumentError(
-            f"Unknown logical operator {s}."
+            f"Unknown logical operator {query}."
             f"Use one of {[op.aliases for op in LogicalOperation]}."
         )
 
 
 @dataclass
 class NbEventConfig:
-    logical_operation: List[LogicalOperation]
-    thresholds: List[Union[float, str]]
-    link_logical_operations: Optional[LinkLogicalOperation] = None
-    data_arrays: Optional[List[CfVariable]] = None
+    logical_operation: list[LogicalOperation]
+    thresholds: list[float | str]
+    link_logical_operations: LinkLogicalOperation | None = None
+    data_arrays: list[CfVariable] | None = None
 
 
 @dataclass
 class UserIndexConfig:
     index_name: str
     calc_operation: str
-    cf_vars: List[CfVariable]
+    cf_vars: list[CfVariable]
     freq: Frequency
     date_event: bool
     is_percent: bool
-    logical_operation: Optional[LogicalOperation] = None
-    thresh: Optional[Union[float, int, str, List[Union[float, int, str]]]] = None
-    link_logical_operations: Optional[LinkLogicalOperation] = None
-    extreme_mode: Optional[ExtremeMode] = None
-    window_width: Optional[int] = None
-    coef: Optional[float] = None
-    var_type: Optional[str] = None
-    da_ref: Optional[DataArray] = None
-    nb_event_config: Optional[NbEventConfig] = None
+    logical_operation: LogicalOperation | None = None
+    thresh: float | int | str | list[float | int | str] | None = None
+    link_logical_operations: LinkLogicalOperation | None = None
+    extreme_mode: ExtremeMode | None = None
+    window_width: int | None = None
+    coef: float | None = None
+    var_type: str | None = None
+    da_ref: DataArray | None = None
+    nb_event_config: NbEventConfig | None = None
     save_percentile: bool = False
 
     def __init__(
         self,
         index_name: str,
         # Any should be CalcOperation but it causes circular import
-        calc_operation: Union[str, Any],
+        calc_operation: str | Any,
         freq: Frequency,
-        cf_vars: List[CfVariable],
+        cf_vars: list[CfVariable],
         logical_operation: str = None,
         thresh=None,
         link_logical_operations: str = None,
@@ -156,10 +158,10 @@ class UserIndexConfig:
 
 
 def get_nb_event_conf(
-    logical_operation: Union[List[str], str],
-    link_logical_operations: Optional[str],
-    thresholds: Union[List[Union[str, float]], float, str],
-    cfvars: List[CfVariable],
+    logical_operation: list[str] | str,
+    link_logical_operations: str | None,
+    thresholds: list[str | float] | float | str,
+    cfvars: list[CfVariable],
 ) -> NbEventConfig:
     if not isinstance(thresholds, list):
         threshold_list = [thresholds]

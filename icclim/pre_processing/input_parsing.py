@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Union
+from __future__ import annotations
 
 import xarray as xr
 from xarray.core.dataarray import DataArray
@@ -9,10 +9,10 @@ from icclim.models.ecad_indices import EcadIndex
 
 
 def read_dataset(
-    data: Union[str, List[str], Dataset, DataArray],
-    index: Optional[EcadIndex] = None,
-    var_names: Union[str, List[str], None] = None,
-) -> Tuple[Dataset, bool]:
+    data: str | list[str] | Dataset | DataArray,
+    index: EcadIndex | None = None,
+    var_names: str | list[str] | None = None,
+) -> tuple[Dataset, bool]:
     if isinstance(data, Dataset):
         input_dataset = data
         chunk_da = False
@@ -50,7 +50,7 @@ def read_dataset(
     return input_dataset, chunk_da
 
 
-def update_to_standard_coords(ds: Dataset) -> Tuple[Dataset, Dict]:
+def update_to_standard_coords(ds: Dataset) -> tuple[Dataset, dict]:
     """
     Mutate input ds to use more icclim friendly coordinate name.
     """

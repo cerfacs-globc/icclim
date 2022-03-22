@@ -3,6 +3,7 @@ Release history
 
 5.1.0 (unreleased)
 ------------------
+* [maint] **BREAKING CHANGE** Parameter ``out_file`` of icclim.index default value is now ``None``. When None, ``icclim.index`` only returns a xarray.Dataset and does not write to a default netcdf file.
 * [enh] Add code coverage in CI. This writes a comment with the full report in the PR.
 * [enh] Add coverage and conda badges in Readme.
 * [tst] Add unit test form modules ``main``, ``dispatcher``, ``cf_calendar``.
@@ -12,13 +13,13 @@ Release history
 * [maint] Upgrade to xclim 0.34.
 * [fix] WSDI and CSDI percentile were computed on the studied period instead of the reference period.
 * [maint] Refactored ``icclim.main`` module to ease maintainability.
-* [maint] **BREAKING CHANGE** Parameter ``out_file`` of icclim.index default value is now ``None``. When None, ``icclim.index`` only returns a xarray.Dataset and does not write to a default netcdf file.
 * [doc] Add contribution guide.
 * [enh] Add API endpoint ``icclim.create_optimized_zarr_store``. It is a context manager wrapping `rechunker` in order to rechunk a dataset without any chunk a given `dim` dimension.
 * [fix] Add zarr dependency, needed to update zarr store metadata after rechunking.
 * [fix] Fix installation from sources. The import in setup.py to get ``__version__`` meant we needed to have the environment setup before the moment it is installed...
 * [enh] Add API endpoint ``icclim.indices``. This allows to compute multiple indices at once.
 * [maint] Pin dask to versions before `2022.01.1`. This is necessary for rechunker 0.3.3 to work.
+* [maint] Update types to use modern python typing syntax.
 
 .. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 

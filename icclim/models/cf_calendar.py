@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Any, Callable, List
+from typing import Callable
 
 import numpy as np
 import xarray as xr
@@ -58,7 +60,7 @@ class CfCalendar(Enum):
     # Not sure what to do with none calendar
     NONE = (["none"], lambda da: _standard_leap(da).values)
 
-    def __init__(self, aliases: List[str], is_leap: Callable[[DataArray], np.ndarray]):
+    def __init__(self, aliases: list[str], is_leap: Callable[[DataArray], np.ndarray]):
         self.aliases = aliases
         self.is_leap = is_leap
 
@@ -66,7 +68,7 @@ class CfCalendar(Enum):
         return self.aliases[0]
 
     @staticmethod
-    def lookup(query: str) -> Any:
+    def lookup(query: str) -> CfCalendar:
         res = list(filter(lambda x: query.lower() in x.aliases, CfCalendar))
         if len(res) == 0:
             raise TypeError(f"No calendars found for query '{query}'")

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import Enum
-from typing import Any, Callable, Literal, Union
+from typing import Callable, Literal
 
 from xarray.core.dataarray import DataArray
 
@@ -134,7 +136,9 @@ def _simple_reducer(op: Callable, config: UserIndexConfig):
     )
 
 
-def _check_and_get_simple_threshold(thresh: Any) -> Union[None, str, float, int]:
+def _check_and_get_simple_threshold(
+    thresh: None | str | float | int,
+) -> None | str | float | int:
     if (
         thresh is None
         or isinstance(thresh, str)
@@ -158,7 +162,7 @@ def _check_and_get_da(config: UserIndexConfig) -> DataArray:
         )
 
 
-def _check_and_get_in_base_da(config: UserIndexConfig) -> Union[DataArray, None]:
+def _check_and_get_in_base_da(config: UserIndexConfig) -> DataArray | None:
     if len(config.cf_vars) == 1:
         return config.cf_vars[0].reference_da
     else:
