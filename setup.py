@@ -4,17 +4,21 @@
 from setuptools import find_packages, setup
 
 MINIMAL_REQUIREMENTS = [
-    "numpy>=1.21,<1.22",  # todo unpin 1.22 once numba works with it
-    "xarray>=0.19",
+    # todo: Unpin numpy 1.22 once numba work with it
+    #       https://github.com/numba/numba/issues/7754
+    "numpy>=1.16,<1.22",
+    "xarray>=0.17",
     "xclim>=0.34",
-    "cftime>=1.5.0",
-    "dask[array]>=2021.10.0",
+    "cftime>=1.4.1",
+    # todo: unpin dask once we can move to rechunker 0.4
+    #       https://github.com/pangeo-data/rechunker/issues/110
+    "dask[array]<2022.01.1",
     "netCDF4>=1.5.7",
-    "pyyaml>=6.0",
+    "pyyaml",
     "psutil",
     "zarr",
-    # todo unpin rechunker once https://github.com/pangeo-data/rechunker/issues/92 is
-    #      fixed
+    # todo: unpin rechunker once
+    #       https://github.com/pangeo-data/rechunker/issues/92 is fixed
     "rechunker>=0.3,<0.4",
 ]
 
