@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 from functools import reduce
-from typing import Any, Callable, List, Optional, Union
+from typing import Callable
 from warnings import warn
 
 import dask.array
 import numpy as np
 import xarray
 from xarray.core.dataarray import DataArray
+from xarray.core.rolling import DataArrayRolling
 from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
@@ -47,13 +50,13 @@ __all__ = [
 
 def max(
     da: DataArray,
-    in_base_da: Optional[DataArray] = None,
-    coef: Optional[float] = None,
-    logical_operation: Optional[LogicalOperation] = None,
-    threshold: Optional[Union[str, float, int]] = None,
+    in_base_da: DataArray | None = None,
+    coef: float | None = None,
+    logical_operation: LogicalOperation | None = None,
+    threshold: str | float | int | None = None,
     freq: str = "MS",
     date_event: bool = False,
-    var_type: Optional[str] = None,
+    var_type: str | None = None,
     save_percentile=False,
 ) -> DataArray:
     result = _apply_coef(coef, da)
@@ -77,10 +80,10 @@ def max(
 
 def min(
     da: DataArray,
-    in_base_da: Optional[DataArray] = None,
+    in_base_da: DataArray | None = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: Optional[Union[str, float, int]] = None,
+    threshold: str | float | int | None = None,
     freq: str = "MS",
     date_event: bool = False,
     var_type: str = None,
@@ -107,10 +110,10 @@ def min(
 
 def sum(
     da: DataArray,
-    in_base_da: Optional[DataArray] = None,
+    in_base_da: DataArray | None = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: Optional[Union[str, float, int]] = None,
+    threshold: str | float | int | None = None,
     var_type: str = None,
     freq: str = "MS",
     save_percentile=False,
@@ -130,10 +133,10 @@ def sum(
 
 def mean(
     da: DataArray,
-    in_base_da: Optional[DataArray] = None,
+    in_base_da: DataArray | None = None,
     coef: float = None,
     logical_operation: LogicalOperation = None,
-    threshold: Optional[Union[str, float, int]] = None,
+    threshold: str | float | int | None = None,
     var_type: str = None,
     freq: str = "MS",
     save_percentile=False,
@@ -152,10 +155,10 @@ def mean(
 
 
 def count_events(
-    logical_operation: List[LogicalOperation],
-    thresholds: List[Union[float, str]],
-    das: List[DataArray],
-    in_base_das: List[Optional[DataArray]],
+    logical_operation: list[LogicalOperation],
+    thresholds: list[float | str],
+    das: list[DataArray],
+    in_base_das: list[DataArray | None],
     link_logical_operations: LinkLogicalOperation = None,
     coef: float = None,
     var_type: str = None,
@@ -204,12 +207,12 @@ def count_events(
 def max_consecutive_event_count(
     da: DataArray,
     logical_operation: LogicalOperation,
-    in_base_da: Optional[DataArray] = None,
-    threshold: Optional[Union[str, float, int]] = None,
+    in_base_da: DataArray | None = None,
+    threshold: str | float | int | None = None,
     coef: float = None,
     freq: str = "MS",
     date_event: bool = False,
-    var_type: Optional[str] = None,
+    var_type: str | None = None,
     save_percentile=False,
 ) -> DataArray:
     result = _apply_coef(coef, da)
@@ -229,7 +232,7 @@ def max_consecutive_event_count(
     resampled = result.resample(time=freq)
     if not date_event:
         return resampled.map(longest_run, dim="time")
-    acc: List[DataArray] = []
+    acc: list[DataArray] = []
     for label, value in resampled:
         run_length = longest_run(value, dim="time")
         index = get_longest_run_start_index(value, dim="time")
@@ -296,7 +299,7 @@ def anomaly(da_ref: DataArray, da: DataArray, percent: bool) -> DataArray:
     return result
 
 
-def _apply_coef(coef: Optional[float], da: DataArray) -> DataArray:
+def _apply_coef(coef: float | None, da: DataArray) -> DataArray:
     if coef is not None:
         return da * coef
     return da
@@ -304,11 +307,11 @@ def _apply_coef(coef: Optional[float], da: DataArray) -> DataArray:
 
 def _filter_by_threshold(
     da: DataArray,
-    in_base_da: Optional[DataArray],
-    logical_operation: Optional[LogicalOperation],
-    threshold: Optional[Union[str, float, int]],
+    in_base_da: DataArray | None,
+    logical_operation: LogicalOperation | None,
+    threshold: str | float | int | None,
     freq: str,
-    var_type: Optional[str],
+    var_type: str | None,
     save_percentile: bool,
 ) -> DataArray:
     if threshold is None and logical_operation is None:
@@ -348,8 +351,8 @@ def _filter_by_threshold(
 @percentile_bootstrap
 def _filter_by_logical_op_on_percentile(
     da: DataArray,
-    percentiles: Optional[DataArray],
-    logical_operation: Optional[LogicalOperation],
+    percentiles: DataArray | None,
+    logical_operation: LogicalOperation | None,
     freq: str = "MS",  # used by percentile_bootstrap
     bootstrap: bool = False,  # used by percentile_bootstrap
 ) -> DataArray:
@@ -376,7 +379,7 @@ def _threshold_compare_on_percentiles(
 
 
 def _get_percentiles(
-    thresh: str, var_type: Optional[str], in_base_da: DataArray
+    thresh: str, var_type: str | None, in_base_da: DataArray
 ) -> DataArray:
     if thresh.find(PERCENTILE_THRESHOLD_STAMP) == -1:
         raise InvalidIcclimArgumentError(
@@ -397,7 +400,7 @@ def _run_aggregator(
     da: DataArray,
     extreme_mode: ExtremeMode,
     window_width: int,
-    aggregator: Callable[[Any], DataArray],  # Any should be DataArrayRolling
+    aggregator: Callable[[DataArrayRolling], DataArray],
     coef: float = None,
     freq: str = "MS",
     date_event: bool = False,
@@ -418,7 +421,7 @@ def _run_aggregator(
         if date_event:
             return _reduce_with_date_event(
                 resampled,
-                lambda x: x.argmax("time"),  # type:ignore
+                lambda x: x.argmax("time"),
                 window=window_width,
             )
         else:
@@ -430,9 +433,9 @@ def _run_aggregator(
 def _reduce_with_date_event(
     resampled: DataArray,
     reducer: Callable[[DataArray], DataArray],
-    window: Optional[int] = None,
+    window: int | None = None,
 ) -> DataArray:
-    acc: List[DataArray] = []
+    acc: list[DataArray] = []
     for label, value in resampled:
         reduced_result = value.isel(time=reducer(value))
         if window is not None:
@@ -457,7 +460,7 @@ def _reduce_with_date_event(
 def _get_count_events_date_event(resampled):
     if isinstance(resampled, dask.array.Array):
         warn("Computing event_date_start/end when using Dask arrays can be slow.")
-    acc: List[DataArray] = []
+    acc: list[DataArray] = []
     for label, sample in resampled:
         # Fixme probably not safe to compute on huge dataset,
         #  it should be fixed with

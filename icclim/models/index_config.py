@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable
 
 import xarray
 from xarray import DataArray, Dataset
@@ -46,59 +48,58 @@ class IndexConfig:
     ----------
     freq: Frequency
         The expected resampling frequency of the output.
-    cf_variables: List[CfVariable]
+    cf_variables:
         List of CfVariable necessary to compute the index.
     save_percentile: bool = False
         On percentile based indices, if True, this saves the percentile in the output
         netcdf.
-    is_percent: bool = False
+    is_percent:
         On indices resulting in a numbers of days, if True, this converts the results to
         % of the sampling frequency
-    netcdf_version: NetcdfVersion
+    netcdf_version:
         Netcdf version to be used when creating the output
-    window: Optional[int]
+    window:
         On indices relying on a rolling window of days, configure the window width.
-    threshold: Optional[float]
+    threshold:
         On indices relying on a threshold, configure the threshold value. Unit less.
         The unit "degC" is added by icclim.
-    transfer_limit_Mbytes: Optional[int]
+    transfer_limit_Mbytes:
         The dask maximum chunk size.
-    out_unit: Optional[str]
+    out_unit:
         The output unit overriding Xclim results.
-    callback: Optional[Callable]
+    callback:
         A callable to produce a progress bar
     """
 
     freq: Frequency
-    _cf_variables: List[CfVariable]
+    _cf_variables: list[CfVariable]
     save_percentile: bool = False
     is_percent: bool = False
     netcdf_version: NetcdfVersion
-    window: Optional[int]
-    threshold: Optional[float]
-    transfer_limit_Mbytes: Optional[int]
-    out_unit: Optional[str]
-    callback: Optional[Callable]
+    window: int | None
+    threshold: float | None
+    transfer_limit_Mbytes: int | None
+    out_unit: str | None
+    callback: Callable[[int], None] | None
 
     def __init__(
         self,
         ds: Dataset,
         slice_mode: SliceMode,
-        var_names: List[str],
-        netcdf_version: Union[str, NetcdfVersion],
-        index: Optional[Any],  # EcadIndex proper typing causes circular dependency
+        var_names: list[str],
+        netcdf_version: str | NetcdfVersion,
+        index: Any | None,  # EcadIndex proper typing causes circular dependency
         save_percentile: bool = False,
         only_leap_years: bool = False,
         ignore_Feb29th: bool = False,
-        window_width: Optional[int] = 5,
-        time_range: Optional[List[datetime]] = None,
-        base_period_time_range: Optional[List[datetime]] = None,
-        threshold: Optional[float] = None,
-        out_unit: Optional[str] = None,
-        interpolation: Optional[
-            QuantileInterpolation
-        ] = QuantileInterpolation.MEDIAN_UNBIASED,
-        callback: Optional[Callable] = None,
+        window_width: int | None = 5,
+        time_range: list[datetime] | None = None,
+        base_period_time_range: list[datetime] | None = None,
+        threshold: float | None = None,
+        out_unit: str | None = None,
+        interpolation: QuantileInterpolation
+        | None = QuantileInterpolation.MEDIAN_UNBIASED,
+        callback: Callable[[int], None] | None = None,
         chunk_it: bool = False,
     ):
         self.freq = Frequency.lookup(slice_mode)
@@ -175,9 +176,9 @@ class IndexConfig:
 def _build_cf_variable(
     da: DataArray,
     name: str,
-    time_range: Optional[List[str]],
+    time_range: list[str] | None,
     ignore_Feb29th: bool,
-    base_period_time_range: Optional[List[str]],
+    base_period_time_range: list[str] | None,
     only_leap_years: bool,
     chunk_it: bool,
 ) -> CfVariable:
@@ -192,7 +193,7 @@ def _build_cf_variable(
 
 
 def _build_study_da(
-    original_da: DataArray, time_range: Optional[List[str]], ignore_Feb29th: bool
+    original_da: DataArray, time_range: list[str] | None, ignore_Feb29th: bool
 ) -> DataArray:
     if time_range is not None:
         if len(time_range) != 2:
@@ -218,7 +219,7 @@ def _build_study_da(
 
 def _build_reference_da(
     original_da: DataArray,
-    base_period_time_range: List[str],
+    base_period_time_range: list[str],
     only_leap_years: bool,
 ) -> DataArray:
     # TODO merge with _build_data_array ?
@@ -244,7 +245,7 @@ def _build_reference_da(
 
 
 def _reduce_only_leap_years(da: DataArray) -> DataArray:
-    reduced_list: List[DataArray] = []
+    reduced_list: list[DataArray] = []
     for _, val in da.groupby(da.time.dt.year):
         if val.time.dt.dayofyear.max() == 366:
             reduced_list.append(val)

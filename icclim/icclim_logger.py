@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 import time
 from enum import Enum
-from typing import Union
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
@@ -16,7 +17,7 @@ class Verbosity(Enum):
         self.log_level = log_level
 
     @staticmethod
-    def lookup(query: str):
+    def lookup(query: str) -> Verbosity:
         for v in Verbosity:
             if query.upper() == v.name:
                 return v
@@ -52,7 +53,7 @@ class IcclimLogger:
                 level=verbosity.log_level, format="%(asctime)s %(message)s"
             )
 
-    def set_verbosity(self, verbosity: Union[str, Verbosity]):
+    def set_verbosity(self, verbosity: str | Verbosity):
         if isinstance(verbosity, str):
             verbosity = Verbosity.lookup(verbosity)
         self.verbosity = verbosity
