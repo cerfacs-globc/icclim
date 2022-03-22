@@ -19,6 +19,7 @@ Release history
 * [fix] Fix installation from sources. The import in setup.py to get ``__version__`` meant we needed to have the environment setup before the moment it is installed...
 * [enh] Add API endpoint ``icclim.indices``. This allows to compute multiple indices at once.
 * [maint] Pin dask to versions before `2022.01.1`. This is necessary for rechunker 0.3.3 to work.
+* [maint] Update types to use modern python typing syntax.
 
 .. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 
