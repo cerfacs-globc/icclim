@@ -1,26 +1,26 @@
 Release history
 ===============
 
-5.1.0 (unreleased)
-------------------
+5.1.0
+-----
 * [maint] **BREAKING CHANGE** Parameter ``out_file`` of icclim.index default value is now ``None``. When None, ``icclim.index`` only returns a xarray.Dataset and does not write to a default netcdf file.
 * [enh] Add code coverage in CI. This writes a comment with the full report in the PR.
 * [enh] Add coverage and conda badges in Readme.
-* [tst] Add unit test form modules ``main``, ``dispatcher``, ``cf_calendar``.
-* [fix] ``cf_calendar`` was poorly tested thus was full of bugs.
+* [tst] Add unit test for modules ``main``, ``dispatcher``, ``cf_calendar``.
+* [fix] Rework ``cf_calendar`` following unit test writing.
 * [tst] Add simple integration test for ``icclim.index`` using index "SU".
 * [maint] Remove old, unmaintained integration tests and auxiliary tools. See `9ac35c2f`_ for details.
 * [maint] Upgrade to xclim 0.34.
 * [fix] WSDI and CSDI percentile were computed on the studied period instead of the reference period.
-* [maint] Refactored ``icclim.main`` module to ease maintainability.
+* [maint] Internal refactoring ``icclim.main`` module to ease maintainability.
 * [doc] Add contribution guide.
 * [enh] Add API endpoint ``icclim.create_optimized_zarr_store``. It is a context manager wrapping `rechunker` in order to rechunk a dataset without any chunk a given `dim` dimension.
 * [fix] Add zarr dependency, needed to update zarr store metadata after rechunking.
-* [fix] Fix installation from sources. The import in setup.py to get ``__version__`` meant we needed to have the environment setup before the moment it is installed...
+* [fix] Fix installation from sources. The import in setup.py to get ``__version__`` meant we needed to have the whole environment installed before the moment it is actually installed by ``setup.py``.
 * [enh] Add API endpoint ``icclim.indices``. This allows to compute multiple indices at once.
-* [maint] Pin dask to versions before `2022.01.1`. This is necessary for rechunker 0.3.3 to work.
+* [maint] Pin `dask` to its versions before `2022.01.1`. This is necessary for rechunker 0.3.3 to work.
 * [maint] Update types to use modern python typing syntax.
-* [fix] CI was passing even when tests were in failure.
+* [fix] CI was passing even when tests were in failure. This has been fixed.
 
 .. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 

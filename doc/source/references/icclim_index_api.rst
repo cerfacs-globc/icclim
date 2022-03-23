@@ -95,7 +95,7 @@ or a list of values:
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Deprecated. ``transfer_limit_Mbytes`` is now ignored.
-See the how to :ref:`chunk data and parallelize computation <dask>` to configure dask chunking.
+See :ref:`how to chunk data and parallelize computation <dask>` to configure dask chunking.
 
 ``callback``
 ~~~~~~~~~~~~~

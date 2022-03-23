@@ -1,31 +1,31 @@
 Release process
 ===============
 
-#. Make sure all tests pass
-#. Create and checkout a release branch
-#. Bump version in ``/icclim/__init__.py``
-#. Update release_notes in ``doc/source/references/release_notes.rst``
-#. Merge release branch to master with a PR
-#. Clean dist directory content
-#. Create wheel file on master
+#. Make sure all tests pass.
+#. Create and checkout a release branch.
+#. Bump version in ``/icclim/__init__.py`` and ``setup.py``.
+#. Update release notes in ``doc/source/references/release_notes.rst``.
+#. Merge release branch to master with a PR.
+#. Clean dist directory content.
+#. Create wheel file on master.
 
     .. code-block:: sh
 
         python3 setup.py bdist_wheel
 
-#. Create source archive
+#. Create source archive.
 
     .. code-block:: sh
 
         python3 -m setup.py sdist
 
-#. Try to upload on testpypi first
+#. Try to upload on testpypi first.
 
     .. code-block:: sh
 
         python3 -m twine upload --repository testpypi dist/*
 
-#. Try to install testpypi version on a clean virtual environment
+#. Try to install testpypi version on a clean virtual environment.
 
     .. code-block:: sh
 
@@ -37,7 +37,7 @@ Release process
     In that case, create the environment from icclim environment.yml file to
     pull all needed dependencies from conda.
 
-#. Upload to pypi for real
+#. Upload to pypi for real.
 
     .. code-block:: sh
 
