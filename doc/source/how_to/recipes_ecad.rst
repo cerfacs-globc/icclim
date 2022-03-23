@@ -125,19 +125,18 @@ Example 4: multivariable indices CD, CW, WD, WW
 Multi index computation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-New in 5.1.0.
+*New in 5.1.0.*
+
 This feature allows you to compute multiple indices at the same time.
-There is no special optimization done to reduce computation costs.
-A futur optimization would be to group common computations between indices, such as the computation of percentiles for
-WSDI and TX90p and to reuse the results when on both indices.
+This is just a shorthand to avoid writing your own for loop, there is no specific optimization done to group together
+similar operation.
 
 .. note::
-    The input ``in_files`` must include all the necessary variables.
-    When computing all indices it needs "tas", "tasmin", "tasmax" and 2 precipitation variables such as "pr" and
-    "precip".
-    One of the precipitation variable must be reprensent snow precipitation and . The snow variable must have a unit "cm" or an equivalent length unit.
+    The input ``in_files`` must include all the necessary variables to compute the indices.
+    You can bypass this by setting `ignore_error=True`.
+    In that case when icclim fails to compute an index it will simply be omitted in the result.
 
-Compute every HEAT indices [SU,TR,WSDI,TG90p,TN90p,TX90p,TXx,TNx,CSU]
+Compute every HEAT indices [SU, TR, WSDI, TG90p, TN90p, TX90p, TXx, TNx, CSU]
 _____________________________________________________________________
 
 
@@ -151,8 +150,8 @@ _____________________________________________________________________
 >>>                      time_range=tr,
 >>>                      out_file="heat_indices.nc")
 
-Compute every indices at the same time
-______________________________________
+Compute every indices
+_____________________
 
 >>> bp = [datetime.datetime(1991, 1, 1), datetime.datetime(1999, 12, 31)]
 >>> tr = [datetime.datetime(1991, 1, 1), datetime.datetime(2010, 12, 31)]
