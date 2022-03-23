@@ -1,3 +1,5 @@
+.. _dask:
+
 Chunk data and parallelize computation
 ======================================
 

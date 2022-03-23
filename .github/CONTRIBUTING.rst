@@ -33,7 +33,9 @@ See `this tutorial <https://docs.github.com/en/get-started/quickstart/fork-a-rep
 To add a fork to your local git config you can run the following ``git remote add my_fork git@github.com:<your github id here>/icclim.git``
 
 Your are set for contributions!
+
 You can now:
+
     - Create a git branch with ``git checkout -b my_amazing_feature``.
     - Edit the necessary files.
     - Commit them with, for example ``git commit -am "DOC: Add simple tutorial"``.
@@ -122,8 +124,8 @@ Your index might not exist in xclim indicators.
 For now, the icclim dev team prefers to group all standard index implementations in xclim.
 
 Thus, you will need to implement the index function in their repository first.
-To do so, we recommend you to read their contribution guide and open an issue on their
-`github <https://github.com/Ouranosinc/xclim>`_, xclim has a very welcoming community.
+To do so, we recommend you to read their contribution guide and open an issue on
+`xclim github <https://github.com/Ouranosinc/xclim>`_, xclim has a very welcoming community.
 
 Once the index is implemented in xclim and they did a new release, xclim version must be updated in icclim.
 This should not be an issue as icclim try to always enforce the latest xclim version.

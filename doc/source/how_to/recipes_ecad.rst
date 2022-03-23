@@ -137,7 +137,7 @@ similar operation.
     In that case when icclim fails to compute an index it will simply be omitted in the result.
 
 Compute every HEAT indices [SU, TR, WSDI, TG90p, TN90p, TX90p, TXx, TNx, CSU]
-_____________________________________________________________________
+_____________________________________________________________________________
 
 
 >>> bp = [datetime.datetime(1991, 1, 1), datetime.datetime(1999, 12, 31)]
