@@ -497,11 +497,11 @@ def _guess_variable_names(
                 res.append(alias)
                 break
     if len(res) < len(index_variables):
-        variables = list(filter(lambda x: x not in ds.coords, ds.variables.keys()))
+        main_aliases = ", ".join(map(lambda v: v[0], index_variables))
         raise InvalidIcclimArgumentError(
-            f"The necessary variable(s) were not recognized in the"
-            f" input file(s) to compute `{index.short_name}` index."
-            f" Use `var_name` parameter to use one the dataset non coordinate variable:"
-            f" {variables}"
+            f"Index {index.short_name} needs the following variable(s)"
+            f" [{main_aliases}], some of these were not recognized from the input."
+            f" Use `var_name` parameter to explicitly use the data variable(s)"
+            f" from your input dataset: {list(ds.data_vars)}."
         )
     return res
