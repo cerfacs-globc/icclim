@@ -20,6 +20,7 @@ Release history
 * [enh] Add API endpoint ``icclim.indices``. This allows to compute multiple indices at once.
 * [maint] Pin dask to versions before `2022.01.1`. This is necessary for rechunker 0.3.3 to work.
 * [maint] Update types to use modern python typing syntax.
+* [fix] CI was passing even when tests were in failure.
 
 .. _`9ac35c2f`: https://github.com/cerfacs-globc/icclim/commit/9ac35c2f7bda76b26427fd433a79f7b4334776e7
 
