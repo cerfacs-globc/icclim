@@ -11,13 +11,13 @@ Release process
 
     .. code-block:: sh
 
-        python3 setup.py bdist_wheel
+        python3 -m setup bdist_wheel
 
 #. Create source archive.
 
     .. code-block:: sh
 
-        python3 -m setup.py sdist
+        python3 -m setup sdist
 
 #. Try to upload on testpypi first.
 
