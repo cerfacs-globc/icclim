@@ -1,0 +1,12 @@
+Install icclim 4.2 and under (outdated version)
+===============================================
+
+For a version before 5.0.0, to run icclim you first need to compile our C library.
+
+The last version where this was needed is `4.2.20 <https://github.com/cerfacs-globc/icclim/tree/4.2.20>`_
+
+#. Compile the C code:
+    - `gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o`
+    - `gcc -shared -o ./icclim/libC.so ./icclim/libC.o`
+
+#. Install icclim: `python setup.py install --user`

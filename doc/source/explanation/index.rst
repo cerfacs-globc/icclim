@@ -10,3 +10,4 @@ For more technical knowledge, see :ref:`references`.
 
     climate_indices
     xclim_and_icclim
+    4.2.x_installation
