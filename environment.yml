@@ -1,5 +1,5 @@
 # Conda environment for icclim development
-name: icclim-devaa
+name: icclim-dev
 channels:
  - conda-forge
  - defaults
