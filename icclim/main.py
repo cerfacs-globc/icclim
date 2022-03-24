@@ -39,7 +39,6 @@ def indices(
     **kwargs,
 ) -> Dataset:
     """
-
     Compute multiple indices at the same time.
     The input dataset(s) must include all the necessary variables.
     It can only be used with keyword arguments (kwargs)
@@ -421,35 +420,37 @@ def _compute_ecad_index(
     else:
         former_history = f"{former_history}\n{da.attrs['history']}"
     del da.attrs["history"]
-    result_ds = _add_basic_index_metadata(result_ds, config, index, former_history)
+    result_ds = _add_ecad_index_metadata(result_ds, config, index, former_history)
     return result_ds
 
 
-def _add_basic_index_metadata(
+def _add_ecad_index_metadata(
     result_ds: Dataset,
     config: IndexConfig,
     computed_index: EcadIndex,
     former_history: str,
 ) -> Dataset:
-    if config.threshold is not None:
-        title = f"Index {computed_index.short_name} with user defined threshold"
-    else:
-        title = f"ECA {computed_index.group} index {computed_index.short_name}"
-    result_ds.attrs["title"] = title
-    result_ds.attrs[
-        "references"
-    ] = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)"
-    result_ds.attrs["institution"] = "Climate impact portal (https://climate4impact.eu)"
-    result_ds.attrs["history"] = _get_history(
-        config, former_history, computed_index, result_ds
+    result_ds.attrs.update(
+        dict(
+            title=_get_title(computed_index, config),
+            references="ATBD of the ECA&D indices calculation"
+            " (https://www.ecad.eu/documents/atbd.pdf)",
+            institution="Climate impact portal (https://climate4impact.eu)",
+            history=_get_history(config, former_history, computed_index, result_ds),
+            source="",
+            Conventions="CF-1.6",
+        )
     )
-    result_ds.attrs["source"] = ""
-    result_ds.attrs["Conventions"] = "CF-1.6"
-
     result_ds.lat.encoding["_FillValue"] = None
     result_ds.lon.encoding["_FillValue"] = None
-
     return result_ds
+
+
+def _get_title(computed_index, config):
+    if config.threshold is not None:
+        return f"Index {computed_index.short_name} with user defined threshold"
+    else:
+        return f"ECA&D {computed_index.group.value} index {computed_index.short_name}"
 
 
 def _get_history(config, former_history, indice_computed, result_ds):
@@ -465,9 +466,10 @@ def _get_history(config, former_history, indice_computed, result_ds):
     )
 
 
-def has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
+def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
     if group == IndexGroup.SNOW:
         try:
+            # todo: might be replaced by cf-xarray
             xclim.core.units.check_units.__wrapped__(da, "[length]")
         except xclim.core.utils.ValidationError:
             return False
@@ -489,17 +491,17 @@ def _guess_variable_names(
     for indice_var in index_variables:
         for alias in indice_var:
             # check if dataset contains this alias
-            if ds.get(alias, None) is not None and has_valid_unit(
+            if ds.get(alias, None) is not None and _has_valid_unit(
                 index.group, ds[alias]
             ):
                 res.append(alias)
                 break
     if len(res) < len(index_variables):
-        variables = list(filter(lambda x: x not in ds.coords, ds.variables.keys()))
+        main_aliases = ", ".join(map(lambda v: v[0], index_variables))
         raise InvalidIcclimArgumentError(
-            f"The necessary variable(s) were not recognized in the"
-            f" input file(s) to compute `{index.short_name}` index."
-            f" Use `var_name` parameter to use one the dataset non coordinate variable:"
-            f" {variables}"
+            f"Index {index.short_name} needs the following variable(s)"
+            f" [{main_aliases}], some of these were not recognized from the input."
+            f" Use `var_name` parameter to explicitly use the data variable(s)"
+            f" from your input dataset: {list(ds.data_vars)}."
         )
     return res

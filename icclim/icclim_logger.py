@@ -44,7 +44,7 @@ class IcclimLogger:
     def __init__(self, verbosity: Verbosity):
         if IcclimLogger.__instance is not None:
             raise Exception(
-                "This class is a singleton! Use IcclimLogger::get_instance."
+                "This class is a singleton! Use IcclimLogger.get_instance()."
             )
         else:
             IcclimLogger.__instance = self

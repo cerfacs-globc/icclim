@@ -7,7 +7,7 @@ from icclim.models.user_index_config import LogicalOperationLiteral
 from icclim.user_indices.dispatcher import CalcOperationLiteral
 
 
-class UserIndexDict(TypedDict):
+class UserIndexDict(TypedDict, total=False):
     index_name: str
     calc_operation: CalcOperationLiteral
     logical_operation: LogicalOperationLiteral
@@ -19,3 +19,5 @@ class UserIndexDict(TypedDict):
     date_event: bool
     var_type: Literal["t", "p"]
     ref_time_range: list[datetime.datetime]  # length of 2
+    # deprecated
+    indice_name: str

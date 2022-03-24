@@ -11,13 +11,13 @@ Release process
 
     .. code-block:: sh
 
-        python3 setup.py bdist_wheel
+        python3 -m setup bdist_wheel
 
 #. Create source archive.
 
     .. code-block:: sh
 
-        python3 -m setup.py sdist
+        python3 -m setup sdist
 
 #. Try to upload on testpypi first.
 
@@ -43,6 +43,15 @@ Release process
 
         python3 -m twine upload dist/*
 
-.. note::
+# Update conda-forge feedstock at https://github.com/conda-forge/icclim-feedstock
 
-    Conda artifact should be updated automatically from pypi.
+    The recipe `recipe/meta.yml` must be updated.
+
+    - Fork the repository in with your own account.
+    - Update icclim version number at the top.
+    - Update `source.sha256` value with the tar.gz sha256.
+    You can get the tar.gz hash from `pypi <https://pypi.org/project/icclim/#files>`_ using `view hashes` link.
+    - Add any new dependency in `requirements`.
+    - Create a pull request with these changes, targeting the main fork on main branch
+    - Wait for the CI feedback and correct things if needed.
+    - Merge the pull request

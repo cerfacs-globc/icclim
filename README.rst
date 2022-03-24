@@ -3,40 +3,68 @@ icclim
 
 |build| |pypi| |black| |docs| |conda| |coverage|
 
-icclim (Index Calculation CLIMate) is a Python library for climate indices calculation.
+icclim is a Python library to compute climate indices.
+icclim name stand for Index, Calculation, CLIMate.
 
-This open-source project has been possible thanks to funding by the European Commission Projects FP7-IS-ENES2 (2013-2017), FP7-CLIPC (2013-2016) and EUDAT2020 (2015-2018).
-Now under development through new funding from H2020-IS-ENES3 (2019-2022).
-It is used as a backend on the C4I platform https://dev.climate4impact.eu and on the CLIPC Portal http://www.clipc.eu
+Installation
+------------
 
-Development is very active at the moment, with version 5.0.0.
-It is lead by CERFACS, a research institution located in Toulouse, France.
+From pypi: `pip install icclim`.
 
-For documentation please visit: http://icclim.readthedocs.org
+From conda-forge: `conda install -c conda-forge icclim`.
 
-Quick Install Instructions (version 5.x and above)
---------------------------------------------------
+From sources:
+    - Clone the repository `git clone https://github.com/cerfacs-globc/icclim.git`
+    - Install icclim `python -m setup install`
 
-Branch is https://github.com/cerfacs-globc/icclim/tree/master
+How to use icclim
+-----------------
 
-pip install icclim
+Let's count the number of days above 25ºC (a.k.a SU) from `tasmax` scattered in multiple netcdf files.
 
-Quick Install Instructions (version 4.x and under)
---------------------------------------------------
+`SU` is one of the many index that can be computed with icclim, see `the documentation <https://icclim.readthedocs.io/en/latest/explanation/climate_indices.html#icclim-capabilities>` for the other indices.
 
-For version 4.2.20 https://github.com/cerfacs-globc/icclim/tree/4.2.20
+.. code-block:: python
 
-gcc -fPIC -g -c -Wall ./icclim/libC.c -o ./icclim/libC.o
+    import glob
+    import icclim
+    summer_days = icclim.indice(
+        indice_name="SU",
+        in_files=glob.glob(f"netcdf_files/tasmax*.nc"),
+        out_file="summer_days.nc"
+    )
 
-gcc -shared -o ./icclim/libC.so ./icclim/libC.o
+For more examples on how to use icclim, see our `How to ... <https://icclim.readthedocs.io/en/latest/how_to/index.html>`_ doc or
+`our notebooks <https://gitlab.com/is-enes-cdi-c4i/notebooks/-/tree/master/>`_.
 
-python setup.py install --user
 
-or as root: python setup.py install
+Who use icclim
+--------------
+
+icclim is part of `C4I platform <https://dev.climate4impact.eu>`_ backend and is integrated in `CLIPC Portal <http://www.clipc.eu>`_
+You may also (soon) find icclim within the Copernicus C3S Climate Data Store (CDS).
+icclim is also used by some independent researchers.
+
+
+Who made icclim
+---------------
+
+icclim has always been an open source project and was successfully made thanks to the joint effort of all its contributors.
+The lead development is made at CERFACS, a research institution located in Toulouse, France.
+
+Grants
+~~~~~~
+
+This open-source project has been possible thanks to funding by the European Commission projects:
+    - FP7-CLIPC (2013-2016)
+    - FP7-IS-ENES2 (2013-2017)
+    - EUDAT2020 (2015-2018)
+    - H2020-IS-ENES3 (2019-2022)
+
 
 Indices
 -------
-For a detailed description of each ECA index, please visit: https://www.ecad.eu/documents/atbd.pdf
+For a detailed description of each ECA&D index, please visit: https://www.ecad.eu/documents/atbd.pdf
 
 ..
   Pytest Coverage Comment:Begin
