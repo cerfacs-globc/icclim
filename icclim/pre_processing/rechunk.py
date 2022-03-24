@@ -12,16 +12,19 @@ from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.icclim_logger import IcclimLogger
 from icclim.pre_processing.input_parsing import read_dataset
 
 TMP_STORE_1 = "icclim-tmp-store-1.zarr"
 TMP_STORE_2 = "icclim-tmp-store-2.zarr"
 DEFAULT_DASK_CONF = {
-    "distributed.worker.memory.target": "0.95",
-    "distributed.worker.memory.spill": "0.95",
+    "distributed.worker.memory.target": False,
+    "distributed.worker.memory.spill": False,
     "distributed.worker.memory.pause": "0.95",
     "distributed.worker.memory.terminate": "0.98",
 }
+
+logger = IcclimLogger.get_instance()
 
 
 def _get_mem_limit(factor: float = 0.9) -> int:
@@ -46,19 +49,31 @@ def create_optimized_zarr_store(
     in_files: str | list[str] | Dataset | DataArray,
     var_names: str | list[str],
     target_zarr_store_name: str = "icclim-target-store.zarr",
-    dim="time",
     keep_target_store: bool = False,
+    chunking: dict[str, int] | None = None,
 ) -> xr.Dataset:
     """
     -- EXPERIMENTAL FEATURE --
+    API may changes without deprecation warning!
 
     Context manager to create an zarr store given an input netcdf or xarray structure.
-    The resulting zarr store is NOT chunked on `dim` dimension.
-    By default `dim` being "time", the zarr store is optimized for time series analyses,
-    such as the computation of ECA&D climat indices.
+    The execution may take a long time
 
-    By default, once the context manager ends, the zarr store is destroyed.
-    This can be controlled by setting `keep_target_store` to True
+    The result is rechunked according to `chunking` schema provided.
+    By default, when leaving `chunking` to None, the resulting zarr store is NOT chunked
+    on time dimension.
+    This kind of chunking will significantly speed up the bootstrapping of
+    percentiles for indices such as Tx90p, Tx10p, TN90p...
+    But such chunking will most likely result in suboptimal performances for other
+    indices.
+    Actually, when computing indices where no bootstrap is needed,
+    you should first try the computation without using `create_optimized_zarr_store`.
+    If there are performance issues, you may want to use `create_optimized_zarr_store`
+    with a dictionary of a better chunking schema than your current storage chunking.
+
+    By default, `keep_target_store` being False, the resulting zarr store is destroyed
+    when the context manager is exit.
+    To keep the zarr store for futur uses set `keep_target_store` to True.
 
     The output is the resulting zarr store as a xarray Dataset.
 
@@ -66,11 +81,13 @@ def create_optimized_zarr_store(
     --------
 
     >>> import icclim
-    >>> with icclim.create_optimized_zarr_store(in_files="tasmax.nc",
+    >>> with icclim.create_optimized_zarr_store(
+    >>>                             in_files="tasmax.nc",
     >>>                             var_names="tasmax",
     >>>                             target_zarr_store_name="tasmax-store.zarr",
-    >>>                             dim="time") as pouet:
-    >>>     su_out = icclim.index(in_files= tasmax, index_name = "su")
+    >>>                             chunking={"time": 42, "lat": 42, "lon": 42},
+    >>>                             ) as tasmax_opti:
+    >>>      su_out = icclim.index(in_files = tasmax_opti, index_name = "su")
 
     Parameters
     ----------
@@ -106,7 +123,7 @@ def create_optimized_zarr_store(
         shutil.rmtree(TMP_STORE_2, ignore_errors=True)
         shutil.rmtree(target_zarr_store_name, ignore_errors=True)
         yield _unsafe_create_optimized_zarr_store(
-            in_files, var_names, target_zarr_store_name, dim, _get_mem_limit()
+            in_files, var_names, target_zarr_store_name, chunking, _get_mem_limit()
         )
     finally:
         shutil.rmtree(TMP_STORE_1, ignore_errors=True)
@@ -119,10 +136,11 @@ def _unsafe_create_optimized_zarr_store(
     in_files: str | list[str] | Dataset | DataArray,
     var_names: str | list[str],
     zarr_store_name: str,
-    dim: str,
+    chunking: dict[str, int] | None,
     max_mem: int,
 ):
     with dask.config.set(DEFAULT_DASK_CONF):
+        logger.info("Rechunking in progress, this will take some time.")
         ds, _ = read_dataset(in_files, index=None, var_names=var_names)
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_names, ds.data_vars.keys()))
@@ -131,14 +149,13 @@ def _unsafe_create_optimized_zarr_store(
                 f"The variable(s) {var_names} were not found in the dataset."
             )
         ds = ds.chunk("auto")
-        if len(ds.chunks[dim]) == 1:
-            return ds
+        if chunking is None:
+            if len(ds.chunks["time"]) == 1:
+                return ds
+            chunking = _build_default_chunking(ds)
         # It seems rechunker performs better when the dataset is first converted
         # to a zarr store, without rechunking anything.
         ds.to_zarr(TMP_STORE_1, mode="w")
-        # Leave dask find the best chunking schema for all dimensions but `dim`
-        chunking = {d: "auto" for d in ds.dims}
-        chunking[dim] = -1  # no chunking on dim to optimize reading on this dimension
         ds_zarr = xr.open_zarr(TMP_STORE_1).chunk(chunking)
         target_chunks = {}
         for data_var in ds_zarr.data_vars:
@@ -165,6 +182,7 @@ def _unsafe_create_optimized_zarr_store(
 
 # FIXME To remove once minimal xarray version is v0.20.0 (use .chunksizes instead)
 def _get_chunksizes(ds: Dataset) -> dict:
+    # Copied and adapted from xarray
     def _chunksizes(da):
         if hasattr(da.data, "chunks"):
             return {dim: c for dim, c in zip(da.dims, da.data.chunks)}
@@ -177,8 +195,15 @@ def _get_chunksizes(ds: Dataset) -> dict:
             for dim, c in _chunksizes(v).items():
                 if dim in chunks and c != chunks[dim]:
                     raise ValueError(
-                        f"Object has inconsistent chunks along dimension {dim}. "
-                        "This can be fixed by calling unify_chunks()."
+                        f"Object has inconsistent chunks along dimension {dim}."
+                        " This can be fixed by calling unify_chunks()."
                     )
                 chunks[dim] = c
     return chunks
+
+
+def _build_default_chunking(ds: Dataset) -> dict:
+    # Leave dask find the best chunking schema for all dimensions but `dim`
+    chunking = {d: "auto" for d in ds.dims}
+    chunking["time"] = -1
+    return chunking
