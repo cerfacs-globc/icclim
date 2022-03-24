@@ -8,8 +8,10 @@
 .. _NumPy: http://www.numpy.org
 .. _netCDF: http://www.unidata.ucar.edu/software/netcdf
 
-icclim's documentation
-======================
+icclim documentation
+====================
+
+Welcome to icclim documentation.
 icclim (Index Calculation for CLIMate) is a Python library to compute climate indices.
 It is built on a open source stack made of `xclim`_, `xarray`_, `dask`_ and of course `NumPy`_.
 
