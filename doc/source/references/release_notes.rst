@@ -1,6 +1,10 @@
 Release history
 ===============
 
+5.1.1-dev
+---------
+[maint] Update release process.
+
 5.1.0
 -----
 * [maint] **BREAKING CHANGE** Parameter ``out_file`` of icclim.index default value is now ``None``. When None, ``icclim.index`` only returns a xarray.Dataset and does not write to a default netcdf file.
