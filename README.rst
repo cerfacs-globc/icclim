@@ -9,20 +9,20 @@ icclim name stand for Index, Calculation, CLIMate.
 Installation
 ------------
 
-From pypi: `pip install icclim`.
+From pypi: ``pip install icclim``.
 
-From conda-forge: `conda install -c conda-forge icclim`.
+From conda-forge: ``conda install -c conda-forge icclim``.
 
 From sources:
-    - Clone the repository `git clone https://github.com/cerfacs-globc/icclim.git`
-    - Install icclim `python -m setup install`
+    - Clone the repository ``git clone https://github.com/cerfacs-globc/icclim.git``
+    - Install icclim ``python -m setup install``
 
 How to use icclim
 -----------------
 
-Let's count the number of days above 25ºC (a.k.a SU) from `tasmax` scattered in multiple netcdf files.
+Let's count the number of days above 25ºC, which is the index ``SU``, from a `tasmax` variable scattered in multiple netcdf files.
 
-`SU` is one of the many index that can be computed with icclim, see `the documentation <https://icclim.readthedocs.io/en/latest/explanation/climate_indices.html#icclim-capabilities>` for the other indices.
+`SU` is one of the many index that can be computed with icclim. See `the documentation <https://icclim.readthedocs.io/en/latest/explanation/climate_indices.html#icclim-capabilities>`_ to see what other index icclim can compute. 
 
 .. code-block:: python
 
