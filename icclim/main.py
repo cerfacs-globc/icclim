@@ -239,14 +239,6 @@ def index(
         index = None
     input_dataset, chunk_it = read_dataset(in_files, index, var_name)
     ds, reset_coords_dict = update_to_standard_coords(input_dataset)
-    if ds.chunks:
-        time_chunk_count = len(ds.chunks["time"])
-        if time_chunk_count > 1:
-            warn(
-                f"Your dataset has {time_chunk_count} chunks for time dimension."
-                f" You could significantly speed up your computations by rechunking it"
-                f" with `icclim.create_optimized_zarr_store`."
-            )
     config = IndexConfig(
         base_period_time_range=base_period_time_range,
         ds=ds,
