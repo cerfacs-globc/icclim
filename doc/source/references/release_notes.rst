@@ -4,6 +4,7 @@ Release history
 5.1.1-dev
 ---------
 [maint] Update release process.
+[enh] Improve `create_optimized_zarr_store` to accept a chunking schema instead of a single dim.
 
 5.1.0
 -----
