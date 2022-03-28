@@ -41,7 +41,7 @@ For more examples on how to use icclim, see our `How to ... <https://icclim.read
 Who use icclim
 --------------
 
-icclim is part of `C4I platform <https://dev.climate4impact.eu>`_ backend and is integrated in `CLIPC Portal <http://www.clipc.eu>`_
+icclim is part of `C4I platform <https://dev.climate4impact.eu>`_ backend and is integrated in `CLIPC Portal <http://www.clipc.eu>`_.
 You may also (soon) find icclim within the Copernicus C3S Climate Data Store (CDS).
 icclim is also used by some independent researchers.
 
