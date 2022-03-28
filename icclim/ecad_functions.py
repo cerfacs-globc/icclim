@@ -756,12 +756,8 @@ def _can_run_bootstrap(cf_var: CfVariable) -> bool:
 
 
 def _get_ref_period_slice(da: DataArray) -> slice:
-    time_length = len(da.reference_da.time)
-    return (
-        da.reference_da.time[0 :: time_length - 1]
-        .dt.strftime("%Y-%m-%d")
-        .values.tolist()
-    )
+    time_length = len(da.time)
+    return slice(*(da.time[0 :: time_length - 1].dt.strftime("%Y-%m-%d").values))
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
