@@ -1062,7 +1062,7 @@ def _compute_temperature_percentile_index(
         per_window,
         per_interpolation,
         callback,
-    )
+    ).compute()
     result = xclim_index_fun(
         cf_var.study_da,
         per,
