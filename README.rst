@@ -20,9 +20,9 @@ From sources:
 How to use icclim
 -----------------
 
-Let's count the number of days above 25ºC, which is the index ``SU``, from a `tasmax` variable scattered in multiple netcdf files.
+Let's count the number of days above 25ºC, which correspond the index ``SU``, from a `tasmax` variable scattered in multiple netcdf files.
 
-`SU` is one of the many index that can be computed with icclim. See `the documentation <https://icclim.readthedocs.io/en/latest/explanation/climate_indices.html#icclim-capabilities>`_ to see what other index icclim can compute. 
+`SU` is one of the many index that can be computed with icclim. See `the documentation <https://icclim.readthedocs.io/en/latest/explanation/climate_indices.html#icclim-capabilities>`_ to explore what other index you can compute with icclim.
 
 .. code-block:: python
 
@@ -41,7 +41,7 @@ For more examples on how to use icclim, see our `How to ... <https://icclim.read
 Who use icclim
 --------------
 
-icclim is part of `C4I platform <https://dev.climate4impact.eu>`_ backend and is integrated in `CLIPC Portal <http://www.clipc.eu>`_
+icclim is part of `C4I platform <https://dev.climate4impact.eu>`_ backend and is integrated in `CLIPC Portal <http://www.clipc.eu>`_.
 You may also (soon) find icclim within the Copernicus C3S Climate Data Store (CDS).
 icclim is also used by some independent researchers.
 

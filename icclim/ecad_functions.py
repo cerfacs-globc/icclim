@@ -13,6 +13,7 @@ from xclim import atmos, land
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
+import icclim.utils as utils
 from icclim.models.cf_calendar import CfCalendar
 from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
 from icclim.models.frequency import Frequency
@@ -741,18 +742,32 @@ def ww(config: IndexConfig) -> DataArray:
     )
 
 
-def _can_run_bootstrap(
-    cf_var: CfVariable, percentile_period: slice, interpolation: QuantileInterpolation
-) -> bool:
+def _can_run_bootstrap(cf_var: CfVariable) -> bool:
     """
     Avoid bootstrapping if there is one single year overlapping or no year overlapping
     or all year overlapping.
     """
-    da_years = np.unique(cf_var.study_da.indexes.get("time").year)
+    study_years = np.unique(cf_var.study_da.indexes.get("time").year)
     overlapping_years = np.unique(
-        cf_var.study_da.sel(time=percentile_period).indexes.get("time").year
+        cf_var.study_da.sel(time=_get_ref_period_slice(cf_var.reference_da))
+        .indexes.get("time")
+        .year
     )
-    return len(overlapping_years) > 1 and len(overlapping_years) < len(da_years)
+    can_bs = len(overlapping_years) > 1 and len(overlapping_years) < len(study_years)
+    if can_bs and cf_var.study_da.chunks is not None:
+        time_chunk_count = len(utils._da_chunksizes(cf_var.study_da)["time"])
+        if time_chunk_count > 1:
+            warn(
+                f"Your dataset has {time_chunk_count} chunks for time dimension."
+                f" You could significantly speed up your computations by rechunking it"
+                f" with `icclim.create_optimized_zarr_store`."
+            )
+    return can_bs
+
+
+def _get_ref_period_slice(da: DataArray) -> slice:
+    time_length = len(da.time)
+    return slice(*(da.time[0 :: time_length - 1].dt.strftime("%Y-%m-%d").values))
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
@@ -785,7 +800,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
     else:
         # TODO improve this for custom resampling
         warn(
-            "For now, '%' unit can only be used with slice_mode being one of "
+            "For now, '%' unit can only be used when `slice_mode` is one of: "
             "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}."
         )
         return da
@@ -882,9 +897,7 @@ def _compute_spell_duration(
         per_interpolation,
         callback,
     )
-    run_bootstrap = _can_run_bootstrap(
-        cf_var, slice(*per.climatology_bounds), per_interpolation
-    )
+    run_bootstrap = _can_run_bootstrap(cf_var)
     result = xclim_index_fun(
         cf_var.study_da,
         per,
@@ -1042,16 +1055,14 @@ def _compute_temperature_percentile_index(
     callback: Callable,
     xclim_index_fun: Callable,
 ) -> Tuple[DataArray, Optional[DataArray]]:
+    run_bootstrap = _can_run_bootstrap(cf_var)
     per = _compute_percentile_doy(
         cf_var.reference_da,
         tas_per_thresh,
         per_window,
         per_interpolation,
         callback,
-    )
-    run_bootstrap = _can_run_bootstrap(
-        cf_var, slice(*per.climatology_bounds), per_interpolation
-    )
+    ).compute()
     result = xclim_index_fun(
         cf_var.study_da,
         per,

@@ -29,7 +29,6 @@ def test_create_optimized_zarr_store_success():
         in_files=ds,
         var_names="tas",
         target_zarr_store_name="yolo.zarr",
-        dim="time",
     ) as result:
         assert len(result.chunks["time"]) == 1
         np.testing.assert_array_equal(result.tas.values, ds.tas.values)
@@ -59,7 +58,6 @@ def test_create_optimized_zarr_store_error():
             in_files=ds,
             var_names="TATAYOYO!",
             target_zarr_store_name="yolo.zarr",
-            dim="time",
         ):
             pass
 
@@ -86,7 +84,6 @@ def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock):
         in_files=ds,
         var_names="tas",
         target_zarr_store_name="n/a",
-        dim="time",
     ) as result:
         xr.testing.assert_equal(ds, result)
         rechunk_mock.assert_not_called()

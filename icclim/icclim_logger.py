@@ -36,7 +36,7 @@ class IcclimLogger:
     verbosity: Verbosity = Verbosity.LOW
 
     @staticmethod
-    def get_instance(verbosity: Verbosity):
+    def get_instance(verbosity: Verbosity = Verbosity.LOW):
         if IcclimLogger.__instance is None:
             IcclimLogger(verbosity)
         return IcclimLogger.__instance
@@ -145,6 +145,9 @@ class IcclimLogger:
         logging.info(
             "   ********************************************************************************************"
         )
+
+    def info(*args):
+        logging.info(args)
 
     def deprecation_warning(self, old: str, new: str = None) -> None:
         if new:

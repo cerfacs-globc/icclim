@@ -6,9 +6,9 @@ Chunk data and parallelize computation
 TL;DR
 -----
 icclim make use of dask to chunk and parallelize computations.
-You can configure dask to limit its memory footprint and CPu usage by instantiating a distributed Client and by tuning
+You can configure dask to limit its memory footprint and CPU usage by instantiating a distributed Cluster and by tuning
 dask.config options.
-A configuration working well for small to medium dataset and simple climate indices is :
+A configuration working well for small to medium dataset and simple climate indices could be:
 
 >>> import dask
 >>> from distributed import Client
@@ -73,6 +73,56 @@ performances.
 If you wish to avoid this large chunking behavior, you can try the following dask configuration:
 
 >>> dask.config.set({"array.slicing.split_large_chunks": True})
+
+Create an optimized chunking on disk
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sometimes, you have to work with data that were originally chunked and stored in a way that is suboptimal.
+Often climat data are stored in a one year per file format thus the natural chunking of the dataset will be one year per chunk.
+Here, by "natural" we mean the most efficient way to read data on disk would be to organize data in memory the same way it is scattered on the disk.
+So, _basically_ one chunk per file, if they fit within `array.chunk-size`.
+
+This scattering in many files may limit the performances on some indices because you would either need to
+    - Rechunk in memory to have an optimized chunking. This generate many dask tasks.
+    - Use the "natural" chunking and suffer from the potentially poor performances it provides.
+
+To tackle this issue, icclim 5.1.0 comes with a new feature to first rewrite the data on disk before starting any computation.
+We heavily rely on the `rechunker library <https://rechunker.readthedocs.io/en/latest/index.html>`_ to make this possible.
+``icclim.create_optimized_zarr_store`` is a context manager which allow you to rewrite an input data into a zarr store
+with a specific chunking schema for optimal computation of climat indices.
+
+Now, depending on the climat index you want to compute, the optimal chunking schema might differ.
+
+For most indices, if you consider chunking on time dimension, you should never chunk below the target resampling period.
+For example, with ``slice_mode="month"``, ideally each chunk should include whole month and never chunk in the middle of a month.
+But month being of variable lengths, it might actually be much easier to have one chunk per year.
+Leap years would add another difficulty to this.
+
+However, on indice where a bootstrapping of percentile is necessary (e.g Tg90p), it is actually optimal to
+have no chunk at all on time dimension. This is true only because the bootstrapping algorithm rely on `map_block <https://xarray.pydata.org/en/stable/generated/xarray.map_blocks.html>`_.
+In that case could use ``icclim.create_optimized_zarr_store`` to first create a zarr store not chunked at all on time dimension:
+
+.. code-block:: python
+    import icclim
+
+    with icclim.create_optimized_zarr_store(
+        in_files="netcdf_files/tas.nc",
+        var_names="tas",
+        target_zarr_store_name="opti.zarr",
+        keep_target_store = False
+        chunking={"time": -1, "lat":"auto", "lon":"auto" },
+    ) as opti_tas :
+         icclim.index(
+            index_name="TG90p",
+            in_files=opti_tas,
+            slice_mode="YS",
+            base_period_time_range=[datetime.datetime(1980, 1, 1), datetime.datetime(2009, 12, 31)],
+            out_file="netcdf_files/output/tg90p.nc",
+        )
+
+Actually this is the default behavior of `chunking` parameter and it could be omitted in the above example.
+
+You can also control if you want to keep the optimized zarr store on disk by turning ``keep_target_store`` to True.
+This can be useful if you wish to compute other indices using the same chunking.
 
 On performances
 ---------------
