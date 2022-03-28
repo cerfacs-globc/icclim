@@ -11,6 +11,7 @@ from rechunker import rechunk
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
+import icclim.utils as utils
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger
 from icclim.pre_processing.input_parsing import read_dataset
@@ -101,9 +102,8 @@ def create_optimized_zarr_store(
     target_zarr_store_name : str
         Name of the target zarr store.
         Used to avoid overriding an existing zarr store.
-    dim : str
-        The dimension on which is optimization is performed.
-        This dimension will be unchunked on target zarr store.
+    chunking : dict
+        The target chunking schema.
     keep_target_store : bool
         Set to True to keep the target zarr store after the execution of the context
         manager.
@@ -162,7 +162,7 @@ def _unsafe_create_optimized_zarr_store(
             ds_zarr[data_var].encoding = {}
             acc = {}
             for dim in ds_zarr[data_var].dims:
-                acc.update({dim: _get_chunksizes(ds_zarr)[dim][0]})
+                acc.update({dim: utils._get_chunksizes(ds_zarr)[dim][0]})
             target_chunks.update({data_var: acc})
         for c in ds_zarr.coords:
             ds_zarr[c].encoding = {}
@@ -178,28 +178,6 @@ def _unsafe_create_optimized_zarr_store(
         shutil.rmtree(TMP_STORE_2, ignore_errors=True)
         zarr.consolidate_metadata(zarr_store_name)
         return xr.open_zarr(zarr_store_name)
-
-
-# FIXME To remove once minimal xarray version is v0.20.0 (use .chunksizes instead)
-def _get_chunksizes(ds: Dataset) -> dict:
-    # Copied and adapted from xarray
-    def _chunksizes(da):
-        if hasattr(da.data, "chunks"):
-            return {dim: c for dim, c in zip(da.dims, da.data.chunks)}
-        else:
-            return {}
-
-    chunks = {}
-    for v in ds.variables.values():
-        if hasattr(v.data, "chunks"):
-            for dim, c in _chunksizes(v).items():
-                if dim in chunks and c != chunks[dim]:
-                    raise ValueError(
-                        f"Object has inconsistent chunks along dimension {dim}."
-                        " This can be fixed by calling unify_chunks()."
-                    )
-                chunks[dim] = c
-    return chunks
 
 
 def _build_default_chunking(ds: Dataset) -> dict:

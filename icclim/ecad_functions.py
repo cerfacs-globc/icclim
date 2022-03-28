@@ -13,6 +13,7 @@ from xclim import atmos, land
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
+import icclim.utils as utils
 from icclim.models.cf_calendar import CfCalendar
 from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
 from icclim.models.frequency import Frequency
@@ -752,7 +753,16 @@ def _can_run_bootstrap(cf_var: CfVariable) -> bool:
         .indexes.get("time")
         .year
     )
-    return len(overlapping_years) > 1 and len(overlapping_years) < len(study_years)
+    can_bs = len(overlapping_years) > 1 and len(overlapping_years) < len(study_years)
+    if can_bs and cf_var.study_da.chunks is not None:
+        time_chunk_count = len(utils._da_chunksizes(cf_var.study_da)["time"])
+        if time_chunk_count > 1:
+            warn(
+                f"Your dataset has {time_chunk_count} chunks for time dimension."
+                f" You could significantly speed up your computations by rechunking it"
+                f" with `icclim.create_optimized_zarr_store`."
+            )
+    return can_bs
 
 
 def _get_ref_period_slice(da: DataArray) -> slice:
