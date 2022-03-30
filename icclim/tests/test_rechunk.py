@@ -78,12 +78,14 @@ def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock):
                 attrs={"units": "kg m-2 d-1"},
             )
         }
-    ).chunk({"time": -1})
+    ).chunk({"time": 2})
     # When
-    with create_optimized_zarr_store(
-        in_files=ds,
-        var_names="tas",
-        target_zarr_store_name="n/a",
-    ) as result:
-        xr.testing.assert_equal(ds, result)
-        rechunk_mock.assert_not_called()
+    with pytest.raises(InvalidIcclimArgumentError):
+        with create_optimized_zarr_store(
+            in_files=ds,
+            var_names="tas",
+            target_zarr_store_name="n/a",
+            chunking={"time": 2},
+        ):
+            pass
+    rechunk_mock.assert_not_called()

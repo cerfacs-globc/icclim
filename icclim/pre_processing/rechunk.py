@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import contextlib
-import shutil
+import copy
 
 import dask
+import fsspec
 import psutil
 import xarray as xr
 import zarr
+from fsspec import AbstractFileSystem
+from fsspec.implementations.local import LocalFileSystem
 from rechunker import rechunk
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
@@ -29,6 +32,9 @@ logger = IcclimLogger.get_instance()
 
 
 def _get_mem_limit(factor: float = 0.9) -> int:
+    # According to
+    # https://github.com/pangeo-data/rechunker/issues/54#issuecomment-700748875
+    # we should limit rechunk mem usage to around 0.9 and avoid spilling to disk
     if factor > 1 or factor < 0:
         raise ValueError(f"factor was {factor} but, it must be between 0 and 1.")
     try:
@@ -52,6 +58,7 @@ def create_optimized_zarr_store(
     target_zarr_store_name: str = "icclim-target-store.zarr",
     keep_target_store: bool = False,
     chunking: dict[str, int] | None = None,
+    filesystem: str | AbstractFileSystem = LocalFileSystem(),
 ) -> xr.Dataset:
     """
     -- EXPERIMENTAL FEATURE --
@@ -109,27 +116,41 @@ def create_optimized_zarr_store(
         manager.
         Set to False to remove the target zarr store once execution is finished.
         Default is False.
+    filesystem :
+        A fsspec filesystem where the zarr store will be created.
 
     Returns
     -------
     returns xr.Dataset opened on the newly created target zarr store.
 
     """
-    # According to
-    # https://github.com/pangeo-data/rechunker/issues/54#issuecomment-700748875
-    # we should limit rechunk mem usage to around 0.9 and avoid spilling to disk
     try:
-        shutil.rmtree(TMP_STORE_1, ignore_errors=True)
-        shutil.rmtree(TMP_STORE_2, ignore_errors=True)
-        shutil.rmtree(target_zarr_store_name, ignore_errors=True)
+        if isinstance(filesystem, str):
+            filesystem = fsspec.filesystem("file")
+        _remove_stores(
+            TMP_STORE_1, TMP_STORE_2, target_zarr_store_name, filesystem=filesystem
+        )
         yield _unsafe_create_optimized_zarr_store(
-            in_files, var_names, target_zarr_store_name, chunking, _get_mem_limit()
+            in_files,
+            var_names,
+            target_zarr_store_name,
+            chunking,
+            _get_mem_limit(),
+            filesystem,
         )
     finally:
-        shutil.rmtree(TMP_STORE_1, ignore_errors=True)
-        shutil.rmtree(TMP_STORE_2, ignore_errors=True)
+        stores_to_remove = [TMP_STORE_1, TMP_STORE_2]
         if not keep_target_store:
-            shutil.rmtree(target_zarr_store_name, ignore_errors=True)
+            stores_to_remove.append(target_zarr_store_name)
+        _remove_stores(*stores_to_remove, filesystem=filesystem)
+
+
+def _remove_stores(*stores, filesystem):
+    for s in stores:
+        try:
+            filesystem.rm(s, recursive=True, maxdepth=100)
+        except FileNotFoundError:
+            pass
 
 
 def _unsafe_create_optimized_zarr_store(
@@ -138,44 +159,49 @@ def _unsafe_create_optimized_zarr_store(
     zarr_store_name: str,
     chunking: dict[str, int] | None,
     max_mem: int,
+    filesystem: AbstractFileSystem,
 ):
     with dask.config.set(DEFAULT_DASK_CONF):
         logger.info("Rechunking in progress, this will take some time.")
-        ds, _ = read_dataset(in_files, index=None, var_names=var_names)
+        ds, _, is_zarr = read_dataset(in_files, index=None, var_names=var_names)
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_names, ds.data_vars.keys()))
         if len(ds.data_vars.keys()) == 0:
             raise InvalidIcclimArgumentError(
                 f"The variable(s) {var_names} were not found in the dataset."
             )
-        ds = ds.chunk("auto")
-        if chunking is None:
-            if len(ds.chunks["time"]) == 1:
-                return ds
+        if _is_rechunking_unnecessary(ds, chunking):
+            raise InvalidIcclimArgumentError(
+                f"The given input is already chunked following {chunking}."
+                f" It's unnecessary to rechunk data with"
+                f" `create_optimized_zarr_store` here."
+            )
+        elif chunking is None:
             chunking = _build_default_chunking(ds)
-        # It seems rechunker performs better when the dataset is first converted
-        # to a zarr store, without rechunking anything.
-        ds.to_zarr(TMP_STORE_1, mode="w")
-        ds_zarr = xr.open_zarr(TMP_STORE_1).chunk(chunking)
+        if not is_zarr:
+            # It seems rechunker performs better when the dataset is first converted
+            # to a zarr store, without rechunking anything.
+            ds.to_zarr(TMP_STORE_1, mode="w")
+            ds = xr.open_zarr(TMP_STORE_1)
+        ds = ds.chunk(chunking)
         target_chunks = {}
-        for data_var in ds_zarr.data_vars:
-            ds_zarr[data_var].encoding = {}
+        for data_var in ds.data_vars:
+            ds[data_var].encoding = {}
             acc = {}
-            for dim in ds_zarr[data_var].dims:
-                acc.update({dim: utils._get_chunksizes(ds_zarr)[dim][0]})
+            for dim in ds[data_var].dims:
+                acc.update({dim: utils._get_chunksizes(ds)[dim][0]})
             target_chunks.update({data_var: acc})
-        for c in ds_zarr.coords:
-            ds_zarr[c].encoding = {}
+        for c in ds.coords:
+            ds[c].encoding = {}
             target_chunks.update({c: None})
         rechunk(
-            source=ds_zarr,
+            source=ds,
             target_chunks=target_chunks,
             max_mem=max_mem,
             target_store=zarr_store_name,
             temp_store=TMP_STORE_2,
         ).execute()
-        shutil.rmtree(TMP_STORE_1, ignore_errors=True)
-        shutil.rmtree(TMP_STORE_2, ignore_errors=True)
+        _remove_stores(TMP_STORE_1, TMP_STORE_2, filesystem=filesystem)
         zarr.consolidate_metadata(zarr_store_name)
         return xr.open_zarr(zarr_store_name)
 
@@ -185,3 +211,11 @@ def _build_default_chunking(ds: Dataset) -> dict:
     chunking = {d: "auto" for d in ds.dims}
     chunking["time"] = -1
     return chunking
+
+
+def _is_rechunking_unnecessary(ds, chunking) -> bool:
+    cp = copy.deepcopy(ds.chunks)
+    if chunking is None:
+        return len(ds.chunks["time"]) == 1
+    else:
+        return ds.chunk(chunking).chunks == cp

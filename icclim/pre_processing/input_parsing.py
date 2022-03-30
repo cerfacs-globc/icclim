@@ -12,7 +12,8 @@ def read_dataset(
     data: str | list[str] | Dataset | DataArray,
     index: EcadIndex | None = None,
     var_names: str | list[str] | None = None,
-) -> tuple[Dataset, bool]:
+) -> tuple[Dataset, bool, bool]:
+    is_zarr = False
     if isinstance(data, Dataset):
         input_dataset = data
         chunk_da = False
@@ -45,9 +46,10 @@ def read_dataset(
         else:  # assume it's a zarr store
             input_dataset = xr.open_zarr(data)
             chunk_da = True
+            is_zarr = True
     else:
-        raise NotImplementedError("in_files format was not recognized.")
-    return input_dataset, chunk_da
+        raise NotImplementedError("`in_files` format was not recognized.")
+    return input_dataset, chunk_da, is_zarr
 
 
 def update_to_standard_coords(ds: Dataset) -> tuple[Dataset, dict]:

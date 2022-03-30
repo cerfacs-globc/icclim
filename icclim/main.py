@@ -237,7 +237,7 @@ def index(
         index = EcadIndex.lookup(index_name)
     else:
         index = None
-    input_dataset, chunk_it = read_dataset(in_files, index, var_name)
+    input_dataset, chunk_it, _ = read_dataset(in_files, index, var_name)
     ds, reset_coords_dict = update_to_standard_coords(input_dataset)
     config = IndexConfig(
         base_period_time_range=base_period_time_range,

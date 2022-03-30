@@ -101,9 +101,10 @@ class Test_ReadDataset:
             name="pr",
             attrs={"units": "kg m-2 d-1"},
         )
-        ds_res, chunk_it = read_dataset(da, EcadIndex.TX90P)
+        ds_res, chunk_it, is_zarr = read_dataset(da, EcadIndex.TX90P)
         xr.testing.assert_equal(ds_res.tasmax, da)
         assert chunk_it is False
+        assert is_zarr is False
 
     def test_read_dataset_xr_da_user_index_success(self):
         da = xr.DataArray(
@@ -117,9 +118,10 @@ class Test_ReadDataset:
             name="pr",
             attrs={"units": "kg m-2 d-1"},
         )
-        ds_res, chunk_it = read_dataset(da, None, "doto")
+        ds_res, chunk_it, is_zarr = read_dataset(da, None, "doto")
         xr.testing.assert_equal(ds_res.doto, da)
         assert chunk_it is False
+        assert is_zarr is False
 
     def test_read_dataset_xr_ds_success(self):
         ds = xr.Dataset(
@@ -137,9 +139,10 @@ class Test_ReadDataset:
                 )
             }
         )
-        ds_res, chunk_it = read_dataset(ds)
+        ds_res, chunk_it, is_zarr = read_dataset(ds)
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
         assert chunk_it is False
+        assert is_zarr is False
 
     def test_read_dataset_netcdf_success(self):
         ds = xr.Dataset(
@@ -158,9 +161,10 @@ class Test_ReadDataset:
             }
         )
         ds.to_netcdf(self.OUTPUT_NC_FILE)
-        ds_res, chunk_it = read_dataset(self.OUTPUT_NC_FILE)
+        ds_res, chunk_it, is_zarr = read_dataset(self.OUTPUT_NC_FILE)
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
         assert chunk_it is True
+        assert is_zarr is False
 
     def test_read_dataset_multi_netcdf_success(self):
         ds = xr.Dataset(
@@ -181,11 +185,14 @@ class Test_ReadDataset:
         ds.to_netcdf(self.OUTPUT_NC_FILE)
         ds.rename({"pouet": "patapouet"}).to_netcdf(self.OUTPUT_NC_FILE_2)
         # WHEN
-        ds_res, chunk_it = read_dataset([self.OUTPUT_NC_FILE, self.OUTPUT_NC_FILE_2])
+        ds_res, chunk_it, is_zarr = read_dataset(
+            [self.OUTPUT_NC_FILE, self.OUTPUT_NC_FILE_2]
+        )
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
         xr.testing.assert_equal(ds_res.patapouet, ds.pouet)
         assert chunk_it is True
+        assert is_zarr is False
 
     def test_read_dataset_zarr_store_success(self):
         ds = xr.Dataset(
@@ -205,10 +212,11 @@ class Test_ReadDataset:
         )
         ds.to_zarr(self.OUTPUT_ZARR_STORE)
         # WHEN
-        ds_res, chunk_it = read_dataset(self.OUTPUT_ZARR_STORE)
+        ds_res, chunk_it, is_zarr = read_dataset(self.OUTPUT_ZARR_STORE)
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
         assert chunk_it is True
+        assert is_zarr is True
 
     def test_read_dataset_not_implemented_error(self):
         # WHEN
