@@ -16,6 +16,7 @@ dependencies:
  - rechunker==0.3.3
  - psutil
  - zarr
+ - fsspec
  # Dev dependencies
  - pre-commit
  - pydata-sphinx-theme

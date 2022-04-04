@@ -5,6 +5,7 @@ Release history
 ---------
 [maint] Update release process.
 [enh] Improve `create_optimized_zarr_store` to accept a chunking schema instead of a single dim.
+[enh] Make use of `fsspec` to generalize the storages where `create_optimized_zarr_store` can create its zarr stores.
 
 5.1.0
 -----
