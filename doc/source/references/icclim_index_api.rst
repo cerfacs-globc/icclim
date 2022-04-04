@@ -1,5 +1,5 @@
-icclim.index(), the main entry point
-====================================
+icclim.index()
+==============
 
 icclim exposes a main entry point with :func:`icclim.index`.
 It is used to compute both ECA&D indices and user defined indices.
