@@ -80,7 +80,7 @@ User defined seasons:
 ``threshold``
 ~~~~~~~~~~~~~
 It is possible to set a user define threshold for indices **SU** (default threshold: 25), **CSU** (default threshold: 25),
-**TR** (default threshold: 20).
+**TR** (default threshold: 20), CSDI (default 10th percentile), WSDI (default 90th percentile).
 The threshold could be one value:
 
 >>> threshold = 30
