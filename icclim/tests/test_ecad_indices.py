@@ -434,6 +434,30 @@ class TestCsdi:
             ],
             time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
             index=EcadIndex.TX90P,
+            save_percentile=True,
         )
-        res, _ = csdi(conf)
+        res, per = csdi(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
+        assert per.percentiles.values[0] == 10
+
+    @pytest.mark.parametrize("use_dask", [True, False])
+    def test_csdi_custom_thresh(self, use_dask):
+        ds = Dataset()
+        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        conf = IndexConfig(
+            ds=ds,
+            slice_mode=Frequency.MONTH,
+            var_names=["tas"],
+            netcdf_version=NetcdfVersion.NETCDF4,
+            base_period_time_range=[
+                datetime.datetime(2042, 1, 1),
+                datetime.datetime(2043, 12, 31),
+            ],
+            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
+            index=EcadIndex.TX90P,
+            threshold=5,
+            save_percentile=True,
+        )
+        res, per = csdi(conf)
+        assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
+        assert per.percentiles.values[0] == 5

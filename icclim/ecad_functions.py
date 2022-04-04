@@ -2,6 +2,7 @@
 All ECA&D functions. Each function wraps its xclim equivalent functions adding icclim
 metadata to it.
 """
+import re
 from typing import Callable, Optional, Tuple
 from warnings import warn
 
@@ -13,7 +14,6 @@ from xclim import atmos, land
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 
-import icclim.utils as utils
 from icclim.models.cf_calendar import CfCalendar
 from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
 from icclim.models.frequency import Frequency
@@ -67,10 +67,11 @@ def id(config: IndexConfig) -> DataArray:
 
 
 def csdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+    thresh = 10 if config.threshold is None else config.threshold
     return _compute_spell_duration(
         cf_var=config.tasmin,
         freq=config.freq.panda_freq,
-        per_thresh=10,
+        per_thresh=thresh,
         per_window=config.window,
         per_interpolation=config.interpolation,
         min_spell_duration=6,
@@ -160,10 +161,11 @@ def tr(config: IndexConfig) -> DataArray:
 
 
 def wsdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+    thresh = 90 if config.threshold is None else config.threshold
     return _compute_spell_duration(
         cf_var=config.tasmax,
         freq=config.freq.panda_freq,
-        per_thresh=90,
+        per_thresh=thresh,
         per_window=config.window,
         per_interpolation=config.interpolation,
         min_spell_duration=6,
@@ -753,16 +755,7 @@ def _can_run_bootstrap(cf_var: CfVariable) -> bool:
         .indexes.get("time")
         .year
     )
-    can_bs = len(overlapping_years) > 1 and len(overlapping_years) < len(study_years)
-    if can_bs and cf_var.study_da.chunks is not None:
-        time_chunk_count = len(utils._da_chunksizes(cf_var.study_da)["time"])
-        if time_chunk_count > 1:
-            warn(
-                f"Your dataset has {time_chunk_count} chunks for time dimension."
-                f" You could significantly speed up your computations by rechunking it"
-                f" with `icclim.create_optimized_zarr_store`."
-            )
-    return can_bs
+    return len(overlapping_years) > 1 and len(overlapping_years) < len(study_years)
 
 
 def _get_ref_period_slice(da: DataArray) -> slice:
@@ -824,7 +817,7 @@ def _add_bootstrap_meta(result: DataArray, per: DataArray) -> DataArray:
 
 def _compute_percentile_doy(
     da: DataArray,
-    percentile: int,
+    percentile: float,
     window: int = 5,
     interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
     callback: Callable = None,
@@ -883,7 +876,7 @@ def _compute_spell_duration(
     cf_var: CfVariable,
     freq: str,
     per_window: int,
-    per_thresh: int,
+    per_thresh: float,
     per_interpolation: QuantileInterpolation,
     min_spell_duration: int,
     save_percentile: bool,
@@ -910,6 +903,11 @@ def _compute_spell_duration(
         result = _add_bootstrap_meta(result, per)
     if save_percentile:
         return result, per
+    result.attrs["description"] = re.sub(
+        r"\s\w+th\spercentile",
+        f" {per_thresh}th percentile",
+        result.attrs.get("description"),
+    )
     return result, None
 
 
