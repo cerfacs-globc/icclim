@@ -42,6 +42,14 @@ You can now:
     - Push your changes to your forked remote ``git push -u my_fork HEAD``.
     - Create a pull request from your fork to icclim main repository. The PR should target ``master`` branch.
 
+.. note::
+    git commits should start with one of the keywords from:
+        - `ENH:` for enhancements and new features.
+        - `MAINT:` for maintenance, and refactoring.
+        - `DOC:` for documentation update.
+        - `FIX:` for bug fixes.
+    See `numpy's guide <https://numpy.org/doc/stable/dev/development_workflow.html#writing-the-commit-message>`_ for additional keywords.
+
 Documentation contribution
 --------------------------
 
