@@ -353,7 +353,7 @@ def _filter_by_logical_op_on_percentile(
     da: DataArray,
     percentiles: DataArray | None,
     logical_operation: LogicalOperation | None,
-    freq: str = "MS",  # used by percentile_bootstrap
+    freq: str = "MS",  # noqa  # used by percentile_bootstrap
     bootstrap: bool = False,  # used by percentile_bootstrap
 ) -> DataArray:
     if logical_operation is not None and percentiles is not None:
@@ -371,8 +371,8 @@ def _threshold_compare_on_percentiles(
     da: DataArray,
     percentiles: DataArray,
     logical_operation: LogicalOperation,
-    freq: str = "MS",  # used by percentile_bootstrap
-    bootstrap: bool = False,  # used by percentile_bootstrap
+    freq: str = "MS",  # noqa  # used by percentile_bootstrap
+    bootstrap: bool = False,  # noqa # used by percentile_bootstrap
 ) -> DataArray:
     percentiles = resample_doy(percentiles, da)
     return logical_operation.compute(da, percentiles)
