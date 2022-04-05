@@ -8,7 +8,7 @@ This is the technical documentation of icclim. You should find here an overview 
 
 .. toctree::
     :maxdepth: 2
-    :caption: Contents:
+    :caption: References
 
     icclim_index_api
     ecad_functions_api

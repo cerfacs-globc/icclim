@@ -16,6 +16,7 @@ from __future__ import annotations
 import inspect
 import os
 import re
+import sys
 from pathlib import Path
 
 import icclim
@@ -58,11 +59,13 @@ END_NOTE = """
 
 """
 
-OUTPUT_PATH = Path(os.path.dirname(os.path.abspath(__file__))) / "icclim_wrapped.py"
+DEFAULT_OUTPUT_PATH = (
+    Path(os.path.dirname(os.path.abspath(__file__))) / "icclim_wrapped.py"
+)
 
 
-def run():
-    with open(OUTPUT_PATH, "w") as f:
+def run(file_path):
+    with open(file_path, "w") as f:
         acc = '''"""
 This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
@@ -81,7 +84,11 @@ from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_dict import UserIndexDict
+
+__all__ = [
 '''
+        acc += ",\n".join(list(map(lambda x: f'{TAB}"{x.name.lower()}"', EcadIndex)))
+        acc += f',\n{TAB}"custom_index",\n]\n'
         for index in EcadIndex:
             acc += get_ecad_index_declaration(index)
         acc += get_user_index_declaration()
@@ -166,8 +173,8 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
     )
     docstring = (
         f'{TAB}"""\n'
-        f"{TAB}{index.short_name}: {index.definition}\n"
-        f"{TAB}{index.source}.\n\n"
+        f"{TAB}{index.short_name}: {index.definition}\n\n"
+        f"{TAB}Source: {index.source}.\n\n"
         f"{args_docs}"
         f"{END_NOTE}"
         f'{TAB}"""\n'
@@ -208,4 +215,5 @@ def get_params_docstring(args: list[str], index_docstring: str) -> str:
 
 
 if __name__ == "__main__":
-    run()
+    file_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_PATH
+    run(file_path)

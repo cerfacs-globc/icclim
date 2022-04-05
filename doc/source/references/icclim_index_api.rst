@@ -6,6 +6,11 @@ It is used to compute both ECA&D indices and user defined indices.
 There are quite a lot of options, but only a few of them are needed to compute simple indices.
 Our :ref:`how_to` recipes are also a good start to have an idea on how to use `icclim.index`.
 
+.. note::
+    With version 5.2.0, icclim API now includes each individual index as a standalone function.
+    Check :ref:`ecad_functions_api` to see how to call them.
+
+
 Compute climat indices
 ----------------------
 
