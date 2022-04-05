@@ -1,9 +1,5 @@
 # keep imports below to expose api in `icclim` namespace
-try:
-    from _generated_api import *  # noqa
-except ModuleNotFoundError:
-    pass
-
+from ._generated_api import *  # noqa
 from .main import index, indice, indices  # noqa
 from .pre_processing.rechunk import create_optimized_zarr_store  # noqa
 
