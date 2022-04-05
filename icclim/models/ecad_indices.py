@@ -154,7 +154,7 @@ class EcadIndex(Enum):
         lambda c: wsdi(c),
         IndexGroup.HEAT,
         [TAS_MAX],
-        [QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_UNIT],
+        [QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_THRESHOLD],
     )
     TG90P = (
         "TG90p",
@@ -271,7 +271,7 @@ class EcadIndex(Enum):
         lambda c: csdi(c),
         IndexGroup.COLD,
         [TAS_MIN],
-        [QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW],
+        [QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_THRESHOLD],
     )
 
     # Drought
