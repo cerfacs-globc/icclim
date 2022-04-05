@@ -4,12 +4,11 @@ It creates a new python module which wraps each icclim index as a function.
 Each generated functions signature is consistent with icclim.index signature but, all
 the unused parameters are trimmed from the signature.
 
-To run the script from icclim root use:
-
-.. code-block:: sh
-
-    python3 ./tool/extract-icclim-funs.py
-
+To generate the functions first icclim must be installed in the environment.
+To install icclim from source run
+    >>> python -m setup install
+Then the script can be run with
+    >>> python ./tools/extract-icclim-funs.py
 """
 
 from __future__ import annotations
@@ -53,10 +52,11 @@ MODIFIABLE_UNIT_FIELD = "out_unit"
 TAB = "    "
 
 END_NOTE = """
-    Notes:
-    ------
+    Notes
+    -----
     This function has been auto-generated.
-    """
+
+"""
 
 OUTPUT_PATH = Path(os.path.dirname(os.path.abspath(__file__))) / "icclim_wrapped.py"
 
@@ -65,16 +65,22 @@ def run():
     with open(OUTPUT_PATH, "w") as f:
         acc = '''"""
 This module has been auto-generated.
-It exposes convenient index functions proxying to icclim.index function.
+To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
+This module exposes each climate index as individual functions for convenience.
 """
-import icclim
-import xarray
-import typing
+from __future__ import annotations
+
 import datetime
+
+from xarray.core.dataarray import DataArray
+from xarray.core.dataset import Dataset
+
+import icclim
 from icclim.icclim_logger import Verbosity
-from icclim.models.frequency import Frequency
+from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.user_index_dict import UserIndexDict
 '''
         for index in EcadIndex:
             acc += get_ecad_index_declaration(index)
@@ -101,7 +107,7 @@ def get_user_index_declaration() -> str:
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
     fun_signature_args = build_fun_signature_args(icclim_index_args)
-    fun_signature = f"\n\ndef custom_index({fun_signature_args}) -> xarray.Dataset:\n"
+    fun_signature = f"\n\ndef custom_index({fun_signature_args},\n) -> Dataset:\n"
     args_docs = get_params_docstring(
         list(icclim_index_args.keys()), icclim.index.__doc__
     )
@@ -117,7 +123,7 @@ def get_user_index_declaration() -> str:
         f'"""\n'
     )
     fun_call_args = f",\n{TAB}{TAB}".join([a + "=" + a for a in icclim_index_args])
-    fun_call = f"{TAB}return icclim.index(\n{TAB}{TAB}{fun_call_args})\n"
+    fun_call = f"{TAB}return icclim.index(\n{TAB}{TAB}{fun_call_args},\n{TAB})\n"
     return f"{fun_signature}{docstring}{fun_call}"
 
 
@@ -153,7 +159,7 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
     # TODO replace these concatenation mess with a proper template (jinja or similar)...
     fun_signature_args = build_fun_signature_args(icclim_index_args)
     fun_signature = (
-        f"\n\ndef {index.name.lower()}({fun_signature_args}) -> xarray.Dataset:\n"
+        f"\n\ndef {index.name.lower()}({fun_signature_args},\n) -> Dataset:\n"
     )
     args_docs = get_params_docstring(
         list(icclim_index_args.keys()), icclim.index.__doc__
@@ -163,14 +169,14 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
         f"{TAB}{index.short_name}: {index.definition}\n"
         f"{TAB}{index.source}.\n\n"
         f"{args_docs}"
-        f"{END_NOTE}\n"
+        f"{END_NOTE}"
         f'{TAB}"""\n'
     )
     index_name_arg = f'\n{TAB}{TAB}index_name="{index.name}",\n{TAB}{TAB}'
     fun_call_args = index_name_arg + f",\n{TAB}{TAB}".join(
         [a + "=" + a for a in icclim_index_args]
     )
-    fun_call = f"{TAB}return icclim.index({fun_call_args})\n"
+    fun_call = f"{TAB}return icclim.index({fun_call_args},\n{TAB})\n"
     return f"{fun_signature}{docstring}{fun_call}"
 
 
@@ -179,9 +185,7 @@ def get_arg(a: inspect.Parameter) -> str:
     if type(annotation) is type:
         annotation = annotation.__name__
     annotation = annotation.__str__().replace("NoneType", "None")
-    annotation = annotation.__str__().replace(
-        "xarray.core.dataset.Dataset", "xarray.Dataset"
-    )
+    annotation = annotation.__str__().replace("xarray.core.dataset.Dataset", "Dataset")
     prefix = f"{a.name}: {annotation}"
     if a.default is inspect._empty:
         return prefix
