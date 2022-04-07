@@ -102,8 +102,8 @@ have no chunk at all on time dimension. This is true only because the bootstrapp
 In that case could use ``icclim.create_optimized_zarr_store`` to first create a zarr store not chunked at all on time dimension:
 
 .. code-block:: python
-    import icclim
 
+    import icclim
     with icclim.create_optimized_zarr_store(
         in_files="netcdf_files/tas.nc",
         var_names="tas",
