@@ -55,3 +55,8 @@ Release process
         - Create a pull request with these changes, targeting the main fork on main branch
         - Wait for the CI feedback and correct things if needed.
         - Merge the pull request
+
+#. Update `icclim github release <https://github.com/cerfacs-globc/icclim/releases>`_
+    - You should add a tag similar to the new version number.
+    - You should enter a short description of the changes, with a highlight on breaking changes.
+    - There is no need to fill the assets with anything as the release assets are already on conda-forge and pypi.
