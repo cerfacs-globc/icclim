@@ -83,6 +83,7 @@ def tg(
 ) -> Dataset:
     """
     TG: Mean of daily mean temperature
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -148,6 +149,7 @@ def tn(
 ) -> Dataset:
     """
     TN: Mean of daily minimum temperature
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -213,6 +215,7 @@ def tx(
 ) -> Dataset:
     """
     TX: Mean of daily maximum temperature
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -278,6 +281,7 @@ def dtr(
 ) -> Dataset:
     """
     DTR: Mean Diurnal Temperature Range
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -343,6 +347,7 @@ def etr(
 ) -> Dataset:
     """
     ETR: Intra-period extreme temperature range
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -408,6 +413,7 @@ def vdtr(
 ) -> Dataset:
     """
     vDTR: Mean day-to-day variation in Diurnal Temperature Range
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -474,6 +480,7 @@ def su(
 ) -> Dataset:
     """
     SU: Number of Summer Days (Tmax > 25C)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -546,6 +553,7 @@ def tr(
 ) -> Dataset:
     """
     TR: Number of Tropical Nights (Tmin > 20C)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -625,6 +633,7 @@ def wsdi(
 ) -> Dataset:
     """
     WSDI:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -732,6 +741,7 @@ def tg90p(
 ) -> Dataset:
     """
     TG90p: Percentage of days when Tmean > 90th percentile
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -836,6 +846,7 @@ def tn90p(
 ) -> Dataset:
     """
     TN90p: Percentage of days when Tmin > 90th percentile
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -940,6 +951,7 @@ def tx90p(
 ) -> Dataset:
     """
     TX90p: Percentage of days when Tmax > 90th percentile
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1036,6 +1048,7 @@ def txx(
 ) -> Dataset:
     """
     TXx: Maximum daily maximum temperature
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1101,6 +1114,7 @@ def tnx(
 ) -> Dataset:
     """
     TNx: Maximum daily minimum temperature
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1167,6 +1181,7 @@ def csu(
 ) -> Dataset:
     """
     CSU: Maximum number of consecutive summer days (Tmax >25 C)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1239,6 +1254,7 @@ def gd4(
 ) -> Dataset:
     """
     GD4: Growing degree days (sum of Tmean > 4 C)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1311,6 +1327,7 @@ def fd(
 ) -> Dataset:
     """
     FD: Number of Frost Days (Tmin < 0C)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1383,6 +1400,7 @@ def cfd(
 ) -> Dataset:
     """
     CFD: Maximum number of consecutive frost days (Tmin < 0 C)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1455,6 +1473,7 @@ def hd17(
 ) -> Dataset:
     """
     HD17: Heating degree days (sum of Tmean < 17 C)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1527,6 +1546,7 @@ def id(
 ) -> Dataset:
     """
     ID: Number of sharp Ice Days (Tmax < 0C)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1606,6 +1626,7 @@ def tg10p(
 ) -> Dataset:
     """
     TG10p: Percentage of days when Tmean < 10th percentile
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1710,6 +1731,7 @@ def tn10p(
 ) -> Dataset:
     """
     TN10p: Percentage of days when Tmin < 10th percentile
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1814,6 +1836,7 @@ def tx10p(
 ) -> Dataset:
     """
     TX10p: Percentage of days when Tmax < 10th percentile
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1910,6 +1933,7 @@ def txn(
 ) -> Dataset:
     """
     TXn: Minimum daily maximum temperature
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -1975,6 +1999,7 @@ def tnn(
 ) -> Dataset:
     """
     TNn: Minimum daily minimum temperature
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2048,6 +2073,7 @@ def csdi(
 ) -> Dataset:
     """
     CSDI:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2147,6 +2173,7 @@ def cdd(
 ) -> Dataset:
     """
     CDD: Maximum consecutive dry days (Precip < 1mm)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2212,6 +2239,7 @@ def prcptot(
 ) -> Dataset:
     """
     PRCPTOT: Total precipitation during Wet Days
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2277,6 +2305,7 @@ def rr1(
 ) -> Dataset:
     """
     RR1: Number of Wet Days (precip >= 1 mm)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2342,6 +2371,7 @@ def sdii(
 ) -> Dataset:
     """
     SDII: Average precipitation during Wet Days (SDII)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2407,6 +2437,7 @@ def cwd(
 ) -> Dataset:
     """
     CWD: Maximum consecutive wet days (Precip >= 1mm)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2472,6 +2503,7 @@ def r10mm(
 ) -> Dataset:
     """
     R10mm: Number of heavy precipitation days (Precip >=10mm)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2537,6 +2569,7 @@ def r20mm(
 ) -> Dataset:
     """
     R20mm: Number of very heavy precipitation days (Precip >= 20mm)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2602,6 +2635,7 @@ def rx1day(
 ) -> Dataset:
     """
     RX1day: Maximum 1-day precipitation
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2667,6 +2701,7 @@ def rx5day(
 ) -> Dataset:
     """
     RX5day: Maximum 5-day precipitation
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2739,6 +2774,7 @@ def r75p(
 ) -> Dataset:
     """
     R75p:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2837,6 +2873,7 @@ def r75ptot(
 ) -> Dataset:
     """
     R75pTOT:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2933,6 +2970,7 @@ def r95p(
 ) -> Dataset:
     """
     R95p:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3031,6 +3069,7 @@ def r95ptot(
 ) -> Dataset:
     """
     R95pTOT:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3127,6 +3166,7 @@ def r99p(
 ) -> Dataset:
     """
     R99p:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3225,6 +3265,7 @@ def r99ptot(
 ) -> Dataset:
     """
     R99pTOT:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3314,6 +3355,7 @@ def sd(
 ) -> Dataset:
     """
     SD: Mean of daily snow depth
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3379,6 +3421,7 @@ def sd1(
 ) -> Dataset:
     """
     SD1: Snow days (SD >= 1 cm)
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3444,6 +3487,7 @@ def sd5cm(
 ) -> Dataset:
     """
     SD5cm: Number of days with snow depth >= 5 cm
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3509,6 +3553,7 @@ def sd50cm(
 ) -> Dataset:
     """
     SD50cm: Number of days with snow depth >= 50 cm
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3581,6 +3626,7 @@ def cd(
 ) -> Dataset:
     """
     CD:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3681,6 +3727,7 @@ def cw(
 ) -> Dataset:
     """
     CW:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3781,6 +3828,7 @@ def wd(
 ) -> Dataset:
     """
     WD:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3881,6 +3929,7 @@ def ww(
 ) -> Dataset:
     """
     WW:
+
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
