@@ -19,10 +19,12 @@ jobs:
         run: pip install -r requirements.txt
       - name: Install icclim
         run: python -m pip install -e .
+      - name: install black
+        run: pip install black
       - name: call fun extractor
-        run: |
-          echo "Eating all the fun, nom nom nom..."
-          python ./tools/extract-icclim-funs.py icclim/_generated_api.py
+        run: python ./tools/extract-icclim-funs.py icclim/_generated_api.py
+      - name: run black on generated module
+        run: black icclim/_generated_api.py
       - name: create local ref
         run: |
           git fetch origin ${{ github.head_ref }}
