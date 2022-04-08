@@ -19,7 +19,7 @@ TAS_MAX = ["tasmax", "tasmaxadjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX",
 TAS_MIN = ["tasmin", "tasminadjust", "tmin", "tn", "mint", "TMIN", "Tmin", "TN", "MINT", "minT"]
 
 # Source of index definition
-ECAD_ATBD = "Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11"
+ECAD_ATBD = "ECA&D, Algorithm Theoretical Basis Document (ATBD) v11"
 
 # Index qualifiers
 QUANTILE_BASED = "QUANTILE_BASED"  # fields: QUANTILE_INDEX_FIELDS
