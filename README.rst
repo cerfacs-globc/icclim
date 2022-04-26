@@ -28,8 +28,8 @@ Let's count the number of days above 25ºC, which correspond the index ``SU``, f
 
     import glob
     import icclim
-    summer_days = icclim.indice(
-        indice_name="SU",
+    summer_days = icclim.index(
+        index_name="SU",
         in_files=glob.glob(f"netcdf_files/tasmax*.nc"),
         out_file="summer_days.nc"
     )
