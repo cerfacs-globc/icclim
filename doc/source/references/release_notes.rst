@@ -1,6 +1,9 @@
 Release history
 ===============
 
+5.2.1-dev
+---------
+
 5.2.0
 -----
 [maint] Update release process.
@@ -8,7 +11,7 @@ Release history
 [enh] Make use of `fsspec` to generalize the storages where `create_optimized_zarr_store` can create its zarr stores.
 [enh] Make CSDI and WSDI threshold configurable using the `threshold` parameter of icclim.index.
 [enh] Add a function in `icclim` namespace for each ECA&D index for convenience.
-[doc] Improve documentation about chunking
+[doc] Improve documentation about chunking.
 
 
 5.1.0

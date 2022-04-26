@@ -22,7 +22,7 @@ MINIMAL_REQUIREMENTS = [
 
 setup(
     name="icclim",
-    version="5.1.1-dev",
+    version="5.2.0",
     packages=find_packages(),
     author="Christian P.",
     author_email="christian.page@cerfacs.fr",
