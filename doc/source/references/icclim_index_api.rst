@@ -281,7 +281,27 @@ Custom indices
 --------------
 You can also calculate custom climate indices by setting all necessary parameters to ``user_index``.
 
-TODO : ajouter un exemple ici !
+.. code-block:: python
+
+    user_index_dict = dict(
+        index_name="a_custom_csdi",
+        calc_operation="max_nb_consecutive_events",
+        logical_operation="<",
+        thresh="5p",
+        window_width=5
+    )
+    refer_period = [datetime.datetime(1991, 1, 1), datetime.datetime(1999, 12, 31)]
+    study_period = [datetime.datetime(1991, 1, 1), datetime.datetime(2010, 12, 31)]
+    result = icclim.custom_index(
+        in_files="netcdf_files/tasmin.nc",
+        user_index=user_index_dict,
+        var_name="tmin",
+        slice_mode="YS",
+        base_period_time_range=refer_period,
+        time_range=study_period,
+        out_file="custom_csdi_5.nc"
+    )
+
 
 
 ``user_index``
