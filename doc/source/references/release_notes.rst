@@ -12,7 +12,7 @@ Release history
 [enh] Make CSDI and WSDI threshold configurable using the `threshold` parameter of icclim.index.
 [enh] Add a function in `icclim` namespace for each ECA&D index for convenience.
 [doc] Improve documentation about chunking.
-
+[fix] `create_optimized_zarr_store` would throw an error when creating the first temp store if the chunks were not unified.
 
 5.1.0
 -----
