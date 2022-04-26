@@ -178,9 +178,11 @@ def _unsafe_create_optimized_zarr_store(
             )
         elif chunking is None:
             chunking = _build_default_chunking(ds)
+        # It seems rechunker performs better when the dataset is first converted
+        # to a zarr store, without rechunking anything.
         if not is_zarr:
-            # It seems rechunker performs better when the dataset is first converted
-            # to a zarr store, without rechunking anything.
+            # needed to have unified chunk that can be written to zarr
+            ds = ds.chunk("auto").unify_chunks()
             ds.to_zarr(TMP_STORE_1, mode="w")
             ds = xr.open_zarr(TMP_STORE_1)
         ds = ds.chunk(chunking)
