@@ -76,11 +76,7 @@ Monthly time series with months selected by user:
 User defined seasons:
     >>> slice_mode = ['season',[4,5,6,7]]
     or
-    >>> slice_mode = ['season',([11,12],[1])]
-
-    .. note::
-        For a season composed of two years, months must be separated in *two lists* and united in a *tuple*:
-        ([months of YYYY], [months of YYYY+1])
+    >>> slice_mode = ['season',([11, 12, 1])]
 
 ``threshold``
 ~~~~~~~~~~~~~
@@ -284,6 +280,28 @@ or as percentage of days (``out_unit`` = "%").
 Custom indices
 --------------
 You can also calculate custom climate indices by setting all necessary parameters to ``user_index``.
+
+.. code-block:: python
+
+    user_index_dict = dict(
+        index_name="a_custom_csdi",
+        calc_operation="max_nb_consecutive_events",
+        logical_operation="<",
+        thresh="5p",
+        window_width=5
+    )
+    refer_period = [datetime.datetime(1991, 1, 1), datetime.datetime(1999, 12, 31)]
+    study_period = [datetime.datetime(1991, 1, 1), datetime.datetime(2010, 12, 31)]
+    result = icclim.custom_index(
+        in_files="netcdf_files/tasmin.nc",
+        user_index=user_index_dict,
+        var_name="tmin",
+        slice_mode="YS",
+        base_period_time_range=refer_period,
+        time_range=study_period,
+        out_file="custom_csdi_5.nc"
+    )
+
 
 
 ``user_index``
