@@ -1,12 +1,12 @@
 cftime
-dask[array]<2022.01.1
+dask[array]
 distributed
 fsspec
 numpy
 pandas
 pytest
 pyyaml
-rechunker==0.3.3
+rechunker~=0.5
 setuptools
 xarray
 xclim~=0.34.0
