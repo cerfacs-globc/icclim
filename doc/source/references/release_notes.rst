@@ -3,6 +3,7 @@ Release history
 
 5.2.1-dev
 ---------
+[maint] Made Frequency part of SliceMode union.
 
 5.2.0
 -----
