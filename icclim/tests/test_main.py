@@ -8,6 +8,7 @@ import xarray as xr
 
 import icclim
 from icclim.models.ecad_indices import EcadIndex
+from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
 
 
@@ -67,6 +68,18 @@ class Test_Integration:
             indice_name="SU", in_files=self.data, out_file=self.OUTPUT_FILE
         )
         np.testing.assert_array_equal(0, res.SU)
+
+    def test_index_SU__monthy_sampled(self):
+        res = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            slice_mode=Frequency.MONTH,
+        )
+        np.testing.assert_array_equal(0, res.SU)
+        np.testing.assert_array_equal(
+            len(np.unique(self.TIME_RANGE.year)) * 12, len(res.time)
+        )
 
     def test_indices_from_DataArray(self):
         res = icclim.indices(
