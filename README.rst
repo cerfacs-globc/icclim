@@ -4,7 +4,7 @@ icclim
 |build| |pypi| |black| |docs| |conda| |coverage|
 
 icclim is a Python library to compute climate indices.
-icclim name stand for Index, Calculation, CLIMate.
+icclim name stands for index, calculation, climate.
 
 Installation
 ------------
@@ -20,7 +20,7 @@ From sources:
 How to use icclim
 -----------------
 
-Let's count the number of days above 25ºC, which correspond the index ``SU``, from a `tasmax` variable scattered in multiple netcdf files.
+Let's count the number of days above 25ºC, which corresponds to the index ``SU``, from a `tasmax` variable scattered in multiple netcdf files.
 
 `SU` is one of the many index that can be computed with icclim. See `the documentation <https://icclim.readthedocs.io/en/latest/explanation/climate_indices.html#icclim-capabilities>`_ to explore what other index you can compute with icclim.
 
@@ -34,7 +34,7 @@ Let's count the number of days above 25ºC, which correspond the index ``SU``, f
         out_file="summer_days.nc"
     )
 
-For more examples on how to use icclim, see our `How to ... <https://icclim.readthedocs.io/en/latest/how_to/index.html>`_ doc or
+For more examples on how to use icclim, see icclim's `How to ... <https://icclim.readthedocs.io/en/latest/how_to/index.html>`_ documentation or
 `our notebooks <https://gitlab.com/is-enes-cdi-c4i/notebooks/-/tree/master/>`_.
 
 
@@ -42,7 +42,6 @@ Who use icclim
 --------------
 
 icclim is part of `C4I platform <https://dev.climate4impact.eu>`_ backend and is integrated in `CLIPC Portal <http://www.clipc.eu>`_.
-You may also (soon) find icclim within the Copernicus C3S Climate Data Store (CDS).
 icclim is also used by some independent researchers.
 
 
@@ -50,7 +49,7 @@ Who made icclim
 ---------------
 
 icclim has always been an open source project and was successfully made thanks to the joint effort of all its contributors.
-The lead development is made at CERFACS, a research institution located in Toulouse, France.
+The lead development is made at `CERFACS <https://cerfacs.fr/en/>`_, a research institution located in Toulouse, France.
 
 Grants
 ~~~~~~
