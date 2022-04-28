@@ -31,11 +31,11 @@ Release process
 
         python3 -m pip install --index-url https://test.pypi.org/simple/ icclim
 
-.. note::
+    .. note::
 
-    It may fail due to missing dependencies in test.pypi.
-    In that case, create the environment from icclim environment.yml file to
-    pull all needed dependencies from conda.
+        It may fail due to missing dependencies in test.pypi.
+        In that case, create the environment from icclim environment.yml file to
+        pull all needed dependencies from conda.
 
 #. Upload to pypi for real.
 

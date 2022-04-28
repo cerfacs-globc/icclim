@@ -13,7 +13,7 @@ Contents:
 
 
 Getting started
----------------
+===============
 
 Let's first see how to get icclim up and running.
 icclim sources are stored in `github <https://github.com/cerfacs-globc/icclim>`_.
@@ -51,7 +51,7 @@ You can now:
     See `numpy's guide <https://numpy.org/doc/stable/dev/development_workflow.html#writing-the-commit-message>`_ for additional keywords.
 
 Documentation contribution
---------------------------
+==========================
 
 One of the most important aspect of any open source project is its documentation.
 It's both the entry point for most new users and the gallery of the project.
@@ -83,7 +83,7 @@ By default it will serve the documentation on ``localhost://8000``.
 
 
 Add new standard indices
-------------------------
+========================
 
 Existing index in xclim
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -142,7 +142,7 @@ This process is described in section `Existing index in xclim`_ above.
 
 
 Add new operators for user indices
-----------------------------------
+==================================
 
 icclim provides a convenient way to quickly write simple index, we call this features "user indices".
 A few operators are already available but if you think icclim could benefit from adding new ones, your contribution is most welcomed.
@@ -168,7 +168,7 @@ For the unit tests, you can add them in ``tests/unit_tests/test_user_indices.py`
 For the documentation, you should add an explanation of the operator behavior in section ``user_index`` of ``doc/references/icclim_index_api.rst``.
 
 Improve icclim API
-------------------
+==================
 
 icclim features pre-processing and post-processing steps over the index computation:
 This includes:
@@ -194,7 +194,7 @@ For post-processing steps:
 
 
 Other contributions
--------------------
+===================
 
 If you would like to see any other change in icclim not listed here, you can always open an issue on
 `icclim's github <https://github.com/cerfacs-globc/icclim>`_ and we will work with you on how to implement it.
