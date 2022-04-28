@@ -20,19 +20,14 @@ From sources:
 How to use icclim
 -----------------
 
-Let's count the number of days above 25ºC, which corresponds to the index ``SU``, from a `tasmax` variable scattered in multiple netcdf files.
+Let's count the number of days above 25ºC for each year, which corresponds to the index ``SU``, from a `tasmax` variable scattered in multiple netcdf files.
 
 `SU` is one of the many index that can be computed with icclim. See `the documentation <https://icclim.readthedocs.io/en/latest/explanation/climate_indices.html#icclim-capabilities>`_ to explore what other index you can compute with icclim.
 
 .. code-block:: python
 
-    import glob
     import icclim
-    summer_days = icclim.index(
-        index_name="SU",
-        in_files=glob.glob(f"netcdf_files/tasmax*.nc"),
-        out_file="summer_days.nc"
-    )
+    summer_days = icclim.su("netcdf_files/tasmax_1990-2100.nc", out_file="summer_days.nc")
 
 For more examples on how to use icclim, see icclim's `How to ... <https://icclim.readthedocs.io/en/latest/how_to/index.html>`_ documentation or
 `our notebooks <https://gitlab.com/is-enes-cdi-c4i/notebooks/-/tree/master/>`_.

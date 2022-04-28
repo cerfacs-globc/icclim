@@ -2,6 +2,7 @@ cftime
 dask[array]
 distributed
 fsspec
+netCDF4~=1.5.7
 numpy
 pandas
 pytest

@@ -19,7 +19,7 @@ Release process
 
         python3 -m setup sdist
 
-#. Try to upload on testpypi first.
+#. Try to upload on testpypi first. ``twine`` must be installed in your env beforehand.
 
     .. code-block:: sh
 

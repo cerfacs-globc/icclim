@@ -29,6 +29,7 @@ dependencies:
  - pytest
  - pytest-cov
  - setuptools
+ - twine
  # Extra dependencies
  - matplotlib
  - cartopy

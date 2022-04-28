@@ -17,8 +17,6 @@ from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
-SliceMode = Union[str, List[Union[str, Tuple, int]]]
-
 
 def seasons_resampler(
     month_list: list[int],
@@ -232,3 +230,6 @@ def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
             "The sampling frequency must be one of {'season', 'month'}"
         )
     return custom_freq
+
+
+SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
