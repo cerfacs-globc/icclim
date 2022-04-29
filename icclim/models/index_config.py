@@ -118,6 +118,7 @@ class IndexConfig:
                 base_period_time_range=base_period_time_range,
                 only_leap_years=only_leap_years,
                 chunk_it=chunk_it,
+                pre_processing=self.freq.pre_processing,
             )
             for var_name in var_names
         ]
@@ -133,6 +134,8 @@ class IndexConfig:
         self.threshold = threshold
         self.callback = callback
         self.index = index
+
+        # TODO apply frequency.pre_processing !
 
     @property
     def tas(self) -> CfVariable:
@@ -181,14 +184,20 @@ def _build_cf_variable(
     base_period_time_range: list[str] | None,
     only_leap_years: bool,
     chunk_it: bool,
+    pre_processing: Callable,
 ) -> CfVariable:
     if chunk_it:
         da = da.chunk("auto")  # noqa - typing fixed in futur xarray version
     study_da = _build_study_da(da, time_range, ignore_Feb29th)
+    study_da = pre_processing(study_da)
     if base_period_time_range is not None:
         reference_da = _build_reference_da(da, base_period_time_range, only_leap_years)
+        reference_da = pre_processing(reference_da)
     else:
         reference_da = study_da
+    # TODO: all these operations should probably be added in history metadata
+    #       it could be a property in CfVariable which will be reused when we update the
+    #       metadata of the index, at the end.
     return CfVariable(name, study_da, reference_da)
 
 

@@ -114,6 +114,9 @@ def get_user_index_declaration() -> str:
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
     fun_signature_args = build_fun_signature_args(icclim_index_args)
+    fun_signature_args = fun_signature_args.replace(
+        "user_index: UserIndexDict = None,", "user_index: UserIndexDict,"
+    )
     fun_signature = f"\n\ndef custom_index({fun_signature_args},\n) -> Dataset:\n"
     args_docs = get_params_docstring(
         list(icclim_index_args.keys()), icclim.index.__doc__
@@ -135,7 +138,7 @@ def get_user_index_declaration() -> str:
 
 
 def build_fun_signature_args(args) -> str:
-    return f"\n{TAB}" + f",\n{TAB}".join(map(get_arg, args.values()))
+    return f"\n{TAB}" + f",\n{TAB}".join(map(get_parameter_declaration, args.values()))
 
 
 def get_ecad_index_declaration(index: EcadIndex) -> str:
@@ -187,16 +190,16 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
     return f"{fun_signature}{docstring}{fun_call}"
 
 
-def get_arg(a: inspect.Parameter) -> str:
-    annotation = a.annotation
+def get_parameter_declaration(param: inspect.Parameter) -> str:
+    annotation = param.annotation
     if type(annotation) is type:
         annotation = annotation.__name__
     annotation = annotation.__str__().replace("NoneType", "None")
     annotation = annotation.__str__().replace("xarray.core.dataset.Dataset", "Dataset")
-    prefix = f"{a.name}: {annotation}"
-    if a.default is inspect._empty:
+    prefix = f"{param.name}: {annotation}"
+    if param.default is inspect._empty:
         return prefix
-    default = a.default
+    default = param.default
     if type(default) is str:
         default = f'"{default.__str__()}"'
     return f"{prefix} = {default}"

@@ -8,6 +8,7 @@ from icclim.user_indices.dispatcher import CalcOperationLiteral
 
 
 class UserIndexDict(TypedDict, total=False):
+    # TODO display optional types ( | None) in here
     index_name: str
     calc_operation: CalcOperationLiteral
     logical_operation: LogicalOperationLiteral

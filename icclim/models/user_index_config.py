@@ -53,11 +53,11 @@ class ExtremeMode(Enum):
     @staticmethod
     def lookup(query: str) -> ExtremeMode:
         for mode in ExtremeMode:
-            if query.upper == mode.value.upper():
+            if query.upper() == mode.value.upper():
                 return mode
         raise InvalidIcclimArgumentError(
-            f"Unknown extreme mode {query}."
-            f"Use one of {[mode.value for mode in ExtremeMode]}."
+            f"Unknown extreme_mode {query}."
+            f" Use one of {[mode.value for mode in ExtremeMode]}."
         )
 
 
@@ -134,6 +134,7 @@ class UserIndexConfig:
         var_type=None,
         is_percent=False,
         save_percentile=False,
+        ref_time_range: list[str] = None,
     ) -> None:
         self.index_name = index_name
         self.calc_operation = calc_operation
@@ -155,6 +156,7 @@ class UserIndexConfig:
                 logical_operation, link_logical_operations, thresh, cf_vars
             )
         self.save_percentile = save_percentile
+        self.ref_time_range = ref_time_range
 
 
 def get_nb_event_conf(

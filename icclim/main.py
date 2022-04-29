@@ -28,7 +28,7 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import read_dataset, update_to_standard_coords
-from icclim.user_indices.dispatcher import compute_user_index
+from icclim.user_indices.dispatcher import CalcOperation, compute_user_index
 
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
@@ -105,6 +105,9 @@ def indice(*args, **kwargs):
     """
     log.deprecation_warning(old="icclim.indice", new="icclim.index")
     return index(*args, **kwargs)
+
+
+# TODO extract the custom index doc in a different doc than icclim.index
 
 
 def index(
@@ -221,7 +224,7 @@ def index(
         DEPRECATED, use user_index instead.
 
     """
-    _setup(callback, callback_percentage_start_value, logs_verbosity)
+    _setup(callback, callback_percentage_start_value, logs_verbosity, slice_mode)
     index_name, user_index = _handle_deprecated_params(
         index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
     )
@@ -257,6 +260,12 @@ def index(
         chunk_it=chunk_it,
     )
     if user_index is not None:
+        if (rtr := user_index.get("ref_time_range", None)) is not None:
+            # setup anomaly todo: put that elsewhere
+            rtr = [x.strftime("%Y-%m-%d") for x in rtr]
+            config._cf_variables[0].reference_da = ds[var_name].sel(
+                time=slice(rtr[0], rtr[1])
+            )
         result_ds = _compute_user_index_dataset(config=config, user_index=user_index)
     else:
         result_ds = _compute_ecad_index_dataset(
@@ -312,14 +321,23 @@ def _handle_deprecated_params(
     return index_name, user_index
 
 
-def _setup(callback, callback_percentage_start_value, logs_verbosity):
+def _setup(callback, callback_start_value, logs_verbosity, slice_mode):
     # make xclim input daily check a warning instead of an error
+    # TODO: it might be safer to feed a context manager which will setup
+    #       and teardown these confs
     xclim.set_options(data_validation="warn")
+    if Frequency.is_seasonal(slice_mode):
+        # for now seasonal slice_modes cannot be checked
+        # TODO open an issue on xclim about that :
+        #      xclim uses the input freq to look for missing values but
+        #      in icclim, the season use a annual frequency such as AS-DEC
+        #                 in order to generate a single value per year.
+        xclim.set_options(check_missing="skip")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
     log.set_verbosity(logs_verbosity)
     log.start_message()
-    callback(callback_percentage_start_value)
+    callback(callback_start_value)
 
 
 def _compute_ecad_index_dataset(
@@ -359,12 +377,13 @@ def _compute_user_index_dataset(
     )
     user_indice_da = compute_user_index(user_indice_config)
     user_indice_da.attrs["units"] = _get_unit(config.out_unit, user_indice_da)
-    if config.freq.post_processing is not None:
-        user_indice_da, time_bounds = config.freq.post_processing(user_indice_da)
+    if user_indice_config.calc_operation is CalcOperation.ANOMALY:
+        # with anomaly time axis disappear
         result_ds[user_indice_config.index_name] = user_indice_da
-        result_ds["time_bounds"] = time_bounds
-    else:
-        result_ds[user_indice_config.index_name] = user_indice_da
+        return result_ds
+    user_indice_da, time_bounds = config.freq.post_processing(user_indice_da)
+    result_ds[user_indice_config.index_name] = user_indice_da
+    result_ds["time_bounds"] = time_bounds
     return result_ds
 
 

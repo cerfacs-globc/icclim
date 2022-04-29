@@ -23,9 +23,9 @@ def stub_user_index(cf_vars: List[CfVariable]):
     )
 
 
-def stub_tas(value: float = 1, use_dask=False):
+def stub_tas(tas_value: float = 1.0, use_dask=False):
     da = xarray.DataArray(
-        data=(np.full(VALUE_COUNT, value).reshape((VALUE_COUNT, 1, 1))),
+        data=(np.full(VALUE_COUNT, tas_value).reshape((VALUE_COUNT, 1, 1))),
         dims=["time", "lat", "lon"],
         coords=COORDS,
         attrs={"units": "K"},

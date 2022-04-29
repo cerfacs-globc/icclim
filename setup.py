@@ -18,6 +18,7 @@ MINIMAL_REQUIREMENTS = [
     # rechunker 0.4 is broken, enforce at least 0.5
     "rechunker>=0.5",
     "fsspec",
+    "dateparser",
 ]
 
 setup(
