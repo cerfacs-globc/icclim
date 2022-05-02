@@ -10,13 +10,16 @@ MINIMAL_REQUIREMENTS = [
     "xarray>=0.17",
     "xclim>=0.34",
     "cftime>=1.4.1",
-    "dask[array]",
+    # todo: unpin dask once we can move to rechunker 0.4
+    #       https://github.com/pangeo-data/rechunker/issues/110
+    "dask[array]<2022.01.1",
     "netCDF4>=1.5.7",
     "pyyaml",
     "psutil",
     "zarr",
-    # rechunker 0.4 is broken, enforce at least 0.5
-    "rechunker>=0.5",
+    # todo: unpin rechunker once
+    #       https://github.com/pangeo-data/rechunker/issues/92 is fixed
+    "rechunker>=0.3,<0.4",
     "fsspec",
 ]
 
