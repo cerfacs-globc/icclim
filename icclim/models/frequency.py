@@ -15,10 +15,10 @@ import cftime
 import numpy as np
 import pandas as pd
 import xarray as xr
-from models.constants import MONTHS_MAP
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.constants import MONTHS_MAP
 
 AMJJAS_MONTHS = [*range(4, 9)]
 ONDJFM_MONTHS = [10, 11, 12, 1, 2, 3]
@@ -45,14 +45,17 @@ def get_seasonal_time_updater(
     start_month: int,
     end_month: int,
 ) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
-    """
-    Seasonal resampling method generator.
-    Returns a callable of DataArray which will resample the data to
-    the a season composed of the given month.
-    It also attached the corresponding time_bounds.
+    """Seasonal time updater and time bounds creator method generator.
+    Returns a callable of DataArray which will rewrite the time dimension to
+    the season composed of the given month. The data must have been computed on this
+    season beforehand.
+    It also create the corresponding time_bounds.
     Parameters
     ----------
-    TODO
+    start_month: int
+        The season starting month, it must be between 1 and 12.
+    end_month: int
+        The season ending month, it must be between 1 and 12.
     Returns
     -------
     function: Callable[[DataArray], DataArray]
@@ -220,7 +223,7 @@ class Frequency(Enum):
     )
     """ Resample to fall season, from September to November included."""
 
-    CUSTOM = _Freq(  # TODO: replace by a no-op _FREQ
+    CUSTOM = _Freq(
         panda_freq="MS",
         accepted_values=[],
         description="",

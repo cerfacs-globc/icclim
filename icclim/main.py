@@ -327,11 +327,7 @@ def _setup(callback, callback_start_value, logs_verbosity, slice_mode):
     #       and teardown these confs
     xclim.set_options(data_validation="warn")
     if Frequency.is_seasonal(slice_mode):
-        # for now seasonal slice_modes cannot be checked
-        # TODO open an issue on xclim about that :
-        #      xclim uses the input freq to look for missing values but
-        #      in icclim, the season use a annual frequency such as AS-DEC
-        #                 in order to generate a single value per year.
+        # for now seasonal slice_modes missing values cannot be checked
         xclim.set_options(check_missing="skip")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)

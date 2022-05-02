@@ -29,7 +29,6 @@ class CfVariable:
         The variable studied limited to the in base period.
     """
 
-    # TODO: seems unnecessary abstraction between ds and da. Replace by a Dataset ?
     name: str
     study_da: DataArray
     reference_da: DataArray
@@ -134,8 +133,6 @@ class IndexConfig:
         self.threshold = threshold
         self.callback = callback
         self.index = index
-
-        # TODO apply frequency.pre_processing !
 
     @property
     def tas(self) -> CfVariable:
