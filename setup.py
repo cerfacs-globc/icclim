@@ -4,7 +4,7 @@
 from setuptools import find_packages, setup
 
 MINIMAL_REQUIREMENTS = [
-    # todo: Unpin numpy 1.22 once numba work with it (numba comes with xclim)
+    # todo: Unpin numpy 1.22 once numba works with it (numba comes with xclim)
     #       https://github.com/numba/numba/issues/7754
     "numpy>=1.16,<1.22",
     "xarray>=0.17",
@@ -18,7 +18,6 @@ MINIMAL_REQUIREMENTS = [
     # rechunker 0.4 is broken, enforce at least 0.5
     "rechunker>=0.5",
     "fsspec",
-    "dateparser",
 ]
 
 setup(

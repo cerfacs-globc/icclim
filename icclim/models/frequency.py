@@ -10,8 +10,6 @@ from enum import Enum
 from typing import Callable, List, Tuple, Union
 
 import cftime
-
-# import dateparser
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -355,22 +353,6 @@ def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
             description=f"seasonal time series (season: {months})",
             accepted_values=[],
         )
-    # elif sampling_freq == "dates":
-    #     # TODO: For the API it could make sense to have only the "season" keyword,
-    #     #       because "between dates" features creates sort of season as well
-    #     dates = slice_mode_list[1]
-    #     if len(dates) != 2:
-    #         raise InvalidIcclimArgumentError(
-    #             "slice_mode with 'dates', must be followed by exactly two dates."
-    #             "For example slice_mode=['dates', ['19 july', '14 august']]"
-    #         )
-    #     begin_date, end_date, delta = read_dates(*dates)
-    #     custom_freq._freq.post_processing = lambda da: filter_between_dates(
-    #         da, begin_date, end_date
-    #     )
-    #     custom_freq._freq.description = (
-    #         f"seasonal time series (season: from {begin_date} to {end_date})"
-    #     )
     else:
         raise InvalidIcclimArgumentError(
             f"Unknown frequency {slice_mode_list}."
@@ -378,20 +360,5 @@ def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
         )
     return custom_freq
 
-
-# def filter_between_dates(da: DataArray, d1: datetime.datetime, d2: datetime.datetime):
-#     # TODO build time range with pandas
-#     #      use a.time.dt.date and is in above tine range
-#     return da.sel(time=da.time.dt.date.isin())
-#
-#
-# def read_dates(d1: str, d2: str) -> (datetime.datetime, datetime.datetime, int):
-#     error_msg = "date {} does not have a valid format."
-#                 " You can use various format such as '2 december'"
-#     if (date1 := dateparser.parse(d1)) == None:
-#         raise InvalidIcclimArgumentError(error_msg.format(d1))
-#     if (date2 := dateparser.parse(d2)) == None:
-#         raise InvalidIcclimArgumentError(error_msg.format(d2))
-#     return date1, date2, (date2 - date1).days
 
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
