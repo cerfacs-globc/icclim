@@ -64,13 +64,6 @@ class Test_build_frequency_over_list:
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    # def test_between_dates(self):
-    #     freq = Frequency.lookup(["dates", ["15-06", "28 aout"] ])
-    #     assert freq == Frequency.CUSTOM
-    #     assert freq.panda_freq == "75D"
-    #     assert freq.accepted_values == []
-    #     assert freq.post_processing is not None
-
 
 class Test_filter_months:
     def test_simple(self):
@@ -113,14 +106,3 @@ class Test_seasons_resampler:
             time_bds_res[1].data[1]
             == pd.to_datetime("2043-02") - pd.tseries.offsets.Day()
         )
-
-    # def test_season_date_to_date(self):
-    #     # WHEN
-    #     da_res, time_bds_res = get_seasonal_time_updater(1, 4)(stub_tas())
-    #     # THEN
-    #     np.testing.assert_array_equal(1, da_res)
-    #     assert time_bds_res[0].data[0] == pd.to_datetime("2042-01")
-    #     assert (
-    #         time_bds_res[0].data[1]
-    #         == pd.to_datetime("2042-05") - pd.tseries.offsets.Day()
-    #     )

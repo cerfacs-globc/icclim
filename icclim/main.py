@@ -107,9 +107,6 @@ def indice(*args, **kwargs):
     return index(*args, **kwargs)
 
 
-# TODO extract the custom index doc in a different doc than icclim.index
-
-
 def index(
     in_files: str | list[str] | Dataset | DataArray,
     index_name: str | None = None,  # optional when computing user_indices
@@ -260,12 +257,6 @@ def index(
         chunk_it=chunk_it,
     )
     if user_index is not None:
-        if (rtr := user_index.get("ref_time_range", None)) is not None:
-            # setup anomaly todo: put that elsewhere
-            rtr = [x.strftime("%Y-%m-%d") for x in rtr]
-            config._cf_variables[0].reference_da = ds[var_name].sel(
-                time=slice(rtr[0], rtr[1])
-            )
         result_ds = _compute_user_index_dataset(config=config, user_index=user_index)
     else:
         result_ds = _compute_ecad_index_dataset(

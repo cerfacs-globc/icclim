@@ -16,19 +16,15 @@ import xarray as xr
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import MONTHS_MAP
-
-AMJJAS_MONTHS = [*range(4, 9)]
-ONDJFM_MONTHS = [10, 11, 12, 1, 2, 3]
-DJF_MONTHS = [12, 1, 2]
-MAM_MONTHS = [*range(3, 6)]
-JJA_MONTHS = [*range(6, 9)]
-SON_MONTHS = [*range(9, 12)]
-
-
-def get_season_sampling_freq(month_list: list[int]) -> str:
-    # Must be used with month_filter to properly create a season
-    return f"{len(month_list)}MS"
+from icclim.models.constants import (
+    AMJJAS_MONTHS,
+    DJF_MONTHS,
+    JJA_MONTHS,
+    MAM_MONTHS,
+    MONTHS_MAP,
+    ONDJFM_MONTHS,
+    SON_MONTHS,
+)
 
 
 def get_month_filter(month_list: list[int]) -> Callable:

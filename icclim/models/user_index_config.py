@@ -157,6 +157,10 @@ class UserIndexConfig:
             )
         self.save_percentile = save_percentile
         self.ref_time_range = ref_time_range
+        if (rtr := ref_time_range) is not None:
+            rtr = [x.strftime("%Y-%m-%d") for x in rtr]
+            for cf_var in cf_vars:
+                cf_var.reference_da = cf_var.study_da.sel(time=slice(rtr[0], rtr[1]))
 
 
 def get_nb_event_conf(

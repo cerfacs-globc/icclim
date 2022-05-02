@@ -6,6 +6,12 @@ Release history
 [maint] Made Frequency part of SliceMode union.
 [fix] slice_mode seasonal samplings was giving wrong results for quite a few indices. This has been fixed and the performances should also be improved by the fix.
 However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
+[fix] user_index ExtremeMode config was not properly parsed when a string was used.
+[fix] user_index Anomaly operator was not properly using the `ref_time_range` to setup a reference period as it should.
+[fix] user_index Sum and Mean operators were broken due to a previous refactoring and a lack of unit tests, it is now fixed and tested.
+[maint] Changed how `rechunker` dependency is pinned to add flexibility. We want a version above '0.3' but not the '0.4'.
+[maint] For the newly generate API, on `custom_index` function, the parameter `user_index` is now mandatory.
+
 
 5.2.0
 -----
