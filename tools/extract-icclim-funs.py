@@ -111,13 +111,17 @@ def get_user_index_declaration() -> str:
     pop_args.append("window_width")
     # Pop not implemented yet
     pop_args.append("interpolation")
+    # Pop manually added arg
+    pop_args.append("user_index")  # for `custom_index`, user_index is mandatory
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
     fun_signature_args = build_fun_signature_args(icclim_index_args)
-    fun_signature_args = fun_signature_args.replace(
-        "user_index: UserIndexDict = None,", "user_index: UserIndexDict,"
+    fun_signature = (
+        f"\n\ndef custom_index(\n"
+        f"user_index: UserIndexDict,"
+        f"{fun_signature_args},\n"
+        f") -> Dataset:\n"
     )
-    fun_signature = f"\n\ndef custom_index({fun_signature_args},\n) -> Dataset:\n"
     args_docs = get_params_docstring(
         list(icclim_index_args.keys()), icclim.index.__doc__
     )
@@ -133,7 +137,12 @@ def get_user_index_declaration() -> str:
         f'"""\n'
     )
     fun_call_args = f",\n{TAB}{TAB}".join([a + "=" + a for a in icclim_index_args])
-    fun_call = f"{TAB}return icclim.index(\n{TAB}{TAB}{fun_call_args},\n{TAB})\n"
+    fun_call = (
+        f"{TAB}return icclim.index(\n"
+        f"{TAB}{TAB}user_index=user_index,\n"
+        f"{TAB}{TAB}{fun_call_args},"
+        f"\n{TAB})\n"
+    )
     return f"{fun_signature}{docstring}{fun_call}"
 
 
