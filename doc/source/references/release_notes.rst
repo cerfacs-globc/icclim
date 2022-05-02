@@ -1,9 +1,11 @@
 Release history
 ===============
 
-5.2.1-dev
----------
+5.2.1
+-----
 [maint] Made Frequency part of SliceMode union.
+[fix] slice_mode seasonal samplings was giving wrong results for quite a few indices. This has been fixed and the performances should also be improved by the fix.
+However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
 
 5.2.0
 -----
