@@ -28,13 +28,18 @@ def compute_user_index(config: UserIndexConfig) -> DataArray:
 
 
 def anomaly(config: UserIndexConfig):
-    if config.da_ref is None:
+    if (
+        config.cf_vars[0].reference_da is None
+        or len(config.cf_vars[0].reference_da) == 0
+    ):
         raise MissingIcclimInputError(
-            f"You must provide a in base to compute {CalcOperation.ANOMALY.value}."
+            f"You must provide a `ref_time_range` in user_index dictionary to compute"
+            f" {CalcOperation.ANOMALY.value}."
+            f" To be valid, it must be within the dataset time range."
         )
     return operators.anomaly(
         da=config.cf_vars[0].study_da,
-        da_ref=config.da_ref,
+        da_ref=config.cf_vars[0].reference_da,
         percent=config.is_percent,
     )
 
@@ -186,7 +191,6 @@ def _check_and_get_in_base_da(config: UserIndexConfig) -> DataArray | None:
 
 
 class CalcOperation(Enum):
-    # TODO move class to models
     MAX = ("max", max)
     MIN = ("min", min)
     SUM = ("sum", sum)

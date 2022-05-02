@@ -113,7 +113,6 @@ class UserIndexConfig:
     window_width: int | None = None
     coef: float | None = None
     var_type: str | None = None
-    da_ref: DataArray | None = None
     nb_event_config: NbEventConfig | None = None
     save_percentile: bool = False
 

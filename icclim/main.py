@@ -28,7 +28,7 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import read_dataset, update_to_standard_coords
-from icclim.user_indices.dispatcher import CalcOperation, compute_user_index
+from icclim.user_indices.calc_operation import CalcOperation, compute_user_index
 
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
