@@ -4012,6 +4012,7 @@ def ww(
 
 
 def custom_index(
+    user_index: UserIndexDict,
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
@@ -4022,7 +4023,6 @@ def custom_index(
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
-    user_index: UserIndexDict = None,
     save_percentile: bool = False,
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
@@ -4074,10 +4074,6 @@ def custom_index(
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
     netcdf_version : str | icclim.models.netcdf_version.NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    user_index : UserIndexDict
-        ``optional`` A dictionary with parameters for user defined index.
-        See :ref:`Custom indices`.
-        Ignored for ECA&D indices.
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
          file (default: False).
@@ -4090,6 +4086,7 @@ def custom_index(
     This function has been auto-generated.
     """
     return icclim.index(
+        user_index=user_index,
         in_files=in_files,
         var_name=var_name,
         slice_mode=slice_mode,
@@ -4100,7 +4097,6 @@ def custom_index(
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
-        user_index=user_index,
         save_percentile=save_percentile,
         logs_verbosity=logs_verbosity,
     )
