@@ -1,6 +1,8 @@
 # fmt: off
 # flake8: noqa
 
+ICCLIM_VERSION = "5.2.2-dev"
+
 # placeholder for user_indices
 PERCENTILE_THRESHOLD_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm

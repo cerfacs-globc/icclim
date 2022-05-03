@@ -20,6 +20,7 @@ from xarray.core.dataset import Dataset
 from icclim.ecad_functions import IndexConfig
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
+from icclim.models.constants import ICCLIM_VERSION
 from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.index_group import IndexGroup
@@ -434,7 +435,7 @@ def _add_ecad_index_metadata(
             references="ATBD of the ECA&D indices calculation"
             " (https://www.ecad.eu/documents/atbd.pdf)",
             institution="Climate impact portal (https://climate4impact.eu)",
-            history=_get_history(config, former_history, computed_index, result_ds),
+            history=_build_history(config, former_history, computed_index, result_ds),
             source="",
             Conventions="CF-1.6",
         )
@@ -451,16 +452,17 @@ def _get_title(computed_index, config):
         return f"ECA&D {computed_index.group.value} index {computed_index.short_name}"
 
 
-def _get_history(config, former_history, indice_computed, result_ds):
+def _build_history(config, former_history, indice_computed, result_ds):
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     start_time = result_ds.time[0].dt.strftime("%m-%d-%Y").data[()]
     end_time = result_ds.time[-1].dt.strftime("%m-%d-%Y").data[()]
     return (
-        f"{former_history}\n "
-        f"{current_time} "
-        f"Calculation of {indice_computed.short_name} "
-        f"index({config.freq.description}) "
-        f"from {start_time} to {end_time}."
+        f"{former_history}\n"
+        f" [{current_time}]"
+        f" Calculation of {indice_computed.short_name}"
+        f" index({config.freq.description})"
+        f" from {start_time} to {end_time}"
+        f" - icclim version: {ICCLIM_VERSION}"
     )
 
 

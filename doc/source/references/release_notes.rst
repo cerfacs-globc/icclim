@@ -1,6 +1,10 @@
 Release history
 ===============
 
+5.2.2-dev
+---------
+[enh] Add icclim version to history in outputted metadata.
+
 5.2.1
 -----
 [maint] Made Frequency part of SliceMode union.
