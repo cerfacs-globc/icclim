@@ -8,6 +8,7 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim.models.constants import ICCLIM_VERSION
 from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
@@ -80,6 +81,7 @@ class Test_Integration:
         res = icclim.index(
             indice_name="SU", in_files=self.data, out_file=self.OUTPUT_FILE
         )
+        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.SU)
 
     def test_index_SU__monthy_sampled(self):

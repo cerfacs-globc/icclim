@@ -3,7 +3,7 @@ Release process
 
 #. Make sure all tests pass.
 #. Create and checkout a release branch.
-#. Bump version in ``/icclim/__init__.py`` and ``setup.py``.
+#. Update version number of ICCLIM_VERSION in ``icclim/models/constants.py``.
 #. Update release notes in ``doc/source/references/release_notes.rst``.
 #. Merge release branch to master with a PR.
 #. Clean dist directory content.
@@ -49,8 +49,7 @@ Release process
         - Fork the repository in with your own account.
         - Update icclim version number at the top.
         - Update `source.sha256` value with the tar.gz sha256.
-
-    You can get the tar.gz hash from `pypi <https://pypi.org/project/icclim/#files>`_ using `view hashes` link.
+            You can get the tar.gz hash from `pypi <https://pypi.org/project/icclim/#files>`_ using `view hashes` link.
         - Add any new dependency in `requirements`.
         - Create a pull request with these changes, targeting the main fork on main branch
         - Wait for the CI feedback and correct things if needed.
