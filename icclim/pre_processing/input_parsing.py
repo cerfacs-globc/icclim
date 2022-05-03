@@ -26,12 +26,15 @@ def read_dataset(
                 raise InvalidIcclimArgumentError(
                     "When the input is a DataArray, var_names must be a string."
                 )
+            if isinstance(var_names, list):
+                var_names = var_names[0]
             data_name = var_names
         else:
             if len(index.variables) > 1:
                 raise InvalidIcclimArgumentError(
-                    f"Index {index.name} need {len(index.variables)} variables."
-                    f"Please provide them with an xarray.Dataset or a netCDF file."
+                    f"Index {index.name} needs {len(index.variables)} variables."
+                    f" Please provide them with an xarray.Dataset, a netCDF file or a"
+                    f" zarr store."
                 )
             data_name = index.variables[0][0]  # first alias of the unique variable
         input_dataset = data.to_dataset(name=data_name, promote_attrs=True)

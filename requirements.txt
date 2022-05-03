@@ -7,7 +7,7 @@ numpy
 pandas
 pytest
 pyyaml
-rechunker~=0.5
+rechunker>=0.3.3
 setuptools
 xarray
 xclim~=0.34.0

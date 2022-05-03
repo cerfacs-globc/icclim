@@ -72,7 +72,7 @@ class Test_SU:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_su_default_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[:5] = 0
         conf = IndexConfig(
             ds=ds,
@@ -107,7 +107,7 @@ class Test_TR:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[:5] = 0
         conf = IndexConfig(
             ds=ds,
@@ -160,7 +160,7 @@ class Test_csu:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[10:15] = 0
         conf = IndexConfig(
             ds=ds,
@@ -196,7 +196,7 @@ class Test_gd4:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
         conf = IndexConfig(
             ds=ds,
@@ -213,7 +213,7 @@ class Test_gd4:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
         conf = IndexConfig(
             ds=ds,
@@ -233,7 +233,7 @@ class Test_cfd:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
         conf = IndexConfig(
             ds=ds,
@@ -249,7 +249,7 @@ class Test_cfd:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
         ds.tas[10:15] = 4
         conf = IndexConfig(
@@ -269,7 +269,7 @@ class Test_fd:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[5:15] = 0
         ds.tas[20:25] = 0
         conf = IndexConfig(
@@ -286,7 +286,7 @@ class Test_fd:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=26 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
         ds.tas[10:15] = 4
         conf = IndexConfig(
@@ -306,7 +306,7 @@ class Test_hd17:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
         conf = IndexConfig(
             ds=ds,
@@ -322,7 +322,7 @@ class Test_hd17:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
         conf = IndexConfig(
             ds=ds,
@@ -341,7 +341,7 @@ class TestTx90p:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_no_bootstrap_no_overlap(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         ds.tas[5:10] = 0
         conf = IndexConfig(
             ds=ds,
@@ -361,7 +361,7 @@ class TestTx90p:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_no_bootstrap_1_year_base(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
@@ -380,7 +380,7 @@ class TestTx90p:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_bootstrap_2_years(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
@@ -401,7 +401,7 @@ class TestWsdi:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_wsdi_bootstrap_2_years(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
@@ -422,7 +422,7 @@ class TestCsdi:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_csdi_bootstrap_2_years(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,
@@ -443,7 +443,7 @@ class TestCsdi:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_csdi_custom_thresh(self, use_dask):
         ds = Dataset()
-        ds["tas"] = stub_tas(value=27 + K2C, use_dask=use_dask)
+        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         conf = IndexConfig(
             ds=ds,
             slice_mode=Frequency.MONTH,

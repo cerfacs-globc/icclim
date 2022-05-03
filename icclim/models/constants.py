@@ -26,3 +26,14 @@ QUANTILE_BASED = "QUANTILE_BASED"  # fields: QUANTILE_INDEX_FIELDS
 MODIFIABLE_UNIT = "MODIFIABLE_UNIT"  # fields: out_unit
 MODIFIABLE_THRESHOLD = "MODIFIABLE_THRESHOLD"  # fields: threshold
 MODIFIABLE_QUANTILE_WINDOW = "MODIFIABLE_QUANTILE_WINDOW"  # fields: window_width
+
+# Map of months index to their short name, used to get a pandas frequency anchor
+MONTHS_MAP = {1:"JAN",  2:"FEB", 3:"MAR", 4:"APR", 5:"MAY", 6:"JUN", 7:"JUL", 8:"AUG", 9:"SEP", 10:"OCT", 11:"NOV", 12:"DEC" }
+
+# Season defined by their month numbers
+AMJJAS_MONTHS = [*range(4, 9)]
+ONDJFM_MONTHS = [10, 11, 12, 1, 2, 3]
+DJF_MONTHS = [12, 1, 2]
+MAM_MONTHS = [*range(3, 6)]
+JJA_MONTHS = [*range(6, 9)]
+SON_MONTHS = [*range(9, 12)]

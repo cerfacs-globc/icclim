@@ -13,7 +13,7 @@ dependencies:
  - netCDF4>=1.5.7
  - cftime>=1.5.0
  - pyyaml>=6.0
- - rechunker>=0.5
+ - rechunker>=0.3.3
  - psutil
  - zarr
  - fsspec

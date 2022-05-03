@@ -1,6 +1,7 @@
 import os
 from unittest.mock import MagicMock, patch
 
+import cftime
 import numpy as np
 import pandas as pd
 import pytest
@@ -40,7 +41,8 @@ class Test_Integration:
     """
 
     OUTPUT_FILE = "out.nc"
-    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    CF_TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    TIME_RANGE = xr.cftime_range("2042-01-01", end="2045-12-31", freq="D")
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
@@ -48,6 +50,17 @@ class Test_Integration:
             lat=[42],
             lon=[42],
             time=TIME_RANGE,
+        ),
+        attrs={"units": "degC"},
+    )
+
+    data_cf_time = xr.DataArray(
+        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        dims=["time", "lat", "lon"],
+        coords=dict(
+            lat=[42],
+            lon=[42],
+            time=CF_TIME_RANGE,
         ),
         attrs={"units": "degC"},
     )
@@ -79,6 +92,44 @@ class Test_Integration:
         np.testing.assert_array_equal(0, res.SU)
         np.testing.assert_array_equal(
             len(np.unique(self.TIME_RANGE.year)) * 12, len(res.time)
+        )
+
+    def test_index_SU__monthy_sampled_cf_time(self):
+        res = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            slice_mode=Frequency.MONTH,
+        )
+        np.testing.assert_array_equal(0, res.SU)
+        res.time_bounds.isel(time=0)
+        np.testing.assert_array_equal(
+            len(np.unique(self.TIME_RANGE.year)) * 12, len(res.time)
+        )
+        assert res.time_bounds.sel(time=res.time[0])[0] == cftime.DatetimeGregorian(
+            2042, 1, 1, 0, 0, 0, 0
+        )
+        assert res.time_bounds.sel(time=res.time[0])[1] == cftime.DatetimeGregorian(
+            2042, 1, 31, 0, 0, 0, 0
+        )
+
+    def test_index_SU__DJF_cf_time(self):
+        res = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            slice_mode=Frequency.DJF,
+        )
+        np.testing.assert_array_equal(0, res.SU)
+        # 1 more year as DJF sampling create a months withs nans before
+        np.testing.assert_array_equal(
+            len(np.unique(self.TIME_RANGE.year)) + 1, len(res.time)
+        )
+        assert res.time_bounds.sel(time=res.time[0])[0] == cftime.DatetimeGregorian(
+            2041, 12, 1, 0, 0, 0, 0
+        )
+        assert res.time_bounds.sel(time=res.time[0])[1] == cftime.DatetimeGregorian(
+            2042, 2, 28, 0, 0, 0, 0
         )
 
     def test_indices_from_DataArray(self):

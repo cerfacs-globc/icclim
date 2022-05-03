@@ -111,10 +111,17 @@ def get_user_index_declaration() -> str:
     pop_args.append("window_width")
     # Pop not implemented yet
     pop_args.append("interpolation")
+    # Pop manually added arg
+    pop_args.append("user_index")  # for `custom_index`, user_index is mandatory
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
     fun_signature_args = build_fun_signature_args(icclim_index_args)
-    fun_signature = f"\n\ndef custom_index({fun_signature_args},\n) -> Dataset:\n"
+    fun_signature = (
+        f"\n\ndef custom_index(\n"
+        f"user_index: UserIndexDict,"
+        f"{fun_signature_args},\n"
+        f") -> Dataset:\n"
+    )
     args_docs = get_params_docstring(
         list(icclim_index_args.keys()), icclim.index.__doc__
     )
@@ -130,12 +137,17 @@ def get_user_index_declaration() -> str:
         f'"""\n'
     )
     fun_call_args = f",\n{TAB}{TAB}".join([a + "=" + a for a in icclim_index_args])
-    fun_call = f"{TAB}return icclim.index(\n{TAB}{TAB}{fun_call_args},\n{TAB})\n"
+    fun_call = (
+        f"{TAB}return icclim.index(\n"
+        f"{TAB}{TAB}user_index=user_index,\n"
+        f"{TAB}{TAB}{fun_call_args},"
+        f"\n{TAB})\n"
+    )
     return f"{fun_signature}{docstring}{fun_call}"
 
 
 def build_fun_signature_args(args) -> str:
-    return f"\n{TAB}" + f",\n{TAB}".join(map(get_arg, args.values()))
+    return f"\n{TAB}" + f",\n{TAB}".join(map(get_parameter_declaration, args.values()))
 
 
 def get_ecad_index_declaration(index: EcadIndex) -> str:
@@ -187,16 +199,16 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
     return f"{fun_signature}{docstring}{fun_call}"
 
 
-def get_arg(a: inspect.Parameter) -> str:
-    annotation = a.annotation
+def get_parameter_declaration(param: inspect.Parameter) -> str:
+    annotation = param.annotation
     if type(annotation) is type:
         annotation = annotation.__name__
     annotation = annotation.__str__().replace("NoneType", "None")
     annotation = annotation.__str__().replace("xarray.core.dataset.Dataset", "Dataset")
-    prefix = f"{a.name}: {annotation}"
-    if a.default is inspect._empty:
+    prefix = f"{param.name}: {annotation}"
+    if param.default is inspect._empty:
         return prefix
-    default = a.default
+    default = param.default
     if type(default) is str:
         default = f'"{default.__str__()}"'
     return f"{prefix} = {default}"
