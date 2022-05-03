@@ -5,11 +5,13 @@
 """
 from __future__ import annotations
 
-import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Callable, List, Tuple, Union
 
 import cftime
+
+import dateparser
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -36,8 +38,10 @@ def filter_months(da: DataArray, month_list: list[int]) -> DataArray:
 
 
 def get_seasonal_time_updater(
-    start_month: int,
-    end_month: int,
+        start_month: int,
+        end_month: int,
+        start_day: int = 1,
+        end_day: int = None
 ) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
     """Seasonal time updater and time bounds creator method generator.
     Returns a callable of DataArray which will rewrite the time dimension to
@@ -68,15 +72,29 @@ def get_seasonal_time_updater(
                 year_of_season_end = year
             if isinstance(first_time, cftime.datetime):
                 start = cftime.datetime(
-                    year, start_month, 1, calendar=first_time.calendar
+                    year, start_month, start_day, calendar=first_time.calendar
                 )
-                end = cftime.datetime(
-                    year_of_season_end, end_month + 1, 1, calendar=first_time.calendar
-                )
+                if end_day is None:
+                    end = cftime.datetime(
+                        year_of_season_end,
+                        end_month + 1,
+                        1,
+                        calendar=first_time.calendar
+                    )
+                else:
+                    end = cftime.datetime(
+                        year_of_season_end,
+                        end_month,
+                        end_day,
+                        calendar=first_time.calendar
+                    )
             else:
-                start = pd.to_datetime(f"{year}-{start_month}")
-                end = pd.to_datetime(f"{year_of_season_end}-{end_month + 1}")
-            end = end - datetime.timedelta(days=1)
+                start = pd.to_datetime(f"{year}-{start_month}-{start_day}")
+                if end_day is None:
+                    end = pd.to_datetime(f"{year_of_season_end}-{end_month + 1}")
+                    end = end - timedelta(days=1)
+                else:
+                    end = pd.to_datetime(f"{year_of_season_end}-{end_month}-{end_day}")
             new_time_axis.append(start + (end - start) / 2)
             time_bounds.append([start, end])
         da.coords["time"] = ("time", new_time_axis)
@@ -112,7 +130,7 @@ def _get_time_bounds_updater(
                 ]
             )
             ends = starts + offset
-            ends = ends - datetime.timedelta(days=1)
+            ends = ends - timedelta(days=1)
         else:
             offset = pd.tseries.frequencies.to_offset(freq)
             starts = pd.to_datetime(da.time.dt.floor("D"))
@@ -312,49 +330,98 @@ def _is_season_valid(months):
 def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
     if len(slice_mode_list) < 2:
         raise InvalidIcclimArgumentError(
-            f"The given slice list {slice_mode_list}"
-            f" has a length of {len(slice_mode_list)}."
-            f" The maximum length here is 2."
+            f"Invalid slice_mode format."
+            f" When slice_mode is a list, its first element must be a keyword and"
+            f" its second a list (e.g `slice_mode=['season', [1,2,3]]` )."
         )
     sampling_freq = slice_mode_list[0]
     custom_freq = Frequency.CUSTOM
     if sampling_freq in ["month", "months"]:
-        months = slice_mode_list[1]
-
-        def month_list_post_processing(da):
-            res, bounds = _get_time_bounds_updater("MS")(da)
-            res = get_month_filter(months)(res)
-            return res, bounds
-
+        season_bounds = slice_mode_list[1]
         custom_freq._freq = _Freq(
-            pre_processing=get_month_filter(months),
-            post_processing=month_list_post_processing,
+            pre_processing=get_month_filter(season_bounds),
+            post_processing=_get_filterer_and_time_updater(season_bounds),
             panda_freq="MS",
-            description=f"monthly time series (months: {months})",
+            description=f"monthly time series (months: {season_bounds})",
             accepted_values=[],
         )
     elif sampling_freq == "season":
-        months = slice_mode_list[1]
-        if isinstance(months, Tuple):
-            months = months[0] + months[1]  # concat in case of ([12], [1, 2])
-        if not _is_season_valid(months):
-            raise InvalidIcclimArgumentError(
-                f"A season created using `slice_mode` must be made of consecutive"
-                f" months. It was {months}."
+        season_bounds = slice_mode_list[1]
+        if isinstance(season_bounds, Tuple):
+            # concat in case of ([12], [1, 2])
+            season_bounds = season_bounds[0] + season_bounds[1]
+        err_msg = f"A season created using `slice_mode` must be made of either" \
+                  f" consecutive integer for months such as [1,2,3] or two string for" \
+                  f" dates such as ['19 july', '14 august']."
+        if isinstance(season_bounds[0], str):
+            # season between two dates
+            if len(season_bounds) != 2:
+                raise InvalidIcclimArgumentError(err_msg)
+            begin_date, end_date, delta = read_dates(*season_bounds)
+            custom_freq._freq = _Freq(
+                pre_processing=_get_between_dates_filter(begin_date, end_date),
+                post_processing=get_seasonal_time_updater(begin_date.month,
+                                                          end_date.month,
+                                                          begin_date.day,
+                                                          end_date.day),
+                # todo ideally we should offset panda_freq by {begin_date.day} days (tbd in xclim) on resample
+                panda_freq=f"AS-{MONTHS_MAP[begin_date.month]}",
+                description=f"seasonal time series (season: from {begin_date} to {end_date})",
+                accepted_values=[],
             )
-        custom_freq._freq = _Freq(
-            pre_processing=get_month_filter(months),
-            post_processing=get_seasonal_time_updater(months[0], months[-1]),
-            panda_freq=f"AS-{MONTHS_MAP[months[0]]}",
-            description=f"seasonal time series (season: {months})",
-            accepted_values=[],
-        )
+        elif isinstance(season_bounds[0], int):
+            # season made of consecutive months
+            if not _is_season_valid(season_bounds):
+                raise InvalidIcclimArgumentError(err_msg)
+            custom_freq._freq = _Freq(
+                pre_processing=get_month_filter(season_bounds),
+                post_processing=get_seasonal_time_updater(season_bounds[0],
+                                                          season_bounds[-1]),
+                panda_freq=f"AS-{MONTHS_MAP[season_bounds[0]]}",
+                description=f"seasonal time series (season: {season_bounds})",
+                accepted_values=[],
+            )
     else:
         raise InvalidIcclimArgumentError(
             f"Unknown frequency {slice_mode_list}."
             " The sampling frequency must be one of {'season', 'month'}"
         )
     return custom_freq
+
+
+def _get_between_dates_filter(begin_date: datetime, end_date: datetime):
+    return lambda da: filter_between_dates(da, begin_date, end_date)
+
+
+def filter_between_dates(da: DataArray, d1: datetime, d2: datetime):
+    between_dates_range = pd.date_range(d1, d2, freq="D").dayofyear
+    between_dates_mask = np.logical_and(
+        da.time.dt.dayofyear >= between_dates_range.min(),
+        da.time.dt.dayofyear <= between_dates_range.max())
+    return da[between_dates_mask]
+
+
+def read_dates(d1: str, d2: str) -> tuple[datetime, datetime, int]:
+    return date1 := read_date(d1), date2 := read_date(d2), (date2 - date1).days
+
+
+def read_date(date_string: str) -> datetime:
+    error_msg = (
+        "The date {} does not have a valid format."
+        " You can use various formats such as '2 december' or '02-12'."
+    )
+    if (date := dateparser.parse(date_string)) == None:
+        raise InvalidIcclimArgumentError(error_msg.format(date_string))
+    return date
+
+
+def _get_filterer_and_time_updater(season_bounds):
+    def filter_and_update_time(da):
+        res, bounds = _get_time_bounds_updater("MS")(da)
+        res = get_month_filter(season_bounds)(res)
+        return res, bounds
+
+    return filter_and_update_time
 
 
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]

@@ -133,7 +133,7 @@ class UserIndexConfig:
         var_type=None,
         is_percent=False,
         save_percentile=False,
-        ref_time_range: list[str] = None,
+        ref_time_range: list[str] = None,  # TODO: use dateparser to accept strings
     ) -> None:
         self.index_name = index_name
         self.calc_operation = calc_operation

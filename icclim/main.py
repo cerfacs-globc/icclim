@@ -113,13 +113,13 @@ def index(
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] = None, # TODO: use dateparser to accept strings
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | None = None,  # TODO: use dateparser to accept strings
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,

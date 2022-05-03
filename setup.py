@@ -6,7 +6,7 @@ from setuptools import find_packages, setup
 from icclim.models.constants import ICCLIM_VERSION
 
 MINIMAL_REQUIREMENTS = [
-    # todo: Unpin numpy 1.22 once numba works with it (numba comes with xclim)
+    # todo: Unpin numpy 1.22 once numba work with it (numba comes with xclim)
     #       https://github.com/numba/numba/issues/7754
     "numpy>=1.16,<1.22",
     "xarray>=0.17",
@@ -19,6 +19,7 @@ MINIMAL_REQUIREMENTS = [
     "zarr",
     "rechunker>=0.3, !=0.4",
     "fsspec",
+    "dateparser",
 ]
 
 setup(
