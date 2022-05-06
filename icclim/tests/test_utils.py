@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ K2C = 273.15
 CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")
 
 
-def stub_user_index(cf_vars: List[CfVariable]):
+def stub_user_index(cf_vars: list[CfVariable]):
     return UserIndexConfig(
         index_name="Yolo", calc_operation="noop", freq=Frequency.MONTH, cf_vars=cf_vars
     )

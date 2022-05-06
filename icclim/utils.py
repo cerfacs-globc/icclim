@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from xarray import DataArray, Dataset
 
 

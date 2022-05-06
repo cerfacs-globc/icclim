@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class IcclimError(Exception):
     """Base class for exceptions in this module."""
 
