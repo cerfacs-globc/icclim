@@ -99,12 +99,11 @@ class Test_Integration:
     def test_index_SU__monthy_sampled_cf_time(self):
         res = icclim.index(
             indice_name="SU",
-            in_files=self.data,
+            in_files=self.data_cf_time,
             out_file=self.OUTPUT_FILE,
             slice_mode=Frequency.MONTH,
         )
         np.testing.assert_array_equal(0, res.SU)
-        res.time_bounds.isel(time=0)
         np.testing.assert_array_equal(
             len(np.unique(self.TIME_RANGE.year)) * 12, len(res.time)
         )
@@ -118,12 +117,13 @@ class Test_Integration:
     def test_index_SU__DJF_cf_time(self):
         res = icclim.index(
             indice_name="SU",
-            in_files=self.data,
+            in_files=self.data_cf_time,
             out_file=self.OUTPUT_FILE,
             slice_mode=Frequency.DJF,
         )
-        np.testing.assert_array_equal(0, res.SU)
-        # 1 more year as DJF sampling create a months withs nans before
+        np.testing.assert_array_equal(res.SU.isel(time=0), np.NAN)
+        np.testing.assert_array_equal(res.SU.isel(time=1), 0)
+        # "+ 1" because DJF sampling create a december month with nans before for first year
         np.testing.assert_array_equal(
             len(np.unique(self.TIME_RANGE.year)) + 1, len(res.time)
         )
@@ -139,6 +139,16 @@ class Test_Integration:
             index_group=IndexGroup.HEAT, in_files=self.data, out_file=self.OUTPUT_FILE
         )
         for i in HEAT_INDICES:
+            assert res[i] is not None
+
+    def test_indices__snow_indices(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["prec"] = self.data.copy(deep=True)
+        ds["prec"].attrs["units"] = "cm"
+        res = icclim.indices(
+            index_group=IndexGroup.SNOW, in_files=ds, out_file=self.OUTPUT_FILE
+        )
+        for i in filter(lambda i: i.group == IndexGroup.SNOW, EcadIndex):
             assert res[i] is not None
 
     def test_indices_all_from_Dataset(self):
@@ -162,13 +172,20 @@ class Test_Integration:
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs["units"] = "kg m-2 d-1"
         res: xr.Dataset = icclim.indices(
-            index_group="all", in_files=ds, out_file=self.OUTPUT_FILE, ignore_error=True
-        )
+            index_group="all",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+            ignore_error=True,
+            slice_mode="DJF"
+        ).compute()
         for i in EcadIndex:
-            # No variable in input to compute for snow indices
+            # No variable in input to compute snow indices
             if i.group == IndexGroup.SNOW:
                 assert res.data_vars.get(i.short_name, None) is None
             else:
+                # print("----------")
+                # print(i.short_name)
+                # print(res[i.short_name])
                 assert res[i.short_name] is not None
 
     def test_indices_all_error(self):

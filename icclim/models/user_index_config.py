@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Literal
 
+from xclim.core.calendar import select_time
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -148,7 +149,10 @@ class UserIndexConfig:
         self.date_event = date_event
         self.var_type = var_type
         self.is_percent = is_percent
-        self.da_ref = cf_vars[0].reference_da
+        if freq.indexer is not None:
+            for cf_var in cf_vars:
+                cf_var.study_da = select_time(cf_var.study_da, **freq.indexer)
+                cf_var.reference_da = select_time(cf_var.reference_da, **freq.indexer)
         self.cf_vars = cf_vars
         if thresh is not None and logical_operation is not None:
             self.nb_event_config = get_nb_event_conf(

@@ -95,11 +95,16 @@ def test_custom_index(index_fun_mock: MagicMock):
 
 # integration test
 def test_txx__season_slice_mode():
+    # GIVEN
     tas = stub_tas()
-    tas.loc[{"time": "2042-02-02"}] = 295
-    tas.loc[{"time": "2042-01-01"}] = 303.15  # 30ºC 273.15
+    tas.loc[{"time": "2043-02-02"}] = 295
+    tas.loc[{"time": "2043-01-01"}] = 303.15  # 30ºC 273.15
+    # WHEN
     res = icclim.txx(tas, slice_mode=["season", [11, 12, 1, 2]]).compute()
-    np.testing.assert_array_equal(res.TXx.isel(time=0), 30)
+    # THEN
+    # missing values for nov, dec of first period
+    np.testing.assert_array_equal(res.TXx.isel(time=0), np.NAN)
+    np.testing.assert_array_equal(res.TXx.isel(time=1), 30.)
     np.testing.assert_array_equal(
         res.time_bounds.isel(time=0),
         [np.datetime64("2041-11-01"), np.datetime64("2042-02-28")],
@@ -112,7 +117,8 @@ def test_txx__months_slice_mode():
     tas.loc[{"time": "2042-01-01"}] = 303.15  # 30ºC 273.15
     res = icclim.txx(tas, slice_mode=["months", [11, 1]]).compute()
     np.testing.assert_array_equal(res.TXx.isel(time=0), 30)
-    np.testing.assert_almost_equal(res.TXx.isel(time=1), 21.85)
+    np.testing.assert_array_equal(res.TXx.isel(time=1), np.NAN)
+    np.testing.assert_almost_equal(res.TXx.sel(time="2042-11"), 21.85)
     np.testing.assert_array_equal(
         res.time_bounds.isel(time=0),
         [np.datetime64("2042-01-01"), np.datetime64("2042-01-31")],

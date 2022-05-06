@@ -318,9 +318,6 @@ def _setup(callback, callback_start_value, logs_verbosity, slice_mode):
     # TODO: it might be safer to feed a context manager which will setup
     #       and teardown these confs
     xclim.set_options(data_validation="warn")
-    if Frequency.is_seasonal(slice_mode):
-        # for now seasonal slice_modes missing values cannot be checked
-        xclim.set_options(check_missing="skip")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
     log.set_verbosity(logs_verbosity)
