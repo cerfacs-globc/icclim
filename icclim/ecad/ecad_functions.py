@@ -552,8 +552,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
 def _is_leap_year(da: DataArray) -> np.ndarray:
     time_index = da.indexes.get("time")
     if isinstance(time_index, xr.CFTimeIndex):
-        cf_calendar: CfCalendar = CfCalendar.lookup(time_index.calendar)
-        return cf_calendar.is_leap(da.time.dt.year)
+        return CfCalendar.lookup(time_index.calendar).is_leap(da.time.dt.year)
     else:
         return da.time.dt.is_leap_year
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import cftime
@@ -85,6 +86,28 @@ class Test_Integration:
         )
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.SU)
+
+    def test_index_SU__time_selection(self):
+        res_string_dates = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            time_range=("19 july 2042", "14 august 2044"),
+        )
+        res_datetime_dates = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            time_range=[datetime(2042, 7, 19), datetime(2044, 8, 14)],
+        )
+        assert res_string_dates.time_bounds[0, 0] == np.datetime64(datetime(2042, 1, 1))
+        assert res_string_dates.time_bounds[0, 1] == np.datetime64(
+            datetime(2042, 12, 31)
+        )
+        np.testing.assert_array_equal(res_string_dates.SU, res_datetime_dates.SU)
+        np.testing.assert_array_equal(
+            res_string_dates.time_bounds, res_datetime_dates.time_bounds
+        )
 
     def test_index_SU__monthy_sampled(self):
         res = icclim.index(

@@ -5,12 +5,11 @@
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from enum import Enum
 from typing import Callable, Dict, List, Literal, Tuple, Union
 
 import cftime
-import dateparser
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -26,6 +25,7 @@ from icclim.models.constants import (
     ONDJFM_MONTHS,
     SON_MONTHS,
 )
+from icclim.utils import read_date
 
 SEASON_ERR_MSG = (
     "A season created using `slice_mode` must be made of either"
@@ -360,7 +360,8 @@ def _build_frequency_filtered_by_month(months: list[int]):
 def _build_seasonal_frequency_between_dates(season: list[str]):
     if len(season) != 2:
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
-    begin_date, end_date = _read_date(season[0]), _read_date(season[1])
+    begin_date = read_date(season[0])
+    end_date = read_date(season[1])
     return _Freq(
         indexer=dict(
             date_bounds=(begin_date.strftime("%m-%d"), end_date.strftime("%m-%d"))
@@ -387,16 +388,6 @@ def _build_seasonal_frequency_for_months(season):
         description=f"seasonal time series (season: {season})",
         accepted_values=[],
     )
-
-
-def _read_date(date_string: str) -> datetime:
-    error_msg = (
-        "The date {} does not have a valid format."
-        " You can use various formats such as '2 december' or '02-12'."
-    )
-    if (date := dateparser.parse(date_string)) is None:
-        raise InvalidIcclimArgumentError(error_msg.format(date_string))
-    return date
 
 
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]

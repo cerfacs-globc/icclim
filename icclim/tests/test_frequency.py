@@ -6,7 +6,7 @@ import pytest
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency, get_seasonal_time_updater
-from icclim.tests.test_utils import stub_tas
+from icclim.tests.testing_utils import stub_tas
 
 
 class Test_build_frequency_over_frequency:

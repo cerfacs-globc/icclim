@@ -18,7 +18,7 @@ from icclim.models.constants import (
 from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.tests.test_utils import stub_tas
+from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.calc_operation import CalcOperation
 
 DEFAULT_ARGS = dict(

@@ -113,14 +113,13 @@ def index(
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,  # TODO: use dateparser to accept strings
+    time_range: list[datetime | str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: list[datetime]
-    | None = None,  # TODO: use dateparser to accept strings
+    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -129,7 +128,7 @@ def index(
     ) = QuantileInterpolation.MEDIAN_UNBIASED,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
-    user_index: UserIndexDict = None,
+    user_index: UserIndexDict | None = None,
     save_percentile: bool = False,
     logs_verbosity: Verbosity | str = Verbosity.LOW,
     # deprecated parameters

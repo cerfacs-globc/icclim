@@ -10,7 +10,7 @@ from icclim.models.constants import PRECIPITATION, TEMPERATURE
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
 from icclim.models.user_index_config import LogicalOperation
-from icclim.tests.test_utils import stub_pr, stub_tas, stub_user_index
+from icclim.tests.testing_utils import stub_pr, stub_tas, stub_user_index
 from icclim.user_indices import calc_operation
 from icclim.user_indices.calc_operation import (
     CalcOperation,

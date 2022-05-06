@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Literal
 
+from utils import get_date_to_iso_format
 from xarray.core.dataarray import DataArray
 from xclim.core.calendar import select_time
 
@@ -161,7 +162,7 @@ class UserIndexConfig:
         self.save_percentile = save_percentile
         self.ref_time_range = ref_time_range
         if (rtr := ref_time_range) is not None:
-            rtr = [x.strftime("%Y-%m-%d") for x in rtr]
+            rtr = [get_date_to_iso_format(date) for date in rtr]
             for cf_var in cf_vars:
                 cf_var.reference_da = cf_var.study_da.sel(time=slice(rtr[0], rtr[1]))
 
