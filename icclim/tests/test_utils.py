@@ -3,14 +3,13 @@ from typing import List
 import numpy as np
 import pandas as pd
 import xarray
+import xarray as xr
 
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
 from icclim.models.user_index_config import UserIndexConfig
 
-import xarray as xr
-
-VALUE_COUNT = 365 * 5 + 1 # 5 years of data (with 1 leap year)
+VALUE_COUNT = 365 * 5 + 1  # 5 years of data (with 1 leap year)
 COORDS = dict(
     lat=[42],
     lon=[42],
@@ -19,6 +18,7 @@ COORDS = dict(
 K2C = 273.15
 
 CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")
+
 
 def stub_user_index(cf_vars: List[CfVariable]):
     return UserIndexConfig(

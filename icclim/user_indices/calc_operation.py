@@ -3,7 +3,6 @@ from __future__ import annotations
 from enum import Enum
 from typing import Callable, Literal
 
-import xclim.core.calendar
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError

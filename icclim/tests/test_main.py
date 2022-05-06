@@ -123,7 +123,7 @@ class Test_Integration:
         )
         np.testing.assert_array_equal(res.SU.isel(time=0), np.NAN)
         np.testing.assert_array_equal(res.SU.isel(time=1), 0)
-        # "+ 1" because DJF sampling create a december month with nans before for first year
+        # "+ 1" because DJF sampling create a december month with nans before first year
         np.testing.assert_array_equal(
             len(np.unique(self.TIME_RANGE.year)) + 1, len(res.time)
         )
@@ -176,7 +176,7 @@ class Test_Integration:
             in_files=ds,
             out_file=self.OUTPUT_FILE,
             ignore_error=True,
-            slice_mode="DJF"
+            slice_mode="DJF",
         ).compute()
         for i in EcadIndex:
             # No variable in input to compute snow indices

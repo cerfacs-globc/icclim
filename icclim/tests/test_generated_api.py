@@ -104,7 +104,7 @@ def test_txx__season_slice_mode():
     # THEN
     # missing values for nov, dec of first period
     np.testing.assert_array_equal(res.TXx.isel(time=0), np.NAN)
-    np.testing.assert_array_equal(res.TXx.isel(time=1), 30.)
+    np.testing.assert_array_equal(res.TXx.isel(time=1), 30.0)
     np.testing.assert_array_equal(
         res.time_bounds.isel(time=0),
         [np.datetime64("2041-11-01"), np.datetime64("2042-02-28")],
@@ -137,7 +137,9 @@ def test_txx__months_slice_mode():
         (CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS, 1, 1),
     ],
 )
-def test_custom_index__season_slice_mode(operator, expectation_year_1, expectation_year_2):
+def test_custom_index__season_slice_mode(
+    operator, expectation_year_1, expectation_year_2
+):
     tas = stub_tas(2.0)
     tas.loc[{"time": "2042-01-01"}] = 303.15
     tas.loc[{"time": "2042-12-01"}] = 280.15
@@ -164,7 +166,9 @@ def test_custom_index__season_slice_mode(operator, expectation_year_1, expectati
         (CalcOperation.RUN_SUM, 14, 14),
     ],
 )
-def test_custom_index_run_algos__season_slice_mode(operator, expectation_year_1, expectation_year_2):
+def test_custom_index_run_algos__season_slice_mode(
+    operator, expectation_year_1, expectation_year_2
+):
     tas = stub_tas(2.0)
     res = icclim.custom_index(
         in_files=tas,

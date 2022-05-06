@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Literal
 
-from xclim.core.calendar import select_time
 from xarray.core.dataarray import DataArray
+from xclim.core.calendar import select_time
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency

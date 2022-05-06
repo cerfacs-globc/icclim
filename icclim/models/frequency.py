@@ -7,10 +7,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Callable, List, Tuple, Union, Dict
+from typing import Callable, Dict, List, Literal, Tuple, Union
 
 import cftime
-
 import dateparser
 import numpy as np
 import pandas as pd
@@ -29,9 +28,9 @@ from icclim.models.constants import (
 )
 
 SEASON_ERR_MSG = (
-    f"A season created using `slice_mode` must be made of either"
-    f" consecutive integer for months such as [1,2,3] or two string for"
-    f" dates such as ['19 july', '14 august']."
+    "A season created using `slice_mode` must be made of either"
+    " consecutive integer for months such as [1,2,3] or two string for"
+    " dates such as ['19 july', '14 august']."
 )
 
 
@@ -75,7 +74,7 @@ def get_seasonal_time_updater(
                         end_month + 1,
                         1,
                         calendar=first_time.calendar,
-                    )- timedelta(days=1)
+                    ) - timedelta(days=1)
                 else:
                     end = cftime.datetime(
                         year_of_season_end,
@@ -86,7 +85,9 @@ def get_seasonal_time_updater(
             else:
                 start = pd.to_datetime(f"{year}-{start_month}-{start_day}")
                 if end_day is None:
-                    end = pd.to_datetime(f"{year_of_season_end}-{end_month + 1}") - timedelta(days=1)
+                    end = pd.to_datetime(
+                        f"{year_of_season_end}-{end_month + 1}"
+                    ) - timedelta(days=1)
                 else:
                     end = pd.to_datetime(f"{year_of_season_end}-{end_month}-{end_day}")
             new_time_axis.append(start + (end - start) / 2)
@@ -249,7 +250,6 @@ class Frequency(Enum):
        Do not use as is, use `slice_mode` with "month", "season" keywords instead.
     """
 
-
     def __init__(self, freq: _Freq):
         self._freq = freq
 
@@ -324,9 +324,9 @@ def _is_season_valid(months: list[int]) -> bool:
 def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
     if len(slice_mode_list) < 2:
         raise InvalidIcclimArgumentError(
-            f"Invalid slice_mode format."
-            f" When slice_mode is a list, its first element must be a keyword and"
-            f" its second a list (e.g `slice_mode=['season', [1,2,3]]` )."
+            "Invalid slice_mode format."
+            " When slice_mode is a list, its first element must be a keyword and"
+            " its second a list (e.g `slice_mode=['season', [1,2,3]]` )."
         )
     freq_keyword = slice_mode_list[0]
     custom_freq = Frequency.CUSTOM
@@ -346,7 +346,7 @@ def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
     return custom_freq
 
 
-def _build_frequency_filtered_by_month(months: List[int]):
+def _build_frequency_filtered_by_month(months: list[int]):
     return _Freq(
         indexer=dict(month=months),
         post_processing=_get_time_bounds_updater("MS"),
@@ -393,13 +393,15 @@ def _read_date(date_string: str) -> datetime:
         "The date {} does not have a valid format."
         " You can use various formats such as '2 december' or '02-12'."
     )
-    if (date := dateparser.parse(date_string)) == None:
+    if (date := dateparser.parse(date_string)) is None:
         raise InvalidIcclimArgumentError(error_msg.format(date_string))
     return date
 
 
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
 
-MonthsIndexer = Dict["month", List[int]]  # format [12,1,2,3]
-DatesIndexer = Dict["date_bounds", Tuple[str, str]]  # format ("01-25", "02-28")
+MonthsIndexer = Dict[Literal["month"], List[int]]  # format [12,1,2,3]
+DatesIndexer = Dict[
+    Literal["date_bounds"], Tuple[str, str]
+]  # format ("01-25", "02-28")
 Indexer = Union[MonthsIndexer, DatesIndexer]

@@ -3,7 +3,7 @@ All ECA&D functions. Each function wraps its xclim equivalent functions adding i
 metadata to it.
 """
 import re
-from typing import Callable, Optional, Tuple, Any
+from typing import Any, Callable, Optional, Tuple
 from warnings import warn
 
 import numpy as np
@@ -823,7 +823,11 @@ def _compute_percentile_doy(
     callback: Callable = None,
 ) -> DataArray:
     per = percentile_doy(
-        da, window, percentile, alpha=interpolation.alpha, beta=interpolation.beta,
+        da,
+        window,
+        percentile,
+        alpha=interpolation.alpha,
+        beta=interpolation.beta,
     )
     if callback is not None:
         callback(50)
@@ -859,7 +863,10 @@ def _filter_in_wet_days(da: DataArray, dry_day_value: float):
 
 
 def _compute_threshold_index(
-    da: DataArray, threshold: float, freq_config: dict, xclim_index_fun: Callable,
+    da: DataArray,
+    threshold: float,
+    freq_config: dict,
+    xclim_index_fun: Callable,
 ) -> DataArray:
     result = xclim_index_fun(da, thresh=f"{threshold} °C", **freq_config)
     return result
@@ -877,7 +884,11 @@ def _compute_spell_duration(
     xclim_index_fun: Callable,
 ) -> Tuple[DataArray, Optional[DataArray]]:
     per = _compute_percentile_doy(
-        cf_var.reference_da, per_thresh, per_window, per_interpolation, callback,
+        cf_var.reference_da,
+        per_thresh,
+        per_window,
+        per_interpolation,
+        callback,
     )
     run_bootstrap = _can_run_bootstrap(cf_var)
     result = xclim_index_fun(
@@ -950,16 +961,26 @@ def compute_compound_index(
         Otherwise, returns the index_result
     """
     tas_per = _compute_percentile_doy(
-        tas.reference_da, tas_per_thresh, per_window, per_interpolation, callback,
+        tas.reference_da,
+        tas_per_thresh,
+        per_window,
+        per_interpolation,
+        callback,
     )
     tas_per = tas_per.squeeze(PERCENTILES_COORD, drop=True)
     pr_in_base = _filter_in_wet_days(pr.reference_da, dry_day_value=np.NAN)
     pr_out_of_base = _filter_in_wet_days(pr.study_da, dry_day_value=0)
     pr_per = _compute_percentile_doy(
-        pr_in_base, pr_per_thresh, per_window, per_interpolation, callback,
+        pr_in_base,
+        pr_per_thresh,
+        per_window,
+        per_interpolation,
+        callback,
     )
     pr_per = pr_per.squeeze(PERCENTILES_COORD, drop=True)
-    result = xclim_index_fun(tas.study_da, tas_per, pr_out_of_base, pr_per, **freq_config)
+    result = xclim_index_fun(
+        tas.study_da, tas_per, pr_out_of_base, pr_per, **freq_config
+    )
     if save_percentile:
         # FIXME, not consistent with other percentile based indices
         #        We should probably return a Tuple (res, [tas_per, pr_per])
@@ -982,7 +1003,11 @@ def _compute_rxxptot(
         base_wet_days, per_interpolation, pr_per_thresh
     )
     result = atmos.fraction_over_precip_thresh(
-        pr.study_da, per, thresh="1 mm/day", **freq_config, bootstrap=False,
+        pr.study_da,
+        per,
+        thresh="1 mm/day",
+        **freq_config,
+        bootstrap=False,
     ).squeeze(PERCENTILES_COORD, drop=True)
     result = result * 100
     result.attrs["units"] = "%"
@@ -1004,7 +1029,11 @@ def _compute_rxxp(
         base_wet_days, per_interpolation, pr_per_thresh
     )
     result = atmos.days_over_precip_thresh(
-        pr.study_da, per, thresh="1 mm/day", **freq_config, bootstrap=False,
+        pr.study_da,
+        per,
+        thresh="1 mm/day",
+        **freq_config,
+        bootstrap=False,
     )
     result = result.squeeze(PERCENTILES_COORD, drop=True)
     if is_percent:
@@ -1027,10 +1056,17 @@ def _compute_temperature_percentile_index(
 ) -> Tuple[DataArray, Optional[DataArray]]:
     run_bootstrap = _can_run_bootstrap(cf_var)
     per = _compute_percentile_doy(
-        cf_var.reference_da, tas_per_thresh, per_window, per_interpolation, callback,
+        cf_var.reference_da,
+        tas_per_thresh,
+        per_window,
+        per_interpolation,
+        callback,
     ).compute()
     result = xclim_index_fun(
-        cf_var.study_da, per, **freq_config, bootstrap=run_bootstrap,
+        cf_var.study_da,
+        per,
+        **freq_config,
+        bootstrap=run_bootstrap,
     ).squeeze(PERCENTILES_COORD, drop=True)
     if run_bootstrap:
         result = _add_bootstrap_meta(result, per)

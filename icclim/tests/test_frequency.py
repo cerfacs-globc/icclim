@@ -65,11 +65,12 @@ class Test_build_frequency_over_list:
         assert freq.post_processing is not None
 
     def test_lookup_season_between_dates(self):
-        freq = Frequency.lookup(["season",["07-19","08-14"]])
+        freq = Frequency.lookup(["season", ["07-19", "08-14"]])
         assert freq == Frequency.CUSTOM
         assert freq.pandas_freq == "AS-JUL"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
+
 
 class Test_seasons_resampler:
     def test_simple(self):
@@ -104,15 +105,16 @@ class Test_seasons_resampler:
     @pytest.mark.parametrize("use_cf", [True, False])
     def test_between_dates(self, use_cf):
         # WHEN
-        test_da = filter_months(stub_tas(use_cftime=use_cf), [11, 12, 1])\
-            .resample(time="AS-NOV")\
+        test_da = (
+            filter_months(stub_tas(use_cftime=use_cf), [11, 12, 1])
+            .resample(time="AS-NOV")
             .mean()
+        )
         da_res, time_bds_res = get_seasonal_time_updater(11, 1, 2, 30)(test_da)
         # THEN
-        np.testing.assert_array_equal(1, da_res) # data must be unchanged
+        np.testing.assert_array_equal(1, da_res)  # data must be unchanged
         assert time_bds_res[0].data[0] == pd.to_datetime("2041-11-02")
         assert time_bds_res[0].data[1] == pd.to_datetime("2042-01-30")
-
 
 
 def filter_months(da, month_list: list[int]):
