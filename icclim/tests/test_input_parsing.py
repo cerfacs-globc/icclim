@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 import xarray as xr
 
+from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.ecad_indices import EcadIndex
 from icclim.pre_processing.input_parsing import read_dataset, update_to_standard_coords
 
 

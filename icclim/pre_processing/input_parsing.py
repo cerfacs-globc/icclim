@@ -4,8 +4,8 @@ import xarray as xr
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
+from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.ecad_indices import EcadIndex
 
 
 def read_dataset(
@@ -30,13 +30,15 @@ def read_dataset(
                 var_names = var_names[0]
             data_name = var_names
         else:
-            if len(index.variables) > 1:
+            if len(index.input_variables) > 1:
                 raise InvalidIcclimArgumentError(
-                    f"Index {index.name} needs {len(index.variables)} variables."
+                    f"Index {index.name} needs {len(index.input_variables)} variables."
                     f" Please provide them with an xarray.Dataset, a netCDF file or a"
                     f" zarr store."
                 )
-            data_name = index.variables[0][0]  # first alias of the unique variable
+            data_name = index.input_variables[0][
+                0
+            ]  # first alias of the unique variable
         input_dataset = data.to_dataset(name=data_name, promote_attrs=True)
         chunk_da = False
     elif isinstance(data, list):

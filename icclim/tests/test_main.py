@@ -8,8 +8,8 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim.ecad.ecad_indices import EcadIndex
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
 

@@ -17,11 +17,11 @@ import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim.ecad_functions import IndexConfig
+from icclim.ecad.ecad_functions import IndexConfig
+from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
@@ -485,7 +485,7 @@ def _guess_variable_names(
     if isinstance(in_var_name, str):
         return [in_var_name]
     res = []
-    index_variables = index.variables
+    index_variables = index.input_variables
     for indice_var in index_variables:
         for alias in indice_var:
             # check if dataset contains this alias

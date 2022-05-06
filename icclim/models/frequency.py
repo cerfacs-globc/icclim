@@ -322,6 +322,7 @@ def _is_season_valid(months: list[int]) -> bool:
 
 
 def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
+    # TODO: we should accept a tuple of size 2 as well
     if len(slice_mode_list) < 2:
         raise InvalidIcclimArgumentError(
             "Invalid slice_mode format."

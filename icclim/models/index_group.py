@@ -29,6 +29,6 @@ class IndexGroup(Enum):
 
     def get_indices(self) -> list[Any]:
         # import locally to avoid circular dependency (an index has already a group)
-        from icclim.models.ecad_indices import EcadIndex
+        from icclim.ecad.ecad_indices import EcadIndex
 
         return list(filter(lambda i: i.group == self, EcadIndex))
