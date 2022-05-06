@@ -4,13 +4,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Callable, Literal
 
-from utils import get_date_to_iso_format
 from xarray.core.dataarray import DataArray
 from xclim.core.calendar import select_time
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
+from icclim.utils import get_date_to_iso_format
 
 LogicalOperationLiteral = Literal[
     "gt",
