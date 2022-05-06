@@ -2,8 +2,10 @@
 All ECA&D functions. Each function wraps its xclim equivalent functions adding icclim
 metadata to it.
 """
+from __future__ import annotations
+
 import re
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable
 from warnings import warn
 
 import numpy as np
@@ -66,7 +68,7 @@ def id(config: IndexConfig) -> DataArray:
     )
 
 
-def csdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def csdi(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     thresh = 10 if config.threshold is None else config.threshold
     return _compute_spell_duration(
         cf_var=config.tasmin,
@@ -81,7 +83,7 @@ def csdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def tg10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tg10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_temperature_percentile_index(
         cf_var=config.tas,
         freq_config=_build_frequency_kwargs(config),
@@ -95,7 +97,7 @@ def tg10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def tn10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tn10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_temperature_percentile_index(
         cf_var=config.tasmin,
         freq_config=_build_frequency_kwargs(config),
@@ -109,7 +111,7 @@ def tn10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def tx10p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tx10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_temperature_percentile_index(
         cf_var=config.tasmax,
         freq_config=_build_frequency_kwargs(config),
@@ -160,7 +162,7 @@ def tr(config: IndexConfig) -> DataArray:
     )
 
 
-def wsdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def wsdi(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     thresh = 90 if config.threshold is None else config.threshold
     return _compute_spell_duration(
         cf_var=config.tasmax,
@@ -175,7 +177,7 @@ def wsdi(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def tg90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tg90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_temperature_percentile_index(
         cf_var=config.tas,
         freq_config=_build_frequency_kwargs(config),
@@ -189,7 +191,7 @@ def tg90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def tn90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tn90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_temperature_percentile_index(
         cf_var=config.tasmin,
         freq_config=_build_frequency_kwargs(config),
@@ -203,7 +205,7 @@ def tn90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def tx90p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def tx90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_temperature_percentile_index(
         cf_var=config.tasmax,
         freq_config=_build_frequency_kwargs(config),
@@ -295,7 +297,7 @@ def rx5day(config: IndexConfig) -> DataArray:
     return result
 
 
-def r75p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r75p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_rxxp(
         pr=config.pr,
         freq_config=_build_frequency_kwargs(config),
@@ -306,7 +308,7 @@ def r75p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def r75ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r75ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_rxxptot(
         pr=config.pr,
         freq_config=_build_frequency_kwargs(config),
@@ -316,7 +318,7 @@ def r75ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def r95p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r95p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_rxxp(
         pr=config.pr,
         freq_config=_build_frequency_kwargs(config),
@@ -327,7 +329,7 @@ def r95p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def r95ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r95ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_rxxptot(
         pr=config.pr,
         freq_config=_build_frequency_kwargs(config),
@@ -337,7 +339,7 @@ def r95ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def r99p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r99p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_rxxp(
         pr=config.pr,
         freq_config=_build_frequency_kwargs(config),
@@ -348,7 +350,7 @@ def r99p(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
     )
 
 
-def r99ptot(config: IndexConfig) -> Tuple[DataArray, Optional[DataArray]]:
+def r99ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
     return _compute_rxxptot(
         pr=config.pr,
         freq_config=_build_frequency_kwargs(config),
@@ -882,7 +884,7 @@ def _compute_spell_duration(
     save_percentile: bool,
     callback: Callable,
     xclim_index_fun: Callable,
-) -> Tuple[DataArray, Optional[DataArray]]:
+) -> tuple[DataArray, DataArray | None]:
     per = _compute_percentile_doy(
         cf_var.reference_da,
         per_thresh,
@@ -997,7 +999,7 @@ def _compute_rxxptot(
     pr_per_thresh: float,
     per_interpolation: QuantileInterpolation,
     save_percentile: bool,
-) -> Tuple[DataArray, Optional[DataArray]]:
+) -> tuple[DataArray, DataArray | None]:
     base_wet_days = _filter_in_wet_days(pr.reference_da, dry_day_value=np.nan)
     per = _compute_percentile_over_period(
         base_wet_days, per_interpolation, pr_per_thresh
@@ -1023,7 +1025,7 @@ def _compute_rxxp(
     per_interpolation: QuantileInterpolation,
     save_percentile: bool,
     is_percent: bool,
-) -> Tuple[DataArray, Optional[DataArray]]:
+) -> tuple[DataArray, DataArray | None]:
     base_wet_days = _filter_in_wet_days(pr.reference_da, dry_day_value=np.nan)
     per = _compute_percentile_over_period(
         base_wet_days, per_interpolation, pr_per_thresh
@@ -1053,7 +1055,7 @@ def _compute_temperature_percentile_index(
     is_percent: bool,
     callback: Callable,
     xclim_index_fun: Callable,
-) -> Tuple[DataArray, Optional[DataArray]]:
+) -> tuple[DataArray, DataArray | None]:
     run_bootstrap = _can_run_bootstrap(cf_var)
     per = _compute_percentile_doy(
         cf_var.reference_da,
