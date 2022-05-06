@@ -3,8 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 
 import dateparser
-from icclim_exceptions import InvalidIcclimArgumentError
 from xarray import DataArray, Dataset
+
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
 
 def _da_chunksizes(da: DataArray) -> dict:

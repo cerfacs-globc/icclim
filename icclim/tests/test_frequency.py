@@ -44,6 +44,13 @@ class Test_build_frequency_over_list:
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
+    def test_season_tuple(self):
+        freq = Frequency.lookup(("season", [1, 2, 3, 4]))
+        assert freq == Frequency.CUSTOM
+        assert freq.pandas_freq == "AS-JAN"
+        assert freq.accepted_values == []
+        assert freq.post_processing is not None
+
     def test_winter__deprecated_tuple(self):
         freq = Frequency.lookup(["season", ([11, 12], [1, 2, 3, 4])])
         assert freq == Frequency.CUSTOM
