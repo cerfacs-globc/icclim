@@ -121,7 +121,7 @@ def test_txx__months_slice_mode():
 
 # integration test
 @pytest.mark.parametrize(
-    "operator, exp_y1, exp_y2",
+    "operator, expectation_year_1, expectation_year_2",
     [
         (CalcOperation.MIN, 303.15, 280.15),
         (CalcOperation.MAX, 303.15, 280.15),
@@ -131,7 +131,7 @@ def test_txx__months_slice_mode():
         (CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS, 1, 1),
     ],
 )
-def test_custom_index__season_slice_mode(operator, exp_y1, exp_y2):
+def test_custom_index__season_slice_mode(operator, expectation_year_1, expectation_year_2):
     tas = stub_tas(2.0)
     tas.loc[{"time": "2042-01-01"}] = 303.15
     tas.loc[{"time": "2042-12-01"}] = 280.15
@@ -145,20 +145,20 @@ def test_custom_index__season_slice_mode(operator, exp_y1, exp_y2):
             "logical_operation": "gt",
             "thresh": 275,
         },
-    ).compute()
-    np.testing.assert_almost_equal(res.pouet.isel(time=0), exp_y1)
-    np.testing.assert_almost_equal(res.pouet.isel(time=1), exp_y2)
+    )
+    np.testing.assert_almost_equal(res.pouet.isel(time=0), expectation_year_1)
+    np.testing.assert_almost_equal(res.pouet.isel(time=1), expectation_year_2)
 
 
 # integration test
 @pytest.mark.parametrize(
-    "operator, exp_y1, exp_y2",
+    "operator, expectation_year_1, expectation_year_2",
     [
         (CalcOperation.RUN_MEAN, 2, 2),
         (CalcOperation.RUN_SUM, 14, 14),
     ],
 )
-def test_custom_index_run_algos__season_slice_mode(operator, exp_y1, exp_y2):
+def test_custom_index_run_algos__season_slice_mode(operator, expectation_year_1, expectation_year_2):
     tas = stub_tas(2.0)
     res = icclim.custom_index(
         in_files=tas,
@@ -170,9 +170,9 @@ def test_custom_index_run_algos__season_slice_mode(operator, exp_y1, exp_y2):
             "extreme_mode": "max",
             "window_width": 7,
         },
-    ).compute()
-    np.testing.assert_almost_equal(res.pouet.isel(time=0), exp_y1)
-    np.testing.assert_almost_equal(res.pouet.isel(time=1), exp_y2)
+    )
+    np.testing.assert_almost_equal(res.pouet.isel(time=0), expectation_year_1)
+    np.testing.assert_almost_equal(res.pouet.isel(time=1), expectation_year_2)
 
 
 def test_custom_index_anomaly__season_slice_mode():
@@ -187,5 +187,5 @@ def test_custom_index_anomaly__season_slice_mode():
             "calc_operation": CalcOperation.ANOMALY,
             "ref_time_range": [datetime(2042, 1, 1), datetime(2044, 12, 31)],
         },
-    ).compute()
+    )
     np.testing.assert_almost_equal(res.anomaly, 0.96129032)

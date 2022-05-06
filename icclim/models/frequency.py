@@ -1,6 +1,6 @@
 """
     `icclim.models.frequency` wraps the concept of pandas frequency in order to resample
-    time series.  `slice_mode` paramater of `icclim.index` is always converted to a
+    time series.  `slice_mode` parameter of `icclim.index` is always converted to a
     `Frequency`.
 """
 from __future__ import annotations
@@ -79,20 +79,19 @@ def get_seasonal_time_updater(
                         year_of_season_end,
                         end_month + 1,
                         1,
-                        calendar=first_time.calendar
-                    )
+                        calendar=first_time.calendar,
+                    )- timedelta(days=1)
                 else:
                     end = cftime.datetime(
                         year_of_season_end,
                         end_month,
                         end_day,
-                        calendar=first_time.calendar
+                        calendar=first_time.calendar,
                     )
             else:
                 start = pd.to_datetime(f"{year}-{start_month}-{start_day}")
                 if end_day is None:
-                    end = pd.to_datetime(f"{year_of_season_end}-{end_month + 1}")
-                    end = end - timedelta(days=1)
+                    end = pd.to_datetime(f"{year_of_season_end}-{end_month + 1}") - timedelta(days=1)
                 else:
                     end = pd.to_datetime(f"{year_of_season_end}-{end_month}-{end_day}")
             new_time_axis.append(start + (end - start) / 2)
@@ -316,7 +315,7 @@ def _get_frequency_from_string(slice_mode: str) -> Frequency:
     raise InvalidIcclimArgumentError(f"Unknown frequency {slice_mode}.")
 
 
-def _is_season_valid(months):
+def _is_season_valid(months: list[int]) -> bool:
     is_valid = True
     for i in range(0, len(months) - 1):
         is_valid = is_valid and months[i] > 0 and months[i] < 13

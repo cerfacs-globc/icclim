@@ -3,7 +3,7 @@
 
 ICCLIM_VERSION = "5.2.2-dev"
 
-# placeholder for user_indices
+# placeholder for user_index
 PERCENTILE_THRESHOLD_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm
 PRECIPITATION = "p"
@@ -20,10 +20,10 @@ TAS = ["tas", "tavg", "ta", "tasadjust", "tmean", "tm", "tg", "meant", "TMEAN", 
 TAS_MAX = ["tasmax", "tasmaxadjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX", "MAXT", "maxT"]
 TAS_MIN = ["tasmin", "tasminadjust", "tmin", "tn", "mint", "TMIN", "Tmin", "TN", "MINT", "minT"]
 
-# Source of index definition
+# Source of ECA&D indices definition
 ECAD_ATBD = "ECA&D, Algorithm Theoretical Basis Document (ATBD) v11"
 
-# Index qualifiers
+# Index qualifiers (needed to generate the API)
 QUANTILE_BASED = "QUANTILE_BASED"  # fields: QUANTILE_INDEX_FIELDS
 MODIFIABLE_UNIT = "MODIFIABLE_UNIT"  # fields: out_unit
 MODIFIABLE_THRESHOLD = "MODIFIABLE_THRESHOLD"  # fields: threshold
