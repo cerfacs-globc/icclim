@@ -17,6 +17,7 @@ dependencies:
  - psutil
  - zarr
  - fsspec
+ - dateparser
  # Dev dependencies
  - pre-commit
  - pydata-sphinx-theme
