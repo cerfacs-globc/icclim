@@ -26,54 +26,65 @@ class Test_build_frequency_over_string:
 
 
 class Test_build_frequency_over_list:
-    def test_error(self):
+    def test_lookup_list__keyword_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
             Frequency.lookup(["cacahuêtes"])
 
-    def test_month(self):
+    def test_lookup_string_error(self):
+        with pytest.raises(InvalidIcclimArgumentError):
+            Frequency.lookup("cacahuêtes")
+
+    def test_lookup_month(self):
         freq = Frequency.lookup(["month", [1, 4, 3]])
         assert freq == Frequency.CUSTOM
         assert freq.pandas_freq == "MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_season(self):
+    def test_lookup_season(self):
         freq = Frequency.lookup(["season", [1, 2, 3, 4]])
         assert freq == Frequency.CUSTOM
         assert freq.pandas_freq == "AS-JAN"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_season_tuple(self):
+    def test_lookup_season_tuple(self):
         freq = Frequency.lookup(("season", [1, 2, 3, 4]))
         assert freq == Frequency.CUSTOM
         assert freq.pandas_freq == "AS-JAN"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_winter__deprecated_tuple(self):
+    def test_lookup_pandas_freq(self):
+        freq = Frequency.lookup("3MS")
+        assert freq == Frequency.CUSTOM
+        assert freq.pandas_freq == "3MS"
+        assert freq.accepted_values == []
+        assert freq.post_processing is not None
+
+    def test_lookup_winter__deprecated_tuple(self):
         freq = Frequency.lookup(["season", ([11, 12], [1, 2, 3, 4])])
         assert freq == Frequency.CUSTOM
         assert freq.pandas_freq == "AS-NOV"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_error__non_consecutive_season(self):
+    def test_lookup_error__non_consecutive_season(self):
         with pytest.raises(InvalidIcclimArgumentError):
             Frequency.lookup(["season", ([12, 3])])
 
-    def test_error__weird_months(self):
+    def test_lookup_error__weird_months(self):
         with pytest.raises(InvalidIcclimArgumentError):
             Frequency.lookup(["season", ([42, 0])])
 
-    def test_winter(self):
+    def test_lookup__winter(self):
         freq = Frequency.lookup(["season", [11, 12, 1, 2]])
         assert freq == Frequency.CUSTOM
         assert freq.pandas_freq == "AS-NOV"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_lookup_season_between_dates(self):
+    def test_lookup_season__between_dates(self):
         freq = Frequency.lookup(["season", ["07-19", "08-14"]])
         assert freq == Frequency.CUSTOM
         assert freq.pandas_freq == "AS-JUL"

@@ -88,6 +88,7 @@ class Test_Integration:
         np.testing.assert_array_equal(0, res.SU)
 
     def test_index_SU__time_selection(self):
+        # WHEN
         res_string_dates = icclim.index(
             indice_name="SU",
             in_files=self.data,
@@ -100,6 +101,7 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             time_range=[datetime(2042, 7, 19), datetime(2044, 8, 14)],
         )
+        # THEN
         assert res_string_dates.time_bounds[0, 0] == np.datetime64(datetime(2042, 1, 1))
         assert res_string_dates.time_bounds[0, 1] == np.datetime64(
             datetime(2042, 12, 31)
@@ -108,6 +110,18 @@ class Test_Integration:
         np.testing.assert_array_equal(
             res_string_dates.time_bounds, res_datetime_dates.time_bounds
         )
+
+    def test_index_SU__pandas_time_slice_mode(self):
+        # WHEN
+        res = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="2W-WED",
+        )
+        # THEN
+        assert res.time_bounds[0, 0] == np.datetime64(datetime(2042, 1, 1))
+        assert res.time_bounds[0, 1] == np.datetime64(datetime(2042, 1, 14))
 
     def test_index_SU__monthy_sampled(self):
         res = icclim.index(

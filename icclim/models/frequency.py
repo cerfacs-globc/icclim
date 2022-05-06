@@ -13,6 +13,7 @@ import cftime
 import numpy as np
 import pandas as pd
 import xarray as xr
+from pandas.tseries.frequencies import to_offset
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -305,9 +306,24 @@ def _get_frequency_from_string(slice_mode: str) -> Frequency:
             str.upper, freq.accepted_values
         ):
             return freq
-    # TODO: we could add a compatibility to other pandas freq if we detect
-    #       something like WS, 4MS, etc. In which case we would use FREQUENCY.CUSTOM
-    raise InvalidIcclimArgumentError(f"Unknown frequency {slice_mode}.")
+    # else assumes it's a pandas frequency (such as W or 3MS)
+    try:
+        to_offset(slice_mode)  # no-op, used to check if it's a valid pandas freq
+    except ValueError as e:
+        raise InvalidIcclimArgumentError(
+            f"Unknown frequency {slice_mode}. Use either a"
+            " valid icclim frequency or a valid pandas"
+            " frequency",
+            e,
+        )
+    Frequency.CUSTOM._freq = _Freq(
+        post_processing=_get_time_bounds_updater(slice_mode),
+        pandas_freq=slice_mode,
+        description=f"time series sampled on {slice_mode}",
+        accepted_values=[],
+        indexer=None,
+    )
+    return Frequency.CUSTOM
 
 
 def _is_season_valid(months: list[int]) -> bool:
