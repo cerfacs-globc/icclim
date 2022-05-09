@@ -151,14 +151,20 @@ def index(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime | str] | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -190,6 +196,9 @@ def index(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.

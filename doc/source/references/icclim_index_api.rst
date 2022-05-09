@@ -22,20 +22,24 @@ Compute climat indices
 Below are some additional information about input parameters.
 
 ``in_files`` and ``var_name``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``in_files`` parameter could be *string*, *list of strings* or *list of lists of strings*:
+The ``in_files`` parameter can be
+    - A *string* path to a netCDF file or a zarr store
+    - A *list of strings* to represent multiple netCDF files to combine
+    - A *xarray.Dataset*
+    - A *xarray.DataArray*
 
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 | single input file per variable                           |  several input files per variable                                                                       |
 +=================================+==========================================================+=========================================================================================================+
-| simple index                    |  ``var_name`` = 'tasmax'                                 |   ``var_name`` = 'tasmax'                                                                               |
+| simple index                    |  ``var_name`` = 'tasmax'                                 |  ``var_name`` = 'tasmax'                                                                                |
 | (based on a single variable)    +----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 |  ``in_files`` = 'tasmax_1990-2010.nc'                    |  ``in_files`` = ['tasmax_1990-2000.nc', 'tasmax_2000-2010.nc']                                          |
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-| multivariable index             |  ``var_name`` = ['tas', 'pr']                            |   ``var_name`` = ['tas', 'pr']                                                                          |
+| multivariable index             |  ``var_name`` = ['tas', 'pr']                            |  ``var_name`` = ['tas', 'pr']                                                                           |
 | (based on several variables)    +----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-|                                 |  ``in_files`` = ['tas_1990-2010.nc', 'pr_1990-2010.nc']  |   ``in_files`` = [['tas_1990-2000.nc', 'tas_2000-2010.nc'], ['pr_1990-2000.nc'], 'pr_2000-2010.nc']]    |
+|                                 |  ``in_files`` = ['tas_1990-2010.nc', 'pr_1990-2010.nc']  |  ``in_files`` = ['tas_1990-2000.nc', 'tas_2000-2010.nc', 'pr_1990-2000.nc', 'pr_2000-2010.nc']          |
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 
 .. _slice_mode:
@@ -45,25 +49,30 @@ The ``in_files`` parameter could be *string*, *list of strings* or *list of list
 The ``slice_mode`` parameter defines a desired temporal aggregation. Thus, each index can be calculated at annual, winter half-year, summer half-year, winter, spring,
 summer, autumn and monthly frequency:
 
-+----------------------+-----------------------+
-| Value (string)       | Description           |
-+======================+=======================+
-|  ``year`` (default)  |    annual             |
-+----------------------+-----------------------+
-|  ``month``           | monthly (all months)  |
-+----------------------+-----------------------+
-|  ``ONDJFM``          |    winter half-year   |
-+----------------------+-----------------------+
-|  ``AMJJAS``          |    summer half-year   |
-+----------------------+-----------------------+
-|  ``DJF``             |    winter             |
-+----------------------+-----------------------+
-|  ``MAM``             |    spring             |
-+----------------------+-----------------------+
-|  ``JJA``             |    summer             |
-+----------------------+-----------------------+
-|  ``SON``             |    autumn             |
-+----------------------+-----------------------+
+|   Value (string)     |    Description                            |
++======================+===========================================+
+|  ``year`` (default)  |    annual                                 |
++----------------------+-------------------------------------------+
+|  ``month``           |    monthly (all months)                   |
++----------------------+-------------------------------------------+
+|  ``ONDJFM``          |    winter half-year                       |
++----------------------+-------------------------------------------+
+|  ``AMJJAS``          |    summer half-year                       |
++----------------------+-------------------------------------------+
+|  ``DJF``             |    winter                                 |
++----------------------+-------------------------------------------+
+|  ``MAM``             |    spring                                 |
++----------------------+-------------------------------------------+
+|  ``JJA``             |    summer                                 |
++----------------------+-------------------------------------------+
+|  ``SON``             |    autumn                                 |
++----------------------+-------------------------------------------+
+|  ['month', [4,5,11]] |    monthly sampling filtered              |
++----------------------+-------------------------------------------+
+|  ['season', [4,5,6]] |    seasonal (1 value per season)          |
++----------------------+-------------------------------------------+
+|  "3W"                |    A valid pandas frequency               |
++----------------------+-------------------------------------------+
 
 | The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
 | Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001.
@@ -76,7 +85,13 @@ Monthly time series with months selected by user (the keyword can be either "mon
 User defined seasons:
     >>> slice_mode = ['season', [4,5,6,7]]
     or
-    >>> slice_mode = ['season', ([11, 12, 1])]
+    >>> slice_mode = ['season', ([12, 1, 2])] # equivalent to slice_mode = "DJF"
+
+With 5.3.0 icclim now accepts valid pandas frequency in slice_mode.
+It is be used to resample the data to the given frequency (through xclim and xarray)
+There are many possibilities and many combination possible.
+For example use "2AS-FEB" to resample the data on 2 (2) years (A) starting (S) in February (FEB).
+A good start is to have a look at pandas `offset aliases <https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases>`_.
 
 ``threshold``
 ~~~~~~~~~~~~~
@@ -172,7 +187,7 @@ to compute its percentile value.
 
 
 ``only_leap_years``
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 
 The ``only_leap_years`` parameter selects which of two methods to use for calculating a percentile value
 for the calendar day of **February 29th**:
@@ -265,7 +280,7 @@ for the calendar day of **February 29th**:
 .. _interpolation_label:
 
 ``interpolation``
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 Computing of a percentile value could use ``linear``, also known as type 7 in other software or the interpolation proposed
 by `Hyndman and Fan (1996) <https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_, named
 in *icclim* as ``hyndman_fan`` interpolation, also known as type 8.
@@ -276,146 +291,16 @@ in *icclim* as ``hyndman_fan`` interpolation, also known as type 8.
 Percentile-based indices (TX10p, TX90p, TN10p, TN90p, TG10p, TG90p, R75p, R95p and R99p) could be returned as number of days (``out_unit`` = "days")
 or as percentage of days (``out_unit`` = "%").
 
-
 Custom indices
 --------------
-You can also calculate custom climate indices by setting all necessary parameters to ``user_index``.
 
-.. code-block:: python
-
-    user_index_dict = dict(
-        index_name="a_custom_csdi",
-        calc_operation="max_nb_consecutive_events",
-        logical_operation="<",
-        thresh="5p",
-        window_width=5
-    )
-    refer_period = [datetime.datetime(1991, 1, 1), datetime.datetime(1999, 12, 31)]
-    study_period = [datetime.datetime(1991, 1, 1), datetime.datetime(2010, 12, 31)]
-    result = icclim.custom_index(
-        in_files="netcdf_files/tasmin.nc",
-        user_index=user_index_dict,
-        var_name="tmin",
-        slice_mode="YS",
-        base_period_time_range=refer_period,
-        time_range=study_period,
-        out_file="custom_csdi_5.nc"
-    )
-
-
-
-``user_index``
-~~~~~~~~~~~~~~~~
-``user_index`` is a dictionary with possible keys:
-
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|Key                       |Type of value                              |Description                                                                           |
-+==========================+===========================================+======================================================================================+
-|"index_name"              |*str*                                      |Name of custom index.                                                                 |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"calc_operation"          |*str*                                      |Type of calculation. See below for more details.                                      |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"logical_operation"       |*str*                                      |"gt", "lt", "get", "let" or "e"                                                       |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"thresh"                  |*float* or *str*                           |In case of percentile-based index, must be string which starts with "p" (e.g. 'p90'). |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"link_logical_operations" |*str*                                      |"and" or "or"                                                                         |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"extreme_mode"            |*str*                                      |"min" or "max" for computing min or max of running mean/sum.                          |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"window_width"            |*int*                                      |Used for computing running mean/sum.                                                  |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"coef"                    |*float*                                    |Constant for multiplying input data array.                                            |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"date_event"              |*bool*                                     |To keep or not the date of event. See below for more details.                         |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"var_type"                |*str*                                      |"t" or "p". See below for more details.                                               |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-|"ref_time_range"          |[*datetime.datetime*, *datetime.datetime*] |Time range of reference (baseline) period for computing anomalies.                    |
-+--------------------------+-------------------------------------------+--------------------------------------------------------------------------------------+
-
-Additional information about ``user_index`` keys are given below.
-
-
-- key ``calc_operation``
-
-=======================================	===========================================================================
-value									description
-=======================================	===========================================================================
-'max'									maximum
-'min'									minimum
-'sum'									sum
-'mean'									mean
-'nb_events'								number of relevant events fulfilling given criteria
-'max_nb_consecutive_events'             maximum number of consecutive events fulfilling given criteria
-'run_mean'								max or min of running mean
-'run_sum'								max or min of running sum
-'anomaly'								mean(future period) - mean(past period)
-=======================================	===========================================================================
-
-
-- The key ``date_event`` allows to keep date(s) of the event, it if is ``True``:
-
-    - For simple statistics (min, max) in output netCDF file will be created "date_event" variable with numerical dates of the first occurrence of the event for each pixel.
-
-    - For other operations in output netCDF file will be created "date_event_start" and "date_event_end" variables with numerical dates of the event for each pixel.
-
-    .. note:: The "date_event", "date_event_start" and "date_event_end" netCDF variables have the same shape as index's one.
-
-    .. warning:: "Date_event"/"date_event_start"/"date_event_end" has no value:
-
-            - for certain pixels, if event is not found,
-            - for all pixels of "in-base" years (years in base period) for temperature percentile-based indices - it is not possible to determine the correct date of the event because of averaging of index in "in-base" year.
-
-
-- The key ``var_type`` is used to chose the method for computing  percentile thresholds. The methods are different for temperature and precipitation variables (more detailed :ref:`here <pctl_methods_label>`):
-
-    - If 't' (temperature variable), percentile thresholds are computed for each calendar day, using  *the bootstrapping procedure*.
-
-    - If 'p' (precipitation variable), percentile threshold are calculated for whole set of values corresponding to wet days (i.e. days with daily precipitation amount >= 1.0 mm) in base period.
-
-
-
-Correspondence table "cal_operation" -- required/optional parameters:
-
-+-------------------------------+-------------------------------+-----------------------+
-|"calc_operation" value         |  required parameters          | optional_parameters   |
-+===============================+===============================+=======================+
-|'max'/'min'                    |                               |'coef',                |
-|                               |                               |'logical_operation',   |
-|                               |                               |'thresh',              |
-|                               |                               |'date_event'           |
-+-------------------------------+-------------------------------+-----------------------+
-|'mean'/'sum'                   |                               |'coef',                |
-|                               |                               |'logical_operation',   |
-|                               |                               |'thresh',              |
-+-------------------------------+-------------------------------+-----------------------+
-|'nb_events'                    |'logical_operation',           |'coef',                |
-|                               |'thresh',                      |'date_event'           |
-|                               |                               |                       |
-|                               |'link_logical_operations'      |                       |
-|                               |(if multivariable index),      |                       |
-|                               |                               |                       |
-|                               |'var_type'                     |                       |
-|                               |(if percentile-based indices)  |                       |
-+-------------------------------+-------------------------------+-----------------------+
-|'max_nb_consecutive_events'    |'logical_operation',           |'coef',                |
-|                               |'thresh'                       |'date_event'           |
-|                               |                               |                       |
-+-------------------------------+-------------------------------+-----------------------+
-|'run_mean'/'run_sum'           |'extreme_mode',                |'coef',                |
-|                               |'window_width'                 |'date_event'           |
-+-------------------------------+-------------------------------+-----------------------+
-
-.. warning:: The 'window_width' here is a parameter for calculation of statistics in running window. Do not confuse with 'window_width' of :func:`icclim.index`, which is used for computing of temperature percentiles and set to 5 as default.
-
-.. note:: See examples for computing custom indices :ref:`here <custom_indices>`.
+Custom indices are now described in their own chapter: `here <custom_indices>`_
 
 
 .. _table_index_sourceVar_label:
 
 Correspondence table "index - source variable"
------------------------------------------------
+----------------------------------------------
 
 Using common names for the source variable, icclim is able to lookup the proper variable in the given input to compute an index.
 
