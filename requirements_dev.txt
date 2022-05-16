@@ -3,6 +3,7 @@ cftime~=1.5.0
 dask
 dateparser
 flake8
+flake8-rst-docstrings
 isort
 netCDF4~=1.5.7
 numpy~=1.21.1

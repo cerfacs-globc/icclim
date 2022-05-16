@@ -700,9 +700,8 @@ def compute_compound_index(
 
     Returns
     -------
-        If save_percentile is True,
-            returns a Tuple of index_result, computed_percentiles
-        Otherwise, returns the index_result
+        If save_percentile is True, returns a Tuple of index_result,
+        computed_percentiles. Otherwise, returns the index_result
     """
     tas_per = _compute_percentile_doy(
         tas.reference_da,

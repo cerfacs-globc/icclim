@@ -137,6 +137,8 @@ def index(
     transfer_limit_Mbytes: float = None,
 ) -> Dataset:
     """
+    Main entry point for icclim to compute climate indices.
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray,

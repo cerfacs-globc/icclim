@@ -5,10 +5,11 @@ Each generated functions signature is consistent with icclim.index signature but
 the unused parameters are trimmed from the signature.
 
 To generate the functions first icclim must be installed in the environment.
-To install icclim from source run
-    >>> python -m setup install
-Then the script can be run with
-    >>> python ./tools/extract-icclim-funs.py
+To install icclim from source run:
+>>> python -m setup install
+
+Then the script can be run with:
+>>> python ./tools/extract-icclim-funs.py
 """
 
 from __future__ import annotations

@@ -31,6 +31,7 @@ dependencies:
  - pytest-cov
  - setuptools
  - twine
+ - flake8-rst-docstrings
  # Extra dependencies
  - matplotlib
  - cartopy

@@ -16,6 +16,10 @@ ComputeIndexFun = Callable[
 @dataclass
 class ClimateIndex:
     """Climate index data class.
+
+    Attributes
+    ----------
+
     short_name: str
         The index name used in the output.
     compute: Callable

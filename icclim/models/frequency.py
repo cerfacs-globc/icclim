@@ -43,12 +43,14 @@ def get_seasonal_time_updater(
     the season composed of the given month. The data must have been computed on this
     season beforehand.
     It also create the corresponding time_bounds.
+
     Parameters
     ----------
     start_month: int
         The season starting month, it must be between 1 and 12.
     end_month: int
         The season ending month, it must be between 1 and 12.
+
     Returns
     -------
     function: Callable[[DataArray], DataArray]
