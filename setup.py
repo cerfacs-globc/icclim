@@ -19,6 +19,7 @@ MINIMAL_REQUIREMENTS = [
     "zarr",
     "rechunker>=0.3, !=0.4",
     "fsspec",
+    "pandas>=1.3",
 ]
 
 setup(

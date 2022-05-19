@@ -17,6 +17,7 @@ dependencies:
  - psutil
  - zarr
  - fsspec
+ - pandas>=1.3
  # Dev dependencies
  - pre-commit
  - pydata-sphinx-theme

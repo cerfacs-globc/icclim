@@ -1,9 +1,10 @@
 Release history
 ===============
 
-5.2.2-dev
+5.3.0
 ---------
 [enh] Add icclim version to history in outputted metadata.
+[maint] **breaking change** Pin minimal pandas version to 1.3 to fix: https://github.com/pandas-dev/pandas/issues/24539
 
 5.2.1
 -----
