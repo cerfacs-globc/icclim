@@ -117,6 +117,7 @@ class IndexConfig:
                 base_period_time_range=base_period_time_range,
                 only_leap_years=only_leap_years,
                 chunk_it=chunk_it,
+                time_clipping=self.freq.time_clipping,
             )
             for var_name in var_names
         ]
@@ -180,12 +181,17 @@ def _build_cf_variable(
     base_period_time_range: list[str] | None,
     only_leap_years: bool,
     chunk_it: bool,
+    time_clipping: Callable | None,
 ) -> CfVariable:
     if chunk_it:
         da = da.chunk("auto")  # noqa - typing fixed in futur xarray version
     study_da = _build_study_da(da, time_range, ignore_Feb29th)
+    if time_clipping is not None:
+        study_da = time_clipping(study_da)
     if base_period_time_range is not None:
         reference_da = _build_reference_da(da, base_period_time_range, only_leap_years)
+        if time_clipping is not None:
+            reference_da = time_clipping(reference_da)
     else:
         reference_da = study_da
     # TODO: all these operations should probably be added in history metadata

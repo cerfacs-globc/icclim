@@ -156,12 +156,17 @@ class _Freq:
         description: str,
         post_processing: Callable[[DataArray], tuple[DataArray, DataArray]],
         indexer: Indexer | None,
+        time_clipping: Callable = None,
     ):
         self.pandas_freq: str = pandas_freq
         self.accepted_values: list[str] = accepted_values
         self.description = description
         self.post_processing = post_processing
         self.indexer = indexer
+        # time_clipping is a workaround for a "missing" feature of xclim.
+        # It allow to compute seasons for indices computing spells by ignoring values
+        # outside the season bounds.
+        self.time_clipping = time_clipping
 
 
 class Frequency(Enum):
@@ -273,6 +278,10 @@ class Frequency(Enum):
     def indexer(self):
         return self._freq.indexer
 
+    @property
+    def time_clipping(self):
+        return self._freq.time_clipping
+
     @staticmethod
     def lookup(slice_mode: SliceMode) -> Frequency:
         if isinstance(slice_mode, Frequency):
@@ -334,10 +343,10 @@ def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
         custom_freq._freq = _build_frequency_filtered_by_month(slice_mode_list[1])
     elif freq_keyword == "season":
         season = slice_mode_list[1]
-        if isinstance(season[0], str):
-            custom_freq._freq = _build_seasonal_frequency_between_dates(season)
-        elif isinstance(season, Tuple) or isinstance(season[0], int):
-            custom_freq._freq = _build_seasonal_frequency_for_months(season)
+        custom_freq._freq = _build_seasonal_freq(season, False)
+    elif freq_keyword == "clipped_season":
+        season = slice_mode_list[1]
+        custom_freq._freq = _build_seasonal_freq(season, True)
     else:
         raise InvalidIcclimArgumentError(
             f"Unknown frequency {slice_mode_list}."
@@ -356,31 +365,52 @@ def _build_frequency_filtered_by_month(months: list[int]):
     )
 
 
-def _build_seasonal_frequency_between_dates(season: list[str]):
+def _build_seasonal_freq(season: tuple | list, clipped: bool):
+    if isinstance(season[0], str):
+        return _build_seasonal_frequency_between_dates(season, clipped)
+    elif isinstance(season, Tuple) or isinstance(season[0], int):
+        return _build_seasonal_frequency_for_months(season, clipped)
+
+
+def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool):
     if len(season) != 2:
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
     begin_date, end_date = _read_date(season[0]), _read_date(season[1])
-    return _Freq(
-        indexer=dict(
+    if clipped:
+        indexer = None
+        time_clipping = _get_filter_between_dates(begin_date, end_date)
+    else:
+        indexer = dict(
             date_bounds=(begin_date.strftime("%m-%d"), end_date.strftime("%m-%d"))
-        ),
+        )
+        time_clipping = None
+    return _Freq(
+        indexer=indexer,
         post_processing=get_seasonal_time_updater(
             begin_date.month, end_date.month, begin_date.day, end_date.day
         ),
         pandas_freq=f"AS-{MONTHS_MAP[begin_date.month]}",
         description=f"seasonal time series (season: from {begin_date} to {end_date})",
         accepted_values=[],
+        time_clipping=time_clipping,
     )
 
 
-def _build_seasonal_frequency_for_months(season):
+def _build_seasonal_frequency_for_months(season: tuple | list, clipped: bool):
     if isinstance(season, Tuple):
         # concat in case of ([12], [1, 2])
         season = season[0] + season[1]
     if not _is_season_valid(season):
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
+    if clipped:
+        indexer = None
+        time_clipping = _get_month_filter(season)
+    else:
+        indexer = dict(month=season)
+        time_clipping = None
     return _Freq(
-        indexer=dict(month=season),
+        indexer=indexer,
+        time_clipping=time_clipping,
         post_processing=get_seasonal_time_updater(season[0], season[-1]),
         pandas_freq=f"AS-{MONTHS_MAP[season[0]]}",
         description=f"seasonal time series (season: {season})",
@@ -398,10 +428,30 @@ def _read_date(date_string: str) -> datetime:
     return date
 
 
+def _get_filter_between_dates(begin_date: datetime, end_date: datetime):
+    def filter_between_dates(da: DataArray):
+        between_dates_range = pd.date_range(begin_date, end_date, freq="D").dayofyear
+        between_dates_mask = np.logical_and(
+            da.time.dt.dayofyear >= between_dates_range.min(),
+            da.time.dt.dayofyear <= between_dates_range.max(),
+        )
+        return da[between_dates_mask]
+
+    return lambda da: filter_between_dates(da)
+
+
+def _get_month_filter(month_list: list[int]) -> Callable:
+    def filter_months(da: DataArray) -> DataArray:
+        return da.sel(time=da.time.dt.month.isin(month_list))
+
+    return lambda da: filter_months(da)
+
+
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
 
 MonthsIndexer = Dict[Literal["month"], List[int]]  # format [12,1,2,3]
 DatesIndexer = Dict[
     Literal["date_bounds"], Tuple[str, str]
 ]  # format ("01-25", "02-28")
-Indexer = Union[MonthsIndexer, DatesIndexer]
+ClippedSeasonIndexer = Callable
+Indexer = Union[MonthsIndexer, DatesIndexer, ClippedSeasonIndexer]

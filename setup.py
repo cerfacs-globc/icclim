@@ -20,7 +20,15 @@ MINIMAL_REQUIREMENTS = [
     "rechunker>=0.3, !=0.4",
     "fsspec",
     "dateparser",
+    "b08fa84d3dd3659a1923b7c64f6ca9976ff7dbd3",
 ]
+
+dependency_links = (
+    [
+        # TODO: Remove once xclim 0.37 is released
+        "https://github.com/Ouranosinc/xclim/tarball/master#egg=b08fa84d3dd3659a1923b7c64f6ca9976ff7dbd3"  # noqa
+    ],
+)
 
 setup(
     name="icclim",
@@ -34,6 +42,7 @@ setup(
     include_package_data=True,
     url="https://github.com/cerfacs-globc/icclim",
     install_requires=MINIMAL_REQUIREMENTS,
+    dependency_links=dependency_links,
     python_requires=">=3.8",
     classifiers=[
         "Programming Language :: Python",
