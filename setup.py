@@ -19,6 +19,7 @@ MINIMAL_REQUIREMENTS = [
     "zarr",
     "rechunker>=0.3, !=0.4",
     "fsspec",
+    "pandas>=1.3",
     "dateparser",
     "b08fa84d3dd3659a1923b7c64f6ca9976ff7dbd3",
 ]
