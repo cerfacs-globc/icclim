@@ -10,7 +10,7 @@ MINIMAL_REQUIREMENTS = [
     #       https://github.com/numba/numba/issues/7754
     "numpy>=1.16,<1.22",
     "xarray>=0.17",
-    "xclim>=0.34",
+    "xclim @ git+https://github.com/Ouranosinc/xclim.git",
     "cftime>=1.4.1",
     "dask[array]",
     "netCDF4>=1.5.7",
@@ -21,12 +21,6 @@ MINIMAL_REQUIREMENTS = [
     "fsspec",
     "pandas>=1.3",
     "dateparser",
-    "b08fa84d3dd3659a1923b7c64f6ca9976ff7dbd3",
-]
-
-dependency_links = [
-    # TODO: Remove once xclim 0.37 is released
-    "https://github.com/Ouranosinc/xclim/tarball/master#egg=b08fa84d3dd3659a1923b7c64f6ca9976ff7dbd3"  # noqa
 ]
 
 setup(
@@ -41,7 +35,6 @@ setup(
     include_package_data=True,
     url="https://github.com/cerfacs-globc/icclim",
     install_requires=MINIMAL_REQUIREMENTS,
-    dependency_links=dependency_links,
     python_requires=">=3.8",
     classifiers=[
         "Programming Language :: Python",
