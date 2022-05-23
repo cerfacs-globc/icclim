@@ -68,15 +68,31 @@ summer, autumn and monthly frequency:
 | The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
 | Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001.
 
-Monthly time series with months selected by user:
-    >>> slice_mode = ['month',[4,5,11]] # index will be computed only for April, May and November
+Monthly time series filter
+++++++++++++++++++++++++++
+Monthly time series with months selected by user (the keyword can be either `month` or `months`):
+    >>> slice_mode = ['month', [4,5,11]] # index will be computed only for April, May and November
     or
-    >>> slice_mode = ['month',[4]] # index will be computed only for April
+    >>> slice_mode = ['month', [4]] # index will be computed only for April
 
-User defined seasons:
-    >>> slice_mode = ['season',[4,5,6,7]]
-    or
-    >>> slice_mode = ['season',([11, 12, 1])]
+User defined seasons
+++++++++++++++++++++
+You can either defined seasons aware of data outside their bounds (keyword `season`) or
+seasons which clip all data outside their bounds (keyword `clipped_season`).
+The later is most useful on indices computing spells, if you want to totally ignore spells that could
+have started before your custom season.
+    >>> slice_mode = ['season', [4,5,6,7]] # March to July un-clipped
+or
+    >>> slice_mode = ['season', [11, 12, 1]] # November to January un-clipped
+
+    >>> slice_mode = ['clipped_season', [4,5,6,7]]
+or
+    >>> slice_mode = ['clipped_season', ([11, 12, 1])]
+
+Additionally, you can define a season between two exact date:
+    >>> slice_mode = ['season', ["07-19", "08-14"]]
+or
+    >>> slice_mode = ["clipped_season", ["07-19", "08-14"]]
 
 ``threshold``
 ~~~~~~~~~~~~~

@@ -54,7 +54,7 @@ def run_sum(config: UserIndexConfig):
         extreme_mode=config.extreme_mode,
         window_width=config.window_width,
         coef=config.coef,
-        freq=config.freq.panda_freq,
+        freq=config.freq.pandas_freq,
         date_event=config.date_event,
     )
 
@@ -69,7 +69,7 @@ def run_mean(config: UserIndexConfig):
         extreme_mode=config.extreme_mode,
         window_width=config.window_width,
         coef=config.coef,
-        freq=config.freq.panda_freq,
+        freq=config.freq.pandas_freq,
         date_event=config.date_event,
     )
 
@@ -90,7 +90,7 @@ def max_consecutive_event_count(config: UserIndexConfig):
         logical_operation=config.logical_operation,
         threshold=config.thresh,
         coef=config.coef,
-        freq=config.freq.panda_freq,
+        freq=config.freq.pandas_freq,
         date_event=config.date_event,
     )
 
@@ -108,7 +108,7 @@ def count_events(config: UserIndexConfig):
         link_logical_operations=config.nb_event_config.link_logical_operations,
         thresholds=config.nb_event_config.thresholds,
         coef=config.coef,
-        freq=config.freq.panda_freq,
+        freq=config.freq.pandas_freq,
         date_event=config.date_event,
     )
 
@@ -120,7 +120,7 @@ def sum(config: UserIndexConfig):
         coef=config.coef,
         logical_operation=config.logical_operation,
         threshold=_check_and_get_simple_threshold(config.thresh),
-        freq=config.freq.panda_freq,
+        freq=config.freq.pandas_freq,
     )
 
 
@@ -131,7 +131,7 @@ def mean(config: UserIndexConfig):
         coef=config.coef,
         logical_operation=config.logical_operation,
         threshold=_check_and_get_simple_threshold(config.thresh),
-        freq=config.freq.panda_freq,
+        freq=config.freq.pandas_freq,
     )
 
 
@@ -150,7 +150,7 @@ def _simple_reducer(op: Callable, config: UserIndexConfig):
         coef=config.coef,
         logical_operation=config.logical_operation,
         threshold=_check_and_get_simple_threshold(config.thresh),
-        freq=config.freq.panda_freq,
+        freq=config.freq.pandas_freq,
         date_event=config.date_event,
     )
 

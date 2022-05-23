@@ -1,18 +1,20 @@
 """
     `icclim.models.frequency` wraps the concept of pandas frequency in order to resample
-    time series.  `slice_mode` paramater of `icclim.index` is always converted to a
+    time series.  `slice_mode` parameter of `icclim.index` is always converted to a
     `Frequency`.
 """
 from __future__ import annotations
 
-import datetime
+from datetime import datetime, timedelta
 from enum import Enum
-from typing import Callable, List, Tuple, Union
+from typing import Callable, Dict, List, Literal, Tuple, Union
 
 import cftime
+import dateparser
 import numpy as np
 import pandas as pd
 import xarray as xr
+import xclim.core.calendar
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -26,18 +28,15 @@ from icclim.models.constants import (
     SON_MONTHS,
 )
 
-
-def get_month_filter(month_list: list[int]) -> Callable:
-    return lambda da: filter_months(da, month_list)
-
-
-def filter_months(da: DataArray, month_list: list[int]) -> DataArray:
-    return da.sel(time=da.time.dt.month.isin(month_list))
+SEASON_ERR_MSG = (
+    "A season created using `slice_mode` must be made of either"
+    " consecutive integer for months such as [1,2,3] or two string for"
+    " dates such as ['19 july', '14 august']."
+)
 
 
 def get_seasonal_time_updater(
-    start_month: int,
-    end_month: int,
+    start_month: int, end_month: int, start_day: int = 1, end_day: int = None
 ) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
     """Seasonal time updater and time bounds creator method generator.
     Returns a callable of DataArray which will rewrite the time dimension to
@@ -68,15 +67,30 @@ def get_seasonal_time_updater(
                 year_of_season_end = year
             if isinstance(first_time, cftime.datetime):
                 start = cftime.datetime(
-                    year, start_month, 1, calendar=first_time.calendar
+                    year, start_month, start_day, calendar=first_time.calendar
                 )
-                end = cftime.datetime(
-                    year_of_season_end, end_month + 1, 1, calendar=first_time.calendar
-                )
+                if end_day is None:
+                    end = cftime.datetime(
+                        year_of_season_end,
+                        end_month + 1,
+                        1,
+                        calendar=first_time.calendar,
+                    ) - timedelta(days=1)
+                else:
+                    end = cftime.datetime(
+                        year_of_season_end,
+                        end_month,
+                        end_day,
+                        calendar=first_time.calendar,
+                    )
             else:
-                start = pd.to_datetime(f"{year}-{start_month}")
-                end = pd.to_datetime(f"{year_of_season_end}-{end_month + 1}")
-            end = end - datetime.timedelta(days=1)
+                start = pd.to_datetime(f"{year}-{start_month}-{start_day}")
+                if end_day is None:
+                    end = pd.to_datetime(
+                        f"{year_of_season_end}-{end_month + 1}"
+                    ) - timedelta(days=1)
+                else:
+                    end = pd.to_datetime(f"{year_of_season_end}-{end_month}-{end_day}")
             new_time_axis.append(start + (end - start) / 2)
             time_bounds.append([start, end])
         da.coords["time"] = ("time", new_time_axis)
@@ -112,7 +126,7 @@ def _get_time_bounds_updater(
                 ]
             )
             ends = starts + offset
-            ends = ends - datetime.timedelta(days=1)
+            ends = ends - timedelta(days=1)
         else:
             offset = pd.tseries.frequencies.to_offset(freq)
             starts = pd.to_datetime(da.time.dt.floor("D"))
@@ -138,112 +152,116 @@ class _Freq:
 
     def __init__(
         self,
-        panda_freq: str,
+        pandas_freq: str,
         accepted_values: list[str],
         description: str,
         post_processing: Callable[[DataArray], tuple[DataArray, DataArray]],
-        pre_processing: Callable[[DataArray], DataArray],
+        indexer: Indexer | None,
+        time_clipping: Callable = None,
     ):
-        self.panda_freq: str = panda_freq
+        self.pandas_freq: str = pandas_freq
         self.accepted_values: list[str] = accepted_values
         self.description = description
         self.post_processing = post_processing
-        self.pre_processing = pre_processing
+        self.indexer = indexer
+        # time_clipping is a workaround for a "missing" feature of xclim.
+        # It allow to compute seasons for indices computing spells by ignoring values
+        # outside the season bounds.
+        self.time_clipping = time_clipping
 
 
 class Frequency(Enum):
     """The sampling frequency of the resulting dataset."""
 
     MONTH = _Freq(
-        panda_freq="MS",
+        pandas_freq="MS",
         accepted_values=["month", "MS"],
         description="monthly time series",
+        indexer=None,
         post_processing=_get_time_bounds_updater("MS"),
-        pre_processing=lambda x: x,
     )
-    """ Resample to monthly values"""
-
-    AMJJAS = _Freq(
-        panda_freq="AS-APR",
-        accepted_values=["AMJJAS"],
-        description="summer half-year time series",
-        post_processing=get_seasonal_time_updater(AMJJAS_MONTHS[0], AMJJAS_MONTHS[-1]),
-        pre_processing=get_month_filter(AMJJAS_MONTHS),
-    )
-    """ Resample to summer half-year, from April to September included."""
-
-    ONDJFM = _Freq(
-        panda_freq="AS-OCT",
-        accepted_values=["ONDJFM"],
-        description="winter half-year time series",
-        post_processing=get_seasonal_time_updater(ONDJFM_MONTHS[0], ONDJFM_MONTHS[-1]),
-        pre_processing=get_month_filter(ONDJFM_MONTHS),
-    )
-    """ Resample to winter half-year, from October to March included."""
-
-    DJF = _Freq(
-        panda_freq="AS-DEC",
-        accepted_values=["DJF"],
-        description="winter time series",
-        post_processing=get_seasonal_time_updater(DJF_MONTHS[0], DJF_MONTHS[-1]),
-        pre_processing=get_month_filter(DJF_MONTHS),
-    )
-    """ Resample to winter season, from December to February included."""
-
-    MAM = _Freq(
-        panda_freq="AS-MAR",
-        accepted_values=["MAM"],
-        description="spring time series",
-        post_processing=get_seasonal_time_updater(MAM_MONTHS[0], MAM_MONTHS[-1]),
-        pre_processing=get_month_filter(MAM_MONTHS),
-    )
-    """ Resample to spring season, from March to May included."""
-
-    JJA = _Freq(
-        panda_freq="AS-JUN",
-        accepted_values=["JJA"],
-        description="summer time series",
-        post_processing=get_seasonal_time_updater(JJA_MONTHS[0], JJA_MONTHS[-1]),
-        pre_processing=get_month_filter(JJA_MONTHS),
-    )
-    """ Resample to summer season, from June to Agust included."""
-
-    SON = _Freq(
-        panda_freq="AS-SEP",
-        accepted_values=["SON"],
-        description="autumn time series",
-        post_processing=get_seasonal_time_updater(SON_MONTHS[0], SON_MONTHS[-1]),
-        pre_processing=get_month_filter(SON_MONTHS),
-    )
-    """ Resample to fall season, from September to November included."""
-
-    CUSTOM = _Freq(
-        panda_freq="MS",
-        accepted_values=[],
-        description="",
-        post_processing=lambda x: x,
-        pre_processing=lambda x: x,
-    )
-    """ Placeholder instance for custom sampling frequencies.
-        Do not use as is, use `slice_mode` with "month", "season" or "dates" keywords
-        instead.
-    """
+    """Resample to monthly values"""
 
     YEAR = _Freq(
-        panda_freq="YS",
+        pandas_freq="YS",
         accepted_values=["year", "YS"],
         description="annual time series",
+        indexer=None,
         post_processing=_get_time_bounds_updater("YS"),
-        pre_processing=lambda x: x,
     )
-    """ Resample to yearly values."""
+    """Resample to yearly values."""
+
+    AMJJAS = _Freq(
+        pandas_freq="AS-APR",
+        accepted_values=["AMJJAS"],
+        description="summer half-year time series",
+        indexer=dict(month=AMJJAS_MONTHS),
+        post_processing=get_seasonal_time_updater(AMJJAS_MONTHS[0], AMJJAS_MONTHS[-1]),
+    )
+    """Resample to summer half-year, from April to September included."""
+
+    ONDJFM = _Freq(
+        pandas_freq="AS-OCT",
+        accepted_values=["ONDJFM"],
+        description="winter half-year time series",
+        indexer=dict(month=ONDJFM_MONTHS),
+        post_processing=get_seasonal_time_updater(ONDJFM_MONTHS[0], ONDJFM_MONTHS[-1]),
+    )
+    """Resample to winter half-year, from October to March included."""
+
+    DJF = _Freq(
+        pandas_freq="AS-DEC",
+        accepted_values=["DJF"],
+        description="winter time series",
+        indexer=dict(month=DJF_MONTHS),
+        post_processing=get_seasonal_time_updater(DJF_MONTHS[0], DJF_MONTHS[-1]),
+    )
+    """Resample to winter season, from December to February included."""
+
+    MAM = _Freq(
+        pandas_freq="AS-MAR",
+        accepted_values=["MAM"],
+        description="spring time series",
+        indexer=dict(month=MAM_MONTHS),
+        post_processing=get_seasonal_time_updater(MAM_MONTHS[0], MAM_MONTHS[-1]),
+    )
+    """Resample to spring season, from March to May included."""
+
+    JJA = _Freq(
+        pandas_freq="AS-JUN",
+        accepted_values=["JJA"],
+        description="summer time series",
+        indexer=dict(month=JJA_MONTHS),
+        post_processing=get_seasonal_time_updater(JJA_MONTHS[0], JJA_MONTHS[-1]),
+    )
+    """Resample to summer season, from June to Agust included."""
+
+    SON = _Freq(
+        pandas_freq="AS-SEP",
+        accepted_values=["SON"],
+        description="autumn time series",
+        indexer=dict(month=SON_MONTHS),
+        post_processing=get_seasonal_time_updater(SON_MONTHS[0], SON_MONTHS[-1]),
+    )
+    """Resample to fall season, from September to November included."""
+
+    CUSTOM = _Freq(
+        pandas_freq="MS",
+        accepted_values=[],
+        description="",
+        indexer=None,
+        post_processing=lambda x: x,
+    )
+    """Placeholder instance for custom sampling frequencies.
+       Do not use as is, use `slice_mode` with "month", "season" keywords instead.
+    """
 
     def __init__(self, freq: _Freq):
         self._freq = freq
 
     @property
-    def panda_freq(self):
-        return self._freq.panda_freq
+    def pandas_freq(self):
+        return self._freq.pandas_freq
 
     @property
     def accepted_values(self):
@@ -258,8 +276,12 @@ class Frequency(Enum):
         return self._freq.post_processing
 
     @property
-    def pre_processing(self):
-        return self._freq.pre_processing
+    def indexer(self):
+        return self._freq.indexer
+
+    @property
+    def time_clipping(self):
+        return self._freq.time_clipping
 
     @staticmethod
     def lookup(slice_mode: SliceMode) -> Frequency:
@@ -298,7 +320,7 @@ def _get_frequency_from_string(slice_mode: str) -> Frequency:
     raise InvalidIcclimArgumentError(f"Unknown frequency {slice_mode}.")
 
 
-def _is_season_valid(months):
+def _is_season_valid(months: list[int]) -> bool:
     is_valid = True
     for i in range(0, len(months) - 1):
         is_valid = is_valid and months[i] > 0 and months[i] < 13
@@ -312,43 +334,20 @@ def _is_season_valid(months):
 def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
     if len(slice_mode_list) < 2:
         raise InvalidIcclimArgumentError(
-            f"The given slice list {slice_mode_list}"
-            f" has a length of {len(slice_mode_list)}."
-            f" The maximum length here is 2."
+            "Invalid slice_mode format."
+            " When slice_mode is a list, its first element must be a keyword and"
+            " its second a list (e.g `slice_mode=['season', [1,2,3]]` )."
         )
-    sampling_freq = slice_mode_list[0]
+    freq_keyword = slice_mode_list[0]
     custom_freq = Frequency.CUSTOM
-    if sampling_freq in ["month", "months"]:
-        months = slice_mode_list[1]
-
-        def month_list_post_processing(da):
-            res, bounds = _get_time_bounds_updater("MS")(da)
-            res = get_month_filter(months)(res)
-            return res, bounds
-
-        custom_freq._freq = _Freq(
-            pre_processing=get_month_filter(months),
-            post_processing=month_list_post_processing,
-            panda_freq="MS",
-            description=f"monthly time series (months: {months})",
-            accepted_values=[],
-        )
-    elif sampling_freq == "season":
-        months = slice_mode_list[1]
-        if isinstance(months, Tuple):
-            months = months[0] + months[1]  # concat in case of ([12], [1, 2])
-        if not _is_season_valid(months):
-            raise InvalidIcclimArgumentError(
-                f"A season created using `slice_mode` must be made of consecutive"
-                f" months. It was {months}."
-            )
-        custom_freq._freq = _Freq(
-            pre_processing=get_month_filter(months),
-            post_processing=get_seasonal_time_updater(months[0], months[-1]),
-            panda_freq=f"AS-{MONTHS_MAP[months[0]]}",
-            description=f"seasonal time series (season: {months})",
-            accepted_values=[],
-        )
+    if freq_keyword in ["month", "months"]:
+        custom_freq._freq = _build_frequency_filtered_by_month(slice_mode_list[1])
+    elif freq_keyword == "season":
+        season = slice_mode_list[1]
+        custom_freq._freq = _build_seasonal_freq(season, False)
+    elif freq_keyword == "clipped_season":
+        season = slice_mode_list[1]
+        custom_freq._freq = _build_seasonal_freq(season, True)
     else:
         raise InvalidIcclimArgumentError(
             f"Unknown frequency {slice_mode_list}."
@@ -357,4 +356,96 @@ def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
     return custom_freq
 
 
+def _build_frequency_filtered_by_month(months: list[int]):
+    return _Freq(
+        indexer=dict(month=months),
+        post_processing=_get_time_bounds_updater("MS"),
+        pandas_freq="MS",
+        description=f"monthly time series (months: {months})",
+        accepted_values=[],
+    )
+
+
+def _build_seasonal_freq(season: tuple | list, clipped: bool):
+    if isinstance(season[0], str):
+        return _build_seasonal_frequency_between_dates(season, clipped)
+    elif isinstance(season, Tuple) or isinstance(season[0], int):
+        return _build_seasonal_frequency_for_months(season, clipped)
+
+
+def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool):
+    if len(season) != 2:
+        raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
+    begin_date = _read_date(season[0])
+    end_date = _read_date(season[1])
+    begin_formatted = begin_date.strftime("%m-%d")
+    end_formatted = end_date.strftime("%m-%d")
+    if clipped:
+        indexer = None
+        time_clipping = _get_filter_between_dates(begin_formatted, end_formatted)
+    else:
+        indexer = dict(date_bounds=(begin_formatted, end_formatted))
+        time_clipping = None
+    return _Freq(
+        indexer=indexer,
+        post_processing=get_seasonal_time_updater(
+            begin_date.month, end_date.month, begin_date.day, end_date.day
+        ),
+        pandas_freq=f"AS-{MONTHS_MAP[begin_date.month]}",
+        description=f"seasonal time series"
+        f" (season: from {begin_formatted} to {end_formatted})",
+        accepted_values=[],
+        time_clipping=time_clipping,
+    )
+
+
+def _build_seasonal_frequency_for_months(season: tuple | list, clipped: bool):
+    if isinstance(season, Tuple):
+        # concat in case of ([12], [1, 2])
+        season = season[0] + season[1]
+    if not _is_season_valid(season):
+        raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
+    if clipped:
+        indexer = None
+        time_clipping = _get_month_filter(season)
+    else:
+        indexer = dict(month=season)
+        time_clipping = None
+    return _Freq(
+        indexer=indexer,
+        time_clipping=time_clipping,
+        post_processing=get_seasonal_time_updater(season[0], season[-1]),
+        pandas_freq=f"AS-{MONTHS_MAP[season[0]]}",
+        description=f"seasonal time series (season: {season})",
+        accepted_values=[],
+    )
+
+
+def _read_date(date_string: str) -> datetime:
+    error_msg = (
+        "The date {} does not have a valid format."
+        " You can use various formats such as '2 december' or '02-12'."
+    )
+    if (date := dateparser.parse(date_string)) is None:
+        raise InvalidIcclimArgumentError(error_msg.format(date_string))
+    return date
+
+
+def _get_month_filter(season):
+    return lambda da: xclim.core.calendar.select_time(da, month=season)
+
+
+def _get_filter_between_dates(begin_date: str, end_date: str):
+    return lambda da: xclim.core.calendar.select_time(
+        da, date_bounds=(begin_date, end_date)
+    )
+
+
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
+
+MonthsIndexer = Dict[Literal["month"], List[int]]  # format [12,1,2,3]
+DatesIndexer = Dict[
+    Literal["date_bounds"], Tuple[str, str]
+]  # format ("01-25", "02-28")
+ClippedSeasonIndexer = Callable
+Indexer = Union[MonthsIndexer, DatesIndexer, ClippedSeasonIndexer]

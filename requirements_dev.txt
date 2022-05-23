@@ -1,6 +1,7 @@
 black
 cftime~=1.5.0
 dask
+dateparser
 flake8
 isort
 netCDF4~=1.5.7

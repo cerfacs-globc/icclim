@@ -8,8 +8,9 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.ecad_indices import EcadIndex
+from icclim.models.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
 
@@ -42,8 +43,8 @@ class Test_Integration:
     """
 
     OUTPUT_FILE = "out.nc"
-    CF_TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
-    TIME_RANGE = xr.cftime_range("2042-01-01", end="2045-12-31", freq="D")
+    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    CF_TIME_RANGE = xr.cftime_range("2042-01-01", end="2045-12-31", freq="D")
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
@@ -99,12 +100,11 @@ class Test_Integration:
     def test_index_SU__monthy_sampled_cf_time(self):
         res = icclim.index(
             indice_name="SU",
-            in_files=self.data,
+            in_files=self.data_cf_time,
             out_file=self.OUTPUT_FILE,
             slice_mode=Frequency.MONTH,
         )
         np.testing.assert_array_equal(0, res.SU)
-        res.time_bounds.isel(time=0)
         np.testing.assert_array_equal(
             len(np.unique(self.TIME_RANGE.year)) * 12, len(res.time)
         )
@@ -118,12 +118,13 @@ class Test_Integration:
     def test_index_SU__DJF_cf_time(self):
         res = icclim.index(
             indice_name="SU",
-            in_files=self.data,
+            in_files=self.data_cf_time,
             out_file=self.OUTPUT_FILE,
             slice_mode=Frequency.DJF,
         )
-        np.testing.assert_array_equal(0, res.SU)
-        # 1 more year as DJF sampling create a months withs nans before
+        np.testing.assert_array_equal(res.SU.isel(time=0), np.NAN)
+        np.testing.assert_array_equal(res.SU.isel(time=1), 0)
+        # "+ 1" because DJF sampling create a december month with nans before first year
         np.testing.assert_array_equal(
             len(np.unique(self.TIME_RANGE.year)) + 1, len(res.time)
         )
@@ -141,6 +142,16 @@ class Test_Integration:
         for i in HEAT_INDICES:
             assert res[i] is not None
 
+    def test_indices__snow_indices(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["prec"] = self.data.copy(deep=True)
+        ds["prec"].attrs["units"] = "cm"
+        res = icclim.indices(
+            index_group=IndexGroup.SNOW, in_files=ds, out_file=self.OUTPUT_FILE
+        )
+        for i in filter(lambda i: i.group == IndexGroup.SNOW, EcadIndex):
+            assert res[i.short_name] is not None
+
     def test_indices_all_from_Dataset(self):
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data
@@ -149,8 +160,93 @@ class Test_Integration:
         ds["pr"].attrs["units"] = "kg m-2 d-1"
         ds["prec"] = self.data.copy(deep=True)
         ds["prec"].attrs["units"] = "cm"
+        res = icclim.indices(index_group="all", in_files=ds, out_file=self.OUTPUT_FILE)
+        for i in EcadIndex:
+            assert res[i.short_name] is not None
+
+    def test_indices_all_from_Dataset__seasonal_clip(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["tasmax"] = self.data
+        ds["tasmin"] = self.data
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["prec"] = self.data.copy(deep=True)
+        ds["prec"].attrs["units"] = "cm"
         res = icclim.indices(
-            index_group="all", in_files=ds, out_file=self.OUTPUT_FILE, ignore_error=True
+            index_group="all",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+            slice_mode=["clipped_season", [1, 2, 3]],
+        )
+        for i in EcadIndex:
+            assert res[i.short_name] is not None
+
+    def test_indices_all_from_Dataset__between_dates_seasonal_clip(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["tasmax"] = self.data
+        ds["tasmin"] = self.data
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["prec"] = self.data.copy(deep=True)
+        ds["prec"].attrs["units"] = "cm"
+        res = icclim.indices(
+            index_group="all",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+            slice_mode=["clipped_season", ["07-19", "08-14"]],
+        )
+        for i in EcadIndex:
+            assert res[i.short_name] is not None
+
+    def test_indices_all_from_Dataset__JFM_seasonal_clip(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["tasmax"] = self.data
+        ds["tasmin"] = self.data
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["prec"] = self.data.copy(deep=True)
+        ds["prec"].attrs["units"] = "cm"
+        res = icclim.indices(
+            index_group="all",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+            slice_mode=["clipped_season", [1, 2, 3]],
+        )
+        for i in EcadIndex:
+            assert res[i.short_name] is not None
+
+    def test_indices_all_from_Dataset__seasonal_error(self):
+        # GIVEN
+        ds = self.data.to_dataset(name="tas")
+        ds["tasmax"] = self.data
+        ds["tasmin"] = self.data
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["prec"] = self.data.copy(deep=True)
+        ds["prec"].attrs["units"] = "cm"
+        # THEN
+        with pytest.raises(InvalidIcclimArgumentError):
+            # WHEN
+            icclim.indices(
+                index_group="all",
+                in_files=ds,
+                out_file=self.OUTPUT_FILE,
+                slice_mode=["season", [1, 2, 3]],
+            )
+
+    def test_indices_all_from_Dataset__between_year_clipped_season(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["tasmax"] = self.data
+        ds["tasmin"] = self.data
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["prec"] = self.data.copy(deep=True)
+        ds["prec"].attrs["units"] = "cm"
+        res = icclim.indices(
+            index_group="all",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+            slice_mode=["clipped_season", [12, 1, 2, 3]],
         )
         for i in EcadIndex:
             assert res[i.short_name] is not None
@@ -162,16 +258,20 @@ class Test_Integration:
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs["units"] = "kg m-2 d-1"
         res: xr.Dataset = icclim.indices(
-            index_group="all", in_files=ds, out_file=self.OUTPUT_FILE, ignore_error=True
-        )
+            index_group="all",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+            ignore_error=True,
+            slice_mode="DJF",
+        ).compute()
         for i in EcadIndex:
-            # No variable in input to compute for snow indices
-            if i.group == IndexGroup.SNOW:
+            # No variable in input to compute snow indices
+            if i.group == IndexGroup.SNOW or i in get_season_excluded_indices():
                 assert res.data_vars.get(i.short_name, None) is None
             else:
                 assert res[i.short_name] is not None
 
-    def test_indices_all_error(self):
+    def test_indices_all__error(self):
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data

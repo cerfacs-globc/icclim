@@ -21,7 +21,7 @@ from icclim.ecad_functions import IndexConfig
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.ecad_indices import EcadIndex
+from icclim.models.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
@@ -113,13 +113,14 @@ def index(
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] = None,  # TODO: use dateparser to accept strings
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime]
+    | None = None,  # TODO: use dateparser to accept strings
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -233,7 +234,6 @@ def index(
             " You must provide either `user_index` to compute a customized index"
             " or `index_name` for one of the ECA&D indices."
         )
-    index: EcadIndex | None
     if index_name is not None:
         index = EcadIndex.lookup(index_name)
     else:
@@ -260,6 +260,7 @@ def index(
     if user_index is not None:
         result_ds = _compute_user_index_dataset(config=config, user_index=user_index)
     else:
+        _check_valid_config(index, config)
         result_ds = _compute_ecad_index_dataset(
             config=config,
             index=index,
@@ -318,9 +319,6 @@ def _setup(callback, callback_start_value, logs_verbosity, slice_mode):
     # TODO: it might be safer to feed a context manager which will setup
     #       and teardown these confs
     xclim.set_options(data_validation="warn")
-    if Frequency.is_seasonal(slice_mode):
-        # for now seasonal slice_modes missing values cannot be checked
-        xclim.set_options(check_missing="skip")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
     log.set_verbosity(logs_verbosity)
@@ -395,7 +393,12 @@ def _compute_ecad_index(
 ) -> Dataset:
     logging.info(f"Calculating climate index: {index.short_name}")
     result_ds = Dataset()
-    res = index.compute(config)
+    if config.freq.time_clipping is not None:
+        # xclim missing feature will not work with clipped time
+        with xclim.set_options(check_missing="skip"):
+            res = index.compute(config)
+    else:
+        res = index.compute(config)
     if isinstance(res, tuple):
         da, per = res
     else:
@@ -505,3 +508,14 @@ def _guess_variable_names(
             f" from your input dataset: {list(ds.data_vars)}."
         )
     return res
+
+
+def _check_valid_config(index: EcadIndex, config: IndexConfig):
+    if index in get_season_excluded_indices() and config.freq.indexer is not None:
+        raise InvalidIcclimArgumentError(
+            "Indices computing a spell cannot be computed on un-clipped season for now."
+            " Instead, you can use a clipped_season like this:"
+            "`slice_mode=['clipped_season', [12,1,2]]` (example of a DJF season)."
+            " However, it will NOT take into account spells beginning before the season"
+            " start!"
+        )
