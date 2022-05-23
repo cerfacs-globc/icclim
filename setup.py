@@ -24,12 +24,10 @@ MINIMAL_REQUIREMENTS = [
     "b08fa84d3dd3659a1923b7c64f6ca9976ff7dbd3",
 ]
 
-dependency_links = (
-    [
-        # TODO: Remove once xclim 0.37 is released
-        "https://github.com/Ouranosinc/xclim/tarball/master#egg=b08fa84d3dd3659a1923b7c64f6ca9976ff7dbd3"  # noqa
-    ],
-)
+dependency_links = [
+    # TODO: Remove once xclim 0.37 is released
+    "https://github.com/Ouranosinc/xclim/tarball/master#egg=b08fa84d3dd3659a1923b7c64f6ca9976ff7dbd3"  # noqa
+]
 
 setup(
     name="icclim",
