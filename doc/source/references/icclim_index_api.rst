@@ -77,21 +77,37 @@ summer, autumn and monthly frequency:
 | The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
 | Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001.
 
-Monthly time series with months selected by user (the keyword can be either "month" or "months"):
+Monthly time series filter
+++++++++++++++++++++++++++
+Monthly time series with months selected by user (the keyword can be either `month` or `months`):
     >>> slice_mode = ['month', [4,5,11]] # index will be computed only for April, May and November
     or
     >>> slice_mode = ['month', [4]] # index will be computed only for April
 
-User defined seasons:
-    >>> slice_mode = ['season', [4,5,6,7]]
-    or
-    >>> slice_mode = ['season', ([12, 1, 2])] # equivalent to slice_mode = "DJF"
+User defined seasons
+++++++++++++++++++++
+You can either defined seasons aware of data outside their bounds (keyword `season`) or
+seasons which clip all data outside their bounds (keyword `clipped_season`).
+The later is most useful on indices computing spells, if you want to totally ignore spells that could
+have started before your custom season.
+    >>> slice_mode = ['season', [4,5,6,7]] # March to July un-clipped
+or
+    >>> slice_mode = ['season', [11, 12, 1]] # November to January un-clipped
 
-With 5.3.0 icclim now accepts valid pandas frequency in slice_mode.
-It is be used to resample the data to the given frequency (through xclim and xarray)
-There are many possibilities and many combination possible.
-For example use "2AS-FEB" to resample the data on 2 (2) years (A) starting (S) in February (FEB).
-A good start is to have a look at pandas `offset aliases <https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases>`_.
+    >>> slice_mode = ['clipped_season', [4,5,6,7]]
+or
+    >>> slice_mode = ['clipped_season', ([11, 12, 1])]
+
+Additionally, you can define a season between two exact date:
+    >>> slice_mode = ['season', ["07-19", "08-14"]]
+or
+    >>> slice_mode = ["clipped_season", ["07-19", "08-14"]]
+
+.. note::
+    With 5.3.0 icclim now accepts pandas string frequency for slice_mode to resample the output data to a given frequency
+    There are multiple combinations possible such as: "2AS-FEB" to resample data on two (2) years (A) starting (S) in February (FEB).
+    For further information, refer to pandas `offset aliases <https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases>`_.
+
 
 ``threshold``
 ~~~~~~~~~~~~~

@@ -477,3 +477,19 @@ class EcadIndex(Enum):
         fashion.
         """
         return [f"{i.group.value} | {i.short_name} | {i.definition}" for i in EcadIndex]
+
+
+def get_season_excluded_indices() -> list[EcadIndex]:
+    return [
+        EcadIndex.WSDI,
+        EcadIndex.CSU,
+        EcadIndex.CFD,
+        EcadIndex.CSDI,
+        EcadIndex.CDD,
+        EcadIndex.CWD,
+        EcadIndex.RX5DAY,
+        EcadIndex.CD,
+        EcadIndex.CW,
+        EcadIndex.WD,
+        EcadIndex.WW,
+    ]

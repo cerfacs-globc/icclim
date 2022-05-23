@@ -18,7 +18,7 @@ from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 from icclim.ecad.ecad_functions import IndexConfig
-from icclim.ecad.ecad_indices import EcadIndex
+from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.constants import ICCLIM_VERSION
@@ -244,7 +244,6 @@ def index(
             " You must provide either `user_index` to compute a customized index"
             " or `index_name` for one of the ECA&D indices."
         )
-    index: EcadIndex | None
     if index_name is not None:
         index = EcadIndex.lookup(index_name)
     else:
@@ -271,6 +270,7 @@ def index(
     if user_index is not None:
         result_ds = _compute_user_index_dataset(config=config, user_index=user_index)
     else:
+        _check_valid_config(index, config)
         result_ds = _compute_ecad_index_dataset(
             config=config,
             index=index,
@@ -403,7 +403,12 @@ def _compute_ecad_index(
 ) -> Dataset:
     logging.info(f"Calculating climate index: {index.short_name}")
     result_ds = Dataset()
-    res = index.compute(config)
+    if config.freq.time_clipping is not None:
+        # xclim missing feature will not work with clipped time
+        with xclim.set_options(check_missing="skip"):
+            res = index.compute(config)
+    else:
+        res = index.compute(config)
     if isinstance(res, tuple):
         da, per = res
     else:
@@ -513,3 +518,14 @@ def _guess_variable_names(
             f" from your input dataset: {list(ds.data_vars)}."
         )
     return res
+
+
+def _check_valid_config(index: EcadIndex, config: IndexConfig):
+    if index in get_season_excluded_indices() and config.freq.indexer is not None:
+        raise InvalidIcclimArgumentError(
+            "Indices computing a spell cannot be computed on un-clipped season for now."
+            " Instead, you can use a clipped_season like this:"
+            "`slice_mode=['clipped_season', [12,1,2]]` (example of a DJF season)."
+            " However, it will NOT take into account spells beginning before the season"
+            " start!"
+        )

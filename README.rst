@@ -1,7 +1,7 @@
 icclim
 ======
 
-|build| |pypi| |black| |docs| |conda| |coverage|
+|build| |pypi| |black| |docs| |conda| |coverage| |doi|
 
 icclim is a Python library to compute climate indices.
 icclim name stands for index, calculation, climate.
@@ -90,3 +90,7 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
 .. |conda| image:: https://img.shields.io/conda/vn/conda-forge/icclim.svg
         :target: https://anaconda.org/conda-forge/icclim
         :alt: Conda-forge Build Version
+
+.. |doi| image:: https://zenodo.org/badge/15936714.svg
+        :target: https://zenodo.org/badge/latestdoi/15936714
+        :alt: D.O.I link
