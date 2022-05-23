@@ -3,7 +3,7 @@ from __future__ import annotations
 # fmt: off
 # flake8: noqa
 
-ICCLIM_VERSION = "5.2.2-dev"
+ICCLIM_VERSION = "5.3.0"
 
 # placeholder for user_index
 PERCENTILE_THRESHOLD_STAMP = "p"
