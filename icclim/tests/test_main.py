@@ -234,7 +234,6 @@ class Test_Integration:
                 slice_mode=["season", [1, 2, 3]],
             )
 
-    # @pytest.mark.skip(reason="BUG: (add gh link)")
     def test_indices_all_from_Dataset__between_year_clipped_season(self):
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data

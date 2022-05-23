@@ -14,6 +14,7 @@ import dateparser
 import numpy as np
 import pandas as pd
 import xarray as xr
+import xclim.core.calendar
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -375,14 +376,15 @@ def _build_seasonal_freq(season: tuple | list, clipped: bool):
 def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool):
     if len(season) != 2:
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
-    begin_date, end_date = _read_date(season[0]), _read_date(season[1])
+    begin_date = _read_date(season[0])
+    end_date = _read_date(season[1])
+    begin_formatted = begin_date.strftime("%m-%d")
+    end_formatted = end_date.strftime("%m-%d")
     if clipped:
         indexer = None
-        time_clipping = _get_filter_between_dates(begin_date, end_date)
+        time_clipping = _get_filter_between_dates(begin_formatted, end_formatted)
     else:
-        indexer = dict(
-            date_bounds=(begin_date.strftime("%m-%d"), end_date.strftime("%m-%d"))
-        )
+        indexer = dict(date_bounds=(begin_formatted, end_formatted))
         time_clipping = None
     return _Freq(
         indexer=indexer,
@@ -390,7 +392,8 @@ def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool):
             begin_date.month, end_date.month, begin_date.day, end_date.day
         ),
         pandas_freq=f"AS-{MONTHS_MAP[begin_date.month]}",
-        description=f"seasonal time series (season: from {begin_date} to {end_date})",
+        description=f"seasonal time series"
+        f" (season: from {begin_formatted} to {end_formatted})",
         accepted_values=[],
         time_clipping=time_clipping,
     )
@@ -428,23 +431,14 @@ def _read_date(date_string: str) -> datetime:
     return date
 
 
-def _get_filter_between_dates(begin_date: datetime, end_date: datetime):
-    def filter_between_dates(da: DataArray):
-        between_dates_range = pd.date_range(begin_date, end_date, freq="D").dayofyear
-        between_dates_mask = np.logical_and(
-            da.time.dt.dayofyear >= between_dates_range.min(),
-            da.time.dt.dayofyear <= between_dates_range.max(),
-        )
-        return da[between_dates_mask]
-
-    return lambda da: filter_between_dates(da)
+def _get_month_filter(season):
+    return lambda da: xclim.core.calendar.select_time(da, month=season)
 
 
-def _get_month_filter(month_list: list[int]) -> Callable:
-    def filter_months(da: DataArray) -> DataArray:
-        return da.sel(time=da.time.dt.month.isin(month_list))
-
-    return lambda da: filter_months(da)
+def _get_filter_between_dates(begin_date: str, end_date: str):
+    return lambda da: xclim.core.calendar.select_time(
+        da, date_bounds=(begin_date, end_date)
+    )
 
 
 SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
