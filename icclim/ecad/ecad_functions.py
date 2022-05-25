@@ -1,5 +1,4 @@
-"""
-All ECA&D functions. Each function wraps its xclim equivalent functions adding icclim
+"""All ECA&D functions. Each function wraps its xclim equivalent functions adding icclim
 metadata to it.
 """
 from __future__ import annotations
@@ -361,47 +360,11 @@ def r99ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def sd(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Mean of daily Snow Depth (SD)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Mean of daily snow depth (cm)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.pr with the surface snow thickness
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = land.snow_depth(config.pr.study_da, **_build_frequency_kwargs(config))
     return result
 
 
 def sd1(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Snow Days with at least 1 cm of snow (SD1)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Number of days with SD ≥ 1 cm (days)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.pr with the surface snow thickness
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = land.snow_cover_duration(
         config.pr.study_da, thresh="1 cm", **_build_frequency_kwargs(config)
     )
@@ -409,24 +372,6 @@ def sd1(config: IndexConfig) -> DataArray:
 
 
 def sd5cm(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Snow Days with at least 5 cm of snow (SD5cm)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Number of days with SD ≥ 5 cm (days)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.pr with the surface snow thickness
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = land.snow_cover_duration(
         config.pr.study_da, thresh="5 cm", **_build_frequency_kwargs(config)
     )
@@ -434,24 +379,6 @@ def sd5cm(config: IndexConfig) -> DataArray:
 
 
 def sd50cm(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Snow Days with at least 50 cm of snow (SD50cm)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Number of days with SD ≥ 50 cm (days)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.pr with the surface snow thickness
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = land.snow_cover_duration(
         config.pr.study_da, thresh="50 cm", **_build_frequency_kwargs(config)
     )
@@ -459,97 +386,24 @@ def sd50cm(config: IndexConfig) -> DataArray:
 
 
 def tg(config: IndexConfig) -> DataArray:
-    """
-    Climate index: mean of daily averaged(G) Temperature (TG)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Mean of daily averaged temperature (°C)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.cf_variables[0] with tas
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = atmos.tg_mean(config.tas.study_da, **_build_frequency_kwargs(config))
     result = convert_units_to(result, "°C")
     return result
 
 
 def tn(config: IndexConfig) -> DataArray:
-    """
-    Climate index: daily minimun(N) Temperature averaged (TN)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Mean of daily minimum temperature (°C)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.cf_variables[0] with tasmin
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = atmos.tn_mean(config.tasmin.study_da, **_build_frequency_kwargs(config))
     result = convert_units_to(result, "°C")
     return result
 
 
 def tx(config: IndexConfig) -> DataArray:
-    """
-    Climate index: daily maximum(X) Temperature averaged (TX)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Mean of daily maximum temperature (°C)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.cf_variables[0] with tasmax
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = atmos.tx_mean(config.tasmax.study_da, **_build_frequency_kwargs(config))
     result = convert_units_to(result, "°C")
     return result
 
 
 def dtr(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Diurnal Temperature Range (DTR)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Mean of diurnal temperature range (°C)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.cf_variables[0] with tasmax
-        config.cf_variables[1] with tasmin
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = atmos.daily_temperature_range(
         tasmax=config.tasmax.study_da,
         tasmin=config.tasmin.study_da,
@@ -560,25 +414,6 @@ def dtr(config: IndexConfig) -> DataArray:
 
 
 def etr(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Extreme Temperature Range (ETR)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Intra-period extreme temperature range (°C)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.cf_variables[0] with tasmax
-        config.cf_variables[1] with tasmin
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = atmos.extreme_temperature_range(
         tasmax=config.tasmax.study_da,
         tasmin=config.tasmin.study_da,
@@ -589,26 +424,6 @@ def etr(config: IndexConfig) -> DataArray:
 
 
 def vdtr(config: IndexConfig) -> DataArray:
-    """
-    Climate index:
-        Mean absolute day-to-day difference in Diurnal temperature range (vDTR)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Mean absolute day-to-day difference in Diurnal temperature range (°C)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        config.cf_variables[0] with tasmax
-        config.cf_variables[1] with tasmin
-        config.freq
-    Returns
-    -------
-    returns DataArray of the resulting index
-    """
     result = atmos.daily_temperature_range_variability(
         tasmax=config.tasmax.study_da,
         tasmin=config.tasmin.study_da,
@@ -619,26 +434,6 @@ def vdtr(config: IndexConfig) -> DataArray:
 
 
 def cd(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Cold and Wet days (CD)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Days with TG < 25th percentile of daily mean temperature and RR < 25th percentile of
-    daily precipitation sum (cold/dry days)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        ``{cf_variables, window, interpolation, freq, save_percentile}``
-    Returns
-    -------
-        If save_percentile is True,
-            returns a Tuple of index_result, computed_percentiles
-        Otherwise, returns the index_result
-    """
     return compute_compound_index(
         tas=config.tas,
         pr=config.pr,
@@ -654,26 +449,6 @@ def cd(config: IndexConfig) -> DataArray:
 
 
 def cw(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Cold and Wet days (CD)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Days with TG < 25th percentile of daily mean temperature and RR > 75th percentile of
-    daily precipitation sum (cold/wet days)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        ``{cf_variables, window, interpolation, freq, save_percentile}``
-    Returns
-    -------
-        If save_percentile is True,
-            returns a Tuple of index_result, computed_percentiles
-        Otherwise, returns the index_result
-    """
     return compute_compound_index(
         tas=config.tas,
         pr=config.pr,
@@ -689,26 +464,6 @@ def cw(config: IndexConfig) -> DataArray:
 
 
 def wd(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Warm and Dry days (WD)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Days with TG > 75th percentile of daily mean temperature and RR <25th percentile
-    of daily precipitation sum (warm/dry days)
-
-    Parameters
-    ----------
-    config : IndexConfig
-        The configuration necessary to compute this index.
-        For this index the following fields must be filled:
-        ``{cf_variables, window, interpolation, freq, save_percentile}``
-    Returns
-    -------
-        If save_percentile is True,
-            returns a Tuple made of  index_result, computed_percentiles
-        Otherwise, returns the index_result
-    """
     return compute_compound_index(
         tas=config.tas,
         pr=config.pr,
@@ -724,14 +479,6 @@ def wd(config: IndexConfig) -> DataArray:
 
 
 def ww(config: IndexConfig) -> DataArray:
-    """
-    Climate index: Warm and Wet days (WW)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11
-
-    Days with TG > 75th percentile of daily mean temperature and RR > 75th percentile of
-    daily precipitation sum (warm/wet days)
-    """
     return compute_compound_index(
         tas=config.tas,
         pr=config.pr,
@@ -747,9 +494,8 @@ def ww(config: IndexConfig) -> DataArray:
 
 
 def _can_run_bootstrap(cf_var: CfVariable) -> bool:
-    """
-    Avoid bootstrapping if there is one single year overlapping or no year overlapping
-    or all year overlapping.
+    """Avoid bootstrapping if there is one single year overlapping
+    or no year overlapping or all year overlapping.
     """
     study_years = np.unique(cf_var.study_da.indexes.get("time").year)
     overlapping_years = np.unique(
@@ -806,8 +552,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
 def _is_leap_year(da: DataArray) -> np.ndarray:
     time_index = da.indexes.get("time")
     if isinstance(time_index, xr.CFTimeIndex):
-        cf_calendar: CfCalendar = CfCalendar.lookup(time_index.calendar)
-        return cf_calendar.is_leap(da.time.dt.year)
+        return CfCalendar.lookup(time_index.calendar).is_leap(da.time.dt.year)
     else:
         return da.time.dt.is_leap_year
 
@@ -856,10 +601,7 @@ def _compute_percentile_over_period(
 
 
 def _filter_in_wet_days(da: DataArray, dry_day_value: float):
-    """
-    Turns non wet days to NaN.
-    dry_day_value may be Nan or 0.
-    """
+    """Turns non wet days to NaN. dry_day_value should be NaN or 0."""
     precip = convert_units_to(da, "mm/d")
     return precip.where(precip > 1, dry_day_value)
 
@@ -958,9 +700,8 @@ def compute_compound_index(
 
     Returns
     -------
-        If save_percentile is True,
-            returns a Tuple of index_result, computed_percentiles
-        Otherwise, returns the index_result
+        If save_percentile is True, returns a Tuple of index_result,
+        computed_percentiles. Otherwise, returns the index_result
     """
     tas_per = _compute_percentile_doy(
         tas.reference_da,

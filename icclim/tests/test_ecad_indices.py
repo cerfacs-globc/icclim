@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import datetime
 
 import numpy as np
 import pytest
 from xarray import Dataset
 
-from icclim.ecad_functions import (
+from icclim.ecad.ecad_functions import (
     cfd,
     csdi,
     csu,
@@ -18,13 +20,13 @@ from icclim.ecad_functions import (
     tx90p,
     wsdi,
 )
+from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.tests.test_utils import K2C, stub_pr, stub_tas
+from icclim.tests.testing_utils import K2C, stub_pr, stub_tas
 
 
 def test_listing():

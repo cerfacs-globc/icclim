@@ -5,16 +5,16 @@
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from enum import Enum
 from typing import Callable, Dict, List, Literal, Tuple, Union
 
 import cftime
-import dateparser
 import numpy as np
 import pandas as pd
 import xarray as xr
 import xclim.core.calendar
+from pandas.tseries.frequencies import to_offset
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -27,6 +27,7 @@ from icclim.models.constants import (
     ONDJFM_MONTHS,
     SON_MONTHS,
 )
+from icclim.utils import read_date
 
 SEASON_ERR_MSG = (
     "A season created using `slice_mode` must be made of either"
@@ -43,12 +44,14 @@ def get_seasonal_time_updater(
     the season composed of the given month. The data must have been computed on this
     season beforehand.
     It also create the corresponding time_bounds.
+
     Parameters
     ----------
     start_month: int
         The season starting month, it must be between 1 and 12.
     end_month: int
         The season ending month, it must be between 1 and 12.
+
     Returns
     -------
     function: Callable[[DataArray], DataArray]
@@ -289,8 +292,8 @@ class Frequency(Enum):
             return slice_mode
         if isinstance(slice_mode, str):
             return _get_frequency_from_string(slice_mode)
-        if isinstance(slice_mode, list):
-            return _get_frequency_from_list(slice_mode)
+        if isinstance(slice_mode, list) or isinstance(slice_mode, tuple):
+            return _get_frequency_from_iterable(slice_mode)
         raise InvalidIcclimArgumentError(
             f"Unknown frequency {slice_mode}."
             f"Use a Frequency from {[f for f in Frequency]}"
@@ -315,9 +318,24 @@ def _get_frequency_from_string(slice_mode: str) -> Frequency:
             str.upper, freq.accepted_values
         ):
             return freq
-    # TODO: we could add a compatibility to other pandas freq if we detect
-    #       something like WS, 4MS, etc. In which case we would use FREQUENCY.CUSTOM
-    raise InvalidIcclimArgumentError(f"Unknown frequency {slice_mode}.")
+    # else assumes it's a pandas frequency (such as W or 3MS)
+    try:
+        to_offset(slice_mode)  # no-op, used to check if it's a valid pandas freq
+    except ValueError as e:
+        raise InvalidIcclimArgumentError(
+            f"Unknown frequency {slice_mode}. Use either a"
+            " valid icclim frequency or a valid pandas"
+            " frequency",
+            e,
+        )
+    Frequency.CUSTOM._freq = _Freq(
+        post_processing=_get_time_bounds_updater(slice_mode),
+        pandas_freq=slice_mode,
+        description=f"time series sampled on {slice_mode}",
+        accepted_values=[],
+        indexer=None,
+    )
+    return Frequency.CUSTOM
 
 
 def _is_season_valid(months: list[int]) -> bool:
@@ -331,7 +349,9 @@ def _is_season_valid(months: list[int]) -> bool:
     return is_valid
 
 
-def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
+def _get_frequency_from_iterable(
+    slice_mode_list: list | tuple[str, list | tuple]
+) -> Frequency:
     if len(slice_mode_list) < 2:
         raise InvalidIcclimArgumentError(
             "Invalid slice_mode format."
@@ -356,7 +376,7 @@ def _get_frequency_from_list(slice_mode_list: list) -> Frequency:
     return custom_freq
 
 
-def _build_frequency_filtered_by_month(months: list[int]):
+def _build_frequency_filtered_by_month(months: list[int]) -> _Freq:
     return _Freq(
         indexer=dict(month=months),
         post_processing=_get_time_bounds_updater("MS"),
@@ -373,11 +393,11 @@ def _build_seasonal_freq(season: tuple | list, clipped: bool):
         return _build_seasonal_frequency_for_months(season, clipped)
 
 
-def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool):
+def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool) -> _Freq:
     if len(season) != 2:
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
-    begin_date = _read_date(season[0])
-    end_date = _read_date(season[1])
+    begin_date = read_date(season[0])
+    end_date = read_date(season[1])
     begin_formatted = begin_date.strftime("%m-%d")
     end_formatted = end_date.strftime("%m-%d")
     if clipped:
@@ -400,7 +420,7 @@ def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool):
 
 
 def _build_seasonal_frequency_for_months(season: tuple | list, clipped: bool):
-    if isinstance(season, Tuple):
+    if isinstance(season, tuple):
         # concat in case of ([12], [1, 2])
         season = season[0] + season[1]
     if not _is_season_valid(season):
@@ -421,16 +441,6 @@ def _build_seasonal_frequency_for_months(season: tuple | list, clipped: bool):
     )
 
 
-def _read_date(date_string: str) -> datetime:
-    error_msg = (
-        "The date {} does not have a valid format."
-        " You can use various formats such as '2 december' or '02-12'."
-    )
-    if (date := dateparser.parse(date_string)) is None:
-        raise InvalidIcclimArgumentError(error_msg.format(date_string))
-    return date
-
-
 def _get_month_filter(season):
     return lambda da: xclim.core.calendar.select_time(da, month=season)
 
@@ -441,8 +451,9 @@ def _get_filter_between_dates(begin_date: str, end_date: str):
     )
 
 
-SliceMode = Union[Frequency, str, List[Union[str, Tuple, int]]]
-
+SliceMode = Union[
+    Frequency, str, List[Union[str, Tuple, int]], Tuple[str, Union[List, Tuple]]
+]
 MonthsIndexer = Dict[Literal["month"], List[int]]  # format [12,1,2,3]
 DatesIndexer = Dict[
     Literal["date_bounds"], Tuple[str, str]

@@ -2,9 +2,20 @@ Release history
 ===============
 
 5.3.0
----------
+-----
 [enh] Add icclim version to history in outputted metadata.
 [maint] **breaking change** Pin minimal pandas version to 1.3 to fix: https://github.com/pandas-dev/pandas/issues/24539
+[enh] `slice_mode`: seasons can now be defined to be between two exact dates.
+[enh] `slice_mode`: a tuple[str, list] can now be used as long as the usual list in input of seasons.
+[enh] `slice_mode`: Added `clipped_season` keyword which ignores event starting before the season bounds (original behavior of ``season``).
+[maint] `slice_mode`: Modified `season` keyword to take into account events (such as in CDD) starting before the season bounds.
+This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
+[maint] Added dataclass ClimateIndex to ease the introduction of new indices not in the ECAD standard.
+[maint] Made use the new typing syntax thanks to ``from __future__ import annotations``.
+[maint] Add docstring validation into flake8 checks.
+[enh] Improve API for date related parameters ``{time_range, base_period_time_range, ref_time_range}``
+They can still be filled with a datetime object but additionally various string format are now available.
+This comes with dateparser library.
 
 5.2.1
 -----

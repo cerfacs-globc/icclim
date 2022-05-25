@@ -5,7 +5,7 @@ from typing import Callable, Literal
 
 from xarray.core.dataarray import DataArray
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.user_indices import operators
 
@@ -32,7 +32,7 @@ def anomaly(config: UserIndexConfig):
         config.cf_vars[0].reference_da is None
         or len(config.cf_vars[0].reference_da) == 0
     ):
-        raise MissingIcclimInputError(
+        raise InvalidIcclimArgumentError(
             f"You must provide a `ref_time_range` in user_index dictionary to compute"
             f" {CalcOperation.ANOMALY.value}."
             f" To be valid, it must be within the dataset time range."
@@ -46,7 +46,7 @@ def anomaly(config: UserIndexConfig):
 
 def run_sum(config: UserIndexConfig):
     if config.extreme_mode is None or config.window_width is None:
-        raise MissingIcclimInputError(
+        raise InvalidIcclimArgumentError(
             "Please provide an extreme_mode and a window_width to user_index."
         )
     return operators.run_sum(
@@ -61,7 +61,7 @@ def run_sum(config: UserIndexConfig):
 
 def run_mean(config: UserIndexConfig):
     if config.extreme_mode is None or config.window_width is None:
-        raise MissingIcclimInputError(
+        raise InvalidIcclimArgumentError(
             "Please provide a extreme mode and a window width."
         )
     return operators.run_mean(
@@ -76,7 +76,7 @@ def run_mean(config: UserIndexConfig):
 
 def max_consecutive_event_count(config: UserIndexConfig):
     if config.logical_operation is None or config.thresh is None:
-        raise MissingIcclimInputError(
+        raise InvalidIcclimArgumentError(
             "Please provide a threshold and a logical operation."
         )
     if isinstance(config.thresh, list):
@@ -97,7 +97,7 @@ def max_consecutive_event_count(config: UserIndexConfig):
 
 def count_events(config: UserIndexConfig):
     if config.nb_event_config is None:
-        raise MissingIcclimInputError(
+        raise InvalidIcclimArgumentError(
             f"{CalcOperation.EVENT_COUNT.value} not properly configure."
             f" Please provide a threshold and a logical operation."
         )

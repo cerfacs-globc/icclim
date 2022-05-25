@@ -75,7 +75,7 @@ def tg(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -96,14 +96,20 @@ def tg(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -141,7 +147,7 @@ def tn(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -162,14 +168,20 @@ def tn(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -207,7 +219,7 @@ def tx(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -228,14 +240,20 @@ def tx(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -273,7 +291,7 @@ def dtr(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -294,14 +312,20 @@ def dtr(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -339,7 +363,7 @@ def etr(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -360,14 +384,20 @@ def etr(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -405,7 +435,7 @@ def vdtr(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -426,14 +456,20 @@ def vdtr(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -471,7 +507,7 @@ def su(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -493,14 +529,20 @@ def su(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -544,7 +586,7 @@ def tr(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -566,14 +608,20 @@ def tr(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -617,10 +665,10 @@ def wsdi(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -646,14 +694,20 @@ def wsdi(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -666,7 +720,7 @@ def wsdi(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -676,6 +730,9 @@ def wsdi(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -725,9 +782,9 @@ def tg90p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -754,14 +811,20 @@ def tg90p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -769,7 +832,7 @@ def tg90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -779,6 +842,9 @@ def tg90p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -830,9 +896,9 @@ def tn90p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -859,14 +925,20 @@ def tn90p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -874,7 +946,7 @@ def tn90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -884,6 +956,9 @@ def tn90p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -935,9 +1010,9 @@ def tx90p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -964,14 +1039,20 @@ def tx90p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -979,7 +1060,7 @@ def tx90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -989,6 +1070,9 @@ def tx90p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -1040,7 +1124,7 @@ def txx(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -1061,14 +1145,20 @@ def txx(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1106,7 +1196,7 @@ def tnx(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -1127,14 +1217,20 @@ def tnx(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1172,7 +1268,7 @@ def csu(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1194,14 +1290,20 @@ def csu(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1245,7 +1347,7 @@ def gd4(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1267,14 +1369,20 @@ def gd4(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1318,7 +1426,7 @@ def fd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1340,14 +1448,20 @@ def fd(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1391,7 +1505,7 @@ def cfd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1413,14 +1527,20 @@ def cfd(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1464,7 +1584,7 @@ def hd17(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1486,14 +1606,20 @@ def hd17(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1537,7 +1663,7 @@ def id(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1559,14 +1685,20 @@ def id(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1610,9 +1742,9 @@ def tg10p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -1639,14 +1771,20 @@ def tg10p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1654,7 +1792,7 @@ def tg10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -1664,6 +1802,9 @@ def tg10p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -1715,9 +1856,9 @@ def tn10p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -1744,14 +1885,20 @@ def tn10p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1759,7 +1906,7 @@ def tn10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -1769,6 +1916,9 @@ def tn10p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -1820,9 +1970,9 @@ def tx10p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -1849,14 +1999,20 @@ def tx10p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1864,7 +2020,7 @@ def tx10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -1874,6 +2030,9 @@ def tx10p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -1925,7 +2084,7 @@ def txn(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -1946,14 +2105,20 @@ def txn(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -1991,7 +2156,7 @@ def tnn(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2012,14 +2177,20 @@ def tnn(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2057,10 +2228,10 @@ def csdi(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -2086,14 +2257,20 @@ def csdi(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2106,7 +2283,7 @@ def csdi(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -2116,6 +2293,9 @@ def csdi(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -2165,7 +2345,7 @@ def cdd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2186,14 +2366,20 @@ def cdd(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2231,7 +2417,7 @@ def prcptot(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2252,14 +2438,20 @@ def prcptot(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2297,7 +2489,7 @@ def rr1(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2318,14 +2510,20 @@ def rr1(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2363,7 +2561,7 @@ def sdii(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2384,14 +2582,20 @@ def sdii(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2429,7 +2633,7 @@ def cwd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2450,14 +2654,20 @@ def cwd(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2495,7 +2705,7 @@ def r10mm(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2516,14 +2726,20 @@ def r10mm(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2561,7 +2777,7 @@ def r20mm(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2582,14 +2798,20 @@ def r20mm(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2627,7 +2849,7 @@ def rx1day(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2648,14 +2870,20 @@ def rx1day(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2693,7 +2921,7 @@ def rx5day(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2714,14 +2942,20 @@ def rx5day(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2759,9 +2993,9 @@ def r75p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -2787,14 +3021,20 @@ def r75p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2802,7 +3042,7 @@ def r75p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -2812,6 +3052,9 @@ def r75p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2859,9 +3102,9 @@ def r75ptot(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -2886,14 +3129,20 @@ def r75ptot(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2901,7 +3150,7 @@ def r75ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -2911,6 +3160,9 @@ def r75ptot(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2955,9 +3207,9 @@ def r95p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -2983,14 +3235,20 @@ def r95p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -2998,7 +3256,7 @@ def r95p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3008,6 +3266,9 @@ def r95p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3055,9 +3316,9 @@ def r95ptot(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3082,14 +3343,20 @@ def r95ptot(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3097,7 +3364,7 @@ def r95ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3107,6 +3374,9 @@ def r95ptot(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3151,9 +3421,9 @@ def r99p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3179,14 +3449,20 @@ def r99p(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3194,7 +3470,7 @@ def r99p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3204,6 +3480,9 @@ def r99p(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3251,9 +3530,9 @@ def r99ptot(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3278,14 +3557,20 @@ def r99ptot(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3293,7 +3578,7 @@ def r99ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3303,6 +3588,9 @@ def r99ptot(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3347,7 +3635,7 @@ def sd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -3368,14 +3656,20 @@ def sd(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3413,7 +3707,7 @@ def sd1(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -3434,14 +3728,20 @@ def sd1(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3479,7 +3779,7 @@ def sd5cm(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -3500,14 +3800,20 @@ def sd5cm(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3545,7 +3851,7 @@ def sd50cm(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -3566,14 +3872,20 @@ def sd50cm(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3611,9 +3923,9 @@ def cd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3639,14 +3951,20 @@ def cd(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3654,7 +3972,7 @@ def cd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3664,6 +3982,9 @@ def cd(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -3712,9 +4033,9 @@ def cw(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3740,14 +4061,20 @@ def cw(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3755,7 +4082,7 @@ def cw(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3765,6 +4092,9 @@ def cw(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -3813,9 +4143,9 @@ def wd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3841,14 +4171,20 @@ def wd(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3856,7 +4192,7 @@ def wd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3866,6 +4202,9 @@ def wd(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -3914,9 +4253,9 @@ def ww(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3942,14 +4281,20 @@ def ww(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -3957,7 +4302,7 @@ def ww(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3967,6 +4312,9 @@ def ww(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -4016,9 +4364,9 @@ def custom_index(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
@@ -4041,14 +4389,20 @@ def custom_index(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -4056,7 +4410,7 @@ def custom_index(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -4066,6 +4420,9 @@ def custom_index(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool

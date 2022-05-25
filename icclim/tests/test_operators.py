@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -6,7 +8,7 @@ from icclim.models.user_index_config import (
     LinkLogicalOperation,
     LogicalOperation,
 )
-from icclim.tests.test_utils import stub_tas
+from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.operators import (
     _apply_coef,
     anomaly,

@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import os
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import cftime
@@ -8,9 +11,9 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
 
@@ -84,6 +87,42 @@ class Test_Integration:
         )
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.SU)
+
+    def test_index_SU__time_selection(self):
+        # WHEN
+        res_string_dates = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            time_range=("19 july 2042", "14 august 2044"),
+        )
+        res_datetime_dates = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            time_range=[datetime(2042, 7, 19), datetime(2044, 8, 14)],
+        )
+        # THEN
+        assert res_string_dates.time_bounds[0, 0] == np.datetime64(datetime(2042, 1, 1))
+        assert res_string_dates.time_bounds[0, 1] == np.datetime64(
+            datetime(2042, 12, 31)
+        )
+        np.testing.assert_array_equal(res_string_dates.SU, res_datetime_dates.SU)
+        np.testing.assert_array_equal(
+            res_string_dates.time_bounds, res_datetime_dates.time_bounds
+        )
+
+    def test_index_SU__pandas_time_slice_mode(self):
+        # WHEN
+        res = icclim.index(
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="2W-WED",
+        )
+        # THEN
+        assert res.time_bounds[0, 0] == np.datetime64(datetime(2042, 1, 1))
+        assert res.time_bounds[0, 1] == np.datetime64(datetime(2042, 1, 14))
 
     def test_index_SU__monthy_sampled(self):
         res = icclim.index(

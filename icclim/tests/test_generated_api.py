@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
@@ -5,6 +7,7 @@ import numpy as np
 import pytest
 
 import icclim
+from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_logger import Verbosity
 from icclim.models.constants import (
     MODIFIABLE_QUANTILE_WINDOW,
@@ -12,11 +15,10 @@ from icclim.models.constants import (
     MODIFIABLE_UNIT,
     QUANTILE_BASED,
 )
-from icclim.models.ecad_indices import EcadIndex
 from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.tests.test_utils import stub_tas
+from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.calc_operation import CalcOperation
 
 DEFAULT_ARGS = dict(
@@ -34,9 +36,10 @@ DEFAULT_ARGS = dict(
 def build_expected_args(index):
     expected_call_args = {"index_name": index.name}
     expected_call_args.update(DEFAULT_ARGS)
-    if MODIFIABLE_THRESHOLD in index.qualifiers:
+    qualifiers = [] if index.qualifiers is None else index.qualifiers
+    if MODIFIABLE_THRESHOLD in qualifiers:
         expected_call_args.update({"threshold": None})
-    if QUANTILE_BASED in index.qualifiers:
+    if QUANTILE_BASED in qualifiers:
         expected_call_args.update(
             {
                 "base_period_time_range": None,
@@ -45,9 +48,9 @@ def build_expected_args(index):
                 "save_percentile": False,
             }
         )
-    if MODIFIABLE_QUANTILE_WINDOW in index.qualifiers:
+    if MODIFIABLE_QUANTILE_WINDOW in qualifiers:
         expected_call_args.update({"window_width": 5})
-    if MODIFIABLE_UNIT in index.qualifiers:
+    if MODIFIABLE_UNIT in qualifiers:
         expected_call_args.update({"out_unit": None})
 
     return expected_call_args

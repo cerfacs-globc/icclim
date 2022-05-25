@@ -18,6 +18,6 @@ class UserIndexDict(TypedDict, total=False):
     coef: float | None
     date_event: bool | None
     var_type: Literal["t", "p"] | None
-    ref_time_range: list[datetime.datetime] | None  # length of 2
+    ref_time_range: list[datetime] | list[str] | tuple[str, str] | None
     # deprecated
     indice_name: str | None

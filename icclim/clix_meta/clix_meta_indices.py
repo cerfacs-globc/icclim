@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 """ Wrapper for clix-meta yaml file.
     This read the yaml and make its content accessible an instance of ClixMetaIndices.
     It also exposes some type hints of yaml content.
 """
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional, TypedDict
+from typing import Any, TypedDict
 
 import yaml
 
@@ -25,15 +27,15 @@ class OutputMetadata(TypedDict):
     standard_name: str
     long_name: str
     units: str
-    cell_methods: Dict
+    cell_methods: dict
 
 
 class ClixMetaIndex(TypedDict):
     reference: str
-    period: Dict
+    period: dict
     output: OutputMetadata
-    input: Dict
-    index_function: Dict
+    input: dict
+    index_function: dict
     ET: EtMetadata
 
 
@@ -43,7 +45,7 @@ class ClixMetaIndices:
     """
 
     __instance: Any = None
-    indices_record: Dict[str, ClixMetaIndex]
+    indices_record: dict[str, ClixMetaIndex]
 
     @staticmethod
     def get_instance():
@@ -59,7 +61,7 @@ class ClixMetaIndices:
             with open(CLIX_YAML_PATH, "r") as clix_meta_file:
                 self.indices_record = yaml.safe_load(clix_meta_file)["indices"]
 
-    def lookup(self, query: str) -> Optional[ClixMetaIndex]:
+    def lookup(self, query: str) -> ClixMetaIndex | None:
         for index in self.indices_record.keys():
             if index.upper() == query.upper():
                 return self.indices_record[index]

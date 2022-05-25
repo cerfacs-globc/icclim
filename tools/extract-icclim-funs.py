@@ -5,10 +5,11 @@ Each generated functions signature is consistent with icclim.index signature but
 the unused parameters are trimmed from the signature.
 
 To generate the functions first icclim must be installed in the environment.
-To install icclim from source run
-    >>> python -m setup install
-Then the script can be run with
-    >>> python ./tools/extract-icclim-funs.py
+To install icclim from source run:
+>>> python -m setup install
+
+Then the script can be run with:
+>>> python ./tools/extract-icclim-funs.py
 """
 
 from __future__ import annotations
@@ -20,13 +21,13 @@ import sys
 from pathlib import Path
 
 import icclim
+from icclim.ecad.ecad_indices import EcadIndex
 from icclim.models.constants import (
     MODIFIABLE_QUANTILE_WINDOW,
     MODIFIABLE_THRESHOLD,
     MODIFIABLE_UNIT,
     QUANTILE_BASED,
 )
-from icclim.models.ecad_indices import EcadIndex
 
 ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]
 # Note: callback args are not included below
@@ -163,14 +164,15 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
     pop_args.append("callback_percentage_start_value")
     pop_args.append("callback_percentage_total")
     pop_args.append("index_name")  # specified with function name
-    if QUANTILE_BASED not in index.qualifiers:
+    qualifiers = [] if index.qualifiers is None else index.qualifiers
+    if QUANTILE_BASED not in qualifiers:
         for arg in QUANTILE_INDEX_FIELDS:
             pop_args.append(arg)
-    if MODIFIABLE_QUANTILE_WINDOW not in index.qualifiers:
+    if MODIFIABLE_QUANTILE_WINDOW not in qualifiers:
         pop_args.append(MODIFIABLE_QUANTILE_WINDOW_FIELD)
-    if MODIFIABLE_THRESHOLD not in index.qualifiers:
+    if MODIFIABLE_THRESHOLD not in qualifiers:
         pop_args.append(MODIFIABLE_THRESHOLD_FIELD)
-    if MODIFIABLE_UNIT not in index.qualifiers:
+    if MODIFIABLE_UNIT not in qualifiers:
         pop_args.append(MODIFIABLE_UNIT_FIELD)
 
     for pop_arg in pop_args:

@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import pytest
 
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
 from icclim.models.user_index_config import LogicalOperation, UserIndexConfig
-from icclim.tests.test_utils import stub_tas
+from icclim.tests.testing_utils import stub_tas
 
 
 class Test_UserindexConfig:

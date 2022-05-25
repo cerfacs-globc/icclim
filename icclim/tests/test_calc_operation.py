@@ -1,14 +1,16 @@
+from __future__ import annotations
+
 from typing import Callable
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError, MissingIcclimInputError
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import PRECIPITATION, TEMPERATURE
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import CfVariable
 from icclim.models.user_index_config import LogicalOperation
-from icclim.tests.test_utils import stub_pr, stub_tas, stub_user_index
+from icclim.tests.testing_utils import stub_pr, stub_tas, stub_user_index
 from icclim.user_indices import calc_operation
 from icclim.user_indices.calc_operation import (
     CalcOperation,
@@ -85,7 +87,7 @@ class Test_compute:
     def test_error_anomaly(self, config_mock: MagicMock, cf_var_mock: MagicMock):
         config_mock.cf_vars = [cf_var_mock]
         cf_var_mock.reference_da = None
-        with pytest.raises(MissingIcclimInputError):
+        with pytest.raises(InvalidIcclimArgumentError):
             anomaly(config_mock)
 
     @patch("icclim.models.user_index_config.UserIndexConfig")
@@ -102,11 +104,11 @@ class Test_compute:
     @patch("icclim.models.user_index_config.UserIndexConfig")
     def test_error_run_sum(self, config_mock: MagicMock):
         config_mock.extreme_mode = None
-        with pytest.raises(MissingIcclimInputError):
+        with pytest.raises(InvalidIcclimArgumentError):
             run_sum(config_mock)
         config_mock.extreme_mode = {}
         config_mock.window_width = None
-        with pytest.raises(MissingIcclimInputError):
+        with pytest.raises(InvalidIcclimArgumentError):
             run_sum(config_mock)
 
     @patch("icclim.user_indices.operators.run_sum")
@@ -118,11 +120,11 @@ class Test_compute:
     @patch("icclim.models.user_index_config.UserIndexConfig")
     def test_error_run_mean(self, config_mock: MagicMock):
         config_mock.extreme_mode = None
-        with pytest.raises(MissingIcclimInputError):
+        with pytest.raises(InvalidIcclimArgumentError):
             run_mean(config_mock)
         config_mock.extreme_mode = {}
         config_mock.window_width = None
-        with pytest.raises(MissingIcclimInputError):
+        with pytest.raises(InvalidIcclimArgumentError):
             run_mean(config_mock)
 
     @patch("icclim.user_indices.operators.run_mean")
@@ -134,11 +136,11 @@ class Test_compute:
     @patch("icclim.models.user_index_config.UserIndexConfig")
     def test_error_max_consecutive_event_count(self, config_mock: MagicMock):
         config_mock.logical_operation = None
-        with pytest.raises(MissingIcclimInputError):
+        with pytest.raises(InvalidIcclimArgumentError):
             max_consecutive_event_count(config_mock)
         config_mock.logical_operation = {}
         config_mock.thresh = None
-        with pytest.raises(MissingIcclimInputError):
+        with pytest.raises(InvalidIcclimArgumentError):
             max_consecutive_event_count(config_mock)
         config_mock.logical_operation = {}
         config_mock.thresh = []
@@ -156,7 +158,7 @@ class Test_compute:
     @patch("icclim.models.user_index_config.UserIndexConfig")
     def test_error_count_events(self, config_mock: MagicMock):
         config_mock.nb_event_config = None
-        with pytest.raises(MissingIcclimInputError):
+        with pytest.raises(InvalidIcclimArgumentError):
             count_events(config_mock)
 
     @patch("icclim.user_indices.operators.count_events")

@@ -48,6 +48,7 @@ You can now:
         - `MAINT:` for maintenance, and refactoring.
         - `DOC:` for documentation update.
         - `FIX:` for bug fixes.
+
     See `numpy's guide <https://numpy.org/doc/stable/dev/development_workflow.html#writing-the-commit-message>`_ for additional keywords.
 
 Documentation contribution

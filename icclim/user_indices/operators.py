@@ -14,10 +14,7 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, to_agg_units
 from xclim.indices.run_length import longest_run
 
-from icclim.icclim_exceptions import (
-    InvalidIcclimArgumentError,
-    InvalidIcclimOutputError,
-)
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import (
     PERCENTILE_THRESHOLD_STAMP,
     PERCENTILES_COORD,
@@ -341,7 +338,7 @@ def _filter_by_threshold(
             "a LogicalOperation instance"
         )
     if len(result) == 0:
-        raise InvalidIcclimOutputError(
+        raise InvalidIcclimArgumentError(
             f"The dataset has been emptied by filtering with "
             f"{logical_operation.operator}{threshold}."
         )

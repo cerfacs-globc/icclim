@@ -17,11 +17,11 @@ import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim.ecad_functions import IndexConfig
+from icclim.ecad.ecad_functions import IndexConfig
+from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
@@ -113,14 +113,13 @@ def index(
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime] = None,  # TODO: use dateparser to accept strings
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: list[datetime]
-    | None = None,  # TODO: use dateparser to accept strings
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -129,7 +128,7 @@ def index(
     ) = QuantileInterpolation.MEDIAN_UNBIASED,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
-    user_index: UserIndexDict = None,
+    user_index: UserIndexDict | None = None,
     save_percentile: bool = False,
     logs_verbosity: Verbosity | str = Verbosity.LOW,
     # deprecated parameters
@@ -138,6 +137,8 @@ def index(
     transfer_limit_Mbytes: float = None,
 ) -> Dataset:
     """
+    Main entry point for icclim to compute climate indices.
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray,
@@ -152,14 +153,20 @@ def index(
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : str
+    slice_mode : SliceMode
         Type of temporal aggregation:
-        {"year", "month", "DJF", "MAM", "JJA", "SON", "ONDJFM" or "AMJJAS"}.
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime]
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
         Default is ``None``.
     out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
@@ -181,7 +188,7 @@ def index(
         ``optional`` Initial value of percentage of the progress bar (default: 0).
     callback_percentage_total : int
         ``optional`` Total percentage value (default: 100).
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -191,6 +198,9 @@ def index(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         On indices not relying on percentiles, this parameter is ignored.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        For strings, many format are accepted.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -490,7 +500,7 @@ def _guess_variable_names(
     if isinstance(in_var_name, str):
         return [in_var_name]
     res = []
-    index_variables = index.variables
+    index_variables = index.input_variables
     for indice_var in index_variables:
         for alias in indice_var:
             # check if dataset contains this alias

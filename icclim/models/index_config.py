@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable
 
@@ -13,16 +14,19 @@ from icclim.models.constants import PR, TAS, TAS_MAX, TAS_MIN
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.utils import get_date_to_iso_format
 
 
+@dataclass
 class CfVariable:
-    """
-    CfVariable groups together two xarray DataArray for the same variable.
+    """CfVariable groups together two xarray DataArray for the same variable.
     One represent the whole studied period. The other is only the in base period used by
     percentile based indices to compute percentiles.
 
     Parameters
     ----------
+    name: str
+        Name of the variable.
     study_da: DataArray
         The variable studied.
     reference_da: DataArray
@@ -32,11 +36,6 @@ class CfVariable:
     name: str
     study_da: DataArray
     reference_da: DataArray
-
-    def __init__(self, name: str, study_da: DataArray, reference_da: DataArray) -> None:
-        self.name = name
-        self.study_da = study_da
-        self.reference_da = reference_da
 
 
 class IndexConfig:
@@ -92,8 +91,8 @@ class IndexConfig:
         only_leap_years: bool = False,
         ignore_Feb29th: bool = False,
         window_width: int | None = 5,
-        time_range: list[datetime] | None = None,
-        base_period_time_range: list[datetime] | None = None,
+        time_range: list[datetime] | None | tuple[str] = None,
+        base_period_time_range: list[datetime] | None | tuple[str] = None,
         threshold: float | None = None,
         out_unit: str | None = None,
         interpolation: QuantileInterpolation
@@ -103,10 +102,10 @@ class IndexConfig:
     ):
         self.freq = Frequency.lookup(slice_mode)
         if time_range is not None:
-            time_range = [x.strftime("%Y-%m-%d") for x in time_range]
+            time_range = [get_date_to_iso_format(x) for x in time_range]
         if base_period_time_range is not None:
             base_period_time_range = [
-                x.strftime("%Y-%m-%d") for x in base_period_time_range
+                get_date_to_iso_format(x) for x in base_period_time_range
             ]
         self._cf_variables = [
             _build_cf_variable(
