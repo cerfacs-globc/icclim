@@ -75,7 +75,7 @@ def tg(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -105,7 +105,7 @@ def tg(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -147,7 +147,7 @@ def tn(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -177,7 +177,7 @@ def tn(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -219,7 +219,7 @@ def tx(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -249,7 +249,7 @@ def tx(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -291,7 +291,7 @@ def dtr(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -321,7 +321,7 @@ def dtr(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -363,7 +363,7 @@ def etr(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -393,7 +393,7 @@ def etr(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -435,7 +435,7 @@ def vdtr(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -465,7 +465,7 @@ def vdtr(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -507,7 +507,7 @@ def su(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -538,7 +538,7 @@ def su(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -586,7 +586,7 @@ def tr(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -617,7 +617,7 @@ def tr(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -665,10 +665,10 @@ def wsdi(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -703,7 +703,7 @@ def wsdi(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -720,7 +720,7 @@ def wsdi(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -782,9 +782,9 @@ def tg90p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -820,7 +820,7 @@ def tg90p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -832,7 +832,7 @@ def tg90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -896,9 +896,9 @@ def tn90p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -934,7 +934,7 @@ def tn90p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -946,7 +946,7 @@ def tn90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -1010,9 +1010,9 @@ def tx90p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -1048,7 +1048,7 @@ def tx90p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1060,7 +1060,7 @@ def tx90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -1124,7 +1124,7 @@ def txx(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -1154,7 +1154,7 @@ def txx(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1196,7 +1196,7 @@ def tnx(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -1226,7 +1226,7 @@ def tnx(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1268,7 +1268,7 @@ def csu(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1299,7 +1299,7 @@ def csu(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1347,7 +1347,7 @@ def gd4(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1378,7 +1378,7 @@ def gd4(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1426,7 +1426,7 @@ def fd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1457,7 +1457,7 @@ def fd(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1505,7 +1505,7 @@ def cfd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1536,7 +1536,7 @@ def cfd(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1584,7 +1584,7 @@ def hd17(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1615,7 +1615,7 @@ def hd17(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1663,7 +1663,7 @@ def id(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
@@ -1694,7 +1694,7 @@ def id(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1742,9 +1742,9 @@ def tg10p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -1780,7 +1780,7 @@ def tg10p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1792,7 +1792,7 @@ def tg10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -1856,9 +1856,9 @@ def tn10p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -1894,7 +1894,7 @@ def tn10p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -1906,7 +1906,7 @@ def tn10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -1970,9 +1970,9 @@ def tx10p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -2008,7 +2008,7 @@ def tx10p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2020,7 +2020,7 @@ def tx10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -2084,7 +2084,7 @@ def txn(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2114,7 +2114,7 @@ def txn(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2156,7 +2156,7 @@ def tnn(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2186,7 +2186,7 @@ def tnn(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2228,10 +2228,10 @@ def csdi(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -2266,7 +2266,7 @@ def csdi(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2283,7 +2283,7 @@ def csdi(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -2345,7 +2345,7 @@ def cdd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2375,7 +2375,7 @@ def cdd(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2417,7 +2417,7 @@ def prcptot(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2447,7 +2447,7 @@ def prcptot(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2489,7 +2489,7 @@ def rr1(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2519,7 +2519,7 @@ def rr1(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2561,7 +2561,7 @@ def sdii(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2591,7 +2591,7 @@ def sdii(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2633,7 +2633,7 @@ def cwd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2663,7 +2663,7 @@ def cwd(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2705,7 +2705,7 @@ def r10mm(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2735,7 +2735,7 @@ def r10mm(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2777,7 +2777,7 @@ def r20mm(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2807,7 +2807,7 @@ def r20mm(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2849,7 +2849,7 @@ def rx1day(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2879,7 +2879,7 @@ def rx1day(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2921,7 +2921,7 @@ def rx5day(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -2951,7 +2951,7 @@ def rx5day(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -2993,9 +2993,9 @@ def r75p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3030,7 +3030,7 @@ def r75p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3042,7 +3042,7 @@ def r75p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3102,9 +3102,9 @@ def r75ptot(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3138,7 +3138,7 @@ def r75ptot(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3150,7 +3150,7 @@ def r75ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3207,9 +3207,9 @@ def r95p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3244,7 +3244,7 @@ def r95p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3256,7 +3256,7 @@ def r95p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3316,9 +3316,9 @@ def r95ptot(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3352,7 +3352,7 @@ def r95ptot(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3364,7 +3364,7 @@ def r95ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3421,9 +3421,9 @@ def r99p(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3458,7 +3458,7 @@ def r99p(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3470,7 +3470,7 @@ def r99p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3530,9 +3530,9 @@ def r99ptot(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str
@@ -3566,7 +3566,7 @@ def r99ptot(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3578,7 +3578,7 @@ def r99ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -3635,7 +3635,7 @@ def sd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -3665,7 +3665,7 @@ def sd(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3707,7 +3707,7 @@ def sd1(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -3737,7 +3737,7 @@ def sd1(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3779,7 +3779,7 @@ def sd5cm(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -3809,7 +3809,7 @@ def sd5cm(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3851,7 +3851,7 @@ def sd50cm(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
@@ -3881,7 +3881,7 @@ def sd50cm(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3923,9 +3923,9 @@ def cd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3960,7 +3960,7 @@ def cd(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -3972,7 +3972,7 @@ def cd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -4033,9 +4033,9 @@ def cw(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -4070,7 +4070,7 @@ def cw(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -4082,7 +4082,7 @@ def cw(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -4143,9 +4143,9 @@ def wd(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -4180,7 +4180,7 @@ def wd(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -4192,7 +4192,7 @@ def wd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -4253,9 +4253,9 @@ def ww(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -4290,7 +4290,7 @@ def ww(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -4302,7 +4302,7 @@ def ww(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
@@ -4364,9 +4364,9 @@ def custom_index(
     in_files: str | list[str] | Dataset | DataArray,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
@@ -4398,7 +4398,7 @@ def custom_index(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -4410,7 +4410,7 @@ def custom_index(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
