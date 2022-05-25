@@ -135,7 +135,7 @@ class UserIndexConfig:
         var_type=None,
         is_percent=False,
         save_percentile=False,
-        ref_time_range: list[str] = None,  # TODO: use dateparser to accept strings
+        ref_time_range: list[str] = None,
     ) -> None:
         self.index_name = index_name
         self.calc_operation = calc_operation
@@ -160,7 +160,6 @@ class UserIndexConfig:
                 logical_operation, link_logical_operations, thresh, cf_vars
             )
         self.save_percentile = save_percentile
-        self.ref_time_range = ref_time_range
         if (rtr := ref_time_range) is not None:
             rtr = [get_date_to_iso_format(date) for date in rtr]
             for cf_var in cf_vars:

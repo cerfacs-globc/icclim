@@ -480,6 +480,7 @@ class EcadIndex(Enum):
 
 
 def get_season_excluded_indices() -> list[EcadIndex]:
+    """List of indices which cannot be computed with seasonal slice_mode."""
     return [
         EcadIndex.WSDI,
         EcadIndex.CSU,

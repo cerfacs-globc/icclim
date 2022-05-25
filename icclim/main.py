@@ -113,13 +113,13 @@ def index(
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
-    time_range: list[datetime | str] | tuple[str, str] | None = None,
+    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: list[datetime] | tuple[str, str] | None = None,
+    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -162,7 +162,7 @@ def index(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime | str] | tuple[str, str] | None
+    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -188,7 +188,7 @@ def index(
         ``optional`` Initial value of percentage of the progress bar (default: 0).
     callback_percentage_total : int
         ``optional`` Total percentage value (default: 100).
-    base_period_time_range : list[datetime.datetime]
+    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
         When missing, the studied period is used to compute percentiles.
