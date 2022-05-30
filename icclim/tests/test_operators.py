@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+import xarray as xr
 
 from icclim.models.user_index_config import (
     ExtremeMode,
@@ -31,7 +32,7 @@ class Test_apply_coef:
         # WHEN
         result = _apply_coef(4.0, da)
         # THEN
-        assert np.testing.assert_equal(result.data, 4.0) is None
+        np.testing.assert_equal(result.data, 4.0)
 
 
 class Test_max:
@@ -120,7 +121,7 @@ class Test_count_events:
             freq="MS",
         )
         # THEN
-        assert result[0] == 2
+        xr.testing.assert_duckarray_equal(result.isel(time=0), 2)
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_multi_threshold_or(self, use_dask):
