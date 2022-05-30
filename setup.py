@@ -3,8 +3,6 @@
 
 from setuptools import find_packages, setup
 
-from icclim.models.constants import ICCLIM_VERSION
-
 MINIMAL_REQUIREMENTS = [
     # todo: Unpin numpy 1.22 once numba work with it (numba comes with xclim)
     #       https://github.com/numba/numba/issues/7754
@@ -25,7 +23,7 @@ MINIMAL_REQUIREMENTS = [
 
 setup(
     name="icclim",
-    version=ICCLIM_VERSION,
+    version="5.3.0",
     packages=find_packages(),
     author="Christian P.",
     author_email="christian.page@cerfacs.fr",
