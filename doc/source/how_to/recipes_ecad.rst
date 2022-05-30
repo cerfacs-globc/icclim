@@ -41,7 +41,6 @@ Example 2: index ETR
 
 Example 3: index TG90p with callback
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>> from icclim.util import callback
 >>>
 >>> f = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
 >>>
@@ -62,8 +61,7 @@ Example 3: index TG90p with callback
                 time_range=[dt1, dt2],
                 base_period_time_range=[base_dt1, base_dt2],
                 out_file=out_f,
-                out_unit='%',
-                callback=callback.defaultCallback2)
+                out_unit='%')
 >>>
 >>> f = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
 >>>
@@ -83,8 +81,6 @@ Example 3: index TG90p with callback
 
 Example 4: multivariable indices CD, CW, WD, WW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
->>> from icclim.util import callback
->>>
 >>> f = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
 >>>
 >>> # base period
@@ -104,8 +100,7 @@ Example 4: multivariable indices CD, CW, WD, WW
                 time_range=[dt1, dt2],
                 base_period_time_range=[base_dt1, base_dt2],
                 out_file=out_f,
-                out_unit='%',
-                callback=callback.defaultCallback2)
+                out_unit='%')
 >>>
 >>> f = 'tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc'
 >>>

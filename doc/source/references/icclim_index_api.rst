@@ -131,11 +131,12 @@ See :ref:`how to chunk data and parallelize computation <dask>` to configure das
 
 ``callback``
 ~~~~~~~~~~~~~
-The percentage progress bar is printed if the ``callback`` parameter is set to a callback function.
-The default callback functions are defined in `icclim.util.callback.py <https://github.com/cerfacs-globc/icclim/blob/master/icclim/util/callback.py>`_.
+/!\ Deprecated.
 
->>> from icclim.util import callback
->>> cb = callback.defaultCallback
+Callback can used to output a estimated progress of the calculus.
+However, when using dask, the calculus are done lazily at the very end of icclim's process.
+Thus the values transmitted to ``callback`` are irrelevant with dask.
+
 
 .. _ignore_Feb29th_label:
 
