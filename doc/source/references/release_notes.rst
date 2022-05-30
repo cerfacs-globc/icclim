@@ -16,6 +16,7 @@ This should improve the scientific validity of these seasonal computations. Plus
 [enh] Improve API for date related parameters ``{time_range, base_period_time_range, ref_time_range}``
 They can still be filled with a datetime object but additionally various string format are now available.
 This comes with dateparser library.
+[doc] Update callback doc as it is very inaccurate when using dask.
 
 5.2.1
 -----
