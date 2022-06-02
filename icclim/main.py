@@ -6,6 +6,7 @@ Main module of icclim.
 """
 from __future__ import annotations
 
+import copy
 import logging
 import time
 from datetime import datetime
@@ -21,7 +22,8 @@ from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
-from icclim.models.constants import ICCLIM_VERSION
+from icclim.models.climate_index import ClimateIndex
+from icclim.models.constants import ICCLIM_VERSION, QUANTILE_BASED
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
@@ -32,6 +34,9 @@ from icclim.pre_processing.input_parsing import read_dataset, update_to_standard
 from icclim.user_indices.calc_operation import CalcOperation, compute_user_index
 
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
+
+HISTORY_CF_KEY = "history"
+SOURCE_CF_KEY = "source"
 
 
 def indices(
@@ -266,16 +271,17 @@ def index(
         callback=callback,
         index=index,
         chunk_it=chunk_it,
+        threshold=threshold,
     )
     if user_index is not None:
-        result_ds = _compute_user_index_dataset(config=config, user_index=user_index)
+        result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
     else:
         _check_valid_config(index, config)
-        result_ds = _compute_ecad_index_dataset(
+        result_ds = _compute_standard_climate_index(
             config=config,
-            index=index,
-            threshold=threshold,
-            current_history=ds.attrs.get("history", None),
+            climate_index=index,
+            initial_history=ds.attrs.get(HISTORY_CF_KEY, None),
+            initial_source=ds.attrs.get(SOURCE_CF_KEY, None),
         )
     if reset_coords_dict:
         result_ds = result_ds.rename(reset_coords_dict)
@@ -292,9 +298,7 @@ def _write_output_file(
     netcdf_version: NetcdfVersion,
     file_path: str,
 ) -> None:
-    """
-    Write `result_ds` to a netCDF file on `out_file` path.
-    """
+    """Write `result_ds` to a netCDF file on `out_file` path."""
     if input_time_encoding:
         time_encoding = {
             "calendar": input_time_encoding.get("calendar"),
@@ -336,25 +340,7 @@ def _setup(callback, callback_start_value, logs_verbosity, slice_mode):
     callback(callback_start_value)
 
 
-def _compute_ecad_index_dataset(
-    config: IndexConfig,
-    index: EcadIndex,
-    threshold: float | list[float],
-    current_history: str | None,
-) -> Dataset:
-    if isinstance(threshold, list):
-        ds_list = []
-        for th in threshold:
-            config.threshold = th
-            ds_list.append(_compute_ecad_index(index, config, current_history))
-        result_ds = xr.concat(ds_list, dim="threshold")
-    else:
-        config.threshold = threshold
-        result_ds = _compute_ecad_index(index, config, current_history)
-    return result_ds
-
-
-def _compute_user_index_dataset(
+def _compute_custom_climate_index(
     config: IndexConfig, user_index: UserIndexDict
 ) -> Dataset:
     logging.info("Calculating user index.")
@@ -388,8 +374,8 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
     if da_unit is None:
         if output_unit is None:
             warn(
-                "No unit computed or provided for the index was found. "
-                "Use out_unit parameter to add one."
+                "No unit computed or provided for the index was found."
+                " Use out_unit parameter to add one."
             )
             return ""
         else:
@@ -398,58 +384,87 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
         return da_unit
 
 
-def _compute_ecad_index(
-    index: EcadIndex, config: IndexConfig, former_history: str | None
+def _compute_standard_climate_index(
+    climate_index: ClimateIndex,
+    config: IndexConfig,
+    initial_history: str | None,
+    initial_source: str,
 ) -> Dataset:
-    logging.info(f"Calculating climate index: {index.short_name}")
+    def compute(threshold: float | None = None):
+        conf = copy.copy(config)
+        if threshold is not None:
+            conf.threshold = threshold
+        if config.freq.time_clipping is not None:
+            # xclim missing values checking system will not work with clipped time
+            with xclim.set_options(check_missing="skip"):
+                res = climate_index.compute(conf)
+        else:
+            res = climate_index.compute(conf)
+        if isinstance(res, tuple):
+            return res
+        else:
+            return (res, None)
+
+    logging.info(f"Calculating climate index: {climate_index.short_name}")
     result_ds = Dataset()
-    if config.freq.time_clipping is not None:
-        # xclim missing feature will not work with clipped time
-        with xclim.set_options(check_missing="skip"):
-            res = index.compute(config)
-    else:
-        res = index.compute(config)
-    if isinstance(res, tuple):
-        da, per = res
-    else:
-        da, per = (res, None)
-    da.attrs["units"] = _get_unit(config.out_unit, da)
     if config.threshold is not None:
-        da.expand_dims({"threshold": config.threshold})
+        thresh_key = (
+            "percentiles"
+            if QUANTILE_BASED in climate_index.qualifiers
+            else "thresholds"
+        )
+        if not isinstance(config.threshold, list):
+            thresholds = [config.threshold]
+        else:
+            thresholds = config.threshold
+        index_das = []
+        per_das = []
+        for th in thresholds:
+            index_da, per_da = compute(th)
+            index_da.coords[thresh_key] = th
+            index_das.append(index_da)
+            if per_da is not None:
+                per_das.append(per_da)
+        result_da = xr.concat(index_das, dim=thresh_key)
+        if len(per_das) > 0:
+            percentiles_da = xr.concat(per_das, dim=thresh_key)
+        else:
+            percentiles_da = None
+    else:
+        result_da, percentiles_da = compute()
+    result_da.attrs["units"] = _get_unit(config.out_unit, result_da)
     if config.freq.post_processing is not None:
-        resampled_da, time_bounds = config.freq.post_processing(da)
-        result_ds[index.short_name] = resampled_da
+        resampled_da, time_bounds = config.freq.post_processing(result_da)
+        result_ds[climate_index.short_name] = resampled_da
         if time_bounds is not None:
             result_ds["time_bounds"] = time_bounds
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
-        result_ds[index.short_name] = da
-    if per is not None:
-        per = per.squeeze("percentiles", drop=True).rename("percentiles")
-        result_ds = xr.merge([result_ds, per])
-    if former_history is None:
-        former_history = da.attrs["history"]
-    else:
-        former_history = f"{former_history}\n{da.attrs['history']}"
-    del da.attrs["history"]
-    result_ds = _add_ecad_index_metadata(result_ds, config, index, former_history)
+        result_ds[climate_index.short_name] = result_da
+    if percentiles_da is not None:
+        result_ds = xr.merge([result_ds, percentiles_da])
+    history = _build_history(result_da, config, initial_history, climate_index)
+    result_ds = _add_ecad_index_metadata(
+        result_ds, config, climate_index, history, initial_source
+    )
     return result_ds
 
 
 def _add_ecad_index_metadata(
     result_ds: Dataset,
     config: IndexConfig,
-    computed_index: EcadIndex,
-    former_history: str,
+    computed_index: ClimateIndex,
+    history: str,
+    initial_source: str,
 ) -> Dataset:
     result_ds.attrs.update(
         dict(
-            title=_get_title(computed_index, config),
+            title=_build_title(computed_index, config),
             references="ATBD of the ECA&D indices calculation"
             " (https://www.ecad.eu/documents/atbd.pdf)",
             institution="Climate impact portal (https://climate4impact.eu)",
-            history=_build_history(config, former_history, computed_index, result_ds),
-            source="",
+            history=history,
+            source=initial_source if initial_source is not None else "",
             Conventions="CF-1.6",
         )
     )
@@ -458,19 +473,31 @@ def _add_ecad_index_metadata(
     return result_ds
 
 
-def _get_title(computed_index, config):
+def _build_title(computed_index: ClimateIndex, config: IndexConfig):
     if config.threshold is not None:
-        return f"Index {computed_index.short_name} with user defined threshold"
+        return f"Index {computed_index.short_name} on threshold(s) {config.threshold}"
     else:
-        return f"ECA&D {computed_index.group.value} index {computed_index.short_name}"
+        return f"{computed_index.group.value} index {computed_index.short_name}"
 
 
-def _build_history(config, former_history, indice_computed, result_ds):
+def _build_history(
+    result_da: DataArray,
+    config: IndexConfig,
+    initial_history: str | None,
+    indice_computed: ClimateIndex,
+) -> str:
+    if initial_history is None:
+        # get xclim history
+        initial_history = result_da.attrs[HISTORY_CF_KEY]
+    else:
+        # append xclim history
+        initial_history = f"{initial_history}\n{result_da.attrs['history']}"
+    del result_da.attrs[HISTORY_CF_KEY]
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    start_time = result_ds.time[0].dt.strftime("%m-%d-%Y").data[()]
-    end_time = result_ds.time[-1].dt.strftime("%m-%d-%Y").data[()]
+    start_time = result_da.time[0].dt.strftime("%m-%d-%Y").data[()]
+    end_time = result_da.time[-1].dt.strftime("%m-%d-%Y").data[()]
     return (
-        f"{former_history}\n"
+        f"{initial_history}\n"
         f" [{current_time}]"
         f" Calculation of {indice_computed.short_name}"
         f" index({config.freq.description})"
@@ -486,7 +513,7 @@ def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
             xclim.core.units.check_units.__wrapped__(da, "[length]")
         except xclim.core.utils.ValidationError:
             return False
-    # For now we can delay to xclim other unit checks
+    # We delegate to xclim other unit checks
     return True
 
 
@@ -520,7 +547,7 @@ def _guess_variable_names(
     return res
 
 
-def _check_valid_config(index: EcadIndex, config: IndexConfig):
+def _check_valid_config(index: ClimateIndex, config: IndexConfig):
     if index in get_season_excluded_indices() and config.freq.indexer is not None:
         raise InvalidIcclimArgumentError(
             "Indices computing a spell cannot be computed on un-clipped season for now."

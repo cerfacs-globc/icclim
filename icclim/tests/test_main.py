@@ -51,22 +51,14 @@ class Test_Integration:
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords=dict(
-            lat=[42],
-            lon=[42],
-            time=TIME_RANGE,
-        ),
+        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
         attrs={"units": "degC"},
     )
 
     data_cf_time = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords=dict(
-            lat=[42],
-            lon=[42],
-            time=CF_TIME_RANGE,
-        ),
+        coords=dict(lat=[42], lon=[42], time=CF_TIME_RANGE),
         attrs={"units": "degC"},
     )
 
@@ -87,6 +79,37 @@ class Test_Integration:
         )
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.SU)
+
+    def test_index_SU__custom_threshold(self):
+        res = icclim.su(in_files=self.data, out_file=self.OUTPUT_FILE, threshold=42)
+        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert res.coords["thresholds"] == 42
+        np.testing.assert_array_equal(0, res.SU)
+
+    def test_index_SU__multiple_thresholds(self):
+        res = icclim.su(
+            in_files=self.data, out_file=self.OUTPUT_FILE, threshold=[42, 53]
+        )
+        assert res.attrs["title"] == "Index SU on threshold(s) [42, 53]"
+        np.testing.assert_array_equal(res.coords["thresholds"], [42, 53])
+        np.testing.assert_array_equal(0, res.SU)
+
+    def test_index_TX90p__multiple_thresholds(self):
+        res = icclim.tx90p(
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            threshold=[42, 53],
+            save_percentile=True,
+        )
+        assert res.attrs["title"] == "Index TX90p on threshold(s) [42, 53]"
+        np.testing.assert_array_equal(res.coords["percentiles"], [42, 53])
+        assert res.percentiles is not None
+        np.testing.assert_array_equal(0, res.TX90p)
+
+    def test__preserve_initial_history(self):
+        self.data.attrs["history"] = "pouet pouet cacahuête"
+        res = icclim.su(in_files=self.data)
+        assert "pouet pouet cacahuête" in res.attrs["history"]
 
     def test_index_SU__time_selection(self):
         # WHEN
