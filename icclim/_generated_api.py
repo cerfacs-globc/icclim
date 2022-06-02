@@ -798,7 +798,7 @@ def tg90p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TG90p: Percentage of days when Tmean > 90th percentile
+    TG90p: Days when Tmean > 90th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -919,7 +919,7 @@ def tn90p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TN90p: Percentage of days when Tmin > 90th percentile
+    TN90p: Days when Tmin > 90th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -1040,7 +1040,7 @@ def tx90p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TX90p: Percentage of days when Tmax > 90th percentile
+    TX90p: Days when Tmax > 90th daily percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -1779,7 +1779,7 @@ def tg10p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TG10p: Percentage of days when Tmean < 10th percentile
+    TG10p: Days when Tmean < 10th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -1900,7 +1900,7 @@ def tn10p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TN10p: Percentage of days when Tmin < 10th percentile
+    TN10p: Days when Tmin < 10th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -2021,7 +2021,7 @@ def tx10p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TX10p: Percentage of days when Tmax < 10th percentile
+    TX10p: Days when Tmax < 10th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
