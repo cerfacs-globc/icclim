@@ -5,7 +5,7 @@
 ---
 indices:
   fd:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -149,7 +149,7 @@ indices:
       comment: "count of days when daily minimum temperature is below minus 20 degC"
 
   id:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -185,7 +185,7 @@ indices:
       comment: "count of days when daily maximum temperature is below 0 degC"
 
   su:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -293,7 +293,7 @@ indices:
       comment: "count of days when daily maximum temperature is above or equal plus 35 degC"
 
   tr:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -1445,7 +1445,7 @@ indices:
       comment: "count of days when daily mean temperature is below or equal{TT} degC"
 
   txx:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -1475,7 +1475,7 @@ indices:
       comment: "maximum of daily maximum temperature"
 
   tnx:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -1505,7 +1505,7 @@ indices:
       comment: "maximum of daily minimum temperature"
 
   txn:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -1535,7 +1535,7 @@ indices:
       comment: "minimum of daily maximum temperature"
 
   tnn:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -1985,7 +1985,7 @@ indices:
       comment: "mean of daily mean temperature"
 
   tn10p:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -1993,8 +1993,8 @@ indices:
     output:
       var_name: "tn10p"
       standard_name:
-      long_name: "Percentage of days when Tmin < 10th percentile"
-      units: "%"
+      long_name: "Days when Tmin < 10th percentile"
+      units: "1"
       cell_methods:
     input:
       data: tasmin
@@ -2017,7 +2017,7 @@ indices:
       comment:
 
   tx10p:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2025,8 +2025,8 @@ indices:
     output:
       var_name: "tx10p"
       standard_name:
-      long_name: "Percentage of days when Tmax < 10th percentile"
-      units: "%"
+      long_name: "Days when Tmax < 10th percentile"
+      units: "1"
       cell_methods:
     input:
       data: tasmax
@@ -2049,7 +2049,7 @@ indices:
       comment:
 
   tn90p:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2057,8 +2057,8 @@ indices:
     output:
       var_name: "tn90p"
       standard_name:
-      long_name: "Percentage of days when Tmin > 90th percentile"
-      units: "%"
+      long_name: "Days when Tmin > 90th percentile"
+      units: "1"
       cell_methods:
     input:
       data: tasmin
@@ -2081,7 +2081,7 @@ indices:
       comment:
 
   tx90p:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2089,8 +2089,8 @@ indices:
     output:
       var_name: "tx90p"
       standard_name:
-      long_name: "Percentage of days when Tmax > 90th percentile"
-      units: "%"
+      long_name: "Days when Tmax > 90th daily percentile"
+      units: "1"
       cell_methods:
     input:
       data: tasmax
@@ -2102,7 +2102,7 @@ indices:
           standard_name:
           proposed_standard_name: quantile
           data: 90
-          units: "%"
+          units: "1"
         condition:
           kind: operator
           operator: ">"
@@ -2121,8 +2121,8 @@ indices:
     output:
       var_name: "tg10p"
       standard_name:
-      long_name: "Percentage of days when Tmean < 10th percentile"
-      units: "%"
+      long_name: "Days when Tmean < 10th percentile"
+      units: "1"
       cell_methods:
     input:
       data: tas
@@ -2153,8 +2153,8 @@ indices:
     output:
       var_name: "tg90p"
       standard_name:
-      long_name: "Percentage of days when Tmean > 90th percentile"
-      units: "%"
+      long_name: "Days when Tmean > 90th percentile"
+      units: "1"
       cell_methods:
     input:
       data: tas
@@ -2401,7 +2401,7 @@ indices:
       comment:
 
   dtr:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2821,7 +2821,7 @@ indices:
       comment:
 
   r10mm:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2857,7 +2857,7 @@ indices:
       comment: "count of days when daily total precipitation is above 10 mm"
 
   r20mm:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2893,7 +2893,7 @@ indices:
       comment: "count of days when daily total precipitation is above 20 mm"
 
   r{RT}mm:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3003,7 +3003,7 @@ indices:
       comment:
 
   cdd:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3043,7 +3043,7 @@ indices:
       comment: "maximum consecutive days when daily total precipitation is below 1 mm"
 
   cwd:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3083,7 +3083,7 @@ indices:
       comment: "maximum consecutive days when daily total precipitation is at least 1 mm"
 
   prcptot:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3122,7 +3122,7 @@ indices:
       comment: "sum of total daily precipitation during days having at least 1 mm"
 
   sdii:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3201,7 +3201,7 @@ indices:
       comment:
 
   rx1day:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3240,7 +3240,7 @@ indices:
       comment:
 
   rx5day:
-    reference: ETCCDI
+    reference: ECAD
     period:
       allowed:
         annual:

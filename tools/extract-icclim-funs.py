@@ -5,7 +5,7 @@ Each generated functions signature is consistent with icclim.index signature but
 the unused parameters are trimmed from the signature.
 
 To generate the functions first icclim must be installed in the environment.
-To install icclim from source run:
+To install icclim from sources run:
 >>> python -m setup install
 
 Then the script can be run with:
