@@ -30,7 +30,12 @@ from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
-from icclim.pre_processing.input_parsing import read_dataset, update_to_standard_coords
+from icclim.pre_processing.input_parsing import (
+    InFileBaseType,
+    build_cf_variables,
+    read_dataset,
+    update_to_standard_coords,
+)
 from icclim.user_indices.calc_operation import CalcOperation, compute_user_index
 
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
@@ -114,7 +119,7 @@ def indice(*args, **kwargs):
 
 
 def index(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileBaseType,  # | InputDictionary,
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
@@ -146,7 +151,7 @@ def index(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     index_name : str
@@ -253,24 +258,31 @@ def index(
         index = EcadIndex.lookup(index_name)
     else:
         index = None
-    input_dataset, chunk_it, _ = read_dataset(in_files, index, var_name)
-    ds, reset_coords_dict = update_to_standard_coords(input_dataset)
+
+    # input_dataset = read_multiple(in_files, index, var_name)
+    input_dataset = read_dataset(in_files, index, var_name)
+    input_dataset, reset_coords_dict = update_to_standard_coords(input_dataset)
+    sampling_frequency = Frequency.lookup(slice_mode)
+    cf_vars = build_cf_variables(
+        var_name,
+        index,
+        input_dataset,
+        time_range,
+        ignore_Feb29th,
+        base_period_time_range,
+        only_leap_years,
+        sampling_frequency,
+    )
     config = IndexConfig(
-        base_period_time_range=base_period_time_range,
-        ds=ds,
-        ignore_Feb29th=ignore_Feb29th,
-        only_leap_years=only_leap_years,
         save_percentile=save_percentile,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        var_names=_guess_variable_names(var_name, index, ds),
+        frequency=sampling_frequency,
+        cf_variables=cf_vars,
         window_width=window_width,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
         interpolation=interpolation,
         callback=callback,
         index=index,
-        chunk_it=chunk_it,
         threshold=threshold,
     )
     if user_index is not None:
@@ -280,13 +292,15 @@ def index(
         result_ds = _compute_standard_climate_index(
             config=config,
             climate_index=index,
-            initial_history=ds.attrs.get(HISTORY_CF_KEY, None),
-            initial_source=ds.attrs.get(SOURCE_CF_KEY, None),
+            initial_history=input_dataset.attrs.get(HISTORY_CF_KEY, None),
+            initial_source=input_dataset.attrs.get(SOURCE_CF_KEY, None),
         )
     if reset_coords_dict:
         result_ds = result_ds.rename(reset_coords_dict)
     if out_file is not None:
-        _write_output_file(result_ds, ds.time.encoding, config.netcdf_version, out_file)
+        _write_output_file(
+            result_ds, input_dataset.time.encoding, config.netcdf_version, out_file
+        )
     callback(callback_percentage_total)
     log.ending_message(time.process_time())
     return result_ds
@@ -352,8 +366,8 @@ def _compute_custom_climate_index(
         log.deprecation_warning("indice_name", "index_name")
     user_indice_config = UserIndexConfig(
         **user_index,
-        freq=config.freq,
-        cf_vars=config._cf_variables,
+        freq=config.frequency,
+        cf_vars=config.cf_variables,
         is_percent=config.is_percent,
         save_percentile=config.save_percentile,
     )
@@ -363,7 +377,7 @@ def _compute_custom_climate_index(
         # with anomaly time axis disappear
         result_ds[user_indice_config.index_name] = user_indice_da
         return result_ds
-    user_indice_da, time_bounds = config.freq.post_processing(user_indice_da)
+    user_indice_da, time_bounds = config.frequency.post_processing(user_indice_da)
     result_ds[user_indice_config.index_name] = user_indice_da
     result_ds["time_bounds"] = time_bounds
     return result_ds
@@ -394,7 +408,7 @@ def _compute_standard_climate_index(
         conf = copy.copy(config)
         if threshold is not None:
             conf.threshold = threshold
-        if config.freq.time_clipping is not None:
+        if config.frequency.time_clipping is not None:
             # xclim missing values checking system will not work with clipped time
             with xclim.set_options(check_missing="skip"):
                 res = climate_index.compute(conf)
@@ -433,8 +447,8 @@ def _compute_standard_climate_index(
     else:
         result_da, percentiles_da = compute()
     result_da.attrs["units"] = _get_unit(config.out_unit, result_da)
-    if config.freq.post_processing is not None:
-        resampled_da, time_bounds = config.freq.post_processing(result_da)
+    if config.frequency.post_processing is not None:
+        resampled_da, time_bounds = config.frequency.post_processing(result_da)
         result_ds[climate_index.short_name] = resampled_da
         if time_bounds is not None:
             result_ds["time_bounds"] = time_bounds
@@ -500,54 +514,14 @@ def _build_history(
         f"{initial_history}\n"
         f" [{current_time}]"
         f" Calculation of {indice_computed.short_name}"
-        f" index({config.freq.description})"
+        f" index({config.frequency.description})"
         f" from {start_time} to {end_time}"
         f" - icclim version: {ICCLIM_VERSION}"
     )
 
 
-def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
-    if group == IndexGroup.SNOW:
-        try:
-            # todo: might be replaced by cf-xarray
-            xclim.core.units.check_units.__wrapped__(da, "[length]")
-        except xclim.core.utils.ValidationError:
-            return False
-    # We delegate to xclim other unit checks
-    return True
-
-
-def _guess_variable_names(
-    in_var_name: str | list[str], index: EcadIndex | None, ds: Dataset
-) -> list[str]:
-    """Try to guess the variable names using the expected kind of variable for
-    the index.
-    """
-    if isinstance(in_var_name, str):
-        return [in_var_name]
-    res = []
-    index_variables = index.input_variables
-    for indice_var in index_variables:
-        for alias in indice_var:
-            # check if dataset contains this alias
-            if ds.get(alias, None) is not None and _has_valid_unit(
-                index.group, ds[alias]
-            ):
-                res.append(alias)
-                break
-    if len(res) < len(index_variables):
-        main_aliases = ", ".join(map(lambda v: v[0], index_variables))
-        raise InvalidIcclimArgumentError(
-            f"Index {index.short_name} needs the following variable(s)"
-            f" [{main_aliases}], some of these were not recognized from the input."
-            f" Use `var_name` parameter to explicitly use the data variable(s)"
-            f" from your input dataset: {list(ds.data_vars)}."
-        )
-    return res
-
-
 def _check_valid_config(index: ClimateIndex, config: IndexConfig):
-    if index in get_season_excluded_indices() and config.freq.indexer is not None:
+    if index in get_season_excluded_indices() and config.frequency.indexer is not None:
         raise InvalidIcclimArgumentError(
             "Indices computing a spell cannot be computed on un-clipped season for now."
             " Instead, you can use a clipped_season like this:"

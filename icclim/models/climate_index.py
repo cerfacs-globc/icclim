@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple, Union
 
 from xarray import DataArray
 
-from icclim.models.index_config import IndexConfig
 from icclim.models.index_group import IndexGroup
 
 ComputeIndexFun = Callable[
-    [IndexConfig], Union[DataArray, Tuple[DataArray, Optional[DataArray]]]
+    [Any], Union[DataArray, Tuple[DataArray, Optional[DataArray]]]
 ]
 
 

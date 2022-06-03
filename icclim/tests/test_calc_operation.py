@@ -29,7 +29,7 @@ class Test_compute:
         cf_var = CfVariable("tas", stub_tas(), stub_tas())
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "pouet pouet"
-        user_index.freq = Frequency.MONTH
+        user_index.frequency = Frequency.MONTH
         # WHEN
         with pytest.raises(InvalidIcclimArgumentError):
             compute_user_index(user_index)
@@ -39,7 +39,7 @@ class Test_compute:
         cf_var = CfVariable("tas", stub_tas(), stub_tas())
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "max"
-        user_index.freq = Frequency.MONTH
+        user_index.frequency = Frequency.MONTH
         # WHEN
         result = compute_user_index(user_index)
         # THEN
@@ -58,7 +58,7 @@ class Test_compute:
         user_index.thresh = "90p"
         user_index.logical_operation = LogicalOperation.GREATER_OR_EQUAL_THAN
         user_index.var_type = PRECIPITATION
-        user_index.freq = Frequency.YEAR
+        user_index.frequency = Frequency.YEAR
         # WHEN
         result = compute_user_index(user_index)
         # THEN
@@ -75,7 +75,7 @@ class Test_compute:
         user_index.thresh = "10p"
         user_index.logical_operation = LogicalOperation.LOWER_OR_EQUAL_THAN
         user_index.var_type = TEMPERATURE
-        user_index.freq = Frequency.MONTH
+        user_index.frequency = Frequency.MONTH
         # WHEN
         result = compute_user_index(user_index)
         # THEN

@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import datetime
-
 import numpy as np
 import pytest
-from xarray import Dataset
 
 from icclim.ecad.ecad_functions import (
     cfd,
@@ -23,7 +20,7 @@ from icclim.ecad.ecad_functions import (
 from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
-from icclim.models.index_config import IndexConfig
+from icclim.models.index_config import CfVariable, IndexConfig
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.tests.testing_utils import K2C, stub_pr, stub_tas
@@ -50,21 +47,15 @@ class Test_index_from_string:
 
 @pytest.mark.parametrize("use_dask", [True, False])
 def test_tn10p(use_dask):
-    ds = Dataset()
-    ds["tas"] = stub_tas(use_dask=use_dask)
+    tas = stub_tas(use_dask=use_dask)
     conf = IndexConfig(
-        ds=ds,
-        slice_mode=Frequency.MONTH,
-        var_names=["tas"],
+        frequency=Frequency.MONTH,
+        cf_variables=[CfVariable("tas", tas, tas)],
         netcdf_version=NetcdfVersion.NETCDF4,
-        base_period_time_range=[
-            ds.time.values[0].astype("M8[D]").astype("O"),
-            ds.time.values[-1].astype("M8[D]").astype("O"),
-        ],
         window_width=2,
         interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
         save_percentile=True,
-        index=EcadIndex.TN10P,
+        index=EcadIndex.TN10P.climate_index,
     )
     res = tn10p(conf)
     assert res is not None
@@ -73,15 +64,13 @@ def test_tn10p(use_dask):
 class Test_SU:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_su_default_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[:5] = 0
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[:5] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            frequency=Frequency.MONTH,
+            cf_variables=[CfVariable("tas", tas)],
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.SU,
+            index=EcadIndex.SU.climate_index,
         )
         res = su(conf)
         assert res is not None
@@ -89,16 +78,14 @@ class Test_SU:
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_su_custom_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(use_dask=use_dask)
-        ds.tas[:5] = 50 + K2C
+        tas = stub_tas(use_dask=use_dask)
+        tas[:5] = 50 + K2C
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.SU,
+            index=EcadIndex.SU.climate_index,
         )
         res = su(conf)
         assert res is not None
@@ -108,15 +95,13 @@ class Test_SU:
 class Test_TR:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[:5] = 0
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[:5] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TR,
+            index=EcadIndex.TR.climate_index,
         )
         res = tr(conf)
         assert res is not None
@@ -124,16 +109,14 @@ class Test_TR:
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(use_dask=use_dask)
-        ds.tas[:5] = 50 + K2C
+        tas = stub_tas(use_dask=use_dask)
+        tas[:5] = 50 + K2C
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TR,
+            index=EcadIndex.TR.climate_index,
         )
         res = tr(conf)
         assert res is not None
@@ -143,15 +126,13 @@ class Test_TR:
 class Test_prcptot:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
-        ds = Dataset()
-        ds["pr"] = stub_pr(value=2, use_dask=use_dask)
-        ds.pr[:10] = 0
+        pr = stub_pr(value=2, use_dask=use_dask)
+        pr[:10] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["pr"],
+            frequency=Frequency.MONTH,
+            cf_variables=[CfVariable("pr", pr)],
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.PRCPTOT,
+            index=EcadIndex.PRCPTOT.climate_index,
         )
         res = prcptot(conf)
         assert res is not None
@@ -161,15 +142,13 @@ class Test_prcptot:
 class Test_csu:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[10:15] = 0
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[10:15] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.CSU,
+            index=EcadIndex.CSU.climate_index,
         )
         res = csu(conf)
         assert res is not None
@@ -177,17 +156,15 @@ class Test_csu:
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(use_dask=use_dask)
-        ds.tas[:5] = 50 + K2C
-        ds.tas[10:20] = 50 + K2C
+        tas = stub_tas(use_dask=use_dask)
+        tas[:5] = 50 + K2C
+        tas[10:20] = 50 + K2C
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.CSU,
+            index=EcadIndex.CSU.climate_index,
         )
         res = csu(conf)
         assert res is not None
@@ -197,15 +174,13 @@ class Test_csu:
 class Test_gd4:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[5:15] = 0
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[5:15] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.GD4,
+            index=EcadIndex.GD4.climate_index,
         )
         res = gd4(conf)
         assert res is not None
@@ -214,16 +189,14 @@ class Test_gd4:
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[5:15] = 0
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[5:15] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.GD4,
+            index=EcadIndex.GD4.climate_index,
         )
         res = gd4(conf)
         assert res is not None
@@ -234,15 +207,13 @@ class Test_gd4:
 class Test_cfd:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[5:15] = 0
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[5:15] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.CFD,
+            index=EcadIndex.CFD.climate_index,
         )
         res = cfd(conf)
         assert res is not None
@@ -250,17 +221,15 @@ class Test_cfd:
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[5:10] = 0
-        ds.tas[10:15] = 4
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[5:10] = 0
+        tas[10:15] = 4
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.CFD,
+            index=EcadIndex.CFD.climate_index,
         )
         res = cfd(conf)
         assert res is not None
@@ -270,16 +239,14 @@ class Test_cfd:
 class Test_fd:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[5:15] = 0
-        ds.tas[20:25] = 0
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[5:15] = 0
+        tas[20:25] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.FD,
+            index=EcadIndex.FD.climate_index,
         )
         res = fd(conf)
         assert res is not None
@@ -287,17 +254,15 @@ class Test_fd:
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
-        ds.tas[5:10] = 0
-        ds.tas[10:15] = 4
+        tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
+        tas[5:10] = 0
+        tas[10:15] = 4
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.FD,
+            index=EcadIndex.FD.climate_index,
         )
         res = fd(conf)
         assert res is not None
@@ -307,15 +272,13 @@ class Test_fd:
 class Test_hd17:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_default_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
-        ds.tas[5:10] = 0
+        tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        tas[5:10] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.HD17,
+            index=EcadIndex.HD17.climate_index,
         )
         res = hd17(conf)
         assert res is not None
@@ -323,16 +286,14 @@ class Test_hd17:
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_custom_threshold(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
-        ds.tas[5:10] = 0
+        tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        tas[5:10] = 0
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas)],
+            frequency=Frequency.MONTH,
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.HD17,
+            index=EcadIndex.HD17.climate_index,
         )
         res = hd17(conf)
         assert res is not None
@@ -342,58 +303,47 @@ class Test_hd17:
 class TestTx90p:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_no_bootstrap_no_overlap(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
-        ds.tas[5:10] = 0
+        tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        tas[5:10] = 0
+        base_tas = tas.sel(time=slice("2042-01-01", "2042-12-31"))
+        tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas, base_tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            base_period_time_range=[
-                datetime.datetime(2042, 1, 1),
-                datetime.datetime(2042, 12, 31),
-            ],
-            time_range=[datetime.datetime(2043, 1, 1), datetime.datetime(2045, 12, 31)],
-            index=EcadIndex.TX90P,
+            index=EcadIndex.TX90P.climate_index,
         )
         res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_no_bootstrap_1_year_base(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        base_tas = tas.sel(
+            time=slice("2042-01-01", "2042-12-31"),
+        )
+        tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas, base_tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            base_period_time_range=[
-                datetime.datetime(2042, 1, 1),
-                datetime.datetime(2042, 12, 31),
-            ],
-            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
-            index=EcadIndex.TX90P,
+            index=EcadIndex.TX90P.climate_index,
         )
         res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_bootstrap_2_years(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        base_tas = tas.sel(
+            time=slice("2042-01-01", "2043-12-31"),
+        )
+        tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas, base_tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            base_period_time_range=[
-                datetime.datetime(2042, 1, 1),
-                datetime.datetime(2043, 12, 31),
-            ],
-            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
-            index=EcadIndex.TX90P,
+            index=EcadIndex.TX90P.climate_index,
         )
         res, _ = tx90p(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
@@ -402,19 +352,16 @@ class TestTx90p:
 class TestWsdi:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_wsdi_bootstrap_2_years(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        base_tas = tas.sel(
+            time=slice("2042-01-01", "2043-12-31"),
+        )
+        tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas, base_tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            base_period_time_range=[
-                datetime.datetime(2042, 1, 1),
-                datetime.datetime(2043, 12, 31),
-            ],
-            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
-            index=EcadIndex.TX90P,
+            index=EcadIndex.TX90P.climate_index,
         )
         res, _ = wsdi(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
@@ -423,19 +370,16 @@ class TestWsdi:
 class TestCsdi:
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_csdi_bootstrap_2_years(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        base_tas = tas.sel(
+            time=slice("2042-01-01", "2043-12-31"),
+        )
+        tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas, base_tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            base_period_time_range=[
-                datetime.datetime(2042, 1, 1),
-                datetime.datetime(2043, 12, 31),
-            ],
-            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
-            index=EcadIndex.TX90P,
+            index=EcadIndex.TX90P.climate_index,
             save_percentile=True,
         )
         res, per = csdi(conf)
@@ -444,19 +388,16 @@ class TestCsdi:
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_csdi_custom_thresh(self, use_dask):
-        ds = Dataset()
-        ds["tas"] = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
+        base_tas = tas.sel(
+            time=slice("2042-01-01", "2043-12-31"),
+        )
+        tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            ds=ds,
-            slice_mode=Frequency.MONTH,
-            var_names=["tas"],
+            cf_variables=[CfVariable("tas", tas, base_tas)],
+            frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
-            base_period_time_range=[
-                datetime.datetime(2042, 1, 1),
-                datetime.datetime(2043, 12, 31),
-            ],
-            time_range=[datetime.datetime(2042, 1, 1), datetime.datetime(2045, 12, 31)],
-            index=EcadIndex.TX90P,
+            index=EcadIndex.TX90P.climate_index,
             threshold=5,
             save_percentile=True,
         )
