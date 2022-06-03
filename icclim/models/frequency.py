@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 from enum import Enum
-from typing import Callable, Dict, List, Literal, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 
 import cftime
 import numpy as np
@@ -310,6 +310,13 @@ class Frequency(Enum):
             Frequency.SON,
             Frequency.DJF,
         ]
+
+    def build_frequency_kwargs(self) -> dict[str, Any]:
+        """Build kwargs with possible keys in {"freq", "month", "date_bounds"}"""
+        kwargs = dict(freq=self._freq.pandas_freq)
+        if self._freq.indexer is not None:
+            kwargs.update(self._freq.indexer)
+        return kwargs
 
 
 def _get_frequency_from_string(slice_mode: str) -> Frequency:

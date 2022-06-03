@@ -161,21 +161,36 @@ class EcadIndex(Enum):
         compute=lambda c: tg90p(c),
         group=IndexGroup.HEAT,
         input_variables=[TAS],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_UNIT],
+        qualifiers=[
+            QUANTILE_BASED,
+            MODIFIABLE_QUANTILE_WINDOW,
+            MODIFIABLE_UNIT,
+            MODIFIABLE_THRESHOLD,
+        ],
     )
     TN90P = ClimateIndex(
         short_name="TN90p",
         compute=lambda c: tn90p(c),
         group=IndexGroup.HEAT,
         input_variables=[TAS_MIN],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_UNIT],
+        qualifiers=[
+            QUANTILE_BASED,
+            MODIFIABLE_QUANTILE_WINDOW,
+            MODIFIABLE_UNIT,
+            MODIFIABLE_THRESHOLD,
+        ],
     )
     TX90P = ClimateIndex(
         short_name="TX90p",
         compute=lambda c: tx90p(c),
         group=IndexGroup.HEAT,
         input_variables=[TAS_MAX],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_UNIT],
+        qualifiers=[
+            QUANTILE_BASED,
+            MODIFIABLE_QUANTILE_WINDOW,
+            MODIFIABLE_UNIT,
+            MODIFIABLE_THRESHOLD,
+        ],
     )
     TXX = ClimateIndex(
         short_name="TXx",
@@ -237,21 +252,36 @@ class EcadIndex(Enum):
         compute=lambda c: tg10p(c),
         group=IndexGroup.COLD,
         input_variables=[TAS],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_UNIT],
+        qualifiers=[
+            QUANTILE_BASED,
+            MODIFIABLE_QUANTILE_WINDOW,
+            MODIFIABLE_UNIT,
+            MODIFIABLE_THRESHOLD,
+        ],
     )
     TN10P = ClimateIndex(
         short_name="TN10p",
         compute=lambda c: tn10p(c),
         group=IndexGroup.COLD,
         input_variables=[TAS_MIN],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_UNIT],
+        qualifiers=[
+            QUANTILE_BASED,
+            MODIFIABLE_QUANTILE_WINDOW,
+            MODIFIABLE_UNIT,
+            MODIFIABLE_THRESHOLD,
+        ],
     )
     TX10P = ClimateIndex(
         short_name="TX10p",
         compute=lambda c: tx10p(c),
         group=IndexGroup.COLD,
         input_variables=[TAS_MAX],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_UNIT],
+        qualifiers=[
+            QUANTILE_BASED,
+            MODIFIABLE_QUANTILE_WINDOW,
+            MODIFIABLE_UNIT,
+            MODIFIABLE_THRESHOLD,
+        ],
     )
     TXN = ClimateIndex(
         short_name="TXn",
@@ -434,9 +464,9 @@ class EcadIndex(Enum):
         self.climate_index.source = ECAD_ATBD
 
     @staticmethod
-    def lookup(query: str) -> EcadIndex:
+    def lookup(query: str) -> ClimateIndex:
         if isinstance(query, EcadIndex):
-            return query
+            return query.value
         for e in EcadIndex:
             if e.short_name.upper() == query.upper():
                 return e

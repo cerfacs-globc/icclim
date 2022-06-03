@@ -680,7 +680,7 @@ def wsdi(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    WSDI:
+    WSDI: Warm-spell duration index (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -784,6 +784,7 @@ def tg90p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
@@ -797,7 +798,7 @@ def tg90p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TG90p: Percentage of days when Tmean > 90th percentile
+    TG90p: Days when Tmean > 90th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -832,6 +833,11 @@ def tg90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -880,6 +886,7 @@ def tg90p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         window_width=window_width,
         only_leap_years=only_leap_years,
@@ -898,6 +905,7 @@ def tn90p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
@@ -911,7 +919,7 @@ def tn90p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TN90p: Percentage of days when Tmin > 90th percentile
+    TN90p: Days when Tmin > 90th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -946,6 +954,11 @@ def tn90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -994,6 +1007,7 @@ def tn90p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         window_width=window_width,
         only_leap_years=only_leap_years,
@@ -1012,6 +1026,7 @@ def tx90p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
@@ -1025,7 +1040,7 @@ def tx90p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TX90p: Percentage of days when Tmax > 90th percentile
+    TX90p: Days when Tmax > 90th daily percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -1060,6 +1075,11 @@ def tx90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -1108,6 +1128,7 @@ def tx90p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         window_width=window_width,
         only_leap_years=only_leap_years,
@@ -1744,6 +1765,7 @@ def tg10p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
@@ -1757,7 +1779,7 @@ def tg10p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TG10p: Percentage of days when Tmean < 10th percentile
+    TG10p: Days when Tmean < 10th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -1792,6 +1814,11 @@ def tg10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -1840,6 +1867,7 @@ def tg10p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         window_width=window_width,
         only_leap_years=only_leap_years,
@@ -1858,6 +1886,7 @@ def tn10p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
@@ -1871,7 +1900,7 @@ def tn10p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TN10p: Percentage of days when Tmin < 10th percentile
+    TN10p: Days when Tmin < 10th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -1906,6 +1935,11 @@ def tn10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -1954,6 +1988,7 @@ def tn10p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         window_width=window_width,
         only_leap_years=only_leap_years,
@@ -1972,6 +2007,7 @@ def tx10p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
@@ -1985,7 +2021,7 @@ def tx10p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    TX10p: Percentage of days when Tmax < 10th percentile
+    TX10p: Days when Tmax < 10th percentile
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -2020,6 +2056,11 @@ def tx10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -2068,6 +2109,7 @@ def tx10p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         window_width=window_width,
         only_leap_years=only_leap_years,
@@ -2243,7 +2285,7 @@ def csdi(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    CSDI:
+    CSDI: Cold-spell duration index (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3007,7 +3049,7 @@ def r75p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R75p:
+    R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3115,7 +3157,7 @@ def r75ptot(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R75pTOT:
+    R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3221,7 +3263,7 @@ def r95p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R95p:
+    R95p: Days with RR > 95th percentile of daily amounts (very wet days) (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3329,7 +3371,7 @@ def r95ptot(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R95pTOT:
+    R95pTOT: Precipitation fraction due to very wet days (> 95th percentile)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3435,7 +3477,7 @@ def r99p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R99p:
+    R99p: Days with RR > 99th percentile of daily amounts (extremely wet days) (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3543,7 +3585,7 @@ def r99ptot(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R99pTOT:
+    R99pTOT: Precipitation fraction due to extremely wet days (> 99th percentile)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3937,7 +3979,8 @@ def cd(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    CD:
+    CD: Days with TG < 25th percentile of daily mean temperature
+    and RR <25th percentile of daily precipitation sum (cold/dry days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4047,7 +4090,8 @@ def cw(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    CW:
+    CW: Days with TG < 25th percentile of daily mean temperature
+    and RR >75th percentile of daily precipitation sum (cold/wet days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4157,7 +4201,8 @@ def wd(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    WD:
+    WD: Days with TG > 75th percentile of daily mean temperature
+    and RR <25th percentile of daily precipitation sum (warm/dry days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4267,7 +4312,8 @@ def ww(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    WW:
+    WW: Days with TG > 75th percentile of daily mean temperature
+    and RR >75th percentile of daily precipitation sum (warm/wet days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 

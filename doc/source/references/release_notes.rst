@@ -3,42 +3,47 @@ Release history
 
 5.3.0
 -----
-[enh] Add icclim version to history in outputted metadata.
-[maint] **breaking change** Pin minimal pandas version to 1.3 to fix: https://github.com/pandas-dev/pandas/issues/24539
-[enh] `slice_mode`: seasons can now be defined to be between two exact dates.
-[enh] `slice_mode`: a tuple[str, list] can now be used as long as the usual list in input of seasons.
-[enh] `slice_mode`: Added `clipped_season` keyword which ignores event starting before the season bounds (original behavior of ``season``).
-[maint] `slice_mode`: Modified `season` keyword to take into account events (such as in CDD) starting before the season bounds.
-This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
-[maint] Added dataclass ClimateIndex to ease the introduction of new indices not in the ECAD standard.
-[maint] Made use the new typing syntax thanks to ``from __future__ import annotations``.
-[maint] Add docstring validation into flake8 checks.
-[enh] Improve API for date related parameters ``{time_range, base_period_time_range, ref_time_range}``
-They can still be filled with a datetime object but additionally various string format are now available.
-This comes with dateparser library.
-[doc] Update callback doc as it is very inaccurate when using dask.
+* [enh] Add icclim version to history in outputted metadata.
+* [maint] **breaking change** Pin minimal pandas version to 1.3 to fix: https://github.com/pandas-dev/pandas/issues/24539
+* [enh] `slice_mode`: seasons can now be defined to be between two exact dates.
+* [enh] `slice_mode`: a tuple[str, list] can now be used as long as the usual list in input of seasons.
+* [enh] `slice_mode`: Added `clipped_season` keyword which ignores event starting before the season bounds (original behavior of ``season``).
+* [maint] `slice_mode`: Modified `season` keyword to take into account events (such as in CDD) starting before the season bounds.
+   This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
+* [maint] Added dataclass ClimateIndex to ease the introduction of new indices not in the ECAD standard.
+* [maint] Made use the new typing syntax thanks to ``from __future__ import annotations``.
+* [maint] Add docstring validation into flake8 checks.
+* [enh] Improve API for date related parameters ``{time_range, base_period_time_range, ref_time_range}``
+  They can still be filled with a datetime object but additionally various string format are now available.
+  This comes with dateparser library.
+* [doc] Update callback doc as it is very inaccurate when using dask.
+* [enh] T(X/N/G)(10/90)p indices' threshold is now configurable with `threshold` parameter.
+  Example of use: `icclim.tx90p(in_files=data, threshold=[42, 99])`
+* [enh|maint] threshold, history and source metadata have been updated to better describe what happens during icclim process.
+* [fix/doc] The documentation of the generated API for T(X/N/G)(10/90)p indices now properly use thier ECAD definitions instead of those from ETCCDI.
+* [enh/doc] Add WSDI, CSDI, rxxp, rxxpTOT, CW, CD, WW and WD indices in yaml definition. We no longer strictly follow the yaml given by clix-meta.
 
 5.2.1
 -----
-[maint] Made Frequency part of SliceMode union.
-[fix] slice_mode seasonal samplings was giving wrong results for quite a few indices. This has been fixed and the performances should also be improved by the fix.
-However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
-[fix] user_index ExtremeMode config was not properly parsed when a string was used.
-[fix] user_index Anomaly operator was not properly using the `ref_time_range` to setup a reference period as it should.
-[fix] user_index Sum and Mean operators were broken due to a previous refactoring and a lack of unit tests, it is now fixed and tested.
-[maint] Changed how `rechunker` dependency is pinned to add flexibility. We want a version above '0.3' but not the '0.4'.
-[maint] For the newly generate API, on `custom_index` function, the parameter `user_index` is now mandatory.
+* [maint] Made Frequency part of SliceMode union.
+* [fix] slice_mode seasonal samplings was giving wrong results for quite a few indices. This has been fixed and the performances should also be improved by the fix.
+  However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
+* [fix] user_index ExtremeMode config was not properly parsed when a string was used.
+* [fix] user_index Anomaly operator was not properly using the `ref_time_range` to setup a reference period as it should.
+* [fix] user_index Sum and Mean operators were broken due to a previous refactoring and a lack of unit tests, it is now fixed and tested.
+* [maint] Changed how `rechunker` dependency is pinned to add flexibility. We want a version above '0.3' but not the '0.4'.
+* [maint] For the newly generate API, on `custom_index` function, the parameter `user_index` is now mandatory.
 
 
 5.2.0
 -----
-[maint] Update release process.
-[enh] Improve `create_optimized_zarr_store` to accept a chunking schema instead of a single dim.
-[enh] Make use of `fsspec` to generalize the storages where `create_optimized_zarr_store` can create its zarr stores.
-[enh] Make CSDI and WSDI threshold configurable using the `threshold` parameter of icclim.index.
-[enh] Add a function in `icclim` namespace for each ECA&D index for convenience.
-[doc] Improve documentation about chunking.
-[fix] `create_optimized_zarr_store` would throw an error when creating the first temp store if the chunks were not unified.
+* [maint] Update release process.
+* [enh] Improve `create_optimized_zarr_store` to accept a chunking schema instead of a single dim.
+* [enh] Make use of `fsspec` to generalize the storages where `create_optimized_zarr_store` can create its zarr stores.
+* [enh] Make CSDI and WSDI threshold configurable using the `threshold` parameter of icclim.index.
+* [enh] Add a function in `icclim` namespace for each ECA&D index for convenience.
+* [doc] Improve documentation about chunking.
+* [fix] `create_optimized_zarr_store` would throw an error when creating the first temp store if the chunks were not unified.
 
 5.1.0
 -----

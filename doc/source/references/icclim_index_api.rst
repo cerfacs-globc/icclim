@@ -49,30 +49,35 @@ The ``in_files`` parameter can be
 The ``slice_mode`` parameter defines a desired temporal aggregation. Thus, each index can be calculated at annual, winter half-year, summer half-year, winter, spring,
 summer, autumn and monthly frequency:
 
-|   Value (string)     |    Description                            |
-+======================+===========================================+
-|  ``year`` (default)  |    annual                                 |
-+----------------------+-------------------------------------------+
-|  ``month``           |    monthly (all months)                   |
-+----------------------+-------------------------------------------+
-|  ``ONDJFM``          |    winter half-year                       |
-+----------------------+-------------------------------------------+
-|  ``AMJJAS``          |    summer half-year                       |
-+----------------------+-------------------------------------------+
-|  ``DJF``             |    winter                                 |
-+----------------------+-------------------------------------------+
-|  ``MAM``             |    spring                                 |
-+----------------------+-------------------------------------------+
-|  ``JJA``             |    summer                                 |
-+----------------------+-------------------------------------------+
-|  ``SON``             |    autumn                                 |
-+----------------------+-------------------------------------------+
-|  ['month', [4,5,11]] |    monthly sampling filtered              |
-+----------------------+-------------------------------------------+
-|  ['season', [4,5,6]] |    seasonal (1 value per season)          |
-+----------------------+-------------------------------------------+
-|  "3W"                |    A valid pandas frequency               |
-+----------------------+-------------------------------------------+
++----------------------------------+-------------------------------------------+
+|   Value (string)                 |    Description                            |
++==================================+===========================================+
+|  ``year`` (default)              |    annual                                 |
++----------------------------------+-------------------------------------------+
+|  ``month``                       |    monthly (all months)                   |
++----------------------------------+-------------------------------------------+
+|  ``ONDJFM``                      |    winter half-year                       |
++----------------------------------+-------------------------------------------+
+|  ``AMJJAS``                      |    summer half-year                       |
++----------------------------------+-------------------------------------------+
+|  ``DJF``                         |    winter                                 |
++----------------------------------+-------------------------------------------+
+|  ``MAM``                         |    spring                                 |
++----------------------------------+-------------------------------------------+
+|  ``JJA``                         |    summer                                 |
++----------------------------------+-------------------------------------------+
+|  ``SON``                         |    autumn                                 |
++----------------------------------+-------------------------------------------+
+|  ``['month', [4,5,11]]``         |    monthly sampling filtered              |
++----------------------------------+-------------------------------------------+
+|  ``['season', [4,5,6]]``         |    seasonal (1 value per season)          |
++----------------------------------+-------------------------------------------+
+|                                  |    seasonal (1 value per season)          |
+| ``['clipped_season', [4,5,6]]``  |    spells starting before season          |
+|                                  |    start are not accounted                |
++----------------------------------+-------------------------------------------+
+|  ``3W``                          |   A valid pandas frequency (3 weeks here) |
++----------------------------------+-------------------------------------------+
 
 | The winter season (``DJF``) of 2000 is composed of December 2000, January 2001 and February 2001.
 | Likewise, the winter half-year (``ONDJFM``) of 2000 includes October 2000, November 2000, December 2000, January 2001, February 2001 and March 2001.
@@ -80,9 +85,10 @@ summer, autumn and monthly frequency:
 Monthly time series filter
 ++++++++++++++++++++++++++
 Monthly time series with months selected by user (the keyword can be either `month` or `months`):
-    >>> slice_mode = ['month', [4,5,11]] # index will be computed only for April, May and November
-    or
-    >>> slice_mode = ['month', [4]] # index will be computed only for April
+
+>>> slice_mode = ['month', [4,5,11]] # index will be computed only for April, May and November
+
+>>> slice_mode = ['month', [4]] # index will be computed only for April
 
 User defined seasons
 ++++++++++++++++++++
@@ -90,18 +96,18 @@ You can either defined seasons aware of data outside their bounds (keyword `seas
 seasons which clip all data outside their bounds (keyword `clipped_season`).
 The later is most useful on indices computing spells, if you want to totally ignore spells that could
 have started before your custom season.
-    >>> slice_mode = ['season', [4,5,6,7]] # March to July un-clipped
-or
-    >>> slice_mode = ['season', [11, 12, 1]] # November to January un-clipped
 
-    >>> slice_mode = ['clipped_season', [4,5,6,7]]
-or
-    >>> slice_mode = ['clipped_season', ([11, 12, 1])]
+>>> slice_mode = ['season', [4,5,6,7]] # March to July un-clipped
+>>> slice_mode = ['clipped_season', [4,5,6,7]] # March to July clipped
 
-Additionally, you can define a season between two exact date:
-    >>> slice_mode = ['season', ["07-19", "08-14"]]
-or
-    >>> slice_mode = ["clipped_season", ["07-19", "08-14"]]
+>>> slice_mode = ['season', [11, 12, 1]] # November to January un-clipped
+>>> slice_mode = ['clipped_season', ([11, 12, 1])] # November to January clipped
+
+Additionally, you can define a season between two exact dates:
+
+>>> slice_mode = ['season', ["07-19", "08-14"]]
+
+>>> slice_mode = ["clipped_season", ["07-19", "08-14"]]
 
 .. note::
     With 5.3.0 icclim now accepts pandas string frequency for slice_mode to resample the output data to a given frequency
@@ -111,8 +117,20 @@ or
 
 ``threshold``
 ~~~~~~~~~~~~~
-It is possible to set a user define threshold for indices **SU** (default threshold: 25), **CSU** (default threshold: 25),
-**TR** (default threshold: 20), CSDI (default 10th percentile), WSDI (default 90th percentile).
+It is possible to set a user define threshold for indices
+- SU (default threshold: 25ºC)
+- CSU (default threshold: 25ºC)
+- TR (default threshold: 20ºC)
+- CSDI (default 10th percentile)
+- WSDI (default 90th percentile)
+- TX90p (default 90th percentile)
+- TG90p (default 90th percentile)
+- TN90p (default 90th percentile)
+- TX10p (default 10th percentile)
+- TG10p (default 10th percentile)
+- TN10p (default 10th percentile)
+
+
 The threshold could be one value:
 
 >>> threshold = 30
@@ -121,17 +139,18 @@ or a list of values:
 
 >>> threshold = [20,25,30]
 
-.. note:: Currently, temperature thresholds are only available and should be given in degrees Celsius.
+  .. note:: thresholds should be a float, the unit is expected to be in degrees Celsius or a unit-less for percentiles.
 
 ``transfer_limit_Mbytes``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+/!\ Deprecated
 
-Deprecated. ``transfer_limit_Mbytes`` is now ignored.
+``transfer_limit_Mbytes`` is now ignored and will be deleted in a futur version.
 See :ref:`how to chunk data and parallelize computation <dask>` to configure dask chunking.
 
 ``callback``
 ~~~~~~~~~~~~~
-/!\ Deprecated.
+/!\ Deprecated
 
 Callback can used to output a estimated progress of the calculus.
 However, when using dask, the calculus are done lazily at the very end of icclim's process.
@@ -305,7 +324,7 @@ in *icclim* as ``hyndman_fan`` interpolation, also known as type 8.
 
 ``out_unit``
 ~~~~~~~~~~~~~~~
-Percentile-based indices (TX10p, TX90p, TN10p, TN90p, TG10p, TG90p, R75p, R95p and R99p) could be returned as number of days (``out_unit`` = "days")
+Percentile-based indices (TX10p, TX90p, TN10p, TN90p, TG10p, TG90p, R75p, R95p and R99p) could be returned as number of days (default)
 or as percentage of days (``out_unit`` = "%").
 
 Custom indices
