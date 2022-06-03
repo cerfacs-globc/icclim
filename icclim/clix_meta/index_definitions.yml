@@ -1985,6 +1985,7 @@ indices:
       comment: "mean of daily mean temperature"
 
   tn10p:
+    # modified in icclim
     reference: ECAD
     period:
       allowed:
@@ -2017,6 +2018,7 @@ indices:
       comment:
 
   tx10p:
+    # modified in icclim
     reference: ECAD
     period:
       allowed:
@@ -2049,6 +2051,7 @@ indices:
       comment:
 
   tn90p:
+    # modified in icclim
     reference: ECAD
     period:
       allowed:
@@ -2081,6 +2084,7 @@ indices:
       comment:
 
   tx90p:
+    # modified in icclim
     reference: ECAD
     period:
       allowed:
@@ -2113,6 +2117,7 @@ indices:
       comment:
 
   tg10p:
+    # modified in icclim
     reference: ECA&D
     period:
       allowed:
@@ -2145,6 +2150,7 @@ indices:
       comment:
 
   tg90p:
+    # modified in icclim
     reference: ECA&D
     period:
       allowed:
@@ -3879,3 +3885,159 @@ indices:
       long_name:
       definition:
       comment:
+
+# -- icclim additions --
+
+  wsdi:
+    reference: ECAD
+    output:
+      var_name: "wsdi"
+      standard_name:
+      long_name: "Warm-spell duration index (days)"
+      units: "1"
+      cell_methods:
+    input:
+      data: tasmax
+    ET:
+      short_name: "wsdi"
+      long_name:
+      definition: "Number of days per period where, in intervals of at least 6 consecutive days TX > 90th percentile"
+      comment:
+
+  csdi:
+    reference: ECAD
+    output:
+      var_name: "csdi"
+      standard_name:
+      long_name: "Cold-spell duration index (days)"
+      units: "1"
+      cell_methods:
+    input:
+      data: tasmin
+    ET:
+      short_name: "csdi"
+      long_name:
+      definition: "Number of days per period where, in intervals of at least 6 consecutive days TN < 10th percentile"
+      comment:
+
+  r75p:
+    reference: ECAD
+    output:
+      var_name: "r75p"
+      standard_name:
+      long_name: "Days with RR > 75th percentile of daily amounts (moderate wet days) (days)"
+      units: "1"
+      cell_methods:
+    input:
+      data: pr
+
+  r95p:
+    reference: ECAD
+    output:
+      var_name: "r95p"
+      standard_name:
+      long_name: "Days with RR > 95th percentile of daily amounts (very wet days) (days)"
+      units: "1"
+      cell_methods:
+    input:
+      data: pr
+
+  r99p:
+    reference: ECAD
+    output:
+      var_name: "r99p"
+      standard_name:
+      long_name: "Days with RR > 99th percentile of daily amounts (extremely wet days) (days)"
+      units: "1"
+      cell_methods:
+    input:
+      data: pr
+
+  r75pTOT:
+    reference: ECAD
+    output:
+      var_name: "r75pTOT"
+      standard_name:
+      long_name: "Precipitation fraction due to moderate wet days (> 75th percentile)"
+      units: "%"
+      cell_methods:
+    input:
+      data: pr
+
+  r95pTOT:
+    reference: ECAD
+    output:
+      var_name: "r95pTOT"
+      standard_name:
+      long_name: "Precipitation fraction due to very wet days (> 95th percentile)"
+      units: "%"
+      cell_methods:
+    input:
+      data: pr
+
+  r99pTOT:
+    reference: ECAD
+    output:
+      var_name: "r99pTOT"
+      standard_name:
+      long_name: "Precipitation fraction due to extremely wet days (> 99th percentile)"
+      units: "%"
+      cell_methods:
+    input:
+      data: pr
+
+  CD:
+    reference: ECAD
+    output:
+      var_name: "cd"
+      standard_name:
+      long_name: "Days with TG < 25th percentile of daily mean temperature\n\ \ \ \ \
+      and RR <25th percentile of daily precipitation sum (cold/dry days)"
+      units: "1"
+      cell_methods:
+    input:
+      data:
+        - pr
+        - tas
+
+  CW:
+    reference: ECAD
+    output:
+      var_name: "cw"
+      standard_name:
+      long_name: "Days with TG < 25th percentile of daily mean temperature\n\ \ \ \ \
+      and RR >75th percentile of daily precipitation sum (cold/wet days)"
+      units: "1"
+      cell_methods:
+    input:
+      data:
+        - pr
+        - tas
+
+  WD:
+    reference: ECAD
+    output:
+      var_name: "wd"
+      standard_name:
+      long_name: "Days with TG > 75th percentile of daily mean temperature\n\ \ \ \ \
+      and RR <25th percentile of daily precipitation sum (warm/dry days)"
+      units: "1"
+      cell_methods:
+    input:
+      data:
+        - pr
+        - tas
+
+  WW:
+    reference: ECAD
+    output:
+      var_name: "ww"
+      standard_name:
+      long_name: "Days with TG > 75th percentile of daily mean temperature\n\ \ \ \ \
+      and RR >75th percentile of daily precipitation sum (warm/wet days)"
+      units: "1"
+      cell_methods:
+    input:
+      data:
+        - pr
+        - tas

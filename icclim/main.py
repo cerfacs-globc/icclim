@@ -520,8 +520,7 @@ def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
 def _guess_variable_names(
     in_var_name: str | list[str], index: EcadIndex | None, ds: Dataset
 ) -> list[str]:
-    """
-    Try to guess the variable names using the expected kind of variable for
+    """Try to guess the variable names using the expected kind of variable for
     the index.
     """
     if isinstance(in_var_name, str):

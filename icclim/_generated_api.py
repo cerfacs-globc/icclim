@@ -680,7 +680,7 @@ def wsdi(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    WSDI:
+    WSDI: Warm-spell duration index (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -2285,7 +2285,7 @@ def csdi(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    CSDI:
+    CSDI: Cold-spell duration index (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3049,7 +3049,7 @@ def r75p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R75p:
+    R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3157,7 +3157,7 @@ def r75ptot(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R75pTOT:
+    R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3263,7 +3263,7 @@ def r95p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R95p:
+    R95p: Days with RR > 95th percentile of daily amounts (very wet days) (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3371,7 +3371,7 @@ def r95ptot(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R95pTOT:
+    R95pTOT: Precipitation fraction due to very wet days (> 95th percentile)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3477,7 +3477,7 @@ def r99p(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R99p:
+    R99p: Days with RR > 99th percentile of daily amounts (extremely wet days) (days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3585,7 +3585,7 @@ def r99ptot(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    R99pTOT:
+    R99pTOT: Precipitation fraction due to extremely wet days (> 99th percentile)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3979,7 +3979,8 @@ def cd(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    CD:
+    CD: Days with TG < 25th percentile of daily mean temperature
+    and RR <25th percentile of daily precipitation sum (cold/dry days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4089,7 +4090,8 @@ def cw(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    CW:
+    CW: Days with TG < 25th percentile of daily mean temperature
+    and RR >75th percentile of daily precipitation sum (cold/wet days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4199,7 +4201,8 @@ def wd(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    WD:
+    WD: Days with TG > 75th percentile of daily mean temperature
+    and RR <25th percentile of daily precipitation sum (warm/dry days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4309,7 +4312,8 @@ def ww(
     logs_verbosity: Verbosity | str = Verbosity.LOW,
 ) -> Dataset:
     """
-    WW:
+    WW: Days with TG > 75th percentile of daily mean temperature
+    and RR >75th percentile of daily precipitation sum (warm/wet days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
