@@ -117,18 +117,19 @@ Additionally, you can define a season between two exact dates:
 
 ``threshold``
 ~~~~~~~~~~~~~
-It is possible to set a user define threshold for indices
-- SU (default threshold: 25ºC)
-- CSU (default threshold: 25ºC)
-- TR (default threshold: 20ºC)
-- CSDI (default 10th percentile)
-- WSDI (default 90th percentile)
-- TX90p (default 90th percentile)
-- TG90p (default 90th percentile)
-- TN90p (default 90th percentile)
-- TX10p (default 10th percentile)
-- TG10p (default 10th percentile)
-- TN10p (default 10th percentile)
+It is possible to set a user define threshold for the following indices:
+
+* SU (default threshold: 25ºC)
+* CSU (default threshold: 25ºC)
+* TR (default threshold: 20ºC)
+* CSDI (default 10th percentile)
+* WSDI (default 90th percentile)
+* TX90p (default 90th percentile)
+* TG90p (default 90th percentile)
+* TN90p (default 90th percentile)
+* TX10p (default 10th percentile)
+* TG10p (default 10th percentile)
+* TN10p (default 10th percentile)
 
 
 The threshold could be one value:
@@ -139,18 +140,18 @@ or a list of values:
 
 >>> threshold = [20,25,30]
 
-  .. note:: thresholds should be a float, the unit is expected to be in degrees Celsius or a unit-less for percentiles.
+.. note:: thresholds should be a float, the unit is expected to be in degrees Celsius or a unit-less for percentiles.
 
 ``transfer_limit_Mbytes``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-/!\ Deprecated
+!Deprecated
 
 ``transfer_limit_Mbytes`` is now ignored and will be deleted in a futur version.
 See :ref:`how to chunk data and parallelize computation <dask>` to configure dask chunking.
 
 ``callback``
-~~~~~~~~~~~~~
-/!\ Deprecated
+~~~~~~~~~~~~
+!Deprecated
 
 Callback can used to output a estimated progress of the calculus.
 However, when using dask, the calculus are done lazily at the very end of icclim's process.
