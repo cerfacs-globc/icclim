@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from xarray import DataArray
+from xclim.core.utils import PercentileDataArray
 
 
 @dataclass()
@@ -8,8 +11,7 @@ class CfVariable:
     """CfVariable groups together two xarray DataArray for the same variable.
     One represent the whole studied period. The other is only the in base period used by
     percentile based indices to compute percentiles.
-
-    # todo: maybe we should supercharge xr.Dataset
+    This is an internal icclim structure.
 
     Parameters
     ----------
@@ -23,5 +25,4 @@ class CfVariable:
 
     name: str
     study_da: DataArray
-    reference_da: DataArray = None
-    # percentiles: PercentileDataArray = None
+    reference_da: DataArray | PercentileDataArray

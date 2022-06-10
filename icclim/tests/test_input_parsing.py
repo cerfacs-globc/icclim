@@ -10,7 +10,12 @@ import xarray as xr
 
 from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.pre_processing.input_parsing import read_dataset, update_to_standard_coords
+from icclim.pre_processing.input_parsing import (
+    guess_var_names,
+    read_dataset,
+    read_multiple,
+    update_to_standard_coords,
+)
 
 
 def test_update_to_standard_coords():
@@ -207,6 +212,15 @@ class Test_ReadDataset:
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
     def test_read_dataset_not_implemented_error(self):
-        # WHEN
+        # THEN
         with pytest.raises(NotImplementedError):
+            # WHEN
             read_dataset(42)  # noqa
+
+    def test_read_multiple(self):
+        # TODO
+        read_multiple()
+
+    def test_guess_variables(self):
+        # TODO
+        guess_var_names()

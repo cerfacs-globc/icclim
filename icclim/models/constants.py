@@ -16,11 +16,16 @@ PERCENTILES_COORD = "percentiles"
 # attribut holding the in_base time bounds
 IN_BASE_IDENTIFIER = "reference_epoch"
 
-# Aliases of input variables names. Source: clix-meta
+# Aliases of input variables names.
+# Source: clix-meta
 PR = ["pr", "pradjust", "prec", "rr", "precip", "PREC", "Prec", "RR", "PRECIP", "Precip"]
 TAS = ["tas", "tavg", "ta", "tasadjust", "tmean", "tm", "tg", "meant", "TMEAN", "Tmean", "TM", "TG", "MEANT", "meanT", "tasmidpoint"]
 TAS_MAX = ["tasmax", "tasmaxadjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX", "MAXT", "maxT"]
 TAS_MIN = ["tasmin", "tasminadjust", "tmin", "tn", "mint", "TMIN", "Tmin", "TN", "MINT", "minT"]
+
+# Aliases of input percentiles variables names
+# Source icclim dev
+VALID_PERCENTILE_DIMENSION = ["quantile", "percentile", "per", "centile"]
 
 # Source of ECA&D indices definition
 ECAD_ATBD = "ECA&D, Algorithm Theoretical Basis Document (ATBD) v11"

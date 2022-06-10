@@ -14,6 +14,7 @@ from xarray import DataArray
 from xclim import atmos, land
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
+from xclim.core.utils import PercentileDataArray
 
 from icclim.models.cf_calendar import CfCalendar
 from icclim.models.cf_variable import CfVariable
@@ -598,30 +599,39 @@ def _add_bootstrap_meta(result: DataArray, per: DataArray) -> DataArray:
 
 
 def _compute_percentile_doy(
-    da: DataArray,
+    cf_var: CfVariable,
     percentile: float,
     window: int = 5,
     interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
     callback: Callable = None,
-) -> DataArray:
-    per = percentile_doy(
-        da,
-        window,
-        percentile,
-        alpha=interpolation.alpha,
-        beta=interpolation.beta,
-    )
+) -> (DataArray, bool):
+    if PercentileDataArray.is_compatible(cf_var.reference_da):
+        per = cf_var.reference_da
+        run_bootstrap = False
+    else:
+        per = percentile_doy(
+            cf_var.reference_da,
+            window,
+            percentile,
+            alpha=interpolation.alpha,
+            beta=interpolation.beta,
+        ).compute()  # dask "optimization"
+        run_bootstrap = _can_run_bootstrap(cf_var)
     if callback is not None:
         callback(50)
-    return per
+    return per, run_bootstrap
 
 
-def _compute_percentile_over_period(
-    arr: DataArray, interpolation: QuantileInterpolation, percentiles: float
+def _compute_precip_percentile_over_period(
+    cf_var: CfVariable, interpolation: QuantileInterpolation, percentiles: float
 ) -> DataArray:
+    if PercentileDataArray.is_compatible(cf_var.reference_da):
+        return cf_var.reference_da
+    else:
+        base_wet_days = _filter_in_wet_days(cf_var.reference_da, dry_day_value=np.nan)
     return xr.apply_ufunc(
         xclim.core.utils.calc_perc,
-        arr,
+        base_wet_days,
         input_core_dims=[["time"]],
         output_core_dims=[[PERCENTILES_COORD]],
         kwargs=dict(
@@ -630,7 +640,7 @@ def _compute_percentile_over_period(
             beta=interpolation.beta,
         ),
         dask="parallelized",
-        output_dtypes=[arr.dtype],
+        output_dtypes=[base_wet_days.dtype],
         dask_gufunc_kwargs=dict(output_sizes={PERCENTILES_COORD: len([percentiles])}),
     )
 
@@ -664,14 +674,13 @@ def _compute_spell_duration(
     callback: Callable,
     xclim_index_fun: Callable,
 ) -> tuple[DataArray, DataArray | None]:
-    per = _compute_percentile_doy(
-        cf_var.reference_da,
+    per, run_bootstrap = _compute_percentile_doy(
+        cf_var,
         per_thresh,
         per_window,
         per_interpolation,
         callback,
     )
-    run_bootstrap = _can_run_bootstrap(cf_var)
     result = xclim_index_fun(
         cf_var.study_da,
         per,
@@ -726,8 +735,8 @@ def compute_compound_index(
         If save_percentile is True, returns a Tuple of index_result,
         computed_percentiles. Otherwise, returns the index_result
     """
-    tas_per = _compute_percentile_doy(
-        tas.reference_da,
+    tas_per, _ = _compute_percentile_doy(
+        tas,
         tas_per_thresh,
         per_window,
         per_interpolation,
@@ -736,7 +745,7 @@ def compute_compound_index(
     tas_per = tas_per.squeeze(PERCENTILES_COORD, drop=True)
     pr_in_base = _filter_in_wet_days(pr.reference_da, dry_day_value=np.NAN)
     pr_out_of_base = _filter_in_wet_days(pr.study_da, dry_day_value=0)
-    pr_per = _compute_percentile_doy(
+    pr_per, _ = _compute_percentile_doy(
         pr_in_base,
         pr_per_thresh,
         per_window,
@@ -764,10 +773,7 @@ def _compute_rxxptot(
     per_interpolation: QuantileInterpolation,
     save_percentile: bool,
 ) -> tuple[DataArray, DataArray | None]:
-    base_wet_days = _filter_in_wet_days(pr.reference_da, dry_day_value=np.nan)
-    per = _compute_percentile_over_period(
-        base_wet_days, per_interpolation, pr_per_thresh
-    )
+    per = _compute_precip_percentile_over_period(pr, per_interpolation, pr_per_thresh)
     result = atmos.fraction_over_precip_thresh(
         pr.study_da,
         per,
@@ -790,10 +796,7 @@ def _compute_rxxp(
     save_percentile: bool,
     is_percent: bool,
 ) -> tuple[DataArray, DataArray | None]:
-    base_wet_days = _filter_in_wet_days(pr.reference_da, dry_day_value=np.nan)
-    per = _compute_percentile_over_period(
-        base_wet_days, per_interpolation, pr_per_thresh
-    )
+    per = _compute_precip_percentile_over_period(pr, per_interpolation, pr_per_thresh)
     result = atmos.days_over_precip_thresh(
         pr.study_da,
         per,
@@ -820,14 +823,13 @@ def _compute_temperature_percentile_index(
     callback: Callable,
     xclim_index_fun: Callable,
 ) -> tuple[DataArray, DataArray | None]:
-    run_bootstrap = _can_run_bootstrap(cf_var)
-    per = _compute_percentile_doy(
-        cf_var.reference_da,
+    per, run_bootstrap = _compute_percentile_doy(
+        cf_var,
         tas_per_thresh,
         per_window,
         per_interpolation,
         callback,
-    ).compute()
+    )
     result = xclim_index_fun(
         cf_var.study_da,
         per,

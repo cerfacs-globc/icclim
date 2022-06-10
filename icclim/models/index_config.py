@@ -47,7 +47,7 @@ class IndexConfig:
     is_percent: bool = False
     netcdf_version: NetcdfVersion
     window: int | None
-    threshold: float | None
+    threshold: list[float] | float | None
     transfer_limit_Mbytes: int | None
     out_unit: str | None
     callback: Callable[[int], None] | None
@@ -60,7 +60,7 @@ class IndexConfig:
         cf_variables: list[CfVariable],
         save_percentile: bool = False,
         window_width: int | None = 5,
-        threshold: float | None = None,
+        threshold: list[float] | float | None = None,
         out_unit: str | None = None,
         interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
         callback: Callable[[int], None] | None = None,

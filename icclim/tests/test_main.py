@@ -90,7 +90,7 @@ class Test_Integration:
         res = icclim.su(
             in_files=self.data, out_file=self.OUTPUT_FILE, threshold=[42, 53]
         )
-        assert res.attrs["title"] == "Index SU on threshold(s) [42, 53]"
+        assert res.attrs["title"] == "Index SU on threshold(s) [42, 53] (ºC)"
         np.testing.assert_array_equal(res.coords["thresholds"], [42, 53])
         np.testing.assert_array_equal(0, res.SU)
 
@@ -101,7 +101,7 @@ class Test_Integration:
             threshold=[42, 53],
             save_percentile=True,
         )
-        assert res.attrs["title"] == "Index TX90p on threshold(s) [42, 53]"
+        assert res.attrs["title"] == "Index TX90p on threshold(s) [42, 53] (ºC)"
         np.testing.assert_array_equal(res.coords["percentiles"], [42, 53])
         assert res.percentiles is not None
         np.testing.assert_array_equal(0, res.TX90p)

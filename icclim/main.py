@@ -31,9 +31,10 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import (
-    InFileBaseType,
+    InFileType,
     build_cf_variables,
-    read_dataset,
+    guess_var_names,
+    read_multiple,
     update_to_standard_coords,
 )
 from icclim.user_indices.calc_operation import CalcOperation, compute_user_index
@@ -119,7 +120,7 @@ def indice(*args, **kwargs):
 
 
 def index(
-    in_files: InFileBaseType,  # | InputDictionary,
+    in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
@@ -260,18 +261,17 @@ def index(
         index = None
 
     # input_dataset = read_multiple(in_files, index, var_name)
-    input_dataset = read_dataset(in_files, index, var_name)
+    input_dataset = read_multiple(in_files, index, var_name)
     input_dataset, reset_coords_dict = update_to_standard_coords(input_dataset)
     sampling_frequency = Frequency.lookup(slice_mode)
     cf_vars = build_cf_variables(
-        var_name,
-        index,
-        input_dataset,
-        time_range,
-        ignore_Feb29th,
-        base_period_time_range,
-        only_leap_years,
-        sampling_frequency,
+        var_names=guess_var_names(in_files, input_dataset, index, var_name),
+        ds=input_dataset,
+        time_range=time_range,
+        ignore_Feb29th=ignore_Feb29th,
+        base_period_time_range=base_period_time_range,
+        only_leap_years=only_leap_years,
+        freq=sampling_frequency,
     )
     config = IndexConfig(
         save_percentile=save_percentile,
