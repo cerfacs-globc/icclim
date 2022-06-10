@@ -36,12 +36,31 @@ SEASON_ERR_MSG = (
 )
 
 
+def _get_end_date(
+    use_cftime: bool, year: int, month: int, day: int = None, calendar=None
+):
+    delta = timedelta(days=0)
+    if day is None:
+        if month == 12:
+            day = 31
+        else:
+            # get the next month and subtract a day (handle any month and leap years)
+            month = month + 1
+            day = 1
+            delta = timedelta(days=1)
+    if use_cftime:
+        end = cftime.datetime(year, month, day, calendar=calendar)
+    else:
+        end = pd.to_datetime(f"{year}-{month}-{day}")
+    return end - delta
+
+
 def get_seasonal_time_updater(
     start_month: int, end_month: int, start_day: int = 1, end_day: int = None
 ) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
     """Seasonal time updater and time bounds creator method generator.
     Returns a callable of DataArray which will rewrite the time dimension to
-    the season composed of the given month. The data must have been computed on this
+    the season composed of the given months. The data must have been computed on this
     season beforehand.
     It also create the corresponding time_bounds.
 
@@ -72,28 +91,21 @@ def get_seasonal_time_updater(
                 start = cftime.datetime(
                     year, start_month, start_day, calendar=first_time.calendar
                 )
-                if end_day is None:
-                    end = cftime.datetime(
-                        year_of_season_end,
-                        end_month + 1,
-                        1,
-                        calendar=first_time.calendar,
-                    ) - timedelta(days=1)
-                else:
-                    end = cftime.datetime(
-                        year_of_season_end,
-                        end_month,
-                        end_day,
-                        calendar=first_time.calendar,
-                    )
+                end = _get_end_date(
+                    use_cftime=True,
+                    year=year_of_season_end,
+                    month=end_month,
+                    day=end_day,
+                    calendar=first_time.calendar,
+                )
             else:
                 start = pd.to_datetime(f"{year}-{start_month}-{start_day}")
-                if end_day is None:
-                    end = pd.to_datetime(
-                        f"{year_of_season_end}-{end_month + 1}"
-                    ) - timedelta(days=1)
-                else:
-                    end = pd.to_datetime(f"{year_of_season_end}-{end_month}-{end_day}")
+                end = _get_end_date(
+                    use_cftime=False,
+                    year=year_of_season_end,
+                    month=end_month,
+                    day=end_day,
+                )
             new_time_axis.append(start + (end - start) / 2)
             time_bounds.append([start, end])
         da.coords["time"] = ("time", new_time_axis)
