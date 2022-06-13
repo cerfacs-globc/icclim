@@ -31,7 +31,7 @@ class InFileDictionary(TypedDict, total=False):
 
     >>> in_files = {
     ...    "tasmax": { "study": "tasmax-store.zarr",
-    ...                "percentiles": ["per-1.nc", "per-2.nc"],
+    ...                "thresholds": ["per-1.nc", "per-2.nc"],
     ...                "climatology_bounds":['1990-01-01', '1991-12-31'],
     ...                "per_var_name":"tas_max_per" },
     ...    "pr": "pr.nc"
@@ -39,7 +39,7 @@ class InFileDictionary(TypedDict, total=False):
     """
 
     study: InFileBaseType
-    percentiles: InFileBaseType | None
+    thresholds: InFileBaseType | None
     climatology_bounds: tuple[str, str] | list[str] | None
     per_var_name: str | None
 
@@ -79,17 +79,17 @@ def read_multiple(
             if isinstance(in_data, dict):
                 data: InFileDictionary
                 ds_acc.append(read_dataset(data["study"], index, climate_var))
-                if data.get("percentiles", None) is not None:
+                if data.get("thresholds", None) is not None:
                     per_ds = read_dataset(
-                        data["percentiles"],
+                        data["thresholds"],
                         index=None,
-                        var_names=f"{climate_var}_percentiles",
+                        var_names=f"{climate_var}_thresholds",
                     )
                     per_da = per_ds[_get_percentile_var_name(per_ds, data, climate_var)]
                     # TODO: Maybe we should construct the CfVariable here
                     #       to avoid relying on a string to retrieve the percentiles
                     #       later.
-                    per_da = per_da.rename(f"{climate_var}_percentiles")
+                    per_da = per_da.rename(f"{climate_var}_thresholds")
                     per_da = _standardize_percentile_dim_name(per_da)
                     per_da = PercentileDataArray.from_da(
                         per_da, climatology_bounds=_read_clim_bounds(data, per_da)
@@ -277,7 +277,7 @@ def _guess_per_var_name(climate_var_name: str, per_ds: Dataset) -> Hashable:
 
 def _has_percentile_variable(ds: Dataset, name: str) -> bool:
     # fixme: Not the best to use a string (the name) to identify percentiles data
-    return f"{name}_percentiles" in ds.data_vars
+    return f"{name}_thresholds" in ds.data_vars
 
 
 def _build_cf_variable(
@@ -297,7 +297,7 @@ def _build_cf_variable(
             raise InvalidIcclimArgumentError(
                 "Cannot determine the reference data to compute percentiles."
             )
-        reference_da = PercentileDataArray.from_da(ds[f"{name}_percentiles"])
+        reference_da = PercentileDataArray.from_da(ds[f"{name}_thresholds"])
     elif base_period_time_range is not None:
         reference_da = _build_reference_da(da, base_period_time_range, only_leap_years)
     else:
