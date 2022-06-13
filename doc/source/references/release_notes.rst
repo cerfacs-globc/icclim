@@ -21,7 +21,8 @@ Release history
   Example of use: `icclim.tx90p(in_files=data, threshold=[42, 99])`
 * [enh|maint] threshold, history and source metadata have been updated to better describe what happens during icclim process.
 * [fix/doc] The documentation of the generated API for T(X/N/G)(10/90)p indices now properly use thier ECAD definitions instead of those from ETCCDI.
-* [enh/doc] Add WSDI, CSDI, rxxp, rxxpTOT, CW, CD, WW and WD indices in yaml definition. We no longer strictly follow the yaml given by clix-meta.
+* [enh/doc] Add [WSDI, CSDI, rxxp, rxxpTOT, CW, CD, WW, WD] indices in yaml definition. We no longer strictly follow the yaml given by clix-meta.
+* [fix] custom seasonal slice_mode was broken when it ended in december. It's now fixed and unit tested.
 
 5.2.1
 -----

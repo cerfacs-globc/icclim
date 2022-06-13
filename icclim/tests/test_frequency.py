@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import cftime
 import numpy as np
 import pandas as pd
 import pytest
@@ -135,6 +136,27 @@ class Test_seasons_resampler:
         np.testing.assert_array_equal(1, da_res)  # data must be unchanged
         assert time_bds_res[0].data[0] == pd.to_datetime("2041-11-02")
         assert time_bds_res[0].data[1] == pd.to_datetime("2042-01-30")
+
+    @pytest.mark.parametrize("use_cf", [True, False])
+    def test_between_dates__december_ending(self, use_cf):
+        # WHEN
+        test_da = (
+            filter_months(stub_tas(use_cftime=use_cf), [11, 12])
+            .resample(time="AS-NOV")
+            .mean()
+        )
+        da_res, time_bds_res = get_seasonal_time_updater(
+            start_month=11,
+            end_month=12,
+            start_day=2,
+        )(test_da)
+        # THEN
+        if use_cf:
+            assert da_res.time[0] == cftime.DatetimeGregorian(2042, 12, 1, 12)
+        else:
+            assert da_res.time[0] == pd.to_datetime("2042-12-01 12:00")
+        assert time_bds_res[0].data[0] == pd.to_datetime("2042-11-02")
+        assert time_bds_res[0].data[1] == pd.to_datetime("2042-12-31")
 
 
 def filter_months(da, month_list: list[int]):
