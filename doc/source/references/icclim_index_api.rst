@@ -29,6 +29,7 @@ The ``in_files`` parameter can be
     - A *list of strings* to represent multiple netCDF files to combine
     - A *xarray.Dataset*
     - A *xarray.DataArray*
+    - A python dictionary (new in 5.3)
 
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 | single input file per variable                           |  several input files per variable                                                                       |
@@ -41,6 +42,28 @@ The ``in_files`` parameter can be
 | (based on several variables)    +----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 |                                 |  ``in_files`` = ['tas_1990-2010.nc', 'pr_1990-2010.nc']  |  ``in_files`` = ['tas_1990-2000.nc', 'tas_2000-2010.nc', 'pr_1990-2000.nc', 'pr_2000-2010.nc']          |
 +---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
+
+New in 5.3
+++++++++++
+
+Starting with icclim 5.3, ``in_files`` can describe variable names, formerly set in ``var_name``, as dictionary format.
+The dictionary keys are variable names and values are the usual in_files types (netCDF, zarr, Dataset, DataArray).
+
+>>> in_files = {"tasmax" : "tasmax.nc", "pr": "precip.zarr"}
+
+Moreover, this new dictionary syntax can be used to specify a different set of files for percentiles.
+
+>>> in_files = {"tasmax" : "tasmax.nc", "thresholds": "tasmax-90p.zarr"}
+
+The ``thresholds`` input should contain percentile thresholds that will be used will be used in place of computing them.
+It allow to reuse percentiles computed and stored elsewhere easily.
+For the record, you can generate percentiles with ``save_percentile`` parameter of icclim.index.
+
+.. notes::
+        Be aware that percentiles will **not** be bootstrapped. Thus, the result could be biased if the period on which percentiles
+        were computed partially overlap the index studied period.
+        See `<Computing percentile thresholds>`_ for more information on this topic.
+
 
 .. _slice_mode:
 
