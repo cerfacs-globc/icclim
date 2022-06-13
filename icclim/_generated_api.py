@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import datetime
 
-from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 import icclim
@@ -16,6 +15,7 @@ from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_dict import UserIndexDict
+from icclim.pre_processing.input_parsing import InFileType
 
 __all__ = [
     "tg",
@@ -72,7 +72,7 @@ __all__ = [
 
 
 def tg(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -88,7 +88,7 @@ def tg(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -144,7 +144,7 @@ def tg(
 
 
 def tn(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -160,7 +160,7 @@ def tn(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -216,7 +216,7 @@ def tn(
 
 
 def tx(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -232,7 +232,7 @@ def tx(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -288,7 +288,7 @@ def tx(
 
 
 def dtr(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -304,7 +304,7 @@ def dtr(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -360,7 +360,7 @@ def dtr(
 
 
 def etr(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -376,7 +376,7 @@ def etr(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -432,7 +432,7 @@ def etr(
 
 
 def vdtr(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -448,7 +448,7 @@ def vdtr(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -504,7 +504,7 @@ def vdtr(
 
 
 def su(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -521,7 +521,7 @@ def su(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -583,7 +583,7 @@ def su(
 
 
 def tr(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -600,7 +600,7 @@ def tr(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -662,7 +662,7 @@ def tr(
 
 
 def wsdi(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -686,7 +686,7 @@ def wsdi(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -779,7 +779,7 @@ def wsdi(
 
 
 def tg90p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -804,7 +804,7 @@ def tg90p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -900,7 +900,7 @@ def tg90p(
 
 
 def tn90p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -925,7 +925,7 @@ def tn90p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1021,7 +1021,7 @@ def tn90p(
 
 
 def tx90p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1046,7 +1046,7 @@ def tx90p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1142,7 +1142,7 @@ def tx90p(
 
 
 def txx(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1158,7 +1158,7 @@ def txx(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1214,7 +1214,7 @@ def txx(
 
 
 def tnx(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1230,7 +1230,7 @@ def tnx(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1286,7 +1286,7 @@ def tnx(
 
 
 def csu(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1303,7 +1303,7 @@ def csu(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1365,7 +1365,7 @@ def csu(
 
 
 def gd4(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1382,7 +1382,7 @@ def gd4(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1444,7 +1444,7 @@ def gd4(
 
 
 def fd(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1461,7 +1461,7 @@ def fd(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1523,7 +1523,7 @@ def fd(
 
 
 def cfd(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1540,7 +1540,7 @@ def cfd(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1602,7 +1602,7 @@ def cfd(
 
 
 def hd17(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1619,7 +1619,7 @@ def hd17(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1681,7 +1681,7 @@ def hd17(
 
 
 def id(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1698,7 +1698,7 @@ def id(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1760,7 +1760,7 @@ def id(
 
 
 def tg10p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1785,7 +1785,7 @@ def tg10p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -1881,7 +1881,7 @@ def tg10p(
 
 
 def tn10p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -1906,7 +1906,7 @@ def tn10p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2002,7 +2002,7 @@ def tn10p(
 
 
 def tx10p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2027,7 +2027,7 @@ def tx10p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2123,7 +2123,7 @@ def tx10p(
 
 
 def txn(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2139,7 +2139,7 @@ def txn(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2195,7 +2195,7 @@ def txn(
 
 
 def tnn(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2211,7 +2211,7 @@ def tnn(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2267,7 +2267,7 @@ def tnn(
 
 
 def csdi(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2291,7 +2291,7 @@ def csdi(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2384,7 +2384,7 @@ def csdi(
 
 
 def cdd(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2400,7 +2400,7 @@ def cdd(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2456,7 +2456,7 @@ def cdd(
 
 
 def prcptot(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2472,7 +2472,7 @@ def prcptot(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2528,7 +2528,7 @@ def prcptot(
 
 
 def rr1(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2544,7 +2544,7 @@ def rr1(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2600,7 +2600,7 @@ def rr1(
 
 
 def sdii(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2616,7 +2616,7 @@ def sdii(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2672,7 +2672,7 @@ def sdii(
 
 
 def cwd(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2688,7 +2688,7 @@ def cwd(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2744,7 +2744,7 @@ def cwd(
 
 
 def r10mm(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2760,7 +2760,7 @@ def r10mm(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2816,7 +2816,7 @@ def r10mm(
 
 
 def r20mm(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2832,7 +2832,7 @@ def r20mm(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2888,7 +2888,7 @@ def r20mm(
 
 
 def rx1day(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2904,7 +2904,7 @@ def rx1day(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -2960,7 +2960,7 @@ def rx1day(
 
 
 def rx5day(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -2976,7 +2976,7 @@ def rx5day(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3032,7 +3032,7 @@ def rx5day(
 
 
 def r75p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3055,7 +3055,7 @@ def r75p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3141,7 +3141,7 @@ def r75p(
 
 
 def r75ptot(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3163,7 +3163,7 @@ def r75ptot(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3246,7 +3246,7 @@ def r75ptot(
 
 
 def r95p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3269,7 +3269,7 @@ def r95p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3355,7 +3355,7 @@ def r95p(
 
 
 def r95ptot(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3377,7 +3377,7 @@ def r95ptot(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3460,7 +3460,7 @@ def r95ptot(
 
 
 def r99p(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3483,7 +3483,7 @@ def r99p(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3569,7 +3569,7 @@ def r99p(
 
 
 def r99ptot(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3591,7 +3591,7 @@ def r99ptot(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3674,7 +3674,7 @@ def r99ptot(
 
 
 def sd(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3690,7 +3690,7 @@ def sd(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3746,7 +3746,7 @@ def sd(
 
 
 def sd1(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3762,7 +3762,7 @@ def sd1(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3818,7 +3818,7 @@ def sd1(
 
 
 def sd5cm(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3834,7 +3834,7 @@ def sd5cm(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3890,7 +3890,7 @@ def sd5cm(
 
 
 def sd50cm(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3906,7 +3906,7 @@ def sd50cm(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -3962,7 +3962,7 @@ def sd50cm(
 
 
 def cd(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -3986,7 +3986,7 @@ def cd(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -4073,7 +4073,7 @@ def cd(
 
 
 def cw(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -4097,7 +4097,7 @@ def cw(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -4184,7 +4184,7 @@ def cw(
 
 
 def wd(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -4208,7 +4208,7 @@ def wd(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -4295,7 +4295,7 @@ def wd(
 
 
 def ww(
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -4319,7 +4319,7 @@ def ww(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
@@ -4407,7 +4407,7 @@ def ww(
 
 def custom_index(
     user_index: UserIndexDict,
-    in_files: str | list[str] | Dataset | DataArray,
+    in_files: InFileType,
     var_name: str | list[str] | None = None,
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -4427,7 +4427,7 @@ def custom_index(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray,
+    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name : str | list[str] | None
