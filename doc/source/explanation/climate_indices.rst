@@ -16,7 +16,7 @@ Climate indices allow a statistical study of variations of the dependent climato
     - `Climate Variability and Predictability (CLIVAR) <https://www.clivar.org/clivar-panels/etccdi/indices-data/indices-data>`_
     - `Expert Team on Climate Change Detection and Indices (ETCCDI) <https://etccdi.pacificclimate.org/>`_
     - `European Climate Assessment & Dataset (ECA&D) <https://www.ecad.eu>`_
-    - `ATBD ECA&D indices <https://www.ecad.eu/documents/atbd.pdf>`_
+    - `ATBD ECA&D indices <https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf>`_
     - `Article about percentile-based indices <http://etccdi.pacificclimate.org/docs/Zhangetal05JumpPaper.pdf>`_
     - `Sample quantiles in statistical packages <https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf>`_
 
@@ -35,7 +35,7 @@ air temperature and precipitation variables can be computed with icclim:
     - 6 temperature indices (TG, TN, TX, DTR, ETR, vDTR)
     - 4 compound indices (CD, CW, WD, WW)
 
-Detailed description of each indice is available at https://www.ecad.eu/documents/atbd.pdf.
+Detailed description of each indice is available at https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf.
 See table below for a short description of each indices.
 Most descriptions are extracted from clix-meta.
 Initially icclim was designed for online computing of climate indices through the `climate4impact portal <https://climate4impact.eu>`_.

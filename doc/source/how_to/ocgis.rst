@@ -2,7 +2,7 @@
 
 icclim called from OpenClimateGIS - Examples
 ==============================================
-icclim indices (`ECA&D climate indices <https://www.ecad.eu/documents/atbd.pdf>`_) are implemented in the
+icclim indices (`ECA&D climate indices <https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf>`_) are implemented in the
 `OpenClimateGIS <https://github.com/NCPP/ocgis>`_ (Version 1.1.0) Python package.
 
 

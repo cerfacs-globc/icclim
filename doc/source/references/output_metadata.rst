@@ -171,7 +171,7 @@ Example:
         :title = "ECA cold index FD" ;
         :institution = "Climate impact portal (https://climate4impact.eu)" ;
         :source =  ;
-        :references = "ATBD of the ECA indices calculation (https://www.ecad.eu/documents/atbd.pdf)" ;
+        :references = "ATBD of the ECA indices calculation (https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf)" ;
         :comment = " " ;
         :history = "2011-04-07T06:39:36Z CMOR rewrote data to comply with CF standards and CMIP5 requirements. \n",
                         "2014-04-01 12:16:03 Calculation of FD index (monthly time series) from 1950-1-1 to 1955-12-31." ;

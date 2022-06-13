@@ -269,7 +269,7 @@ Number of days when tas < 25th pctl and precip. > 75th pctl
 
 .. note:: If 'calc_operation' is *'max_nb_consecutive_events'*, then max number of consecutive days for the same condition will be computed.
 
-4 compound indices defined in https://www.ecad.eu/documents/atbd.pdf (see the section 5.3.3 "Compound indices") are
+4 compound indices defined in https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf (see the section 5.3.3 "Compound indices") are
 based on daily precipitation (RR) and mean temperature (TG) variables:
 
     - CD (cold/dry days): (TG < 25th pctl) and (RR < 25th pctl)

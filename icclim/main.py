@@ -475,7 +475,7 @@ def _add_ecad_index_metadata(
         dict(
             title=_build_title(computed_index, config),
             references="ATBD of the ECA&D indices calculation"
-            " (https://www.ecad.eu/documents/atbd.pdf)",
+            " (https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf)",
             institution="Climate impact portal (https://climate4impact.eu)",
             history=history,
             source=initial_source if initial_source is not None else "",
