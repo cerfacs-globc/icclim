@@ -25,4 +25,4 @@ class CfVariable:
 
     name: str
     study_da: DataArray
-    reference_da: DataArray | PercentileDataArray
+    reference_da: DataArray | PercentileDataArray | None = None

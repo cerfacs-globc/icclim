@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, Hashable, List, TypedDict, Union
+from typing import Callable, Dict, List, TypedDict, Union
 
 import xarray as xr
 import xclim
@@ -34,26 +34,28 @@ class InFileDictionary(TypedDict, total=False):
     ...                "thresholds": ["per-1.nc", "per-2.nc"],
     ...                "climatology_bounds":['1990-01-01', '1991-12-31'],
     ...                "per_var_name":"tas_max_per" },
-    ...    "pr": "pr.nc"
+    ...    "pr": "pr.nc",
+    ...    "tasmin": {"study": "tasmin.nc"},
     ...     }
     """
 
     study: InFileBaseType
     thresholds: InFileBaseType | None
-    climatology_bounds: tuple[str, str] | list[str] | None
-    per_var_name: str | None
+    climatology_bounds: tuple[str, str] | list[str] | None  # may be guessed if missing
+    per_var_name: str | None  # may be guessed if missing
 
 
 InFileType = Union[Dict[str, Union[InFileDictionary, InFileBaseType]], InFileBaseType]
 
 
 def guess_var_names(
-    in_data: dict[str, InFileDictionary | InFileBaseType] | InFileBaseType,
     ds: Dataset,
+    in_data: InFileType | None = None,
     index: ClimateIndex | None = None,
     var_names: str | list[str] | None = None,
 ) -> list[str]:
     if isinstance(in_data, dict):
+        # case InFileDictionary
         if var_names is not None:
             raise InvalidIcclimArgumentError(
                 "When `in_files` is a dictionary, `var_name` must be empty."
@@ -61,56 +63,59 @@ def guess_var_names(
             )
         return list(in_data.keys())
     elif var_names is None:
-        return _guess_variable_names(index, ds)
+        if index is None:
+            raise InvalidIcclimArgumentError(
+                "Unable to guess variable name." " Provide one using `var_name`"
+            )
+        return _guess_dataset_var_names(index, ds)
     elif isinstance(var_names, str):
         return [var_names]
     elif isinstance(var_names, list):
         return var_names
+    else:
+        raise NotImplementedError("`var_name` must be a string a list or None.")
 
 
 def read_multiple(
-    in_data: InFileType,
-    index: EcadIndex | None = None,
-    var_names: str | list[str] | None = None,
+    in_data: InFileType, index: ClimateIndex = None, var_name: str | list[str] = None
 ) -> Dataset:
     if isinstance(in_data, dict):
         ds_acc = []
-        for climate_var, data in in_data.items():
-            if isinstance(in_data, dict):
-                data: InFileDictionary
-                ds_acc.append(read_dataset(data["study"], index, climate_var))
-                if data.get("thresholds", None) is not None:
-                    per_ds = read_dataset(
-                        data["thresholds"],
-                        index=None,
-                        var_names=f"{climate_var}_thresholds",
-                    )
-                    per_da = per_ds[_get_percentile_var_name(per_ds, data, climate_var)]
-                    # TODO: Maybe we should construct the CfVariable here
-                    #       to avoid relying on a string to retrieve the percentiles
-                    #       later.
-                    per_da = per_da.rename(f"{climate_var}_thresholds")
-                    per_da = _standardize_percentile_dim_name(per_da)
-                    per_da = PercentileDataArray.from_da(
-                        per_da, climatology_bounds=_read_clim_bounds(data, per_da)
-                    )
-                    ds_acc.append(per_da)  # todo make sure it works to merge da and ds
+        for climate_var_name, climate_var_data in in_data.items():
+            if isinstance(climate_var_data, dict):
+                study_ds = read_dataset(
+                    climate_var_data["study"], index, climate_var_name
+                )
+                if climate_var_data.get("thresholds", None) is not None:
+                    ds_acc.append(_read_thresholds(climate_var_data, climate_var_name))
             else:
-                data: InFileBaseType
-                ds_acc.append(read_dataset(data, index, climate_var))
+                study_ds = read_dataset(climate_var_data, index, climate_var_name)
+            ds_acc.append(study_ds)
         return xr.merge(ds_acc)
-    return read_dataset(in_data, index, var_names)
+    return read_dataset(in_data, index)
+
+
+def _read_thresholds(climate_var_data: InFileDictionary, climate_var_name: str):
+    per_ds = read_dataset(climate_var_data["thresholds"], index=None)
+    per_var_name = _get_percentile_var_name(per_ds, climate_var_data, climate_var_name)
+    per_da = per_ds[per_var_name].rename(f"{climate_var_name}_thresholds")
+    per_da = _standardize_percentile_dim_name(per_da)
+    per_da = PercentileDataArray.from_da(
+        per_da,
+        climatology_bounds=_read_clim_bounds(climate_var_data, per_da),
+    )
+    return per_da
 
 
 def read_dataset(
     data: InFileBaseType,
-    index: EcadIndex | None = None,
-    var_names: str | list[str] | None = None,
+    index: EcadIndex = None,
+    var_name: str | list[str] = None,  # used only if input is a DataArray
 ) -> Dataset:
     if isinstance(data, Dataset):
         return data
     elif isinstance(data, DataArray):
-        return _read_dataarray(data, index, var_names)
+        return _read_dataarray(data, index, var_name=var_name)
     elif isinstance(data, list):
         # we assumes it's a list of netCDF files
         return xr.open_mfdataset(data, parallel=True)
@@ -204,31 +209,31 @@ def _read_clim_bounds(input_dict: InFileDictionary, per_da: DataArray) -> list[s
 
 
 def _read_dataarray(
-    data: InFileBaseType,
-    index: EcadIndex | None = None,
-    var_names: str | list[str] | None = None,
+    data: DataArray, index: EcadIndex = None, var_name: str | list[str] = None
 ) -> Dataset:
-    if isinstance(var_names, list) and len(var_names) > 1:
-        raise InvalidIcclimArgumentError(
-            "When the input is a DataArray, var_name must be a string."
-        )
-    if var_names is None:
-        if index is not None and len(index.input_variables) > 1:
+    if isinstance(var_name, list):
+        if len(var_name) > 1:
+            raise InvalidIcclimArgumentError(
+                "When the `in_file` is a DataArray, there"
+                " can only be one value in `var_name`."
+            )
+        else:
+            var_name = var_name[0]
+    if index is not None:
+        if len(index.input_variables) > 1:
             raise InvalidIcclimArgumentError(
                 f"Index {index.name} needs {len(index.input_variables)} variables."
                 f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
                 f" zarr store."
             )
         # first alias of the unique variable
-        data_name = index.input_variables[0][0]
-    elif isinstance(var_names, list):
-        data_name = var_names[0]
+        data_name = var_name or index.input_variables[0][0]
     else:
-        data_name = var_names
+        data_name = var_name or data.name or "unnamed_var"
     return data.to_dataset(name=data_name, promote_attrs=True)
 
 
-def _guess_variable_names(index: ClimateIndex, ds: Dataset) -> list[str]:
+def _guess_dataset_var_names(index: ClimateIndex, ds: Dataset) -> list[str]:
     """Try to guess the variable names using the expected kind of variable for
     the index.
     """
@@ -246,7 +251,7 @@ def _guess_variable_names(index: ClimateIndex, ds: Dataset) -> list[str]:
     if len(ds.data_vars) == 1:
         if len(index_expected_vars) != 1:
             raise get_error()
-        return [str(ds.data_vars[0].name)]
+        return [_get_name_of_first_var(ds)]
     climate_var_names = []
     for indice_var in index_expected_vars:
         for alias in indice_var:
@@ -257,22 +262,6 @@ def _guess_variable_names(index: ClimateIndex, ds: Dataset) -> list[str]:
     if len(climate_var_names) < len(index_expected_vars):
         raise get_error()
     return climate_var_names
-
-
-def _guess_per_var_name(climate_var_name: str, per_ds: Dataset) -> Hashable:
-    for x in map(lambda v: str(v.name), per_ds.data_vars):
-        if climate_var_name in x:
-            return x
-    raise InvalidIcclimArgumentError(
-        "Could not guess the variable name for percentiles"
-        f" of {climate_var_name}. Please, provide the"
-        f" explicite name using per_var_name like so:"
-        f" \u007bf'{climate_var_name}':"
-        f" \u007b'study': 'x.nc',"
-        f" 'percentiles': 'y.nc',"
-        f" per_var_name='{climate_var_name}_percentiles'"
-        f" \u007d\u007d"
-    )
 
 
 def _has_percentile_variable(ds: Dataset, name: str) -> bool:
@@ -289,13 +278,17 @@ def _build_cf_variable(
     only_leap_years: bool,
     time_clipping: Callable,
 ) -> CfVariable:
-    ds = ds.chunk("auto")
-    da = ds[name]
+    if len(ds.data_vars) == 1:
+        da = ds[_get_name_of_first_var(ds)]
+    else:
+        da = ds[name]
     study_da = _build_study_da(da, time_range, ignore_Feb29th)
     if _has_percentile_variable(ds, name):
         if base_period_time_range is not None:
             raise InvalidIcclimArgumentError(
-                "Cannot determine the reference data to compute percentiles."
+                "Cannot determine the data to use for percentiles when both"
+                " `base_period_time_range` and an in_files `thresholds` are given."
+                " Please fill only one of the two."
             )
         reference_da = PercentileDataArray.from_da(ds[f"{name}_thresholds"])
     elif base_period_time_range is not None:
@@ -399,10 +392,31 @@ def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
 
 def _get_percentile_var_name(
     per_ds: Dataset, in_dict: InFileDictionary, climate_var_name: str
-) -> Hashable:
+) -> str:
     if per_var_name := in_dict.get("per_var_name", None):
         return per_var_name
     elif len(per_ds.data_vars) == 1:
-        return per_ds.data_vars[list(per_ds.data_vars.keys())[0]].name
+        return _get_name_of_first_var(per_ds)
     else:
         return _guess_per_var_name(climate_var_name, per_ds)
+
+
+def _guess_per_var_name(climate_var_name: str, per_ds: Dataset) -> str:
+    data_var_names = map(lambda v: str(v.name), per_ds.data_vars)
+    for x in data_var_names:
+        if climate_var_name in x:
+            return x
+    raise InvalidIcclimArgumentError(
+        "Could not guess the variable name for percentiles"
+        f" of {climate_var_name}. Please, provide the"
+        f" explicite name using per_var_name like so:"
+        f" \u007bf'{climate_var_name}':"
+        f" \u007b'study': 'x.nc',"
+        f" 'percentiles': 'y.nc',"
+        f" per_var_name='{climate_var_name}_percentiles'"
+        f" \u007d\u007d"
+    )
+
+
+def _get_name_of_first_var(ds: Dataset) -> str:
+    return str(ds.data_vars[list(ds.data_vars.keys())[0]].name)

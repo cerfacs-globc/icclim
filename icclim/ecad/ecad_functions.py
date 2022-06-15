@@ -743,10 +743,10 @@ def compute_compound_index(
         callback,
     )
     tas_per = tas_per.squeeze(PERCENTILES_COORD, drop=True)
-    pr_in_base = _filter_in_wet_days(pr.reference_da, dry_day_value=np.NAN)
-    pr_out_of_base = _filter_in_wet_days(pr.study_da, dry_day_value=0)
+    pr.reference_da = _filter_in_wet_days(pr.reference_da, dry_day_value=np.NAN)
+    pr.study_da = _filter_in_wet_days(pr.study_da, dry_day_value=0)
     pr_per, _ = _compute_percentile_doy(
-        pr_in_base,
+        pr,
         pr_per_thresh,
         per_window,
         per_interpolation,
@@ -754,7 +754,7 @@ def compute_compound_index(
     )
     pr_per = pr_per.squeeze(PERCENTILES_COORD, drop=True)
     result = xclim_index_fun(
-        tas.study_da, pr_out_of_base, tas_per, pr_per, **freq.build_frequency_kwargs()
+        tas.study_da, pr.study_da, tas_per, pr_per, **freq.build_frequency_kwargs()
     )
     if save_percentile:
         # FIXME, not consistent with other percentile based indices
