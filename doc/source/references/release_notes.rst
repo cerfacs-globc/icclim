@@ -27,6 +27,8 @@ Note: We no longer strictly follow the yaml given by clix-meta.
 * [enh] Make ``in_file`` accept a dictionary merging together ``var_name`` and ``in_file`` features.
 * [enh] ``in_file`` dictionary can now be used to pass percentiles thresholds. These thresholds will be used instead of computing them on relevant indices.
 * [maint/internal] Refactored IndexConfig and moved all the logic to input_parsing.
+* [enh] R(75/95/99)P and R(75/95/99)PTOT indices threshold is now configurable with `threshold` parameter.
+        Example of use: `icclim.r75p(in_files=data, threshold=60)`
 
 5.2.2
 -----

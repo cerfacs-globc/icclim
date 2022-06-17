@@ -325,10 +325,11 @@ def rx5day(config: IndexConfig) -> DataArray:
 
 
 def r75p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
+    thresh = 75 if config.threshold is None else config.threshold
     return _compute_rxxp(
         pr=config.pr,
         freq=config.frequency,
-        pr_per_thresh=75.0,
+        pr_per_thresh=thresh,
         per_interpolation=config.interpolation,
         save_percentile=config.save_percentile,
         is_percent=config.is_percent,
@@ -336,20 +337,22 @@ def r75p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def r75ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
+    thresh = 75 if config.threshold is None else config.threshold
     return _compute_rxxptot(
         pr=config.pr,
         freq=config.frequency,
-        pr_per_thresh=75.0,
+        pr_per_thresh=thresh,
         per_interpolation=config.interpolation,
         save_percentile=config.save_percentile,
     )
 
 
 def r95p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
+    thresh = 95 if config.threshold is None else config.threshold
     return _compute_rxxp(
         pr=config.pr,
         freq=config.frequency,
-        pr_per_thresh=95.0,
+        pr_per_thresh=thresh,
         per_interpolation=config.interpolation,
         save_percentile=config.save_percentile,
         is_percent=config.is_percent,
@@ -357,20 +360,22 @@ def r95p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def r95ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
+    thresh = 95 if config.threshold is None else config.threshold
     return _compute_rxxptot(
         pr=config.pr,
         freq=config.frequency,
-        pr_per_thresh=95.0,
+        pr_per_thresh=thresh,
         per_interpolation=config.interpolation,
         save_percentile=config.save_percentile,
     )
 
 
 def r99p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
+    thresh = 99 if config.threshold is None else config.threshold
     return _compute_rxxp(
         pr=config.pr,
         freq=config.frequency,
-        pr_per_thresh=99.0,
+        pr_per_thresh=thresh,
         per_interpolation=config.interpolation,
         save_percentile=config.save_percentile,
         is_percent=config.is_percent,
@@ -378,10 +383,11 @@ def r99p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def r99ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
+    thresh = 99 if config.threshold is None else config.threshold
     return _compute_rxxptot(
         pr=config.pr,
         freq=config.frequency,
-        pr_per_thresh=99.0,
+        pr_per_thresh=thresh,
         per_interpolation=config.interpolation,
         save_percentile=config.save_percentile,
     )
