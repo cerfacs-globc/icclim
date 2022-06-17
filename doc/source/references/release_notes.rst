@@ -4,31 +4,35 @@ Release history
 5.3.0
 -----
 * [enh] Add icclim version to history in outputted metadata.
-* [maint] **breaking change** Pin minimal pandas version to 1.3 to fix: https://github.com/pandas-dev/pandas/issues/24539
-* [enh] `slice_mode`: seasons can now be defined to be between two exact dates.
-* [enh] `slice_mode`: a tuple[str, list] can now be used as long as the usual list in input of seasons.
-* [enh] `slice_mode`: Added `clipped_season` keyword which ignores event starting before the season bounds (original behavior of ``season``).
-* [maint] `slice_mode`: Modified `season` keyword to take into account events (such as in CDD) starting before the season bounds.
-   This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
+* [maint] **breaking change** Pin minimal pandas version to 1.3 to have the fix for https://github.com/pandas-dev/pandas/issues/24539
+* [enh] ``slice_mode``: seasons can now be defined to be between two exact dates.
+* [enh] ``slice_mode`` type can now be tuple[str, list], it works similarly to the list in input of seasons but, it enforces a length of 2.
+* [enh] ``slice_mode``: Added `clipped_season` keyword which ignores events starting before the season bounds (original behavior of ``season``).
+* [maint] ``slice_mode``: Modified `season` keyword to take into account events (such as in CDD) starting before the season bounds.
+This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
 * [maint] Added dataclass ClimateIndex to ease the introduction of new indices not in the ECAD standard.
 * [maint] Made use the new typing syntax thanks to ``from __future__ import annotations``.
 * [maint] Add docstring validation into flake8 checks.
 * [enh] Improve API for date related parameters ``{time_range, base_period_time_range, ref_time_range}``
-  They can still be filled with a datetime object but additionally various string format are now available.
-  This comes with dateparser library.
-* [doc] Update callback doc as it is very inaccurate when using dask.
-* [enh] T(X/N/G)(10/90)p indices' threshold is now configurable with `threshold` parameter.
-  Example of use: `icclim.tx90p(in_files=data, threshold=[42, 99])`
+They can still be filled with a datetime object but additionally various string format are now available.
+This comes with dateparser library.
+* [doc] Update callback doc as its outputted value is very inaccurate when dask is enable.
+* [enh] T(X/N/G)(10/90)p indices threshold is now configurable with `threshold` parameter.
+Example of use: `icclim.tx90p(in_files=data, threshold=[42, 99])`
 * [enh|maint] threshold, history and source metadata have been updated to better describe what happens during icclim process.
 * [fix/doc] The documentation of the generated API for T(X/N/G)(10/90)p indices now properly use thier ECAD definitions instead of those from ETCCDI.
-* [enh/doc] Add [WSDI, CSDI, rxxp, rxxpTOT, CW, CD, WW, WD] indices in yaml definition. We no longer strictly follow the yaml given by clix-meta.
+* [enh/doc] Add [WSDI, CSDI, rxxp, rxxpTOT, CW, CD, WW, WD] indices in yaml definition.
+Note: We no longer strictly follow the yaml given by clix-meta.
 * [fix] custom seasonal slice_mode was broken when it ended in december. It's now fixed and unit tested.
+* [enh] Make ``in_file`` accept a dictionary merging together ``var_name`` and ``in_file`` features.
+* [enh] ``in_file`` dictionary can now be used to pass percentiles thresholds. These thresholds will be used instead of computing them on relevant indices.
+* [maint/internal] Refactored IndexConfig and moved all the logic to input_parsing.
 
 5.2.1
 -----
 * [maint] Made Frequency part of SliceMode union.
 * [fix] slice_mode seasonal samplings was giving wrong results for quite a few indices. This has been fixed and the performances should also be improved by the fix.
-  However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
+        However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
 * [fix] user_index ExtremeMode config was not properly parsed when a string was used.
 * [fix] user_index Anomaly operator was not properly using the `ref_time_range` to setup a reference period as it should.
 * [fix] user_index Sum and Mean operators were broken due to a previous refactoring and a lack of unit tests, it is now fixed and tested.
@@ -121,8 +125,8 @@ For spatial stats, Xarray provides a `DataArrayWeighted <https://xarray.pydata.o
     improvements of version 5.0.0.
 
 
-Release candidates (rc1, rc2, rc3) change logs
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Release candidates for 5.0 change logs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * [fix] Make HD17 expect tas instead of tas_min.
 * [fix] Fix performance issue with indices computed on consecutive days such as CDD.
 * [maint] Add Github action CI to run unit tests.
