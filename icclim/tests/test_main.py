@@ -80,19 +80,31 @@ class Test_Integration:
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.SU)
 
+    def test_index_DTR(self):
+        ds = self.data.to_dataset(name="toto")
+        ds["tutu"] = self.data
+        res = icclim.index(
+            index_name="DTR",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+            var_name=["toto", "tutu"],
+        )
+        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        np.testing.assert_array_equal(0, res.DTR)
+
     def test_index_SU__custom_threshold(self):
         res = icclim.su(in_files=self.data, out_file=self.OUTPUT_FILE, threshold=42)
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         assert res.coords["thresholds"] == 42
-        np.testing.assert_array_equal(0, res.SU)
+        np.testing.assert_array_equal(0, res.SU_42)
 
     def test_index_SU__multiple_thresholds(self):
         res = icclim.su(
             in_files=self.data, out_file=self.OUTPUT_FILE, threshold=[42, 53]
         )
-        assert res.attrs["title"] == "Index SU on threshold(s) [42, 53]"
+        assert res.attrs["title"] == "SU_42_53"
         np.testing.assert_array_equal(res.coords["thresholds"], [42, 53])
-        np.testing.assert_array_equal(0, res.SU)
+        np.testing.assert_array_equal(0, res.SU_42_53)
 
     def test_index_TX90p__multiple_thresholds(self):
         res = icclim.tx90p(
@@ -101,10 +113,10 @@ class Test_Integration:
             threshold=[42, 53],
             save_percentile=True,
         )
-        assert res.attrs["title"] == "Index TX90p on threshold(s) [42, 53]"
+        assert res.attrs["title"] == "TX_above_42_53_P"
         np.testing.assert_array_equal(res.coords["percentiles"], [42, 53])
         assert res.percentiles is not None
-        np.testing.assert_array_equal(0, res.TX90p)
+        np.testing.assert_array_equal(0, res.TX_above_42_53_P)
 
     def test__preserve_initial_history(self):
         self.data.attrs["history"] = "pouet pouet cacahuête"
@@ -290,7 +302,7 @@ class Test_Integration:
         with pytest.raises(InvalidIcclimArgumentError):
             # WHEN
             icclim.indices(
-                index_group="all",
+                index_group=["WSDI"],
                 in_files=ds,
                 out_file=self.OUTPUT_FILE,
                 slice_mode=["season", [1, 2, 3]],
@@ -328,7 +340,10 @@ class Test_Integration:
         ).compute()
         for i in EcadIndex:
             # No variable in input to compute snow indices
-            if i.group == IndexGroup.SNOW or i in get_season_excluded_indices():
+            if (
+                i.group == IndexGroup.SNOW
+                or i.climate_index in get_season_excluded_indices()
+            ):
                 assert res.data_vars.get(i.short_name, None) is None
             else:
                 assert res[i.short_name] is not None
@@ -346,3 +361,13 @@ class Test_Integration:
                 out_file=self.OUTPUT_FILE,
                 ignore_error=False,
             )
+
+    def test_index_R75p_custom_threshold(self):
+        ds = self.data.to_dataset(name="pr")
+        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        res = icclim.index(
+            index_name="R75p", in_files=ds, out_file=self.OUTPUT_FILE, threshold=33
+        )
+        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert "R_above_33_P" in res.data_vars
+        np.testing.assert_array_equal(0, res.R_above_33_P)

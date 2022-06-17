@@ -256,7 +256,7 @@ def index(
             " or `index_name` for one of the ECA&D indices."
         )
     if index_name is not None:
-        index = EcadIndex.lookup(index_name)
+        index = EcadIndex.lookup(index_name).climate_index
     else:
         index = None
     input_dataset = read_dataset(in_files, index, var_name)
@@ -406,7 +406,7 @@ def _compute_standard_climate_index(
     def compute(threshold: float | None = None):
         conf = copy.copy(config)
         if threshold is not None:
-            conf.threshold = threshold
+            conf.scalar_thresholds = threshold
         if config.frequency.time_clipping is not None:
             # xclim missing values checking system will not work with clipped time
             with xclim.set_options(check_missing="skip"):
@@ -419,41 +419,42 @@ def _compute_standard_climate_index(
             return (res, None)
 
     logging.info(f"Calculating climate index: {climate_index.short_name}")
-    result_ds = Dataset()
-    if config.threshold is not None:
+    if config.scalar_thresholds is not None:
         thresh_key = (
             "percentiles"
             if QUANTILE_BASED in climate_index.qualifiers
             else "thresholds"
         )
-        if not isinstance(config.threshold, list):
-            thresholds = [config.threshold]
+        if not isinstance(config.scalar_thresholds, list):
+            thresholds = [config.scalar_thresholds]
         else:
-            thresholds = config.threshold
+            thresholds = config.scalar_thresholds
         index_das = []
         per_das = []
-        for th in thresholds:
-            index_da, per_da = compute(th)
-            index_da.coords[thresh_key] = th
+        for thresh in thresholds:
+            index_da, per_da = compute(thresh)
+            index_da.coords[thresh_key] = thresh
             index_das.append(index_da)
             if per_da is not None:
                 per_das.append(per_da)
         result_da = xr.concat(index_das, dim=thresh_key)
+        result_da = result_da.rename(climate_index.format_output_name(thresholds))
         if len(per_das) > 0:
             percentiles_da = xr.concat(per_das, dim=thresh_key)
         else:
             percentiles_da = None
     else:
         result_da, percentiles_da = compute()
+        result_da = result_da.rename(climate_index.format_output_name())
     result_da.attrs["units"] = _get_unit(config.out_unit, result_da)
     if config.frequency.post_processing is not None:
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
-        result_ds[climate_index.short_name] = resampled_da
+        result_ds = resampled_da.to_dataset()
         if time_bounds is not None:
             result_ds["time_bounds"] = time_bounds
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
-        result_ds[climate_index.short_name] = result_da
+        result_ds = result_da.to_dataset()
     if percentiles_da is not None:
         result_ds = xr.merge([result_ds, percentiles_da])
     history = _build_history(result_da, config, initial_history, climate_index)
@@ -470,9 +471,13 @@ def _add_ecad_index_metadata(
     history: str,
     initial_source: str,
 ) -> Dataset:
+    if not isinstance(config.scalar_thresholds, list):
+        thresholds = [config.scalar_thresholds]
+    else:
+        thresholds = config.scalar_thresholds
     result_ds.attrs.update(
         dict(
-            title=_build_title(computed_index, config),
+            title=computed_index.format_output_name(thresholds),
             references="ATBD of the ECA&D indices calculation"
             " (https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf)",
             institution="Climate impact portal (https://climate4impact.eu)",
@@ -484,13 +489,6 @@ def _add_ecad_index_metadata(
     result_ds.lat.encoding["_FillValue"] = None
     result_ds.lon.encoding["_FillValue"] = None
     return result_ds
-
-
-def _build_title(computed_index: ClimateIndex, config: IndexConfig):
-    if config.threshold is not None:
-        return f"Index {computed_index.short_name} on threshold(s) {config.threshold}"
-    else:
-        return f"{computed_index.group.value} index {computed_index.short_name}"
 
 
 def _build_history(

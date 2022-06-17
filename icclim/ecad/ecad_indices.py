@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Iterable
 
 from icclim.clix_meta.clix_meta_indices import ClixMetaIndices
 from icclim.ecad.ecad_functions import (
@@ -141,6 +142,7 @@ class EcadIndex(Enum):
         group=IndexGroup.HEAT,
         input_variables=[TAS_MAX],
         qualifiers=[MODIFIABLE_THRESHOLD],
+        output_var_name="SU_{xx}",
     )
     TR = ClimateIndex(
         short_name="TR",
@@ -148,6 +150,7 @@ class EcadIndex(Enum):
         group=IndexGroup.HEAT,
         input_variables=[TAS_MIN],
         qualifiers=[MODIFIABLE_THRESHOLD],
+        output_var_name="TR_{xx}",
     )
     WSDI = ClimateIndex(
         short_name="WSDI",
@@ -155,6 +158,7 @@ class EcadIndex(Enum):
         group=IndexGroup.HEAT,
         input_variables=[TAS_MAX],
         qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_THRESHOLD],
+        output_var_name="WSDI_{xx}",
     )
     TG90P = ClimateIndex(
         short_name="TG90p",
@@ -167,6 +171,7 @@ class EcadIndex(Enum):
             MODIFIABLE_UNIT,
             MODIFIABLE_THRESHOLD,
         ],
+        output_var_name="TG_above_{xx}_P",
     )
     TN90P = ClimateIndex(
         short_name="TN90p",
@@ -179,6 +184,7 @@ class EcadIndex(Enum):
             MODIFIABLE_UNIT,
             MODIFIABLE_THRESHOLD,
         ],
+        output_var_name="TN_above_{xx}_P",
     )
     TX90P = ClimateIndex(
         short_name="TX90p",
@@ -191,6 +197,7 @@ class EcadIndex(Enum):
             MODIFIABLE_UNIT,
             MODIFIABLE_THRESHOLD,
         ],
+        output_var_name="TX_above_{xx}_P",
     )
     TXX = ClimateIndex(
         short_name="TXx",
@@ -210,6 +217,7 @@ class EcadIndex(Enum):
         group=IndexGroup.HEAT,
         input_variables=[TAS_MAX],
         qualifiers=[MODIFIABLE_THRESHOLD],
+        output_var_name="CSU_{xx}",
     )
     # Cold
     GD4 = ClimateIndex(
@@ -218,6 +226,7 @@ class EcadIndex(Enum):
         group=IndexGroup.COLD,
         input_variables=[TAS],
         qualifiers=[MODIFIABLE_THRESHOLD],
+        output_var_name="GD_{xx}",
     )
     FD = ClimateIndex(
         short_name="FD",
@@ -225,6 +234,7 @@ class EcadIndex(Enum):
         group=IndexGroup.COLD,
         input_variables=[TAS_MIN],
         qualifiers=[MODIFIABLE_THRESHOLD],
+        output_var_name="FD_{xx}",
     )
     CFD = ClimateIndex(
         short_name="CFD",
@@ -232,6 +242,7 @@ class EcadIndex(Enum):
         group=IndexGroup.COLD,
         input_variables=[TAS_MIN],
         qualifiers=[MODIFIABLE_THRESHOLD],
+        output_var_name="CFD_{xx}",
     )
     HD17 = ClimateIndex(
         short_name="HD17",
@@ -239,6 +250,7 @@ class EcadIndex(Enum):
         group=IndexGroup.COLD,
         input_variables=[TAS],
         qualifiers=[MODIFIABLE_THRESHOLD],
+        output_var_name="HD_{xx}",
     )
     ID = ClimateIndex(
         short_name="ID",
@@ -246,6 +258,7 @@ class EcadIndex(Enum):
         group=IndexGroup.COLD,
         input_variables=[TAS_MAX],
         qualifiers=[MODIFIABLE_THRESHOLD],
+        output_var_name="ID_{xx}",
     )
     TG10P = ClimateIndex(
         short_name="TG10p",
@@ -258,6 +271,7 @@ class EcadIndex(Enum):
             MODIFIABLE_UNIT,
             MODIFIABLE_THRESHOLD,
         ],
+        output_var_name="TG_below_{xx}_P",
     )
     TN10P = ClimateIndex(
         short_name="TN10p",
@@ -270,6 +284,7 @@ class EcadIndex(Enum):
             MODIFIABLE_UNIT,
             MODIFIABLE_THRESHOLD,
         ],
+        output_var_name="TN_below_{xx}_P",
     )
     TX10P = ClimateIndex(
         short_name="TX10p",
@@ -282,6 +297,7 @@ class EcadIndex(Enum):
             MODIFIABLE_UNIT,
             MODIFIABLE_THRESHOLD,
         ],
+        output_var_name="TX_below_{xx}_P",
     )
     TXN = ClimateIndex(
         short_name="TXn",
@@ -301,6 +317,7 @@ class EcadIndex(Enum):
         group=IndexGroup.COLD,
         input_variables=[TAS_MIN],
         qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW, MODIFIABLE_THRESHOLD],
+        output_var_name="CSDI_{xx}",
     )
     # Drought
     CDD = ClimateIndex(
@@ -363,42 +380,48 @@ class EcadIndex(Enum):
         compute=lambda c: r75p(c),
         group=IndexGroup.RAIN,
         input_variables=[PR],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_UNIT],
+        qualifiers=[QUANTILE_BASED, MODIFIABLE_UNIT, MODIFIABLE_THRESHOLD],
+        output_var_name="R_above_{xx}_P",
     )
     R75PTOT = ClimateIndex(
         short_name="R75pTOT",
         compute=lambda c: r75ptot(c),
         group=IndexGroup.RAIN,
         input_variables=[PR],
-        qualifiers=[QUANTILE_BASED],
+        qualifiers=[QUANTILE_BASED, MODIFIABLE_THRESHOLD],
+        output_var_name="R_above_{xx}_PTOT",
     )
     R95P = ClimateIndex(
         short_name="R95p",
         compute=lambda c: r95p(c),
         group=IndexGroup.RAIN,
         input_variables=[PR],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_UNIT],
+        qualifiers=[QUANTILE_BASED, MODIFIABLE_UNIT, MODIFIABLE_THRESHOLD],
+        output_var_name="R_above_{xx}_P",
     )
     R95PTOT = ClimateIndex(
         short_name="R95pTOT",
         compute=lambda c: r95ptot(c),
         group=IndexGroup.RAIN,
         input_variables=[PR],
-        qualifiers=[QUANTILE_BASED],
+        qualifiers=[QUANTILE_BASED, MODIFIABLE_THRESHOLD],
+        output_var_name="R_above_{xx}_PTOT",
     )
     R99P = ClimateIndex(
         short_name="R99p",
         compute=lambda c: r99p(c),
         group=IndexGroup.RAIN,
         input_variables=[PR],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_UNIT],
+        qualifiers=[QUANTILE_BASED, MODIFIABLE_UNIT, MODIFIABLE_THRESHOLD],
+        output_var_name="R_above_{xx}_P",
     )
     R99PTOT = ClimateIndex(
         short_name="R99pTOT",
         compute=lambda c: r99ptot(c),
         group=IndexGroup.RAIN,
         input_variables=[PR],
-        qualifiers=[QUANTILE_BASED],
+        qualifiers=[QUANTILE_BASED, MODIFIABLE_THRESHOLD],
+        output_var_name="R_above_{xx}_PTOT",
     )
     # Snow
     SD = ClimateIndex(
@@ -464,7 +487,7 @@ class EcadIndex(Enum):
         self.climate_index.source = ECAD_ATBD
 
     @staticmethod
-    def lookup(query: str) -> ClimateIndex:
+    def lookup(query: str) -> EcadIndex:
         if isinstance(query, EcadIndex):
             return query.value
         for e in EcadIndex:
@@ -509,18 +532,21 @@ class EcadIndex(Enum):
         return [f"{i.group.value} | {i.short_name} | {i.definition}" for i in EcadIndex]
 
 
-def get_season_excluded_indices() -> list[EcadIndex]:
+def get_season_excluded_indices() -> Iterable[ClimateIndex]:
     """List of indices which cannot be computed with seasonal slice_mode."""
-    return [
-        EcadIndex.WSDI,
-        EcadIndex.CSU,
-        EcadIndex.CFD,
-        EcadIndex.CSDI,
-        EcadIndex.CDD,
-        EcadIndex.CWD,
-        EcadIndex.RX5DAY,
-        EcadIndex.CD,
-        EcadIndex.CW,
-        EcadIndex.WD,
-        EcadIndex.WW,
-    ]
+    return map(
+        lambda a: a.climate_index,
+        [
+            EcadIndex.WSDI,
+            EcadIndex.CSU,
+            EcadIndex.CFD,
+            EcadIndex.CSDI,
+            EcadIndex.CDD,
+            EcadIndex.CWD,
+            EcadIndex.RX5DAY,
+            EcadIndex.CD,
+            EcadIndex.CW,
+            EcadIndex.WD,
+            EcadIndex.WW,
+        ],
+    )

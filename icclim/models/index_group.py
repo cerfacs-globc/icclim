@@ -12,7 +12,7 @@ class IndexGroup(Enum):
     RAIN = "rain"
     SNOW = "snow"
     COMPOUND = "compound"
-    WILD_CARD_GROUP = "all"  # no index bound to it
+    WILD_CARD_GROUP = "all"  # no climate index should be bounded to "all"
 
     @staticmethod
     def lookup(query: str | IndexGroup) -> IndexGroup:

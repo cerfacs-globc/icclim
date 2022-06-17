@@ -1,6 +1,6 @@
 """
     `icclim.models.frequency` wraps the concept of pandas frequency in order to resample
-    time series.  `slice_mode` parameter of `icclim.index` is always converted to a
+    time series. `slice_mode` parameter of `icclim.index` is always converted to a
     `Frequency`.
 """
 from __future__ import annotations

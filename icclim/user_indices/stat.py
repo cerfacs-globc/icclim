@@ -39,6 +39,8 @@ def get_first_occurrence_index(da: DataArray) -> DataArray:
     Return the index of the first True value in the 3D booleans array along
     time dimension.
     """
+    # todo we should not assume "lat" and "lon" and instead stack every not "time" dim.
+    #      (if the stack is really necessary ?)
     stacked = da.stack(latlon=("lat", "lon"))
     res = stacked.argmax("time")
     return res.unstack()

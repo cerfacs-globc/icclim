@@ -3037,6 +3037,7 @@ def r75p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3084,6 +3085,11 @@ def r75p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -3129,6 +3135,7 @@ def r75p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
@@ -3146,6 +3153,7 @@ def r75ptot(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3192,6 +3200,11 @@ def r75ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -3235,6 +3248,7 @@ def r75ptot(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
@@ -3251,6 +3265,7 @@ def r95p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3298,6 +3313,11 @@ def r95p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -3343,6 +3363,7 @@ def r95p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
@@ -3360,6 +3381,7 @@ def r95ptot(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3406,6 +3428,11 @@ def r95ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -3449,6 +3476,7 @@ def r95ptot(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
@@ -3465,6 +3493,7 @@ def r99p(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3512,6 +3541,11 @@ def r99p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -3557,6 +3591,7 @@ def r99p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
@@ -3574,6 +3609,7 @@ def r99ptot(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
+    threshold: float | list[float] | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -3620,6 +3656,11 @@ def r99ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    threshold : float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period on which percentiles are
         computed.
@@ -3663,6 +3704,7 @@ def r99ptot(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,

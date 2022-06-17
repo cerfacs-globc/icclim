@@ -45,3 +45,10 @@ class ClimateIndex:
     qualifiers: list[str] | None = None
     source: str | None = None
     definition: str | None = None
+    output_var_name: str | None = None  # when None use name
+
+    def format_output_name(self, threshold: list[float] | None = None) -> str:
+        if self.output_var_name is None or threshold is None:
+            return self.short_name
+        else:
+            return self.output_var_name.replace("{xx}", "_".join(map(str, threshold)))

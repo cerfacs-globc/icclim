@@ -47,7 +47,7 @@ class IndexConfig:
     is_percent: bool = False
     netcdf_version: NetcdfVersion
     window: int | None
-    threshold: list[float] | float | None
+    scalar_thresholds: float | list[float] | None
     transfer_limit_Mbytes: int | None
     out_unit: str | None
     callback: Callable[[int], None] | None
@@ -73,7 +73,7 @@ class IndexConfig:
         self.out_unit = out_unit
         self.netcdf_version = NetcdfVersion.lookup(netcdf_version)
         self.interpolation = interpolation
-        self.threshold = threshold
+        self.scalar_thresholds = threshold
         self.callback = callback
         self.index = index
 

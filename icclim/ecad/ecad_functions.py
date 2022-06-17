@@ -27,7 +27,7 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 def gd4(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
         da=config.tas.study_da,
-        threshold=4.0 if config.threshold is None else config.threshold,
+        threshold=4.0 if config.scalar_thresholds is None else config.scalar_thresholds,
         freq=config.frequency,
         xclim_index_fun=atmos.growing_degree_days,
     )
@@ -36,7 +36,7 @@ def gd4(config: IndexConfig) -> DataArray:
 def cfd(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
         da=config.tasmin.study_da,
-        threshold=0.0 if config.threshold is None else config.threshold,
+        threshold=0.0 if config.scalar_thresholds is None else config.scalar_thresholds,
         freq=config.frequency,
         xclim_index_fun=atmos.consecutive_frost_days,
     )
@@ -45,7 +45,7 @@ def cfd(config: IndexConfig) -> DataArray:
 def fd(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
         da=config.tasmin.study_da,
-        threshold=0.0 if config.threshold is None else config.threshold,
+        threshold=0.0 if config.scalar_thresholds is None else config.scalar_thresholds,
         freq=config.frequency,
         xclim_index_fun=atmos.frost_days,
     )
@@ -54,7 +54,9 @@ def fd(config: IndexConfig) -> DataArray:
 def hd17(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
         da=config.tas.study_da,
-        threshold=17.0 if config.threshold is None else config.threshold,
+        threshold=17.0
+        if config.scalar_thresholds is None
+        else config.scalar_thresholds,
         freq=config.frequency,
         xclim_index_fun=atmos.heating_degree_days,
     )
@@ -63,14 +65,14 @@ def hd17(config: IndexConfig) -> DataArray:
 def id(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
         da=config.tasmax.study_da,
-        threshold=0.0 if config.threshold is None else config.threshold,
+        threshold=0.0 if config.scalar_thresholds is None else config.scalar_thresholds,
         freq=config.frequency,
         xclim_index_fun=atmos.ice_days,
     )
 
 
 def csdi(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 10 if config.threshold is None else config.threshold
+    thresh = 10 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_spell_duration(
         cf_var=config.tasmin,
         freq=config.frequency,
@@ -85,7 +87,7 @@ def csdi(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def tg10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 10 if config.threshold is None else config.threshold
+    thresh = 10 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_temperature_percentile_index(
         cf_var=config.tas,
         freq=config.frequency,
@@ -100,7 +102,7 @@ def tg10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def tn10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 10 if config.threshold is None else config.threshold
+    thresh = 10 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_temperature_percentile_index(
         cf_var=config.tasmin,
         freq=config.frequency,
@@ -115,7 +117,7 @@ def tn10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def tx10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 10 if config.threshold is None else config.threshold
+    thresh = 10 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_temperature_percentile_index(
         cf_var=config.tasmax,
         freq=config.frequency,
@@ -157,7 +159,9 @@ def cdd(config: IndexConfig) -> DataArray:
 def su(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
         da=config.tasmax.study_da,
-        threshold=25.0 if config.threshold is None else config.threshold,
+        threshold=25.0
+        if config.scalar_thresholds is None
+        else config.scalar_thresholds,
         freq=config.frequency,
         xclim_index_fun=atmos.tx_days_above,
     )
@@ -166,14 +170,16 @@ def su(config: IndexConfig) -> DataArray:
 def tr(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
         da=config.tasmin.study_da,
-        threshold=20.0 if config.threshold is None else config.threshold,
+        threshold=20.0
+        if config.scalar_thresholds is None
+        else config.scalar_thresholds,
         freq=config.frequency,
         xclim_index_fun=atmos.tropical_nights,
     )
 
 
 def wsdi(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 90 if config.threshold is None else config.threshold
+    thresh = 90 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_spell_duration(
         cf_var=config.tasmax,
         freq=config.frequency,
@@ -188,7 +194,7 @@ def wsdi(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def tg90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 90 if config.threshold is None else config.threshold
+    thresh = 90 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_temperature_percentile_index(
         cf_var=config.tas,
         freq=config.frequency,
@@ -203,7 +209,7 @@ def tg90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def tn90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 90 if config.threshold is None else config.threshold
+    thresh = 90 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_temperature_percentile_index(
         cf_var=config.tasmin,
         freq=config.frequency,
@@ -218,7 +224,7 @@ def tn90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def tx90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 90 if config.threshold is None else config.threshold
+    thresh = 90 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_temperature_percentile_index(
         cf_var=config.tasmax,
         freq=config.frequency,
@@ -251,7 +257,9 @@ def tnx(config: IndexConfig) -> DataArray:
 def csu(config: IndexConfig) -> DataArray:
     return _compute_threshold_index(
         da=config.tasmax.study_da,
-        threshold=25.0 if config.threshold is None else config.threshold,
+        threshold=25.0
+        if config.scalar_thresholds is None
+        else config.scalar_thresholds,
         freq=config.frequency,
         xclim_index_fun=atmos.maximum_consecutive_warm_days,
     )
@@ -325,7 +333,7 @@ def rx5day(config: IndexConfig) -> DataArray:
 
 
 def r75p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 75 if config.threshold is None else config.threshold
+    thresh = 75 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_rxxp(
         pr=config.pr,
         freq=config.frequency,
@@ -337,7 +345,7 @@ def r75p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def r75ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 75 if config.threshold is None else config.threshold
+    thresh = 75 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_rxxptot(
         pr=config.pr,
         freq=config.frequency,
@@ -348,7 +356,7 @@ def r75ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def r95p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 95 if config.threshold is None else config.threshold
+    thresh = 95 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_rxxp(
         pr=config.pr,
         freq=config.frequency,
@@ -360,7 +368,7 @@ def r95p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def r95ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 95 if config.threshold is None else config.threshold
+    thresh = 95 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_rxxptot(
         pr=config.pr,
         freq=config.frequency,
@@ -371,7 +379,7 @@ def r95ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def r99p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 99 if config.threshold is None else config.threshold
+    thresh = 99 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_rxxp(
         pr=config.pr,
         freq=config.frequency,
@@ -383,7 +391,7 @@ def r99p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
 
 
 def r99ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
-    thresh = 99 if config.threshold is None else config.threshold
+    thresh = 99 if config.scalar_thresholds is None else config.scalar_thresholds
     return _compute_rxxptot(
         pr=config.pr,
         freq=config.frequency,
