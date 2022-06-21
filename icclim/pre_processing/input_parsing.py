@@ -76,53 +76,24 @@ def guess_var_names(
         raise NotImplementedError("`var_name` must be a string a list or None.")
 
 
-def read_multiple(
-    in_data: InFileType, index: ClimateIndex = None, var_name: str | list[str] = None
-) -> Dataset:
-    if isinstance(in_data, dict):
-        ds_acc = []
-        for climate_var_name, climate_var_data in in_data.items():
-            if isinstance(climate_var_data, dict):
-                study_ds = read_dataset(
-                    climate_var_data["study"], index, climate_var_name
-                )
-                if climate_var_data.get("thresholds", None) is not None:
-                    ds_acc.append(_read_thresholds(climate_var_data, climate_var_name))
-            else:
-                study_ds = read_dataset(climate_var_data, index, climate_var_name)
-            ds_acc.append(study_ds)
-        return xr.merge(ds_acc)
-    return read_dataset(in_data, index)
-
-
-def _read_thresholds(climate_var_data: InFileDictionary, climate_var_name: str):
-    per_ds = read_dataset(climate_var_data["thresholds"], index=None)
-    per_var_name = _get_percentile_var_name(per_ds, climate_var_data, climate_var_name)
-    per_da = per_ds[per_var_name].rename(f"{climate_var_name}_thresholds")
-    per_da = _standardize_percentile_dim_name(per_da)
-    per_da = PercentileDataArray.from_da(
-        per_da,
-        climatology_bounds=_read_clim_bounds(climate_var_data, per_da),
-    )
-    return per_da
-
-
 def read_dataset(
-    data: InFileBaseType,
+    in_data: InFileType,
     index: EcadIndex = None,
     var_name: str | list[str] = None,  # used only if input is a DataArray
 ) -> Dataset:
-    if isinstance(data, Dataset):
-        return data
-    elif isinstance(data, DataArray):
-        return _read_dataarray(data, index, var_name=var_name)
-    elif isinstance(data, list):
+    if isinstance(in_data, dict):
+        return _read_dictionary(in_data, index)
+    elif isinstance(in_data, Dataset):
+        return in_data
+    elif isinstance(in_data, DataArray):
+        return _read_dataarray(in_data, index, var_name=var_name)
+    elif isinstance(in_data, list):
         # we assumes it's a list of netCDF files
-        return xr.open_mfdataset(data, parallel=True)
-    elif is_netcdf(data):
-        return xr.open_dataset(data)
-    elif is_zarr(data):
-        return xr.open_zarr(data)
+        return xr.open_mfdataset(in_data, parallel=True)
+    elif is_netcdf(in_data):
+        return xr.open_dataset(in_data)
+    elif is_zarr(in_data):
+        return xr.open_zarr(in_data)
     else:
         raise NotImplementedError("`in_files` format was not recognized.")
 
@@ -174,6 +145,31 @@ def is_zarr(data: InFileBaseType):
 
 def is_netcdf(data: InFileBaseType):
     return isinstance(data, str) and ".nc" in data
+
+
+def _read_dictionary(in_data, index):
+    ds_acc = []
+    for climate_var_name, climate_var_data in in_data.items():
+        if isinstance(climate_var_data, dict):
+            study_ds = read_dataset(climate_var_data["study"], index, climate_var_name)
+            if climate_var_data.get("thresholds", None) is not None:
+                ds_acc.append(_read_thresholds(climate_var_data, climate_var_name))
+        else:
+            study_ds = read_dataset(climate_var_data, index, climate_var_name)
+        ds_acc.append(study_ds)
+    return xr.merge(ds_acc)
+
+
+def _read_thresholds(climate_var_data: InFileDictionary, climate_var_name: str):
+    per_ds = read_dataset(climate_var_data["thresholds"], index=None)
+    per_var_name = _get_percentile_var_name(per_ds, climate_var_data, climate_var_name)
+    per_da = per_ds[per_var_name].rename(f"{climate_var_name}_thresholds")
+    per_da = _standardize_percentile_dim_name(per_da)
+    per_da = PercentileDataArray.from_da(
+        per_da,
+        climatology_bounds=_read_clim_bounds(climate_var_data, per_da),
+    )
+    return per_da
 
 
 def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:

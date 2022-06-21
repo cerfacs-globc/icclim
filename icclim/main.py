@@ -34,7 +34,7 @@ from icclim.pre_processing.input_parsing import (
     InFileType,
     build_cf_variables,
     guess_var_names,
-    read_multiple,
+    read_dataset,
     update_to_standard_coords,
 )
 from icclim.user_indices.calc_operation import CalcOperation, compute_user_index
@@ -259,9 +259,7 @@ def index(
         index = EcadIndex.lookup(index_name)
     else:
         index = None
-
-    # input_dataset = read_multiple(in_files, index, var_name)
-    input_dataset = read_multiple(in_files, index, var_name)
+    input_dataset = read_dataset(in_files, index, var_name)
     input_dataset, reset_coords_dict = update_to_standard_coords(input_dataset)
     sampling_frequency = Frequency.lookup(slice_mode)
     input_dataset = input_dataset.chunk("auto")

@@ -16,7 +16,6 @@ from icclim.pre_processing.input_parsing import (
     InFileDictionary,
     guess_var_names,
     read_dataset,
-    read_multiple,
     update_to_standard_coords,
 )
 
@@ -160,12 +159,12 @@ class Test_ReadDataset:
             # WHEN
             read_dataset(42)  # noqa
 
-    def test_read_multiple(self):
+    def test_read_dataset(self):
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
         # WHEN
-        res_ds = read_multiple(
+        res_ds = read_dataset(
             in_data={"ninja": self.OUTPUT_NC_FILE, "precipitoto": self.pr_da}
         )
         # THEN
@@ -175,7 +174,7 @@ class Test_ReadDataset:
         assert "tas" in res_ds.data_vars
         assert "pr" not in res_ds.data_vars
 
-    def test_read_multiple__with_percentiles(self):
+    def test_read_dataset__with_percentiles(self):
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
@@ -186,7 +185,7 @@ class Test_ReadDataset:
             per, climatology_bounds=["1994-12-02", "1999-01-01"]
         )
         # WHEN
-        res_ds = read_multiple(
+        res_ds = read_dataset(
             in_data={
                 "tatas": {
                     "study": ds,
@@ -201,7 +200,7 @@ class Test_ReadDataset:
         # A bit weird that
         assert "tatas_thresholds" in res_ds.data_vars
 
-    def test_read_multiple__error_no_percentiles_dimension(self):
+    def test_read_dataset__error_no_percentiles_dimension(self):
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
@@ -213,7 +212,7 @@ class Test_ReadDataset:
         # THEN
         with pytest.raises(InvalidIcclimArgumentError):
             # WHEN
-            read_multiple(in_data={"tatas": tas})
+            read_dataset(in_data={"tatas": tas})
 
     def test_guess_variables__error_no_index(self):
         # GIVEN
