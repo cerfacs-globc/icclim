@@ -6,7 +6,7 @@ channels:
 dependencies:
 # Core dependencies
  - python>=3.8
- - xclim>=0.34
+ - xclim>=0.37
  - numpy==1.21.5
  - xarray>=0.19
  - dask[array]
