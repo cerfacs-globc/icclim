@@ -12,8 +12,10 @@ class NetcdfVersion(Enum):
     NETCDF3_64BIT = "NETCDF3_64BIT"
 
     @staticmethod
-    def lookup(s: str):
+    def lookup(query: str | NetcdfVersion):
+        if isinstance(query, NetcdfVersion):
+            return query
         for version in NetcdfVersion:
-            if version.name.upper() == s.upper():
+            if version.name.upper() == query.upper():
                 return version
-        raise InvalidIcclimArgumentError(f"Unknown netcdf version {s}")
+        raise InvalidIcclimArgumentError(f"Unknown netcdf version {query}")

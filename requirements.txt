@@ -12,5 +12,5 @@ pyyaml
 rechunker>=0.3.3
 setuptools
 xarray
-xclim~=0.34.0
+xclim~=0.37.0
 zarr

@@ -76,7 +76,6 @@ from __future__ import annotations
 
 import datetime
 
-from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 import icclim
@@ -85,6 +84,7 @@ from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_dict import UserIndexDict
+from icclim.pre_processing.input_parsing import InFileType
 
 __all__ = [
 '''

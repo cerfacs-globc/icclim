@@ -17,7 +17,7 @@ from xarray.core.dataset import Dataset
 import icclim.utils as utils
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger
-from icclim.pre_processing.input_parsing import read_dataset
+from icclim.pre_processing.input_parsing import is_zarr, read_dataset
 
 TMP_STORE_1 = "icclim-tmp-store-1.zarr"
 TMP_STORE_2 = "icclim-tmp-store-2.zarr"
@@ -155,7 +155,7 @@ def _remove_stores(*stores, filesystem):
 
 def _unsafe_create_optimized_zarr_store(
     in_files: str | list[str] | Dataset | DataArray,
-    var_names: str | list[str],
+    var_name: str | list[str],
     zarr_store_name: str,
     chunking: dict[str, int] | None,
     max_mem: int,
@@ -163,12 +163,13 @@ def _unsafe_create_optimized_zarr_store(
 ):
     with dask.config.set(DEFAULT_DASK_CONF):
         logger.info("Rechunking in progress, this will take some time.")
-        ds, _, is_zarr = read_dataset(in_files, index=None, var_names=var_names)
+        is_ds_zarr = is_zarr(in_files)
+        ds = read_dataset(in_files, index=None, var_name=var_name)
         # drop all non essential data variables
-        ds = ds.drop_vars(filter(lambda v: v not in var_names, ds.data_vars.keys()))
+        ds = ds.drop_vars(filter(lambda v: v not in var_name, ds.data_vars.keys()))
         if len(ds.data_vars.keys()) == 0:
             raise InvalidIcclimArgumentError(
-                f"The variable(s) {var_names} were not found in the dataset."
+                f"The variable(s) {var_name} were not found in the dataset."
             )
         if _is_rechunking_unnecessary(ds, chunking):
             raise InvalidIcclimArgumentError(
@@ -180,7 +181,7 @@ def _unsafe_create_optimized_zarr_store(
             chunking = _build_default_chunking(ds)
         # It seems rechunker performs better when the dataset is first converted
         # to a zarr store, without rechunking anything.
-        if not is_zarr:
+        if not is_ds_zarr:
             # needed to have unified chunk that can be written to zarr
             ds = ds.chunk("auto").unify_chunks()
             ds.to_zarr(TMP_STORE_1, mode="w")

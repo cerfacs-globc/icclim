@@ -21,5 +21,5 @@ setuptools>=49.6.0
 sphinx
 twine
 xarray~=0.19.0
-xclim~=0.34.0
+xclim~=0.37.0
 zarr

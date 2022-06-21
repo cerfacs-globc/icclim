@@ -8,7 +8,7 @@ MINIMAL_REQUIREMENTS = [
     #       https://github.com/numba/numba/issues/7754
     "numpy>=1.16,<1.22",
     "xarray>=0.17",
-    "xclim @ git+https://github.com/Ouranosinc/xclim.git",
+    "xclim>=0.37",
     "cftime>=1.4.1",
     "dask[array]",
     "netCDF4>=1.5.7",
