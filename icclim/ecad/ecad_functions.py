@@ -754,7 +754,11 @@ def compute_compound_index(
     )
     pr_per = pr_per.squeeze(PERCENTILES_COORD, drop=True)
     result = xclim_index_fun(
-        tas.study_da, pr.study_da, tas_per, pr_per, **freq.build_frequency_kwargs()
+        tas=tas.study_da,
+        pr=pr.study_da,
+        tas_per=tas_per,
+        pr_per=pr_per,
+        **freq.build_frequency_kwargs(),
     )
     if save_percentile:
         # FIXME, not consistent with other percentile based indices
