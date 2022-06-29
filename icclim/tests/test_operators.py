@@ -118,7 +118,7 @@ class Test_count_events:
             freq="MS",
         )
         # THEN
-        assert result[0] == 2
+        assert result.isel(time=0) == 2
 
     @pytest.mark.parametrize("use_dask", [True, False])
     def test_multi_threshold_or(self, use_dask):

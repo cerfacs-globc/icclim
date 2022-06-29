@@ -1,6 +1,10 @@
 Release history
 ===============
 
+5.2.2
+-----
+[maint] Remove constraint on numpy version as numba is now working with np 1.22.
+
 5.2.1
 -----
 [maint] Made Frequency part of SliceMode union.

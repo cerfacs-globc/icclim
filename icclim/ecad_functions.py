@@ -979,7 +979,9 @@ def compute_compound_index(
         callback,
     )
     pr_per = pr_per.squeeze(PERCENTILES_COORD, drop=True)
-    result = xclim_index_fun(tas.study_da, tas_per, pr_out_of_base, pr_per, freq=freq)
+    result = xclim_index_fun(
+        tas=tas.study_da, pr=pr_out_of_base, tas_per=tas_per, pr_per=pr_per, freq=freq
+    )
     if save_percentile:
         # FIXME, not consistent with other percentile based indices
         #        We should probably return a Tuple (res, [tas_per, pr_per])
