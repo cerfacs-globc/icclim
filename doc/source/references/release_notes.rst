@@ -28,6 +28,10 @@ Note: We no longer strictly follow the yaml given by clix-meta.
 * [enh] ``in_file`` dictionary can now be used to pass percentiles thresholds. These thresholds will be used instead of computing them on relevant indices.
 * [maint/internal] Refactored IndexConfig and moved all the logic to input_parsing.
 
+5.2.2
+-----
+[maint] Remove constraint on numpy version as numba is now working with np 1.22.
+
 5.2.1
 -----
 * [maint] Made Frequency part of SliceMode union.
