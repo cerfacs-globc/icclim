@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import Callable
+from typing import Any, Callable
 
 from icclim.models.cf_variable import CfVariable
 from icclim.models.climate_index import ClimateIndex
-from icclim.models.constants import PR, TAS, TAS_MAX, TAS_MIN
+from icclim.models.constants import PR, SFC_WIND, TAS, TAS_MAX, TAS_MIN
 from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -30,7 +30,7 @@ class IndexConfig:
         Netcdf version to be used when creating the output
     window:
         On indices relying on a rolling window of days, configure the window width.
-    threshold:
+    scalar_thresholds:
         On indices relying on a threshold, configure the threshold value. Unit less.
         The unit "degC" is added by icclim.
     transfer_limit_Mbytes:
@@ -51,6 +51,7 @@ class IndexConfig:
     transfer_limit_Mbytes: int | None
     out_unit: str | None
     callback: Callable[[int], None] | None
+    xclim_kwargs: dict[str, Any] | None
 
     def __init__(
         self,
@@ -64,6 +65,7 @@ class IndexConfig:
         out_unit: str | None = None,
         interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
         callback: Callable[[int], None] | None = None,
+        xclim_kwargs: dict[str, Any] | None = None,
     ):
         self.frequency = frequency
         self.cf_variables = cf_variables
@@ -76,13 +78,14 @@ class IndexConfig:
         self.scalar_thresholds = threshold
         self.callback = callback
         self.index = index
+        self.xclim_kwargs = xclim_kwargs
 
     @property
     def tas(self) -> CfVariable:
         tas_vars = list(filter(lambda v: v.name in TAS, self.cf_variables))
         if len(tas_vars) == 1:
             return tas_vars[0]
-        # Otherwise rely on positional guess
+        # Otherwise rely on positional guess, tas should always be 1st
         return self.cf_variables[0]
 
     @property
@@ -90,7 +93,7 @@ class IndexConfig:
         tas_max_vars = list(filter(lambda v: v.name in TAS_MAX, self.cf_variables))
         if len(tas_max_vars) == 1:
             return tas_max_vars[0]
-        # Otherwise rely on positional guess
+        # Otherwise rely on positional guess tasmax should always be 1st
         return self.cf_variables[0]
 
     @property
@@ -100,7 +103,7 @@ class IndexConfig:
             return tas_min_vars[0]
         # Otherwise rely on positional guess
         if len(self.cf_variables) > 1:
-            # compound indices case
+            # compound indices case (DTR, vDTR), tasmin should be the 2nd var
             return self.cf_variables[1]
         return self.cf_variables[0]
 
@@ -111,6 +114,13 @@ class IndexConfig:
             return pr_vars[0]
         # Otherwise rely on positional guess
         if len(self.cf_variables) > 1:
-            # compound indices case
+            # compound indices case (CD, CW), pr should be the 2nd var
             return self.cf_variables[1]
+        return self.cf_variables[0]
+
+    @property
+    def sfcWind(self):
+        sfc_wind_vars = list(filter(lambda v: v.name in SFC_WIND, self.cf_variables))
+        if len(sfc_wind_vars) == 1:
+            return sfc_wind_vars[0]
         return self.cf_variables[0]

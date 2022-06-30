@@ -12,6 +12,7 @@ class IndexGroup(Enum):
     RAIN = "rain"
     SNOW = "snow"
     COMPOUND = "compound"
+    GENERIC = "generic"
     WILD_CARD_GROUP = "all"  # no climate index should be bounded to "all"
 
     @staticmethod

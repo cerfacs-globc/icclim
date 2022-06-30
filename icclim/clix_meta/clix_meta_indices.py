@@ -48,7 +48,7 @@ class ClixMetaIndices:
     indices_record: dict[str, ClixMetaIndex]
 
     @staticmethod
-    def get_instance():
+    def get_instance() -> ClixMetaIndices:
         if ClixMetaIndices.__instance is None:
             ClixMetaIndices.__instance = ClixMetaIndices()
         return ClixMetaIndices.__instance

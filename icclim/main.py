@@ -2,7 +2,8 @@
 #  Copyright CERFACS (http://cerfacs.fr/)
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 """
-Main module of icclim.
+Main entry point of icclim.
+This module expose the index API endpoint as long as a few other functions.
 """
 from __future__ import annotations
 
@@ -14,9 +15,10 @@ from typing import Callable, Literal
 from warnings import warn
 
 import xarray as xr
-import xclim
+import xclim_catalog
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
+from xclim_catalog import XclimIndices
 
 from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
@@ -146,6 +148,8 @@ def index(
     indice_name: str = None,
     user_indice: UserIndexDict = None,
     transfer_limit_Mbytes: float = None,
+    # additional kwargs
+    **kwargs: dict,
 ) -> Dataset:
     """
     Main entry point for icclim to compute climate indices.
@@ -242,6 +246,8 @@ def index(
         DEPRECATED, use index_name instead.
     user_indice : dict | None
         DEPRECATED, use user_index instead.
+    **kwargs : dict
+        Additional keyword arguments passed to xclim index function.
 
     """
     _setup(callback, callback_percentage_start_value, logs_verbosity, slice_mode)
@@ -256,7 +262,11 @@ def index(
             " or `index_name` for one of the ECA&D indices."
         )
     if index_name is not None:
-        index = EcadIndex.lookup(index_name).climate_index
+        index = EcadIndex.lookup(index_name)
+        if index is not None:
+            index = index.climate_index
+        else:
+            XclimIndices.lookup(index_name)
     else:
         index = None
     input_dataset = read_dataset(in_files, index, var_name)
@@ -345,7 +355,7 @@ def _setup(callback, callback_start_value, logs_verbosity, slice_mode):
     # make xclim input daily check a warning instead of an error
     # TODO: it might be safer to feed a context manager which will setup
     #       and teardown these confs
-    xclim.set_options(data_validation="warn")
+    xclim_catalog.set_options(data_validation="warn")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
     log.set_verbosity(logs_verbosity)
@@ -409,7 +419,7 @@ def _compute_standard_climate_index(
             conf.scalar_thresholds = threshold
         if config.frequency.time_clipping is not None:
             # xclim missing values checking system will not work with clipped time
-            with xclim.set_options(check_missing="skip"):
+            with xclim_catalog.set_options(check_missing="skip"):
                 res = climate_index.compute(conf)
         else:
             res = climate_index.compute(conf)

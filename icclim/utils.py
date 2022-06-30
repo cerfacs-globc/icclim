@@ -47,3 +47,22 @@ def get_date_to_iso_format(in_date: str | datetime) -> str:
     if isinstance(in_date, str):
         in_date = read_date(in_date)
     return in_date.strftime("%Y-%m-%d")
+
+
+class Singleton:
+    __instance: Singleton = None
+
+    @classmethod
+    def get_instance(cls, *args, **kwargs):
+        if Singleton.__instance is None:
+            cls.__init__(*args, **kwargs)
+        return cls.__instance
+
+    def __init__(self):
+        if self.__instance is not None:
+            raise Exception(
+                "This class is a singleton!"
+                " Use get_instance() to get the existing instance."
+            )
+        else:
+            self.__instance = self

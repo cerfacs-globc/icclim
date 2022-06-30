@@ -56,7 +56,7 @@ from icclim.ecad.ecad_functions import (
     ww,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.climate_index import ClimateIndex
+from icclim.models.climate_index import ClimateIndex, ClimateIndexEnum
 from icclim.models.constants import (
     ECAD_ATBD,
     MODIFIABLE_QUANTILE_WINDOW,
@@ -70,7 +70,7 @@ from icclim.models.constants import (
 )
 from icclim.models.index_group import IndexGroup
 
-clix_indices: ClixMetaIndices = ClixMetaIndices.get_instance()
+clix_indices = ClixMetaIndices.get_instance()
 
 
 def _get_clix_definition(short_name: str) -> str:
@@ -81,7 +81,11 @@ def _get_clix_definition(short_name: str) -> str:
     return definition
 
 
-class EcadIndex(Enum):
+class EcadIndex(ClimateIndexEnum):
+    # TODO Add indices wind gust, wind direction,
+    #                  radiation , pressure,
+    #                  cloud cover, sunshine,
+    #                  humidity
     """
     ECA&D indices.
         short_name: str
@@ -97,6 +101,11 @@ class EcadIndex(Enum):
             ``optional`` List of configuration to compute the index.
             Used internally to generate modules for C3S.
     """
+
+    def __init__(self, climate_index: ClimateIndex):
+        super().__init__(climate_index)
+        self.climate_index.definition = _get_clix_definition(climate_index.short_name)
+        self.climate_index.source = ECAD_ATBD
 
     # Temperature
     TG = ClimateIndex(
@@ -478,50 +487,14 @@ class EcadIndex(Enum):
         qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW],
     )
 
-    def __init__(
-        self,
-        climate_index: ClimateIndex,
-    ):
-        self.climate_index = climate_index
-        self.climate_index.definition = _get_clix_definition(climate_index.short_name)
-        self.climate_index.source = ECAD_ATBD
-
     @staticmethod
-    def lookup(query: str) -> EcadIndex:
+    def lookup(query: str) -> EcadIndex | None:
         if isinstance(query, EcadIndex):
             return query.value
         for e in EcadIndex:
             if e.short_name.upper() == query.upper():
                 return e
-        raise InvalidIcclimArgumentError(f"Unknown ECA&D index {query}.")
-
-    @property
-    def group(self):
-        return self.climate_index.group
-
-    @property
-    def short_name(self):
-        return self.climate_index.short_name
-
-    @property
-    def definition(self):
-        return self.climate_index.definition
-
-    @property
-    def compute(self):
-        return self.climate_index.compute
-
-    @property
-    def input_variables(self):
-        return self.climate_index.input_variables
-
-    @property
-    def qualifiers(self):
-        return self.climate_index.qualifiers
-
-    @property
-    def source(self):
-        return self.climate_index.source
+        return None
 
     @staticmethod
     def list() -> list[str]:
@@ -529,7 +502,7 @@ class EcadIndex(Enum):
         Get a a string list of ``EcadIndex`` enum's indices formatted in a readable
         fashion.
         """
-        return [f"{i.group.value} | {i.short_name} | {i.definition}" for i in EcadIndex]
+        return [str(i.climate_index) for i in EcadIndex]
 
 
 def get_season_excluded_indices() -> Iterable[ClimateIndex]:

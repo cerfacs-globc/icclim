@@ -65,7 +65,7 @@ def guess_var_names(
     elif var_names is None:
         if index is None:
             raise InvalidIcclimArgumentError(
-                "Unable to guess variable name." " Provide one using `var_name`"
+                "Unable to guess variable(s) name. Provide it/them using `var_name`."
             )
         return _guess_dataset_var_names(index, ds)
     elif isinstance(var_names, str):
