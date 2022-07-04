@@ -15,17 +15,17 @@ from typing import Callable, Literal
 from warnings import warn
 
 import xarray as xr
-import xclim_catalog
+import xclim
+from generic_indices.generic_indices import GenericIndexCatalog
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
-from xclim_catalog import XclimIndices
 
 from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
 from icclim.models.climate_index import ClimateIndex
-from icclim.models.constants import ICCLIM_VERSION, QUANTILE_BASED
+from icclim.models.constants import ICCLIM_VERSION
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
@@ -128,7 +128,7 @@ def index(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
+    threshold: float | list[float] | DataArray | None = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -246,7 +246,7 @@ def index(
         DEPRECATED, use index_name instead.
     user_indice : dict | None
         DEPRECATED, use user_index instead.
-    **kwargs : dict
+    kwargs : dict
         Additional keyword arguments passed to xclim index function.
 
     """
@@ -262,11 +262,12 @@ def index(
             " or `index_name` for one of the ECA&D indices."
         )
     if index_name is not None:
-        index = EcadIndex.lookup(index_name)
-        if index is not None:
-            index = index.climate_index
+        if (ecad_index := EcadIndex.lookup(index_name)) is not None:
+            index = ecad_index.climate_index
+        elif (generic_index := GenericIndexCatalog.lookup(index_name)) is not None:
+            index = generic_index
         else:
-            XclimIndices.lookup(index_name)
+            raise InvalidIcclimArgumentError(f"Unknown index {index_name}.")
     else:
         index = None
     input_dataset = read_dataset(in_files, index, var_name)
@@ -281,6 +282,7 @@ def index(
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         freq=sampling_frequency,
+        threshold=threshold,
     )
     config = IndexConfig(
         save_percentile=save_percentile,
@@ -355,7 +357,7 @@ def _setup(callback, callback_start_value, logs_verbosity, slice_mode):
     # make xclim input daily check a warning instead of an error
     # TODO: it might be safer to feed a context manager which will setup
     #       and teardown these confs
-    xclim_catalog.set_options(data_validation="warn")
+    xclim.set_options(data_validation="warn")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
     log.set_verbosity(logs_verbosity)
@@ -419,43 +421,47 @@ def _compute_standard_climate_index(
             conf.scalar_thresholds = threshold
         if config.frequency.time_clipping is not None:
             # xclim missing values checking system will not work with clipped time
-            with xclim_catalog.set_options(check_missing="skip"):
+            with xclim.set_options(check_missing="skip"):
                 res = climate_index.compute(conf)
         else:
-            res = climate_index.compute(conf)
+            res = climate_index(conf)  # todo need to merge ClimateIndex and Indicator
         if isinstance(res, tuple):
             return res
         else:
             return (res, None)
 
     logging.info(f"Calculating climate index: {climate_index.short_name}")
-    if config.scalar_thresholds is not None:
-        thresh_key = (
-            "percentiles"
-            if QUANTILE_BASED in climate_index.qualifiers
-            else "thresholds"
-        )
-        if not isinstance(config.scalar_thresholds, list):
-            thresholds = [config.scalar_thresholds]
-        else:
-            thresholds = config.scalar_thresholds
-        index_das = []
-        per_das = []
-        for thresh in thresholds:
-            index_da, per_da = compute(thresh)
-            index_da.coords[thresh_key] = thresh
-            index_das.append(index_da)
-            if per_da is not None:
-                per_das.append(per_da)
-        result_da = xr.concat(index_das, dim=thresh_key)
-        result_da = result_da.rename(climate_index.format_output_name(thresholds))
-        if len(per_das) > 0:
-            percentiles_da = xr.concat(per_das, dim=thresh_key)
-        else:
-            percentiles_da = None
-    else:
-        result_da, percentiles_da = compute()
-        result_da = result_da.rename(climate_index.format_output_name())
+    # if config.scalar_thresholds is not None:
+    #     thresh_key = (
+    #         "percentiles"
+    #         if QUANTILE_BASED in climate_index.qualifiers
+    #         else "thresholds"
+    #     )
+    #     if not isinstance(config.scalar_thresholds, list):
+    #         thresholds = [config.scalar_thresholds]
+    #     else:
+    #         thresholds = config.scalar_thresholds
+    #     index_das = []
+    #     per_das = []
+    #     for thresh in thresholds:
+    #         index_da, per_da = compute(thresh)
+    #         index_da.coords[thresh_key] = thresh
+    #         index_das.append(index_da)
+    #         if per_da is not None:
+    #             per_das.append(per_da)
+    #     result_da = xr.concat(index_das, dim=thresh_key)
+    #     # result_da = result_da.rename(climate_index.format_output_name(thresholds))
+    #     result_da = result_da.rename(climate_index.short_name)
+    #     if len(per_das) > 0:
+    #         percentiles_da = xr.concat(per_das, dim=thresh_key)
+    #     else:
+    #         percentiles_da = None
+    # else:
+    #     result_da, percentiles_da = compute()
+    #     result_da = result_da.rename(climate_index.format_output_name())
+    result_da, percentiles_da = compute()
+    # result_da = result_da.rename(climate_index.format_output_name())
+    result_da = result_da.rename(climate_index.identifier)
     result_da.attrs["units"] = _get_unit(config.out_unit, result_da)
     if config.frequency.post_processing is not None:
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
@@ -481,13 +487,13 @@ def _add_ecad_index_metadata(
     history: str,
     initial_source: str,
 ) -> Dataset:
-    if not isinstance(config.scalar_thresholds, list):
-        thresholds = [config.scalar_thresholds]
-    else:
-        thresholds = config.scalar_thresholds
+    # if not isinstance(config.scalar_thresholds, list):
+    #     thresholds = [config.scalar_thresholds]
+    # else:
+    #     thresholds = config.scalar_thresholds
     result_ds.attrs.update(
         dict(
-            title=computed_index.format_output_name(thresholds),
+            title=computed_index.short_name,
             references="ATBD of the ECA&D indices calculation"
             " (https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf)",
             institution="Climate impact portal (https://climate4impact.eu)",
@@ -520,8 +526,8 @@ def _build_history(
     return (
         f"{initial_history}\n"
         f" [{current_time}]"
-        f" Calculation of {indice_computed.short_name}"
-        f" index({config.frequency.description})"
+        f" Calculation of {indice_computed.identifier}"
+        f" index ({config.frequency.description})"
         f" from {start_time} to {end_time}"
         f" - icclim version: {ICCLIM_VERSION}"
     )

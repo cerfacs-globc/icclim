@@ -5,8 +5,10 @@
 """
 from __future__ import annotations
 
+import dataclasses
 from datetime import timedelta
 from enum import Enum
+from functools import reduce
 from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 
 import cftime
@@ -34,6 +36,47 @@ SEASON_ERR_MSG = (
     " consecutive integer for months such as [1,2,3] or two string for"
     " dates such as ['19 july', '14 august']."
 )
+# copied from xclim. Updated.
+FREQ_MAPPING = {
+    "YS": "annual",
+    "Y": "annual",
+    "AS": "annual",
+    "A": "annual",
+    "MS": "monthly",
+    "M": "monthly",
+    "QS": "seasonal",
+    "Q": "seasonal",
+    "JAN": "January starting",
+    "FEB": "February starting",
+    "MAR": "March starting",
+    "APR": "April starting",
+    "MAY": "May starting",
+    "JUN": "June starting",
+    "JUL": "July starting",
+    "AUG": "August starting",
+    "SEP": "September starting",
+    "OCT": "October starting",
+    "NOV": "November starting",
+    "DEC": "December starting",
+    # Arguments to "indexer"
+    "DJF": "winter",
+    "MAM": "spring",
+    "JJA": "summer",
+    "SON": "fall",
+    "norm": "Normal",
+    "m1": "january",
+    "m2": "february",
+    "m3": "march",
+    "m4": "april",
+    "m5": "may",
+    "m6": "june",
+    "m7": "july",
+    "m8": "august",
+    "m9": "september",
+    "m10": "october",
+    "m11": "november",
+    "m12": "december",
+}
 
 
 def _get_end_date(
@@ -159,104 +202,128 @@ def _get_time_bounds_updater(
     return add_time_bounds
 
 
+@dataclasses.dataclass
 class _Freq:
     """Internal class to ease writing and maintaining the enum.
     Without it, in the instanciation of enum values we would have to write tuples
     would not be able to use kwargs, which make the code less readable.
     """
 
-    def __init__(
-        self,
-        pandas_freq: str,
-        accepted_values: list[str],
-        description: str,
-        post_processing: Callable[[DataArray], tuple[DataArray, DataArray]],
-        indexer: Indexer | None,
-        time_clipping: Callable = None,
-    ):
-        self.pandas_freq: str = pandas_freq
-        self.accepted_values: list[str] = accepted_values
-        self.description = description
-        self.post_processing = post_processing
-        self.indexer = indexer
-        # time_clipping is a workaround for a "missing" feature of xclim.
-        # It allow to compute seasons for indices computing spells by ignoring values
-        # outside the season bounds.
-        self.time_clipping = time_clipping
+    pandas_freq: str
+    accepted_values: list[str]
+    description: str
+    post_processing: Callable[[DataArray], tuple[DataArray, DataArray]]
+    units: str
+    indexer: Indexer | None
+    time_clipping: Callable = None
+    # time_clipping is a workaround for a "missing" feature of xclim.
+    # It allow to compute seasons for indices computing spells by ignoring values
+    # outside the season bounds.
 
 
 class Frequency(Enum):
     """The sampling frequency of the resulting dataset."""
 
+    def __init__(self, freq: _Freq):
+        self._freq = freq
+
+    HOUR = _Freq(
+        pandas_freq="H",
+        accepted_values=["hour", "h", "hourly"],
+        description="hourly",
+        indexer=None,
+        post_processing=_get_time_bounds_updater("H"),
+        units="hours",
+    )
+    """Resample to hourly values"""
+
+    DAY = _Freq(
+        pandas_freq="D",
+        accepted_values=["daily", "day", "days", "d"],
+        description="daily",
+        indexer=None,
+        post_processing=_get_time_bounds_updater("D"),
+        units="days",
+    )
+    """Resample to daily values"""
+
     MONTH = _Freq(
         pandas_freq="MS",
-        accepted_values=["month", "MS"],
-        description="monthly time series",
+        accepted_values=["month", "monthly", "MS"],
+        description="monthly",
         indexer=None,
         post_processing=_get_time_bounds_updater("MS"),
+        units="months",
     )
     """Resample to monthly values"""
 
     YEAR = _Freq(
         pandas_freq="YS",
-        accepted_values=["year", "YS"],
-        description="annual time series",
+        accepted_values=["year", "yearly", "annual", "YS"],
+        description="annual",
         indexer=None,
         post_processing=_get_time_bounds_updater("YS"),
+        units="years",
     )
     """Resample to yearly values."""
 
     AMJJAS = _Freq(
         pandas_freq="AS-APR",
         accepted_values=["AMJJAS"],
-        description="summer half-year time series",
+        description="summer half-year",
         indexer=dict(month=AMJJAS_MONTHS),
         post_processing=get_seasonal_time_updater(AMJJAS_MONTHS[0], AMJJAS_MONTHS[-1]),
+        units="half_year_summer",
     )
     """Resample to summer half-year, from April to September included."""
 
     ONDJFM = _Freq(
         pandas_freq="AS-OCT",
         accepted_values=["ONDJFM"],
-        description="winter half-year time series",
+        description="winter half-year",
         indexer=dict(month=ONDJFM_MONTHS),
         post_processing=get_seasonal_time_updater(ONDJFM_MONTHS[0], ONDJFM_MONTHS[-1]),
+        units="half_year_winter",
     )
     """Resample to winter half-year, from October to March included."""
 
     DJF = _Freq(
         pandas_freq="AS-DEC",
         accepted_values=["DJF"],
-        description="winter time series",
+        description="winter",
         indexer=dict(month=DJF_MONTHS),
         post_processing=get_seasonal_time_updater(DJF_MONTHS[0], DJF_MONTHS[-1]),
+        units="winter",
     )
     """Resample to winter season, from December to February included."""
 
     MAM = _Freq(
         pandas_freq="AS-MAR",
         accepted_values=["MAM"],
-        description="spring time series",
+        description="spring",
         indexer=dict(month=MAM_MONTHS),
         post_processing=get_seasonal_time_updater(MAM_MONTHS[0], MAM_MONTHS[-1]),
+        units="spring",
     )
     """Resample to spring season, from March to May included."""
 
     JJA = _Freq(
         pandas_freq="AS-JUN",
         accepted_values=["JJA"],
-        description="summer time series",
+        description="summer",
         indexer=dict(month=JJA_MONTHS),
         post_processing=get_seasonal_time_updater(JJA_MONTHS[0], JJA_MONTHS[-1]),
+        units="summer",
     )
     """Resample to summer season, from June to Agust included."""
 
     SON = _Freq(
         pandas_freq="AS-SEP",
         accepted_values=["SON"],
-        description="autumn time series",
+        description="autumn",
         indexer=dict(month=SON_MONTHS),
         post_processing=get_seasonal_time_updater(SON_MONTHS[0], SON_MONTHS[-1]),
+        units="autumn",
     )
     """Resample to fall season, from September to November included."""
 
@@ -266,13 +333,11 @@ class Frequency(Enum):
         description="",
         indexer=None,
         post_processing=lambda x: x,
+        units="",
     )
     """Placeholder instance for custom sampling frequencies.
        Do not use as is, use `slice_mode` with "month", "season" keywords instead.
     """
-
-    def __init__(self, freq: _Freq):
-        self._freq = freq
 
     @property
     def pandas_freq(self):
@@ -284,7 +349,13 @@ class Frequency(Enum):
 
     @property
     def description(self):
-        return self._freq.description
+        if self._freq.description:
+            return self._freq.description
+        else:
+            formatted_freq = map(
+                lambda x: FREQ_MAPPING[x], self._freq.pandas_freq.split("-")
+            )
+            return reduce(lambda x, y: x + y, formatted_freq, "")
 
     @property
     def post_processing(self):
@@ -297,6 +368,10 @@ class Frequency(Enum):
     @property
     def time_clipping(self):
         return self._freq.time_clipping
+
+    @property
+    def units(self):
+        return self._freq.units
 
     @staticmethod
     def lookup(slice_mode: SliceMode) -> Frequency:
@@ -331,28 +406,29 @@ class Frequency(Enum):
         return kwargs
 
 
-def _get_frequency_from_string(slice_mode: str) -> Frequency:
+def _get_frequency_from_string(query: str) -> Frequency:
     for freq in Frequency:
-        if freq.name == slice_mode.upper() or slice_mode.upper() in map(
+        if freq.name == query.upper() or query.upper() in map(
             str.upper, freq.accepted_values
         ):
             return freq
     # else assumes it's a pandas frequency (such as W or 3MS)
     try:
-        to_offset(slice_mode)  # no-op, used to check if it's a valid pandas freq
+        to_offset(query)  # no-op, used to check if it's a valid pandas freq
     except ValueError as e:
         raise InvalidIcclimArgumentError(
-            f"Unknown frequency {slice_mode}. Use either a"
+            f"Unknown frequency {query}. Use either a"
             " valid icclim frequency or a valid pandas"
             " frequency",
             e,
         )
     Frequency.CUSTOM._freq = _Freq(
-        post_processing=_get_time_bounds_updater(slice_mode),
-        pandas_freq=slice_mode,
-        description=f"time series sampled on {slice_mode}",
+        post_processing=_get_time_bounds_updater(query),
+        pandas_freq=query,
+        description=f"time series sampled on {query}",
         accepted_values=[],
         indexer=None,
+        units=query,  # todo might be meh
     )
     return Frequency.CUSTOM
 
@@ -402,6 +478,7 @@ def _build_frequency_filtered_by_month(months: list[int]) -> _Freq:
         pandas_freq="MS",
         description=f"monthly time series (months: {months})",
         accepted_values=[],
+        units="months",
     )
 
 
@@ -435,6 +512,7 @@ def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool) ->
         f" (season: from {begin_formatted} to {end_formatted})",
         accepted_values=[],
         time_clipping=time_clipping,
+        units=f"{MONTHS_MAP[begin_date.month]}_{MONTHS_MAP[end_date.month]}_seasons",
     )
 
 
@@ -457,6 +535,7 @@ def _build_seasonal_frequency_for_months(season: tuple | list, clipped: bool):
         pandas_freq=f"AS-{MONTHS_MAP[season[0]]}",
         description=f"seasonal time series (season: {season})",
         accepted_values=[],
+        units=f"{MONTHS_MAP[season[0]]}_{MONTHS_MAP[season[-1]]}_seasons",
     )
 
 

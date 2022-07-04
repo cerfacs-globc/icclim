@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Literal
+from typing import Any, Literal
 
-from xarray.core.dataarray import DataArray
+from models.logical_operation import LogicalOperation
 from xclim.core.calendar import select_time
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
-from icclim.models.index_config import CfVariable
+from icclim.models.index_config import ClimateVariable
 from icclim.utils import get_date_to_iso_format
 
 LogicalOperationLiteral = Literal[
@@ -63,48 +63,19 @@ class ExtremeMode(Enum):
         )
 
 
-class LogicalOperation(Enum):
-    GREATER_THAN = (["gt", ">"], ">", lambda da, th: da > th)
-    LOWER_THAN = (["lt", "<"], "<", lambda da, th: da < th)
-    GREATER_OR_EQUAL_THAN = (["get", "ge", ">=", "=>"], ">=", lambda da, th: da >= th)
-    LOWER_OR_EQUAL_THAN = (["let", "le", "<=", "=<"], "<=", lambda da, th: da <= th)
-    EQUAL = (["e", "equal", "eq", "=", "=="], "==", lambda da, th: da == th)
-
-    def __init__(
-        self,
-        aliases: str,
-        operator: str,
-        compute: Callable[[DataArray, DataArray | float | int], DataArray],
-    ) -> None:
-        super().__init__()
-        self.aliases = aliases
-        self.operator = operator
-        self.compute = compute
-
-    @staticmethod
-    def lookup(query: str) -> LogicalOperation:
-        for op in LogicalOperation:
-            if query.upper() in map(str.upper, op.aliases):
-                return op
-        raise InvalidIcclimArgumentError(
-            f"Unknown logical operator {query}."
-            f"Use one of {[op.aliases for op in LogicalOperation]}."
-        )
-
-
 @dataclass
 class NbEventConfig:
     logical_operation: list[LogicalOperation]
     thresholds: list[float | str]
     link_logical_operations: LinkLogicalOperation | None = None
-    data_arrays: list[CfVariable] | None = None
+    data_arrays: list[ClimateVariable] | None = None
 
 
 @dataclass
 class UserIndexConfig:
     index_name: str
     calc_operation: str
-    cf_vars: list[CfVariable]
+    cf_vars: list[ClimateVariable]
     freq: Frequency
     date_event: bool
     is_percent: bool
@@ -124,7 +95,7 @@ class UserIndexConfig:
         # Any should be CalcOperation but it causes circular import
         calc_operation: str | Any,
         freq: Frequency,
-        cf_vars: list[CfVariable],
+        cf_vars: list[ClimateVariable],
         logical_operation: str = None,
         thresh=None,
         link_logical_operations: str = None,
@@ -170,7 +141,7 @@ def get_nb_event_conf(
     logical_operation: list[str] | str,
     link_logical_operations: str | None,
     thresholds: list[str | float] | float | str,
-    cfvars: list[CfVariable],
+    cfvars: list[ClimateVariable],
 ) -> NbEventConfig:
     if not isinstance(thresholds, list):
         threshold_list = [thresholds]

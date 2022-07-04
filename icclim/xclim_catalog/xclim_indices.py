@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import xclim.core.indicator
 from xclim.core.indicator import Indicator
-from xclim_catalog import (
+
+from icclim.ecad.ecad_functions import (
     _compute_percentile_doy,
     _compute_precip_percentile_over_period,
 )
-
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.climate_index import ClimateIndex, ClimateIndexEnum
 from icclim.models.constants import PR, SFC_WIND, TAS, TAS_MAX, TAS_MIN
@@ -14,22 +14,6 @@ from icclim.models.index_config import IndexConfig
 
 
 class XclimIndex(ClimateIndexEnum):
-    """
-    xclim indices.
-        short_name: str
-            The index name used in the output.
-        compute: Callable
-            The function to compute the index. It wraps Xclim functions.
-        group: IndexGroup
-            The index group category.
-        variables: List[List[str]]
-            The Cf variables needed to compute the index.
-            The variable are individually described by a list of aliases.
-        qualifiers: List[str]
-            ``optional`` List of configuration to compute the index.
-            Used internally to generate modules for C3S.
-    """
-
     # Don't fill this enum, its values are built dynamically with ::build_xclim_indices
 
     @staticmethod
@@ -112,7 +96,8 @@ def _build_climate_index(indicator: Indicator) -> ClimateIndex:
             elif "sfcWind" == param_name:
                 kw.update({"sfcWind": config.sfcWind})
             # else: do nothing
-            # TODO: add other variables (uas, vas, sfcWind, tdps, huss, ps, delta_tas, pr_baseline...)
+            # TODO: add other variables
+            #       (uas, vas, sfcWind, tdps, huss, ps, delta_tas, pr_baseline...)
             kw.update(**config.frequency.build_frequency_kwargs())
         return indicator.compute(**kw)
 
@@ -141,5 +126,6 @@ def _get_input_variables(indicator: Indicator):
             acc.append(TAS_MIN)
         elif param_name in SFC_WIND:
             acc.append(SFC_WIND)
-    # TODO: add other variables (uas, vas, sfcWind, tdps, huss, ps, delta_tas, pr_baseline...)
+    # TODO: add other variables
+    #      (uas, vas, sfcWind, tdps, huss, ps, delta_tas, pr_baseline...)
     return acc

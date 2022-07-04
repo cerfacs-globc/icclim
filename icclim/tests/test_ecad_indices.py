@@ -20,7 +20,7 @@ from icclim.ecad.ecad_functions import (
 from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
-from icclim.models.index_config import CfVariable, IndexConfig
+from icclim.models.index_config import ClimateVariable, IndexConfig
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.tests.testing_utils import K2C, stub_pr, stub_tas
@@ -50,7 +50,7 @@ def test_tn10p(use_dask):
     tas = stub_tas(use_dask=use_dask)
     conf = IndexConfig(
         frequency=Frequency.MONTH,
-        cf_variables=[CfVariable("tas", tas, tas)],
+        cf_variables=[ClimateVariable("tas", tas, tas)],
         netcdf_version=NetcdfVersion.NETCDF4,
         window_width=2,
         interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
@@ -68,7 +68,7 @@ class Test_SU:
         tas[:5] = 0
         conf = IndexConfig(
             frequency=Frequency.MONTH,
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.SU.climate_index,
         )
@@ -81,7 +81,7 @@ class Test_SU:
         tas = stub_tas(use_dask=use_dask)
         tas[:5] = 50 + K2C
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
@@ -98,7 +98,7 @@ class Test_TR:
         tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         tas[:5] = 0
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TR.climate_index,
@@ -112,7 +112,7 @@ class Test_TR:
         tas = stub_tas(use_dask=use_dask)
         tas[:5] = 50 + K2C
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
@@ -130,7 +130,7 @@ class Test_prcptot:
         pr[:10] = 0
         conf = IndexConfig(
             frequency=Frequency.MONTH,
-            cf_variables=[CfVariable("pr", pr)],
+            cf_variables=[ClimateVariable("pr", pr)],
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.PRCPTOT.climate_index,
         )
@@ -145,7 +145,7 @@ class Test_csu:
         tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         tas[10:15] = 0
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.CSU.climate_index,
@@ -160,7 +160,7 @@ class Test_csu:
         tas[:5] = 50 + K2C
         tas[10:20] = 50 + K2C
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             threshold=40,
             netcdf_version=NetcdfVersion.NETCDF4,
@@ -177,7 +177,7 @@ class Test_gd4:
         tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         tas[5:15] = 0
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.GD4.climate_index,
@@ -192,7 +192,7 @@ class Test_gd4:
         tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         tas[5:15] = 0
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
@@ -210,7 +210,7 @@ class Test_cfd:
         tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         tas[5:15] = 0
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.CFD.climate_index,
@@ -225,7 +225,7 @@ class Test_cfd:
         tas[5:10] = 0
         tas[10:15] = 4
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
@@ -243,7 +243,7 @@ class Test_fd:
         tas[5:15] = 0
         tas[20:25] = 0
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.FD.climate_index,
@@ -258,7 +258,7 @@ class Test_fd:
         tas[5:10] = 0
         tas[10:15] = 4
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
@@ -275,7 +275,7 @@ class Test_hd17:
         tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         tas[5:10] = 0
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.HD17.climate_index,
@@ -289,7 +289,7 @@ class Test_hd17:
         tas = stub_tas(tas_value=27 + K2C, use_dask=use_dask)
         tas[5:10] = 0
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas)],
+            cf_variables=[ClimateVariable("tas", tas)],
             frequency=Frequency.MONTH,
             threshold=5,
             netcdf_version=NetcdfVersion.NETCDF4,
@@ -308,7 +308,7 @@ class TestTx90p:
         base_tas = tas.sel(time=slice("2042-01-01", "2042-12-31"))
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas, base_tas)],
+            cf_variables=[ClimateVariable("tas", tas, base_tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TX90P.climate_index,
@@ -324,7 +324,7 @@ class TestTx90p:
         )
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas, base_tas)],
+            cf_variables=[ClimateVariable("tas", tas, base_tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TX90P.climate_index,
@@ -340,7 +340,7 @@ class TestTx90p:
         )
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas, base_tas)],
+            cf_variables=[ClimateVariable("tas", tas, base_tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TX90P.climate_index,
@@ -358,7 +358,7 @@ class TestWsdi:
         )
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas, base_tas)],
+            cf_variables=[ClimateVariable("tas", tas, base_tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TX90P.climate_index,
@@ -376,7 +376,7 @@ class TestCsdi:
         )
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas, base_tas)],
+            cf_variables=[ClimateVariable("tas", tas, base_tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TX90P.climate_index,
@@ -394,7 +394,7 @@ class TestCsdi:
         )
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
-            cf_variables=[CfVariable("tas", tas, base_tas)],
+            cf_variables=[ClimateVariable("tas", tas, base_tas)],
             frequency=Frequency.MONTH,
             netcdf_version=NetcdfVersion.NETCDF4,
             index=EcadIndex.TX90P.climate_index,

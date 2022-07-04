@@ -4,6 +4,11 @@ from typing import Callable, Dict, List, TypedDict, Union
 
 import xarray as xr
 import xclim
+from generic_indices.cf_var_metadata import CfVarMetadata
+from generic_indices.generic_indices import CfInputEnum
+
+# zarr or netcdf, or list of netcdf or xarray struct
+from models.threshold import Threshold
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.utils import PercentileDataArray
@@ -11,15 +16,16 @@ from xclim.core.utils import PercentileDataArray
 from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendar
-from icclim.models.cf_variable import CfVariable
 from icclim.models.climate_index import ClimateIndex
+from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import VALID_PERCENTILE_DIMENSION
 from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
 from icclim.utils import get_date_to_iso_format
 
-# zarr or netcdf, or list of netcdf or xarray struct
 InFileBaseType = Union[str, List[str], Dataset, DataArray]
+
+DEFAULT_INPUT_FREQUENCY = "days"
 
 
 class InFileDictionary(TypedDict, total=False):
@@ -106,7 +112,8 @@ def build_cf_variables(
     base_period_time_range: list[str] | None,
     only_leap_years: bool,
     freq: Frequency,
-) -> list[CfVariable]:
+    threshold,
+) -> list[ClimateVariable]:
     return [
         _build_cf_variable(
             ds=ds,
@@ -116,6 +123,7 @@ def build_cf_variables(
             base_period_time_range=base_period_time_range,
             only_leap_years=only_leap_years,
             time_clipping=freq.time_clipping,
+            threshold=threshold,
         )
         for var_name in var_names
     ]
@@ -273,34 +281,54 @@ def _build_cf_variable(
     base_period_time_range: list[str] | None,
     only_leap_years: bool,
     time_clipping: Callable,
-) -> CfVariable:
+    threshold,
+) -> ClimateVariable:
     if len(ds.data_vars) == 1:
         da = ds[_get_name_of_first_var(ds)]
     else:
         da = ds[name]
     study_da = _build_study_da(da, time_range, ignore_Feb29th)
-    if _has_percentile_variable(ds, name):
+    if threshold is not None:
+        if _has_percentile_variable(ds, name) or base_period_time_range is not None:
+            raise InvalidIcclimArgumentError("")
+        threshold = threshold
+    elif _has_percentile_variable(ds, name):
         if base_period_time_range is not None:
             raise InvalidIcclimArgumentError(
                 "Cannot determine the data to use for percentiles when both"
                 " `base_period_time_range` and an in_files `thresholds` are given."
                 " Please fill only one of the two."
             )
-        reference_da = PercentileDataArray.from_da(ds[f"{name}_thresholds"])
+        threshold = PercentileDataArray.from_da(ds[f"{name}_thresholds"])
     elif base_period_time_range is not None:
-        reference_da = _build_reference_da(da, base_period_time_range, only_leap_years)
+        threshold = _build_reference_da(da, base_period_time_range, only_leap_years)
     else:
-        reference_da = study_da
+        threshold = study_da
     if time_clipping is not None:
         study_da = time_clipping(study_da)
-        reference_da = time_clipping(reference_da)
+        threshold = time_clipping(threshold)
     # TODO: all these pre-processing operations should probably be added in history
     #       metadata or
     #       provenance it could be a property in CfVariable which will be reused when we
     #       update the metadata of the index, at the end.
     #       We could have a singleton "taking notes" of each operation that must be
     #       logged into the output netcdf/provenance/metadata
-    return CfVariable(name, study_da, reference_da)
+    cf_meta = guess_input_type(study_da)
+    return ClimateVariable(
+        name=name,
+        cf_meta=cf_meta,
+        study_da=study_da,
+        threshold=Threshold(threshold, study_da.attrs.get("units", cf_meta.units)),
+    )
+
+
+def guess_input_type(data: DataArray) -> CfVarMetadata:
+    cf_input = CfInputEnum.lookup(data).value
+    cf_input.frequency = Frequency.lookup(
+        xr.infer_freq(data.time) or DEFAULT_INPUT_FREQUENCY
+    )
+    cf_input.units = data.attrs.get("units", cf_input.default_units)
+    return cf_input
 
 
 def _build_study_da(

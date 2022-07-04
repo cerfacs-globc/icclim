@@ -7,6 +7,7 @@ from warnings import warn
 import dask.array
 import numpy as np
 import xarray
+from models.logical_operation import LogicalOperation
 from xarray.core.dataarray import DataArray
 from xarray.core.rolling import DataArrayRolling
 from xclim.core.bootstrapping import percentile_bootstrap
@@ -22,11 +23,7 @@ from icclim.models.constants import (
     TEMPERATURE,
     WET_DAY_THRESHOLD,
 )
-from icclim.models.user_index_config import (
-    ExtremeMode,
-    LinkLogicalOperation,
-    LogicalOperation,
-)
+from icclim.models.user_index_config import ExtremeMode, LinkLogicalOperation
 from icclim.user_indices.stat import (
     get_first_occurrence_index,
     get_longest_run_start_index,
@@ -340,7 +337,7 @@ def _filter_by_threshold(
     if len(result) == 0:
         raise InvalidIcclimArgumentError(
             f"The dataset has been emptied by filtering with "
-            f"{logical_operation.operator}{threshold}."
+            f"{logical_operation._operator}{threshold}."
         )
     return result
 

@@ -59,7 +59,21 @@ class ClimateIndex:
 
 
 class ClimateIndexEnum(Enum):
-    """Abstract class of indicator catalogs."""
+    """Abstract class of indicator catalogs.
+
+    short_name: str
+        The index name used in the output.
+    compute: Callable
+        The function to compute the index. It wraps Xclim functions.
+    group: IndexGroup
+        The index group category.
+    variables: List[List[str]]
+        The Cf variables needed to compute the index.
+        The variable are individually described by a list of aliases.
+    qualifiers: List[str]
+        ``optional`` List of configuration to compute the index.
+        Used internally to generate modules for C3S.
+    """
 
     def __init__(self, climate_index: ClimateIndex):
         self.climate_index = climate_index
@@ -76,9 +90,9 @@ class ClimateIndexEnum(Enum):
     def definition(self):
         return self.climate_index.definition
 
-    @property
-    def compute(self):
-        return self.climate_index.compute
+    # @property
+    # def compute(self):
+    #     return self.climate_index.compute
 
     @property
     def input_variables(self):

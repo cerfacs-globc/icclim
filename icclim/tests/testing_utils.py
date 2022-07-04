@@ -6,7 +6,7 @@ import xarray
 import xarray as xr
 
 from icclim.models.frequency import Frequency
-from icclim.models.index_config import CfVariable
+from icclim.models.index_config import ClimateVariable
 from icclim.models.user_index_config import UserIndexConfig
 
 VALUE_COUNT = 365 * 5 + 1  # 5 years of data (with 1 leap year)
@@ -20,7 +20,7 @@ K2C = 273.15
 CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")
 
 
-def stub_user_index(cf_vars: list[CfVariable]):
+def stub_user_index(cf_vars: list[ClimateVariable]):
     return UserIndexConfig(
         index_name="Yolo", calc_operation="noop", freq=Frequency.MONTH, cf_vars=cf_vars
     )

@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from generic_indices.generic_indices import CfInputVar
+from generic_indices.cf_var_metadata import CfVarMetadata
+from models.threshold import Threshold
 from xarray import DataArray
-from xclim.core.utils import PercentileDataArray
 
 
 @dataclass()
-class CfVariable:
+class ClimateVariable:
     """CfVariable groups together two xarray DataArray for the same variable.
     One represent the whole studied period. The other is only the in-base period used by
     percentile based indices to compute percentiles.
@@ -25,9 +25,6 @@ class CfVariable:
     """
 
     name: str
-    cf_meta: CfInputVar
+    cf_meta: CfVarMetadata
     study_da: DataArray
-    reference_da: DataArray | PercentileDataArray | None = None
-
-    # def __hash__(self):
-    #     return self.name.__hash__()
+    threshold: Threshold | None = None

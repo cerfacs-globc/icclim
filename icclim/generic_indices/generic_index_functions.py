@@ -11,20 +11,19 @@ import numpy as np
 import xarray as xr
 import xclim.core.utils
 from xarray import DataArray
-from xclim import atmos, land
+from xclim import atmos
 from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
 
 from icclim.models.cf_calendar import CfCalendar
-from icclim.models.cf_variable import CfVariable
+from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
 from icclim.models.frequency import Frequency
-from icclim.models.index_config import IndexConfig
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
 
-def _can_run_bootstrap(cf_var: CfVariable) -> bool:
+def _can_run_bootstrap(cf_var: ClimateVariable) -> bool:
     """Avoid bootstrapping if there is one single year overlapping
     or no year overlapping or all year overlapping.
     """
@@ -94,7 +93,7 @@ def _add_bootstrap_meta(result: DataArray, per: DataArray) -> DataArray:
 
 
 def _compute_percentile_doy(
-    cf_var: CfVariable,
+    cf_var: ClimateVariable,
     percentile: float,
     window: int = 5,
     interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
@@ -118,7 +117,7 @@ def _compute_percentile_doy(
 
 
 def _compute_precip_percentile_over_period(
-    cf_var: CfVariable, interpolation: QuantileInterpolation, percentiles: float
+    cf_var: ClimateVariable, interpolation: QuantileInterpolation, percentiles: float
 ) -> DataArray:
     if PercentileDataArray.is_compatible(cf_var.reference_da):
         return cf_var.reference_da
@@ -158,7 +157,7 @@ def _compute_threshold_index(
 
 
 def _compute_spell_duration(
-    cf_var: CfVariable,
+    cf_var: ClimateVariable,
     freq: Frequency,
     per_window: int,
     per_thresh: float,
@@ -196,8 +195,8 @@ def _compute_spell_duration(
 
 
 def compute_compound_index(
-    tas: CfVariable,
-    pr: CfVariable,
+    tas: ClimateVariable,
+    pr: ClimateVariable,
     freq: Frequency,
     tas_per_thresh: int,
     pr_per_thresh: int,
@@ -211,9 +210,9 @@ def compute_compound_index(
 
     Parameters
     ----------
-    tas : CfVariable
+    tas : ClimateVariable
         CfVariable of tas variable.
-    pr : CfVariable
+    pr : ClimateVariable
         DataArray of pr variable.
     freq : Frequency
         Sampling frequency of the output.
@@ -261,7 +260,7 @@ def compute_compound_index(
 
 
 def _compute_rxxptot(
-    pr: CfVariable,
+    pr: ClimateVariable,
     freq: Frequency,
     pr_per_thresh: float,
     per_interpolation: QuantileInterpolation,
@@ -283,7 +282,7 @@ def _compute_rxxptot(
 
 
 def _compute_rxxp(
-    pr: CfVariable,
+    pr: ClimateVariable,
     freq: Frequency,
     pr_per_thresh: float,
     per_interpolation: QuantileInterpolation,
@@ -307,7 +306,7 @@ def _compute_rxxp(
 
 
 def _compute_temperature_percentile_index(
-    cf_var: CfVariable,
+    cf_var: ClimateVariable,
     freq: Frequency,
     tas_per_thresh: int,
     per_window: int,

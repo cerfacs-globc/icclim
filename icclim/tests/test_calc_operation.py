@@ -4,12 +4,12 @@ from typing import Callable
 from unittest.mock import MagicMock, patch
 
 import pytest
+from models.logical_operation import LogicalOperation
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import PRECIPITATION, TEMPERATURE
 from icclim.models.frequency import Frequency
-from icclim.models.index_config import CfVariable
-from icclim.models.user_index_config import LogicalOperation
+from icclim.models.index_config import ClimateVariable
 from icclim.tests.testing_utils import stub_pr, stub_tas, stub_user_index
 from icclim.user_indices import calc_operation
 from icclim.user_indices.calc_operation import (
@@ -26,7 +26,7 @@ from icclim.user_indices.calc_operation import (
 class Test_compute:
     def test_error_bad_operation(self):
         # GIVEN
-        cf_var = CfVariable("tas", stub_tas(), stub_tas())
+        cf_var = ClimateVariable("tas", stub_tas(), stub_tas())
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "pouet pouet"
         user_index.frequency = Frequency.MONTH
@@ -36,7 +36,7 @@ class Test_compute:
 
     def test_simple(self):
         # GIVEN
-        cf_var = CfVariable("tas", stub_tas(), stub_tas())
+        cf_var = ClimateVariable("tas", stub_tas(), stub_tas())
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "max"
         user_index.frequency = Frequency.MONTH
@@ -47,7 +47,7 @@ class Test_compute:
 
     def test_simple_percentile_pr(self):
         # GIVEN
-        cf_var = CfVariable("tas", stub_pr(5), stub_pr(5))
+        cf_var = ClimateVariable("tas", stub_pr(5), stub_pr(5))
         cf_var.study_da.data[15:30] += 10
         cf_var.study_da.data[366 + 15 : 366 + 30] = 2  # Ignore because not in base
         cf_var.reference_da = cf_var.study_da.sel(
@@ -56,7 +56,7 @@ class Test_compute:
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = CalcOperation.MIN
         user_index.thresh = "90p"
-        user_index.logical_operation = LogicalOperation.GREATER_OR_EQUAL_THAN
+        user_index.logical_operation = LogicalOperation.GREATER_OR_EQUAL
         user_index.var_type = PRECIPITATION
         user_index.frequency = Frequency.YEAR
         # WHEN
@@ -65,7 +65,7 @@ class Test_compute:
         assert result.data[0] == 5
 
     def test_simple_percentile_temp(self):
-        cf_var = CfVariable("tas", stub_tas(5), stub_tas(5))
+        cf_var = ClimateVariable("tas", stub_tas(5), stub_tas(5))
         cf_var.study_da.data[15:30] = 1
         cf_var.reference_da = cf_var.study_da.sel(
             time=cf_var.study_da.time.dt.year.isin([2042, 2043])
@@ -73,7 +73,7 @@ class Test_compute:
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "min"
         user_index.thresh = "10p"
-        user_index.logical_operation = LogicalOperation.LOWER_OR_EQUAL_THAN
+        user_index.logical_operation = LogicalOperation.LOWER_OR_EQUAL
         user_index.var_type = TEMPERATURE
         user_index.frequency = Frequency.MONTH
         # WHEN

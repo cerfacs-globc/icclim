@@ -3,12 +3,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import xarray as xr
+from models.logical_operation import LogicalOperation
 
-from icclim.models.user_index_config import (
-    ExtremeMode,
-    LinkLogicalOperation,
-    LogicalOperation,
-)
+from icclim.models.user_index_config import ExtremeMode, LinkLogicalOperation
 from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.operators import (
     _apply_coef,
@@ -99,7 +96,7 @@ class Test_count_events:
         result = count_events(
             das=[da],
             in_base_das=[None],
-            logical_operation=[LogicalOperation.GREATER_THAN],
+            logical_operation=[LogicalOperation.GREATER],
             thresholds=[15],
             freq="MS",
         )
@@ -116,7 +113,7 @@ class Test_count_events:
         result = count_events(
             das=[da],
             in_base_das=[da],
-            logical_operation=[LogicalOperation.GREATER_THAN],
+            logical_operation=[LogicalOperation.GREATER],
             thresholds=["80p"],
             freq="MS",
         )
@@ -133,7 +130,7 @@ class Test_count_events:
         result = count_events(
             das=[tmax, tmin],
             in_base_das=[None],
-            logical_operation=[LogicalOperation.GREATER_THAN, LogicalOperation.EQUAL],
+            logical_operation=[LogicalOperation.GREATER, LogicalOperation.EQUAL],
             thresholds=[12, -20],
             link_logical_operations=LinkLogicalOperation.OR_STAMP,
             freq="MS",
@@ -152,7 +149,7 @@ class Test_count_events:
         result = count_events(
             das=[tmax, tmin],
             in_base_das=[None],
-            logical_operation=[LogicalOperation.GREATER_THAN, LogicalOperation.EQUAL],
+            logical_operation=[LogicalOperation.GREATER, LogicalOperation.EQUAL],
             thresholds=[12, -20],
             link_logical_operations=LinkLogicalOperation.AND_STAMP,
             freq="MS",
