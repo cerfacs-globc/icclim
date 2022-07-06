@@ -19,10 +19,8 @@ from xclim.core.units import convert_units_to, to_agg_units
 
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.climate_variable import ClimateVariable
-from icclim.models.constants import MODIFIABLE_THRESHOLD
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
-from icclim.models.index_group import IndexGroup
 from icclim.models.user_index_config import LogicalOperation
 
 # jinja_env = Environment(autoescape=True)
@@ -40,6 +38,7 @@ class Indicator:
     cell_methods: str
 
     src_freq: Frequency
+    short_name: str
 
     templated_properties = [
         "identifier",
@@ -48,12 +47,16 @@ class Indicator:
         "long_name",
         "description",
         "cell_methods",
-    ]  # todo make it a decorator
+    ]  # todo make it a decorator ?
 
     def compute(self, *args, **kwargs):
         raise NotImplementedError("")
 
     def __call__(self, *args, **kwargs):
+        # TODO make it abstract as well ?
+        #      it would give more flexibility on how and when preprocess
+        #      and postprocess are called
+        #      It may also fix the issue of useless `**kwargs` parameter.
         self.preprocess(*args, **kwargs)
         result = self.compute(*args, **kwargs)
         return self.postprocess(result, *args, **kwargs)
@@ -119,7 +122,6 @@ class ResamplingIndicator(Indicator):
         self.cfcheck(das)
         self.format(
             jinja_scope=jinja_scope,
-            *args,
             **kwargs,
         )
         if indexer:
@@ -145,7 +147,7 @@ class ResamplingIndicator(Indicator):
         result.attrs["history"] = ""
         return result
 
-    def format(self, /, jinja_scope, *args, **kwargs):
+    def format(self, /, jinja_scope, **kwargs):  # noqa ignore extra kwargs
         for property in self.templated_properties:
             template = jinja_env.from_string(
                 getattr(self, property), globals=jinja_scope
@@ -175,28 +177,58 @@ class ResamplingIndicator(Indicator):
 
 
 class CountEventComparedToThreshold(ResamplingIndicator):
-    # TODO: Add loop to add each input variable in the metadata
-    # TODO: Add aliases to recognize common indices
-    #       for example heat_wave when it's tmax > 20 and tmin > 15 (or whatever)
+    # TODO: Add aliases to recognize common indices (heatwave, SU, tropical_night, etc).
+    #       or just define catalogs (ecad, xclim, ettcdi) ?
     identifier = (
-        "{{input.short_name}}_{{input.frequency.units}}"
-        "_{{operator.standard_name}}_than_{{threshold.standard_name}}"
+        "{{src_freq_units}}_when"
+        "{% for i, input in enumerate(inputs) %}"
+        "_{{input.short_name}}"
+        "_{{operator.standard_name}}"
+        "_than_{{input.threshold.standard_name}}"
+        "{% if i != len(inputs) - 1 %}"
+        "_and"  # todo make it configurable logical operator ? and | or | xor ?
+        "{% endif%}"
+        "{% endfor %}"
     )
-    units = "{{input.frequency.units}}"
+    #       for example heat_wave when it's tmax > 20 and tmin > 15 (or whatever)
+    units = "{{src_freq_units}}"
     standard_name = (
-        "number_of_{{input.frequency.units}}_when_{{input.standard_name}}"
-        "_{{operator.standard_name}}_{{threshold.standard_name}}"
+        "number_of_{{src_freq_units}}_when"
+        "{% for i, input in enumerate(inputs) %}"
+        "_{{input.standard_name}}"
+        "_{{operator.standard_name}}"
+        "_{{input.threshold.standard_name}}"
+        "{% if i != len(inputs) - 1 %}"
+        "_and"  # todo make it configurable logical operator ? and | or | xor ?
+        "{% endif%}"
+        "{% endfor %}"
     )
     long_name = (
-        "Number of {{input.frequency.units}} when {{input.short_name}}"
-        " {{operator.operand}} {{threshold.value}}"
+        "Number of {{src_freq_units}} when"
+        "{% for i, input in enumerate(inputs) %}"
+        " {{input.short_name}}"
+        " {{operator.operand}}"
+        " {{input.threshold.value}}"
+        "{% if i != len(inputs) - 1 %}"
+        " and"  # todo make it configurable logical operator ? and | or | xor ?
+        "{% endif%}"
+        "{% endfor %}"
+        "."
     )
     description = (
-        "{{output_freq}} number of {{input.frequency.units}} when"
-        " {{input.long_name}} is {{operator.long_name}} than"
-        " {{threshold.value}}."
+        "Number of {{src_freq_units}} when"
+        " {{output_freq}}"
+        "{% for i, input in enumerate(inputs) %}"
+        " {{input.long_name}} is"
+        " {{operator.long_name}} than"
+        " {{input.threshold.value}}"
+        "{% if i != len(inputs) - 1 %}"
+        " and"  # todo make it configurable logical operator ? and | or | xor ?
+        "{% endif%}"
+        "{% endfor %}"
+        "."
     )
-    cell_methods = "time: sum over {{input.frequency.units}}"
+    cell_methods = "time: sum over {{src_freq_units}}"
 
     operator: LogicalOperation
 
@@ -205,33 +237,45 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         self.short_name = short_name
         self.compute = self._compare_climate_vars_to_thresholds
         self.operator = operator
-        self.input_variables = None  # generic, no input expected
-        self.qualifiers = [MODIFIABLE_THRESHOLD]
-        self.group = IndexGroup.GENERIC
-        self.output_var_name = None
+        # self.input_variables = None  # generic, no input expected
+        # self.qualifiers = [MODIFIABLE_THRESHOLD]
+        # self.group = IndexGroup.GENERIC
+        # self.output_var_name = None
 
     def preprocess(self, /, config: IndexConfig, *args, **kwargs):
-        input = config.cf_variables[0]  # todo make sur len == 1 ?
-        self.src_freq = input.cf_meta.frequency
+        # todo:
+        #       probably unsafe to do `config.cf_variables[0]`
+        #       in case config.cf_variables[1] has a != frequency
+        self.src_freq = config.cf_variables[0].cf_meta.frequency
+        inputs = list(
+            map(
+                lambda cf_var: {"threshold": cf_var.threshold.to_dict()}
+                | cf_var.cf_meta.to_dict(),
+                config.cf_variables,
+            )
+        )
         jinja_scope = {
-            "input": input.cf_meta.to_dict(),
-            "threshold": config.cf_variables[0].threshold.to_dict(),
+            "inputs": inputs,
             "operator": self.operator,
             "output_freq": config.frequency.description,
             "np": numpy,
+            "enumerate": enumerate,
+            "len": len,
+            "src_freq_units": self.src_freq.units,
         }
         super().preprocess(jinja_scope=jinja_scope, *args, **kwargs)
 
     def __call__(self, /, config: IndexConfig, *args, **kwargs) -> DataArray:
         # icclim  wrapper
-        input = config.cf_variables[0]  # todo make sur len == 1 ?
+        das = list(map(lambda i: i.study_da, config.cf_variables))
+        thresholds = list(map(lambda i: i.threshold.value, config.cf_variables))
         result = super().__call__(
             config=config,
-            das=[input.study_da],
+            das=das,
             freq=config.frequency.pandas_freq,
             indexer=config.frequency.indexer,
             operator=self.operator,
-            threshold=[input.threshold.value],
+            thresholds=thresholds,
         )
         return result
 
@@ -240,13 +284,12 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         /,
         das: list[DataArray],
         operator: Operator,
-        threshold: DataArray,
+        thresholds: DataArray,
         freq: str = "YS",
-        *args,
-        **kwargs,
+        **kwargs,  # noqa ignore extra kwargs used by preprocess or postprocess
     ) -> DataArray:
         intermediary = [
-            self._compare_climate_var_to_thresh(da, operator, threshold[i], freq)
+            self._compare_climate_var_to_thresh(da, operator, thresholds[i], freq)
             for i, da in enumerate(das)
         ]
         return reduce(np.logical_and, intermediary)  # noqa
@@ -255,13 +298,13 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         self,
         data: DataArray,
         operator: Operator,
-        threshold: DataArray,
+        thresholds: DataArray,
         freq: str = "YS",
     ) -> DataArray:
         # xclim index function
         # signature is not exact as parameters can be injected
-        threshold = convert_units_to(threshold, data)
-        res = operator(data, threshold).resample(time=freq).sum(dim="time")
+        thresholds = convert_units_to(thresholds, data)
+        res = operator(data, thresholds).resample(time=freq).sum(dim="time")
         return to_agg_units(res, data, "count")
 
 
@@ -369,7 +412,11 @@ GenericIndexCatalog = IndexCatalog(
 )
 
 
-class CfInputEnum(Enum):  # todo turn it into a module, a list and singletons
+class CfInputEnum(Enum):
+    # todo
+    #      - Turn it into a module (a list + singletons)
+    #      - Use xclim variable.yml to complete it
+    #      - Upstream it to cf-xarray
     def __init__(self, cf_input: CfVarMetadata):
         self._cf_input = cf_input
 
@@ -392,7 +439,7 @@ class CfInputEnum(Enum):  # todo turn it into a module, a list and singletons
         default_units="mm",
     )
     TAS = CfVarMetadata(
-        short_name="tas",
+        short_name="tg",
         standard_name="air_temperature",
         long_name="average temperature",
         aliases=[
@@ -415,7 +462,7 @@ class CfInputEnum(Enum):  # todo turn it into a module, a list and singletons
         default_units="degC",
     )
     TAS_MIN = CfVarMetadata(
-        short_name="tasmin",
+        short_name="tn",
         standard_name="air_temperature",
         long_name="minimum temperature",
         aliases=[
@@ -433,7 +480,7 @@ class CfInputEnum(Enum):  # todo turn it into a module, a list and singletons
         default_units="degC",
     )
     TAS_MAX = CfVarMetadata(
-        short_name="tasmax",
+        short_name="tx",
         standard_name="air_temperature",
         long_name="maximum temperature",
         aliases=[

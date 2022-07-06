@@ -16,7 +16,7 @@ from warnings import warn
 
 import xarray as xr
 import xclim
-from generic_indices.generic_indices import GenericIndexCatalog
+from generic_indices.generic_indices import GenericIndexCatalog, Indicator
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
@@ -34,7 +34,7 @@ from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import (
     InFileType,
-    build_cf_variables,
+    build_climate_variables,
     guess_var_names,
     read_dataset,
     update_to_standard_coords,
@@ -264,6 +264,14 @@ def index(
     if index_name is not None:
         if (ecad_index := EcadIndex.lookup(index_name)) is not None:
             index = ecad_index.climate_index
+            if threshold is not None:
+                # todo instead: warning ?
+                #      and/or reroute to the corresponding generic index ?
+                raise InvalidIcclimArgumentError(
+                    "ECAD indices threshold cannot be "
+                    "configured. Use a generic index "
+                    "instead."
+                )
         elif (generic_index := GenericIndexCatalog.lookup(index_name)) is not None:
             index = generic_index
         else:
@@ -274,7 +282,7 @@ def index(
     input_dataset, reset_coords_dict = update_to_standard_coords(input_dataset)
     sampling_frequency = Frequency.lookup(slice_mode)
     input_dataset = input_dataset.chunk("auto")
-    cf_vars = build_cf_variables(
+    cf_vars = build_climate_variables(
         var_names=guess_var_names(input_dataset, in_files, index, var_name),
         ds=input_dataset,
         time_range=time_range,
@@ -294,7 +302,6 @@ def index(
         interpolation=interpolation,
         callback=callback,
         index=index,
-        threshold=threshold,
     )
     if user_index is not None:
         result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
@@ -410,7 +417,7 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
 
 
 def _compute_standard_climate_index(
-    climate_index: ClimateIndex,
+    climate_index: Indicator,
     config: IndexConfig,
     initial_history: str | None,
     initial_source: str,
@@ -475,15 +482,14 @@ def _compute_standard_climate_index(
         result_ds = xr.merge([result_ds, percentiles_da])
     history = _build_history(result_da, config, initial_history, climate_index)
     result_ds = _add_ecad_index_metadata(
-        result_ds, config, climate_index, history, initial_source
+        result_ds, climate_index, history, initial_source
     )
     return result_ds
 
 
 def _add_ecad_index_metadata(
     result_ds: Dataset,
-    config: IndexConfig,
-    computed_index: ClimateIndex,
+    computed_index: Indicator,
     history: str,
     initial_source: str,
 ) -> Dataset:
@@ -511,7 +517,7 @@ def _build_history(
     result_da: DataArray,
     config: IndexConfig,
     initial_history: str | None,
-    indice_computed: ClimateIndex,
+    indice_computed: Indicator,
 ) -> str:
     if initial_history is None:
         # get xclim history

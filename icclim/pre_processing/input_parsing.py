@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List, TypedDict, Union
 
+import numpy as np
 import xarray as xr
 import xclim
 from generic_indices.cf_var_metadata import CfVarMetadata
 from generic_indices.generic_indices import CfInputEnum
-
-# zarr or netcdf, or list of netcdf or xarray struct
 from models.threshold import Threshold
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
@@ -46,7 +45,7 @@ class InFileDictionary(TypedDict, total=False):
     """
 
     study: InFileBaseType
-    thresholds: InFileBaseType | None
+    thresholds: InFileBaseType | float | None
     climatology_bounds: tuple[str, str] | list[str] | None  # may be guessed if missing
     per_var_name: str | None  # may be guessed if missing
 
@@ -104,7 +103,7 @@ def read_dataset(
         raise NotImplementedError("`in_files` format was not recognized.")
 
 
-def build_cf_variables(
+def build_climate_variables(
     var_names: list[str],
     ds: Dataset,
     time_range: list[str] | None,
@@ -112,10 +111,10 @@ def build_cf_variables(
     base_period_time_range: list[str] | None,
     only_leap_years: bool,
     freq: Frequency,
-    threshold,
+    threshold: float | list[float] | DataArray | None,
 ) -> list[ClimateVariable]:
     return [
-        _build_cf_variable(
+        _build_climate_variable(
             ds=ds,
             name=var_name,
             time_range=time_range,
@@ -155,21 +154,27 @@ def is_netcdf(data: InFileBaseType):
     return isinstance(data, str) and ".nc" in data
 
 
-def _read_dictionary(in_data, index):
+def _read_dictionary(in_data: InFileDictionary, index: EcadIndex):
     ds_acc = []
-    for climate_var_name, climate_var_data in in_data.items():
-        if isinstance(climate_var_data, dict):
-            study_ds = read_dataset(climate_var_data["study"], index, climate_var_name)
-            if climate_var_data.get("thresholds", None) is not None:
-                ds_acc.append(_read_thresholds(climate_var_data, climate_var_name))
+    for climate_var_name, input_dict in in_data.items():
+        if isinstance(input_dict, dict):
+            study_ds = read_dataset(input_dict["study"], index, climate_var_name)
+            if input_dict.get("thresholds", None) is not None:
+                ds_acc.append(_read_thresholds(input_dict, climate_var_name))
         else:
-            study_ds = read_dataset(climate_var_data, index, climate_var_name)
+            study_ds = read_dataset(input_dict, index, climate_var_name)
         ds_acc.append(study_ds)
     return xr.merge(ds_acc)
 
 
 def _read_thresholds(climate_var_data: InFileDictionary, climate_var_name: str):
-    per_ds = read_dataset(climate_var_data["thresholds"], index=None)
+    thresh = climate_var_data["thresholds"]
+    if np.isscalar(thresh):
+        return DataArray(
+            name=f"{climate_var_name}_thresholds",
+            data=thresh,
+        )
+    per_ds = read_dataset(thresh, index=None)
     per_var_name = _get_percentile_var_name(per_ds, climate_var_data, climate_var_name)
     per_da = per_ds[per_var_name].rename(f"{climate_var_name}_thresholds")
     per_da = _standardize_percentile_dim_name(per_da)
@@ -268,12 +273,14 @@ def _guess_dataset_var_names(index: ClimateIndex, ds: Dataset) -> list[str]:
     return climate_var_names
 
 
-def _has_percentile_variable(ds: Dataset, name: str) -> bool:
+def _has_thresholds_variable(ds: Dataset, name: str) -> bool:
     # fixme: Not the best to use a string (the name) to identify percentiles data
+    # TODO +1 IT'S A FUCKING BAD IDEA
+    #      We should definitly build ClimateVariable with a Threshold early
     return f"{name}_thresholds" in ds.data_vars
 
 
-def _build_cf_variable(
+def _build_climate_variable(
     ds: Dataset,
     name: str,
     time_range: list[str] | None,
@@ -281,7 +288,7 @@ def _build_cf_variable(
     base_period_time_range: list[str] | None,
     only_leap_years: bool,
     time_clipping: Callable,
-    threshold,
+    threshold: float | list[float] | DataArray | None,
 ) -> ClimateVariable:
     if len(ds.data_vars) == 1:
         da = ds[_get_name_of_first_var(ds)]
@@ -289,21 +296,24 @@ def _build_cf_variable(
         da = ds[name]
     study_da = _build_study_da(da, time_range, ignore_Feb29th)
     if threshold is not None:
-        if _has_percentile_variable(ds, name) or base_period_time_range is not None:
+        if _has_thresholds_variable(ds, name) or base_period_time_range is not None:
             raise InvalidIcclimArgumentError("")
         threshold = threshold
-    elif _has_percentile_variable(ds, name):
+    elif _has_thresholds_variable(ds, name):
         if base_period_time_range is not None:
             raise InvalidIcclimArgumentError(
                 "Cannot determine the data to use for percentiles when both"
                 " `base_period_time_range` and an in_files `thresholds` are given."
                 " Please fill only one of the two."
             )
-        threshold = PercentileDataArray.from_da(ds[f"{name}_thresholds"])
+        if PercentileDataArray.is_compatible(ds[f"{name}_thresholds"]):
+            threshold = PercentileDataArray.from_da(ds[f"{name}_thresholds"])
+        else:
+            threshold = ds[f"{name}_thresholds"]
     elif base_period_time_range is not None:
         threshold = _build_reference_da(da, base_period_time_range, only_leap_years)
     else:
-        threshold = study_da
+        threshold = study_da  # todo what's the point ?
     if time_clipping is not None:
         study_da = time_clipping(study_da)
         threshold = time_clipping(threshold)
