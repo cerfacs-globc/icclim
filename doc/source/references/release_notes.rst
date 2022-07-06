@@ -27,6 +27,7 @@ Note: We no longer strictly follow the yaml given by clix-meta.
 * [enh] Make ``in_file`` accept a dictionary merging together ``var_name`` and ``in_file`` features.
 * [enh] ``in_file`` dictionary can now be used to pass percentiles thresholds. These thresholds will be used instead of computing them on relevant indices.
 * [maint/internal] Refactored IndexConfig and moved all the logic to input_parsing.
+* [fix] Add auto detection of variables [prAdjust, tasAdjust, tasmaxAdjust, tasminAdjust]
 
 5.2.2
 -----
