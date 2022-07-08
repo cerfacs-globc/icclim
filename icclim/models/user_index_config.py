@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal
 
+from models.climate_variable import ClimateVariable
 from models.logical_operation import LogicalOperation
 from xclim.core.calendar import select_time
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
-from icclim.models.index_config import ClimateVariable
 from icclim.utils import get_date_to_iso_format
 
 LogicalOperationLiteral = Literal[

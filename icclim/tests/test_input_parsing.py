@@ -165,7 +165,7 @@ class Test_ReadDataset:
         ds.to_netcdf(self.OUTPUT_NC_FILE)
         # WHEN
         res_ds = read_dataset(
-            in_data={"ninja": self.OUTPUT_NC_FILE, "precipitoto": self.pr_da}
+            in_files={"ninja": self.OUTPUT_NC_FILE, "precipitoto": self.pr_da}
         )
         # THEN
         # asserts variable names are the ones in the actual DataArray/Datasets
@@ -186,12 +186,12 @@ class Test_ReadDataset:
         )
         # WHEN
         res_ds = read_dataset(
-            in_data={
+            in_files={
                 "tatas": {
                     "study": ds,
                     "thresholds": per,
                     "climatology_bounds": ("1994-12-02", "1999-01-01"),
-                    "per_var_name": "tontontonthetatilotetatoux",
+                    "threshold_var_name": "tontontonthetatilotetatoux",
                 }
             }
         )
@@ -212,7 +212,7 @@ class Test_ReadDataset:
         # THEN
         with pytest.raises(InvalidIcclimArgumentError):
             # WHEN
-            read_dataset(in_data={"tatas": tas})
+            read_dataset(in_files={"tatas": tas})
 
     def test_guess_variables__error_no_index(self):
         # GIVEN

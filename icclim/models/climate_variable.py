@@ -9,10 +9,7 @@ from xarray import DataArray
 
 @dataclass()
 class ClimateVariable:
-    """CfVariable groups together two xarray DataArray for the same variable.
-    One represent the whole studied period. The other is only the in-base period used by
-    percentile based indices to compute percentiles.
-    This is an internal icclim structure.
+    """Internal icclim structure.
 
     Parameters
     ----------
@@ -28,3 +25,7 @@ class ClimateVariable:
     cf_meta: CfVarMetadata
     study_da: DataArray
     threshold: Threshold | None = None
+    # todo add operand (or add it in Threshold)
+
+    def to_dict(self):
+        return {"threshold": self.threshold.to_dict()} | self.cf_meta.to_dict()

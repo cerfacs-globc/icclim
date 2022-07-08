@@ -215,7 +215,7 @@ class _Freq:
     post_processing: Callable[[DataArray], tuple[DataArray, DataArray]]
     units: str
     indexer: Indexer | None
-    time_clipping: Callable = None
+    time_clipping: Callable[[DataArray], DataArray] | None = None
     # time_clipping is a workaround for a "missing" feature of xclim.
     # It allow to compute seasons for indices computing spells by ignoring values
     # outside the season bounds.
@@ -340,37 +340,38 @@ class Frequency(Enum):
     """
 
     @property
-    def pandas_freq(self):
+    def pandas_freq(self) -> str:
         return self._freq.pandas_freq
 
     @property
-    def accepted_values(self):
+    def accepted_values(self) -> list[str]:
         return self._freq.accepted_values
 
     @property
-    def description(self):
+    def description(self) -> str:
         if self._freq.description:
             return self._freq.description
         else:
-            formatted_freq = map(
-                lambda x: FREQ_MAPPING[x], self._freq.pandas_freq.split("-")
+            return reduce(
+                lambda x, y: x + y, # concat
+                map(lambda f: FREQ_MAPPING[f], self._freq.pandas_freq.split("-")),
+                "",
             )
-            return reduce(lambda x, y: x + y, formatted_freq, "")
 
     @property
-    def post_processing(self):
+    def post_processing(self) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
         return self._freq.post_processing
 
     @property
-    def indexer(self):
+    def indexer(self) -> Indexer | None:
         return self._freq.indexer
 
     @property
-    def time_clipping(self):
+    def time_clipping(self) -> Callable[[DataArray], DataArray] | None:
         return self._freq.time_clipping
 
     @property
-    def units(self):
+    def units(self) -> str:
         return self._freq.units
 
     @staticmethod

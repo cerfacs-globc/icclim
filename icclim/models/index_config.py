@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+import dataclasses
+from typing import  Callable
 
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.climate_variable import ClimateVariable
@@ -9,7 +10,7 @@ from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
-
+@dataclasses.dataclass
 class IndexConfig:
     """
     Configuration class for standard indices.
@@ -43,39 +44,17 @@ class IndexConfig:
 
     frequency: Frequency
     cf_variables: list[ClimateVariable]
-    save_percentile: bool = False
-    is_percent: bool = False
-    netcdf_version: NetcdfVersion
     window: int | None
-    transfer_limit_Mbytes: int | None
     out_unit: str | None
     callback: Callable[[int], None] | None
-    xclim_kwargs: dict[str, Any] | None
+    netcdf_version: NetcdfVersion
+    save_percentile: bool
+    interpolation: QuantileInterpolation
+    index: ClimateIndex
 
-    def __init__(
-        self,
-        frequency: Frequency,
-        netcdf_version: str | NetcdfVersion,
-        index: ClimateIndex | None,
-        cf_variables: list[ClimateVariable],
-        save_percentile: bool = False,
-        window_width: int | None = 5,
-        out_unit: str | None = None,
-        interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
-        callback: Callable[[int], None] | None = None,
-        xclim_kwargs: dict[str, Any] | None = None,
-    ):
-        self.frequency = frequency
-        self.cf_variables = cf_variables
-        self.window = window_width
-        self.save_percentile = save_percentile
-        self.is_percent = out_unit == "%"
-        self.out_unit = out_unit
-        self.netcdf_version = NetcdfVersion.lookup(netcdf_version)
-        self.interpolation = interpolation
-        self.callback = callback
-        self.index = index
-        self.xclim_kwargs = xclim_kwargs
+    @property
+    def is_percent(self) -> bool:
+        return self.out_unit == "%"
 
     @property
     def tas(self) -> ClimateVariable:
