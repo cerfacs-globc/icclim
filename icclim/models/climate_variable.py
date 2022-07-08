@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from generic_indices.cf_var_metadata import CfVarMetadata
-from models.threshold import Threshold
 from xarray import DataArray
+
+from generic_indices.cf_var_metadata import CfVarMetadata
+from icclim.models.frequency import Frequency
+from models.threshold import Threshold
 
 
 @dataclass()
@@ -27,5 +29,5 @@ class ClimateVariable:
     threshold: Threshold | None = None
     # todo add operand (or add it in Threshold)
 
-    def to_dict(self):
-        return {"threshold": self.threshold.to_dict()} | self.cf_meta.to_dict()
+    def to_dict(self, src_freq: Frequency):
+        return {"threshold": self.threshold.to_dict(src_freq)} | self.cf_meta.to_dict()

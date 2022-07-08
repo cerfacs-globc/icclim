@@ -101,19 +101,20 @@ class ResamplingIndicator(Indicator):
                 pass
 
     def preprocess(
-            self,
-            /,
-            climate_vars: list[ClimateVariable],
-            jinja_scope: dict,
-            freq: str,
-            indexer: dict,
-            *args,
-            **kwargs,
+        self,
+        /,
+        climate_vars: list[ClimateVariable],
+        jinja_scope: dict,
+        freq: str,
+        indexer: dict,
+        *args,
+        **kwargs,
     ) -> list[ClimateVariable]:
         self.datachecks(climate_vars, freq)
         self.cfcheck(climate_vars)
         self.format(
-            jinja_scope=jinja_scope, **kwargs,
+            jinja_scope=jinja_scope,
+            **kwargs,
         )
         if indexer:
             for climate_var in climate_vars:
@@ -177,7 +178,7 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "{% for i, input in enumerate(inputs) %}"
         "_{{input.short_name}}"
         "_{{operator.standard_name}}"
-        "_than_{{input.threshold.standard_name}}"
+        "_{{input.threshold.standard_name}}"
         "{% if i != len(inputs) - 1 %}"
         "_and"  # todo make it configurable logical operator ? and | or | xor ?
         "{% endif%}"
@@ -201,6 +202,9 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         " {{input.short_name}}"
         " {{operator.operand}}"
         " {{input.threshold.value}}"
+        "{% if input.threshold.additional_metadata %}"
+        " ({{input.threshold.additional_metadata}})"
+        "{% endif%}"
         "{% if i != len(inputs) - 1 %}"
         " and"  # todo make it configurable logical operator ? and | or | xor ?
         "{% endif%}"
@@ -212,8 +216,11 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         " {{output_freq}}"
         "{% for i, input in enumerate(inputs) %}"
         " {{input.long_name}} is"
-        " {{operator.long_name}} than"
+        " {{operator.long_name}}"
         " {{input.threshold.value}}"
+        "{% if input.threshold.additional_metadata %}"
+        " ({{input.threshold.additional_metadata}})"
+        "{% endif%}"
         "{% if i != len(inputs) - 1 %}"
         " and"  # todo make it configurable logical operator ? and | or | xor ?
         "{% endif%}"
@@ -226,31 +233,36 @@ class CountEventComparedToThreshold(ResamplingIndicator):
 
     def __init__(self, short_name: str, operator: LogicalOperation, **kwds):
         super().__init__(**kwds)
-        self.short_name = short_name
         self.operator = operator._operator
+        self.input_variables = None
+        # -- duct type to ClimateIndex (todo make it cleaner (remove ClimateIndex ?))
+        self.short_name = short_name
+        self.input_variables = None
+        self.compute = None
+        self.group = None
 
     def preprocess(
-            self,
-            /,
-            climate_vars: list[ClimateVariable],
-            frequency: Frequency,
-            indexer: dict,
-            *args,
-            **kwargs,
+        self,
+        /,
+        climate_vars: list[ClimateVariable],
+        frequency: Frequency,
+        indexer: dict,
+        *args,
+        **kwargs,
     ) -> list[ClimateVariable]:
         # todo:
         #       probably unsafe to do `config.cf_variables[0]`
         #       in case config.cf_variables[1] (or others) have a != frequency
-        inputs = list(map(lambda cf_var: cf_var.to_dict(), climate_vars, ))
+        inputs = list(map(lambda cf_var: cf_var.to_dict(self.src_freq), climate_vars))
         jinja_scope = {
             # todo localize these
-            "inputs":      inputs,
-            "operator":    self.operator,
+            "inputs": inputs,
+            "operator": self.operator,
             "output_freq": frequency.description,
-            "np":          numpy,
-            "enumerate":   enumerate,
-            "len":         len,
-            "src_freq":    self.src_freq,
+            "np": numpy,
+            "enumerate": enumerate,
+            "len": len,
+            "src_freq": self.src_freq,
         }
         return super().preprocess(
             climate_vars=climate_vars,
@@ -276,16 +288,18 @@ class CountEventComparedToThreshold(ResamplingIndicator):
             freq=config.frequency.pandas_freq,
             operator=self.operator,
         )
-        return self.postprocess(result,
-                                das=list(map(lambda cv: cv.study_da, climate_vars)),
-                                freq=config.frequency.pandas_freq, )
+        return self.postprocess(
+            result,
+            das=list(map(lambda cv: cv.study_da, climate_vars)),
+            freq=config.frequency.pandas_freq,
+        )
 
     def _compare_climate_vars_to_thresholds(
-            self,
-            /,
-            climate_vars: list[ClimateVariable],
-            operator: Operator,
-            freq: str = "YS",
+        self,
+        /,
+        climate_vars: list[ClimateVariable],
+        operator: Operator,
+        freq: str = "YS",
     ) -> DataArray:
         intermediary = [
             self._compare_climate_var_to_thresh(
@@ -307,52 +321,6 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         thresholds = convert_units_to(thresholds, data)
         res = operator(data, thresholds).resample(time=freq).sum(dim="time")
         return to_agg_units(res, data, "count")
-
-
-# class CountEventComparedDoyPercentile(CountEventComparedToThreshold):
-#
-#     def __init__(self, short_name: str, operator: LogicalOperation, **kwargs):
-#         super().__init__(short_name, operator, **kwargs)
-#
-#     def __call__(self, /,
-#              config: IndexConfig, operator: LogicalOperation, *args, **kwargs
-#     ) -> DataArray:
-#         # icclim  wrapper
-#         input = config.cf_variables[0]  # todo make sur len == 1 ?
-#         jinja_scope = {
-#             "input":     input.cf_meta.to_dict(),
-#             "threshold": config.thresholds.to_dict(),
-#             "operator":  operator,
-#             "freq":      config.frequency.description,
-#             "np":        numpy,
-#         }
-#         result = self.xclim_indicator(
-#             input=input.study_da,
-#             threshold=input.threshold,
-#             operator=operator,
-#             **config.frequency.build_frequency_kwargs(),
-#             jinja_scope=jinja_scope
-#             # todo not sure it will work, it is supposed to act as injected parameters
-#         )
-#         self.definition = result.attrs["description"]
-#         self.short_name = result.attrs["identifier"]
-#         return result
-#
-#     @percentile_bootstrap
-#     def days_above_doy_percentiles_fun(
-#             input: DataArray,
-#             per: PercentileDataArray,
-#             scalar_thresh: str | None = None,
-#             freq: str = "YS",
-#             bootstrap=False,  # noqa (used by @percentile_bootstrap)
-#     ):
-#         thresholds = convert_units_to(per, input)
-#         if scalar_thresh:
-#             scalar_thresh = convert_units_to(scalar_thresh, input)
-#             thresholds = np.maximum(thresholds, scalar_thresh)
-#         thresh_time_series = resample_doy(thresholds, input)
-#         out = threshold_count(input, ">", thresh_time_series, freq)
-#         return to_agg_units(out, input, "count")
 
 
 class IndexCatalog:
@@ -390,30 +358,8 @@ GenericIndexCatalog = IndexCatalog(
 )
 
 
-# def days_above_thresholds(
-#     input: DataArray,
-#     gridcell_thresholds: DataArray,
-#     scalar_thresh: str | None = None,
-#     freq: str = "YS",
-# ):
-#     gridcell_thresholds = convert_units_to(gridcell_thresholds, input)
-#     scalar_thresh = convert_units_to(scalar_thresh, input)
-#     thresholds = np.maximum(gridcell_thresholds, scalar_thresh)
-#     out = input > thresholds
-#     out = out.resample(time=freq).sum(dim="time")
-#     return to_agg_units(out, input, "count")
-
-
-# def days_where_study_is_above_reference(
-#         input: ClimateVariable, freq: str = "YS",
-# ):
-#     out = input.study_da > input.reference_da
-#     out = out.resample(time=freq).sum(dim="time")
-#     return to_agg_units(out, input.study_da, "count")
-
-
 def days_where_studies_are_above_references(
-        inputs: [ClimateVariable], freq: str = "YS"
+    inputs: [ClimateVariable], freq: str = "YS"
 ):
     from functools import reduce
 
@@ -424,59 +370,9 @@ def days_where_studies_are_above_references(
     return to_agg_units(out, inputs[0].st, "count")
 
 
-# r99p, r95p, r75p
-# days_above_period_percentiles = JinjaTemplatedIndicator(
-#     identifier="{{input.short_name}}_days_above_percentile",
-#     standard_name="number_of_days_with_{{input.standard_name}}_above_percentile",
-#     description="{{freq} number of days when {input.long_name} is above the"
-#                 " {pr_per_thresh}}th percentile of {{pr_per_period}} period."
-#                 "{% if scalar_thresh is not None %}"
-#                 " and above {{scalar_thresh}}."
-#                 "{% endif %}"
-#                 " Only days with at least {{threshold}} are counted.",
-#     units="days",
-#     cell_methods="time: sum over days",
-#     compute=days_above_thresholds,
-# )
-#
-# days_above_gridcell_thresholds = JinjaTemplatedIndicator(
-#     identifier="{{input.short_name}}_days_above_gridcell_thresholds",
-#     standard_name="number_of_days_with_{{input.standard_name}}_above_gridcell_thresholds",
-#     description="{{freq} number of days with {input.long_name} above gridcell"
-#     " thresholds shaped as {{gridcell_thresholds.shape}}"
-#     "{% if scalar_thresh is not None %}"
-#     " and above scalar {{scalar_thresh}}."
-#     "{% endif %}",
-#     units="days",
-#     cell_methods="time: sum over days",
-#     compute=days_above_thresholds,
-# )
-#
-# heat_wave_frequency = JinjaTemplatedIndicator(
-#     identifier="days_where_studies_are_above_references",
-#     units="days",
-#     standard_name="days_where_studies_are_above_references",
-#     long_name="Number of event where"
-#               "{% for climate_var in inputs %}"
-#               " {{input.short_name}} > {{thresh_tasmin}}"
-#               "{% endfor %}"
-#               "and Tmax > {{thresh_tasmax}} for >= {{window}} days)",
-#     description="{{freq}} number of heat wave events over a given period. "
-#                 "An event occurs when the minimum and maximum daily "
-#                 "temperature both exceeds specific thresholds : "
-#                 "{% if np.isscalar(thresh_tasmin) and np.isscalar(thresh_tasmax)%}"
-#                 "(Tmin > {{thresh_tasmin}} and Tmax > {{thresh_tasmax}}) "
-#                 "{% else %}"
-#                 "(Tmin > per_gridcell_tmin_thresholds and Tmax > per_gridcell_tmax_thresholds) "
-#                 "{% endif %}"
-#                 "over a minimum number of days ({{window}}).",
-#     cell_methods="",
-#     keywords="health,",
-#     compute=days_where_studies_are_above_references,
-# )
-
 # # new indices (https://github.com/Ouranosinc/xclim/issues/1093)
-# days_above_thresholds (scalar, per-gridcell scalars, percentile_doy, percentile_on_period, )
+# days_above_thresholds
+# (scalar, per-gridcell scalars, percentile_doy, percentile_on_period, )
 # # cwd, csu
 # max_consecutive_days_above_scalar
 # # csdi

@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Dict, List, TypedDict, Union, Sequence
 
 import xarray as xr
 import xclim
+from xarray.core.dataarray import DataArray
+from xarray.core.dataset import Dataset
 from xclim.core.calendar import percentile_doy
+from xclim.core.utils import PercentileDataArray
 
 from generic_indices import CF_VAR_METADATA_REGISTRY
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
-from xarray.core.dataarray import DataArray
-from xarray.core.dataset import Dataset
-from xclim.core.utils import PercentileDataArray
-
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendar
 from icclim.models.climate_index import ClimateIndex
@@ -19,6 +19,7 @@ from icclim.models.constants import VALID_PERCENTILE_DIMENSION
 from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
 from icclim.utils import get_date_to_iso_format
+from icclim_types import ThresholdType
 
 InFileBaseType = Union[str, List[str], Dataset, DataArray]
 
@@ -43,7 +44,7 @@ class InFileDictionary(TypedDict, total=False):
     """
 
     study: InFileBaseType
-    thresholds: InFileBaseType | float | None
+    thresholds: InFileBaseType | ThresholdType | Sequence[ThresholdType]
     climatology_bounds: Sequence[str, str] | None  # may be guessed if missing
     threshold_var_name: str | None  # may be guessed if missing
 
@@ -52,9 +53,9 @@ InFileType = Union[Dict[str, Union[InFileDictionary, InFileBaseType]], InFileBas
 
 
 def guess_var_names(
-        ds: Dataset,
-        index: ClimateIndex | None = None,
-        var_names: str | Sequence[str] | None = None,
+    ds: Dataset,
+    index: ClimateIndex | None = None,
+    var_names: str | Sequence[str] | None = None,
 ) -> list[str]:
     if var_names is None:
         if index is None:
@@ -71,16 +72,15 @@ def guess_var_names(
 
 
 def read_dataset(
-        in_files: InFileType,
-        index: ClimateIndex = None,
-        var_name: str | list[str] = None,  # used only if input is a DataArray
+    in_files: InFileType,
+    index: ClimateIndex = None,
+    var_name: str | Sequence[str] = None,  # used only if input is a DataArray
 ) -> Dataset:
     if isinstance(in_files, Dataset):
         ds = in_files
     elif isinstance(in_files, DataArray):
         ds = _read_dataarray(in_files, index, var_name=var_name)
-    elif isinstance(in_files, (
-    list, tuple)):  # todo Iterable ? Sequence ? (instead of list, tuple)
+    elif isinstance(in_files, (list, tuple)) and is_netcdf(in_files[0]):
         # we assumes it's a list of netCDF files
         ds = xr.open_mfdataset(in_files, parallel=True)
     elif is_netcdf(in_files):
@@ -110,12 +110,12 @@ def update_to_standard_coords(ds: Dataset) -> Dataset:
     return ds
 
 
-def is_zarr(data: InFileBaseType):
-    return isinstance(data, str) and ".nc" not in data
+def is_zarr(path: InFileBaseType):
+    return isinstance(path, str) and ".zarr" in path
 
 
-def is_netcdf(data: InFileBaseType):
-    return isinstance(data, str) and ".nc" in data
+def is_netcdf(path: InFileBaseType):
+    return isinstance(path, str) and ".nc" in path
 
 
 def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
@@ -139,7 +139,9 @@ def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
     return per_da
 
 
-def _read_clim_bounds(climatology_bounds: Sequence[str, str], per_da: DataArray) -> list[str]:
+def _read_clim_bounds(
+    climatology_bounds: Sequence[str, str], per_da: DataArray
+) -> list[str]:
     bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
     if len(bds) != 2:
         raise InvalidIcclimArgumentError(
@@ -149,7 +151,7 @@ def _read_clim_bounds(climatology_bounds: Sequence[str, str], per_da: DataArray)
 
 
 def _read_dataarray(
-    data: DataArray, index: ClimateIndex = None, var_name: str | list[str] = None
+    data: DataArray, index: ClimateIndex = None, var_name: str | Sequence[str] = None
 ) -> Dataset:
     if isinstance(var_name, list):
         if len(var_name) > 1:
@@ -160,9 +162,9 @@ def _read_dataarray(
         else:
             var_name = var_name[0]
     if index is not None:
-        if len(index.input_variables) > 1:
+        if index.input_variables and len(index.input_variables) > 1:
             raise InvalidIcclimArgumentError(
-                f"Index {index.name} needs {len(index.input_variables)} variables."
+                f"Index {index.short_name} needs {len(index.input_variables)} variables."
                 f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
                 f" zarr store."
             )
@@ -215,7 +217,10 @@ def guess_input_type(data: DataArray) -> CfVarMetadata:
 
 
 def build_study_da(
-    original_da: DataArray, time_range: list[str] | None, ignore_Feb29th: bool
+    original_da: DataArray,
+    time_range: list[str] | None,
+    ignore_Feb29th: bool,
+    sampling_frequency: Frequency,
 ) -> DataArray:
     if time_range is not None:
         check_time_range_pre_validity("time_range", time_range)
@@ -233,10 +238,12 @@ def build_study_da(
         da = original_da
     if ignore_Feb29th:
         da = xclim.core.calendar.convert_calendar(da, CfCalendar.NO_LEAP.get_name())
+    if sampling_frequency.time_clipping is not None:
+        da = sampling_frequency.time_clipping(da)
     return da
 
 
-def check_time_range_pre_validity(key: str, tr: list) -> None:
+def check_time_range_pre_validity(key: str, tr: Sequence[datetime | str]) -> None:
     if len(tr) != 2:
         raise InvalidIcclimArgumentError(
             f"The given `{key}` {tr}"
@@ -252,6 +259,7 @@ def check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
             f" {original_da.time.min().dt.floor('D').values}"
             f" - {original_da.time.max().dt.floor('D').values}."
         )
+
 
 def _is_alias_valid(ds, index, alias):
     return ds.get(alias, None) is not None and _has_valid_unit(index.group, ds[alias])
@@ -269,7 +277,7 @@ def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
 
 
 def _get_threshold_var_name(
-        ds: Dataset, threshold_var_name: str, climate_var_name: str
+    ds: Dataset, threshold_var_name: str, climate_var_name: str
 ) -> str:
     if threshold_var_name is not None:
         return threshold_var_name
