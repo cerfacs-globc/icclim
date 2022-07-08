@@ -9,7 +9,7 @@ import dataclasses
 from datetime import timedelta
 from enum import Enum
 from functools import reduce
-from typing import Any, Callable, Dict, List, Literal, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union, Sequence
 
 import cftime
 import numpy as np
@@ -212,7 +212,7 @@ class _Freq:
     pandas_freq: str
     accepted_values: list[str]
     description: str
-    post_processing: Callable[[DataArray], tuple[DataArray, DataArray]]
+    post_processing: Callable[[DataArray], tuple[DataArray, DataArray]] | None
     units: str
     indexer: Indexer | None
     time_clipping: Callable[[DataArray], DataArray] | None = None
@@ -332,7 +332,7 @@ class Frequency(Enum):
         accepted_values=[],
         description="",
         indexer=None,
-        post_processing=lambda x: x,
+        post_processing=None,
         units="",
     )
     """Placeholder instance for custom sampling frequencies.
@@ -380,7 +380,7 @@ class Frequency(Enum):
             return slice_mode
         if isinstance(slice_mode, str):
             return _get_frequency_from_string(slice_mode)
-        if isinstance(slice_mode, list) or isinstance(slice_mode, tuple):
+        if isinstance(slice_mode, (list, tuple)):
             return _get_frequency_from_iterable(slice_mode)
         raise InvalidIcclimArgumentError(
             f"Unknown frequency {slice_mode}."
@@ -446,7 +446,7 @@ def _is_season_valid(months: list[int]) -> bool:
 
 
 def _get_frequency_from_iterable(
-    slice_mode_list: list | tuple[str, list | tuple]
+    slice_mode_list: list | tuple[str, Sequence]
 ) -> Frequency:
     if len(slice_mode_list) < 2:
         raise InvalidIcclimArgumentError(
@@ -472,7 +472,7 @@ def _get_frequency_from_iterable(
     return custom_freq
 
 
-def _build_frequency_filtered_by_month(months: list[int]) -> _Freq:
+def _build_frequency_filtered_by_month(months: Sequence[int]) -> _Freq:
     return _Freq(
         indexer=dict(month=months),
         post_processing=_get_time_bounds_updater("MS"),
@@ -483,14 +483,16 @@ def _build_frequency_filtered_by_month(months: list[int]) -> _Freq:
     )
 
 
-def _build_seasonal_freq(season: tuple | list, clipped: bool):
+def _build_seasonal_freq(season: Sequence, clipped: bool):
     if isinstance(season[0], str):
         return _build_seasonal_frequency_between_dates(season, clipped)
-    elif isinstance(season, Tuple) or isinstance(season[0], int):
+    elif isinstance(season, tuple) or isinstance(season[0], int):
         return _build_seasonal_frequency_for_months(season, clipped)
+    else:
+        raise NotImplementedError()
 
 
-def _build_seasonal_frequency_between_dates(season: list[str], clipped: bool) -> _Freq:
+def _build_seasonal_frequency_between_dates(season: Sequence[str], clipped: bool) -> _Freq:
     if len(season) != 2:
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
     begin_date = read_date(season[0])
@@ -553,7 +555,7 @@ def _get_filter_between_dates(begin_date: str, end_date: str):
 SliceMode = Union[
     Frequency, str, List[Union[str, Tuple, int]], Tuple[str, Union[List, Tuple]]
 ]
-MonthsIndexer = Dict[Literal["month"], List[int]]  # format [12,1,2,3]
+MonthsIndexer = Dict[Literal["month"], Sequence[int]]  # format [12,1,2,3]
 DatesIndexer = Dict[
     Literal["date_bounds"], Tuple[str, str]
 ]  # format ("01-25", "02-28")

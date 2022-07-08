@@ -17,12 +17,11 @@ from warnings import warn
 
 import xarray as xr
 import xclim
+from xarray.core.dataarray import DataArray
+from xarray.core.dataset import Dataset
 from xclim.core.utils import PercentileDataArray
 
 from generic_indices.generic_indices import GenericIndexCatalog, Indicator
-from xarray.core.dataarray import DataArray
-from xarray.core.dataset import Dataset
-
 from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -128,7 +127,6 @@ def indice(*args, **kwargs):
     log.deprecation_warning(old="icclim.indice", new="icclim.index")
     return index(*args, **kwargs)
 
-
 def index(
     in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
@@ -136,7 +134,7 @@ def index(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | DataArray | None = None,
+    threshold: float | list[float] | DataArray | None  = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,

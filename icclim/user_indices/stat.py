@@ -9,9 +9,7 @@ from xclim.indices.run_length import rle_1d
 
 
 def get_longest_run_start_index(
-    arr: DataArray,
-    window: int = 1,
-    dim: str = "time",
+    arr: DataArray, window: int = 1, dim: str = "time",
 ) -> DataArray:
     return xarray.apply_ufunc(
         get_index_of_longest_run,
@@ -41,6 +39,4 @@ def get_first_occurrence_index(da: DataArray) -> DataArray:
     """
     # todo we should not assume "lat" and "lon" and instead stack every not "time" dim.
     #      (if the stack is really necessary ?)
-    stacked = da.stack(latlon=("lat", "lon"))
-    res = stacked.argmax("time")
-    return res.unstack()
+    return da.stack(latlon=("lat", "lon")).argmax("time").unstack()

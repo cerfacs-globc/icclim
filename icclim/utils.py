@@ -3,12 +3,13 @@ from __future__ import annotations
 from datetime import datetime
 
 import dateparser
-from xarray import DataArray, Dataset
+import xarray
+from xarray import Dataset
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
 
-def _da_chunksizes(da: DataArray) -> dict:
+def _da_chunksizes(da: xarray.Variable) -> dict:
     # FIXME To remove once minimal xarray version is v0.20.0 (use .chunksizes instead)
     # Copied and adapted from xarray
     if hasattr(da.data, "chunks"):
@@ -20,7 +21,7 @@ def _da_chunksizes(da: DataArray) -> dict:
 def _get_chunksizes(ds: Dataset) -> dict:
     # FIXME To remove once minimal xarray version is v0.20.0 (use .chunksizes instead)
     # Copied and adapted from xarray
-    chunks = {}
+    chunks:dict[str,int] = {}
     for v in ds.variables.values():
         if hasattr(v.data, "chunks"):
             for dim, c in _da_chunksizes(v).items():
@@ -50,7 +51,7 @@ def get_date_to_iso_format(in_date: str | datetime) -> str:
 
 
 class Singleton:
-    __instance: Singleton = None
+    __instance: Singleton | None = None
 
     @classmethod
     def get_instance(cls, *args, **kwargs):
