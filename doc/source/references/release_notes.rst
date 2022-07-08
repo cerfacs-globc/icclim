@@ -1,6 +1,12 @@
 Release history
 ===============
 
+6.0 (unreleased)
+----------------
+* [enh] Add generic indices
+* [enh] Make in_files.var.threshold and threshold parameters work with string values (a value with a unit or a percentile stamp)
+* [maint] **BREAKING CHANGE:** ECAD indices are no longer configurable! Use a generic index instead.
+
 5.3.0
 -----
 * [enh] Add icclim version to history in outputted metadata.
