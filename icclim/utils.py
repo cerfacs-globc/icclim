@@ -21,7 +21,7 @@ def _da_chunksizes(da: xarray.Variable) -> dict:
 def _get_chunksizes(ds: Dataset) -> dict:
     # FIXME To remove once minimal xarray version is v0.20.0 (use .chunksizes instead)
     # Copied and adapted from xarray
-    chunks:dict[str,int] = {}
+    chunks: dict[str, int] = {}
     for v in ds.variables.values():
         if hasattr(v.data, "chunks"):
             for dim, c in _da_chunksizes(v).items():

@@ -1,9 +1,9 @@
 from __future__ import annotations
-from xarray import DataArray
 
 from generic_indices.cf_var_metadata import CfVarMetadata
 from icclim_exceptions import InvalidIcclimArgumentError
 from models.registry import Registry
+from xarray import DataArray
 
 PR = CfVarMetadata(
     short_name="pr",
@@ -135,16 +135,18 @@ SNW = CfVarMetadata(
 
 class CfVarMetadataRegistry(Registry):
     def __init__(self):
-        super().__init__([PR, TAS, TAS_MIN, TAS_MAX, HURS, PSL, SND, SUND, WSGS_MAX, SFC_WIND, SNW])
+        super().__init__(
+            [PR, TAS, TAS_MIN, TAS_MAX, HURS, PSL, SND, SUND, WSGS_MAX, SFC_WIND, SNW]
+        )
 
     def lookup(self, query: DataArray) -> CfVarMetadata:
         query_up = str(query.name).upper()
         # Todo: we could also look for attrs["units"], attrs[""] and cell-method.
         for cf_input in self.data:
             if (
-                    query_up in map(str.upper, cf_input.aliases)
-                    or query_up == cf_input.standard_name.upper()
-                    or query_up == cf_input.long_name.upper()
+                query_up in map(str.upper, cf_input.aliases)
+                or query_up == cf_input.standard_name.upper()
+                or query_up == cf_input.long_name.upper()
             ):
                 return cf_input
         # TODO: do not raise an error to allow computation on ds.pouetpouet

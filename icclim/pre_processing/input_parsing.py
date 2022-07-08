@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Dict, List, TypedDict, Union, Sequence
+from typing import Dict, List, Sequence, TypedDict, Union
 
 import xarray as xr
 import xclim
+from generic_indices import CF_VAR_METADATA_REGISTRY
+from icclim_types import ThresholdType
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.calendar import percentile_doy
 from xclim.core.utils import PercentileDataArray
 
-from generic_indices import CF_VAR_METADATA_REGISTRY
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendar
@@ -19,7 +20,6 @@ from icclim.models.constants import VALID_PERCENTILE_DIMENSION
 from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
 from icclim.utils import get_date_to_iso_format
-from icclim_types import ThresholdType
 
 InFileBaseType = Union[str, List[str], Dataset, DataArray]
 
@@ -90,6 +90,7 @@ def read_dataset(
     else:
         raise NotImplementedError("`in_files` format was not recognized.")
     return update_to_standard_coords(ds).chunk("auto")
+
 
 def update_to_standard_coords(ds: Dataset) -> Dataset:
     """

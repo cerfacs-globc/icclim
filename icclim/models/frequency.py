@@ -9,7 +9,7 @@ import dataclasses
 from datetime import timedelta
 from enum import Enum
 from functools import reduce
-from typing import Any, Callable, Dict, List, Literal, Tuple, Union, Sequence
+from typing import Any, Callable, Dict, List, Literal, Sequence, Tuple, Union
 
 import cftime
 import numpy as np
@@ -353,7 +353,7 @@ class Frequency(Enum):
             return self._freq.description
         else:
             return reduce(
-                lambda x, y: x + y, # concat
+                lambda x, y: x + y,  # concat
                 map(lambda f: FREQ_MAPPING[f], self._freq.pandas_freq.split("-")),
                 "",
             )
@@ -492,7 +492,9 @@ def _build_seasonal_freq(season: Sequence, clipped: bool):
         raise NotImplementedError()
 
 
-def _build_seasonal_frequency_between_dates(season: Sequence[str], clipped: bool) -> _Freq:
+def _build_seasonal_frequency_between_dates(
+    season: Sequence[str], clipped: bool
+) -> _Freq:
     if len(season) != 2:
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
     begin_date = read_date(season[0])

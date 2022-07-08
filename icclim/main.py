@@ -17,11 +17,13 @@ from warnings import warn
 
 import xarray as xr
 import xclim
+from generic_indices.generic_indices import GenericIndexCatalog, Indicator
+from models.climate_variable import ClimateVariable
+from models.threshold import Threshold
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.utils import PercentileDataArray
 
-from generic_indices.generic_indices import GenericIndexCatalog, Indicator
 from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -36,30 +38,29 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import (
+    InFileBaseType,
+    InFileDictionary,
     InFileType,
+    _get_threshold_var_name,
+    _read_clim_bounds,
+    _standardize_percentile_dim_name,
+    build_study_da,
+    guess_input_type,
     guess_var_names,
     read_dataset,
-    guess_input_type,
-    _get_threshold_var_name,
-    _standardize_percentile_dim_name,
-    _read_clim_bounds,
-    InFileDictionary,
-    InFileBaseType,
-    build_study_da,
 )
 from icclim.user_indices.calc_operation import CalcOperation, compute_user_index
-from models.climate_variable import ClimateVariable
-from models.threshold import Threshold
 
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
 
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
 
+
 def indices(
-        index_group: Literal["all"] | str | IndexGroup | list[str],
-        ignore_error: bool = False,
-        **kwargs,
+    index_group: Literal["all"] | str | IndexGroup | list[str],
+    ignore_error: bool = False,
+    **kwargs,
 ) -> Dataset:
     """
     Compute multiple indices at the same time.
@@ -129,24 +130,25 @@ def indice(*args, **kwargs):
     log.deprecation_warning(old="icclim.indice", new="icclim.index")
     return index(*args, **kwargs)
 
+
 def index(
-        in_files: InFileType,
-        index_name: str | None = None,  # optional when computing user_indices
-        var_name: str | Sequence[str] | None = None,
-        slice_mode: SliceMode = Frequency.YEAR,
-        time_range: Sequence[datetime | str ] | None = None,
-        out_file: str | None = None,
-        threshold: ThresholdType | Sequence[ThresholdType] = None,
-        callback: Callable[[int], None] = log.callback,
-        callback_percentage_start_value: int = 0,
-        callback_percentage_total: int = 100,
-        base_period_time_range: Sequence[datetime | str ] | None = None,
-        window_width: int = 5,
-        only_leap_years: bool = False,
-        ignore_Feb29th: bool = False,
-        interpolation: (
-                str | QuantileInterpolation | None
-        ) = QuantileInterpolation.MEDIAN_UNBIASED,
+    in_files: InFileType,
+    index_name: str | None = None,  # optional when computing user_indices
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: SliceMode = Frequency.YEAR,
+    time_range: Sequence[datetime | str] | None = None,
+    out_file: str | None = None,
+    threshold: ThresholdType | Sequence[ThresholdType] = None,
+    callback: Callable[[int], None] = log.callback,
+    callback_percentage_start_value: int = 0,
+    callback_percentage_total: int = 100,
+    base_period_time_range: Sequence[datetime | str] | None = None,
+    window_width: int = 5,
+    only_leap_years: bool = False,
+    ignore_Feb29th: bool = False,
+    interpolation: (
+        str | QuantileInterpolation | None
+    ) = QuantileInterpolation.MEDIAN_UNBIASED,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
     user_index: UserIndexDict | None = None,
@@ -334,17 +336,17 @@ def index(
 
 
 def read_climate_vars(
-        base_period_time_range,
-        ignore_Feb29th,
-        in_files,
-        index,
-        interpolation,
-        only_leap_years: bool,
-        sampling_frequency: Frequency,
-        threshold,
-        time_range,
-        var_names,
-        window_width: int,
+    base_period_time_range,
+    ignore_Feb29th,
+    in_files,
+    index,
+    interpolation,
+    only_leap_years: bool,
+    sampling_frequency: Frequency,
+    threshold,
+    time_range,
+    var_names,
+    window_width: int,
 ) -> list[ClimateVariable]:
     # TODO [refacto] move to input_parsing
     # TODO [metadata]: all these pre-processing operations should probably be added in history
@@ -354,16 +356,25 @@ def read_climate_vars(
     #       We could have a ProvenanceService "taking notes" of each operation that must be
     #       logged into the output netcdf/provenance/metadata
     dico = to_readable_input(in_files, var_names, index, threshold)
-    return read_dictionary(base_period_time_range, ignore_Feb29th, dico,
-                           index, interpolation, only_leap_years, sampling_frequency,
-                           threshold, time_range, window_width)
+    return read_dictionary(
+        base_period_time_range,
+        ignore_Feb29th,
+        dico,
+        index,
+        interpolation,
+        only_leap_years,
+        sampling_frequency,
+        threshold,
+        time_range,
+        window_width,
+    )
 
 
 def to_readable_input(
-        in_files: InFileType,
-        var_names: Sequence[str],
-        index: ClimateIndex,
-        threshold: ThresholdType,
+    in_files: InFileType,
+    var_names: Sequence[str],
+    index: ClimateIndex,
+    threshold: ThresholdType,
 ) -> InFileDictionary:
     # TODO [refacto] move to input_parsing
     if isinstance(in_files, dict):
@@ -375,24 +386,31 @@ def to_readable_input(
         var_names = guess_var_names(input_dataset, index, var_names)
         return {
             var_name: {
-                "study":      input_dataset[var_name],
+                "study": input_dataset[var_name],
                 "thresholds": threshold,
             }
             for var_name in var_names
         }
 
 
-def read_dictionary(base_period_time_range, ignore_Feb29th, in_files:dict,
-        index, interpolation, only_leap_years, sampling_frequency, threshold,
-        time_range, window_width):
+def read_dictionary(
+    base_period_time_range,
+    ignore_Feb29th,
+    in_files: dict,
+    index,
+    interpolation,
+    only_leap_years,
+    sampling_frequency,
+    threshold,
+    time_range,
+    window_width,
+):
     # TODO [refacto] move to input_parsing
     # TODO [refacto] add types to parameters and output
     climate_vars = []
     for climate_var_name, climate_var_data in in_files.items():
         if isinstance(climate_var_data, dict):
-            study_ds = read_dataset(
-                climate_var_data["study"], index, climate_var_name
-            )
+            study_ds = read_dataset(climate_var_data["study"], index, climate_var_name)
             cf_meta = guess_input_type(study_ds[climate_var_name])
             # todo: deprecate climate_var_data.get("per_var_name", None) for threshold_var_name
             if climate_var_data.get("thresholds", None) is not None:
@@ -430,16 +448,17 @@ def read_dictionary(base_period_time_range, ignore_Feb29th, in_files:dict,
                 name=climate_var_name,
                 cf_meta=cf_meta,
                 study_da=study_da,
-                threshold=threshold
+                threshold=threshold,
             )
         )
     return climate_vars
 
+
 def _read_thresholds(
-        climate_var_name: str,
-        thresh: InFileBaseType | float | Sequence[float],
-        threshold_var_name: str,
-        climatology_bounds: Sequence[str, str],
+    climate_var_name: str,
+    thresh: InFileBaseType | float | Sequence[float],
+    threshold_var_name: str,
+    climatology_bounds: Sequence[str, str],
 ) -> float | Sequence | DataArray | PercentileDataArray:
     # TODO [refacto] move to input_parsing
     if isinstance(thresh, (str, float, int, list, tuple)):
@@ -462,10 +481,10 @@ def is_percentile_data(da) -> bool:
 
 
 def _write_output_file(
-        result_ds: xr.Dataset,
-        input_time_encoding: dict,
-        netcdf_version: NetcdfVersion,
-        file_path: str,
+    result_ds: xr.Dataset,
+    input_time_encoding: dict,
+    netcdf_version: NetcdfVersion,
+    file_path: str,
 ) -> None:
     """Write `result_ds` to a netCDF file on `out_file` path."""
     if input_time_encoding:
@@ -477,7 +496,9 @@ def _write_output_file(
     else:
         time_encoding = {"units": "days since 1850-1-1"}
     result_ds.to_netcdf(
-        file_path, format=netcdf_version.value, encoding={"time": time_encoding},
+        file_path,
+        format=netcdf_version.value,
+        encoding={"time": time_encoding},
     )
 
 
@@ -594,8 +615,10 @@ def _compute_standard_climate_index(
 
 
 def _add_ecad_index_metadata(
-        result_ds: Dataset, computed_index: Indicator, history: str,
-        initial_source: str,
+    result_ds: Dataset,
+    computed_index: Indicator,
+    history: str,
+    initial_source: str,
 ) -> Dataset:
     result_ds.attrs.update(
         dict(

@@ -9,7 +9,9 @@ from xclim.indices.run_length import rle_1d
 
 
 def get_longest_run_start_index(
-    arr: DataArray, window: int = 1, dim: str = "time",
+    arr: DataArray,
+    window: int = 1,
+    dim: str = "time",
 ) -> DataArray:
     return xarray.apply_ufunc(
         get_index_of_longest_run,
