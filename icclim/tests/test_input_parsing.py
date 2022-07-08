@@ -270,3 +270,11 @@ class Test_ReadDataset:
         res = guess_var_names(ds, var_names=["pinçon"])
         # THEN
         assert res == ["pinçon"]
+
+    def test_guess_variables__from_alias(self):
+        # GIVEN
+        ds = xr.Dataset({"tasmaxAdjust": self.tas_da})
+        # WHEN
+        res = guess_var_names(ds, index=EcadIndex.SU.climate_index)
+        # THEN
+        assert res == ["tasmaxAdjust"]

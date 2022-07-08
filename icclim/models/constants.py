@@ -17,11 +17,11 @@ PERCENTILES_COORD = "percentiles"
 IN_BASE_IDENTIFIER = "reference_epoch"
 
 # Aliases of input variables names.
-# Source: clix-meta
-PR = ["pr", "prAdjust", "prec", "rr", "precip", "PREC", "Prec", "RR", "PRECIP", "Precip"]
-TAS = ["tas", "tavg", "ta", "tasAdjust", "tmean", "tm", "tg", "meant", "TMEAN", "Tmean", "TM", "TG", "MEANT", "meanT", "tasmidpoint"]
-TAS_MAX = ["tasmax", "tasmaxAdjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX", "MAXT", "maxT"]
-TAS_MIN = ["tasmin", "tasminAdjust", "tmin", "tn", "mint", "TMIN", "Tmin", "TN", "MINT", "minT"]
+# Source: clix-meta (modified)
+PR = ["pr", "prAdjust","prAdjust", "prec", "rr", "precip", "PREC", "Prec", "RR", "PRECIP", "Precip"]
+TAS = ["tas", "tavg", "ta", "tasAdjust","tasAdjust", "tmean", "tm", "tg", "meant", "TMEAN", "Tmean", "TM", "TG", "MEANT", "meanT", "tasmidpoint"]
+TAS_MAX = ["tasmax", "tasmaxAdjust","tasmaxAdjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX", "MAXT", "maxT"]
+TAS_MIN = ["tasmin", "tasminAdjust","tasminAdjust", "tmin", "tn", "mint", "TMIN", "Tmin", "TN", "MINT", "minT"]
 HURS = ["hurs", "hursAdjust", "rh", "RH"]
 PSL = ["psl", "mslp", "slp", "pp", "MSLP", "SLP", "PP"]
 SND = ["snd", "sd", "SD"]
@@ -29,7 +29,6 @@ SUND = ["sund", "ss", "SS"]
 WSGS_MAX = ["wsgsmax", "fx", "FX"]
 SFC_WIND = ["sfcWind", "sfcwind", "fg", "FG"]
 SNW = ["snw", "swe", "SW"]
-
 
 
 # Aliases of input percentiles variables names
