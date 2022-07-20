@@ -216,7 +216,7 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         " {{output_freq}}"
         "{% for i, input in enumerate(inputs) %}"
         " {{input.long_name}} is"
-        " {{operator.long_name}}"
+        " {{operator.long_name}} than"
         " {{input.threshold.value}}"
         "{% if input.threshold.additional_metadata %}"
         " ({{input.threshold.additional_metadata}})"

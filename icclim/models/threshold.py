@@ -79,7 +79,8 @@ class Threshold:
             #     TODO [optimization] add elif to compute multiple percentiles at once !
             else:
                 # mixed type (e.g. R75p:= pr>1mm AND pr>"75th period_per")
-                # TODO do `np.minimum` if operand is <= (so we need the operator on Threshold)
+                # TODO do `np.minimum` if operand is <=
+                #      (so we need the operator on Threshold)
                 operator = np.maximum
                 scalars = [__build_from_scalar(t) for t in threshold]
                 self.value = reduce(operator, scalars)  # noqa
@@ -106,19 +107,19 @@ class Threshold:
             }
         elif isinstance(self.value, PercentileDataArray):
             percentiles = self.value.coords["percentiles"].values
-            if np.isscalar(percentiles[()]):
-                display_pers = f"{percentiles[()]}th percentile"
-                standard_name = f"than_{percentiles[()]}th_percentile"
+            if percentiles.size == 1:
+                display_pers = f"{percentiles[0]}th percentile"
+                standard_name = f"than_{percentiles[0]}th_percentile"
             else:
                 display_pers = list(map(lambda x: f"{x}th", percentiles))
-                standard_name = f"than_percentiles"
+                standard_name = "than_percentiles"
             window = self.value.attrs.get("window", None)
             # TODO: distinguish between doy and period percentiles
             #       ( lazy way: if window!=None then it's doy)
             bds = self.value.attrs.get("climatology_bounds")
             self.additional_metadata += (
                 f"percentiles were computed over {bds}"
-                f" on a {window} {src_freq.units} window "
+                f" on a {window} {src_freq.units} window"
             )
             res = {"standard_name": standard_name, "value": f"{display_pers} "}
         elif isinstance(self.value, DataArray):
