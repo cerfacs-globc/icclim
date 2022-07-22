@@ -79,11 +79,12 @@ def max_consecutive_event_count(config: UserIndexConfig):
         raise InvalidIcclimArgumentError(
             "Please provide a threshold and a logical operation."
         )
-    if isinstance(config.thresh, list):
+    if isinstance(config.thresh, (tuple, list)):
         raise InvalidIcclimArgumentError(
             f"{CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} "
             f"does not support threshold list. Please provide a single threshold."
         )
+    # todo fix reference_da
     return operators.max_consecutive_event_count(
         da=config.cf_vars[0].study_da,
         in_base_da=config.cf_vars[0].reference_da,

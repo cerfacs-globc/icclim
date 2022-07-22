@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from generic_indices.cf_var_metadata import CfVarMetadata
-from models.threshold import Threshold
+from models.threshold import BoundedThresholds, Threshold
 from xarray import DataArray
 
 from icclim.models.frequency import Frequency
@@ -19,15 +19,18 @@ class ClimateVariable:
         Name of the variable.
     study_da: DataArray
         The variable studied.
-    reference_da: DataArray
-        The variable studied limited to the in base period.
+    cf_meta: CfVarMetadata
+        metadata
+    threshold: Threshold
+
     """
 
     name: str
     cf_meta: CfVarMetadata
     study_da: DataArray
-    threshold: Threshold | None = None
-    # todo add operand (or add it in Threshold)
+    threshold: Threshold | None | BoundedThresholds = None
 
-    def to_dict(self, src_freq: Frequency):
-        return {"threshold": self.threshold.to_dict(src_freq)} | self.cf_meta.to_dict()
+    def get_metadata(self, src_freq: Frequency) -> dict[str, str]:
+        return {
+            "threshold": self.threshold.get_metadata(src_freq)
+        } | self.cf_meta.to_dict()

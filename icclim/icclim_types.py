@@ -1,7 +1,10 @@
-from typing import Union
+from __future__ import annotations
 
-from xarray import DataArray
+from typing import Dict, List, Union
 
-ThresholdType = Union[str, float, int, DataArray, None, tuple]
+from xarray import DataArray, Dataset
 
-# todo move her eslice_mode and all the type of the public API
+InFileBaseType = Union[str, List[str], Dataset, DataArray]
+InFileType = Union[Dict[str, Union[Dict, InFileBaseType]], InFileBaseType]
+
+# todo move here slice_mode and every type of the public API

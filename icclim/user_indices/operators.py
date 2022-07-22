@@ -7,7 +7,7 @@ from warnings import warn
 import dask.array
 import numpy as np
 import xarray
-from models.logical_operation import LogicalOperation
+from models.logical_link import LOGICAL_AND, LOGICAL_OR, LogicalLink
 from xarray.core.dataarray import DataArray
 from xarray.core.rolling import DataArrayRolling
 from xclim.core.bootstrapping import percentile_bootstrap
@@ -23,7 +23,8 @@ from icclim.models.constants import (
     TEMPERATURE,
     WET_DAY_THRESHOLD,
 )
-from icclim.models.user_index_config import ExtremeMode, LinkLogicalOperation
+from icclim.models.operator import Operator
+from icclim.models.user_index_config import ExtremeMode
 from icclim.user_indices.stat import (
     get_first_occurrence_index,
     get_longest_run_start_index,
@@ -46,7 +47,7 @@ def max(
     da: DataArray,
     in_base_da: DataArray | None = None,
     coef: float | None = None,
-    logical_operation: LogicalOperation | None = None,
+    logical_operation: Operator | None = None,
     threshold: str | float | int | None = None,
     freq: str = "MS",
     date_event: bool = False,
@@ -76,7 +77,7 @@ def min(
     da: DataArray,
     in_base_da: DataArray | None = None,
     coef: float = None,
-    logical_operation: LogicalOperation = None,
+    logical_operation: Operator = None,
     threshold: str | float | int | None = None,
     freq: str = "MS",
     date_event: bool = False,
@@ -106,7 +107,7 @@ def sum(
     da: DataArray,
     in_base_da: DataArray | None = None,
     coef: float = None,
-    logical_operation: LogicalOperation = None,
+    logical_operation: Operator = None,
     threshold: str | float | int | None = None,
     var_type: str = None,
     freq: str = "MS",
@@ -129,7 +130,7 @@ def mean(
     da: DataArray,
     in_base_da: DataArray | None = None,
     coef: float = None,
-    logical_operation: LogicalOperation = None,
+    logical_operation: Operator = None,
     threshold: str | float | int | None = None,
     var_type: str = None,
     freq: str = "MS",
@@ -149,11 +150,11 @@ def mean(
 
 
 def count_events(
-    logical_operation: list[LogicalOperation],
+    logical_operation: list[Operator],
     thresholds: list[float | str],
     das: list[DataArray],
     in_base_das: list[DataArray | None],
-    link_logical_operations: LinkLogicalOperation = None,
+    link_logical_operations: LogicalLink = None,
     coef: float = None,
     var_type: str = None,
     freq: str = "MS",
@@ -173,7 +174,7 @@ def count_events(
             result = _threshold_compare_on_percentiles(
                 da=result,
                 percentiles=percentiles[i],
-                logical_operation=logical_operation[i],
+                operator=logical_operation[i],
                 freq=freq,
                 bootstrap=_is_bootstrappable(var_type),
             )
@@ -182,13 +183,13 @@ def count_events(
                     percentiles[i], result
                 )
         else:
-            result = logical_operation[i].compute(result, thresholds[i])  # type:ignore
+            result = logical_operation[i](result, thresholds[i])  # type:ignore
         acc.append(result)
     if len(acc) == 1:
         result = acc[0]
-    elif link_logical_operations == LinkLogicalOperation.AND_STAMP:
+    elif link_logical_operations == LOGICAL_AND:
         result = reduce(np.logical_and, acc, True)  # type:ignore
-    elif link_logical_operations == LinkLogicalOperation.OR_STAMP:
+    elif link_logical_operations == LOGICAL_OR:
         result = reduce(np.logical_or, acc, False)  # type:ignore
     else:
         raise NotImplementedError()
@@ -200,7 +201,7 @@ def count_events(
 
 def max_consecutive_event_count(
     da: DataArray,
-    logical_operation: LogicalOperation,
+    logical_operation: Operator,
     in_base_da: DataArray | None = None,
     threshold: str | float | int | None = None,
     coef: float = None,
@@ -215,7 +216,7 @@ def max_consecutive_event_count(
         result = _threshold_compare_on_percentiles(
             da=da,
             percentiles=per,
-            logical_operation=logical_operation,
+            operator=logical_operation,
             freq=freq,
             bootstrap=_is_bootstrappable(var_type),
         )
@@ -302,13 +303,13 @@ def _apply_coef(coef: float | None, da: DataArray) -> DataArray:
 def _filter_by_threshold(
     da: DataArray,
     in_base_da: DataArray | None,
-    logical_operation: LogicalOperation | None,
+    operator: Operator | None,
     threshold: str | float | int | None,
     freq: str,
     var_type: str | None,
     save_percentile: bool,
 ) -> DataArray:
-    if threshold is None and logical_operation is None:
+    if threshold is None and operator is None:
         return da
     if isinstance(threshold, str):
         if in_base_da is None:
@@ -319,7 +320,7 @@ def _filter_by_threshold(
         result = _filter_by_logical_op_on_percentile(
             da=da,
             percentiles=_get_percentiles(threshold, var_type, in_base_da),
-            logical_operation=logical_operation,
+            operator=operator,
             freq=freq,
             bootstrap=_is_bootstrappable(var_type),
         )
@@ -327,17 +328,16 @@ def _filter_by_threshold(
             result.coords[PERCENTILES_COORD] = resample_doy(per, result)
     elif (
         isinstance(threshold, float) or isinstance(threshold, int)
-    ) and logical_operation is not None:
-        result = da.where(logical_operation.compute(da, threshold))
+    ) and operator is not None:
+        result = da.where(operator.compute(da, threshold))
     else:
         raise NotImplementedError(
             "threshold type must be on of [str, int, float] and logical_operation must "
-            "a LogicalOperation instance"
+            "a Operator instance"
         )
     if len(result) == 0:
         raise InvalidIcclimArgumentError(
-            f"The dataset has been emptied by filtering with "
-            f"{logical_operation._operator}{threshold}."
+            f"The dataset has been emptied by filtering with " f"{operator}{threshold}."
         )
     return result
 
@@ -346,13 +346,13 @@ def _filter_by_threshold(
 def _filter_by_logical_op_on_percentile(
     da: DataArray,
     percentiles: DataArray | None,
-    logical_operation: LogicalOperation | None,
+    operator: Operator | None,
     freq: str = "MS",  # noqa  # used by percentile_bootstrap
     bootstrap: bool = False,  # used by percentile_bootstrap
 ) -> DataArray:
-    if logical_operation is not None and percentiles is not None:
+    if operator is not None and percentiles is not None:
         percentiles = resample_doy(percentiles, da)
-        mask = logical_operation.compute(da, percentiles)
+        mask = operator.compute(da, percentiles)
         result = da.where(mask, drop=True)
         if bootstrap:
             result = da.expand_dims(_bootstrap=result._bootstrap)
@@ -364,12 +364,12 @@ def _filter_by_logical_op_on_percentile(
 def _threshold_compare_on_percentiles(
     da: DataArray,
     percentiles: DataArray,
-    logical_operation: LogicalOperation,
+    operator: Operator,
     freq: str = "MS",  # noqa  # used by percentile_bootstrap
     bootstrap: bool = False,  # noqa # used by percentile_bootstrap
 ) -> DataArray:
     percentiles = resample_doy(percentiles, da)
-    return logical_operation.compute(da, percentiles)
+    return operator.compute(da, percentiles)
 
 
 def _get_percentiles(

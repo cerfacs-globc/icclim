@@ -28,7 +28,8 @@ class XclimIndex(ClimateIndexEnum):
     @staticmethod
     def list() -> list[str]:
         return [
-            f"{i.group.value} | {i.short_name} | {i.definition}" for i in XclimIndex
+            f"{i.group.built_value} | {i.short_name} | {i.definition}"
+            for i in XclimIndex
         ]
 
     @staticmethod

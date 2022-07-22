@@ -8,12 +8,12 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from pre_processing.in_file_dictionary import InFileDictionary
 from xclim.core.utils import PercentileDataArray
 
 from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.pre_processing.input_parsing import (
-    InFileDictionary,
     guess_var_names,
     read_dataset,
     update_to_standard_coords,

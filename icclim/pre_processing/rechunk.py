@@ -17,7 +17,7 @@ from xarray.core.dataset import Dataset
 import icclim.utils as utils
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger
-from icclim.pre_processing.input_parsing import is_zarr, read_dataset
+from icclim.pre_processing.input_parsing import is_zarr_path, read_dataset
 
 TMP_STORE_1 = "icclim-tmp-store-1.zarr"
 TMP_STORE_2 = "icclim-tmp-store-2.zarr"
@@ -163,7 +163,7 @@ def _unsafe_create_optimized_zarr_store(
 ):
     with dask.config.set(DEFAULT_DASK_CONF):
         logger.info("Rechunking in progress, this will take some time.")
-        is_ds_zarr = is_zarr(in_files)
+        is_ds_zarr = is_zarr_path(in_files)
         ds = read_dataset(in_files, index=None, var_name=var_name)
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_name, ds.data_vars.keys()))

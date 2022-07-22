@@ -6,7 +6,7 @@ from functools import reduce
 import numpy
 import numpy as np
 from jinja2 import Environment
-from models.logical_operation import Operator
+from models.operator import Operator
 from xarray import DataArray
 from xclim.core import datachecks
 from xclim.core.calendar import select_time
@@ -18,7 +18,6 @@ from icclim.models.climate_index import ClimateIndex
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
-from icclim.models.user_index_config import LogicalOperation
 
 # jinja_env = Environment(autoescape=True)
 # todo could be a security issue to have autoescape=False (default)
@@ -177,10 +176,9 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "{{src_freq.units}}_when"
         "{% for i, input in enumerate(inputs) %}"
         "_{{input.short_name}}"
-        "_{{operator.standard_name}}"
         "_{{input.threshold.standard_name}}"
         "{% if i != len(inputs) - 1 %}"
-        "_and"  # todo make it configurable logical operator ? and | or | xor ?
+        "_and"
         "{% endif%}"
         "{% endfor %}"
     )
@@ -189,10 +187,9 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "number_of_{{src_freq.units}}_when"
         "{% for i, input in enumerate(inputs) %}"
         "_{{input.standard_name}}"
-        "_{{operator.standard_name}}"
         "_{{input.threshold.standard_name}}"
         "{% if i != len(inputs) - 1 %}"
-        "_and"  # todo make it configurable logical operator ? and | or | xor ?
+        "_and"
         "{% endif%}"
         "{% endfor %}"
     )
@@ -200,13 +197,12 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "Number of {{src_freq.units}} when"
         "{% for i, input in enumerate(inputs) %}"
         " {{input.short_name}}"
-        " {{operator.operand}}"
-        " {{input.threshold.value}}"
+        " {{input.threshold.long_name}}"
         "{% if input.threshold.additional_metadata %}"
-        " ({{input.threshold.additional_metadata}})"
+        "{{input.threshold.additional_metadata}}"
         "{% endif%}"
         "{% if i != len(inputs) - 1 %}"
-        " and"  # todo make it configurable logical operator ? and | or | xor ?
+        " and"
         "{% endif%}"
         "{% endfor %}"
         "."
@@ -216,26 +212,23 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         " {{output_freq}}"
         "{% for i, input in enumerate(inputs) %}"
         " {{input.long_name}} is"
-        " {{operator.long_name}} than"
-        " {{input.threshold.value}}"
+        " {{input.threshold.long_name}}"
         "{% if input.threshold.additional_metadata %}"
         " ({{input.threshold.additional_metadata}})"
         "{% endif%}"
         "{% if i != len(inputs) - 1 %}"
-        " and"  # todo make it configurable logical operator ? and | or | xor ?
+        " and"
         "{% endif%}"
         "{% endfor %}"
         "."
     )
     cell_methods = "time: sum over {{src_freq.units}}"
 
-    operator: Operator
-
-    def __init__(self, short_name: str, operator: LogicalOperation, **kwds):
+    def __init__(self, short_name: str, **kwds):
         super().__init__(**kwds)
-        self.operator = operator._operator
         self.input_variables = None
-        # -- duct type to ClimateIndex (todo make it cleaner (remove ClimateIndex ?))
+        # -- duct type to ClimateIndex
+        #    todo make it cleaner (remove ClimateIndex class ?)
         self.short_name = short_name
         self.input_variables = None
         self.compute = None
@@ -253,11 +246,12 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         # todo:
         #       probably unsafe to do `config.cf_variables[0]`
         #       in case config.cf_variables[1] (or others) have a != frequency
-        inputs = list(map(lambda cf_var: cf_var.to_dict(self.src_freq), climate_vars))
+        inputs = list(
+            map(lambda cf_var: cf_var.get_metadata(self.src_freq), climate_vars)
+        )
         jinja_scope = {
-            # todo localize these
+            # todo [xclim backport] localize these
             "inputs": inputs,
-            "operator": self.operator,
             "output_freq": frequency.description,
             "np": numpy,
             "enumerate": enumerate,
@@ -286,7 +280,6 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         result = self._compare_climate_vars_to_thresholds(
             climate_vars=climate_vars,
             freq=config.frequency.pandas_freq,
-            operator=self.operator,
         )
         return self.postprocess(
             result,
@@ -298,12 +291,14 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         self,
         /,
         climate_vars: list[ClimateVariable],
-        operator: Operator,
         freq: str = "YS",
     ) -> DataArray:
         intermediary = [
             self._compare_climate_var_to_thresh(
-                climate_var.study_da, operator, climate_var.threshold.value, freq
+                climate_var.study_da,
+                climate_var.threshold.operator,
+                climate_var.threshold.value,
+                freq,
             )
             for climate_var in climate_vars
         ]
@@ -340,21 +335,16 @@ class IndexCatalog:
 
 
 GenericIndexCatalog = IndexCatalog(
-    greater=CountEventComparedToThreshold(
-        short_name="greater", operator=LogicalOperation.GREATER
-    ),
-    greater_or_equal=CountEventComparedToThreshold(
-        short_name="greater_or_equal", operator=LogicalOperation.GREATER_OR_EQUAL
-    ),
-    lower=CountEventComparedToThreshold(
-        short_name="lower", operator=LogicalOperation.LOWER
-    ),
-    lower_or_equal=CountEventComparedToThreshold(
-        short_name="lower_or_equal", operator=LogicalOperation.LOWER_OR_EQUAL
-    ),
-    equal=CountEventComparedToThreshold(
-        short_name="equal", operator=LogicalOperation.EQUAL
-    ),
+    generic=lambda op: CountEventComparedToThreshold(op.short_name),
+    # greater=CountEventComparedToThreshold(short_name="greater", operator=GREATER),
+    # greater_or_equal=CountEventComparedToThreshold(
+    #     short_name="greater_or_equal", operator=GREATER_OR_EQUAL
+    # ),
+    # lower=CountEventComparedToThreshold(short_name="lower", operator=LOWER),
+    # lower_or_equal=CountEventComparedToThreshold(
+    #     short_name="lower_or_equal", operator=LOWER_OR_EQUAL
+    # ),
+    # equal=CountEventComparedToThreshold(short_name="equal", operator=EQUAL),
 )
 
 

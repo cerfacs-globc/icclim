@@ -11,26 +11,24 @@ import copy
 import logging
 import time
 from datetime import datetime
-from functools import reduce
 from typing import Callable, Literal, Sequence
 from warnings import warn
 
 import xarray as xr
 import xclim
-from generic_indices.generic_indices import GenericIndexCatalog, Indicator
+from generic_indices.generic_indices import CountEventComparedToThreshold, Indicator
 from models.climate_variable import ClimateVariable
-from models.threshold import Threshold
+from models.threshold import BoundedThresholds, Threshold
+from pre_processing.in_file_dictionary import InFileDictionary
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
-from xclim.core.utils import PercentileDataArray
 
 from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity
-from icclim.icclim_types import ThresholdType
 from icclim.models.climate_index import ClimateIndex
-from icclim.models.constants import ICCLIM_VERSION, VALID_PERCENTILE_DIMENSION
+from icclim.models.constants import ICCLIM_VERSION
 from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
@@ -39,11 +37,7 @@ from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import (
     InFileBaseType,
-    InFileDictionary,
     InFileType,
-    _get_threshold_var_name,
-    _read_clim_bounds,
-    _standardize_percentile_dim_name,
     build_study_da,
     guess_input_type,
     guess_var_names,
@@ -58,7 +52,7 @@ SOURCE_CF_KEY = "source"
 
 
 def indices(
-    index_group: Literal["all"] | str | IndexGroup | list[str],
+    index_group: Literal["all"] | str | IndexGroup | Sequence[str],
     ignore_error: bool = False,
     **kwargs,
 ) -> Dataset:
@@ -88,7 +82,7 @@ def indices(
         file, which will contain all the index results of this group.
 
     """
-    if isinstance(index_group, list):
+    if isinstance(index_group, (tuple, list)):
         indices = [EcadIndex.lookup(i) for i in index_group]
     elif index_group == IndexGroup.WILD_CARD_GROUP or (
         isinstance(index_group, str)
@@ -138,7 +132,8 @@ def index(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: ThresholdType | Sequence[ThresholdType] = None,
+    # todo deprecate threshold in favor of in_files dictionary ?
+    threshold: str | Threshold | BoundedThresholds = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -269,6 +264,8 @@ def index(
             " You must provide either `user_index` to compute a customized index"
             " or `index_name` for one of the ECA&D indices."
         )
+    if isinstance(threshold, str):
+        threshold = Threshold(threshold)
     if index_name is not None:
         if (ecad_index := EcadIndex.lookup(index_name)) is not None:
             index = ecad_index.climate_index
@@ -280,25 +277,21 @@ def index(
                     "configured. Use a generic index "
                     "instead."
                 )
-        elif (generic_index := GenericIndexCatalog.lookup(index_name)) is not None:
-            index = generic_index
+        elif index_name == "generic_threshold":
+            index = CountEventComparedToThreshold("generic_threshold")
         else:
             raise InvalidIcclimArgumentError(f"Unknown index {index_name}.")
     else:
         index = None
     sampling_frequency = Frequency.lookup(slice_mode)
     climate_vars = read_climate_vars(
-        base_period_time_range,
         ignore_Feb29th,
         in_files,
         index,
-        interpolation,
-        only_leap_years,
         sampling_frequency,
         threshold,
         time_range,
         var_name,
-        window_width,
     )
     config = IndexConfig(
         save_percentile=save_percentile,
@@ -315,6 +308,7 @@ def index(
         result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
     else:
         _check_valid_config(index, config)
+        # TODO Fix initial_history initial_source !
         result_ds = _compute_standard_climate_index(
             config=config,
             climate_index=index,
@@ -336,37 +330,23 @@ def index(
 
 
 def read_climate_vars(
-    base_period_time_range,
-    ignore_Feb29th,
-    in_files,
-    index,
-    interpolation,
-    only_leap_years: bool,
+    ignore_Feb29th: bool,
+    in_files: InFileType,
+    index: ClimateIndex,
     sampling_frequency: Frequency,
-    threshold,
-    time_range,
-    var_names,
-    window_width: int,
+    threshold: Threshold | BoundedThresholds,
+    time_range: Sequence[str],
+    var_names: str | Sequence[str] | None,
 ) -> list[ClimateVariable]:
     # TODO [refacto] move to input_parsing
-    # TODO [metadata]: all these pre-processing operations should probably be added in history
-    #       metadata or provenance.
-    #       It could be a property in CfVariable which will be reused when we
-    #       update the metadata of the index, at the end.
-    #       We could have a ProvenanceService "taking notes" of each operation that must be
-    #       logged into the output netcdf/provenance/metadata
     dico = to_readable_input(in_files, var_names, index, threshold)
     return read_dictionary(
-        base_period_time_range,
         ignore_Feb29th,
         dico,
         index,
-        interpolation,
-        only_leap_years,
         sampling_frequency,
         threshold,
         time_range,
-        window_width,
     )
 
 
@@ -374,7 +354,7 @@ def to_readable_input(
     in_files: InFileType,
     var_names: Sequence[str],
     index: ClimateIndex,
-    threshold: ThresholdType,
+    threshold: Threshold,
 ) -> InFileDictionary:
     # TODO [refacto] move to input_parsing
     if isinstance(in_files, dict):
@@ -394,16 +374,12 @@ def to_readable_input(
 
 
 def read_dictionary(
-    base_period_time_range,
-    ignore_Feb29th,
-    in_files: dict,
-    index,
-    interpolation,
-    only_leap_years,
-    sampling_frequency,
-    threshold,
-    time_range,
-    window_width,
+    ignore_Feb29th: bool,
+    in_files: InFileDictionary,
+    index: ClimateIndex,
+    sampling_frequency: Frequency,
+    threshold: Threshold | None,
+    time_range: Sequence[str],
 ):
     # TODO [refacto] move to input_parsing
     # TODO [refacto] add types to parameters and output
@@ -412,14 +388,10 @@ def read_dictionary(
         if isinstance(climate_var_data, dict):
             study_ds = read_dataset(climate_var_data["study"], index, climate_var_name)
             cf_meta = guess_input_type(study_ds[climate_var_name])
-            # todo: deprecate climate_var_data.get("per_var_name", None) for threshold_var_name
+            # todo: deprecate climate_var_data.get("per_var_name", None)
+            #       for threshold_var_name
             if climate_var_data.get("thresholds", None) is not None:
-                climate_var_thresh = _read_thresholds(
-                    climate_var_name,
-                    climate_var_data.get("thresholds", None),
-                    climate_var_data.get("threshold_var_name", None),
-                    climate_var_data.get("climatology_bounds", None),
-                )
+                climate_var_thresh = climate_var_data.get("thresholds", None)
             else:
                 climate_var_thresh = threshold
         else:
@@ -433,51 +405,28 @@ def read_dictionary(
             ignore_Feb29th,
             sampling_frequency,
         )
-        threshold = Threshold(
-            threshold=climate_var_thresh,
-            study_da=study_da,
-            units=study_da.attrs.get("units", cf_meta.units),
-            window=window_width,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            base_period_time_range=base_period_time_range,
-            sampling_frequency=sampling_frequency,
-        )
+        if isinstance(climate_var_thresh, str):
+            climate_var_thresh = Threshold(climate_var_thresh)
+        if isinstance(climate_var_thresh, BoundedThresholds):
+            climate_var_thresh = climate_var_thresh.to_threshold(
+                sampling_frequency, study_da, study_da.attrs.get("units", cf_meta.units)
+            )
+        elif isinstance(climate_var_thresh.value, Callable):
+            climate_var_thresh.value = climate_var_thresh.value(
+                sampling_frequency, study_da
+            )
+            climate_var_thresh.value.attrs["units"] = study_da.attrs.get(
+                "units", cf_meta.units
+            )
         climate_vars.append(
             ClimateVariable(
                 name=climate_var_name,
                 cf_meta=cf_meta,
                 study_da=study_da,
-                threshold=threshold,
+                threshold=climate_var_thresh,
             )
         )
     return climate_vars
-
-
-def _read_thresholds(
-    climate_var_name: str,
-    thresh: InFileBaseType | float | Sequence[float],
-    threshold_var_name: str,
-    climatology_bounds: Sequence[str, str],
-) -> float | Sequence | DataArray | PercentileDataArray:
-    # TODO [refacto] move to input_parsing
-    if isinstance(thresh, (str, float, int, list, tuple)):
-        return thresh
-    per_ds = read_dataset(thresh, index=None)
-    threshold_var_name = _get_threshold_var_name(
-        per_ds, threshold_var_name, climate_var_name
-    )
-    da = per_ds[threshold_var_name].rename(f"{climate_var_name}_thresholds")
-    if is_percentile_data:
-        return PercentileDataArray.from_da(
-            _standardize_percentile_dim_name(da),
-            _read_clim_bounds(climatology_bounds, da),
-        )
-    return da
-
-
-def is_percentile_data(da) -> bool:
-    return reduce(lambda x, y: x or (y in da.dims), VALID_PERCENTILE_DIMENSION, False)
 
 
 def _write_output_file(

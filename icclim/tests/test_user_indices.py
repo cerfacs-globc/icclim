@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pytest
-from models.logical_operation import LogicalOperation
+from models.operator import LogicalOperation
 
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import ClimateVariable

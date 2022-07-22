@@ -4,7 +4,7 @@ from typing import Callable
 from unittest.mock import MagicMock, patch
 
 import pytest
-from models.logical_operation import LogicalOperation
+from models.operator import LogicalOperation
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import PRECIPITATION, TEMPERATURE

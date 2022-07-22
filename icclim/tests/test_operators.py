@@ -3,9 +3,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import xarray as xr
-from models.logical_operation import LogicalOperation
+from models.logical_link import LogicalOperationLink
+from models.operator import LogicalOperation
 
-from icclim.models.user_index_config import ExtremeMode, LinkLogicalOperation
+from icclim.models.user_index_config import ExtremeMode
 from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.operators import (
     _apply_coef,
@@ -132,7 +133,7 @@ class Test_count_events:
             in_base_das=[None],
             logical_operation=[LogicalOperation.GREATER, LogicalOperation.EQUAL],
             thresholds=[12, -20],
-            link_logical_operations=LinkLogicalOperation.OR_STAMP,
+            link_logical_operations=LogicalOperationLink.OR_STAMP,
             freq="MS",
         )
         # THEN
@@ -151,7 +152,7 @@ class Test_count_events:
             in_base_das=[None],
             logical_operation=[LogicalOperation.GREATER, LogicalOperation.EQUAL],
             thresholds=[12, -20],
-            link_logical_operations=LinkLogicalOperation.AND_STAMP,
+            link_logical_operations=LogicalOperationLink.AND_STAMP,
             freq="MS",
         )
         # THEN

@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Dict, List, Sequence, TypedDict, Union
+from typing import Sequence
 
 import xarray as xr
 import xclim
-from generic_indices import CF_VAR_METADATA_REGISTRY
-from icclim_types import ThresholdType
+from generic_indices.cf_var_metadata import CF_VAR_METADATA_REGISTRY
+from icclim_types import InFileBaseType, InFileType
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
-from xclim.core.calendar import percentile_doy
-from xclim.core.utils import PercentileDataArray
 
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -21,35 +19,7 @@ from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup
 from icclim.utils import get_date_to_iso_format
 
-InFileBaseType = Union[str, List[str], Dataset, DataArray]
-
 DEFAULT_INPUT_FREQUENCY = "days"
-
-
-class InFileDictionary(TypedDict, total=False):
-    """Dictionary grouping in_files and var_name functionnalities.
-    It also allows to use a different input for thresholds such as percentiles.
-
-    Examples
-    --------
-
-    >>> in_files = {
-    ...    "tasmax": { "study": "tasmax-store.zarr",
-    ...                "thresholds": ["per-1.nc", "per-2.nc"],
-    ...                "climatology_bounds":['1990-01-01', '1991-12-31'],
-    ...                "threshold_var_name":"tas_max_per" },
-    ...    "pr": "pr.nc",
-    ...    "tasmin": {"study": "tasmin.nc"},
-    ...     }
-    """
-
-    study: InFileBaseType
-    thresholds: InFileBaseType | ThresholdType | Sequence[ThresholdType]
-    climatology_bounds: Sequence[str, str] | None  # may be guessed if missing
-    threshold_var_name: str | None  # may be guessed if missing
-
-
-InFileType = Union[Dict[str, Union[InFileDictionary, InFileBaseType]], InFileBaseType]
 
 
 def guess_var_names(
@@ -80,12 +50,14 @@ def read_dataset(
         ds = in_files
     elif isinstance(in_files, DataArray):
         ds = _read_dataarray(in_files, index, var_name=var_name)
-    elif isinstance(in_files, (list, tuple)) and is_netcdf(in_files[0]):
+    elif is_glob_path(in_files) or (
+        isinstance(in_files, (list, tuple)) and is_netcdf_path(in_files[0])
+    ):
         # we assumes it's a list of netCDF files
         ds = xr.open_mfdataset(in_files, parallel=True)
-    elif is_netcdf(in_files):
+    elif is_netcdf_path(in_files):
         ds = xr.open_dataset(in_files)
-    elif is_zarr(in_files):
+    elif is_zarr_path(in_files):
         ds = xr.open_zarr(in_files)
     else:
         raise NotImplementedError("`in_files` format was not recognized.")
@@ -111,16 +83,20 @@ def update_to_standard_coords(ds: Dataset) -> Dataset:
     return ds
 
 
-def is_zarr(path: InFileBaseType):
+def is_zarr_path(path: InFileBaseType) -> bool:
     return isinstance(path, str) and ".zarr" in path
 
 
-def is_netcdf(path: InFileBaseType):
+def is_netcdf_path(path: InFileBaseType) -> bool:
     return isinstance(path, str) and ".nc" in path
 
 
+def is_glob_path(path: InFileBaseType) -> bool:
+    return isinstance(path, str) and "*" in path
+
+
 def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
-    # This function could probably be backported to xclim PercentileDataArray
+    # todo This function could probably be backported to xclim PercentileDataArray
     per_dim_name = None
     for d in VALID_PERCENTILE_DIMENSION:
         if d in per_da.dims:
@@ -154,18 +130,19 @@ def _read_clim_bounds(
 def _read_dataarray(
     data: DataArray, index: ClimateIndex = None, var_name: str | Sequence[str] = None
 ) -> Dataset:
-    if isinstance(var_name, list):
+    if isinstance(var_name, (tuple, list)):
         if len(var_name) > 1:
             raise InvalidIcclimArgumentError(
                 "When the `in_file` is a DataArray, there"
-                " can only be one value in `var_name`."
+                f" can only be one value in `var_name` but var_name was: {var_name} "
             )
         else:
             var_name = var_name[0]
     if index is not None:
         if index.input_variables and len(index.input_variables) > 1:
             raise InvalidIcclimArgumentError(
-                f"Index {index.short_name} needs {len(index.input_variables)} variables."
+                f"Index {index.short_name} needs {len(index.input_variables)} "
+                f"variables."
                 f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
                 f" zarr store."
             )
@@ -209,7 +186,7 @@ def _guess_dataset_var_names(index: ClimateIndex, ds: Dataset) -> list[str]:
 
 
 def guess_input_type(data: DataArray) -> CfVarMetadata:
-    cf_input = CF_VAR_METADATA_REGISTRY.lookup(data)
+    cf_input = CF_VAR_METADATA_REGISTRY.lookup(data.name)
     cf_input.frequency = Frequency.lookup(
         xr.infer_freq(data.time) or DEFAULT_INPUT_FREQUENCY
     )
@@ -219,7 +196,7 @@ def guess_input_type(data: DataArray) -> CfVarMetadata:
 
 def build_study_da(
     original_da: DataArray,
-    time_range: list[str] | None,
+    time_range: Sequence[str] | None,
     ignore_Feb29th: bool,
     sampling_frequency: Frequency,
 ) -> DataArray:
@@ -277,12 +254,8 @@ def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
     return True
 
 
-def _get_threshold_var_name(
-    ds: Dataset, threshold_var_name: str, climate_var_name: str
-) -> str:
-    if threshold_var_name is not None:
-        return threshold_var_name
-    elif len(ds.data_vars) == 1:
+def _get_threshold_var_name(ds: Dataset, climate_var_name: str) -> str:
+    if len(ds.data_vars) == 1:
         return get_name_of_first_var(ds)
     else:
         return _guess_threshold_var_name(climate_var_name, ds)

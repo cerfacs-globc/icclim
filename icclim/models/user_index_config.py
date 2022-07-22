@@ -2,50 +2,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Literal
+from typing import Any, Sequence
 
 from models.climate_variable import ClimateVariable
-from models.logical_operation import LogicalOperation
+from models.operator import OPERATOR_REGISTRY
 from xclim.core.calendar import select_time
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.frequency import Frequency
+from icclim.models.logical_link import LOGICAL_LINK_REGISTRY, LogicalLink
+from icclim.models.operator import Operator
 from icclim.utils import get_date_to_iso_format
-
-LogicalOperationLiteral = Literal[
-    "gt",
-    ">",
-    "lt",
-    "<",
-    "get",
-    "ge",
-    ">=",
-    "=>",
-    "let",
-    "le",
-    "<=",
-    "=<",
-    "e",
-    "equal",
-    "eq",
-    "=",
-    "==",
-]
-
-
-class LinkLogicalOperation(Enum):
-    OR_STAMP = "or"
-    AND_STAMP = "and"
-
-    @staticmethod
-    def lookup(query: str) -> LinkLogicalOperation:
-        for mode in LinkLogicalOperation:
-            if query.upper == mode.value.upper():
-                return mode
-        raise InvalidIcclimArgumentError(
-            f"Unknown link_logical_operation mode {query}."
-            f"Use one of {[linkOp.value for linkOp in LinkLogicalOperation]}."
-        )
 
 
 class ExtremeMode(Enum):
@@ -65,9 +32,9 @@ class ExtremeMode(Enum):
 
 @dataclass
 class NbEventConfig:
-    logical_operation: list[LogicalOperation]
+    logical_operation: list[Operator]
     thresholds: list[float | str]
-    link_logical_operations: LinkLogicalOperation | None = None
+    link_logical_operations: LogicalLink | None = None
     data_arrays: list[ClimateVariable] | None = None
 
 
@@ -79,9 +46,9 @@ class UserIndexConfig:
     freq: Frequency
     date_event: bool
     is_percent: bool
-    logical_operation: LogicalOperation | None = None
+    logical_operation: Operator | None = None
     thresh: float | int | str | list[float | int | str] | None = None
-    link_logical_operations: LinkLogicalOperation | None = None
+    link_logical_operations: LogicalLink | None = None
     extreme_mode: ExtremeMode | None = None
     window_width: int | None = None
     coef: float | None = None
@@ -112,7 +79,7 @@ class UserIndexConfig:
         self.calc_operation = calc_operation
         self.freq = freq
         if logical_operation is not None:
-            self.logical_operation = LogicalOperation.lookup(logical_operation)
+            self.logical_operation = OPERATOR_REGISTRY.lookup(logical_operation)
         self.thresh = thresh
         if extreme_mode is not None:
             self.extreme_mode = ExtremeMode.lookup(extreme_mode)
@@ -138,21 +105,21 @@ class UserIndexConfig:
 
 
 def get_nb_event_conf(
-    logical_operation: list[str] | str,
+    logical_operation: Sequence[str] | str,
     link_logical_operations: str | None,
-    thresholds: list[str | float] | float | str,
+    thresholds: Sequence[str | float] | float | str,
     cfvars: list[ClimateVariable],
 ) -> NbEventConfig:
-    if not isinstance(thresholds, list):
+    if not isinstance(thresholds, (tuple, list)):
         threshold_list = [thresholds]
     else:
         threshold_list = thresholds
-    if isinstance(logical_operation, list):
-        logical_operations = list(map(LogicalOperation.lookup, logical_operation))
+    if isinstance(logical_operation, (tuple, list)):
+        logical_operations = list(map(OPERATOR_REGISTRY.lookup, logical_operation))
     else:
-        logical_operations = [LogicalOperation.lookup(logical_operation)]
+        logical_operations = [OPERATOR_REGISTRY.lookup(logical_operation)]
     if link_logical_operations is not None:
-        link_logical_operation_list = LinkLogicalOperation.lookup(
+        link_logical_operation_list = LOGICAL_LINK_REGISTRY.lookup(
             link_logical_operations
         )
     else:
