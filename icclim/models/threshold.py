@@ -243,11 +243,11 @@ class Threshold:
         if self.value.size == 1:
             res = {
                 "standard_name": f"{self.operator.standard_name}_"
-                                 f"{self.value.values[()]}"
-                                 f"_{self.unit}",
+                f"{self.value.values[()]}"
+                f"_{self.unit}",
                 "long_name": f"{self.operator.long_name} "
-                             f"{self.value.values[()]} "
-                             f"{self.unit}",
+                f"{self.value.values[()]} "
+                f"{self.unit}",
             }
         elif isinstance(self.value, PercentileDataArray):
             percentiles = self.value.coords["percentiles"].values
