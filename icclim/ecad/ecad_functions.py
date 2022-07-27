@@ -133,7 +133,7 @@ def txn(config: IndexConfig) -> DataArray:
     result = atmos.tx_min(
         config.tasmax.study_da, **config.frequency.build_frequency_kwargs()
     )
-    result = convert_units_to(result, "°C")
+    result = convert_units_to(result, "degree_Celsius")
     return result
 
 
@@ -141,7 +141,7 @@ def tnn(config: IndexConfig) -> DataArray:
     result = atmos.tn_min(
         config.tasmin.study_da, **config.frequency.build_frequency_kwargs()
     )
-    result = convert_units_to(result, "°C")
+    result = convert_units_to(result, "degree_Celsius")
     return result
 
 
@@ -236,7 +236,7 @@ def txx(config: IndexConfig) -> DataArray:
     result = atmos.tx_max(
         config.tasmax.study_da, **config.frequency.build_frequency_kwargs()
     )
-    result = convert_units_to(result, "°C")
+    result = convert_units_to(result, "degree_Celsius")
     return result
 
 
@@ -244,7 +244,7 @@ def tnx(config: IndexConfig) -> DataArray:
     result = atmos.tn_max(
         config.tasmin.study_da, **config.frequency.build_frequency_kwargs()
     )
-    result = convert_units_to(result, "°C")
+    result = convert_units_to(result, "degree_Celsius")
     return result
 
 
@@ -419,7 +419,7 @@ def tg(config: IndexConfig) -> DataArray:
     result = atmos.tg_mean(
         config.tas.study_da, **config.frequency.build_frequency_kwargs()
     )
-    result = convert_units_to(result, "°C")
+    result = convert_units_to(result, "degree_Celsius")
     return result
 
 
@@ -427,7 +427,7 @@ def tn(config: IndexConfig) -> DataArray:
     result = atmos.tn_mean(
         config.tasmin.study_da, **config.frequency.build_frequency_kwargs()
     )
-    result = convert_units_to(result, "°C")
+    result = convert_units_to(result, "degree_Celsius")
     return result
 
 
@@ -435,7 +435,7 @@ def tx(config: IndexConfig) -> DataArray:
     result = atmos.tx_mean(
         config.tasmax.study_da, **config.frequency.build_frequency_kwargs()
     )
-    result = convert_units_to(result, "°C")
+    result = convert_units_to(result, "degree_Celsius")
     return result
 
 
@@ -445,7 +445,7 @@ def dtr(config: IndexConfig) -> DataArray:
         tasmin=config.tasmin.study_da,
         **config.frequency.build_frequency_kwargs(),
     )
-    result.attrs["units"] = "°C"
+    result.attrs["units"] = "degree_Celsius"
     return result
 
 
@@ -455,7 +455,7 @@ def etr(config: IndexConfig) -> DataArray:
         tasmin=config.tasmin.study_da,
         **config.frequency.build_frequency_kwargs(),
     )
-    result.attrs["units"] = "°C"
+    result.attrs["units"] = "degree_Celsius"
     return result
 
 
@@ -465,7 +465,7 @@ def vdtr(config: IndexConfig) -> DataArray:
         tasmin=config.tasmin.study_da,
         **config.frequency.build_frequency_kwargs(),
     )
-    result.attrs["units"] = "°C"
+    result.attrs["units"] = "degree_Celsius"
     return result
 
 
@@ -658,7 +658,7 @@ def _compute_threshold_index(
     xclim_index_fun: Callable,
 ) -> DataArray:
     result = xclim_index_fun(
-        da, thresh=f"{threshold} °C", **freq.build_frequency_kwargs()
+        da, thresh=f"{threshold} degree_Celsius", **freq.build_frequency_kwargs()
     )
     return result
 
