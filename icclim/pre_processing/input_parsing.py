@@ -89,7 +89,9 @@ def read_dataset(
         return _read_dataarray(in_data, index, var_name=var_name)
     elif isinstance(in_data, list):
         # we assumes it's a list of netCDF files
-        return xr.open_mfdataset(in_data, parallel=True)
+        #  join="override" is used for cases some dimension are a tiny bit different
+        #  in different files (was the case with eobs).
+        return xr.open_mfdataset(in_data, parallel=True, join="override")
     elif is_netcdf(in_data):
         return xr.open_dataset(in_data)
     elif is_zarr(in_data):
