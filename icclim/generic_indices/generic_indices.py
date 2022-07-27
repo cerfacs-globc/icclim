@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import abc
 from functools import reduce
+from typing import Callable
 
 import numpy
 import numpy as np
+from generic_indices.generic_index_functions import _can_run_bootstrap
 from jinja2 import Environment
-from models.operator import Operator
 from xarray import DataArray
 from xclim.core import datachecks
-from xclim.core.calendar import select_time
+from xclim.core.bootstrapping import percentile_bootstrap
+from xclim.core.calendar import resample_doy, select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 from xclim.core.units import convert_units_to, to_agg_units
@@ -22,6 +24,7 @@ from icclim.models.index_config import IndexConfig
 # jinja_env = Environment(autoescape=True)
 # todo could be a security issue to have autoescape=False (default)
 #      but otherwise > and < are replaced by &gt and &lt
+
 jinja_env = Environment()
 
 
@@ -43,6 +46,7 @@ class Indicator:
         "long_name",
         "description",
         "cell_methods",
+        "short_name",
     ]  # todo make it a decorator ?
 
     @abc.abstractmethod  # todo  is abc.abstractmethod really needed ?
@@ -79,6 +83,7 @@ class ResamplingIndicator(Indicator):
         for climate_var in climate_vars:
             da = climate_var.study_da
             if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
+                # todo useless ?
                 datachecks.check_freq(da, src_freq, strict=True)
 
     def cfcheck(self, climate_vars: list[ClimateVariable]):
@@ -173,14 +178,13 @@ class CountEventComparedToThreshold(ResamplingIndicator):
     # TODO: Add aliases to recognize common indices (heatwave, SU, tropical_night, etc).
     #       or just define catalogs (ecad, xclim, ettcdi) ?
     identifier = (
-        "{{src_freq.units}}_when"
         "{% for i, input in enumerate(inputs) %}"
-        "_{{input.short_name}}"
-        "_{{input.threshold.standard_name}}"
+        "{{input.short_name}}"
         "{% if i != len(inputs) - 1 %}"
         "_and"
         "{% endif%}"
         "{% endfor %}"
+        "_{{src_freq.units}}"
     )
     units = "{{src_freq.units}}"
     standard_name = (
@@ -196,11 +200,8 @@ class CountEventComparedToThreshold(ResamplingIndicator):
     long_name = (
         "Number of {{src_freq.units}} when"
         "{% for i, input in enumerate(inputs) %}"
-        " {{input.short_name}}"
+        " {{input.short_name}} is"
         " {{input.threshold.long_name}}"
-        "{% if input.threshold.additional_metadata %}"
-        "{{input.threshold.additional_metadata}}"
-        "{% endif%}"
         "{% if i != len(inputs) - 1 %}"
         " and"
         "{% endif%}"
@@ -214,7 +215,7 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         " {{input.long_name}} is"
         " {{input.threshold.long_name}}"
         "{% if input.threshold.additional_metadata %}"
-        " ({{input.threshold.additional_metadata}})"
+        " {{input.threshold.additional_metadata}}"
         "{% endif%}"
         "{% if i != len(inputs) - 1 %}"
         " and"
@@ -222,17 +223,12 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "{% endfor %}"
         "."
     )
-    cell_methods = "time: sum over {{src_freq.units}}"
+    cell_methods = "time: sum over {{src_freq.units}}"  # todo sum ??
 
-    def __init__(self, short_name: str, **kwds):
+    def __init__(self, **kwds):
         super().__init__(**kwds)
         self.input_variables = None
-        # -- duct type to ClimateIndex
-        #    todo make it cleaner (remove ClimateIndex class ?)
-        self.short_name = short_name
-        self.input_variables = None
-        self.compute = None
-        self.group = None
+        self.short_name = self.identifier
 
     def preprocess(
         self,
@@ -279,7 +275,7 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         )
         result = self._compare_climate_vars_to_thresholds(
             climate_vars=climate_vars,
-            freq=config.frequency.pandas_freq,
+            freq=config.frequency,
         )
         return self.postprocess(
             result,
@@ -291,31 +287,40 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         self,
         /,
         climate_vars: list[ClimateVariable],
-        freq: str = "YS",
+        freq: Frequency,
     ) -> DataArray:
         intermediary = [
             self._compare_climate_var_to_thresh(
                 climate_var.study_da,
-                climate_var.threshold.operator,
                 climate_var.threshold.value,
-                freq,
+                freq.pandas_freq,
+                bootstrap=_can_run_bootstrap(
+                    climate_var.study_da, climate_var.threshold
+                ),
+                operator=climate_var.threshold.operator,
+                is_doy_per=climate_var.threshold.is_doy_per_threshold,
             )
             for climate_var in climate_vars
         ]
         return reduce(np.logical_and, intermediary)  # noqa
 
+    @percentile_bootstrap
     def _compare_climate_var_to_thresh(
         self,
-        data: DataArray,
-        operator: Operator,
+        study: DataArray,
         thresholds: DataArray,
-        freq: str = "YS",
+        freq: str,
+        bootstrap: bool,  # noqa
+        operator: Callable,
+        is_doy_per: bool,
     ) -> DataArray:
-        # xclim index function
+        # xclim like index function
         # signature is not exact as parameters can be injected
-        thresholds = convert_units_to(thresholds, data)
-        res = operator(data, thresholds).resample(time=freq).sum(dim="time")
-        return to_agg_units(res, data, "count")
+        th_da = convert_units_to(thresholds, study)
+        if is_doy_per:
+            th_da = resample_doy(th_da, study)
+        res = operator(study, th_da).resample(time=freq).sum(dim="time")
+        return to_agg_units(res, study, "count")
 
 
 class IndexCatalog:

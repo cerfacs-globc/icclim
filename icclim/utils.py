@@ -18,7 +18,7 @@ def _da_chunksizes(da: xarray.Variable) -> dict:
         return {}
 
 
-def _get_chunksizes(ds: Dataset) -> dict:
+def get_chunksizes(ds: Dataset) -> dict:
     # FIXME To remove once minimal xarray version is v0.20.0 (use .chunksizes instead)
     # Copied and adapted from xarray
     chunks: dict[str, int] = {}
@@ -50,20 +50,7 @@ def get_date_to_iso_format(in_date: str | datetime) -> str:
     return in_date.strftime("%Y-%m-%d")
 
 
-class Singleton:
-    __instance: Singleton | None = None
-
-    @classmethod
-    def get_instance(cls, *args, **kwargs):
-        if Singleton.__instance is None:
-            cls.__init__(*args, **kwargs)
-        return cls.__instance
-
-    def __init__(self):
-        if self.__instance is not None:
-            raise Exception(
-                "This class is a singleton!"
-                " Use get_instance() to get the existing instance."
-            )
-        else:
-            self.__instance = self
+def is_number_sequence(values) -> bool:
+    return isinstance(values, (tuple, list)) and all(
+        map(lambda x: isinstance(x, (float, int)), values)
+    )

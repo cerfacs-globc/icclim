@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Sequence
 
+import numpy as np
 import xarray as xr
 import xclim
 from generic_indices.cf_var_metadata import CF_VAR_METADATA_REGISTRY
 from icclim_types import InFileBaseType, InFileType
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
+from xclim.core.units import convert_units_to
+from xclim.core.utils import PercentileDataArray
 
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -95,7 +99,7 @@ def is_glob_path(path: InFileBaseType) -> bool:
     return isinstance(path, str) and "*" in path
 
 
-def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
+def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
     # todo This function could probably be backported to xclim PercentileDataArray
     per_dim_name = None
     for d in VALID_PERCENTILE_DIMENSION:
@@ -116,7 +120,7 @@ def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
     return per_da
 
 
-def _read_clim_bounds(
+def read_clim_bounds(
     climatology_bounds: Sequence[str, str], per_da: DataArray
 ) -> list[str]:
     bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
@@ -254,29 +258,89 @@ def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
     return True
 
 
-def _get_threshold_var_name(ds: Dataset, climate_var_name: str) -> str:
-    if len(ds.data_vars) == 1:
-        return get_name_of_first_var(ds)
-    else:
-        return _guess_threshold_var_name(climate_var_name, ds)
-
-
-def _guess_threshold_var_name(climate_var_name: str, ds: Dataset) -> str:
-    data_var_names = map(lambda v: str(v.name), ds.data_vars)
-    for x in data_var_names:
-        if climate_var_name in x:
-            return x
-    raise InvalidIcclimArgumentError(
-        "Could not guess the variable name for percentiles"
-        f" of {climate_var_name}. Please, provide the"
-        f" explicite name using threshold_var_name like so:"
-        f" \u007bf'{climate_var_name}':"
-        f" \u007b'study': 'x.nc',"
-        f" 'percentiles': 'y.nc',"
-        f" threshold_var_name='{climate_var_name}_percentiles'"
-        f" \u007d\u007d"
-    )
-
-
 def get_name_of_first_var(ds: Dataset) -> str:
     return str(ds.data_vars[list(ds.data_vars.keys())[0]].name)
+
+
+def is_dataset_path(query: Sequence | str) -> bool:
+    if isinstance(query, (tuple, list)):
+        return all(map(lambda q: is_netcdf_path(q), query))
+    return is_zarr_path(query) or is_glob_path(query) or is_netcdf_path(query)
+
+
+def reduce_only_leap_years(da: DataArray) -> DataArray:
+    reduced_list = []
+    for _, val in da.groupby(da.time.dt.year):
+        if val.time.dt.dayofyear.max() == 366:
+            reduced_list.append(val)
+    if not reduced_list:
+        raise InvalidIcclimArgumentError(
+            "No leap year in current dataset. Do not use `only_leap_years` parameter."
+        )
+    return xr.concat(reduced_list, "time")
+
+
+def read_string_threshold(query: str):
+    value = re.findall(r"-?\d+\.?\d*", query)[0]
+    value_index = query.find(value)
+    operator = query[0:value_index].strip()
+    if value_index < len(query) - 1:
+        unit = query[value_index + len(value) :].strip()
+    else:
+        unit = None
+    return operator, unit, float(value)
+
+
+def read_threshold_DataArray(
+    thresh_da: DataArray,
+    threshold_min_value: str | float,
+    climatology_bounds: Sequence[str],
+    unit: str,
+):
+    if PercentileDataArray.is_compatible(thresh_da):
+        built_value = PercentileDataArray.from_da(
+            standardize_percentile_dim_name(thresh_da),
+            read_clim_bounds(climatology_bounds, thresh_da),
+        )
+        built_value.attrs["unit"] = unit
+    else:
+        if threshold_min_value:
+            if isinstance(threshold_min_value, str):
+                threshold_min_value = convert_units_to(threshold_min_value, thresh_da)
+            # todo in prcptot the replacing value (np.nan) needs to be 0
+            built_value = thresh_da.where(thresh_da > threshold_min_value, np.nan)
+        else:
+            built_value = thresh_da
+        built_value.attrs["unit"] = unit
+    return built_value
+
+
+def build_reference_da(
+    original_da: DataArray,
+    base_period_time_range: Sequence[datetime | str] | None,
+    only_leap_years: bool,
+    sampling_frequency: Frequency,
+    percentile_min_value: str | float | None,
+) -> DataArray:
+    reference = original_da
+    if base_period_time_range:
+        check_time_range_pre_validity("base_period_time_range", base_period_time_range)
+        base_period_time_range = [
+            get_date_to_iso_format(x) for x in base_period_time_range
+        ]
+        reference = original_da.sel(
+            time=slice(base_period_time_range[0], base_period_time_range[1])
+        )
+        check_time_range_post_validity(
+            reference, original_da, "base_period_time_range", base_period_time_range
+        )
+    if sampling_frequency.time_clipping is not None:
+        reference = sampling_frequency.time_clipping(reference)
+    if only_leap_years:
+        reference = reduce_only_leap_years(original_da)
+    if percentile_min_value:
+        if isinstance(percentile_min_value, str):
+            percentile_min_value = convert_units_to(percentile_min_value, reference)
+        # todo in prcptot the replacing value (np.nan) needs to be 0
+        reference = reference.where(reference >= percentile_min_value, np.nan)
+    return reference

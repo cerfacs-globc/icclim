@@ -57,6 +57,9 @@ class ClimateIndex:
         else:
             return self.output_var_name.replace("{xx}", "_".join(map(str, threshold)))
 
+    def __call__(self, *args, **kwargs):
+        self.compute(*args, **kwargs)
+
 
 class ClimateIndexEnum(Enum):
     """Abstract class of indicator catalogs.

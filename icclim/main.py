@@ -17,9 +17,7 @@ from warnings import warn
 import xarray as xr
 import xclim
 from generic_indices.generic_indices import CountEventComparedToThreshold, Indicator
-from models.climate_variable import ClimateVariable
-from models.threshold import BoundedThresholds, Threshold
-from pre_processing.in_file_dictionary import InFileDictionary
+from models.climate_variable import read_climate_vars
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
@@ -33,16 +31,10 @@ from icclim.models.frequency import Frequency, SliceMode
 from icclim.models.index_group import IndexGroup
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.threshold import Threshold
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
-from icclim.pre_processing.input_parsing import (
-    InFileBaseType,
-    InFileType,
-    build_study_da,
-    guess_input_type,
-    guess_var_names,
-    read_dataset,
-)
+from icclim.pre_processing.input_parsing import InFileType
 from icclim.user_indices.calc_operation import CalcOperation, compute_user_index
 
 log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
@@ -125,6 +117,12 @@ def indice(*args, **kwargs):
     return index(*args, **kwargs)
 
 
+def generic(in_files: InFileType, **kwargs) -> Dataset:
+    if kwargs.get("index_name"):
+        raise InvalidIcclimArgumentError("With generic, index_name must be empty")
+    return index(in_files=in_files, index_name="generic_threshold", **kwargs)
+
+
 def index(
     in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
@@ -132,8 +130,7 @@ def index(
     slice_mode: SliceMode = Frequency.YEAR,
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    # todo deprecate threshold in favor of in_files dictionary ?
-    threshold: str | Threshold | BoundedThresholds = None,
+    threshold: str | Threshold = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -249,8 +246,6 @@ def index(
         DEPRECATED, use index_name instead.
     user_indice : dict | None
         DEPRECATED, use user_index instead.
-    kwargs : dict
-        Additional keyword arguments passed to xclim index function.
 
     """
     _setup(callback, callback_percentage_start_value, logs_verbosity, slice_mode)
@@ -265,20 +260,24 @@ def index(
             " or `index_name` for one of the ECA&D indices."
         )
     if isinstance(threshold, str):
-        threshold = Threshold(threshold)
+        threshold = Threshold(
+            threshold,
+            window=window_width,
+            base_period_time_range=base_period_time_range,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+        )
     if index_name is not None:
         if (ecad_index := EcadIndex.lookup(index_name)) is not None:
             index = ecad_index.climate_index
             if threshold is not None:
-                # todo instead: warning ?
-                #      and/or reroute to the corresponding generic index ?
                 raise InvalidIcclimArgumentError(
                     "ECAD indices threshold cannot be "
                     "configured. Use a generic index "
                     "instead."
                 )
         elif index_name == "generic_threshold":
-            index = CountEventComparedToThreshold("generic_threshold")
+            index = CountEventComparedToThreshold()
         else:
             raise InvalidIcclimArgumentError(f"Unknown index {index_name}.")
     else:
@@ -327,106 +326,6 @@ def index(
     callback(callback_percentage_total)
     log.ending_message(time.process_time())
     return result_ds
-
-
-def read_climate_vars(
-    ignore_Feb29th: bool,
-    in_files: InFileType,
-    index: ClimateIndex,
-    sampling_frequency: Frequency,
-    threshold: Threshold | BoundedThresholds,
-    time_range: Sequence[str],
-    var_names: str | Sequence[str] | None,
-) -> list[ClimateVariable]:
-    # TODO [refacto] move to input_parsing
-    dico = to_readable_input(in_files, var_names, index, threshold)
-    return read_dictionary(
-        ignore_Feb29th,
-        dico,
-        index,
-        sampling_frequency,
-        threshold,
-        time_range,
-    )
-
-
-def to_readable_input(
-    in_files: InFileType,
-    var_names: Sequence[str],
-    index: ClimateIndex,
-    threshold: Threshold,
-) -> InFileDictionary:
-    # TODO [refacto] move to input_parsing
-    if isinstance(in_files, dict):
-        if var_names is not None:
-            warn("`var_name` is ignored, `in_files` keys are used instead.")
-        return in_files
-    if not isinstance(in_files, dict):
-        input_dataset = read_dataset(in_files, index, var_names)
-        var_names = guess_var_names(input_dataset, index, var_names)
-        return {
-            var_name: {
-                "study": input_dataset[var_name],
-                "thresholds": threshold,
-            }
-            for var_name in var_names
-        }
-
-
-def read_dictionary(
-    ignore_Feb29th: bool,
-    in_files: InFileDictionary,
-    index: ClimateIndex,
-    sampling_frequency: Frequency,
-    threshold: Threshold | None,
-    time_range: Sequence[str],
-):
-    # TODO [refacto] move to input_parsing
-    # TODO [refacto] add types to parameters and output
-    climate_vars = []
-    for climate_var_name, climate_var_data in in_files.items():
-        if isinstance(climate_var_data, dict):
-            study_ds = read_dataset(climate_var_data["study"], index, climate_var_name)
-            cf_meta = guess_input_type(study_ds[climate_var_name])
-            # todo: deprecate climate_var_data.get("per_var_name", None)
-            #       for threshold_var_name
-            if climate_var_data.get("thresholds", None) is not None:
-                climate_var_thresh = climate_var_data.get("thresholds", None)
-            else:
-                climate_var_thresh = threshold
-        else:
-            climate_var_data: InFileBaseType
-            study_ds = read_dataset(climate_var_data, index, climate_var_name)
-            cf_meta = guess_input_type(study_ds[climate_var_name])
-            climate_var_thresh = threshold
-        study_da = build_study_da(
-            study_ds[climate_var_name],
-            time_range,
-            ignore_Feb29th,
-            sampling_frequency,
-        )
-        if isinstance(climate_var_thresh, str):
-            climate_var_thresh = Threshold(climate_var_thresh)
-        if isinstance(climate_var_thresh, BoundedThresholds):
-            climate_var_thresh = climate_var_thresh.to_threshold(
-                sampling_frequency, study_da, study_da.attrs.get("units", cf_meta.units)
-            )
-        elif isinstance(climate_var_thresh.value, Callable):
-            climate_var_thresh.value = climate_var_thresh.value(
-                sampling_frequency, study_da
-            )
-            climate_var_thresh.value.attrs["units"] = study_da.attrs.get(
-                "units", cf_meta.units
-            )
-        climate_vars.append(
-            ClimateVariable(
-                name=climate_var_name,
-                cf_meta=cf_meta,
-                study_da=study_da,
-                threshold=climate_var_thresh,
-            )
-        )
-    return climate_vars
 
 
 def _write_output_file(

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TypedDict
 
 from icclim_types import InFileBaseType
-from models.threshold import BoundedThresholds, Threshold
+from models.threshold import Threshold
 
 
 class InFileDictionary(TypedDict, total=False):
@@ -23,4 +23,4 @@ class InFileDictionary(TypedDict, total=False):
     """
 
     study: InFileBaseType
-    thresholds: Threshold | BoundedThresholds
+    thresholds: Threshold

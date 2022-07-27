@@ -4,14 +4,13 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Sequence
 
-from models.climate_variable import ClimateVariable
-from models.operator import OPERATOR_REGISTRY
 from xclim.core.calendar import select_time
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
 from icclim.models.logical_link import LOGICAL_LINK_REGISTRY, LogicalLink
-from icclim.models.operator import Operator
+from icclim.models.operator import OPERATOR_REGISTRY, Operator
 from icclim.utils import get_date_to_iso_format
 
 

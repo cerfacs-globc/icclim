@@ -54,3 +54,5 @@ DJF_MONTHS:list[int] = [12, 1, 2]
 MAM_MONTHS:list[int] = [*range(3, 6)]
 JJA_MONTHS:list[int] = [*range(6, 9)]
 SON_MONTHS:list[int] = [*range(9, 12)]
+PERIOD_PERCENTILE_UNIT = "period_per"
+DOY_PERCENTILE_UNIT = "doy_per"

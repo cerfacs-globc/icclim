@@ -192,7 +192,7 @@ def _unsafe_create_optimized_zarr_store(
             ds[data_var].encoding = {}
             acc = {}
             for dim in ds[data_var].dims:
-                acc.update({dim: utils._get_chunksizes(ds)[dim][0]})
+                acc.update({dim: utils.get_chunksizes(ds)[dim][0]})
             target_chunks.update({data_var: acc})
         for c in ds.coords:
             ds[c].encoding = {}
