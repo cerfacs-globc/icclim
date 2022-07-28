@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import pytest
-from models.operator import LogicalOperation
+from models.operator import OperatorRegistry
 
-from icclim.models.frequency import Frequency
+from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_config import ClimateVariable
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.tests.testing_utils import stub_tas
@@ -21,12 +21,14 @@ class Test_UserindexConfig:
         }
         tas = stub_tas(use_dask=use_dask)
         config = UserIndexConfig(
-            **dico, freq=Frequency.MONTH, cf_vars=[ClimateVariable("tas", tas, tas)]
+            **dico,
+            freq=FrequencyRegistry.MONTH,
+            cf_vars=[ClimateVariable("tas", tas, tas)],
         )
         assert config.index_name == "my_index"
         assert config.calc_operation == "min"
-        assert config.logical_operation == LogicalOperation.GREATER
+        assert config.logical_operation == OperatorRegistry.GREATER
         assert config.thresh == 273.15
         assert config.date_event
-        assert config.freq == Frequency.MONTH
+        assert config.freq == FrequencyRegistry.MONTH
         assert config.cf_vars[0].study_da is tas

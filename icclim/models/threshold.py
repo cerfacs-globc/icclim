@@ -16,8 +16,11 @@ from icclim.generic_indices.generic_index_functions import (
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import DOY_PERCENTILE_UNIT, PERIOD_PERCENTILE_UNIT
 from icclim.models.frequency import Frequency
-from icclim.models.operator import OPERATOR_REGISTRY, Operator
-from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.operator import Operator, OperatorRegistry
+from icclim.models.quantile_interpolation import (
+    QuantileInterpolation,
+    QuantileInterpolationRegistry,
+)
 from icclim.pre_processing.input_parsing import (
     is_dataset_path,
     read_dataset,
@@ -76,7 +79,7 @@ class Threshold:
         climatology_bounds: Sequence[str, str] | None = None,
         window: int = 5,
         only_leap_years: bool = False,
-        interpolation: QuantileInterpolation = QuantileInterpolation.MEDIAN_UNBIASED,
+        interpolation: QuantileInterpolation = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
         base_period_time_range: Sequence[datetime | str] | None = None,
         threshold_min_value: str | float | None = None,
     ):
@@ -131,7 +134,7 @@ class Threshold:
         else:
             raise NotImplementedError("Threshold could not be built.")
         self.is_doy_per_threshold = is_doy_per_threshold
-        self.operator = OPERATOR_REGISTRY.lookup(operator)
+        self.operator = OperatorRegistry.lookup(operator)
         self.value = value
         self.unit = unit
         self.additional_metadata = []

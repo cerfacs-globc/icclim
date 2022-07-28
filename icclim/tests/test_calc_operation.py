@@ -4,16 +4,16 @@ from typing import Callable
 from unittest.mock import MagicMock, patch
 
 import pytest
-from models.operator import LogicalOperation
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import PRECIPITATION, TEMPERATURE
-from icclim.models.frequency import Frequency
+from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_config import ClimateVariable
+from icclim.models.operator import OperatorRegistry
 from icclim.tests.testing_utils import stub_pr, stub_tas, stub_user_index
 from icclim.user_indices import calc_operation
 from icclim.user_indices.calc_operation import (
-    CalcOperation,
+    CalcOperationRegistry,
     anomaly,
     compute_user_index,
     count_events,
@@ -29,7 +29,7 @@ class Test_compute:
         cf_var = ClimateVariable("tas", stub_tas(), stub_tas())
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "pouet pouet"
-        user_index.frequency = Frequency.MONTH
+        user_index.frequency = FrequencyRegistry.MONTH
         # WHEN
         with pytest.raises(InvalidIcclimArgumentError):
             compute_user_index(user_index)
@@ -39,7 +39,7 @@ class Test_compute:
         cf_var = ClimateVariable("tas", stub_tas(), stub_tas())
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "max"
-        user_index.frequency = Frequency.MONTH
+        user_index.frequency = FrequencyRegistry.MONTH
         # WHEN
         result = compute_user_index(user_index)
         # THEN
@@ -54,11 +54,11 @@ class Test_compute:
             time=cf_var.study_da.time.dt.year == 2042
         )
         user_index = stub_user_index([cf_var])
-        user_index.calc_operation = CalcOperation.MIN
+        user_index.calc_operation = CalcOperationRegistry.MIN
         user_index.thresh = "90p"
-        user_index.logical_operation = LogicalOperation.GREATER_OR_EQUAL
+        user_index.logical_operation = OperatorRegistry.GREATER_OR_EQUAL
         user_index.var_type = PRECIPITATION
-        user_index.frequency = Frequency.YEAR
+        user_index.frequency = FrequencyRegistry.YEAR
         # WHEN
         result = compute_user_index(user_index)
         # THEN
@@ -73,9 +73,9 @@ class Test_compute:
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "min"
         user_index.thresh = "10p"
-        user_index.logical_operation = LogicalOperation.LOWER_OR_EQUAL
+        user_index.logical_operation = OperatorRegistry.LOWER_OR_EQUAL
         user_index.var_type = TEMPERATURE
-        user_index.frequency = Frequency.MONTH
+        user_index.frequency = FrequencyRegistry.MONTH
         # WHEN
         result = compute_user_index(user_index)
         # THEN

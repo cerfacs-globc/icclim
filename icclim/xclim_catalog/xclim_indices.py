@@ -8,32 +8,33 @@ from icclim.ecad.ecad_functions import (
     _compute_precip_percentile_over_period,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.climate_index import ClimateIndex, ClimateIndexEnum
+from icclim.models.climate_index import ClimateIndex
 from icclim.models.constants import PR, SFC_WIND, TAS, TAS_MAX, TAS_MIN
 from icclim.models.index_config import IndexConfig
+from icclim.models.registry import Registry
 
 
-class XclimIndex(ClimateIndexEnum):
+class XclimIndexRegistry(Registry):
+    # TODO: NOT TESTED ! Finish this or delete it.
+    _item_class = ClimateIndex
     # Don't fill this enum, its values are built dynamically with ::build_xclim_indices
 
     @staticmethod
-    def lookup(query: str) -> XclimIndex:
-        if isinstance(query, XclimIndex):
-            return query.value
-        for e in XclimIndex:
+    def lookup(query: str, no_error=False) -> ClimateIndex:
+        for e in XclimIndexRegistry.values():
             if e.short_name.upper() == query.upper():
                 return e
-        raise InvalidIcclimArgumentError(f"Unknown ECA&D index {query}.")
+        raise InvalidIcclimArgumentError(f"Unknown Xclim index {query}.")
 
     @staticmethod
     def list() -> list[str]:
         return [
             f"{i.group.built_value} | {i.short_name} | {i.definition}"
-            for i in XclimIndex
+            for i in XclimIndexRegistry.values()
         ]
 
-    @staticmethod
-    def build_xclim_indices() -> XclimIndex:
+    @classmethod
+    def build_xclim_indices(cls):
         xclim_indicators = {}
         xclim_indicators.update(xclim.seaIce.__dict__)
         xclim_indicators.update(xclim.land.__dict__)
@@ -44,12 +45,12 @@ class XclimIndex(ClimateIndexEnum):
             filter(lambda x: isinstance(x, Indicator), xclim_indicators)
         )
         indices = {i.identifier: _build_climate_index(i) for i in xclim_indicators}
-        return XclimIndex("XclimIndexEnum", indices, module="icclim.generic_indices")
+        cls.__dict__.update(indices)
 
 
 def _build_climate_index(indicator: Indicator) -> ClimateIndex:
     def compute_fun_translated(config: IndexConfig):
-        kw = config.xclim_kwargs
+        kw = config.xclim_kwargs  # todo add xclim_kwargs to icclim::index
         for param_name, param_value in indicator.parameters.items():
             if "pr" == param_name:
                 kw.update({"pr": config.pr.study_da})

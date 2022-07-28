@@ -79,10 +79,13 @@ import datetime
 from xarray.core.dataset import Dataset
 
 import icclim
-from icclim.icclim_logger import Verbosity
-from icclim.models.frequency import Frequency, SliceMode
-from icclim.models.netcdf_version import NetcdfVersion
-from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.icclim_logger import VerbosityRegistry
+from icclim.models.frequency import FrequencyRegistry, SliceMode
+from icclim.models.netcdf_version import NetcdfVersionRegistry, NetcdfVersion
+from icclim.models.quantile_interpolation import (
+    QuantileInterpolationRegistry,
+    QuantileInterpolation,
+)
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import InFileType
 

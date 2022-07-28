@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import TypedDict
 
 from icclim_types import InFileBaseType
-from models.threshold import Threshold
+
+from icclim.models.threshold import Threshold
 
 
 class InFileDictionary(TypedDict, total=False):

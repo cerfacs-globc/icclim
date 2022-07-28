@@ -7,7 +7,6 @@ from warnings import warn
 import dask.array
 import numpy as np
 import xarray
-from models.logical_link import LOGICAL_AND, LOGICAL_OR, LogicalLink
 from xarray.core.dataarray import DataArray
 from xarray.core.rolling import DataArrayRolling
 from xclim.core.bootstrapping import percentile_bootstrap
@@ -23,8 +22,9 @@ from icclim.models.constants import (
     TEMPERATURE,
     WET_DAY_THRESHOLD,
 )
+from icclim.models.logical_link import LogicalLink, LogicalLinkRegistry
 from icclim.models.operator import Operator
-from icclim.models.user_index_config import MAX, MIN, ExtremeMode
+from icclim.models.user_index_config import ExtremeMode, ExtremeModeRegistry
 from icclim.user_indices.stat import (
     get_first_occurrence_index,
     get_longest_run_start_index,
@@ -187,9 +187,9 @@ def count_events(
         acc.append(result)
     if len(acc) == 1:
         result = acc[0]
-    elif link_logical_operations == LOGICAL_AND:
+    elif link_logical_operations == LogicalLinkRegistry.LOGICAL_AND:
         result = reduce(np.logical_and, acc, True)  # type:ignore
-    elif link_logical_operations == LOGICAL_OR:
+    elif link_logical_operations == LogicalLinkRegistry.LOGICAL_OR:
         result = reduce(np.logical_or, acc, False)  # type:ignore
     else:
         raise NotImplementedError()
@@ -261,7 +261,7 @@ def run_mean(
         coef=coef,
         freq=freq,
         date_event=date_event,
-        aggregator=lambda da: da.mean(),
+        aggregator=lambda data: data.mean(),
     )
 
 
@@ -280,7 +280,7 @@ def run_sum(
         coef=coef,
         freq=freq,
         date_event=date_event,
-        aggregator=lambda da: da.sum(),
+        aggregator=lambda data: data.sum(),
     )
 
 
@@ -402,7 +402,7 @@ def _run_aggregator(
     result = _apply_coef(coef, da)
     result = result.rolling(time=window_width)
     resampled = aggregator(result).resample(time=freq)
-    if extreme_mode == MIN:
+    if extreme_mode == ExtremeModeRegistry.MIN:
         if date_event:
             return _reduce_with_date_event(
                 resampled,
@@ -411,7 +411,7 @@ def _run_aggregator(
             )
         else:
             return resampled.min(dim="time")
-    elif extreme_mode == MAX:
+    elif extreme_mode == ExtremeModeRegistry.MAX:
         if date_event:
             return _reduce_with_date_event(
                 resampled,
@@ -479,5 +479,5 @@ def _get_count_events_date_event(resampled):
     return xarray.concat(acc, "time")
 
 
-def _is_bootstrappable(var_type):
+def _is_bootstrappable(var_type: str):
     return var_type == TEMPERATURE

@@ -5,7 +5,7 @@ import pandas as pd
 import xarray
 import xarray as xr
 
-from icclim.models.frequency import Frequency
+from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_config import ClimateVariable
 from icclim.models.user_index_config import UserIndexConfig
 
@@ -22,7 +22,10 @@ CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")
 
 def stub_user_index(cf_vars: list[ClimateVariable]):
     return UserIndexConfig(
-        index_name="Yolo", calc_operation="noop", freq=Frequency.MONTH, cf_vars=cf_vars
+        index_name="Yolo",
+        calc_operation="noop",
+        freq=FrequencyRegistry.MONTH,
+        cf_vars=cf_vars,
     )
 
 

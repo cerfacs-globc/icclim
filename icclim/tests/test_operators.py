@@ -3,10 +3,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import xarray as xr
-from models.logical_link import LOGICAL_AND, LOGICAL_OR
-from models.operator import EQUAL, GREATER
+from models.user_index_config import ExtremeModeRegistry
 
-from icclim.models.user_index_config import MAX, MIN
+from icclim.models.logical_link import LogicalLinkRegistry
+from icclim.models.operator import OperatorRegistry
 from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.operators import (
     _apply_coef,
@@ -97,7 +97,7 @@ class Test_count_events:
         result = count_events(
             das=[da],
             in_base_das=[None],
-            logical_operation=[GREATER],
+            logical_operation=[OperatorRegistry.GREATER],
             thresholds=[15],
             freq="MS",
         )
@@ -114,7 +114,7 @@ class Test_count_events:
         result = count_events(
             das=[da],
             in_base_das=[da],
-            logical_operation=[GREATER],
+            logical_operation=[OperatorRegistry.GREATER],
             thresholds=["80p"],
             freq="MS",
         )
@@ -131,9 +131,9 @@ class Test_count_events:
         result = count_events(
             das=[tmax, tmin],
             in_base_das=[None],
-            logical_operation=[GREATER, EQUAL],
+            logical_operation=[OperatorRegistry.GREATER, OperatorRegistry.EQUAL],
             thresholds=[12, -20],
-            link_logical_operations=LOGICAL_OR,
+            link_logical_operations=LogicalLinkRegistry.LOGICAL_OR,
             freq="MS",
         )
         # THEN
@@ -150,9 +150,9 @@ class Test_count_events:
         result = count_events(
             das=[tmax, tmin],
             in_base_das=[None],
-            logical_operation=[GREATER, EQUAL],
+            logical_operation=[OperatorRegistry.GREATER, OperatorRegistry.EQUAL],
             thresholds=[12, -20],
-            link_logical_operations=LOGICAL_AND,
+            link_logical_operations=LogicalLinkRegistry.LOGICAL_AND,
             freq="MS",
         )
         # THEN
@@ -172,7 +172,7 @@ class Test_run_mean:
         # WHEN
         result = run_mean(
             da=tmax,
-            extreme_mode=MIN,
+            extreme_mode=ExtremeModeRegistry.MIN,
             window_width=5,
             freq="MS",
         )
@@ -189,7 +189,7 @@ class Test_run_mean:
         # WHEN
         result = run_mean(
             da=tmax,
-            extreme_mode=MAX,
+            extreme_mode=ExtremeModeRegistry.MAX,
             window_width=2,
             freq="MS",
         )
@@ -212,7 +212,7 @@ class Test_run_sum:
         # WHEN
         result = run_sum(
             da=tmax,
-            extreme_mode=MIN,
+            extreme_mode=ExtremeModeRegistry.MIN,
             window_width=5,
             freq="MS",
         )
@@ -229,7 +229,7 @@ class Test_run_sum:
         # WHEN
         result = run_sum(
             da=tmax,
-            extreme_mode=MAX,
+            extreme_mode=ExtremeModeRegistry.MAX,
             window_width=2,
             freq="MS",
         )
@@ -248,7 +248,7 @@ class Test_max_consecutive_event_count:
         # WHEN
         result = max_consecutive_event_count(
             da=tmax,
-            logical_operation=EQUAL,
+            logical_operation=OperatorRegistry.EQUAL,
             threshold=10.0,
             freq="YS",
         )

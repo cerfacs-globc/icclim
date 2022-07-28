@@ -1,29 +1,47 @@
 from __future__ import annotations
 
-from typing import Callable, Generic, Sequence, TypeVar
-
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
-T = TypeVar("T")
 
+class Registry:
+    """This class is a fancy enum to easily store and find constant items of
+    similar type.
 
-class Registry(Generic[T]):
-    def __init__(
-        self,
-        catalog: Sequence[T],
-        lookup_method: Callable[[T], Sequence[str]] = lambda x: [x.name.upper()],
-    ):
-        self.item_class = catalog[0].__class__
-        self.catalog = catalog
-        self.lookup_method = lookup_method
+    It acts as a namespace so there is no need to instantiate it or it's subclasses.
+    """
 
-    def lookup(self, query: T | str) -> T:
-        if isinstance(query, self.item_class):
+    _item_class: type
+
+    def __init__(self):
+        raise NotImplementedError("Don't instantiate Registry, use its class methods.")
+
+    @classmethod
+    def lookup(cls, query: _item_class | str, no_error: bool = False) -> _item_class:
+        if isinstance(query, cls._item_class):
             return query
-        for op in self.catalog:
-            if query.upper() in self.lookup_method(op):
-                return op
+        q = query.upper()
+        for key, item in cls.catalog().items():
+            if q == key.upper() or q in cls.get_item_aliases(item):
+                return item
+        if no_error:
+            return None
         raise InvalidIcclimArgumentError(
-            f"Unknown {self.item_class.__qualname__}: '{query}'. "
-            f"Use one of {list(map(self.lookup_method, self.catalog))}."
+            f"Unknown {cls._item_class.__qualname__}: '{query}'. "
+            f"Use one of {cls.all_aliases()}."
         )
+
+    @classmethod
+    def all_aliases(cls) -> list[_item_class]:
+        return list(map(cls.get_item_aliases, list(cls.catalog().values())))
+
+    @staticmethod
+    def get_item_aliases(item: _item_class) -> list[str]:
+        return [item.name.upper()]
+
+    @classmethod
+    def catalog(cls) -> dict[str, _item_class]:
+        return {k: v for k, v in cls.__dict__.items() if isinstance(v, cls._item_class)}
+
+    @classmethod
+    def values(cls) -> list[_item_class]:
+        return [v for k, v in cls.__dict__.items() if isinstance(v, cls._item_class)]

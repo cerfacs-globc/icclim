@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from enum import Enum
+import dataclasses
 from typing import Callable, Literal
 
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.registry import Registry
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.user_indices import operators
 
@@ -23,7 +24,7 @@ CalcOperationLiteral = Literal[
 
 
 def compute_user_index(config: UserIndexConfig) -> DataArray:
-    operation = CalcOperation.lookup(config.calc_operation)
+    operation = CalcOperationRegistry.lookup(config.calc_operation)
     return operation.compute_fun(config)
 
 
@@ -34,7 +35,7 @@ def anomaly(config: UserIndexConfig):
     ):
         raise InvalidIcclimArgumentError(
             f"You must provide a `ref_time_range` in user_index dictionary to compute"
-            f" {CalcOperation.ANOMALY.value}."
+            f" {CalcOperationRegistry.ANOMALY.value}."
             f" To be valid, it must be within the dataset time range."
         )
     return operators.anomaly(
@@ -81,7 +82,7 @@ def max_consecutive_event_count(config: UserIndexConfig):
         )
     if isinstance(config.thresh, (tuple, list)):
         raise InvalidIcclimArgumentError(
-            f"{CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} "
+            f"{CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS.value} "
             f"does not support threshold list. Please provide a single threshold."
         )
     # todo fix reference_da
@@ -99,7 +100,7 @@ def max_consecutive_event_count(config: UserIndexConfig):
 def count_events(config: UserIndexConfig):
     if config.nb_event_config is None:
         raise InvalidIcclimArgumentError(
-            f"{CalcOperation.EVENT_COUNT.value} not properly configure."
+            f"{CalcOperationRegistry.EVENT_COUNT.value} not properly configure."
             f" Please provide a threshold and a logical operation."
         )
     return operators.count_events(
@@ -191,33 +192,23 @@ def _check_and_get_in_base_da(config: UserIndexConfig) -> DataArray | None:
         )
 
 
-class CalcOperation(Enum):
-    MAX = ("max", max)
-    MIN = ("min", min)
-    SUM = ("sum", sum)
-    MEAN = ("mean", mean)
-    EVENT_COUNT = ("nb_events", count_events)
+@dataclasses.dataclass
+class CalcOperation:
+    name: str
+    compute: Callable
+
+
+class CalcOperationRegistry(Registry):
+    _item_class = CalcOperation
+    MAX = CalcOperation("max", max)
+    MIN = CalcOperation("min", min)
+    SUM = CalcOperation("sum", sum)
+    MEAN = CalcOperation("mean", mean)
+    EVENT_COUNT = CalcOperation("nb_events", count_events)
     MAX_NUMBER_OF_CONSECUTIVE_EVENTS = (
         "max_nb_consecutive_events",
         max_consecutive_event_count,
     )
-    RUN_MEAN = ("run_mean", run_mean)
-    RUN_SUM = ("run_sum", run_sum)
-    ANOMALY = ("anomaly", anomaly)
-
-    def __init__(
-        self, input_name: str, compute_fun: Callable[[UserIndexConfig], DataArray]
-    ):
-        self.input_name = input_name
-        self.compute_fun = compute_fun
-
-    @staticmethod
-    def lookup(calc_operation: str):
-        if isinstance(calc_operation, CalcOperation):
-            return calc_operation
-        for calc_op in CalcOperation:
-            if calc_op.input_name.upper() == calc_operation.upper():
-                return calc_op
-        raise InvalidIcclimArgumentError(
-            f"The calc_operation {calc_operation} is unknown."
-        )
+    RUN_MEAN = CalcOperation("run_mean", run_mean)
+    RUN_SUM = CalcOperation("run_sum", run_sum)
+    ANOMALY = CalcOperation("anomaly", anomaly)

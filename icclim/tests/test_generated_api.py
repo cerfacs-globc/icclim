@@ -5,31 +5,31 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+from ecad.ecad_indices import EcadIndexRegistry
 
 import icclim
-from icclim.ecad.ecad_indices import EcadIndex
-from icclim.icclim_logger import Verbosity
+from icclim.icclim_logger import VerbosityRegistry
 from icclim.models.constants import (
     MODIFIABLE_QUANTILE_WINDOW,
     MODIFIABLE_THRESHOLD,
     MODIFIABLE_UNIT,
     QUANTILE_BASED,
 )
-from icclim.models.frequency import Frequency
-from icclim.models.netcdf_version import NetcdfVersion
-from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.frequency import FrequencyRegistry
+from icclim.models.netcdf_version import NetcdfVersionRegistry
+from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.tests.testing_utils import stub_tas
-from icclim.user_indices.calc_operation import CalcOperation
+from icclim.user_indices.calc_operation import CalcOperation, CalcOperationRegistry
 
 DEFAULT_ARGS = dict(
     in_files="pouet.nc",
     var_name=None,
-    slice_mode=Frequency.YEAR,
+    slice_mode=FrequencyRegistry.YEAR,
     time_range=None,
     out_file=None,
     ignore_Feb29th=False,
-    netcdf_version=NetcdfVersion.NETCDF4,
-    logs_verbosity=Verbosity.LOW,
+    netcdf_version=NetcdfVersionRegistry.NETCDF4,
+    logs_verbosity=VerbosityRegistry.LOW,
 )
 
 
@@ -44,7 +44,7 @@ def build_expected_args(index):
             {
                 "base_period_time_range": None,
                 "only_leap_years": False,
-                "interpolation": QuantileInterpolation.MEDIAN_UNBIASED,
+                "interpolation": QuantileInterpolationRegistry.MEDIAN_UNBIASED,
                 "save_percentile": False,
             }
         )
@@ -58,7 +58,7 @@ def build_expected_args(index):
 
 @patch("icclim.index")
 def test_generated_api(generic_index_fun_mock: MagicMock):
-    for i in EcadIndex:
+    for i in EcadIndexRegistry.values():
         print(i)
         # GIVEN
         api_index_fun = eval(f"icclim.{i.name.lower()}")
@@ -74,16 +74,16 @@ def test_custom_index(index_fun_mock: MagicMock):
     user_index_args = dict(
         in_files="pouet_file.nc",
         var_name=None,
-        slice_mode=Frequency.YEAR,
+        slice_mode=FrequencyRegistry.YEAR,
         time_range=None,
         out_file=None,
         base_period_time_range=None,
         only_leap_years=False,
         ignore_Feb29th=False,
         out_unit=None,
-        netcdf_version=NetcdfVersion.NETCDF4,
+        netcdf_version=NetcdfVersionRegistry.NETCDF4,
         save_percentile=False,
-        logs_verbosity=Verbosity.LOW,
+        logs_verbosity=VerbosityRegistry.LOW,
         user_index={
             "index_name": "pouet",
             "calc_operation": "nb_events",
@@ -132,16 +132,17 @@ def test_txx__months_slice_mode():
 @pytest.mark.parametrize(
     "operator, expectation_year_1, expectation_year_2",
     [
-        (CalcOperation.MIN, 303.15, 280.15),
-        (CalcOperation.MAX, 303.15, 280.15),
-        (CalcOperation.SUM, 303.15, 280.15),  # values below 275 are filtered out
-        (CalcOperation.MEAN, 303.15, 280.15),
-        (CalcOperation.EVENT_COUNT, 1, 1),
-        (CalcOperation.MAX_NUMBER_OF_CONSECUTIVE_EVENTS, 1, 1),
+        (CalcOperationRegistry.MIN, 303.15, 280.15),
+        (CalcOperationRegistry.MAX, 303.15, 280.15),
+        (CalcOperationRegistry.SUM, 303.15, 280.15),
+        # values below 275 are filtered out
+        (CalcOperationRegistry.MEAN, 303.15, 280.15),
+        (CalcOperationRegistry.EVENT_COUNT, 1, 1),
+        (CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS, 1, 1),
     ],
 )
 def test_custom_index__season_slice_mode(
-    operator, expectation_year_1, expectation_year_2
+    operator: CalcOperation, expectation_year_1, expectation_year_2
 ):
     tas = stub_tas(2.0)
     tas.loc[{"time": "2042-01-01"}] = 303.15
@@ -165,8 +166,8 @@ def test_custom_index__season_slice_mode(
 @pytest.mark.parametrize(
     "operator, expectation_year_1, expectation_year_2",
     [
-        (CalcOperation.RUN_MEAN, 2, 2),
-        (CalcOperation.RUN_SUM, 14, 14),
+        (CalcOperationRegistry.RUN_MEAN, 2, 2),
+        (CalcOperationRegistry.RUN_SUM, 14, 14),
     ],
 )
 def test_custom_index_run_algos__season_slice_mode(
@@ -197,7 +198,7 @@ def test_custom_index_anomaly__season_slice_mode():
         var_name="a_name",
         user_index={
             "index_name": "anomaly",
-            "calc_operation": CalcOperation.ANOMALY,
+            "calc_operation": CalcOperationRegistry.ANOMALY,
             "ref_time_range": [datetime(2042, 1, 1), datetime(2044, 12, 31)],
         },
     )

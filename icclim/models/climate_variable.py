@@ -121,13 +121,14 @@ def read_dictionary(
         )
         if study_da.attrs.get("units", None):
             study_da.attrs["units"] = cf_meta.units
-        if isinstance(climate_var_thresh, str):
-            climate_var_thresh = Threshold(climate_var_thresh)
-        if isinstance(climate_var_thresh.value, Callable):
-            climate_var_thresh.value = climate_var_thresh.value(
-                sampling_frequency, study_da
-            )
-            climate_var_thresh.value.attrs["units"] = study_da.attrs["units"]
+        if climate_var_thresh is not None:
+            if isinstance(climate_var_thresh, str):
+                climate_var_thresh = Threshold(climate_var_thresh)
+            if isinstance(climate_var_thresh.value, Callable):
+                climate_var_thresh.value = climate_var_thresh.value(
+                    sampling_frequency, study_da
+                )
+                climate_var_thresh.value.attrs["units"] = study_da.attrs["units"]
         climate_vars.append(
             ClimateVariable(
                 name=climate_var_name,

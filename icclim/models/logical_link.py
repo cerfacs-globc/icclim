@@ -10,6 +10,7 @@ class LogicalLink:
     name: str
 
 
-LOGICAL_OR = LogicalLink("or")
-LOGICAL_AND = LogicalLink("and")
-LOGICAL_LINK_REGISTRY = Registry[LogicalLink]([LOGICAL_OR, LOGICAL_AND])
+class LogicalLinkRegistry(Registry):
+    _item_class = LogicalLink
+    LOGICAL_OR = LogicalLink("or")
+    LOGICAL_AND = LogicalLink("and")

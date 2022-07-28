@@ -6,88 +6,88 @@ import pandas as pd
 import pytest
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.frequency import Frequency, get_seasonal_time_updater
+from icclim.models.frequency import FrequencyRegistry, get_seasonal_time_updater
 from icclim.tests.testing_utils import stub_tas
 
 
 class Test_build_frequency_over_frequency:
     def test_simple(self):
-        freq = Frequency.lookup(Frequency.YEAR)
-        assert freq == Frequency.YEAR
+        freq = FrequencyRegistry.lookup(FrequencyRegistry.YEAR)
+        assert freq == FrequencyRegistry.YEAR
 
 
 class Test_build_frequency_over_string:
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            Frequency.lookup("yolo")
+            FrequencyRegistry.lookup("yolo")
 
     def test_simple(self):
-        freq = Frequency.lookup("year")
-        assert freq == Frequency.YEAR
+        freq = FrequencyRegistry.lookup("year")
+        assert freq == FrequencyRegistry.YEAR
 
 
 class Test_build_frequency_over_list:
     def test_lookup_list__keyword_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            Frequency.lookup(["cacahuêtes"])
+            FrequencyRegistry.lookup(["cacahuêtes"])
 
     def test_lookup_string_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            Frequency.lookup("cacahuêtes")
+            FrequencyRegistry.lookup("cacahuêtes")
 
     def test_lookup_month(self):
-        freq = Frequency.lookup(["month", [1, 4, 3]])
-        assert freq == Frequency.CUSTOM
+        freq = FrequencyRegistry.lookup(["month", [1, 4, 3]])
+        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_season(self):
-        freq = Frequency.lookup(["season", [1, 2, 3, 4]])
-        assert freq == Frequency.CUSTOM
+        freq = FrequencyRegistry.lookup(["season", [1, 2, 3, 4]])
+        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-JAN"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_season_tuple(self):
-        freq = Frequency.lookup(("season", [1, 2, 3, 4]))
-        assert freq == Frequency.CUSTOM
+        freq = FrequencyRegistry.lookup(("season", [1, 2, 3, 4]))
+        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-JAN"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_pandas_freq(self):
-        freq = Frequency.lookup("3MS")
-        assert freq == Frequency.CUSTOM
+        freq = FrequencyRegistry.lookup("3MS")
+        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "3MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_winter__deprecated_tuple(self):
-        freq = Frequency.lookup(["season", ([11, 12], [1, 2, 3, 4])])
-        assert freq == Frequency.CUSTOM
+        freq = FrequencyRegistry.lookup(["season", ([11, 12], [1, 2, 3, 4])])
+        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-NOV"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_error__non_consecutive_season(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            Frequency.lookup(["season", ([12, 3])])
+            FrequencyRegistry.lookup(["season", ([12, 3])])
 
     def test_lookup_error__weird_months(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            Frequency.lookup(["season", ([42, 0])])
+            FrequencyRegistry.lookup(["season", ([42, 0])])
 
     def test_lookup__winter(self):
-        freq = Frequency.lookup(["season", [11, 12, 1, 2]])
-        assert freq == Frequency.CUSTOM
+        freq = FrequencyRegistry.lookup(["season", [11, 12, 1, 2]])
+        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-NOV"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_season__between_dates(self):
-        freq = Frequency.lookup(["season", ["07-19", "08-14"]])
-        assert freq == Frequency.CUSTOM
+        freq = FrequencyRegistry.lookup(["season", ["07-19", "08-14"]])
+        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-JUL"
         assert freq.accepted_values == []
         assert freq.post_processing is not None

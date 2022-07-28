@@ -8,10 +8,10 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from ecad.ecad_indices import EcadIndexRegistry
 from pre_processing.in_file_dictionary import InFileDictionary
 from xclim.core.utils import PercentileDataArray
 
-from icclim.ecad.ecad_indices import EcadIndex
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.pre_processing.input_parsing import (
     guess_var_names,
@@ -102,11 +102,11 @@ class Test_ReadDataset:
         # THEN
         with pytest.raises(InvalidIcclimArgumentError):
             # WHEN
-            read_dataset(self.pr_da, EcadIndex.WW)
+            read_dataset(self.pr_da, EcadIndexRegistry.WW)
 
     def test_read_dataset_xr_DataArray__rename_var(self):
         # WHEN
-        ds_res = read_dataset(self.pr_da, EcadIndex.TX90P)
+        ds_res = read_dataset(self.pr_da, EcadIndexRegistry.TX90P)
         # THEN
         xr.testing.assert_equal(ds_res.tasmax, self.pr_da)
 
@@ -236,13 +236,13 @@ class Test_ReadDataset:
         # THEN
         with pytest.raises(InvalidIcclimArgumentError):
             # WHEN
-            guess_var_names(ds, index=EcadIndex.DTR.climate_index)
+            guess_var_names(ds, index=EcadIndexRegistry.DTR.climate_index)
 
     def test_guess_variables__simple(self):
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         # WHEN
-        res = guess_var_names(ds, index=EcadIndex.TG.climate_index)
+        res = guess_var_names(ds, index=EcadIndexRegistry.TG.climate_index)
         # THEN
         assert res == ["tas"]
 
@@ -275,6 +275,6 @@ class Test_ReadDataset:
         # GIVEN
         ds = xr.Dataset({"tasmaxAdjust": self.tas_da})
         # WHEN
-        res = guess_var_names(ds, index=EcadIndex.SU.climate_index)
+        res = guess_var_names(ds, index=EcadIndexRegistry.SU.climate_index)
         # THEN
         assert res == ["tasmaxAdjust"]

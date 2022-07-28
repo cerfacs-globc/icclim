@@ -17,45 +17,45 @@ from icclim.ecad.ecad_functions import (
     tx90p,
     wsdi,
 )
-from icclim.ecad.ecad_indices import EcadIndex
+from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.frequency import Frequency
+from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_config import ClimateVariable, IndexConfig
-from icclim.models.netcdf_version import NetcdfVersion
-from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.netcdf_version import NetcdfVersionRegistry
+from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.tests.testing_utils import K2C, stub_pr, stub_tas
 
 
 def test_listing():
-    res = EcadIndex.list()
-    assert len(res) == len(EcadIndex)
+    res = EcadIndexRegistry.list()
+    assert len(res) == 49
 
 
 class Test_index_from_string:
     def test_simple(self):
-        res = EcadIndex.lookup("SU")
-        assert res == EcadIndex.SU
+        res = EcadIndexRegistry.lookup("SU")
+        assert res == EcadIndexRegistry.SU
 
     def test_lowercase(self):
-        res = EcadIndex.lookup("tx90p")
-        assert res == EcadIndex.TX90P
+        res = EcadIndexRegistry.lookup("tx90p")
+        assert res == EcadIndexRegistry.TX90P
 
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
-            EcadIndex.lookup("cacahuête")
+            EcadIndexRegistry.lookup("cacahuête")
 
 
 @pytest.mark.parametrize("use_dask", [True, False])
 def test_tn10p(use_dask):
     tas = stub_tas(use_dask=use_dask)
     conf = IndexConfig(
-        frequency=Frequency.MONTH,
+        frequency=FrequencyRegistry.MONTH,
         cf_variables=[ClimateVariable("tas", tas, tas)],
-        netcdf_version=NetcdfVersion.NETCDF4,
+        netcdf_version=NetcdfVersionRegistry.NETCDF4,
         window_width=2,
-        interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
+        interpolation=QuantileInterpolationRegistry.MEDIAN_UNBIASED,
         save_percentile=True,
-        index=EcadIndex.TN10P.climate_index,
+        index=EcadIndexRegistry.TN10P.climate_index,
     )
     res = tn10p(conf)
     assert res is not None
@@ -67,10 +67,10 @@ class Test_SU:
         tas = stub_tas(tas_value=26 + K2C, use_dask=use_dask)
         tas[:5] = 0
         conf = IndexConfig(
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             cf_variables=[ClimateVariable("tas", tas)],
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.SU.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.SU.climate_index,
         )
         res = su(conf)
         assert res is not None
@@ -82,10 +82,10 @@ class Test_SU:
         tas[:5] = 50 + K2C
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             threshold=40,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.SU.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.SU.climate_index,
         )
         res = su(conf)
         assert res is not None
@@ -99,9 +99,9 @@ class Test_TR:
         tas[:5] = 0
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TR.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.TR.climate_index,
         )
         res = tr(conf)
         assert res is not None
@@ -113,10 +113,10 @@ class Test_TR:
         tas[:5] = 50 + K2C
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             threshold=40,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TR.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.TR.climate_index,
         )
         res = tr(conf)
         assert res is not None
@@ -129,10 +129,10 @@ class Test_prcptot:
         pr = stub_pr(value=2, use_dask=use_dask)
         pr[:10] = 0
         conf = IndexConfig(
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             cf_variables=[ClimateVariable("pr", pr)],
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.PRCPTOT.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.PRCPTOT.climate_index,
         )
         res = prcptot(conf)
         assert res is not None
@@ -146,9 +146,9 @@ class Test_csu:
         tas[10:15] = 0
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.CSU.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.CSU.climate_index,
         )
         res = csu(conf)
         assert res is not None
@@ -161,10 +161,10 @@ class Test_csu:
         tas[10:20] = 50 + K2C
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             threshold=40,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.CSU.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.CSU.climate_index,
         )
         res = csu(conf)
         assert res is not None
@@ -178,9 +178,9 @@ class Test_gd4:
         tas[5:15] = 0
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.GD4.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.GD4.climate_index,
         )
         res = gd4(conf)
         assert res is not None
@@ -193,10 +193,10 @@ class Test_gd4:
         tas[5:15] = 0
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             threshold=5,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.GD4.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.GD4.climate_index,
         )
         res = gd4(conf)
         assert res is not None
@@ -211,9 +211,9 @@ class Test_cfd:
         tas[5:15] = 0
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.CFD.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.CFD.climate_index,
         )
         res = cfd(conf)
         assert res is not None
@@ -226,10 +226,10 @@ class Test_cfd:
         tas[10:15] = 4
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             threshold=5,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.CFD.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.CFD.climate_index,
         )
         res = cfd(conf)
         assert res is not None
@@ -244,9 +244,9 @@ class Test_fd:
         tas[20:25] = 0
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.FD.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.FD.climate_index,
         )
         res = fd(conf)
         assert res is not None
@@ -259,10 +259,10 @@ class Test_fd:
         tas[10:15] = 4
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             threshold=5,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.FD.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.FD.climate_index,
         )
         res = fd(conf)
         assert res is not None
@@ -276,9 +276,9 @@ class Test_hd17:
         tas[5:10] = 0
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.HD17.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.HD17.climate_index,
         )
         res = hd17(conf)
         assert res is not None
@@ -290,10 +290,10 @@ class Test_hd17:
         tas[5:10] = 0
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas)],
-            frequency=Frequency.MONTH,
+            frequency=FrequencyRegistry.MONTH,
             threshold=5,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.HD17.climate_index,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.HD17.climate_index,
         )
         res = hd17(conf)
         assert res is not None
@@ -309,9 +309,9 @@ class TestTx90p:
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas, base_tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TX90P.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.TX90P.climate_index,
         )
         res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
@@ -325,9 +325,9 @@ class TestTx90p:
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas, base_tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TX90P.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.TX90P.climate_index,
         )
         res, _ = tx90p(conf)
         assert "reference_epoch" not in res.attrs.keys()
@@ -341,9 +341,9 @@ class TestTx90p:
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas, base_tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TX90P.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.TX90P.climate_index,
         )
         res, _ = tx90p(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
@@ -359,9 +359,9 @@ class TestWsdi:
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas, base_tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TX90P.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.TX90P.climate_index,
         )
         res, _ = wsdi(conf)
         assert res.attrs["reference_epoch"] == ["2042-01-01", "2043-12-31"]
@@ -377,9 +377,9 @@ class TestCsdi:
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas, base_tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TX90P.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.TX90P.climate_index,
             save_percentile=True,
         )
         res, per = csdi(conf)
@@ -395,9 +395,9 @@ class TestCsdi:
         tas = tas.sel(time=slice("2042-01-01", "2045-12-31"))
         conf = IndexConfig(
             cf_variables=[ClimateVariable("tas", tas, base_tas)],
-            frequency=Frequency.MONTH,
-            netcdf_version=NetcdfVersion.NETCDF4,
-            index=EcadIndex.TX90P.climate_index,
+            frequency=FrequencyRegistry.MONTH,
+            netcdf_version=NetcdfVersionRegistry.NETCDF4,
+            index=EcadIndexRegistry.TX90P.climate_index,
             threshold=5,
             save_percentile=True,
         )

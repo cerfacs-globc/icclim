@@ -11,11 +11,11 @@ import pytest
 import xarray as xr
 
 import icclim
-from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
+from icclim.ecad.ecad_indices import EcadIndexRegistry, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.frequency import Frequency
-from icclim.models.index_group import IndexGroup
+from icclim.models.frequency import FrequencyRegistry
+from icclim.models.index_group import IndexGroupRegistry
 
 
 @patch("icclim.main.index")
@@ -164,7 +164,7 @@ class Test_Integration:
             indice_name="SU",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
-            slice_mode=Frequency.MONTH,
+            slice_mode=FrequencyRegistry.MONTH,
         )
         np.testing.assert_array_equal(0, res.SU)
         np.testing.assert_array_equal(
@@ -176,7 +176,7 @@ class Test_Integration:
             indice_name="SU",
             in_files=self.data_cf_time,
             out_file=self.OUTPUT_FILE,
-            slice_mode=Frequency.MONTH,
+            slice_mode=FrequencyRegistry.MONTH,
         )
         np.testing.assert_array_equal(0, res.SU)
         np.testing.assert_array_equal(
@@ -194,7 +194,7 @@ class Test_Integration:
             indice_name="SU",
             in_files=self.data_cf_time,
             out_file=self.OUTPUT_FILE,
-            slice_mode=Frequency.DJF,
+            slice_mode=FrequencyRegistry.DJF,
         )
         np.testing.assert_array_equal(res.SU.isel(time=0), np.NAN)
         np.testing.assert_array_equal(res.SU.isel(time=1), 0)
@@ -211,7 +211,9 @@ class Test_Integration:
 
     def test_indices_from_DataArray(self):
         res = icclim.indices(
-            index_group=IndexGroup.HEAT, in_files=self.data, out_file=self.OUTPUT_FILE
+            index_group=IndexGroupRegistry.HEAT,
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
         )
         for i in HEAT_INDICES:
             assert res[i] is not None
@@ -221,9 +223,11 @@ class Test_Integration:
         ds["prec"] = self.data.copy(deep=True)
         ds["prec"].attrs["units"] = "cm"
         res = icclim.indices(
-            index_group=IndexGroup.SNOW, in_files=ds, out_file=self.OUTPUT_FILE
+            index_group=IndexGroupRegistry.SNOW, in_files=ds, out_file=self.OUTPUT_FILE
         )
-        for i in filter(lambda i: i.group == IndexGroup.SNOW, EcadIndex):
+        for i in filter(
+            lambda i: i.group == IndexGroupRegistry.SNOW, EcadIndexRegistry.values()
+        ):
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset(self):
@@ -235,7 +239,7 @@ class Test_Integration:
         ds["prec"] = self.data.copy(deep=True)
         ds["prec"].attrs["units"] = "cm"
         res = icclim.indices(index_group="all", in_files=ds, out_file=self.OUTPUT_FILE)
-        for i in EcadIndex:
+        for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__seasonal_clip(self):
@@ -252,7 +256,7 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             slice_mode=["clipped_season", [1, 2, 3]],
         )
-        for i in EcadIndex:
+        for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__between_dates_seasonal_clip(self):
@@ -269,7 +273,7 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             slice_mode=["clipped_season", ["07-19", "08-14"]],
         )
-        for i in EcadIndex:
+        for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__JFM_seasonal_clip(self):
@@ -286,7 +290,7 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             slice_mode=["clipped_season", [1, 2, 3]],
         )
-        for i in EcadIndex:
+        for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__seasonal_error(self):
@@ -322,7 +326,7 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             slice_mode=["clipped_season", [12, 1, 2, 3]],
         )
-        for i in EcadIndex:
+        for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
     def test_indices_all_ignore_error(self):
@@ -338,10 +342,10 @@ class Test_Integration:
             ignore_error=True,
             slice_mode="DJF",
         ).compute()
-        for i in EcadIndex:
+        for i in EcadIndexRegistry.values():
             # No variable in input to compute snow indices
             if (
-                i.group == IndexGroup.SNOW
+                i.group == IndexGroupRegistry.SNOW
                 or i.climate_index in get_season_excluded_indices()
             ):
                 assert res.data_vars.get(i.short_name, None) is None

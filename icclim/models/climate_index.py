@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 from typing import Any, Callable, Optional, Tuple, Union
 
 from xarray import DataArray
@@ -49,7 +48,7 @@ class ClimateIndex:
     output_var_name: str | None = None  # when None use short_name
 
     def __str__(self):
-        return f"{self.group.value} | {self.short_name} | {self.definition}"
+        return f"{self.group} | {self.short_name} | {self.definition}"
 
     def format_output_name(self, threshold: list[float] | None = None) -> str:
         if self.output_var_name is None or threshold is None:
@@ -59,52 +58,3 @@ class ClimateIndex:
 
     def __call__(self, *args, **kwargs):
         self.compute(*args, **kwargs)
-
-
-class ClimateIndexEnum(Enum):
-    """Abstract class of indicator catalogs.
-
-    short_name: str
-        The index name used in the output.
-    compute: Callable
-        The function to compute the index. It wraps Xclim functions.
-    group: IndexGroup
-        The index group category.
-    variables: List[List[str]]
-        The Cf variables needed to compute the index.
-        The variable are individually described by a list of aliases.
-    qualifiers: List[str]
-        ``optional`` List of configuration to compute the index.
-        Used internally to generate modules for C3S.
-    """
-
-    def __init__(self, climate_index: ClimateIndex):
-        self.climate_index = climate_index
-
-    @property
-    def group(self):
-        return self.climate_index.group
-
-    @property
-    def short_name(self):
-        return self.climate_index.short_name
-
-    @property
-    def definition(self):
-        return self.climate_index.definition
-
-    # @property
-    # def compute(self):
-    #     return self.climate_index.compute
-
-    @property
-    def input_variables(self):
-        return self.climate_index.input_variables
-
-    @property
-    def qualifiers(self):
-        return self.climate_index.qualifiers
-
-    @property
-    def source(self):
-        return self.climate_index.source

@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Sequence
 
-from models.registry import Registry
 from xclim.core.calendar import select_time
 
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
-from icclim.models.logical_link import LOGICAL_LINK_REGISTRY, LogicalLink
-from icclim.models.operator import OPERATOR_REGISTRY, Operator
+from icclim.models.logical_link import LogicalLink, LogicalLinkRegistry
+from icclim.models.operator import Operator, OperatorRegistry
+from icclim.models.registry import Registry
 from icclim.utils import get_date_to_iso_format
 
 
@@ -18,9 +18,10 @@ class ExtremeMode:
     name: str
 
 
-MIN = ExtremeMode("min")
-MAX = ExtremeMode("max")
-EXTREME_MODE_REGISTRY = Registry[ExtremeMode]([MIN, MAX], lambda e: e.name.upper())
+class ExtremeModeRegistry(Registry):
+    _item_class = ExtremeMode
+    MIN = ExtremeMode("min")
+    MAX = ExtremeMode("max")
 
 
 @dataclass
@@ -72,10 +73,10 @@ class UserIndexConfig:
         self.calc_operation = calc_operation
         self.freq = freq
         if logical_operation is not None:
-            self.logical_operation = OPERATOR_REGISTRY.lookup(logical_operation)
+            self.logical_operation = OperatorRegistry.lookup(logical_operation)
         self.thresh = thresh
         if extreme_mode is not None:
-            self.extreme_mode = EXTREME_MODE_REGISTRY.lookup(extreme_mode)
+            self.extreme_mode = ExtremeModeRegistry.lookup(extreme_mode)
         self.window_width = window_width
         self.coef = coef
         self.date_event = date_event
@@ -108,11 +109,11 @@ def get_nb_event_conf(
     else:
         threshold_list = thresholds
     if isinstance(logical_operation, (tuple, list)):
-        logical_operations = list(map(OPERATOR_REGISTRY.lookup, logical_operation))
+        logical_operations = list(map(OperatorRegistry.lookup, logical_operation))
     else:
-        logical_operations = [OPERATOR_REGISTRY.lookup(logical_operation)]
+        logical_operations = [OperatorRegistry.lookup(logical_operation)]
     if link_logical_operations is not None:
-        link_logical_operation_list = LOGICAL_LINK_REGISTRY.lookup(
+        link_logical_operation_list = LogicalLinkRegistry.lookup(
             link_logical_operations
         )
     else:

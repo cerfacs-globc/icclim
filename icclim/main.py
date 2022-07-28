@@ -17,34 +17,34 @@ from warnings import warn
 import xarray as xr
 import xclim
 from generic_indices.generic_indices import CountEventComparedToThreshold, Indicator
-from models.climate_variable import read_climate_vars
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 from icclim.ecad.ecad_functions import IndexConfig
-from icclim.ecad.ecad_indices import EcadIndex, get_season_excluded_indices
+from icclim.ecad.ecad_indices import EcadIndexRegistry, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.icclim_logger import IcclimLogger, Verbosity
+from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.models.climate_index import ClimateIndex
+from icclim.models.climate_variable import read_climate_vars
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.frequency import Frequency, SliceMode
-from icclim.models.index_group import IndexGroup
-from icclim.models.netcdf_version import NetcdfVersion
-from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.frequency import FrequencyRegistry, SliceMode
+from icclim.models.index_group import IndexGroupRegistry
+from icclim.models.netcdf_version import NetcdfVersionRegistry
+from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.models.threshold import Threshold
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import InFileType
-from icclim.user_indices.calc_operation import CalcOperation, compute_user_index
+from icclim.user_indices.calc_operation import CalcOperationRegistry, compute_user_index
 
-log: IcclimLogger = IcclimLogger.get_instance(Verbosity.LOW)
+log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
 
 
 def indices(
-    index_group: Literal["all"] | str | IndexGroup | Sequence[str],
+    index_group: Literal["all"] | str | IndexGroupRegistry | Sequence[str],
     ignore_error: bool = False,
     **kwargs,
 ) -> Dataset:
@@ -75,14 +75,14 @@ def indices(
 
     """
     if isinstance(index_group, (tuple, list)):
-        indices = [EcadIndex.lookup(i) for i in index_group]
-    elif index_group == IndexGroup.WILD_CARD_GROUP or (
+        indices = [EcadIndexRegistry.lookup(i) for i in index_group]
+    elif index_group == IndexGroupRegistry.WILD_CARD_GROUP or (
         isinstance(index_group, str)
-        and index_group.lower() == IndexGroup.WILD_CARD_GROUP.value
+        and index_group.lower() == IndexGroupRegistry.WILD_CARD_GROUP.value
     ):
-        indices = iter(EcadIndex)
+        indices = EcadIndexRegistry.values()
     else:
-        indices = IndexGroup.lookup(index_group).get_indices()
+        indices = IndexGroupRegistry.lookup(index_group).get_indices()
     out = None
     if "out_file" in kwargs.keys():
         out = kwargs["out_file"]
@@ -102,7 +102,7 @@ def indices(
         _write_output_file(
             result_ds=ds,
             input_time_encoding=ds.time.encoding,
-            netcdf_version=kwargs.get("netcdf_version", NetcdfVersion.NETCDF4),
+            netcdf_version=kwargs.get("netcdf_version", NetcdfVersionRegistry.NETCDF4),
             file_path=out,
         )
     return ds
@@ -127,7 +127,7 @@ def index(
     in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | Sequence[str] | None = None,
-    slice_mode: SliceMode = Frequency.YEAR,
+    slice_mode: SliceMode = FrequencyRegistry.YEAR,
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold = None,
@@ -139,13 +139,13 @@ def index(
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: (
-        str | QuantileInterpolation | None
-    ) = QuantileInterpolation.MEDIAN_UNBIASED,
+        str | QuantileInterpolationRegistry | None
+    ) = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
     out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersion = NetcdfVersion.NETCDF4,
+    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
     user_index: UserIndexDict | None = None,
     save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = Verbosity.LOW,
+    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
     # deprecated parameters
     indice_name: str = None,
     user_indice: UserIndexDict = None,
@@ -223,14 +223,14 @@ def index(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None
+    interpolation : str | QuantileInterpolationRegistry | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     out_unit : str | None
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NetcdfVersion
+    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     user_index : UserIndexDict
         ``optional`` A dictionary with parameters for user defined index.
@@ -268,8 +268,10 @@ def index(
             interpolation=interpolation,
         )
     if index_name is not None:
-        if (ecad_index := EcadIndex.lookup(index_name)) is not None:
-            index = ecad_index.climate_index
+        if (
+            ecad_index := EcadIndexRegistry.lookup(index_name, no_error=True)
+        ) is not None:
+            index = ecad_index
             if threshold is not None:
                 raise InvalidIcclimArgumentError(
                     "ECAD indices threshold cannot be "
@@ -282,7 +284,7 @@ def index(
             raise InvalidIcclimArgumentError(f"Unknown index {index_name}.")
     else:
         index = None
-    sampling_frequency = Frequency.lookup(slice_mode)
+    sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     climate_vars = read_climate_vars(
         ignore_Feb29th,
         in_files,
@@ -298,7 +300,7 @@ def index(
         cf_variables=climate_vars,
         window=window_width,
         out_unit=out_unit,
-        netcdf_version=NetcdfVersion.lookup(netcdf_version),
+        netcdf_version=NetcdfVersionRegistry.lookup(netcdf_version),
         interpolation=interpolation,
         callback=callback,
         index=index,
@@ -331,7 +333,7 @@ def index(
 def _write_output_file(
     result_ds: xr.Dataset,
     input_time_encoding: dict,
-    netcdf_version: NetcdfVersion,
+    netcdf_version: NetcdfVersionRegistry,
     file_path: str,
 ) -> None:
     """Write `result_ds` to a netCDF file on `out_file` path."""
@@ -395,7 +397,7 @@ def _compute_custom_climate_index(
     )
     user_indice_da = compute_user_index(user_indice_config)
     user_indice_da.attrs["units"] = _get_unit(config.out_unit, user_indice_da)
-    if user_indice_config.calc_operation is CalcOperation.ANOMALY:
+    if user_indice_config.calc_operation is CalcOperationRegistry.ANOMALY:
         # with anomaly time axis disappear
         result_ds[user_indice_config.index_name] = user_indice_da
         return result_ds

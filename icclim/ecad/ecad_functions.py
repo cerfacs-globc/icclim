@@ -16,12 +16,15 @@ from xclim.core.calendar import percentile_doy, resample_doy
 from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
 
-from icclim.models.cf_calendar import CfCalendar
+from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
-from icclim.models.frequency import Frequency
+from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
-from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.quantile_interpolation import (
+    QuantileInterpolation,
+    QuantileInterpolationRegistry,
+)
 
 
 def gd4(config: IndexConfig) -> DataArray:
@@ -540,31 +543,31 @@ def _get_ref_period_slice(da: DataArray) -> slice:
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
-    if sampling_freq == Frequency.MONTH:
+    if sampling_freq == FrequencyRegistry.MONTH:
         da = da / da.time.dt.daysinmonth * 100
-    elif sampling_freq == Frequency.YEAR:
+    elif sampling_freq == FrequencyRegistry.YEAR:
         coef = xr.full_like(da, 1)
         leap_years = _is_leap_year(da)
         coef[{"time": leap_years}] = 366
         coef[{"time": ~leap_years}] = 365
         da = da / coef
-    elif sampling_freq == Frequency.AMJJAS:
+    elif sampling_freq == FrequencyRegistry.AMJJAS:
         da = da / 183
-    elif sampling_freq == Frequency.ONDJFM:
+    elif sampling_freq == FrequencyRegistry.ONDJFM:
         coef = xr.full_like(da, 1)
         leap_years = _is_leap_year(da)
         coef[{"time": leap_years}] = 183
         coef[{"time": ~leap_years}] = 182
         da = da / coef
-    elif sampling_freq == Frequency.DJF:
+    elif sampling_freq == FrequencyRegistry.DJF:
         coef = xr.full_like(da, 1)
         leap_years = _is_leap_year(da)
         coef[{"time": leap_years}] = 91
         coef[{"time": ~leap_years}] = 90
         da = da / coef
-    elif sampling_freq in [Frequency.MAM, Frequency.JJA]:
+    elif sampling_freq in [FrequencyRegistry.MAM, FrequencyRegistry.JJA]:
         da = da / 92
-    elif sampling_freq == Frequency.SON:
+    elif sampling_freq == FrequencyRegistry.SON:
         da = da / 91
     else:
         # TODO improve this for custom resampling
@@ -580,7 +583,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
 def _is_leap_year(da: DataArray) -> np.ndarray:
     time_index = da.indexes.get("time")
     if isinstance(time_index, xr.CFTimeIndex):
-        return CfCalendar.lookup(time_index.calendar).is_leap(da.time.dt.year)
+        return CfCalendarRegistry.lookup(time_index.calendar).is_leap(da.time.dt.year)
     else:
         return da.time.dt.is_leap_year
 
@@ -594,7 +597,7 @@ def _compute_percentile_doy(
     cf_var: ClimateVariable,
     percentile: float,
     window: int = 5,
-    interpolation=QuantileInterpolation.MEDIAN_UNBIASED,
+    interpolation=QuantileInterpolationRegistry.MEDIAN_UNBIASED,
     callback: Callable = None,
 ) -> (DataArray, bool):
     if PercentileDataArray.is_compatible(cf_var.reference_da):

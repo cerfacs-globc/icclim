@@ -7,20 +7,19 @@ from typing import Sequence
 import numpy as np
 import xarray as xr
 import xclim
-from generic_indices.cf_var_metadata import CF_VAR_METADATA_REGISTRY
-from icclim_types import InFileBaseType, InFileType
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
 
-from icclim.generic_indices.cf_var_metadata import CfVarMetadata
+from icclim.generic_indices.cf_var_metadata import CfVarMetadata, CfVarMetadataRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.cf_calendar import CfCalendar
+from icclim.icclim_types import InFileBaseType, InFileType
+from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.constants import VALID_PERCENTILE_DIMENSION
-from icclim.models.frequency import Frequency
-from icclim.models.index_group import IndexGroup
+from icclim.models.frequency import Frequency, FrequencyRegistry
+from icclim.models.index_group import IndexGroupRegistry
 from icclim.utils import get_date_to_iso_format
 
 DEFAULT_INPUT_FREQUENCY = "days"
@@ -190,8 +189,8 @@ def _guess_dataset_var_names(index: ClimateIndex, ds: Dataset) -> list[str]:
 
 
 def guess_input_type(data: DataArray) -> CfVarMetadata:
-    cf_input = CF_VAR_METADATA_REGISTRY.lookup(data.name)
-    cf_input.frequency = Frequency.lookup(
+    cf_input = CfVarMetadataRegistry.lookup(str(data.name))
+    cf_input.frequency = FrequencyRegistry.lookup(
         xr.infer_freq(data.time) or DEFAULT_INPUT_FREQUENCY
     )
     cf_input.units = data.attrs.get("units", cf_input.default_units)
@@ -219,7 +218,7 @@ def build_study_da(
     else:
         da = original_da
     if ignore_Feb29th:
-        da = xclim.core.calendar.convert_calendar(da, CfCalendar.NO_LEAP.get_name())
+        da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if sampling_frequency.time_clipping is not None:
         da = sampling_frequency.time_clipping(da)
     return da
@@ -247,8 +246,8 @@ def _is_alias_valid(ds, index, alias):
     return ds.get(alias, None) is not None and _has_valid_unit(index.group, ds[alias])
 
 
-def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
-    if group == IndexGroup.SNOW:
+def _has_valid_unit(group: IndexGroupRegistry, da: DataArray) -> bool:
+    if group == IndexGroupRegistry.SNOW:
         try:
             # todo: unit check might be replaced by cf-xarray
             xclim.core.units.check_units.__wrapped__(da, "[length]")
