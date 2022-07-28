@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 from typing import Any, Sequence
 
+from models.registry import Registry
 from xclim.core.calendar import select_time
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
 from icclim.models.logical_link import LOGICAL_LINK_REGISTRY, LogicalLink
@@ -14,19 +13,14 @@ from icclim.models.operator import OPERATOR_REGISTRY, Operator
 from icclim.utils import get_date_to_iso_format
 
 
-class ExtremeMode(Enum):
-    MIN = "min"
-    MAX = "max"
+@dataclass
+class ExtremeMode:
+    name: str
 
-    @staticmethod
-    def lookup(query: str) -> ExtremeMode:
-        for mode in ExtremeMode:
-            if query.upper() == mode.value.upper():
-                return mode
-        raise InvalidIcclimArgumentError(
-            f"Unknown extreme_mode {query}."
-            f" Use one of {[mode.value for mode in ExtremeMode]}."
-        )
+
+MIN = ExtremeMode("min")
+MAX = ExtremeMode("max")
+EXTREME_MODE_REGISTRY = Registry[ExtremeMode]([MIN, MAX], lambda e: e.name.upper())
 
 
 @dataclass
@@ -81,7 +75,7 @@ class UserIndexConfig:
             self.logical_operation = OPERATOR_REGISTRY.lookup(logical_operation)
         self.thresh = thresh
         if extreme_mode is not None:
-            self.extreme_mode = ExtremeMode.lookup(extreme_mode)
+            self.extreme_mode = EXTREME_MODE_REGISTRY.lookup(extreme_mode)
         self.window_width = window_width
         self.coef = coef
         self.date_event = date_event
@@ -107,7 +101,7 @@ def get_nb_event_conf(
     logical_operation: Sequence[str] | str,
     link_logical_operations: str | None,
     thresholds: Sequence[str | float] | float | str,
-    cfvars: list[ClimateVariable],
+    climate_vars: list[ClimateVariable],
 ) -> NbEventConfig:
     if not isinstance(thresholds, (tuple, list)):
         threshold_list = [thresholds]
@@ -127,5 +121,5 @@ def get_nb_event_conf(
         logical_operation=logical_operations,
         link_logical_operations=link_logical_operation_list,
         thresholds=threshold_list,
-        data_arrays=cfvars,
+        data_arrays=climate_vars,
     )

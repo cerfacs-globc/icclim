@@ -24,7 +24,7 @@ from icclim.models.constants import (
     WET_DAY_THRESHOLD,
 )
 from icclim.models.operator import Operator
-from icclim.models.user_index_config import ExtremeMode
+from icclim.models.user_index_config import MAX, MIN, ExtremeMode
 from icclim.user_indices.stat import (
     get_first_occurrence_index,
     get_longest_run_start_index,
@@ -402,7 +402,7 @@ def _run_aggregator(
     result = _apply_coef(coef, da)
     result = result.rolling(time=window_width)
     resampled = aggregator(result).resample(time=freq)
-    if extreme_mode == ExtremeMode.MIN:
+    if extreme_mode == MIN:
         if date_event:
             return _reduce_with_date_event(
                 resampled,
@@ -411,7 +411,7 @@ def _run_aggregator(
             )
         else:
             return resampled.min(dim="time")
-    elif extreme_mode == ExtremeMode.MAX:
+    elif extreme_mode == MAX:
         if date_event:
             return _reduce_with_date_event(
                 resampled,
