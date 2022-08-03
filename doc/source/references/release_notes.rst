@@ -7,6 +7,12 @@ Release history
 * [enh] Make in_files.var.threshold and threshold parameters work with string values (a value with a unit or a percentile stamp)
 * [maint] **BREAKING CHANGE:** ECAD indices are no longer configurable! Use a generic index instead.
 
+5.4.0 (unreleased)
+------------------
+* [fix] When giving input as a list of netcdf files, the coordinate values are now merged using the `override` strategy, thus the first file with a given dimension define this dimension for all the files.
+* [fix] Fix the output unit of some indices (from "ºC" to "degree_Celsius")
+* [fix] Fixed issued where dataset having a time_bds variable could not be processed by chunking the DataArray(s) instead of the Dataset.
+
 5.3.0
 -----
 * [enh] Add icclim version to history in outputted metadata.

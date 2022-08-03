@@ -62,6 +62,17 @@ class Test_Integration:
         attrs={"units": "degC"},
     )
 
+    # usually, time_bounds is not properly decoded an keep a object dtype
+    time_bounds = xr.DataArray(
+        data=[[t, t + +np.timedelta64(1, "h")] for t in data.time.values],
+        dims=["time", "bounds"],
+        coords=dict(bounds=[0, 1], time=TIME_RANGE),
+    ).astype("object")
+
+    dataset_with_time_bounds = xr.Dataset(
+        dict(data=data, time_bounds=time_bounds),
+    )
+
     @pytest.fixture(autouse=True)
     def cleanup(self):
         # setup
@@ -75,7 +86,19 @@ class Test_Integration:
 
     def test_index_SU(self):
         res = icclim.index(
-            indice_name="SU", in_files=self.data, out_file=self.OUTPUT_FILE
+            indice_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+        )
+        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        np.testing.assert_array_equal(0, res.SU)
+
+    def test_index_SU__on_dataset(self):
+        res = icclim.index(
+            indice_name="SU",
+            var_name="data",
+            in_files=self.dataset_with_time_bounds,
+            out_file=self.OUTPUT_FILE,
         )
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.SU)

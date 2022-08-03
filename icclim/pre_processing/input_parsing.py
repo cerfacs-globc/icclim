@@ -57,7 +57,9 @@ def read_dataset(
         isinstance(in_files, (list, tuple)) and is_netcdf_path(in_files[0])
     ):
         # we assumes it's a list of netCDF files
-        ds = xr.open_mfdataset(in_files, parallel=True)
+        #  join="override" is used for cases some dimension are a tiny bit different
+        #  in different files (was the case with eobs).
+        ds = xr.open_mfdataset(in_files, parallel=True, join="override")
     elif is_netcdf_path(in_files):
         ds = xr.open_dataset(in_files)
     elif is_zarr_path(in_files):
