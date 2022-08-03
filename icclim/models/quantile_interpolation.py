@@ -14,5 +14,6 @@ class QuantileInterpolation:
 
 class QuantileInterpolationRegistry(Registry):
     _item_class = QuantileInterpolation
+
     LINEAR = QuantileInterpolation("linear", 1, 1)
     MEDIAN_UNBIASED = QuantileInterpolation("hyndman_fan", 1.0 / 3, 1.0 / 3)

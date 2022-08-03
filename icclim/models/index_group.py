@@ -18,6 +18,8 @@ class IndexGroup:
 
 
 class IndexGroupRegistry(Registry):
+    _item_class = IndexGroup
+
     TEMPERATURE = IndexGroup("temperature")
     HEAT = IndexGroup("heat")
     COLD = IndexGroup("cold")

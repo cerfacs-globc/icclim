@@ -12,5 +12,6 @@ class LogicalLink:
 
 class LogicalLinkRegistry(Registry):
     _item_class = LogicalLink
+
     LOGICAL_OR = LogicalLink("or")
     LOGICAL_AND = LogicalLink("and")

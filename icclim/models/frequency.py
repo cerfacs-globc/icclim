@@ -8,13 +8,14 @@ from __future__ import annotations
 import dataclasses
 from datetime import timedelta
 from functools import reduce
-from typing import Any, Callable, Dict, List, Literal, Sequence, Tuple, Union
+from typing import Any, Callable, Sequence
 
 import cftime
 import numpy as np
 import pandas as pd
 import xarray as xr
 import xclim.core.calendar
+from icclim_types import FrequencyLike, Indexer
 from pandas.tseries.frequencies import to_offset
 from xarray.core.dataarray import DataArray
 
@@ -22,80 +23,16 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import (
     AMJJAS_MONTHS,
     DJF_MONTHS,
+    FREQ_MAPPING,
     JJA_MONTHS,
     MAM_MONTHS,
     MONTHS_MAP,
     ONDJFM_MONTHS,
+    SEASON_ERR_MSG,
     SON_MONTHS,
 )
 from icclim.models.registry import Registry
 from icclim.utils import read_date
-
-SEASON_ERR_MSG = (
-    "A season created using `slice_mode` must be made of either"
-    " consecutive integer for months such as [1,2,3] or two string for"
-    " dates such as ['19 july', '14 august']."
-)
-# copied from xclim. Updated.
-FREQ_MAPPING = {
-    "YS": "annual",
-    "Y": "annual",
-    "AS": "annual",
-    "A": "annual",
-    "MS": "monthly",
-    "M": "monthly",
-    "QS": "seasonal",
-    "Q": "seasonal",
-    "JAN": "January starting",
-    "FEB": "February starting",
-    "MAR": "March starting",
-    "APR": "April starting",
-    "MAY": "May starting",
-    "JUN": "June starting",
-    "JUL": "July starting",
-    "AUG": "August starting",
-    "SEP": "September starting",
-    "OCT": "October starting",
-    "NOV": "November starting",
-    "DEC": "December starting",
-    # Arguments to "indexer"
-    "DJF": "winter",
-    "MAM": "spring",
-    "JJA": "summer",
-    "SON": "fall",
-    "norm": "Normal",
-    "m1": "january",
-    "m2": "february",
-    "m3": "march",
-    "m4": "april",
-    "m5": "may",
-    "m6": "june",
-    "m7": "july",
-    "m8": "august",
-    "m9": "september",
-    "m10": "october",
-    "m11": "november",
-    "m12": "december",
-}
-
-
-def _get_end_date(
-    use_cftime: bool, year: int, month: int, day: int = None, calendar=None
-):
-    delta = timedelta(days=0)
-    if day is None:
-        if month == 12:
-            day = 31
-        else:
-            # get the next month and subtract a day (handle any month and leap years)
-            month = month + 1
-            day = 1
-            delta = timedelta(days=1)
-    if use_cftime:
-        end = cftime.datetime(year, month, day, calendar=calendar)
-    else:
-        end = pd.to_datetime(f"{year}-{month}-{day}")
-    return end - delta
 
 
 def get_seasonal_time_updater(
@@ -162,7 +99,7 @@ def get_seasonal_time_updater(
     return add_time_bounds
 
 
-def _get_time_bounds_updater(
+def get_time_bounds_updater(
     freq: str,
 ) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
     def add_time_bounds(da: DataArray) -> tuple[DataArray, DataArray]:
@@ -237,7 +174,7 @@ class Frequency:
         return kwargs
 
     @staticmethod
-    def is_seasonal(slice_mode: SliceMode) -> bool:
+    def is_seasonal(slice_mode: FrequencyLike) -> bool:
         return FrequencyRegistry.lookup(slice_mode) in [
             FrequencyRegistry.ONDJFM,
             FrequencyRegistry.AMJJAS,
@@ -256,7 +193,7 @@ class FrequencyRegistry(Registry):
         accepted_values=["hour", "h", "hourly"],
         _description="hourly",
         indexer=None,
-        post_processing=_get_time_bounds_updater("H"),
+        post_processing=get_time_bounds_updater("H"),
         units="hours",
     )
     """Resample to hourly values"""
@@ -266,7 +203,7 @@ class FrequencyRegistry(Registry):
         accepted_values=["daily", "day", "days", "d"],
         _description="daily",
         indexer=None,
-        post_processing=_get_time_bounds_updater("D"),
+        post_processing=get_time_bounds_updater("D"),
         units="days",
     )
     """Resample to daily values"""
@@ -276,7 +213,7 @@ class FrequencyRegistry(Registry):
         accepted_values=["month", "monthly", "MS"],
         _description="monthly",
         indexer=None,
-        post_processing=_get_time_bounds_updater("MS"),
+        post_processing=get_time_bounds_updater("MS"),
         units="months",
     )
     """Resample to monthly values"""
@@ -286,7 +223,7 @@ class FrequencyRegistry(Registry):
         accepted_values=["year", "yearly", "annual", "YS"],
         _description="annual",
         indexer=None,
-        post_processing=_get_time_bounds_updater("YS"),
+        post_processing=get_time_bounds_updater("YS"),
         units="years",
     )
     """Resample to yearly values."""
@@ -352,7 +289,7 @@ class FrequencyRegistry(Registry):
     """Resample to fall season, from September to November included."""
 
     @classmethod
-    def lookup(cls, item: SliceMode, no_error: bool = False) -> Frequency | None:
+    def lookup(cls, item: FrequencyLike, no_error: bool = False) -> Frequency | None:
         if isinstance(item, Frequency):
             return item
         if isinstance(item, str):
@@ -365,6 +302,25 @@ class FrequencyRegistry(Registry):
             f"Unknown frequency {item}."
             f"Use a Frequency from {[f for f in FrequencyRegistry.values()]}"
         )
+
+
+def _get_end_date(
+    use_cftime: bool, year: int, month: int, day: int = None, calendar=None
+):
+    delta = timedelta(days=0)
+    if day is None:
+        if month == 12:
+            day = 31
+        else:
+            # get the next month and subtract a day (handle any month and leap years)
+            month = month + 1
+            day = 1
+            delta = timedelta(days=1)
+    if use_cftime:
+        end = cftime.datetime(year, month, day, calendar=calendar)
+    else:
+        end = pd.to_datetime(f"{year}-{month}-{day}")
+    return end - delta
 
 
 def _get_frequency_from_string(query: str) -> Frequency:
@@ -384,7 +340,7 @@ def _get_frequency_from_string(query: str) -> Frequency:
             e,
         )
     return Frequency(
-        post_processing=_get_time_bounds_updater(query),
+        post_processing=get_time_bounds_updater(query),
         pandas_freq=query,
         _description=f"time series sampled on {query}",
         accepted_values=[],
@@ -432,7 +388,7 @@ def _get_frequency_from_iterable(
 def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
     return Frequency(
         indexer=dict(month=months),
-        post_processing=_get_time_bounds_updater("MS"),
+        post_processing=get_time_bounds_updater("MS"),
         pandas_freq="MS",
         _description=f"monthly time series (months: {months})",
         accepted_values=[],
@@ -509,14 +465,3 @@ def _get_filter_between_dates(begin_date: str, end_date: str):
     return lambda da: xclim.core.calendar.select_time(
         da, date_bounds=(begin_date, end_date)
     )
-
-
-SliceMode = Union[
-    FrequencyRegistry, str, List[Union[str, Tuple, int]], Tuple[str, Union[List, Tuple]]
-]
-MonthsIndexer = Dict[Literal["month"], Sequence[int]]  # format [12,1,2,3]
-DatesIndexer = Dict[
-    Literal["date_bounds"], Tuple[str, str]
-]  # format ("01-25", "02-28")
-ClippedSeasonIndexer = Callable
-Indexer = Union[MonthsIndexer, DatesIndexer, ClippedSeasonIndexer]

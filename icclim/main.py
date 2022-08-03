@@ -27,9 +27,9 @@ from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.climate_variable import read_climate_vars
 from icclim.models.constants import ICCLIM_VERSION
-from icclim.models.frequency import FrequencyRegistry, SliceMode
-from icclim.models.index_group import IndexGroupRegistry
-from icclim.models.netcdf_version import NetcdfVersionRegistry
+from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
+from icclim.models.index_group import IndexGroupRegistry, IndexGroup
+from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.models.threshold import Threshold
 from icclim.models.user_index_config import UserIndexConfig
@@ -44,7 +44,7 @@ SOURCE_CF_KEY = "source"
 
 
 def indices(
-    index_group: Literal["all"] | str | IndexGroupRegistry | Sequence[str],
+    index_group: Literal["all"] | str | IndexGroup | Sequence[str],
     ignore_error: bool = False,
     **kwargs,
 ) -> Dataset:
@@ -127,7 +127,7 @@ def index(
     in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | Sequence[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike | Frequency = FrequencyRegistry.YEAR,
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold = None,
@@ -142,7 +142,7 @@ def index(
         str | QuantileInterpolationRegistry | None
     ) = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
     out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
+    netcdf_version: str | NetcdfVersion = NetcdfVersionRegistry.NETCDF4,
     user_index: UserIndexDict | None = None,
     save_percentile: bool = False,
     logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
@@ -223,14 +223,14 @@ def index(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     out_unit : str | None
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     user_index : UserIndexDict
         ``optional`` A dictionary with parameters for user defined index.
@@ -259,6 +259,7 @@ def index(
             " You must provide either `user_index` to compute a customized index"
             " or `index_name` for one of the ECA&D indices."
         )
+    interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     if isinstance(threshold, str):
         threshold = Threshold(
             threshold,
@@ -323,7 +324,7 @@ def index(
         del result_ds.attrs["reset_coords_dict"]
     if out_file is not None:
         _write_output_file(
-            result_ds, input_dataset.time.encoding, config.netcdf_version, out_file
+            result_ds, input_dataset.time.encoding, netcdf_version, out_file
         )
     callback(callback_percentage_total)
     log.ending_message(time.process_time())
@@ -333,7 +334,7 @@ def index(
 def _write_output_file(
     result_ds: xr.Dataset,
     input_time_encoding: dict,
-    netcdf_version: NetcdfVersionRegistry,
+    netcdf_version: NetcdfVersion,
     file_path: str,
 ) -> None:
     """Write `result_ds` to a netCDF file on `out_file` path."""

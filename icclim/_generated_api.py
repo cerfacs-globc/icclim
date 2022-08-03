@@ -11,7 +11,7 @@ from xarray.core.dataset import Dataset
 
 import icclim
 from icclim.icclim_logger import Verbosity, VerbosityRegistry
-from icclim.models.frequency import FrequencyRegistry, SliceMode
+from icclim.models.frequency import FrequencyLike, FrequencyRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import (
     QuantileInterpolation,
@@ -77,7 +77,7 @@ __all__ = [
 def tg(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -122,7 +122,7 @@ def tg(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str |
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -149,11 +149,11 @@ def tg(
 def tn(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
+    netcdf_version: str | NetcdfVersion = NetcdfVersionRegistry.NETCDF4,
     logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
 ) -> Dataset:
     """
@@ -221,7 +221,7 @@ def tn(
 def tx(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -293,7 +293,7 @@ def tx(
 def dtr(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -365,7 +365,7 @@ def dtr(
 def etr(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -437,7 +437,7 @@ def etr(
 def vdtr(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -509,7 +509,7 @@ def vdtr(
 def su(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -588,7 +588,7 @@ def su(
 def tr(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -667,7 +667,7 @@ def tr(
 def wsdi(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -784,7 +784,7 @@ def wsdi(
 def tg90p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -905,7 +905,7 @@ def tg90p(
 def tn90p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1026,7 +1026,7 @@ def tn90p(
 def tx90p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1147,7 +1147,7 @@ def tx90p(
 def txx(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -1219,7 +1219,7 @@ def txx(
 def tnx(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -1291,7 +1291,7 @@ def tnx(
 def csu(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1370,7 +1370,7 @@ def csu(
 def gd4(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1449,7 +1449,7 @@ def gd4(
 def fd(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1528,7 +1528,7 @@ def fd(
 def cfd(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1607,7 +1607,7 @@ def cfd(
 def hd17(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1686,7 +1686,7 @@ def hd17(
 def id(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1765,7 +1765,7 @@ def id(
 def tg10p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -1886,7 +1886,7 @@ def tg10p(
 def tn10p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -2007,7 +2007,7 @@ def tn10p(
 def tx10p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -2128,7 +2128,7 @@ def tx10p(
 def txn(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2200,7 +2200,7 @@ def txn(
 def tnn(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2272,7 +2272,7 @@ def tnn(
 def csdi(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -2389,7 +2389,7 @@ def csdi(
 def cdd(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2461,7 +2461,7 @@ def cdd(
 def prcptot(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2533,7 +2533,7 @@ def prcptot(
 def rr1(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2605,7 +2605,7 @@ def rr1(
 def sdii(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2677,7 +2677,7 @@ def sdii(
 def cwd(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2749,7 +2749,7 @@ def cwd(
 def r10mm(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2821,7 +2821,7 @@ def r10mm(
 def r20mm(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2893,7 +2893,7 @@ def r20mm(
 def rx1day(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -2965,7 +2965,7 @@ def rx1day(
 def rx5day(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -3037,7 +3037,7 @@ def rx5day(
 def r75p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -3153,7 +3153,7 @@ def r75p(
 def r75ptot(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -3265,7 +3265,7 @@ def r75ptot(
 def r95p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -3381,7 +3381,7 @@ def r95p(
 def r95ptot(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -3493,7 +3493,7 @@ def r95ptot(
 def r99p(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -3609,7 +3609,7 @@ def r99p(
 def r99ptot(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     threshold: float | list[float] | None = None,
@@ -3721,7 +3721,7 @@ def r99ptot(
 def sd(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -3793,7 +3793,7 @@ def sd(
 def sd1(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -3865,7 +3865,7 @@ def sd1(
 def sd5cm(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -3937,7 +3937,7 @@ def sd5cm(
 def sd50cm(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
@@ -4009,7 +4009,7 @@ def sd50cm(
 def cd(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -4120,7 +4120,7 @@ def cd(
 def cw(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -4231,7 +4231,7 @@ def cw(
 def wd(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -4342,7 +4342,7 @@ def wd(
 def ww(
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
@@ -4454,7 +4454,7 @@ def custom_index(
     user_index: UserIndexDict,
     in_files: InFileType,
     var_name: str | list[str] | None = None,
-    slice_mode: SliceMode = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
     time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
     out_file: str | None = None,
     base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,

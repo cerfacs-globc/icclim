@@ -12,6 +12,7 @@ class NetcdfVersion:
 
 class NetcdfVersionRegistry(Registry):
     _item_class = NetcdfVersion
+
     NETCDF4 = NetcdfVersion("NETCDF4")
     NETCDF4_CLASSIC = NetcdfVersion("NETCDF4_CLASSIC")
     NETCDF3_CLASSIC = NetcdfVersion("NETCDF3_CLASSIC")

@@ -20,6 +20,7 @@ class ExtremeMode:
 
 class ExtremeModeRegistry(Registry):
     _item_class = ExtremeMode
+
     MIN = ExtremeMode("min")
     MAX = ExtremeMode("max")
 

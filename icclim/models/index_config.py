@@ -7,7 +7,7 @@ from icclim.models.climate_index import ClimateIndex
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import PR, SFC_WIND, TAS, TAS_MAX, TAS_MIN
 from icclim.models.frequency import Frequency
-from icclim.models.netcdf_version import NetcdfVersionRegistry
+from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
 
@@ -48,7 +48,7 @@ class IndexConfig:
     window: int | None
     out_unit: str | None
     callback: Callable[[int], None] | None
-    netcdf_version: NetcdfVersionRegistry
+    netcdf_version: NetcdfVersion
     save_percentile: bool
     interpolation: QuantileInterpolation
     index: ClimateIndex
