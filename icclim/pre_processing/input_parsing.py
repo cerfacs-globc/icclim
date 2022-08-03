@@ -64,7 +64,7 @@ def read_dataset(
         ds = xr.open_zarr(in_files)
     else:
         raise NotImplementedError("`in_files` format was not recognized.")
-    return update_to_standard_coords(ds).chunk("auto")
+    return update_to_standard_coords(ds)
 
 
 def update_to_standard_coords(ds: Dataset) -> Dataset:
@@ -202,6 +202,7 @@ def build_study_da(
     time_range: Sequence[str] | None,
     ignore_Feb29th: bool,
     sampling_frequency: Frequency,
+    cf_meta_unit: str,
 ) -> DataArray:
     if time_range is not None:
         check_time_range_pre_validity("time_range", time_range)
@@ -221,6 +222,9 @@ def build_study_da(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if sampling_frequency.time_clipping is not None:
         da = sampling_frequency.time_clipping(da)
+    if da.attrs.get("units", None):
+        da.attrs["units"] = cf_meta_unit
+    da = da.chunk("auto")
     return da
 
 

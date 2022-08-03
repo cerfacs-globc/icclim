@@ -1,6 +1,3 @@
-"""All ECA&D functions. Each function wraps its xclim equivalent functions adding icclim
-metadata to it.
-"""
 from __future__ import annotations
 
 from typing import Any, Sequence

@@ -59,7 +59,7 @@ def read_climate_vars(
 ) -> list[ClimateVariable]:
     return read_dictionary(
         ignore_Feb29th,
-        to_readable_input(in_files, var_names, index, threshold),
+        _to_dictionary(in_files, var_names, index, threshold),
         index,
         sampling_frequency,
         threshold,
@@ -67,7 +67,7 @@ def read_climate_vars(
     )
 
 
-def to_readable_input(
+def _to_dictionary(
     in_files: InFileType,
     var_names: Sequence[str],
     index: ClimateIndex,
@@ -118,9 +118,8 @@ def read_dictionary(
             time_range,
             ignore_Feb29th,
             sampling_frequency,
+            cf_meta.units,
         )
-        if study_da.attrs.get("units", None):
-            study_da.attrs["units"] = cf_meta.units
         if climate_var_thresh is not None:
             if isinstance(climate_var_thresh, str):
                 climate_var_thresh = Threshold(climate_var_thresh)
