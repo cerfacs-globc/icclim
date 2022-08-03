@@ -262,7 +262,6 @@ def index(
     input_dataset = read_dataset(in_files, index, var_name)
     input_dataset, reset_coords_dict = update_to_standard_coords(input_dataset)
     sampling_frequency = Frequency.lookup(slice_mode)
-    input_dataset = input_dataset.chunk("auto")
     cf_vars = build_cf_variables(
         var_names=guess_var_names(input_dataset, in_files, index, var_name),
         ds=input_dataset,

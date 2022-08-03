@@ -302,6 +302,8 @@ def _build_cf_variable(
     #       update the metadata of the index, at the end.
     #       We could have a singleton "taking notes" of each operation that must be
     #       logged into the output netcdf/provenance/metadata
+    study_da = study_da.chunk("auto")
+    reference_da = reference_da.chunk("auto")
     return CfVariable(name, study_da, reference_da)
 
 
