@@ -19,7 +19,7 @@ from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.constants import VALID_PERCENTILE_DIMENSION
 from icclim.models.frequency import Frequency, FrequencyRegistry
-from icclim.models.index_group import IndexGroupRegistry, IndexGroup
+from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.utils import get_date_to_iso_format
 
 DEFAULT_INPUT_FREQUENCY = "days"

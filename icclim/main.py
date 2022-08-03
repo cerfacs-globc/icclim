@@ -28,7 +28,7 @@ from icclim.models.climate_index import ClimateIndex
 from icclim.models.climate_variable import read_climate_vars
 from icclim.models.constants import ICCLIM_VERSION
 from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
-from icclim.models.index_group import IndexGroupRegistry, IndexGroup
+from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.models.threshold import Threshold
