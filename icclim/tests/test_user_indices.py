@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import pytest
-from models.operator import OperatorRegistry
 
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_config import ClimateVariable
+from icclim.models.operator import OperatorRegistry
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.tests.testing_utils import stub_tas
 

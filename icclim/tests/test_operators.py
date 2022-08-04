@@ -3,10 +3,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import xarray as xr
-from models.user_index_config import ExtremeModeRegistry
 
 from icclim.models.logical_link import LogicalLinkRegistry
 from icclim.models.operator import OperatorRegistry
+from icclim.models.user_index_config import ExtremeModeRegistry
 from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.operators import (
     _apply_coef,

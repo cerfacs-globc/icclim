@@ -6,17 +6,6 @@ from typing import Callable
 
 import numpy
 import numpy as np
-from generic_indices.generic_index_functions import (
-    CountOccurrencesReducer,
-    MaxConsecutiveOccurrence,
-    Reducer,
-    _can_run_bootstrap,
-)
-
-# jinja_env = Environment(autoescape=True)
-# todo could be a security issue to have autoescape=False (default)
-#      but otherwise > and < are replaced by &gt and &lt
-from icclim_exceptions import InvalidIcclimArgumentError
 from jinja2 import Environment
 from xarray import DataArray
 from xclim.core import datachecks
@@ -24,11 +13,21 @@ from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 
+from icclim.generic_indices.generic_index_functions import (
+    CountOccurrencesReducer,
+    MaxConsecutiveOccurrence,
+    Reducer,
+    _can_run_bootstrap,
+)
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
 
 jinja_env = Environment()
+# jinja_env = Environment(autoescape=True)
+# todo could be a security issue to have autoescape=False (default)
+#      but otherwise > and < are replaced by &gt and &lt
 
 
 class Indicator(Callable):

@@ -4,12 +4,12 @@ from dataclasses import dataclass
 from typing import Callable, Sequence
 from warnings import warn
 
-from icclim_types import InFileBaseType, InFileType
-from models.consolidated_metadata import GlobalMetadata
 from xarray.core.dataarray import DataArray
 
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
+from icclim.icclim_types import InFileBaseType, InFileType
 from icclim.models.climate_index import ClimateIndex
+from icclim.models.consolidated_metadata import GlobalMetadata
 from icclim.models.frequency import Frequency
 from icclim.models.threshold import Threshold
 from icclim.pre_processing.in_file_dictionary import InFileDictionary

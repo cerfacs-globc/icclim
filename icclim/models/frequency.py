@@ -15,11 +15,11 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import xclim.core.calendar
-from icclim_types import FrequencyLike, Indexer
 from pandas.tseries.frequencies import to_offset
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.icclim_types import FrequencyLike, Indexer
 from icclim.models.constants import (
     AMJJAS_MONTHS,
     DJF_MONTHS,

@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import TypedDict
 
-from icclim_types import InFileBaseType
-
+from icclim.icclim_types import InFileBaseType
 from icclim.models.threshold import Threshold
 
 
