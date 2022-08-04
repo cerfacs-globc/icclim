@@ -310,21 +310,21 @@ def index(
         result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
     else:
         _check_valid_config(index, config)
-        # TODO Fix initial_history initial_source !
         result_ds = _compute_standard_climate_index(
             config=config,
             climate_index=index,
-            initial_history="",
-            initial_source="",
-            # initial_history=input_dataset.attrs.get(HISTORY_CF_KEY, None),
-            # initial_source=input_dataset.attrs.get(SOURCE_CF_KEY, None),
+            initial_history=climate_vars[0].global_metadata["history"],
+            initial_source=climate_vars[0].global_metadata["source"],
         )
     if reset := result_ds.attrs.get("reset_coords_dict", None):
         result_ds = result_ds.rename(reset)
         del result_ds.attrs["reset_coords_dict"]
     if out_file is not None:
         _write_output_file(
-            result_ds, input_dataset.time.encoding, netcdf_version, out_file
+            result_ds,
+            climate_vars[0].global_metadata["time_encoding"],
+            netcdf_version,
+            out_file,
         )
     callback(callback_percentage_total)
     log.ending_message(time.process_time())
@@ -333,7 +333,7 @@ def index(
 
 def _write_output_file(
     result_ds: xr.Dataset,
-    input_time_encoding: dict,
+    input_time_encoding: dict | None,
     netcdf_version: NetcdfVersion,
     file_path: str,
 ) -> None:

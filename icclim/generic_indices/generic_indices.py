@@ -243,7 +243,10 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         #       probably unsafe to do `config.cf_variables[0]`
         #       in case config.cf_variables[1] (or others) have a != frequency
         inputs = list(
-            map(lambda cf_var: cf_var.get_metadata(self.src_freq), climate_vars)
+            map(
+                lambda cf_var: cf_var.build_indicator_metadata(self.src_freq),
+                climate_vars,
+            )
         )
         jinja_scope = {
             # todo [xclim backport] localize these
