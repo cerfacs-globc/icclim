@@ -41,6 +41,7 @@ log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
+GENERIC_THRESHOLD_KEY = "generic_threshold"
 
 
 def indices(
@@ -120,7 +121,7 @@ def indice(*args, **kwargs):
 def generic(in_files: InFileType, **kwargs) -> Dataset:
     if kwargs.get("index_name"):
         raise InvalidIcclimArgumentError("With generic, index_name must be empty")
-    return index(in_files=in_files, index_name="generic_threshold", **kwargs)
+    return index(in_files=in_files, index_name=GENERIC_THRESHOLD_KEY, **kwargs)
 
 
 def index(
@@ -131,6 +132,7 @@ def index(
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold = None,
+    reducer: str = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -279,8 +281,11 @@ def index(
                     "configured. Use a generic index "
                     "instead."
                 )
-        elif index_name == "generic_threshold":
-            index = CountEventComparedToThreshold()
+        elif index_name == GENERIC_THRESHOLD_KEY:
+            if reducer == "count_occurrence":
+                index = CountEventComparedToThreshold()
+            else:
+                raise InvalidIcclimArgumentError(f"Unknown reducer {reducer}.")
         else:
             raise InvalidIcclimArgumentError(f"Unknown index {index_name}.")
     else:
