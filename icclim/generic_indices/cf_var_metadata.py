@@ -20,7 +20,7 @@ class CfVarMetadata:
     units: str = None  # runtime unit # todo pint.Unit ?
     cell_method: str = None  # todo class to build it ?
 
-    def to_dict(self):
+    def get_metadata(self):
         return self.__dict__  # todo safe ?
 
 

@@ -6,36 +6,38 @@ from typing import Callable
 
 import numpy
 import numpy as np
-from generic_indices.generic_index_functions import _can_run_bootstrap
-from jinja2 import Environment
-from xarray import DataArray
-from xclim.core import datachecks
-from xclim.core.bootstrapping import percentile_bootstrap
-from xclim.core.calendar import resample_doy, select_time
-from xclim.core.cfchecks import cfcheck_from_name
-from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
-from xclim.core.units import convert_units_to, to_agg_units
-
-from icclim.models.climate_index import ClimateIndex
-from icclim.models.climate_variable import ClimateVariable
-from icclim.models.frequency import Frequency
-from icclim.models.index_config import IndexConfig
+from generic_indices.generic_index_functions import (
+    CountOccurrencesReducer,
+    MaxConsecutiveOccurrence,
+    Reducer,
+    _can_run_bootstrap,
+)
 
 # jinja_env = Environment(autoescape=True)
 # todo could be a security issue to have autoescape=False (default)
 #      but otherwise > and < are replaced by &gt and &lt
+from icclim_exceptions import InvalidIcclimArgumentError
+from jinja2 import Environment
+from xarray import DataArray
+from xclim.core import datachecks
+from xclim.core.calendar import select_time
+from xclim.core.cfchecks import cfcheck_from_name
+from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
+
+from icclim.models.climate_variable import ClimateVariable
+from icclim.models.frequency import Frequency
+from icclim.models.index_config import IndexConfig
 
 jinja_env = Environment()
 
 
-class Indicator:
+class Indicator(Callable):
     identifier: str
     units: str
     standard_name: str
     long_name: str
     description: str
     cell_methods: str
-
     src_freq: Frequency
     short_name: str
 
@@ -174,12 +176,14 @@ class ResamplingIndicator(Indicator):
         return [out.where(~mask) for out in out_data]
 
 
-class CountEventComparedToThreshold(ResamplingIndicator):
+class GenericIndicator(ResamplingIndicator):
     # TODO: Add aliases to recognize common indices (heatwave, SU, tropical_night, etc).
-    #       or just define catalogs (ecad, xclim, ettcdi) ?
+    #       Or simply define catalogs (ecad, xclim, ettcdi)
+    #       that use these generic indices ?
     identifier = (
+        "{{reducer.standard_name}}"
         "{% for i, input in enumerate(inputs) %}"
-        "{{input.short_name}}"
+        "_{{input.short_name}}"
         "{% if i != len(inputs) - 1 %}"
         "_and"
         "{% endif%}"
@@ -187,8 +191,10 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "_{{src_freq.units}}"
     )
     units = "{{src_freq.units}}"
+    # todo add canonical_form instead making a mess with `standard_name`
     standard_name = (
-        "number_of_{{src_freq.units}}_when"
+        "{{reducer.standard_name}}"
+        "_{{src_freq.units}}_when"
         "{% for i, input in enumerate(inputs) %}"
         "_{{input.standard_name}}"
         "_{{input.threshold.standard_name}}"
@@ -198,7 +204,8 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "{% endfor %}"
     )
     long_name = (
-        "Number of {{src_freq.units}} when"
+        "{{reducer.long_name}}"
+        " {{src_freq.units}} when"
         "{% for i, input in enumerate(inputs) %}"
         " {{input.short_name}} is"
         " {{input.threshold.long_name}}"
@@ -209,8 +216,9 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "."
     )
     description = (
-        "Number of {{src_freq.units}} when"
-        " {{output_freq}}"
+        "{{reducer.long_name}}"
+        " {{src_freq.units}} of"
+        " {{output_freq}} when"
         "{% for i, input in enumerate(inputs) %}"
         " {{input.long_name}} is"
         " {{input.threshold.long_name}}"
@@ -223,12 +231,20 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         "{% endfor %}"
         "."
     )
-    cell_methods = "time: sum over {{src_freq.units}}"  # todo sum ??
+    cell_methods = "{{reducer.cell_methods}} {{src_freq.units}}"
 
-    def __init__(self, **kwds):
+    reducer: Reducer
+
+    def __init__(self, reducer: str, **kwds):
         super().__init__(**kwds)
         self.input_variables = None
-        self.short_name = self.identifier
+        self.short_name = self.identifier  # todo no need to duplicate properties
+        if reducer == CountOccurrencesReducer.KEY:
+            self.reducer = CountOccurrencesReducer()
+        elif reducer == MaxConsecutiveOccurrence.KEY:
+            self.reducer = MaxConsecutiveOccurrence()
+        else:
+            raise InvalidIcclimArgumentError(f"Unknown reducer: {reducer}.")
 
     def preprocess(
         self,
@@ -250,6 +266,7 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         )
         jinja_scope = {
             # todo [xclim backport] localize these
+            "reducer": self.reducer.get_metadata(),
             "inputs": inputs,
             "output_freq": frequency.description,
             "np": numpy,
@@ -277,8 +294,7 @@ class CountEventComparedToThreshold(ResamplingIndicator):
             **kwargs,
         )
         result = self._compare_climate_vars_to_thresholds(
-            climate_vars=climate_vars,
-            freq=config.frequency,
+            climate_vars=climate_vars, freq=config.frequency
         )
         return self.postprocess(
             result,
@@ -287,13 +303,10 @@ class CountEventComparedToThreshold(ResamplingIndicator):
         )
 
     def _compare_climate_vars_to_thresholds(
-        self,
-        /,
-        climate_vars: list[ClimateVariable],
-        freq: Frequency,
+        self, /, climate_vars: list[ClimateVariable], freq: Frequency
     ) -> DataArray:
         intermediary = [
-            self._compare_climate_var_to_thresh(
+            self.reducer(
                 climate_var.study_da,
                 climate_var.threshold.value,
                 freq.pandas_freq,
@@ -306,63 +319,3 @@ class CountEventComparedToThreshold(ResamplingIndicator):
             for climate_var in climate_vars
         ]
         return reduce(np.logical_and, intermediary)  # noqa
-
-    @percentile_bootstrap
-    def _compare_climate_var_to_thresh(
-        self,
-        study: DataArray,
-        thresholds: DataArray,
-        freq: str,
-        bootstrap: bool,  # noqa
-        operator: Callable,
-        is_doy_per: bool,
-    ) -> DataArray:
-        # xclim like index function
-        # signature is not exact as parameters can be injected
-        th_da = convert_units_to(thresholds, study)
-        if is_doy_per:
-            th_da = resample_doy(th_da, study)
-        res = operator(study, th_da).resample(time=freq).sum(dim="time")
-        return to_agg_units(res, study, "count")
-
-
-class IndexCatalog:
-    _catalog: dict[str, ClimateIndex]
-
-    def __init__(self, catalog=None, **kwargs):
-        if catalog:
-            self._catalog = catalog
-        else:
-            self._catalog = kwargs
-
-    def lookup(self, query: str) -> ClimateIndex | None:
-        for k, v in self._catalog.items():
-            if query == k or query == v.short_name:
-                return v
-        return None
-
-
-GenericIndexCatalog = IndexCatalog(
-    generic=lambda op: CountEventComparedToThreshold(op.short_name),
-    # greater=CountEventComparedToThreshold(short_name="greater", operator=GREATER),
-    # greater_or_equal=CountEventComparedToThreshold(
-    #     short_name="greater_or_equal", operator=GREATER_OR_EQUAL
-    # ),
-    # lower=CountEventComparedToThreshold(short_name="lower", operator=LOWER),
-    # lower_or_equal=CountEventComparedToThreshold(
-    #     short_name="lower_or_equal", operator=LOWER_OR_EQUAL
-    # ),
-    # equal=CountEventComparedToThreshold(short_name="equal", operator=EQUAL),
-)
-
-
-def days_where_studies_are_above_references(
-    inputs: [ClimateVariable], freq: str = "YS"
-):
-    from functools import reduce
-
-    # noqa -> ::map does not infer the proper type
-    out: DataArray = map(lambda x: x.study_da > x.reference_da, inputs)  # noqa
-    out = reduce(lambda a, b: np.logical_and(a, b), out)
-    out = out.resample(time=freq).sum(dim="time")
-    return to_agg_units(out, inputs[0].st, "count")

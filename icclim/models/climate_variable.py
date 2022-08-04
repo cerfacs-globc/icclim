@@ -46,8 +46,8 @@ class ClimateVariable:
 
     def build_indicator_metadata(self, src_freq: Frequency) -> dict[str, str]:
         return {
-            "threshold": self.threshold.get_metadata(src_freq)
-        } | self.cf_meta.to_dict()
+            "threshold": self.threshold.get_metadata(src_freq),
+        } | self.cf_meta.get_metadata()
 
 
 def read_climate_vars(
@@ -59,14 +59,19 @@ def read_climate_vars(
     time_range: Sequence[str],
     var_names: str | Sequence[str] | None,
 ) -> list[ClimateVariable]:
-    return read_dictionary(
-        ignore_Feb29th,
-        _to_dictionary(in_files, var_names, index, threshold),
-        index,
-        sampling_frequency,
-        threshold,
-        time_range,
-    )
+    iter_in_files = _to_dictionary(in_files, var_names, index, threshold).items()
+    return [
+        _build_climate_var(
+            k,
+            v,
+            ignore_Feb29th,
+            index,
+            sampling_frequency,
+            threshold,
+            time_range,
+        )
+        for k, v in iter_in_files
+    ]
 
 
 def _to_dictionary(
@@ -86,22 +91,6 @@ def _to_dictionary(
             var_name: {"study": input_dataset[var_name], "thresholds": threshold}
             for var_name in var_names
         }
-
-
-def read_dictionary(
-    ignore_Feb29th: bool,
-    in_files: dict[str, InFileDictionary],
-    index: ClimateIndex,
-    sampling_frequency: Frequency,
-    threshold: Threshold | None,
-    time_range: Sequence[str],
-) -> list[ClimateVariable]:
-    return [
-        _build_climate_var(
-            k, v, ignore_Feb29th, index, sampling_frequency, threshold, time_range
-        )
-        for k, v in in_files.items()
-    ]
 
 
 def _build_climate_var(

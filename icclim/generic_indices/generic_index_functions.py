@@ -1,15 +1,100 @@
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 import numpy as np
 import xarray as xr
 from xarray import DataArray
-from xclim.core.calendar import build_climatology_bounds, percentile_doy
+from xclim.core.bootstrapping import percentile_bootstrap
+from xclim.core.calendar import build_climatology_bounds, percentile_doy, resample_doy
+from xclim.core.units import convert_units_to, to_agg_units
 from xclim.core.utils import PercentileDataArray, calc_perc
+from xclim.indices import run_length
 
 from icclim.models.frequency import Frequency
 from icclim.models.quantile_interpolation import QuantileInterpolation
+
+
+class Reducer:
+    KEY: str
+
+    @percentile_bootstrap
+    def __call__(
+        self,
+        study: DataArray,
+        thresholds: DataArray,
+        freq: str,
+        bootstrap: bool,  # noqa
+        operator: Callable,
+        is_doy_per: bool,
+        *args,
+        **kwargs,
+    ):
+        ...
+
+    # todo Add a TypedDict for standard_name and long_name ?
+    def get_metadata(self) -> dict[str, str]:
+        ...
+
+
+class CountOccurrencesReducer(Reducer):
+    KEY = "count_occurrences"
+
+    def __call__(
+        self,
+        study: DataArray,
+        thresholds: DataArray,
+        freq: str,
+        bootstrap: bool,  # noqa
+        operator: Callable,
+        is_doy_per: bool,
+        *args,
+        **kwargs,
+    ) -> DataArray:
+        th_da = convert_units_to(thresholds, study)
+        if is_doy_per:
+            th_da = resample_doy(th_da, study)
+        res = operator(study, th_da).resample(time=freq).sum(dim="time")
+        return to_agg_units(res, study, "count")
+
+    def get_metadata(self) -> dict[str, str]:
+        return {
+            "standard_name": "number_of",
+            "long_name": "Number of",
+            "cell_methods": "time: sum over",
+        }
+
+
+class MaxConsecutiveOccurrence(Reducer):
+    KEY = "max_consecutive_occurrence"
+
+    def __call__(
+        self,
+        study: DataArray,
+        thresholds: DataArray,
+        freq: str,
+        bootstrap: bool,  # noqa
+        operator: Callable,
+        is_doy_per: bool,
+        *args,
+        **kwargs,
+    ) -> DataArray:
+        th_da = convert_units_to(thresholds, study)  # todo could be done before
+        if is_doy_per:  # todo could be done before
+            th_da = resample_doy(th_da, study)
+        res = (
+            operator(study, th_da)
+            .resample(time=freq)
+            .map(run_length.longest_run, dim="time")
+        )
+        return to_agg_units(res, study, "count")
+
+    def get_metadata(self) -> dict[str, str]:
+        return {
+            "standard_name": "spell_length_of",
+            "long_name": "Maximum number of consecutive",
+            "cell_methods": "time: maximum over",
+        }
 
 
 def _can_run_bootstrap(da: DataArray, threshold: Any) -> bool:

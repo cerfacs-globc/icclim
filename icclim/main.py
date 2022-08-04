@@ -16,7 +16,8 @@ from warnings import warn
 
 import xarray as xr
 import xclim
-from generic_indices.generic_indices import CountEventComparedToThreshold, Indicator
+from generic_indices.generic_index_functions import CountOccurrencesReducer, Reducer
+from generic_indices.generic_indices import GenericIndicator, Indicator
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
@@ -118,10 +119,14 @@ def indice(*args, **kwargs):
     return index(*args, **kwargs)
 
 
-def generic(in_files: InFileType, **kwargs) -> Dataset:
+def generic(
+    in_files: InFileType, reducer=CountOccurrencesReducer.KEY, **kwargs
+) -> Dataset:
     if kwargs.get("index_name"):
         raise InvalidIcclimArgumentError("With generic, index_name must be empty")
-    return index(in_files=in_files, index_name=GENERIC_THRESHOLD_KEY, **kwargs)
+    return index(
+        in_files=in_files, index_name=GENERIC_THRESHOLD_KEY, reducer=reducer, **kwargs
+    )
 
 
 def index(
@@ -132,7 +137,7 @@ def index(
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold = None,
-    reducer: str = None,
+    reducer: str | Reducer = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -282,10 +287,7 @@ def index(
                     "instead."
                 )
         elif index_name == GENERIC_THRESHOLD_KEY:
-            if reducer == "count_occurrence":
-                index = CountEventComparedToThreshold()
-            else:
-                raise InvalidIcclimArgumentError(f"Unknown reducer {reducer}.")
+            index = GenericIndicator(reducer)
         else:
             raise InvalidIcclimArgumentError(f"Unknown index {index_name}.")
     else:
@@ -434,6 +436,7 @@ def _compute_standard_climate_index(
     initial_history: str | None,
     initial_source: str,
 ) -> Dataset:
+    # todo remove config as it's very likely useless with generic indicators
     def compute(threshold: float | None = None):
         conf = copy.copy(config)
         if threshold is not None:
@@ -441,7 +444,7 @@ def _compute_standard_climate_index(
         if config.frequency.time_clipping is not None:
             # xclim missing values checking system will not work with clipped time
             with xclim.set_options(check_missing="skip"):
-                res = climate_index.compute(conf)
+                res = climate_index(conf)
         else:
             res = climate_index(conf)  # todo need to merge ClimateIndex and Indicator
         if isinstance(res, tuple):
@@ -449,6 +452,7 @@ def _compute_standard_climate_index(
         else:
             return (res, None)
 
+    # todo delete log as it is unreadable with generic index
     logging.info(f"Calculating climate index: {climate_index.short_name}")
     result_da, percentiles_da = compute()
     result_da = result_da.rename(climate_index.short_name)
