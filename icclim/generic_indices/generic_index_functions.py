@@ -22,7 +22,7 @@ class ReducerMetadataDict(TypedDict):
     additional_metadata: str
 
 
-class Reducer:
+class Reducer(Callable):
     KEY: str
 
     def __call__(self, *args, **kwargs):
@@ -46,10 +46,10 @@ class CountOccurrencesReducer(Reducer):
         operator: Callable,
         is_doy_per: bool,
     ) -> DataArray:
-        th_da = convert_units_to(thresholds, study)
+        converted_thresholds = convert_units_to(thresholds, study)
         if is_doy_per:
-            th_da = resample_doy(th_da, study)
-        res = operator(study, th_da).resample(time=freq).sum(dim="time")
+            converted_thresholds = resample_doy(converted_thresholds, study)
+        res = operator(study, converted_thresholds).resample(time=freq).sum(dim="time")
         return to_agg_units(res, study, "count")
 
     def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
@@ -74,11 +74,13 @@ class MaxConsecutiveOccurrence(Reducer):
         operator: Callable,
         is_doy_per: bool,
     ) -> DataArray:
-        th_da = convert_units_to(thresholds, study)  # todo could be done before
+        converted_thresholds = convert_units_to(
+            thresholds, study
+        )  # todo could be done before
         if is_doy_per:  # todo could be done before
-            th_da = resample_doy(th_da, study)
+            converted_thresholds = resample_doy(converted_thresholds, study)
         res = (
-            operator(study, th_da)
+            operator(study, converted_thresholds)
             .resample(time=freq)
             .map(run_length.longest_run, dim="time")
         )
@@ -95,6 +97,7 @@ class MaxConsecutiveOccurrence(Reducer):
 
 class SumOfSpellLengths(Reducer):
     KEY = "sum_of_spell_lengths"
+    min_spell_length: int
 
     def __init__(self, min_spell_length: int):
         self.min_spell_length = min_spell_length
@@ -109,11 +112,13 @@ class SumOfSpellLengths(Reducer):
         operator: Callable,
         is_doy_per: bool,
     ) -> DataArray:
-        th_da = convert_units_to(thresholds, study)  # todo could be done before
+        converted_thresholds = convert_units_to(
+            thresholds, study
+        )  # todo could be done before
         if is_doy_per:  # todo could be done before
-            th_da = resample_doy(th_da, study)
+            converted_thresholds = resample_doy(converted_thresholds, study)
         res = (
-            operator(study, th_da)
+            operator(study, converted_thresholds)
             .resample(time=freq)
             .map(
                 run_length.windowed_run_count, window=self.min_spell_length, dim="time"
@@ -126,8 +131,78 @@ class SumOfSpellLengths(Reducer):
             "standard_name": "sum_of_spell_lengths_of",
             "long_name": "Sum of spell lengths of",
             "cell_methods": "time: sum over",
-            "additional_metadata": f"Spells are at least {self.min_spell_length}"
+            "additional_metadata": f" Spells are at least {self.min_spell_length}."
             f" {src_freq.units} long",
+        }
+
+
+class Excess(Reducer):
+    KEY = "excess"
+
+    @percentile_bootstrap
+    def __call__(
+        self,
+        study: DataArray,
+        thresholds: DataArray,
+        freq: str,
+        bootstrap: bool,
+        operator: Callable,
+        is_doy_per: bool,
+    ) -> DataArray:
+        converted_thresholds = convert_units_to(
+            thresholds, study
+        )  # todo could be done before
+        if is_doy_per:  # todo could be done before
+            converted_thresholds = resample_doy(converted_thresholds, study)
+        res = (
+            (study - converted_thresholds)
+            .clip(min=0)
+            .resample(time=freq)
+            .sum(dim="time")
+        )
+        return to_agg_units(res, study, "delta_prod")
+
+    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+        return {
+            "standard_name": "excess_of_integral_of",
+            "long_name": "Excess of integral of",
+            "cell_methods": "time: sum over",
+            "additional_metadata": "",
+        }
+
+
+class Deficit(Reducer):
+    KEY = "deficit"
+
+    @percentile_bootstrap
+    def __call__(
+        self,
+        study: DataArray,
+        thresholds: DataArray,
+        freq: str,
+        bootstrap: bool,
+        operator: Callable,
+        is_doy_per: bool,
+    ) -> DataArray:
+        converted_thresholds = convert_units_to(
+            thresholds, study
+        )  # todo could be done before
+        if is_doy_per:  # todo could be done before
+            converted_thresholds = resample_doy(converted_thresholds, study)
+        res = (
+            (converted_thresholds - study)
+            .clip(min=0)
+            .resample(time=freq)
+            .sum(dim="time")
+        )
+        return to_agg_units(res, study, "delta_prod")
+
+    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+        return {
+            "standard_name": "deficit_of_integral_of",
+            "long_name": "Deficit of integral of",
+            "cell_methods": "time: sum over",
+            "additional_metadata": "",
         }
 
 

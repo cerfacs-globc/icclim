@@ -309,7 +309,7 @@ def index(
     config = IndexConfig(
         save_percentile=save_percentile,
         frequency=sampling_frequency,
-        cf_variables=climate_vars,
+        climate_variables=climate_vars,
         window=window_width,
         out_unit=out_unit,
         netcdf_version=NetcdfVersionRegistry.lookup(netcdf_version),

@@ -68,3 +68,13 @@ class OperatorRegistry(Registry):
         operand="==",
         compute=lambda da, th: da == th,  # noqa
     )
+    # A none operand means the threshold is reached and a reducer specif computation is
+    # done. E.g. excess, deficit (a.k.a gd4, hd17)
+    REACH = Operator(
+        short_name="reach",
+        long_name="reaching",
+        standard_name="reaches",
+        aliases=["r"],
+        operand="reach",
+        compute=lambda da, th: None,  # noqa
+    )

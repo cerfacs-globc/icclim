@@ -135,7 +135,9 @@ class Threshold:
         else:
             raise NotImplementedError("Threshold could not be built.")
         self.is_doy_per_threshold = is_doy_per_threshold
-        self.operator = OperatorRegistry.lookup(operator)
+        self.operator = (
+            OperatorRegistry.lookup(operator, no_error=True) or OperatorRegistry.REACH
+        )
         self.value = value
         self.unit = unit
         self.additional_metadata = []

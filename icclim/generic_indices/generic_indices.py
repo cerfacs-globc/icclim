@@ -15,6 +15,8 @@ from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 
 from icclim.generic_indices.generic_index_functions import (
     CountOccurrencesReducer,
+    Deficit,
+    Excess,
     MaxConsecutiveOccurrence,
     Reducer,
     SumOfSpellLengths,
@@ -214,7 +216,7 @@ class GenericIndicator(ResamplingIndicator):
         " and"
         "{% endif%}"
         "{% endfor %}"
-        ". {{reducer.additional_metadata}}."
+        ".{{reducer.additional_metadata}}"
     )
     description = (
         "{{reducer.long_name}}"
@@ -230,7 +232,7 @@ class GenericIndicator(ResamplingIndicator):
         " and"
         "{% endif%}"
         "{% endfor %}"
-        ". {{reducer.additional_metadata}}."
+        ".{{reducer.additional_metadata}}"
     )
     cell_methods = "{{reducer.cell_methods}} {{src_freq.units}}"
 
@@ -246,6 +248,10 @@ class GenericIndicator(ResamplingIndicator):
             self.reducer = MaxConsecutiveOccurrence()
         elif reducer == SumOfSpellLengths.KEY:
             self.reducer = SumOfSpellLengths(min_spell_length)
+        elif reducer == Excess.KEY:
+            self.reducer = Excess()
+        elif reducer == Deficit.KEY:
+            self.reducer = Deficit()
         else:
             raise InvalidIcclimArgumentError(f"Unknown reducer: {reducer}.")
 
