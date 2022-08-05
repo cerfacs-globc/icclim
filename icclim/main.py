@@ -16,13 +16,13 @@ from warnings import warn
 
 import xarray as xr
 import xclim
-from generic_indices.generic_index_functions import CountOccurrencesReducer, Reducer
-from generic_indices.generic_indices import GenericIndicator, Indicator
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndexRegistry, get_season_excluded_indices
+from icclim.generic_indices.generic_index_functions import Reducer, ReducerRegistry
+from icclim.generic_indices.generic_indices import GenericIndicator, Indicator
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.models.climate_index import ClimateIndex
@@ -120,7 +120,7 @@ def indice(*args, **kwargs):
 
 
 def generic(
-    in_files: InFileType, reducer=CountOccurrencesReducer.KEY, **kwargs
+    in_files: InFileType, reducer=ReducerRegistry.CountOccurrences.name, **kwargs
 ) -> Dataset:
     # TODO: instead of `icclim.generic`,
     #       it would make more sense to have each reducer as part of the public API.
@@ -272,6 +272,7 @@ def index(
         )
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     if isinstance(threshold, str):
+        # merge the icclim.index flat parameters
         threshold = Threshold(
             threshold,
             window=window_width,

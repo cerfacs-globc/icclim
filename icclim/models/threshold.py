@@ -172,8 +172,9 @@ class Threshold:
                     standard_name = "_doy_percentiles"
                 window = self.value.attrs.get("window", "")
                 self.additional_metadata.append(
-                    f"day of year percentiles were computed on the {bds} period,"
-                    f" with a {window} {src_freq.units} window for each day of year"
+                    f"day of year percentiles were computed per grid cell, on the {bds}"
+                    f" period, with a {window} {src_freq.units} window for each day of"
+                    f" year"
                 )
             #     todo: add if bootstrap ran or not ro metadata
             else:
@@ -187,7 +188,8 @@ class Threshold:
                     )
                     standard_name = "_period_percentiles"
                 self.additional_metadata.append(
-                    f"period percentiles were computed on the {bds} period"
+                    f"period percentiles were computed per grid cell, on the {bds}"
+                    f" period"
                 )
             res = {
                 "standard_name": f"{self.operator.standard_name}_{standard_name}",

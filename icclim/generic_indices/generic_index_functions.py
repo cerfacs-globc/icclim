@@ -13,6 +13,7 @@ from xclim.indices import run_length
 
 from icclim.models.frequency import Frequency
 from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.registry import Registry
 
 
 class ReducerMetadataDict(TypedDict):
@@ -28,23 +29,24 @@ class Reducer(Callable):
     def __call__(self, *args, **kwargs):
         ...
 
-    # todo Add a TypedDict for standard_name and long_name ?
     def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
         ...
 
 
-class CountOccurrencesReducer(Reducer):
-    KEY = "count_occurrences"
+class CountOccurrences(Reducer):
+    name = "count_occurrences"
 
     @percentile_bootstrap
     def __call__(
         self,
         study: DataArray,
-        thresholds: DataArray,
+        thresholds: DataArray | PercentileDataArray,
         freq: str,
         bootstrap: bool,  # noqa
         operator: Callable,
         is_doy_per: bool,
+        *args,
+        **kwargs,
     ) -> DataArray:
         converted_thresholds = convert_units_to(thresholds, study)
         if is_doy_per:
@@ -62,17 +64,19 @@ class CountOccurrencesReducer(Reducer):
 
 
 class MaxConsecutiveOccurrence(Reducer):
-    KEY = "max_consecutive_occurrence"
+    name = "max_consecutive_occurrence"
 
     @percentile_bootstrap
     def __call__(
         self,
         study: DataArray,
-        thresholds: DataArray,
+        thresholds: DataArray | PercentileDataArray,
         freq: str,
         bootstrap: bool,  # noqa
         operator: Callable,
         is_doy_per: bool,
+        *args,
+        **kwargs,
     ) -> DataArray:
         converted_thresholds = convert_units_to(
             thresholds, study
@@ -96,21 +100,20 @@ class MaxConsecutiveOccurrence(Reducer):
 
 
 class SumOfSpellLengths(Reducer):
-    KEY = "sum_of_spell_lengths"
-    min_spell_length: int
-
-    def __init__(self, min_spell_length: int):
-        self.min_spell_length = min_spell_length
+    name = "sum_of_spell_lengths"
 
     @percentile_bootstrap
     def __call__(
         self,
         study: DataArray,
-        thresholds: DataArray,
+        thresholds: DataArray | PercentileDataArray,
         freq: str,
         bootstrap: bool,  # noqa
         operator: Callable,
         is_doy_per: bool,
+        min_spell_length: int = 6,
+        *args,
+        **kwargs,
     ) -> DataArray:
         converted_thresholds = convert_units_to(
             thresholds, study
@@ -120,9 +123,7 @@ class SumOfSpellLengths(Reducer):
         res = (
             operator(study, converted_thresholds)
             .resample(time=freq)
-            .map(
-                run_length.windowed_run_count, window=self.min_spell_length, dim="time"
-            )
+            .map(run_length.windowed_run_count, window=min_spell_length, dim="time")
         )
         return to_agg_units(res, study, "count")
 
@@ -137,17 +138,19 @@ class SumOfSpellLengths(Reducer):
 
 
 class Excess(Reducer):
-    KEY = "excess"
+    name = "excess"
 
     @percentile_bootstrap
     def __call__(
         self,
         study: DataArray,
-        thresholds: DataArray,
+        thresholds: DataArray | PercentileDataArray,
         freq: str,
         bootstrap: bool,
         operator: Callable,
         is_doy_per: bool,
+        *args,
+        **kwargs,
     ) -> DataArray:
         converted_thresholds = convert_units_to(
             thresholds, study
@@ -172,17 +175,19 @@ class Excess(Reducer):
 
 
 class Deficit(Reducer):
-    KEY = "deficit"
+    name = "deficit"
 
     @percentile_bootstrap
     def __call__(
         self,
         study: DataArray,
-        thresholds: DataArray,
+        thresholds: DataArray | PercentileDataArray,
         freq: str,
         bootstrap: bool,
         operator: Callable,
         is_doy_per: bool,
+        *args,
+        **kwargs,
     ) -> DataArray:
         converted_thresholds = convert_units_to(
             thresholds, study
@@ -206,13 +211,70 @@ class Deficit(Reducer):
         }
 
 
+class FractionOfTotal(Reducer):
+    name = "fraction_of_total"
+
+    @percentile_bootstrap
+    def __call__(
+        self,
+        study: DataArray,
+        thresholds: DataArray | PercentileDataArray,
+        freq: str,
+        bootstrap: bool,
+        operator: Callable,
+        is_doy_per: bool,
+        threshold_min_value: float | str | None,
+        *args,
+        **kwargs,
+    ) -> DataArray:
+        converted_thresholds = convert_units_to(thresholds, study)
+        if is_doy_per:
+            converted_thresholds = resample_doy(converted_thresholds, study)
+        if threshold_min_value:
+            threshold_min_value = convert_units_to(threshold_min_value, study)
+            total = (
+                study.where(operator(study, threshold_min_value))
+                .resample(time=freq)
+                .sum(dim="time")
+            )
+        else:
+            total = study.resample(time=freq).sum(dim="time")
+        over = (
+            study.where(operator(study, converted_thresholds))
+            .resample(time=freq)
+            .sum(dim="time")
+        )
+        res = over / total
+        res.attrs["units"] = ""  # unit less
+        return res
+
+    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+        return {
+            "standard_name": "fraction_of_total_of",
+            "long_name": "Fraction of total of",
+            "cell_methods": "time: fraction",  # todo fraction is NOT in CF !
+            "additional_metadata": "",
+        }
+
+
+class ReducerRegistry(Registry):
+    _item_class = Reducer
+
+    CountOccurrences = CountOccurrences()
+    MaxConsecutiveOccurrence = MaxConsecutiveOccurrence()
+    SumOfSpellLengths = SumOfSpellLengths()
+    Excess = Excess()
+    Deficit = Deficit()
+    FractionOfTotal = FractionOfTotal()
+
+
 def _can_run_bootstrap(da: DataArray, threshold: Any) -> bool:
     """Avoid bootstrapping if there is one single year overlapping
     or no year overlapping or all year overlapping.
     """
     # TODO: When true add bootstrap to metadata with add_bootstrap_meta
     # TODO: Don't run bootstrap when not on extreme percentile
-    #       (below 20|10 or above 80|90 ?)
+    #       (below 20? 10? or above 80? 90?)
     if not threshold.is_doy_per_threshold:
         return False
     reference = threshold.value

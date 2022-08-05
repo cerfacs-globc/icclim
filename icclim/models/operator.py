@@ -3,9 +3,19 @@ from __future__ import annotations
 import dataclasses
 from typing import Callable
 
+from icclim_exceptions import InvalidIcclimArgumentError
 from xarray import DataArray
 
 from icclim.models.registry import Registry
+
+
+def _reach_err(_, __):
+    # can't raise error in lambda
+    raise InvalidIcclimArgumentError(
+        "Reach operator can't be called."
+        " Try to fill threshold with an operand"
+        " (e.g. >= in '>= 22 degC')."
+    )
 
 
 @dataclasses.dataclass
@@ -76,5 +86,5 @@ class OperatorRegistry(Registry):
         standard_name="reaches",
         aliases=["r"],
         operand="reach",
-        compute=lambda da, th: None,  # noqa
+        compute=_reach_err,
     )

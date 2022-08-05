@@ -14,15 +14,10 @@ from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 
 from icclim.generic_indices.generic_index_functions import (
-    CountOccurrencesReducer,
-    Deficit,
-    Excess,
-    MaxConsecutiveOccurrence,
     Reducer,
-    SumOfSpellLengths,
+    ReducerRegistry,
     _can_run_bootstrap,
 )
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
@@ -35,17 +30,16 @@ jinja_env = Environment()
 
 class Indicator(Callable):
     identifier: str
-    units: str
     standard_name: str
     long_name: str
     description: str
     cell_methods: str
-    src_freq: Frequency
     short_name: str
+    # not templated:
+    src_freq: Frequency
 
     templated_properties = [
         "identifier",
-        "units",
         "standard_name",
         "long_name",
         "description",
@@ -192,9 +186,7 @@ class GenericIndicator(ResamplingIndicator):
         "{% endfor %}"
         "_{{src_freq.units}}"
     )
-    # todo: units should probably depend on the reducer (e.g. DTR)
-    units = "{{src_freq.units}}"
-    # todo: add canonical_form instead making a mess with `standard_name`
+    # todo: add canonical_form instead of making a mess with `standard_name`
     standard_name = (
         "{{reducer.standard_name}}"
         "_{{src_freq.units}}_when"
@@ -238,22 +230,11 @@ class GenericIndicator(ResamplingIndicator):
 
     reducer: Reducer
 
-    def __init__(self, reducer: str, min_spell_length: int = 6, **kwds):
+    def __init__(self, reducer: str, **kwds):
         super().__init__(**kwds)
         self.input_variables = None
         self.short_name = self.identifier  # todo no need to duplicate properties
-        if reducer == CountOccurrencesReducer.KEY:
-            self.reducer = CountOccurrencesReducer()
-        elif reducer == MaxConsecutiveOccurrence.KEY:
-            self.reducer = MaxConsecutiveOccurrence()
-        elif reducer == SumOfSpellLengths.KEY:
-            self.reducer = SumOfSpellLengths(min_spell_length)
-        elif reducer == Excess.KEY:
-            self.reducer = Excess()
-        elif reducer == Deficit.KEY:
-            self.reducer = Deficit()
-        else:
-            raise InvalidIcclimArgumentError(f"Unknown reducer: {reducer}.")
+        self.reducer = ReducerRegistry.lookup(reducer)
 
     def preprocess(
         self,
@@ -303,7 +284,9 @@ class GenericIndicator(ResamplingIndicator):
             **kwargs,
         )
         result = self._compare_climate_vars_to_thresholds(
-            climate_vars=climate_vars, freq=config.frequency
+            climate_vars=climate_vars,
+            freq=config.frequency,
+            min_spell_length=config.window,
         )
         return self.postprocess(
             result,
@@ -312,7 +295,11 @@ class GenericIndicator(ResamplingIndicator):
         )
 
     def _compare_climate_vars_to_thresholds(
-        self, /, climate_vars: list[ClimateVariable], freq: Frequency
+        self,
+        /,
+        climate_vars: list[ClimateVariable],
+        freq: Frequency,
+        min_spell_length: int,
     ) -> DataArray:
         intermediary = [
             self.reducer(
@@ -324,6 +311,8 @@ class GenericIndicator(ResamplingIndicator):
                 ),
                 operator=climate_var.threshold.operator,
                 is_doy_per=climate_var.threshold.is_doy_per_threshold,
+                min_spell_length=min_spell_length,
+                threshold_min_value=climate_var.threshold.threshold_min_value,
             )
             for climate_var in climate_vars
         ]
