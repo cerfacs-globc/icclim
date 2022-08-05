@@ -122,6 +122,10 @@ def indice(*args, **kwargs):
 def generic(
     in_files: InFileType, reducer=CountOccurrencesReducer.KEY, **kwargs
 ) -> Dataset:
+    # TODO: instead of `icclim.generic`,
+    #       it would make more sense to have each reducer as part of the public API.
+    #       In which case, `reducer` and `index_name` could be merged together
+    #       (at api level).
     if kwargs.get("index_name"):
         raise InvalidIcclimArgumentError("With generic, index_name must be empty")
     return index(
@@ -399,7 +403,7 @@ def _compute_custom_climate_index(
     user_indice_config = UserIndexConfig(
         **user_index,
         freq=config.frequency,
-        cf_vars=config.cf_variables,
+        climate_variables=config.climate_variables,
         is_percent=config.is_percent,
         save_percentile=config.save_percentile,
     )

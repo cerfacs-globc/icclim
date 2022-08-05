@@ -37,7 +37,7 @@ class NbEventConfig:
 class UserIndexConfig:
     index_name: str
     calc_operation: str
-    cf_vars: list[ClimateVariable]
+    climate_variables: list[ClimateVariable]
     freq: Frequency
     date_event: bool
     is_percent: bool
@@ -57,7 +57,7 @@ class UserIndexConfig:
         # Any should be CalcOperation but it causes circular import
         calc_operation: str | Any,
         freq: Frequency,
-        cf_vars: list[ClimateVariable],
+        climate_variables: list[ClimateVariable],
         logical_operation: str = None,
         thresh=None,
         link_logical_operations: str = None,
@@ -84,18 +84,18 @@ class UserIndexConfig:
         self.var_type = var_type
         self.is_percent = is_percent
         if freq.indexer is not None:
-            for cf_var in cf_vars:
+            for cf_var in climate_variables:
                 cf_var.study_da = select_time(cf_var.study_da, **freq.indexer)
                 cf_var.reference_da = select_time(cf_var.reference_da, **freq.indexer)
-        self.cf_vars = cf_vars
+        self.climate_variables = climate_variables
         if thresh is not None and logical_operation is not None:
             self.nb_event_config = get_nb_event_conf(
-                logical_operation, link_logical_operations, thresh, cf_vars
+                logical_operation, link_logical_operations, thresh, climate_variables
             )
         self.save_percentile = save_percentile
         if (rtr := ref_time_range) is not None:
             rtr = [get_date_to_iso_format(date) for date in rtr]
-            for cf_var in cf_vars:
+            for cf_var in climate_variables:
                 cf_var.reference_da = cf_var.study_da.sel(time=slice(rtr[0], rtr[1]))
 
 

@@ -23,7 +23,7 @@ class Test_UserindexConfig:
         config = UserIndexConfig(
             **dico,
             freq=FrequencyRegistry.MONTH,
-            cf_vars=[ClimateVariable("tas", tas, tas)],
+            climate_variables=[ClimateVariable("tas", tas, tas)],
         )
         assert config.index_name == "my_index"
         assert config.calc_operation == "min"
@@ -31,4 +31,4 @@ class Test_UserindexConfig:
         assert config.thresh == 273.15
         assert config.date_event
         assert config.freq == FrequencyRegistry.MONTH
-        assert config.cf_vars[0].study_da is tas
+        assert config.climate_variables[0].study_da is tas

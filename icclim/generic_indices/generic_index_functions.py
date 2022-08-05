@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Sequence, TypedDict
 
 import numpy as np
 import xarray as xr
@@ -15,8 +15,26 @@ from icclim.models.frequency import Frequency
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
 
+class ReducerMetadataDict(TypedDict):
+    standard_name: str
+    long_name: str
+    cell_methods: str
+    additional_metadata: str
+
+
 class Reducer:
     KEY: str
+
+    def __call__(self, *args, **kwargs):
+        ...
+
+    # todo Add a TypedDict for standard_name and long_name ?
+    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+        ...
+
+
+class CountOccurrencesReducer(Reducer):
+    KEY = "count_occurrences"
 
     @percentile_bootstrap
     def __call__(
@@ -27,29 +45,6 @@ class Reducer:
         bootstrap: bool,  # noqa
         operator: Callable,
         is_doy_per: bool,
-        *args,
-        **kwargs,
-    ):
-        ...
-
-    # todo Add a TypedDict for standard_name and long_name ?
-    def get_metadata(self) -> dict[str, str]:
-        ...
-
-
-class CountOccurrencesReducer(Reducer):
-    KEY = "count_occurrences"
-
-    def __call__(
-        self,
-        study: DataArray,
-        thresholds: DataArray,
-        freq: str,
-        bootstrap: bool,  # noqa
-        operator: Callable,
-        is_doy_per: bool,
-        *args,
-        **kwargs,
     ) -> DataArray:
         th_da = convert_units_to(thresholds, study)
         if is_doy_per:
@@ -57,17 +52,19 @@ class CountOccurrencesReducer(Reducer):
         res = operator(study, th_da).resample(time=freq).sum(dim="time")
         return to_agg_units(res, study, "count")
 
-    def get_metadata(self) -> dict[str, str]:
+    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
         return {
             "standard_name": "number_of",
             "long_name": "Number of",
             "cell_methods": "time: sum over",
+            "additional_metadata": "",
         }
 
 
 class MaxConsecutiveOccurrence(Reducer):
     KEY = "max_consecutive_occurrence"
 
+    @percentile_bootstrap
     def __call__(
         self,
         study: DataArray,
@@ -76,8 +73,6 @@ class MaxConsecutiveOccurrence(Reducer):
         bootstrap: bool,  # noqa
         operator: Callable,
         is_doy_per: bool,
-        *args,
-        **kwargs,
     ) -> DataArray:
         th_da = convert_units_to(thresholds, study)  # todo could be done before
         if is_doy_per:  # todo could be done before
@@ -89,11 +84,50 @@ class MaxConsecutiveOccurrence(Reducer):
         )
         return to_agg_units(res, study, "count")
 
-    def get_metadata(self) -> dict[str, str]:
+    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
         return {
             "standard_name": "spell_length_of",
             "long_name": "Maximum number of consecutive",
             "cell_methods": "time: maximum over",
+            "additional_metadata": "",
+        }
+
+
+class SumOfSpellLengths(Reducer):
+    KEY = "sum_of_spell_lengths"
+
+    def __init__(self, min_spell_length: int):
+        self.min_spell_length = min_spell_length
+
+    @percentile_bootstrap
+    def __call__(
+        self,
+        study: DataArray,
+        thresholds: DataArray,
+        freq: str,
+        bootstrap: bool,  # noqa
+        operator: Callable,
+        is_doy_per: bool,
+    ) -> DataArray:
+        th_da = convert_units_to(thresholds, study)  # todo could be done before
+        if is_doy_per:  # todo could be done before
+            th_da = resample_doy(th_da, study)
+        res = (
+            operator(study, th_da)
+            .resample(time=freq)
+            .map(
+                run_length.windowed_run_count, window=self.min_spell_length, dim="time"
+            )
+        )
+        return to_agg_units(res, study, "count")
+
+    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+        return {
+            "standard_name": "sum_of_spell_lengths_of",
+            "long_name": "Sum of spell lengths of",
+            "cell_methods": "time: sum over",
+            "additional_metadata": f"Spells are at least {self.min_spell_length}"
+            f" {src_freq.units} long",
         }
 
 
@@ -101,7 +135,9 @@ def _can_run_bootstrap(da: DataArray, threshold: Any) -> bool:
     """Avoid bootstrapping if there is one single year overlapping
     or no year overlapping or all year overlapping.
     """
-    # TODO: when true add bootstrap to metadata
+    # TODO: When true add bootstrap to metadata with add_bootstrap_meta
+    # TODO: Don't run bootstrap when not on extreme percentile
+    #       (below 20|10 or above 80|90 ?)
     if not threshold.is_doy_per_threshold:
         return False
     reference = threshold.value
@@ -128,6 +164,7 @@ def build_period_per(
     study_da: DataArray,
     percentile_min_value: float | None,
 ) -> PercentileDataArray:
+    # todo [refacto] move back to threshold ?
     from icclim.pre_processing.input_parsing import build_reference_da
 
     reference = build_reference_da(
@@ -173,6 +210,7 @@ def build_doy_per(
     study_da: DataArray,
     percentile_min_value: float | None,
 ) -> PercentileDataArray:
+    # todo [refacto] move back to threshold ?
     from icclim.pre_processing.input_parsing import build_reference_da
 
     reference = build_reference_da(

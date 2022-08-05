@@ -17,6 +17,7 @@ from icclim.generic_indices.generic_index_functions import (
     CountOccurrencesReducer,
     MaxConsecutiveOccurrence,
     Reducer,
+    SumOfSpellLengths,
     _can_run_bootstrap,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
@@ -189,8 +190,9 @@ class GenericIndicator(ResamplingIndicator):
         "{% endfor %}"
         "_{{src_freq.units}}"
     )
+    # todo: units should probably depend on the reducer (e.g. DTR)
     units = "{{src_freq.units}}"
-    # todo add canonical_form instead making a mess with `standard_name`
+    # todo: add canonical_form instead making a mess with `standard_name`
     standard_name = (
         "{{reducer.standard_name}}"
         "_{{src_freq.units}}_when"
@@ -212,7 +214,7 @@ class GenericIndicator(ResamplingIndicator):
         " and"
         "{% endif%}"
         "{% endfor %}"
-        "."
+        ". {{reducer.additional_metadata}}."
     )
     description = (
         "{{reducer.long_name}}"
@@ -228,13 +230,13 @@ class GenericIndicator(ResamplingIndicator):
         " and"
         "{% endif%}"
         "{% endfor %}"
-        "."
+        ". {{reducer.additional_metadata}}."
     )
     cell_methods = "{{reducer.cell_methods}} {{src_freq.units}}"
 
     reducer: Reducer
 
-    def __init__(self, reducer: str, **kwds):
+    def __init__(self, reducer: str, min_spell_length: int = 6, **kwds):
         super().__init__(**kwds)
         self.input_variables = None
         self.short_name = self.identifier  # todo no need to duplicate properties
@@ -242,6 +244,8 @@ class GenericIndicator(ResamplingIndicator):
             self.reducer = CountOccurrencesReducer()
         elif reducer == MaxConsecutiveOccurrence.KEY:
             self.reducer = MaxConsecutiveOccurrence()
+        elif reducer == SumOfSpellLengths.KEY:
+            self.reducer = SumOfSpellLengths(min_spell_length)
         else:
             raise InvalidIcclimArgumentError(f"Unknown reducer: {reducer}.")
 
@@ -254,9 +258,6 @@ class GenericIndicator(ResamplingIndicator):
         *args,
         **kwargs,
     ) -> list[ClimateVariable]:
-        # todo:
-        #       probably unsafe to do `config.cf_variables[0]`
-        #       in case config.cf_variables[1] (or others) have a != frequency
         inputs = list(
             map(
                 lambda cf_var: cf_var.build_indicator_metadata(self.src_freq),
@@ -265,7 +266,7 @@ class GenericIndicator(ResamplingIndicator):
         )
         jinja_scope = {
             # todo [xclim backport] localize these
-            "reducer": self.reducer.get_metadata(),
+            "reducer": self.reducer.get_metadata(self.src_freq),
             "inputs": inputs,
             "output_freq": frequency.description,
             "np": numpy,
@@ -284,11 +285,14 @@ class GenericIndicator(ResamplingIndicator):
 
     def __call__(self, /, config: IndexConfig, *args, **kwargs) -> DataArray:
         # icclim  wrapper
-        self.src_freq = config.cf_variables[0].cf_meta.frequency
+        # todo:
+        #       probably unsafe to rely `config.cf_variables[0]`
+        #       in case config.cf_variables[1] (or others) have a != frequency
+        self.src_freq = config.climate_variables[0].cf_meta.frequency
         climate_vars = self.preprocess(
             frequency=config.frequency,
             indexer=config.frequency.indexer,
-            climate_vars=config.cf_variables,
+            climate_vars=config.climate_variables,
             *args,
             **kwargs,
         )

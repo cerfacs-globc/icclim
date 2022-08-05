@@ -25,7 +25,7 @@ def stub_user_index(cf_vars: list[ClimateVariable]):
         index_name="Yolo",
         calc_operation="noop",
         freq=FrequencyRegistry.MONTH,
-        cf_vars=cf_vars,
+        climate_variables=cf_vars,
     )
 
 

@@ -44,7 +44,7 @@ class IndexConfig:
     """
 
     frequency: Frequency
-    cf_variables: list[ClimateVariable]
+    climate_variables: list[ClimateVariable]
     window: int | None
     out_unit: str | None
     callback: Callable[[int], None] | None
@@ -59,45 +59,47 @@ class IndexConfig:
 
     @property
     def tas(self) -> ClimateVariable:
-        tas_vars = list(filter(lambda v: v.name in TAS, self.cf_variables))
+        tas_vars = list(filter(lambda v: v.name in TAS, self.climate_variables))
         if len(tas_vars) == 1:
             return tas_vars[0]
         # Otherwise rely on positional guess, tas should always be 1st
-        return self.cf_variables[0]
+        return self.climate_variables[0]
 
     @property
     def tasmax(self) -> ClimateVariable:
-        tas_max_vars = list(filter(lambda v: v.name in TAS_MAX, self.cf_variables))
+        tas_max_vars = list(filter(lambda v: v.name in TAS_MAX, self.climate_variables))
         if len(tas_max_vars) == 1:
             return tas_max_vars[0]
         # Otherwise rely on positional guess tasmax should always be 1st
-        return self.cf_variables[0]
+        return self.climate_variables[0]
 
     @property
     def tasmin(self) -> ClimateVariable:
-        tas_min_vars = list(filter(lambda v: v.name in TAS_MIN, self.cf_variables))
+        tas_min_vars = list(filter(lambda v: v.name in TAS_MIN, self.climate_variables))
         if len(tas_min_vars) == 1:
             return tas_min_vars[0]
         # Otherwise rely on positional guess
-        if len(self.cf_variables) > 1:
+        if len(self.climate_variables) > 1:
             # compound indices case (DTR, vDTR), tasmin should be the 2nd var
-            return self.cf_variables[1]
-        return self.cf_variables[0]
+            return self.climate_variables[1]
+        return self.climate_variables[0]
 
     @property
     def pr(self) -> ClimateVariable:
-        pr_vars = list(filter(lambda v: v.name in PR, self.cf_variables))
+        pr_vars = list(filter(lambda v: v.name in PR, self.climate_variables))
         if len(pr_vars) == 1:
             return pr_vars[0]
         # Otherwise rely on positional guess
-        if len(self.cf_variables) > 1:
+        if len(self.climate_variables) > 1:
             # compound indices case (CD, CW), pr should be the 2nd var
-            return self.cf_variables[1]
-        return self.cf_variables[0]
+            return self.climate_variables[1]
+        return self.climate_variables[0]
 
     @property
     def sfcWind(self):
-        sfc_wind_vars = list(filter(lambda v: v.name in SFC_WIND, self.cf_variables))
+        sfc_wind_vars = list(
+            filter(lambda v: v.name in SFC_WIND, self.climate_variables)
+        )
         if len(sfc_wind_vars) == 1:
             return sfc_wind_vars[0]
-        return self.cf_variables[0]
+        return self.climate_variables[0]

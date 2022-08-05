@@ -128,7 +128,7 @@ def _build_climate_var(
             climate_var_thresh = Threshold(climate_var_thresh)
         if isinstance(climate_var_thresh.value, Callable):
             climate_var_thresh.value = climate_var_thresh.value(
-                sampling_frequency, study_da
+                sampling_frequency=sampling_frequency, study_da=study_da
             )
             climate_var_thresh.value.attrs["units"] = study_da.attrs["units"]
     return ClimateVariable(

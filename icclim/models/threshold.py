@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+from functools import partial
 from typing import Any, Callable, Sequence, Union
 
 import numpy as np
-from utils import is_number_sequence
 from xarray import DataArray, Dataset
 from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
@@ -27,6 +27,7 @@ from icclim.pre_processing.input_parsing import (
     read_string_threshold,
     read_threshold_DataArray,
 )
+from icclim.utils import is_number_sequence
 
 ThresholdValueType = Union[
     str, float, int, Dataset, DataArray, Sequence[Union[float, int, str]], None
@@ -79,7 +80,7 @@ class Threshold:
         climatology_bounds: Sequence[str, str] | None = None,
         window: int = 5,
         only_leap_years: bool = False,
-        interpolation: QuantileInterpolation = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
+        interpolation=QuantileInterpolationRegistry.MEDIAN_UNBIASED,
         base_period_time_range: Sequence[datetime | str] | None = None,
         threshold_min_value: str | float | None = None,
     ):
@@ -102,12 +103,11 @@ class Threshold:
             # e.g. Threshold(">", [2,3,4], "degC")
             value = DataArray(
                 data=value,
-                coords={"threshold": value},
+                coords={"threshold": value},  # todo: [no magic string]
             )
         elif unit == DOY_PERCENTILE_UNIT:
-            value = lambda f, da: build_doy_per(
-                sampling_frequency=f,
-                study_da=da,
+            value = partial(
+                build_doy_per,
                 per_val=float(value),
                 base_period_time_range=base_period_time_range,
                 interpolation=interpolation,
@@ -117,9 +117,8 @@ class Threshold:
             )
             is_doy_per_threshold = True
         elif unit == PERIOD_PERCENTILE_UNIT:
-            value = lambda f, da: build_period_per(
-                sampling_frequency=f,
-                study_da=da,
+            value = partial(
+                build_period_per,
                 per_val=float(value),
                 base_period_time_range=base_period_time_range,
                 interpolation=interpolation,
@@ -127,7 +126,9 @@ class Threshold:
                 percentile_min_value=threshold_min_value,
             )
         elif isinstance(value, (float, int)):
-            value = DataArray(data=value, coords={"threshold": value})
+            value = DataArray(
+                data=value, coords={"threshold": value}
+            )  # todo: no magic string
         elif isinstance(value, DataArray):
             #  nothing to do
             ...
@@ -159,21 +160,33 @@ class Threshold:
             }
         elif isinstance(self.value, PercentileDataArray):
             percentiles = self.value.coords["percentiles"].values
-            if percentiles.size == 1:
-                display_perc = f"{percentiles[0]}th percentile"
-                standard_name = f"{percentiles[0]}th_percentile"
-            else:
-                display_perc = str(list(map(lambda x: f"{x}th", percentiles)))
-                standard_name = "_percentiles"
             bds = self.value.attrs.get("climatology_bounds")
             if self.is_doy_per_threshold:
+                if percentiles.size == 1:
+                    display_perc = f"{percentiles[0]}th day of year percentile"
+                    standard_name = f"{percentiles[0]}th_doy_percentile"
+                else:
+                    display_perc = str(list(map(lambda x: f"{x}th", percentiles)))
+                    standard_name = "_doy_percentiles"
                 window = self.value.attrs.get("window", "")
                 self.additional_metadata.append(
-                    f"percentiles were computed over {bds}"
-                    f" on a {window} {src_freq.units} window"
+                    f"day of year percentiles were computed on the {bds} period,"
+                    f" with a {window} {src_freq.units} window for each day of year"
                 )
+            #     todo: add if bootstrap ran or not ro metadata
             else:
-                self.additional_metadata.append(f"percentiles were computed over {bds}")
+                if percentiles.size == 1:
+                    display_perc = f"{percentiles[0]}th period percentile"
+                    standard_name = f"{percentiles[0]}th_period_percentile"
+                else:
+                    display_perc = (
+                        str(list(map(lambda x: f"{x}th", percentiles)))
+                        + " period percentiles"
+                    )
+                    standard_name = "_period_percentiles"
+                self.additional_metadata.append(
+                    f"period percentiles were computed on the {bds} period"
+                )
             res = {
                 "standard_name": f"{self.operator.standard_name}_{standard_name}",
                 "long_name": f"{self.operator.long_name} {display_perc}",
@@ -199,7 +212,7 @@ class Threshold:
                 f" It was a {type(self.value)}."
             )
         if len(self.additional_metadata) > 0:
-            added_meta = "(" + (", ".join(self.additional_metadata) + ").")
+            added_meta = "(" + (", ".join(self.additional_metadata) + ")")
             res.update({"additional_metadata": added_meta})
         return res
 

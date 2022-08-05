@@ -327,6 +327,7 @@ def build_reference_da(
     sampling_frequency: Frequency,
     percentile_min_value: str | float | None,
 ) -> DataArray:
+    # todo [refacto] move back to threshold ?
     reference = original_da
     if base_period_time_range:
         check_time_range_pre_validity("base_period_time_range", base_period_time_range)
