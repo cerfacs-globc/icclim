@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Callable
 
-from icclim_exceptions import InvalidIcclimArgumentError
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from xarray import DataArray
 
 from icclim.models.registry import Registry
