@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Sequence, TypedDict
+from functools import reduce
+from typing import Callable, TypedDict
 
 import numpy as np
-import xarray as xr
 from xarray import DataArray
 from xclim.core.bootstrapping import percentile_bootstrap
-from xclim.core.calendar import build_climatology_bounds, percentile_doy, resample_doy
-from xclim.core.units import convert_units_to, to_agg_units
-from xclim.core.utils import PercentileDataArray, calc_perc
+from xclim.core.units import to_agg_units
 from xclim.indices import run_length
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.climate_variable import ClimateVariable
+from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency
-from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.registry import Registry
 
 
@@ -39,20 +39,23 @@ class CountOccurrences(Reducer):
     @percentile_bootstrap
     def __call__(
         self,
-        study: DataArray,
-        thresholds: DataArray | PercentileDataArray,
+        climate_vars: list[ClimateVariable],
         freq: str,
-        bootstrap: bool,  # noqa
-        operator: Callable,
-        is_doy_per: bool,
+        bootstrap: bool,
         *args,
         **kwargs,
     ) -> DataArray:
-        converted_thresholds = convert_units_to(thresholds, study)
-        if is_doy_per:
-            converted_thresholds = resample_doy(converted_thresholds, study)
-        res = operator(study, converted_thresholds).resample(time=freq).sum(dim="time")
-        return to_agg_units(res, study, "count")
+        exceedances = [
+            climate_var.threshold(climate_var.study_da).squeeze()
+            for climate_var in climate_vars
+        ]
+        merged_exceedance = (
+            reduce(np.logical_and, exceedances)  # noqa (np/xarray compatibility)
+            .resample(time=freq)
+            .sum(dim="time")
+        )
+        # we assume all climate vars have the same time dimension here
+        return to_agg_units(merged_exceedance, climate_vars[0].study_da, "count")
 
     def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
         return {
@@ -69,26 +72,22 @@ class MaxConsecutiveOccurrence(Reducer):
     @percentile_bootstrap
     def __call__(
         self,
-        study: DataArray,
-        thresholds: DataArray | PercentileDataArray,
+        climate_vars: list[ClimateVariable],
         freq: str,
-        bootstrap: bool,  # noqa
-        operator: Callable,
-        is_doy_per: bool,
+        bootstrap: bool,
         *args,
         **kwargs,
     ) -> DataArray:
-        converted_thresholds = convert_units_to(
-            thresholds, study
-        )  # todo could be done before
-        if is_doy_per:  # todo could be done before
-            converted_thresholds = resample_doy(converted_thresholds, study)
-        res = (
-            operator(study, converted_thresholds)
+        exceedances = [
+            climate_var.threshold(climate_var.study_da) for climate_var in climate_vars
+        ]
+        merged_exceedance = (
+            reduce(np.logical_and, exceedances)  # noqa (np/xarray compatibility)
             .resample(time=freq)
             .map(run_length.longest_run, dim="time")
         )
-        return to_agg_units(res, study, "count")
+        # we assume all climate vars have the same time dimension here
+        return to_agg_units(merged_exceedance, climate_vars[0].study_da, "count")
 
     def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
         return {
@@ -105,27 +104,22 @@ class SumOfSpellLengths(Reducer):
     @percentile_bootstrap
     def __call__(
         self,
-        study: DataArray,
-        thresholds: DataArray | PercentileDataArray,
+        climate_vars: list[ClimateVariable],
         freq: str,
-        bootstrap: bool,  # noqa
-        operator: Callable,
-        is_doy_per: bool,
+        bootstrap: bool,
         min_spell_length: int = 6,
         *args,
         **kwargs,
     ) -> DataArray:
-        converted_thresholds = convert_units_to(
-            thresholds, study
-        )  # todo could be done before
-        if is_doy_per:  # todo could be done before
-            converted_thresholds = resample_doy(converted_thresholds, study)
-        res = (
-            operator(study, converted_thresholds)
+        exceedances = [
+            climate_var.threshold(climate_var.study_da) for climate_var in climate_vars
+        ]
+        merged_exceedance = (
+            reduce(np.logical_and, exceedances)  # noqa (np/xarray compatibility)
             .resample(time=freq)
             .map(run_length.windowed_run_count, window=min_spell_length, dim="time")
         )
-        return to_agg_units(res, study, "count")
+        return to_agg_units(merged_exceedance, climate_vars[0].study_da, "count")
 
     def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
         return {
@@ -143,26 +137,19 @@ class Excess(Reducer):
     @percentile_bootstrap
     def __call__(
         self,
-        study: DataArray,
-        thresholds: DataArray | PercentileDataArray,
+        climate_vars: list[ClimateVariable],
         freq: str,
         bootstrap: bool,
-        operator: Callable,
-        is_doy_per: bool,
         *args,
         **kwargs,
     ) -> DataArray:
-        converted_thresholds = convert_units_to(
-            thresholds, study
-        )  # todo could be done before
-        if is_doy_per:  # todo could be done before
-            converted_thresholds = resample_doy(converted_thresholds, study)
-        res = (
-            (study - converted_thresholds)
-            .clip(min=0)
-            .resample(time=freq)
-            .sum(dim="time")
-        )
+        if len(climate_vars) != 1:
+            raise InvalidIcclimArgumentError(
+                "Excess can only be computed on a single variable."
+            )
+        study = climate_vars[0].study_da
+        thresholds = climate_vars[0].threshold.value
+        res = (study - thresholds).clip(min=0).resample(time=freq).sum(dim="time")
         return to_agg_units(res, study, "delta_prod")
 
     def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
@@ -180,26 +167,19 @@ class Deficit(Reducer):
     @percentile_bootstrap
     def __call__(
         self,
-        study: DataArray,
-        thresholds: DataArray | PercentileDataArray,
+        climate_vars: list[ClimateVariable],
         freq: str,
         bootstrap: bool,
-        operator: Callable,
-        is_doy_per: bool,
         *args,
         **kwargs,
     ) -> DataArray:
-        converted_thresholds = convert_units_to(
-            thresholds, study
-        )  # todo could be done before
-        if is_doy_per:  # todo could be done before
-            converted_thresholds = resample_doy(converted_thresholds, study)
-        res = (
-            (converted_thresholds - study)
-            .clip(min=0)
-            .resample(time=freq)
-            .sum(dim="time")
-        )
+        if len(climate_vars) != 1:
+            raise InvalidIcclimArgumentError(
+                "Deficit can only be computed on a single variable."
+            )
+        study = climate_vars[0].study_da
+        thresholds = climate_vars[0].threshold.value
+        res = (thresholds - study).clip(min=0).resample(time=freq).sum(dim="time")
         return to_agg_units(res, study, "delta_prod")
 
     def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
@@ -217,35 +197,32 @@ class FractionOfTotal(Reducer):
     @percentile_bootstrap
     def __call__(
         self,
-        study: DataArray,
-        thresholds: DataArray | PercentileDataArray,
+        climate_vars: list[ClimateVariable],
         freq: str,
         bootstrap: bool,
-        operator: Callable,
-        is_doy_per: bool,
-        threshold_min_value: float | str | None,
         *args,
         **kwargs,
     ) -> DataArray:
-        converted_thresholds = convert_units_to(thresholds, study)
-        if is_doy_per:
-            converted_thresholds = resample_doy(converted_thresholds, study)
-        if threshold_min_value:
-            threshold_min_value = convert_units_to(threshold_min_value, study)
+        if len(climate_vars) != 1:
+            raise InvalidIcclimArgumentError(
+                "FractionOfTotal can only be computed on a single variable."
+            )
+        study = climate_vars[0].study_da
+        threshold = climate_vars[0].threshold
+        op = threshold.operator
+        if threshold.threshold_min_value:
             total = (
-                study.where(operator(study, threshold_min_value))
+                study.where(op(study, threshold.threshold_min_value))
                 .resample(time=freq)
                 .sum(dim="time")
             )
         else:
             total = study.resample(time=freq).sum(dim="time")
         over = (
-            study.where(operator(study, converted_thresholds))
-            .resample(time=freq)
-            .sum(dim="time")
+            study.where(op(study, threshold.value)).resample(time=freq).sum(dim="time")
         )
         res = over / total
-        res.attrs["units"] = ""  # unit less
+        res.attrs[UNITS_ATTRIBUTE_KEY] = ""  # unit less
         return res
 
     def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
@@ -266,102 +243,3 @@ class ReducerRegistry(Registry):
     Excess = Excess()
     Deficit = Deficit()
     FractionOfTotal = FractionOfTotal()
-
-
-def _can_run_bootstrap(da: DataArray, threshold: Any) -> bool:
-    """Avoid bootstrapping if there is one single year overlapping
-    or no year overlapping or all year overlapping.
-    """
-    # TODO: When true add bootstrap to metadata with add_bootstrap_meta
-    # TODO: Don't run bootstrap when not on extreme percentile
-    #       (below 20? 10? or above 80? 90?)
-    if not threshold.is_doy_per_threshold:
-        return False
-    reference = threshold.value
-    study_years = np.unique(da.indexes.get("time").year)
-    overlapping_years = np.unique(
-        da.sel(time=_get_ref_period_slice(reference)).indexes.get("time").year
-    )
-    return 1 < len(overlapping_years) < len(study_years)
-
-
-def _get_ref_period_slice(da: DataArray) -> slice:
-    if (bds := da.attrs.get("climatology_bounds", None)) is not None:
-        return slice(*bds)
-    time_length = len(da.time)
-    return slice(*da.time[0 :: time_length - 1].dt.strftime("%Y-%m-%d").values)
-
-
-def build_period_per(
-    per_val: float,
-    base_period_time_range: Sequence[str],
-    interpolation: QuantileInterpolation,
-    only_leap_years: bool,
-    sampling_frequency: Frequency,
-    study_da: DataArray,
-    percentile_min_value: float | None,
-) -> PercentileDataArray:
-    # todo [refacto] move back to threshold ?
-    from icclim.pre_processing.input_parsing import build_reference_da
-
-    reference = build_reference_da(
-        study_da,
-        base_period_time_range,
-        only_leap_years,
-        sampling_frequency,
-        percentile_min_value=percentile_min_value,
-    )
-    computed_per = xr.apply_ufunc(
-        calc_perc,
-        reference,
-        input_core_dims=[["time"]],
-        output_core_dims=[["percentiles"]],
-        keep_attrs=True,
-        kwargs=dict(
-            percentiles=[per_val],
-            alpha=interpolation.alpha,
-            beta=interpolation.beta,
-            copy=True,
-        ),
-        dask="parallelized",
-        output_dtypes=[reference.dtype],
-        dask_gufunc_kwargs=dict(output_sizes={"percentiles": 1}, allow_rechunk=True),
-    )
-    computed_per = computed_per.assign_coords(
-        percentiles=xr.DataArray([per_val], dims=("percentiles",))
-    )
-    res = PercentileDataArray.from_da(
-        source=computed_per,
-        climatology_bounds=build_climatology_bounds(reference),
-    )
-    return res
-
-
-def build_doy_per(
-    per_val: float,
-    base_period_time_range: Sequence[str],
-    interpolation: QuantileInterpolation,
-    only_leap_years: bool,
-    window: int,
-    sampling_frequency: Frequency,
-    study_da: DataArray,
-    percentile_min_value: float | None,
-) -> PercentileDataArray:
-    # todo [refacto] move back to threshold ?
-    from icclim.pre_processing.input_parsing import build_reference_da
-
-    reference = build_reference_da(
-        study_da,
-        base_period_time_range,
-        only_leap_years,
-        sampling_frequency,
-        percentile_min_value,
-    )
-    res = percentile_doy(
-        arr=reference,
-        window=window,
-        per=per_val,
-        alpha=interpolation.alpha,
-        beta=interpolation.beta,
-    ).compute()  # "optimization" (diminish dask scheduler workload)
-    return res

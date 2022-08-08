@@ -5,6 +5,7 @@ import pandas as pd
 import xarray
 import xarray as xr
 
+from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_config import ClimateVariable
 from icclim.models.user_index_config import UserIndexConfig
@@ -34,7 +35,7 @@ def stub_tas(tas_value: float = 1.0, use_dask=False, use_cftime=False):
         data=(np.full(VALUE_COUNT, tas_value).reshape((VALUE_COUNT, 1, 1))),
         dims=["time", "lat", "lon"],
         coords=COORDS,
-        attrs={"units": "K"},
+        attrs={UNITS_ATTRIBUTE_KEY: "K"},
     )
     if use_cftime:
         da["time"] = CF_TIME_RANGE
@@ -49,7 +50,7 @@ def stub_pr(value: float, use_dask=False):
         coords=COORDS,
         dims=["time", "lat", "lon"],
         name="pr",
-        attrs={"units": "kg m-2 d-1"},
+        attrs={UNITS_ATTRIBUTE_KEY: "kg m-2 d-1"},
     )
     if use_dask:
         da.chunk()

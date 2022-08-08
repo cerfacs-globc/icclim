@@ -15,7 +15,7 @@ class InFileDictionary(TypedDict, total=False):
 
     >>> in_files = {
     ...    "tasmax": { "study": "tasmax-store.zarr",
-    ...                "thresholds": Threshold(">", ["per-1.nc", "per-2.nc"])
+    ...                "threshold": Threshold(">", ["per-1.nc", "per-2.nc"])
     ...              }
     ...    "pr": "pr.nc",
     ...    "tasmin": {"study": "tasmin.nc"},

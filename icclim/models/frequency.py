@@ -352,7 +352,7 @@ def _get_frequency_from_string(query: str) -> Frequency:
 def _is_season_valid(months: list[int]) -> bool:
     is_valid = True
     for i in range(0, len(months) - 1):
-        is_valid = is_valid and months[i] > 0 and months[i] < 13
+        is_valid = is_valid and 0 < months[i] < 13
         if months[i] > months[i + 1]:
             is_valid = is_valid and months[i + 1] == 1 and months[i] == 12
         else:

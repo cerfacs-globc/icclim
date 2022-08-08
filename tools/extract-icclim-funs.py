@@ -65,8 +65,8 @@ DEFAULT_OUTPUT_PATH = (
 )
 
 
-def run(file_path):
-    with open(file_path, "w") as f:
+def run(path):
+    with open(path, "w") as f:
         acc = '''"""
 This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.

@@ -18,7 +18,7 @@ class CfVarMetadata:
     default_units: str
     frequency: Frequency = None
     units: str = None  # runtime unit # todo pint.Unit ?
-    cell_method: str = None  # todo class to build it ?
+    cell_method: str = None  # built from reducer
 
     def get_metadata(self):
         return self.__dict__  # todo safe ?

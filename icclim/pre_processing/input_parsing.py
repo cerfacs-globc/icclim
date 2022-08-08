@@ -17,7 +17,7 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_index import ClimateIndex
-from icclim.models.constants import VALID_PERCENTILE_DIMENSION
+from icclim.models.constants import UNITS_ATTRIBUTE_KEY, VALID_PERCENTILE_DIMENSION
 from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.utils import get_date_to_iso_format
@@ -101,7 +101,7 @@ def is_glob_path(path: InFileBaseType) -> bool:
 
 
 def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
-    # todo This function could probably be backported to xclim PercentileDataArray
+    # todo [xclim backport] This function could probably be in PercentileDataArray
     per_dim_name = None
     for d in VALID_PERCENTILE_DIMENSION:
         if d in per_da.dims:
@@ -195,7 +195,7 @@ def guess_input_type(data: DataArray) -> CfVarMetadata:
     cf_input.frequency = FrequencyRegistry.lookup(
         xr.infer_freq(data.time) or DEFAULT_INPUT_FREQUENCY
     )
-    cf_input.units = data.attrs.get("units", cf_input.default_units)
+    cf_input.units = data.attrs.get(UNITS_ATTRIBUTE_KEY, cf_input.default_units)
     return cf_input
 
 
@@ -224,8 +224,8 @@ def build_study_da(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if sampling_frequency.time_clipping is not None:
         da = sampling_frequency.time_clipping(da)
-    if da.attrs.get("units", None):
-        da.attrs["units"] = cf_meta_unit
+    if da.attrs.get(UNITS_ATTRIBUTE_KEY, None):
+        da.attrs[UNITS_ATTRIBUTE_KEY] = cf_meta_unit
     da = da.chunk("auto")
     return da
 
@@ -308,6 +308,7 @@ def read_threshold_DataArray(
             read_clim_bounds(climatology_bounds, thresh_da),
         )
         built_value.attrs["unit"] = unit
+
     else:
         if threshold_min_value:
             if isinstance(threshold_min_value, str):

@@ -20,6 +20,7 @@ from icclim.models.constants import (
     PERCENTILES_COORD,
     PRECIPITATION,
     TEMPERATURE,
+    UNITS_ATTRIBUTE_KEY,
     WET_DAY_THRESHOLD,
 )
 from icclim.models.logical_link import LogicalLink, LogicalLinkRegistry
@@ -290,7 +291,7 @@ def anomaly(da_ref: DataArray, da: DataArray, percent: bool) -> DataArray:
     result._copy_attrs_from(da_ref)
     if percent:
         result = result / ref_mean * 100
-        result.attrs["units"] = "%"
+        result.attrs[UNITS_ATTRIBUTE_KEY] = "%"
     return result
 
 

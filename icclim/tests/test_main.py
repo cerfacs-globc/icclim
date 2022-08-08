@@ -13,7 +13,7 @@ import xarray as xr
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry, get_season_excluded_indices
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import ICCLIM_VERSION
+from icclim.models.constants import ICCLIM_VERSION, UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_group import IndexGroupRegistry
 
@@ -52,14 +52,14 @@ class Test_Integration:
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
         coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
-        attrs={"units": "degC"},
+        attrs={UNITS_ATTRIBUTE_KEY: "degC"},
     )
 
     data_cf_time = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
         coords=dict(lat=[42], lon=[42], time=CF_TIME_RANGE),
-        attrs={"units": "degC"},
+        attrs={UNITS_ATTRIBUTE_KEY: "degC"},
     )
 
     # usually, time_bounds is not properly decoded an keep a object dtype
@@ -244,7 +244,7 @@ class Test_Integration:
     def test_indices__snow_indices(self):
         ds = self.data.to_dataset(name="tas")
         ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs["units"] = "cm"
+        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group=IndexGroupRegistry.SNOW, in_files=ds, out_file=self.OUTPUT_FILE
         )
@@ -258,9 +258,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs["units"] = "cm"
+        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(index_group="all", in_files=ds, out_file=self.OUTPUT_FILE)
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
@@ -270,9 +270,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs["units"] = "cm"
+        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -287,9 +287,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs["units"] = "cm"
+        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -304,9 +304,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs["units"] = "cm"
+        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -322,9 +322,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs["units"] = "cm"
+        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         # THEN
         with pytest.raises(InvalidIcclimArgumentError):
             # WHEN
@@ -340,9 +340,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs["units"] = "cm"
+        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -357,7 +357,7 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         res: xr.Dataset = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -380,7 +380,7 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         with pytest.raises(Exception):
             icclim.indices(
                 index_group="all",
@@ -391,7 +391,7 @@ class Test_Integration:
 
     def test_index_R75p_custom_threshold(self):
         ds = self.data.to_dataset(name="pr")
-        ds["pr"].attrs["units"] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
         res = icclim.index(
             index_name="R75p", in_files=ds, out_file=self.OUTPUT_FILE, threshold=33
         )

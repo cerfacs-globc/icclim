@@ -3,7 +3,6 @@ metadata to it.
 """
 from __future__ import annotations
 
-import re
 from typing import Callable
 from warnings import warn
 
@@ -18,7 +17,12 @@ from xclim.core.utils import PercentileDataArray
 
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_variable import ClimateVariable
-from icclim.models.constants import IN_BASE_IDENTIFIER, PERCENTILES_COORD
+from icclim.models.constants import (
+    IN_BASE_IDENTIFIER,
+    PART_OF_A_WHOLE_UNIT,
+    PERCENTILES_COORD,
+    UNITS_ATTRIBUTE_KEY,
+)
 from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.quantile_interpolation import (
@@ -440,7 +444,7 @@ def dtr(config: IndexConfig) -> DataArray:
         tasmin=config.tasmin.study_da,
         **config.frequency.build_frequency_kwargs(),
     )
-    result.attrs["units"] = "degree_Celsius"
+    result.attrs[UNITS_ATTRIBUTE_KEY] = "degree_Celsius"
     return result
 
 
@@ -450,7 +454,7 @@ def etr(config: IndexConfig) -> DataArray:
         tasmin=config.tasmin.study_da,
         **config.frequency.build_frequency_kwargs(),
     )
-    result.attrs["units"] = "degree_Celsius"
+    result.attrs[UNITS_ATTRIBUTE_KEY] = "degree_Celsius"
     return result
 
 
@@ -460,7 +464,7 @@ def vdtr(config: IndexConfig) -> DataArray:
         tasmin=config.tasmin.study_da,
         **config.frequency.build_frequency_kwargs(),
     )
-    result.attrs["units"] = "degree_Celsius"
+    result.attrs[UNITS_ATTRIBUTE_KEY] = "degree_Celsius"
     return result
 
 
@@ -576,7 +580,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
             "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}."
         )
         return da
-    da.attrs["units"] = "1"
+    da.attrs[UNITS_ATTRIBUTE_KEY] = PART_OF_A_WHOLE_UNIT
     return da
 
 
@@ -688,12 +692,6 @@ def _compute_spell_duration(
         result = _add_bootstrap_meta(result, per)
     if save_percentile:
         return result, per
-    # todo to remove when xclim 0.37
-    result.attrs["description"] = re.sub(
-        r"\s\w+th\spercentile",
-        f" {per_thresh}th percentile",
-        result.attrs.get("description"),
-    )
     return result, None
 
 
@@ -782,7 +780,7 @@ def _compute_rxxptot(
         bootstrap=False,
     ).squeeze(PERCENTILES_COORD, drop=True)
     result = result * 100
-    result.attrs["units"] = "%"
+    result.attrs[UNITS_ATTRIBUTE_KEY] = "%"
     if save_percentile:
         return result, per
     return result, None

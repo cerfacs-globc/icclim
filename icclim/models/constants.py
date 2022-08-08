@@ -5,7 +5,7 @@ from __future__ import annotations
 
 ICCLIM_VERSION = "5.3.0"
 
-# placeholder for user_index
+# placeholders for user_index
 PERCENTILE_THRESHOLD_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm
 PRECIPITATION = "p"
@@ -15,6 +15,12 @@ TEMPERATURE = "t"
 PERCENTILES_COORD = "percentiles"
 # attribut holding the in_base time bounds
 IN_BASE_IDENTIFIER = "reference_epoch"
+# coordinate of day of year values (usually from 1 to 365/366)
+DOY_COORDINATE = "dayofyear"
+# threshold dimension, either percentiles or simple per grid cell scalars
+THRESHOLD_COORDINATE = "threshold"
+# Units attribute key for DataArray(s)
+UNITS_ATTRIBUTE_KEY =  "units"
 
 # Aliases of input variables names.
 # Source: clix-meta (modified)
@@ -54,6 +60,8 @@ DJF_MONTHS:list[int] = [12, 1, 2]
 MAM_MONTHS:list[int] = [*range(3, 6)]
 JJA_MONTHS:list[int] = [*range(6, 9)]
 SON_MONTHS:list[int] = [*range(9, 12)]
+
+# pseudo units used with Threshold class (not in Pint)
 PERIOD_PERCENTILE_UNIT = "period_per"
 DOY_PERCENTILE_UNIT = "doy_per"
 
@@ -76,3 +84,6 @@ FREQ_MAPPING = {
     "norm": "Normal",
     "m1": "january",  "m2": "february",  "m3": "march",  "m4": "april",  "m5": "may",  "m6": "june",  "m7": "july",  "m8": "august",  "m9": "september",  "m10": "october",  "m11": "november",  "m12": "december",
 }
+
+# Special CF unit for
+PART_OF_A_WHOLE_UNIT = "1"

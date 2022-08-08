@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import xarray as xr
 
+from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.logical_link import LogicalLinkRegistry
 from icclim.models.operator import OperatorRegistry
 from icclim.models.user_index_config import ExtremeModeRegistry
@@ -277,4 +278,4 @@ class Test_anomaly:
         result = anomaly(da_ref=tmax, da=tmax2, percent=True)
         # THEN
         assert result == 10
-        assert result.attrs["units"] == "%"
+        assert result.attrs[UNITS_ATTRIBUTE_KEY] == "%"

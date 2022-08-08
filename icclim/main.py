@@ -27,7 +27,7 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.climate_variable import read_climate_vars
-from icclim.models.constants import ICCLIM_VERSION
+from icclim.models.constants import ICCLIM_VERSION, UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
@@ -259,7 +259,7 @@ def index(
         DEPRECATED, use user_index instead.
 
     """
-    _setup(callback, callback_percentage_start_value, logs_verbosity, slice_mode)
+    _setup(callback, callback_percentage_start_value, logs_verbosity)
     index_name, user_index = _handle_deprecated_params(
         index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
     )
@@ -353,11 +353,11 @@ def _write_output_file(
     if input_time_encoding:
         time_encoding = {
             "calendar": input_time_encoding.get("calendar"),
-            "units": input_time_encoding.get("units"),
+            UNITS_ATTRIBUTE_KEY: input_time_encoding.get(UNITS_ATTRIBUTE_KEY),
             "dtype": input_time_encoding.get("dtype"),
         }
     else:
-        time_encoding = {"units": "days since 1850-1-1"}
+        time_encoding = {UNITS_ATTRIBUTE_KEY: "days since 1850-1-1"}
     result_ds.to_netcdf(
         file_path,
         format=netcdf_version.value,
@@ -379,7 +379,7 @@ def _handle_deprecated_params(
     return index_name, user_index
 
 
-def _setup(callback, callback_start_value, logs_verbosity, slice_mode):
+def _setup(callback, callback_start_value, logs_verbosity):
     # make xclim input daily check a warning instead of an error
     # TODO: it might be safer to feed a context manager which will setup
     #       and teardown these confs
@@ -409,7 +409,9 @@ def _compute_custom_climate_index(
         save_percentile=config.save_percentile,
     )
     user_indice_da = compute_user_index(user_indice_config)
-    user_indice_da.attrs["units"] = _get_unit(config.out_unit, user_indice_da)
+    user_indice_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(
+        config.out_unit, user_indice_da
+    )
     if user_indice_config.calc_operation is CalcOperationRegistry.ANOMALY:
         # with anomaly time axis disappear
         result_ds[user_indice_config.index_name] = user_indice_da
@@ -421,7 +423,7 @@ def _compute_custom_climate_index(
 
 
 def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
-    da_unit = da.attrs.get("units", None)
+    da_unit = da.attrs.get(UNITS_ATTRIBUTE_KEY, None)
     if da_unit is None:
         if output_unit is None:
             warn(
@@ -455,13 +457,13 @@ def _compute_standard_climate_index(
         if isinstance(res, tuple):
             return res
         else:
-            return (res, None)
+            return res, None
 
     # todo delete log as it is unreadable with generic index
     logging.info(f"Calculating climate index: {climate_index.short_name}")
     result_da, percentiles_da = compute()
     result_da = result_da.rename(climate_index.short_name)
-    result_da.attrs["units"] = _get_unit(config.out_unit, result_da)
+    result_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(config.out_unit, result_da)
     if config.frequency.post_processing is not None:
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
         result_ds = resampled_da.to_dataset()

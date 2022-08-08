@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import abc
 from functools import reduce
-from typing import Callable
+from typing import Callable, Sequence
 
 import numpy
 import numpy as np
+import xarray as xr
+from icclim_exceptions import InvalidIcclimArgumentError
 from jinja2 import Environment
 from xarray import DataArray
 from xclim.core import datachecks
@@ -13,16 +15,15 @@ from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 
-from icclim.generic_indices.generic_index_functions import (
-    Reducer,
-    ReducerRegistry,
-    _can_run_bootstrap,
-)
+from icclim.generic_indices.generic_index_functions import Reducer, ReducerRegistry
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
+from icclim.models.threshold import Threshold
 
 jinja_env = Environment()
+
+
 # jinja_env = Environment(autoescape=True)
 # todo could be a security issue to have autoescape=False (default)
 #      but otherwise > and < are replaced by &gt and &lt
@@ -145,7 +146,7 @@ class ResamplingIndicator(Indicator):
     def format(self, /, jinja_scope, **kwargs):  # noqa ignore extra kwargs
         for property in self.templated_properties:
             template = jinja_env.from_string(
-                getattr(self, property),  # todo instead get the localized version
+                getattr(self, property),  # todo [xclim backport] localize this.
                 globals=jinja_scope,
             )
             setattr(self, property, template.render())
@@ -245,6 +246,11 @@ class GenericIndicator(ResamplingIndicator):
         *args,
         **kwargs,
     ) -> list[ClimateVariable]:
+        if not _same_freq_for_all(climate_vars):
+            raise InvalidIcclimArgumentError(
+                "All variables must have the same time frequency (for example daily) to"
+                " be compared with each others, but this was not the case."
+            )
         inputs = list(
             map(
                 lambda cf_var: cf_var.build_indicator_metadata(self.src_freq),
@@ -283,9 +289,10 @@ class GenericIndicator(ResamplingIndicator):
             *args,
             **kwargs,
         )
-        result = self._compare_climate_vars_to_thresholds(
+        result = self.reducer(
             climate_vars=climate_vars,
-            freq=config.frequency,
+            freq=config.frequency.pandas_freq,
+            bootstrap=_any_var_needs_bootstrap(climate_vars),
             min_spell_length=config.window,
         )
         return self.postprocess(
@@ -294,26 +301,42 @@ class GenericIndicator(ResamplingIndicator):
             freq=config.frequency.pandas_freq,
         )
 
-    def _compare_climate_vars_to_thresholds(
-        self,
-        /,
-        climate_vars: list[ClimateVariable],
-        freq: Frequency,
-        min_spell_length: int,
-    ) -> DataArray:
-        intermediary = [
-            self.reducer(
-                climate_var.study_da,
-                climate_var.threshold.value,
-                freq.pandas_freq,
-                bootstrap=_can_run_bootstrap(
-                    climate_var.study_da, climate_var.threshold
-                ),
-                operator=climate_var.threshold.operator,
-                is_doy_per=climate_var.threshold.is_doy_per_threshold,
-                min_spell_length=min_spell_length,
-                threshold_min_value=climate_var.threshold.threshold_min_value,
-            )
-            for climate_var in climate_vars
-        ]
-        return reduce(np.logical_and, intermediary)  # noqa
+
+def _any_var_needs_bootstrap(climate_vars: Sequence[ClimateVariable]) -> bool:
+    return any(
+        _must_run_bootstrap(c_var.study_da, c_var.threshold) for c_var in climate_vars
+    )
+
+
+def _must_run_bootstrap(da: DataArray, threshold: Threshold) -> bool:
+    """Avoid bootstrapping if there is one single year overlapping
+    or no year overlapping or all year overlapping.
+    """
+    # TODO: When true add bootstrap to metadata with add_bootstrap_meta
+    # TODO: Don't run bootstrap when not on extreme percentile
+    #       (below 20? 10? or above 80? 90?)
+    if not threshold.is_doy_per_threshold:
+        return False
+    reference = threshold.value
+    study_years = np.unique(da.indexes.get("time").year)
+    overlapping_years = np.unique(
+        da.sel(time=_get_ref_period_slice(reference)).indexes.get("time").year
+    )
+    return 1 < len(overlapping_years) < len(study_years)
+
+
+def _get_ref_period_slice(da: DataArray) -> slice:
+    if (bds := da.attrs.get("climatology_bounds", None)) is not None:
+        return slice(*bds)
+    time_length = len(da.time)
+    return slice(*da.time[0 :: time_length - 1].dt.strftime("%Y-%m-%d").values)
+
+
+def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
+    if len(climate_vars) == 1:
+        return True
+    return reduce(
+        lambda a, b: xr.infer_freq(b.study_da.time) == a,
+        climate_vars[1:],
+        xr.infer_freq(climate_vars[0].study_da.time),
+    )

@@ -5,16 +5,20 @@ from functools import partial
 from typing import Any, Callable, Sequence, Union
 
 import numpy as np
+import xarray as xr
 from xarray import DataArray, Dataset
+from xclim.core.calendar import build_climatology_bounds, percentile_doy
 from xclim.core.units import convert_units_to
-from xclim.core.utils import PercentileDataArray
+from xclim.core.utils import PercentileDataArray, calc_perc
 
-from icclim.generic_indices.generic_index_functions import (
-    build_doy_per,
-    build_period_per,
-)
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import DOY_PERCENTILE_UNIT, PERIOD_PERCENTILE_UNIT
+from icclim.models.constants import (
+    DOY_COORDINATE,
+    DOY_PERCENTILE_UNIT,
+    PERIOD_PERCENTILE_UNIT,
+    THRESHOLD_COORDINATE,
+    UNITS_ATTRIBUTE_KEY,
+)
 from icclim.models.frequency import Frequency
 from icclim.models.operator import Operator, OperatorRegistry
 from icclim.models.quantile_interpolation import (
@@ -34,7 +38,7 @@ ThresholdValueType = Union[
 ]
 
 
-class Threshold:
+class Threshold(Callable):
     """
     - scalar thresh:                               "> 25 ºC"
     - per grid cell thresh:                        "> data.nc"
@@ -62,14 +66,18 @@ class Threshold:
     def unit(self) -> str | None:
         if isinstance(self.value, Callable):
             return None
-        return self.value.attrs["units"]
+        return self.value.attrs[UNITS_ATTRIBUTE_KEY]
 
     @unit.setter
     def unit(self, unit):
         if not isinstance(self.value, Callable):
-            if self.value.attrs.get("units", None) is not None:
+            if self.value.attrs.get(UNITS_ATTRIBUTE_KEY, None) is not None:
                 self.value = convert_units_to(self.value, unit)
-            self.value.attrs["units"] = unit
+            self.value.attrs[UNITS_ATTRIBUTE_KEY] = unit
+            if self.threshold_min_value:
+                self.threshold_min_value = convert_units_to(
+                    self.threshold_min_value, unit
+                )
 
     def __init__(
         self,
@@ -99,11 +107,13 @@ class Threshold:
                 climatology_bounds=climatology_bounds,
                 unit=unit,
             )
+            if DOY_COORDINATE in value.coords:
+                is_doy_per_threshold = True
         elif is_number_sequence(value):
             # e.g. Threshold(">", [2,3,4], "degC")
             value = DataArray(
                 data=value,
-                coords={"threshold": value},  # todo: [no magic string]
+                coords={THRESHOLD_COORDINATE: value},
             )
         elif unit == DOY_PERCENTILE_UNIT:
             value = partial(
@@ -126,9 +136,7 @@ class Threshold:
                 percentile_min_value=threshold_min_value,
             )
         elif isinstance(value, (float, int)):
-            value = DataArray(
-                data=value, coords={"threshold": value}
-            )  # todo: no magic string
+            value = DataArray(data=value, coords={THRESHOLD_COORDINATE: value})
         elif isinstance(value, DataArray):
             #  nothing to do
             ...
@@ -139,6 +147,7 @@ class Threshold:
             OperatorRegistry.lookup(operator, no_error=True) or OperatorRegistry.REACH
         )
         self.value = value
+        self.threshold_min_value = threshold_min_value
         self.unit = unit
         self.additional_metadata = []
         self.threshold_var_name = threshold_var_name
@@ -147,7 +156,6 @@ class Threshold:
         self.only_leap_years = only_leap_years
         self.interpolation = interpolation
         self.base_period_time_range = base_period_time_range
-        self.threshold_min_value = threshold_min_value
 
     def get_metadata(self, src_freq: Frequency) -> dict[str, Any]:
         # TODO: [xclim backport] localize/translate these
@@ -176,7 +184,7 @@ class Threshold:
                     f" period, with a {window} {src_freq.units} window for each day of"
                     f" year"
                 )
-            #     todo: add if bootstrap ran or not ro metadata
+            #     todo: add if bootstrap ran or not to metadata
             else:
                 if percentiles.size == 1:
                     display_perc = f"{percentiles[0]}th period percentile"
@@ -220,6 +228,9 @@ class Threshold:
             res.update({"additional_metadata": added_meta})
         return res
 
+    def __call__(self, study_da: DataArray, *args, **kwargs) -> DataArray:
+        return self.operator(study_da, self.value)
+
 
 def _check_threshold_var_name(threshold_var_name: str | None) -> None:
     if threshold_var_name is None:
@@ -229,3 +240,78 @@ def _check_threshold_var_name(threshold_var_name: str | None) -> None:
             "find the data_variable in the "
             "dataset."
         )
+
+
+def build_period_per(
+    per_val: float,
+    base_period_time_range: Sequence[str],
+    interpolation: QuantileInterpolation,
+    only_leap_years: bool,
+    sampling_frequency: Frequency,
+    study_da: DataArray,
+    percentile_min_value: float | None,
+) -> PercentileDataArray:
+    # todo [refacto] move back to threshold ?
+    from icclim.pre_processing.input_parsing import build_reference_da
+
+    reference = build_reference_da(
+        study_da,
+        base_period_time_range,
+        only_leap_years,
+        sampling_frequency,
+        percentile_min_value=percentile_min_value,
+    )
+    computed_per = xr.apply_ufunc(
+        calc_perc,
+        reference,
+        input_core_dims=[["time"]],
+        output_core_dims=[["percentiles"]],
+        keep_attrs=True,
+        kwargs=dict(
+            percentiles=[per_val],
+            alpha=interpolation.alpha,
+            beta=interpolation.beta,
+            copy=True,
+        ),
+        dask="parallelized",
+        output_dtypes=[reference.dtype],
+        dask_gufunc_kwargs=dict(output_sizes={"percentiles": 1}, allow_rechunk=True),
+    )
+    computed_per = computed_per.assign_coords(
+        percentiles=xr.DataArray([per_val], dims=("percentiles",))
+    )
+    res = PercentileDataArray.from_da(
+        source=computed_per,
+        climatology_bounds=build_climatology_bounds(reference),
+    )
+    return res
+
+
+def build_doy_per(
+    per_val: float,
+    base_period_time_range: Sequence[str],
+    interpolation: QuantileInterpolation,
+    only_leap_years: bool,
+    window: int,
+    sampling_frequency: Frequency,
+    study_da: DataArray,
+    percentile_min_value: float | None,
+) -> PercentileDataArray:
+    # todo [refacto] move back to threshold ?
+    from icclim.pre_processing.input_parsing import build_reference_da
+
+    reference = build_reference_da(
+        study_da,
+        base_period_time_range,
+        only_leap_years,
+        sampling_frequency,
+        percentile_min_value,
+    )
+    res = percentile_doy(
+        arr=reference,
+        window=window,
+        per=per_val,
+        alpha=interpolation.alpha,
+        beta=interpolation.beta,
+    ).compute()  # "optimization" (diminish dask scheduler workload)
+    return res

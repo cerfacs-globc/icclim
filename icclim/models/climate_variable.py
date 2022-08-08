@@ -5,11 +5,13 @@ from typing import Callable, Sequence
 from warnings import warn
 
 from xarray.core.dataarray import DataArray
+from xclim.core.calendar import resample_doy
 
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
 from icclim.icclim_types import InFileBaseType, InFileType
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.consolidated_metadata import GlobalMetadata
+from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency
 from icclim.models.threshold import Threshold
 from icclim.pre_processing.in_file_dictionary import InFileDictionary
@@ -125,12 +127,15 @@ def _build_climate_var(
     )
     if climate_var_thresh is not None:
         if isinstance(climate_var_thresh, str):
-            climate_var_thresh = Threshold(climate_var_thresh)
+            climate_var_thresh: Threshold = Threshold(climate_var_thresh)
         if isinstance(climate_var_thresh.value, Callable):
             climate_var_thresh.value = climate_var_thresh.value(
                 sampling_frequency=sampling_frequency, study_da=study_da
             )
-            climate_var_thresh.value.attrs["units"] = study_da.attrs["units"]
+        climate_var_thresh.unit = study_da.attrs[UNITS_ATTRIBUTE_KEY]
+        if climate_var_thresh.is_doy_per_threshold:
+            climate_var_thresh.value = resample_doy(climate_var_thresh.value, study_da)
+        climate_var_thresh.value = climate_var_thresh.value.chunk("auto")
     return ClimateVariable(
         name=climate_var_name,
         cf_meta=cf_meta,

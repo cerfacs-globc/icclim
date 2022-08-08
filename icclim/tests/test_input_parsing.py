@@ -12,6 +12,7 @@ from xclim.core.utils import PercentileDataArray
 
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.pre_processing.input_parsing import (
     guess_var_names,
@@ -33,7 +34,7 @@ def test_update_to_standard_coords():
                 ),
                 dims=["t", "latitude", "longitude"],
                 name="pr",
-                attrs={"units": "kg m-2 d-1"},
+                attrs={UNITS_ATTRIBUTE_KEY: "kg m-2 d-1"},
             )
         }
     )
@@ -66,7 +67,7 @@ class Test_ReadDataset:
             ),
             dims=["t", "latitude", "longitude"],
             name="pr",
-            attrs={"units": "kg m-2 d-1"},
+            attrs={UNITS_ATTRIBUTE_KEY: "kg m-2 d-1"},
         )
         self.tas_da = xr.DataArray(
             data=np.full(10, 42).reshape((10, 1, 1)),
@@ -77,7 +78,7 @@ class Test_ReadDataset:
             ),
             dims=["t", "latitude", "longitude"],
             name="tas",
-            attrs={"units": "degC"},
+            attrs={UNITS_ATTRIBUTE_KEY: "degC"},
         )
         yield
         # -- teardown
