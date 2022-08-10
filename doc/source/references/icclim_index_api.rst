@@ -351,6 +351,8 @@ in *icclim* as ``hyndman_fan`` interpolation, also known as type 8.
 Percentile-based indices (TX10p, TX90p, TN10p, TN90p, TG10p, TG90p, R75p, R95p and R99p) could be returned as number of days (default)
 or as percentage of days (``out_unit`` = "%").
 
+.. _custom_indices_old:
+
 Custom indices
 --------------
 
