@@ -13,7 +13,9 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency
+from icclim.models.operator import Operator
 from icclim.models.registry import Registry
+from icclim.models.threshold import Threshold
 
 
 class ReducerMetadataDict(TypedDict):
@@ -29,7 +31,7 @@ class Reducer(Callable):
     def __call__(self, *args, **kwargs):
         ...
 
-    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+    def get_metadata(self, *args, **kwargs) -> ReducerMetadataDict:
         ...
 
 
@@ -57,7 +59,7 @@ class CountOccurrences(Reducer):
         # we assume all climate vars have the same time dimension here
         return to_agg_units(merged_exceedance, climate_vars[0].study_da, "count")
 
-    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+    def get_metadata(self, src_freq: Frequency, *args, **kwargs) -> ReducerMetadataDict:
         return {
             "standard_name": "number_of",
             "long_name": "Number of",
@@ -89,7 +91,7 @@ class MaxConsecutiveOccurrence(Reducer):
         # we assume all climate vars have the same time dimension here
         return to_agg_units(merged_exceedance, climate_vars[0].study_da, "count")
 
-    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+    def get_metadata(self, src_freq: Frequency, *args, **kwargs) -> ReducerMetadataDict:
         return {
             "standard_name": "spell_length_of",
             "long_name": "Maximum number of consecutive",
@@ -121,12 +123,14 @@ class SumOfSpellLengths(Reducer):
         )
         return to_agg_units(merged_exceedance, climate_vars[0].study_da, "count")
 
-    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+    def get_metadata(
+        self, src_freq: Frequency, min_spell_length: int
+    ) -> ReducerMetadataDict:
         return {
             "standard_name": "sum_of_spell_lengths_of",
             "long_name": "Sum of spell lengths of",
             "cell_methods": "time: sum over",
-            "additional_metadata": f" Spells are at least {self.min_spell_length}."
+            "additional_metadata": f" Spells are at least {min_spell_length}."
             f" {src_freq.units} long",
         }
 
@@ -143,16 +147,11 @@ class Excess(Reducer):
         *args,
         **kwargs,
     ) -> DataArray:
-        if len(climate_vars) != 1:
-            raise InvalidIcclimArgumentError(
-                "Excess can only be computed on a single variable."
-            )
-        study = climate_vars[0].study_da
-        thresholds = climate_vars[0].threshold.value
-        res = (study - thresholds).clip(min=0).resample(time=freq).sum(dim="time")
+        op, study, threshold = _check_single_var(climate_vars, self.name)
+        res = (study - threshold).clip(min=0).resample(time=freq).sum(dim="time")
         return to_agg_units(res, study, "delta_prod")
 
-    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+    def get_metadata(self, src_freq: Frequency, *args, **kwargs) -> ReducerMetadataDict:
         return {
             "standard_name": "excess_of_integral_of",
             "long_name": "Excess of integral of",
@@ -173,16 +172,11 @@ class Deficit(Reducer):
         *args,
         **kwargs,
     ) -> DataArray:
-        if len(climate_vars) != 1:
-            raise InvalidIcclimArgumentError(
-                "Deficit can only be computed on a single variable."
-            )
-        study = climate_vars[0].study_da
-        thresholds = climate_vars[0].threshold.value
-        res = (thresholds - study).clip(min=0).resample(time=freq).sum(dim="time")
+        op, study, threshold = _check_single_var(climate_vars, self.name)
+        res = (threshold - study).clip(min=0).resample(time=freq).sum(dim="time")
         return to_agg_units(res, study, "delta_prod")
 
-    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+    def get_metadata(self, src_freq: Frequency, *args, **kwargs) -> ReducerMetadataDict:
         return {
             "standard_name": "deficit_of_integral_of",
             "long_name": "Deficit of integral of",
@@ -203,13 +197,7 @@ class FractionOfTotal(Reducer):
         *args,
         **kwargs,
     ) -> DataArray:
-        if len(climate_vars) != 1:
-            raise InvalidIcclimArgumentError(
-                "FractionOfTotal can only be computed on a single variable."
-            )
-        study = climate_vars[0].study_da
-        threshold = climate_vars[0].threshold
-        op = threshold.operator
+        op, study, threshold = _check_single_var(climate_vars, self.name)
         if threshold.threshold_min_value:
             total = (
                 study.where(op(study, threshold.threshold_min_value))
@@ -225,7 +213,7 @@ class FractionOfTotal(Reducer):
         res.attrs[UNITS_ATTRIBUTE_KEY] = ""  # unit less
         return res
 
-    def get_metadata(self, src_freq: Frequency) -> ReducerMetadataDict:
+    def get_metadata(self, src_freq: Frequency, *args, **kwargs) -> ReducerMetadataDict:
         return {
             "standard_name": "fraction_of_total_of",
             "long_name": "Fraction of total of",
@@ -243,3 +231,17 @@ class ReducerRegistry(Registry):
     Excess = Excess()
     Deficit = Deficit()
     FractionOfTotal = FractionOfTotal()
+
+
+def _check_single_var(
+    climate_vars: list[ClimateVariable], reducer_name: str
+) -> tuple[Operator, DataArray, Threshold]:
+    if len(climate_vars) != 1:
+        raise InvalidIcclimArgumentError(
+            f"{reducer_name} can only be computed on a single variable at once."
+        )
+    return (
+        climate_vars[0].threshold.operator,
+        climate_vars[0].study_da,
+        climate_vars[0].threshold,
+    )

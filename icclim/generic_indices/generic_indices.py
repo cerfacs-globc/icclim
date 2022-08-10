@@ -7,7 +7,6 @@ from typing import Callable, Sequence
 import numpy
 import numpy as np
 import xarray as xr
-from icclim_exceptions import InvalidIcclimArgumentError
 from jinja2 import Environment
 from xarray import DataArray
 from xclim.core import datachecks
@@ -16,6 +15,7 @@ from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 
 from icclim.generic_indices.generic_index_functions import Reducer, ReducerRegistry
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
@@ -241,8 +241,9 @@ class GenericIndicator(ResamplingIndicator):
         self,
         /,
         climate_vars: list[ClimateVariable],
-        frequency: Frequency,
+        output_frequency: Frequency,
         indexer: dict,
+        min_spell_length: int,
         *args,
         **kwargs,
     ) -> list[ClimateVariable]:
@@ -251,27 +252,21 @@ class GenericIndicator(ResamplingIndicator):
                 "All variables must have the same time frequency (for example daily) to"
                 " be compared with each others, but this was not the case."
             )
-        inputs = list(
-            map(
-                lambda cf_var: cf_var.build_indicator_metadata(self.src_freq),
-                climate_vars,
-            )
-        )
         jinja_scope = {
             # todo [xclim backport] localize these
-            "reducer": self.reducer.get_metadata(self.src_freq),
-            "inputs": inputs,
-            "output_freq": frequency.description,
+            "reducer": self.reducer.get_metadata(self.src_freq, min_spell_length),
+            "inputs": _get_inputs_metadata(climate_vars, self.src_freq),
+            "output_freq": output_frequency.description,
+            "src_freq": self.src_freq,
             "np": numpy,
             "enumerate": enumerate,
             "len": len,
-            "src_freq": self.src_freq,
         }
         return super().preprocess(
             climate_vars=climate_vars,
             jinja_scope=jinja_scope,
-            freq=frequency.pandas_freq,
-            indexer=frequency.indexer,
+            freq=output_frequency.pandas_freq,
+            indexer=output_frequency.indexer,
             *args,
             **kwargs,
         )
@@ -283,9 +278,10 @@ class GenericIndicator(ResamplingIndicator):
         #       in case config.cf_variables[1] (or others) have a != frequency
         self.src_freq = config.climate_variables[0].cf_meta.frequency
         climate_vars = self.preprocess(
-            frequency=config.frequency,
+            output_frequency=config.frequency,
             indexer=config.frequency.indexer,
             climate_vars=config.climate_variables,
+            min_spell_length=config.window,
             *args,
             **kwargs,
         )
@@ -339,4 +335,15 @@ def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
         lambda a, b: xr.infer_freq(b.study_da.time) == a,
         climate_vars[1:],
         xr.infer_freq(climate_vars[0].study_da.time),
+    )
+
+
+def _get_inputs_metadata(
+    climate_vars: list[ClimateVariable], freq: Frequency
+) -> list[dict[str, str]]:
+    return list(
+        map(
+            lambda cf_var: cf_var.build_indicator_metadata(freq),
+            climate_vars,
+        )
     )
