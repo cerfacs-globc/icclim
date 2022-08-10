@@ -1,8 +1,8 @@
 Release history
 ===============
 
-5.4.0 (unreleased)
-------------------
+5.4.0
+-----
 * [fix] When giving input as a list of netcdf files, the coordinate values are now merged using the `override` strategy, thus the first file with a given dimension define this dimension for all the files.
 * [fix] Fix the output unit of some indices (from "ºC" to "degree_Celsius")
 * [fix] Fixed issued where dataset having a time_bds variable could not be processed by chunking the DataArray(s) instead of the Dataset.
