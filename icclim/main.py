@@ -21,8 +21,10 @@ from xarray.core.dataset import Dataset
 
 from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndexRegistry, get_season_excluded_indices
-from icclim.generic_indices.generic_index_functions import Reducer, ReducerRegistry
-from icclim.generic_indices.generic_indices import GenericIndicator, Indicator
+from icclim.generic_indices.generic_indicators import (
+    GenericIndicatorRegistry,
+    Indicator,
+)
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.models.climate_index import ClimateIndex
@@ -120,7 +122,9 @@ def indice(*args, **kwargs):
 
 
 def generic(
-    in_files: InFileType, reducer=ReducerRegistry.CountOccurrences.name, **kwargs
+    in_files: InFileType,
+    indicator=GenericIndicatorRegistry.CountOccurrences.name,
+    **kwargs,
 ) -> Dataset:
     # TODO: instead of `icclim.generic`,
     #       it would make more sense to have each reducer as part of the public API.
@@ -129,7 +133,10 @@ def generic(
     if kwargs.get("index_name"):
         raise InvalidIcclimArgumentError("With generic, index_name must be empty")
     return index(
-        in_files=in_files, index_name=GENERIC_THRESHOLD_KEY, reducer=reducer, **kwargs
+        in_files=in_files,
+        index_name=GENERIC_THRESHOLD_KEY,
+        indicator=indicator,
+        **kwargs,
     )
 
 
@@ -141,7 +148,7 @@ def index(
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold = None,
-    reducer: str | Reducer = None,
+    indicator: str | Indicator = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -280,6 +287,17 @@ def index(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
         )
+    elif isinstance(threshold, Sequence):
+        threshold = [
+            Threshold(
+                t,
+                window=window_width,
+                base_period_time_range=base_period_time_range,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+            )
+            for t in threshold
+        ]
     if index_name is not None:
         if (
             ecad_index := EcadIndexRegistry.lookup(index_name, no_error=True)
@@ -292,7 +310,7 @@ def index(
                     "instead."
                 )
         elif index_name == GENERIC_THRESHOLD_KEY:
-            index = GenericIndicator(reducer)
+            index = GenericIndicatorRegistry.lookup(indicator)
         else:
             raise InvalidIcclimArgumentError(f"Unknown index {index_name}.")
     else:
@@ -459,10 +477,8 @@ def _compute_standard_climate_index(
         else:
             return res, None
 
-    # todo delete log as it is unreadable with generic index
-    logging.info(f"Calculating climate index: {climate_index.short_name}")
     result_da, percentiles_da = compute()
-    result_da = result_da.rename(climate_index.short_name)
+    result_da = result_da.rename(climate_index.identifier)
     result_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(config.out_unit, result_da)
     if config.frequency.post_processing is not None:
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
@@ -489,7 +505,7 @@ def _add_ecad_index_metadata(
 ) -> Dataset:
     result_ds.attrs.update(
         dict(
-            title=computed_index.short_name,
+            title=computed_index.standard_name,
             references="ATBD of the ECA&D indices calculation"
             " (https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf)",
             institution="Climate impact portal (https://climate4impact.eu)",
@@ -523,7 +539,7 @@ def _build_history(
         f"{initial_history}\n"
         f" [{current_time}]"
         f" Calculation of {indice_computed.identifier}"
-        f" index ({config.frequency.description})"
+        f" index ({config.frequency.adjective})"
         f" from {start_time} to {end_time}"
         f" - icclim version: {ICCLIM_VERSION}"
     )

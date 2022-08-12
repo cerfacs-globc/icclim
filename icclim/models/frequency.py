@@ -28,11 +28,16 @@ from icclim.models.constants import (
     MAM_MONTHS,
     MONTHS_MAP,
     ONDJFM_MONTHS,
-    SEASON_ERR_MSG,
     SON_MONTHS,
 )
 from icclim.models.registry import Registry
 from icclim.utils import read_date
+
+SEASON_ERR_MSG = (
+    "A season created using `slice_mode` must be made of either"
+    " consecutive integers for months such as [1,2,3] or two date strings"
+    " such as ['19 july', '14 august']."
+)
 
 
 def get_seasonal_time_updater(
@@ -145,26 +150,16 @@ class Frequency:
 
     pandas_freq: str
     accepted_values: list[str]
-    _description: str
+    adjective: str
     post_processing: Callable[[DataArray], tuple[DataArray, DataArray]] | None
     units: str
     indexer: Indexer | None
+    long_name: str
     time_clipping: Callable[[DataArray], DataArray] | None = None
 
     # time_clipping is a workaround for a "missing" feature of xclim.
     # It allow to compute seasons for indices computing spells by ignoring values
     # outside the season bounds.
-
-    @property
-    def description(self) -> str:
-        if self._description:
-            return self._description
-        else:
-            return reduce(
-                lambda x, y: x + y,  # concat
-                map(lambda f: FREQ_MAPPING[f], self.pandas_freq.split("-")),
-                "",
-            )
 
     def build_frequency_kwargs(self) -> dict[str, Any]:
         """Build kwargs with possible keys in {"freq", "month", "date_bounds"}"""
@@ -173,17 +168,6 @@ class Frequency:
             kwargs.update(self.indexer)
         return kwargs
 
-    @staticmethod
-    def is_seasonal(slice_mode: FrequencyLike) -> bool:
-        return FrequencyRegistry.lookup(slice_mode) in [
-            FrequencyRegistry.ONDJFM,
-            FrequencyRegistry.AMJJAS,
-            FrequencyRegistry.MAM,
-            FrequencyRegistry.JJA,
-            FrequencyRegistry.SON,
-            FrequencyRegistry.DJF,
-        ]
-
 
 class FrequencyRegistry(Registry):
     _item_class = Frequency
@@ -191,100 +175,110 @@ class FrequencyRegistry(Registry):
     HOUR = Frequency(
         pandas_freq="H",
         accepted_values=["hour", "h", "hourly"],
-        _description="hourly",
+        adjective="hourly",
         indexer=None,
         post_processing=get_time_bounds_updater("H"),
         units="hours",
+        long_name="hour",
     )
     """Resample to hourly values"""
 
     DAY = Frequency(
         pandas_freq="D",
         accepted_values=["daily", "day", "days", "d"],
-        _description="daily",
+        adjective="daily",
         indexer=None,
         post_processing=get_time_bounds_updater("D"),
         units="days",
+        long_name="day",
     )
     """Resample to daily values"""
 
     MONTH = Frequency(
         pandas_freq="MS",
         accepted_values=["month", "monthly", "MS"],
-        _description="monthly",
+        adjective="monthly",
         indexer=None,
         post_processing=get_time_bounds_updater("MS"),
         units="months",
+        long_name="month",
     )
     """Resample to monthly values"""
 
     YEAR = Frequency(
         pandas_freq="YS",
         accepted_values=["year", "yearly", "annual", "YS"],
-        _description="annual",
+        adjective="annual",
         indexer=None,
         post_processing=get_time_bounds_updater("YS"),
         units="years",
+        long_name="year",
     )
     """Resample to yearly values."""
 
     AMJJAS = Frequency(
         pandas_freq="AS-APR",
         accepted_values=["AMJJAS"],
-        _description="summer half-year",
+        adjective="AMJJAS summery",
         indexer=dict(month=AMJJAS_MONTHS),
         post_processing=get_seasonal_time_updater(AMJJAS_MONTHS[0], AMJJAS_MONTHS[-1]),
-        units="half_year_summer",
+        units="half_year_summers",
+        long_name="AMJJAS season",
     )
     """Resample to summer half-year, from April to September included."""
 
     ONDJFM = Frequency(
         pandas_freq="AS-OCT",
         accepted_values=["ONDJFM"],
-        _description="winter half-year",
+        adjective="ONDJFM wintry",
         indexer=dict(month=ONDJFM_MONTHS),
         post_processing=get_seasonal_time_updater(ONDJFM_MONTHS[0], ONDJFM_MONTHS[-1]),
-        units="half_year_winter",
+        units="half_year_winters",
+        long_name="ONDJFM season",
     )
     """Resample to winter half-year, from October to March included."""
 
     DJF = Frequency(
         pandas_freq="AS-DEC",
         accepted_values=["DJF"],
-        _description="winter",
+        adjective="DJF wintry",
         indexer=dict(month=DJF_MONTHS),
         post_processing=get_seasonal_time_updater(DJF_MONTHS[0], DJF_MONTHS[-1]),
-        units="winter",
+        units="winters",
+        long_name="DJF winter",
     )
     """Resample to winter season, from December to February included."""
 
     MAM = Frequency(
         pandas_freq="AS-MAR",
         accepted_values=["MAM"],
-        _description="spring",
+        adjective="MAM springlong",
         indexer=dict(month=MAM_MONTHS),
         post_processing=get_seasonal_time_updater(MAM_MONTHS[0], MAM_MONTHS[-1]),
-        units="spring",
+        units="springs",
+        long_name="MAM season",
     )
     """Resample to spring season, from March to May included."""
 
     JJA = Frequency(
         pandas_freq="AS-JUN",
         accepted_values=["JJA"],
-        _description="summer",
+        adjective="JJA summery",
         indexer=dict(month=JJA_MONTHS),
         post_processing=get_seasonal_time_updater(JJA_MONTHS[0], JJA_MONTHS[-1]),
-        units="summer",
+        units="summers",
+        long_name="JJA season",
     )
     """Resample to summer season, from June to Agust included."""
 
     SON = Frequency(
         pandas_freq="AS-SEP",
         accepted_values=["SON"],
-        _description="autumn",
+        adjective="SON autumnal",
         indexer=dict(month=SON_MONTHS),
         post_processing=get_seasonal_time_updater(SON_MONTHS[0], SON_MONTHS[-1]),
-        units="autumn",
+        units="autumns",
+        long_name="SON season",
     )
     """Resample to fall season, from September to November included."""
 
@@ -342,10 +336,11 @@ def _get_frequency_from_string(query: str) -> Frequency:
     return Frequency(
         post_processing=get_time_bounds_updater(query),
         pandas_freq=query,
-        _description=f"time series sampled on {query}",
+        adjective=f"time series sampled on {query}",
         accepted_values=[],
         indexer=None,
         units=query,
+        long_name=_get_long_name(query),
     )
 
 
@@ -390,9 +385,10 @@ def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
         indexer=dict(month=months),
         post_processing=get_time_bounds_updater("MS"),
         pandas_freq="MS",
-        _description=f"monthly time series (months: {months})",
+        adjective="monthly",
         accepted_values=[],
         units="months",
+        long_name=f"monthly time series (months: {months})",
     )
 
 
@@ -426,11 +422,12 @@ def _build_seasonal_frequency_between_dates(
             begin_date.month, end_date.month, begin_date.day, end_date.day
         ),
         pandas_freq=f"AS-{MONTHS_MAP[begin_date.month]}",
-        _description=f"seasonal time series"
-        f" (season: from {begin_formatted} to {end_formatted})",
+        adjective="seasonally",
         accepted_values=[],
         time_clipping=time_clipping,
         units=f"{MONTHS_MAP[begin_date.month]}_{MONTHS_MAP[end_date.month]}_seasons",
+        long_name=f"seasonal time series"
+        f" (season: from {begin_formatted} to {end_formatted})",
     )
 
 
@@ -451,9 +448,10 @@ def _build_seasonal_frequency_for_months(season: tuple | list, clipped: bool):
         time_clipping=time_clipping,
         post_processing=get_seasonal_time_updater(season[0], season[-1]),
         pandas_freq=f"AS-{MONTHS_MAP[season[0]]}",
-        _description=f"seasonal time series (season: {season})",
+        adjective="seasonally",
         accepted_values=[],
         units=f"{MONTHS_MAP[season[0]]}_{MONTHS_MAP[season[-1]]}_seasons",
+        long_name=f"seasonal time series (season: {season})",
     )
 
 
@@ -464,4 +462,12 @@ def _get_month_filter(season):
 def _get_filter_between_dates(begin_date: str, end_date: str):
     return lambda da: xclim.core.calendar.select_time(
         da, date_bounds=(begin_date, end_date)
+    )
+
+
+def _get_long_name(pandas_freq: str):
+    return reduce(
+        lambda x, y: x + y,  # concat
+        map(lambda f: FREQ_MAPPING[f], pandas_freq.split("-")),
+        "",
     )

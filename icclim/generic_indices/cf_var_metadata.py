@@ -1,9 +1,17 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import TypedDict
 
 from icclim.models.frequency import Frequency
 from icclim.models.registry import Registry
+
+
+class IndicatorMetadata(TypedDict):
+    identifier: str
+    standard_name: str
+    long_name: str
+    cell_methods: str
 
 
 @dataclasses.dataclass
@@ -18,10 +26,15 @@ class CfVarMetadata:
     default_units: str
     frequency: Frequency = None
     units: str = None  # runtime unit # todo pint.Unit ?
-    cell_method: str = None  # built from reducer
 
     def get_metadata(self):
-        return self.__dict__  # todo safe ?
+        return dict(
+            standard_name=self.standard_name,
+            long_name=self.long_name,
+            units=self.units,
+            frequency=self.frequency,
+            short_name=self.short_name,
+        )
 
 
 class CfVarMetadataRegistry(Registry):

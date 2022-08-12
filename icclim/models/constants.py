@@ -65,25 +65,21 @@ SON_MONTHS:list[int] = [*range(9, 12)]
 PERIOD_PERCENTILE_UNIT = "period_per"
 DOY_PERCENTILE_UNIT = "doy_per"
 
-# Frequency errors
-SEASON_ERR_MSG = (
-    "A season created using `slice_mode` must be made of either"
-    " consecutive integers for months such as [1,2,3] or two date strings"
-    " such as ['19 july', '14 august']."
-)
-
 # Mapping of frequencies to generate metadata
 # copied from xclim and updated.
+# todo: it's weird to group in the same dictionary things that have different purposes.
 FREQ_MAPPING = {
     "YS": "annual", "Y": "annual", "AS": "annual", "A": "annual",
     "MS": "monthly", "M": "monthly",
     "QS": "seasonal", "Q": "seasonal",
+    "D": "daily",
+    "H": "hourly",
     "JAN": "January starting", "FEB": "February starting", "MAR": "March starting", "APR": "April starting", "MAY": "May starting", "JUN": "June starting", "JUL": "July starting", "AUG": "August starting", "SEP": "September starting", "OCT": "October starting", "NOV": "November starting", "DEC": "December starting",
     # Arguments to "indexer"
-    "DJF": "winter", "MAM": "spring", "JJA": "summer", "SON": "fall",
+    "DJF": "wintry", "MAM": "springlong", "JJA": "summery", "SON": "autumnal",
     "norm": "Normal",
     "m1": "january",  "m2": "february",  "m3": "march",  "m4": "april",  "m5": "may",  "m6": "june",  "m7": "july",  "m8": "august",  "m9": "september",  "m10": "october",  "m11": "november",  "m12": "december",
 }
 
-# Special CF unit for
+# Special CF unit
 PART_OF_A_WHOLE_UNIT = "1"

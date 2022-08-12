@@ -143,7 +143,7 @@ def _read_dataarray(
             )
         else:
             var_name = var_name[0]
-    if index is not None:
+    if isinstance(index, ClimateIndex):
         if index.input_variables and len(index.input_variables) > 1:
             raise InvalidIcclimArgumentError(
                 f"Index {index.short_name} needs {len(index.input_variables)} "
@@ -285,14 +285,14 @@ def reduce_only_leap_years(da: DataArray) -> DataArray:
     return xr.concat(reduced_list, "time")
 
 
-def read_string_threshold(query: str):
+def read_string_threshold(query: str) -> tuple[str, str, float]:
     value = re.findall(r"-?\d+\.?\d*", query)[0]
     value_index = query.find(value)
     operator = query[0:value_index].strip()
-    if value_index < len(query) - 1:
-        unit = query[value_index + len(value) :].strip()
-    else:
+    if query.endswith(value):
         unit = None
+    else:
+        unit = query[value_index + len(value) :].strip()
     return operator, unit, float(value)
 
 

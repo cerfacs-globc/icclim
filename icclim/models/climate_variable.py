@@ -5,7 +5,6 @@ from typing import Callable, Sequence
 from warnings import warn
 
 from xarray.core.dataarray import DataArray
-from xclim.core.calendar import resample_doy
 
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
 from icclim.icclim_types import InFileBaseType, InFileType
@@ -80,7 +79,7 @@ def _to_dictionary(
     in_files: InFileType,
     var_names: Sequence[str],
     index: ClimateIndex,
-    threshold: Threshold,
+    threshold: Threshold | Sequence[Threshold],
 ) -> dict[str, InFileDictionary]:
     if isinstance(in_files, dict):
         if var_names is not None:
@@ -90,8 +89,8 @@ def _to_dictionary(
         input_dataset = read_dataset(in_files, index, var_names)
         var_names = guess_var_names(input_dataset, index, var_names)
         return {
-            var_name: {"study": input_dataset[var_name], "thresholds": threshold}
-            for var_name in var_names
+            var_name: {"study": input_dataset[var_name], "thresholds": threshold[i]}
+            for i, var_name in enumerate(var_names)
         }
 
 
@@ -106,7 +105,6 @@ def _build_climate_var(
 ):
     if isinstance(climate_var_data, dict):
         study_ds = read_dataset(climate_var_data["study"], index, climate_var_name)
-        cf_meta = guess_input_type(study_ds[climate_var_name])
         # todo: deprecate climate_var_data.get("per_var_name", None)
         #       for threshold_var_name
         if climate_var_data.get("thresholds", None) is not None:
@@ -116,8 +114,8 @@ def _build_climate_var(
     else:
         climate_var_data: InFileBaseType
         study_ds = read_dataset(climate_var_data, index, climate_var_name)
-        cf_meta = guess_input_type(study_ds[climate_var_name])
         climate_var_thresh = threshold
+    cf_meta = guess_input_type(study_ds[climate_var_name])
     study_da = build_study_da(
         study_ds[climate_var_name],
         time_range,
@@ -133,8 +131,6 @@ def _build_climate_var(
                 sampling_frequency=sampling_frequency, study_da=study_da
             )
         climate_var_thresh.unit = study_da.attrs[UNITS_ATTRIBUTE_KEY]
-        if climate_var_thresh.is_doy_per_threshold:
-            climate_var_thresh.value = resample_doy(climate_var_thresh.value, study_da)
         climate_var_thresh.value = climate_var_thresh.value.chunk("auto")
     return ClimateVariable(
         name=climate_var_name,

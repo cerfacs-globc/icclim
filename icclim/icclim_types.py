@@ -14,6 +14,3 @@ MonthsIndexer = Dict[Literal["month"], Sequence[int]]
 DatesIndexer = Dict[Literal["date_bounds"], Tuple[str, str]]
 ClippedSeasonIndexer = Callable
 Indexer = Union[MonthsIndexer, DatesIndexer, ClippedSeasonIndexer]
-
-# todo Move other types here.
-#      No import allowed to other icclim modules allowed !

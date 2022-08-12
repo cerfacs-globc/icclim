@@ -3,9 +3,9 @@ from __future__ import annotations
 import dataclasses
 from typing import Callable
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from xarray import DataArray
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.registry import Registry
 
 
@@ -78,12 +78,12 @@ class OperatorRegistry(Registry):
         operand="==",
         compute=lambda da, th: da == th,  # noqa
     )
-    # A none operand means the threshold is reached and a reducer specif computation is
-    # done. E.g. excess, deficit (a.k.a gd4, hd17)
+    # A None operand means the threshold is reached and a reducer specific computation
+    # is done. Case of excess and deficit (a.k.a gd4, hd17)
     REACH = Operator(
         short_name="reach",
-        long_name="reaching",
-        standard_name="reaches",
+        long_name="",  # nothing
+        standard_name="reaching",
         aliases=["r"],
         operand="reach",
         compute=_reach_err,

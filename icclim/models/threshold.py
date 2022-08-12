@@ -38,7 +38,7 @@ ThresholdValueType = Union[
 ]
 
 
-class Threshold(Callable):
+class Threshold:
     """
     - scalar thresh:                               "> 25 ºC"
     - per grid cell thresh:                        "> data.nc"
@@ -60,7 +60,7 @@ class Threshold(Callable):
     window: int
     only_leap_years: bool
     interpolation: QuantileInterpolation
-    threshold_min_value: str | float | None
+    threshold_min_value: Threshold
 
     @property
     def unit(self) -> str | None:
@@ -75,9 +75,7 @@ class Threshold(Callable):
                 self.value = convert_units_to(self.value, unit)
             self.value.attrs[UNITS_ATTRIBUTE_KEY] = unit
             if self.threshold_min_value:
-                self.threshold_min_value = convert_units_to(
-                    self.threshold_min_value, unit
-                )
+                self.threshold_min_value.unit = unit
 
     def __init__(
         self,
@@ -141,13 +139,17 @@ class Threshold(Callable):
             #  nothing to do
             ...
         else:
-            raise NotImplementedError("Threshold could not be built.")
+            raise NotImplementedError(
+                f"Threshold could not be built from the {type(value)}"
+            )
         self.is_doy_per_threshold = is_doy_per_threshold
         self.operator = (
             OperatorRegistry.lookup(operator, no_error=True) or OperatorRegistry.REACH
         )
         self.value = value
-        self.threshold_min_value = threshold_min_value
+        self.threshold_min_value = (
+            Threshold(">=" + threshold_min_value) if threshold_min_value else None
+        )
         self.unit = unit
         self.additional_metadata = []
         self.threshold_var_name = threshold_var_name
@@ -158,15 +160,18 @@ class Threshold(Callable):
         self.base_period_time_range = base_period_time_range
 
     def get_metadata(self, src_freq: Frequency) -> dict[str, Any]:
-        # TODO: [xclim backport] localize/translate these
+        # TODO: [xclim backport] localize/translate these with templates
         if self.value.size == 1:
             res = {
-                "standard_name": f"{self.operator.standard_name}_"
-                f"{self.value.values[()]}"
+                "standard_name": f"{self.operator.standard_name}"
+                f"_{self.value.values[()]}"
                 f"_{self.unit}",
-                "long_name": f"{self.operator.long_name} "
-                f"{self.value.values[()]} "
-                f"{self.unit}",
+                "long_name": f"{self.operator.long_name}"
+                f" {self.value.values[()]}"
+                f" {self.unit}",
+                "short_name": f"{self.operator.short_name}"
+                f"_{self.value.values[()]}"
+                f"_{self.unit}",
             }
         elif isinstance(self.value, PercentileDataArray):
             percentiles = self.value.coords["percentiles"].values
@@ -175,9 +180,11 @@ class Threshold(Callable):
                 if percentiles.size == 1:
                     display_perc = f"{percentiles[0]}th day of year percentile"
                     standard_name = f"{percentiles[0]}th_doy_percentile"
+                    short_name = f"{percentiles[0]}th_doy_per"
                 else:
                     display_perc = str(list(map(lambda x: f"{x}th", percentiles)))
                     standard_name = "_doy_percentiles"
+                    short_name = "_doy_pers"
                 window = self.value.attrs.get("window", "")
                 self.additional_metadata.append(
                     f"day of year percentiles were computed per grid cell, on the {bds}"
@@ -189,12 +196,14 @@ class Threshold(Callable):
                 if percentiles.size == 1:
                     display_perc = f"{percentiles[0]}th period percentile"
                     standard_name = f"{percentiles[0]}th_period_percentile"
+                    short_name = f"{percentiles[0]}th_period_per"
                 else:
                     display_perc = (
                         str(list(map(lambda x: f"{x}th", percentiles)))
                         + " period percentiles"
                     )
                     standard_name = "_period_percentiles"
+                    short_name = "period_pers"
                 self.additional_metadata.append(
                     f"period percentiles were computed per grid cell, on the {bds}"
                     f" period"
@@ -202,6 +211,7 @@ class Threshold(Callable):
             res = {
                 "standard_name": f"{self.operator.standard_name}_{standard_name}",
                 "long_name": f"{self.operator.long_name} {display_perc}",
+                "short_name": short_name,
             }
         elif isinstance(self.value, DataArray):
             if self.value.size < 10:
@@ -217,19 +227,23 @@ class Threshold(Callable):
             res = {
                 "standard_name": f"{self.operator.standard_name}_thresholds",
                 "long_name": f"{self.operator.long_name} {display_value}",
+                "short_name": f"{self.operator.short_name}_thresholds",
             }
         else:
             raise NotImplementedError(
                 f"Threshold::value must be a DataArray."
                 f" It was a {type(self.value)}."
             )
+        if self.threshold_min_value:
+            min_t = self.threshold_min_value.get_metadata(src_freq)
+            self.additional_metadata.append(
+                f"only values" f" {min_t['long_name']}" f" were considered"
+            )
         if len(self.additional_metadata) > 0:
-            added_meta = "(" + (", ".join(self.additional_metadata) + ")")
+            added_meta = map(lambda s: s.capitalize(), self.additional_metadata)
+            added_meta = "(" + (". ".join(added_meta) + ")")
             res.update({"additional_metadata": added_meta})
         return res
-
-    def __call__(self, study_da: DataArray, *args, **kwargs) -> DataArray:
-        return self.operator(study_da, self.value)
 
 
 def _check_threshold_var_name(threshold_var_name: str | None) -> None:

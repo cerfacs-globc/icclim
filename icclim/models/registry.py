@@ -6,8 +6,13 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 class Registry:
     """This class is a fancy enum to easily store and find constant items of
     similar type.
+    It acts as a namespace so there is no need to instantiate it or any of
+    its subclasses.
 
-    It acts as a namespace so there is no need to instantiate it or it's subclasses.
+    Notes
+    -----
+    Registries are not meant to store large collections, they are just fancy lookup
+    tables for items with aliases and no case sensitivity.
     """
 
     _item_class: type
