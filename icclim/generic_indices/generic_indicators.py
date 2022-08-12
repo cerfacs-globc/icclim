@@ -9,6 +9,7 @@ import numpy as np
 import xarray as xr
 from jinja2 import Environment
 from xarray import DataArray
+from xarray.core.rolling import DataArrayRolling
 from xclim.core import datachecks
 from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import resample_doy, select_time
@@ -407,7 +408,9 @@ def max_of_rolling_sum(
     *args,  # noqa
     **kwargs,  # noqa
 ):
-    return _run_rolling_reducer(climate_vars, freq, rolling_window_width, DataArray.max)
+    return _run_rolling_reducer(
+        climate_vars, freq, rolling_window_width, DataArrayRolling.sum, DataArray.max
+    )
 
 
 def min_of_rolling_sum(
@@ -417,31 +420,58 @@ def min_of_rolling_sum(
     *args,  # noqa
     **kwargs,  # noqa
 ):
-    return _run_rolling_reducer(climate_vars, freq, rolling_window_width, DataArray.min)
+    return _run_rolling_reducer(
+        climate_vars, freq, rolling_window_width, DataArrayRolling.sum, DataArray.min
+    )
+
+
+def min_of_rolling_average(
+    climate_vars: list[ClimateVariable],
+    freq: str,
+    rolling_window_width: int,
+    *args,  # noqa
+    **kwargs,  # noqa
+):
+    return _run_rolling_reducer(
+        climate_vars, freq, rolling_window_width, DataArrayRolling.mean, DataArray.min
+    )
+
+
+def max_of_rolling_average(
+    climate_vars: list[ClimateVariable],
+    freq: str,
+    rolling_window_width: int,
+    *args,  # noqa
+    **kwargs,  # noqa
+):
+    return _run_rolling_reducer(
+        climate_vars, freq, rolling_window_width, DataArrayRolling.mean, DataArray.min
+    )
 
 
 def _run_rolling_reducer(
     climate_vars: list[ClimateVariable],
     freq: str,
     rolling_window_width: int,
+    accumulator_op: Callable[[DataArrayRolling], DataArray],
     reducer_op: Callable[..., DataArray],
     dim="time",
 ):
-    thresh_op, study, threshold = _check_single_var(climate_vars)
+    thresh_operator, study, threshold = _check_single_var(climate_vars)
     if threshold:
         exceedance = _compute_exceedance(
-            operator=thresh_op,
+            operator=thresh_operator,
             study=study,
             freq=freq,
             threshold=threshold.value,
             bootstrap=_must_run_bootstrap(study, threshold),
             is_doy_per=threshold.is_doy_per_threshold,
         ).squeeze()
-        x = study.where(exceedance)
+        data = study.where(exceedance)
     else:
-        x = study
-    x = x.rolling(time=rolling_window_width).sum().resample(time=freq)
-    return reducer_op(x, dim=dim)
+        data = study
+    data = accumulator_op(data.rolling(time=rolling_window_width)).resample(time=freq)
+    return reducer_op(data, dim=dim)
 
 
 def _run_simple_reducer(
@@ -521,6 +551,12 @@ class GenericIndicatorRegistry(Registry):
     StandardDeviation = GenericIndicator("std", std)
     MaxOfRollingSum = GenericIndicator("max_of_rolling_sum", max_of_rolling_sum)
     MinOfRollingSum = GenericIndicator("min_of_rolling_sum", min_of_rolling_sum)
+    MaxOfRollingAverage = GenericIndicator(
+        "max_of_rolling_average", max_of_rolling_average
+    )
+    MinOfRollingAverage = GenericIndicator(
+        "min_of_rolling_average", min_of_rolling_average
+    )
 
 
 def _check_single_var(

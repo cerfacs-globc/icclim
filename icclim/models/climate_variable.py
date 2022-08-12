@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from typing import Callable, Sequence
 from warnings import warn
 
-from icclim_exceptions import InvalidIcclimArgumentError
 from xarray.core.dataarray import DataArray
 
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileType
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.consolidated_metadata import GlobalMetadata
