@@ -282,7 +282,7 @@ def index(
         # merge the icclim.index flat parameters
         threshold = Threshold(
             threshold,
-            window=window_width,
+            doy_window_width=window_width,
             base_period_time_range=base_period_time_range,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
@@ -291,7 +291,7 @@ def index(
         threshold = [
             Threshold(
                 t,
-                window=window_width,
+                doy_window_width=window_width,
                 base_period_time_range=base_period_time_range,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,

@@ -57,7 +57,7 @@ class Threshold:
     # -- Percentile specific properties:
     climatology_bounds: Sequence[str, str] | None  # may be guessed if missing
     reference_period: Sequence[str]
-    window: int
+    doy_window_width: int
     only_leap_years: bool
     interpolation: QuantileInterpolation
     threshold_min_value: Threshold
@@ -84,7 +84,7 @@ class Threshold:
         unit: str | None = None,
         threshold_var_name: str | None = None,
         climatology_bounds: Sequence[str, str] | None = None,
-        window: int = 5,
+        doy_window_width: int = 5,
         only_leap_years: bool = False,
         interpolation=QuantileInterpolationRegistry.MEDIAN_UNBIASED,
         base_period_time_range: Sequence[datetime | str] | None = None,
@@ -120,7 +120,7 @@ class Threshold:
                 base_period_time_range=base_period_time_range,
                 interpolation=interpolation,
                 only_leap_years=only_leap_years,
-                window=window,
+                doy_window_width=doy_window_width,
                 percentile_min_value=threshold_min_value,
             )
             is_doy_per_threshold = True
@@ -154,7 +154,7 @@ class Threshold:
         self.additional_metadata = []
         self.threshold_var_name = threshold_var_name
         self.climatology_bounds = climatology_bounds
-        self.window = window
+        self.doy_window_width = doy_window_width
         self.only_leap_years = only_leap_years
         self.interpolation = interpolation
         self.base_period_time_range = base_period_time_range
@@ -306,7 +306,7 @@ def build_doy_per(
     base_period_time_range: Sequence[str],
     interpolation: QuantileInterpolation,
     only_leap_years: bool,
-    window: int,
+    doy_window_width: int,
     sampling_frequency: Frequency,
     study_da: DataArray,
     percentile_min_value: float | None,
@@ -323,7 +323,7 @@ def build_doy_per(
     )
     res = percentile_doy(
         arr=reference,
-        window=window,
+        window=doy_window_width,
         per=per_val,
         alpha=interpolation.alpha,
         beta=interpolation.beta,

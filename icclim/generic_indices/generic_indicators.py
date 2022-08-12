@@ -101,7 +101,6 @@ class ResamplingIndicator(Indicator):
 
     def preprocess(
         self,
-        /,
         climate_vars: list[ClimateVariable],
         jinja_scope: dict,
         output_frequency: Frequency,
@@ -192,12 +191,12 @@ class GenericIndicator(ResamplingIndicator):
 
     def preprocess(
         self,
-        /,
         climate_vars: list[ClimateVariable],
         output_frequency: Frequency,
         src_freq: Frequency,
         indexer: dict,
         min_spell_length: int,
+        rolling_window_width: int,
         *args,
         **kwargs,
     ) -> list[ClimateVariable]:
@@ -211,6 +210,7 @@ class GenericIndicator(ResamplingIndicator):
             "output_freq": output_frequency,
             "source_freq": src_freq,
             "min_spell_length": min_spell_length,
+            "rolling_window_width": rolling_window_width,
             "np": numpy,
             "enumerate": enumerate,
             "len": len,
@@ -235,6 +235,7 @@ class GenericIndicator(ResamplingIndicator):
             indexer=config.frequency.indexer,
             climate_vars=config.climate_variables,
             min_spell_length=config.window,
+            rolling_window_width=config.window,
             *args,
             **kwargs,
         )
@@ -242,6 +243,7 @@ class GenericIndicator(ResamplingIndicator):
             climate_vars=climate_vars,
             freq=config.frequency.pandas_freq,
             min_spell_length=config.window,
+            rolling_window_width=config.window,
         )
         return self.postprocess(
             result,
@@ -297,7 +299,7 @@ def sum_of_spell_lengths(
 def excess(
     climate_vars: list[ClimateVariable],
     freq: str,
-    *args,
+    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     op, study, threshold = _check_single_var(climate_vars)
@@ -312,7 +314,7 @@ def excess(
 def deficit(
     climate_vars: list[ClimateVariable],
     freq: str,
-    *args,
+    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     op, study, threshold = _check_single_var(climate_vars)
@@ -327,7 +329,7 @@ def deficit(
 def fraction_of_total(
     climate_vars: list[ClimateVariable],
     freq: str,
-    *args,
+    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     op, study, threshold = _check_single_var(climate_vars)
@@ -356,7 +358,7 @@ def fraction_of_total(
 def maximum(
     climate_vars: list[ClimateVariable],
     freq: str,
-    *args,
+    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(climate_vars, freq, DataArray.max)
@@ -365,7 +367,7 @@ def maximum(
 def minimum(
     climate_vars: list[ClimateVariable],
     freq: str,
-    *args,
+    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(climate_vars, freq, DataArray.min)
@@ -374,7 +376,7 @@ def minimum(
 def average(
     climate_vars: list[ClimateVariable],
     freq: str,
-    *args,
+    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(climate_vars, freq, DataArray.mean)
@@ -383,7 +385,7 @@ def average(
 def sum(
     climate_vars: list[ClimateVariable],
     freq: str,
-    *args,
+    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(climate_vars, freq, DataArray.sum)
@@ -392,10 +394,54 @@ def sum(
 def std(
     climate_vars: list[ClimateVariable],
     freq: str,
-    *args,
+    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(climate_vars, freq, DataArray.std)
+
+
+def max_of_rolling_sum(
+    climate_vars: list[ClimateVariable],
+    freq: str,
+    rolling_window_width: int,
+    *args,  # noqa
+    **kwargs,  # noqa
+):
+    return _run_rolling_reducer(climate_vars, freq, rolling_window_width, DataArray.max)
+
+
+def min_of_rolling_sum(
+    climate_vars: list[ClimateVariable],
+    freq: str,
+    rolling_window_width: int,
+    *args,  # noqa
+    **kwargs,  # noqa
+):
+    return _run_rolling_reducer(climate_vars, freq, rolling_window_width, DataArray.min)
+
+
+def _run_rolling_reducer(
+    climate_vars: list[ClimateVariable],
+    freq: str,
+    rolling_window_width: int,
+    reducer_op: Callable[..., DataArray],
+    dim="time",
+):
+    thresh_op, study, threshold = _check_single_var(climate_vars)
+    if threshold:
+        exceedance = _compute_exceedance(
+            operator=thresh_op,
+            study=study,
+            freq=freq,
+            threshold=threshold.value,
+            bootstrap=_must_run_bootstrap(study, threshold),
+            is_doy_per=threshold.is_doy_per_threshold,
+        ).squeeze()
+        x = study.where(exceedance)
+    else:
+        x = study
+    x = x.rolling(time=rolling_window_width).sum().resample(time=freq)
+    return reducer_op(x, dim=dim)
 
 
 def _run_simple_reducer(
@@ -414,10 +460,10 @@ def _run_simple_reducer(
             bootstrap=_must_run_bootstrap(study, threshold),
             is_doy_per=threshold.is_doy_per_threshold,
         ).squeeze()
-        x = study.where(exceedance).resample(time=freq)
+        x = study.where(exceedance)
     else:
-        x = study.resample(time=freq)
-    return reducer_op(x, dim=dim)
+        x = study
+    return reducer_op(x.resample(time=freq), dim=dim)
 
 
 def _run_exceedances_reducer(
@@ -473,6 +519,8 @@ class GenericIndicatorRegistry(Registry):
     Average = GenericIndicator("average", average)
     Sum = GenericIndicator("sum", sum)
     StandardDeviation = GenericIndicator("std", std)
+    MaxOfRollingSum = GenericIndicator("max_of_rolling_sum", max_of_rolling_sum)
+    MinOfRollingSum = GenericIndicator("min_of_rolling_sum", min_of_rolling_sum)
 
 
 def _check_single_var(
