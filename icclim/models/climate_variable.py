@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Callable, Sequence
 from warnings import warn
 
+from icclim_exceptions import InvalidIcclimArgumentError
 from xarray.core.dataarray import DataArray
 
 from icclim.generic_indices.cf_var_metadata import CfVarMetadata
@@ -88,6 +89,15 @@ def _to_dictionary(
     if not isinstance(in_files, dict):
         input_dataset = read_dataset(in_files, index, var_names)
         var_names = guess_var_names(input_dataset, index, var_names)
+        if not isinstance(threshold, Sequence):
+            threshold = [threshold]
+        if len(threshold) != len(var_names):
+            raise InvalidIcclimArgumentError(
+                "There must be as many thresholds as there"
+                " are variables."
+                f" There was {len(threshold)} thresholds"
+                f" and {len(var_names)} variables."
+            )
         return {
             var_name: {"study": input_dataset[var_name], "thresholds": threshold[i]}
             for i, var_name in enumerate(var_names)

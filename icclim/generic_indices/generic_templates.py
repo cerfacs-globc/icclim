@@ -134,7 +134,10 @@ EN: dict[str, IndicatorMetadata] = {
         "long_name":     "Maximum of {{source_freq.adjective}}"
                          " {{climate_vars[0].long_name}}"
                          f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " each {{output_freq.long_name}}.",
+                         " each {{output_freq.long_name}}."
+                         "{% if climate_vars[0].threshold.additional_metadata %}"
+                            " {{climate_vars[0].threshold.additional_metadata}}"
+                         "{% endif %}",
         "cell_methods":  "time: maximum over {{source_freq.units}}",
     },
     "minimum":                    {
@@ -146,7 +149,10 @@ EN: dict[str, IndicatorMetadata] = {
         "long_name":    "Minimum of {{source_freq.adjective}}"
                         " {{climate_vars[0].long_name}}"
                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                        " each {{output_freq.long_name}}.",
+                        " each {{output_freq.long_name}}."
+                        "{% if climate_vars[0].threshold.additional_metadata %}"
+                            " {{climate_vars[0].threshold.additional_metadata}}"
+                        "{% endif %}",
         "cell_methods": "time: minimum over {{source_freq.units}}",
     },
     "average":                    {
@@ -156,7 +162,10 @@ EN: dict[str, IndicatorMetadata] = {
         "long_name":     "Average of {{source_freq.adjective}}"
                          " {{climate_vars[0].long_name}}"
                          f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " each {{output_freq.long_name}}.",
+                         " each {{output_freq.long_name}}."
+                         "{% if climate_vars[0].threshold.additional_metadata %}"
+                            " {{climate_vars[0].threshold.additional_metadata}}"
+                        "{% endif %}",
         "cell_methods":  "time: mean over {{source_freq.units}}",
     },
     "sum":                        {
@@ -169,7 +178,9 @@ EN: dict[str, IndicatorMetadata] = {
                          " {{climate_vars[0].long_name}}"
                          f" {OPTIONAL_THRESHOLD_TEMPLATE}"
                          " each {{output_freq.long_name}}."
-        ,
+                         "{% if climate_vars[0].threshold.additional_metadata %}"
+                            " {{climate_vars[0].threshold.additional_metadata}}"
+                         "{% endif %}",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },
     "std":                        {
@@ -180,7 +191,9 @@ EN: dict[str, IndicatorMetadata] = {
                          " {{climate_vars[0].long_name}}"
                          f" {OPTIONAL_THRESHOLD_TEMPLATE}"
                          " each {{output_freq.long_name}}."
-        ,
+                         "{% if climate_vars[0].threshold.additional_metadata %}"
+                            " {{climate_vars[0].threshold.additional_metadata}}"
+                         "{% endif %}",
         "cell_methods":  "time: standard_deviation over {{source_freq.units}}",
     },
 }
