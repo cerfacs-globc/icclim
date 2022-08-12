@@ -7,7 +7,6 @@ from typing import Callable
 import numpy
 import numpy as np
 import xarray as xr
-from generic_indices.generic_templates import EN
 from jinja2 import Environment
 from xarray import DataArray
 from xclim.core import datachecks
@@ -19,6 +18,7 @@ from xclim.core.units import to_agg_units
 from xclim.core.utils import PercentileDataArray
 from xclim.indices import run_length
 
+from icclim.generic_indices.generic_templates import EN
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY

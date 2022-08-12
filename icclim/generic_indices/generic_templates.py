@@ -1,4 +1,4 @@
-from generic_indices.cf_var_metadata import IndicatorMetadata
+from icclim.generic_indices.cf_var_metadata import IndicatorMetadata
 
 # fmt: off
 # flake8: noqa
