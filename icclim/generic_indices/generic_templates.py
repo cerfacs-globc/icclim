@@ -221,5 +221,20 @@ EN: dict[str, IndicatorMetadata] = {
         "cell_methods":  "time: range within {{source_freq.units}}"
                          " time: mean over {{source_freq.units}}",
     },
-
+    "mean_of_absolute_one_time_step_difference":  {
+        "identifier":    "mean_of_absolute_{{source_freq.adjective}}_difference_between"
+                         "_{{climate_vars[0].short_name}}"
+                         "_and_{{climate_vars[1].short_name}}",
+        "standard_name": "variability_range_between_{{climate_vars[0].standard_name}}"
+                         "_and_{{climate_vars[1].standard_name}}", # not CF
+        "long_name":     "Average of the absolute {{source_freq.long_name}}"
+                         " to {{source_freq.long_name}} difference"
+                         " of the {{source_freq.adjective}} variation between"
+                         " {{climate_vars[0].long_name}}"
+                         " and {{climate_vars[1].long_name}}"
+                         " for each {{output_freq.long_name}}.",
+        "cell_methods":  "time: range within {{source_freq.units}}"
+                         " time: difference over {{source_freq.units}}"
+                         " time: mean over {{source_freq.units}}",
+    },
 }

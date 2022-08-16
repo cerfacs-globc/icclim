@@ -463,6 +463,21 @@ def difference_of_extremes(
     return diff_of_extremes
 
 
+def mean_of_absolute_one_time_step_difference(
+    climate_vars: list[ClimateVariable],
+    freq: str,
+    *args,  # noqa
+    **kwargs,  # noqa
+):
+    var_0, var_1 = _check_couple_of_var(
+        climate_vars, "mean_of_absolute_one_time_step_difference"
+    )
+    one_time_step_diff = (var_0 - var_1).diff(dim="time")
+    res = abs(one_time_step_diff).resample(time=freq).mean()
+    res.attrs["units"] = var_0.attrs["units"]
+    return res
+
+
 def _check_couple_of_var(climate_vars: list[ClimateVariable], indicator: str):
     if len(climate_vars) != 2:
         raise InvalidIcclimArgumentError(
@@ -603,6 +618,10 @@ class GenericIndicatorRegistry(Registry):
     MeanOfDifference = GenericIndicator("mean_of_difference", mean_of_difference)
     DifferenceOfExtremes = GenericIndicator(
         "difference_of_extremes", difference_of_extremes
+    )
+    MeanOfAbsoluteOneTimeStepDifference = GenericIndicator(
+        "mean_of_absolute_one_time_step_difference",
+        mean_of_absolute_one_time_step_difference,
     )
 
 
