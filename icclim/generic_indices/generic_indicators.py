@@ -443,22 +443,41 @@ def mean_of_difference(
     *args,  # noqa
     **kwargs,  # noqa
 ):
+    var_0, var_1 = _check_couple_of_var(climate_vars, "mean_of_difference")
+    mean_of_diff = (var_0 - var_1).resample(time=freq).mean(dim="time")
+    mean_of_diff.attrs["units"] = var_0.attrs["units"]
+    return mean_of_diff
+
+
+def difference_of_extremes(
+    climate_vars: list[ClimateVariable],
+    freq: str,
+    *args,  # noqa
+    **kwargs,  # noqa
+):
+    var_0, var_1 = _check_couple_of_var(climate_vars, "difference_of_extremes")
+    max_var_0 = var_0.resample(time=freq).max()
+    min_var_1 = var_1.resample(time=freq).min()
+    diff_of_extremes = max_var_0 - min_var_1
+    diff_of_extremes.attrs["units"] = var_0.attrs["units"]
+    return diff_of_extremes
+
+
+def _check_couple_of_var(climate_vars: list[ClimateVariable], indicator: str):
     if len(climate_vars) != 2:
         raise InvalidIcclimArgumentError(
-            "mean_of_difference can only be computed on two"
+            f"{indicator} can only be computed on two"
             " variables sharing the same kind of values "
             "(e.g. temperatures)"
         )
     if climate_vars[0].threshold or climate_vars[1].threshold:
         raise InvalidIcclimArgumentError(
-            "mean_of_difference cannot be computed with thresholds."
+            f"{indicator} cannot be computed with thresholds."
         )
     var_0 = climate_vars[0].study_da
     var_1 = climate_vars[1].study_da
     var_0 = convert_units_to(var_0, var_1)
-    mean_of_diff = (var_0 - var_1).resample(time=freq).mean(dim="time")
-    mean_of_diff.attrs["units"] = var_0.attrs["units"]
-    return mean_of_diff
+    return var_0, var_1
 
 
 def max_of_rolling_average(
@@ -582,6 +601,9 @@ class GenericIndicatorRegistry(Registry):
         "min_of_rolling_average", min_of_rolling_average
     )
     MeanOfDifference = GenericIndicator("mean_of_difference", mean_of_difference)
+    DifferenceOfExtremes = GenericIndicator(
+        "difference_of_extremes", difference_of_extremes
+    )
 
 
 def _check_single_var(
