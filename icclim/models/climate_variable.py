@@ -49,9 +49,12 @@ class ClimateVariable:
     def build_indicator_metadata(
         self, src_freq: Frequency, must_run_bootstrap: bool
     ) -> dict[str, str]:
-        return {
-            "threshold": self.threshold.get_metadata(src_freq, must_run_bootstrap),
-        } | self.cf_meta.get_metadata()
+        if self.threshold:
+            return {
+                "threshold": self.threshold.get_metadata(src_freq, must_run_bootstrap),
+            } | self.cf_meta.get_metadata()
+        else:
+            return self.cf_meta.get_metadata()
 
 
 def read_climate_vars(
@@ -91,19 +94,24 @@ def _to_dictionary(
     if not isinstance(in_files, dict):
         input_dataset = read_dataset(in_files, index, var_names)
         var_names = guess_var_names(input_dataset, index, var_names)
-        if not isinstance(threshold, Sequence):
-            threshold = [threshold]
-        if len(threshold) != len(var_names):
-            raise InvalidIcclimArgumentError(
-                "There must be as many thresholds as there"
-                " are variables."
-                f" There was {len(threshold)} thresholds"
-                f" and {len(var_names)} variables."
-            )
-        return {
-            var_name: {"study": input_dataset[var_name], "thresholds": threshold[i]}
-            for i, var_name in enumerate(var_names)
-        }
+        if threshold:
+            if not isinstance(threshold, Sequence):
+                threshold = [threshold]
+            if len(threshold) != len(var_names):
+                raise InvalidIcclimArgumentError(
+                    "There must be as many thresholds as there"
+                    " are variables."
+                    f" There was {len(threshold)} thresholds"
+                    f" and {len(var_names)} variables."
+                )
+            return {
+                var_name: {"study": input_dataset[var_name], "thresholds": threshold[i]}
+                for i, var_name in enumerate(var_names)
+            }
+        else:
+            return {
+                var_name: {"study": input_dataset[var_name]} for var_name in var_names
+            }
 
 
 def _build_climate_var(

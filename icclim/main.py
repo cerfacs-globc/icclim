@@ -288,16 +288,18 @@ def index(
             interpolation=interpolation,
         )
     elif isinstance(threshold, Sequence):
-        threshold = [
-            Threshold(
-                t,
-                doy_window_width=window_width,
-                base_period_time_range=base_period_time_range,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-            )
-            for t in threshold
-        ]
+        threshs = []
+        for t in threshold:
+            if not isinstance(t, Threshold):
+                t = Threshold(
+                    t,
+                    doy_window_width=window_width,
+                    base_period_time_range=base_period_time_range,
+                    only_leap_years=only_leap_years,
+                    interpolation=interpolation,
+                )
+            threshs.append(t)
+        threshold = threshs
     if index_name is not None:
         if (
             ecad_index := EcadIndexRegistry.lookup(index_name, no_error=True)

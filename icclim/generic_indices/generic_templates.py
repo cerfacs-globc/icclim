@@ -79,7 +79,7 @@ EN: dict[str, IndicatorMetadata] = {
     "sum_of_spell_lengths": {
         "identifier":   "sum_of_spell_lengths_of_{{source_freq.units}}_when"
                         f"_{COMBINED_VARS_IDENTIFIER}",
-        "standard_name":  # not cf
+        "standard_name":  # not CF
                         "spell_length_of_{{source_freq.units}}_with"
                         f"_{COMBINED_VARS_STANDARD_NAME}"
                         "_above_thresholds",
@@ -114,7 +114,7 @@ EN: dict[str, IndicatorMetadata] = {
     "fraction_of_total": {
         "identifier":   "fraction_of_thresholded_{{climate_vars[0].standard_name}}"
                         "_on_total",
-        "standard_name":  # not cf
+        "standard_name":  # not CF
                         "fraction_of_thresholded_{{climate_vars[0].standard_name}}"
                         "_on_total",
         "long_name":    f"Fraction of {SINGLE_VAR_LONG_NAME}",
@@ -195,6 +195,17 @@ EN: dict[str, IndicatorMetadata] = {
                          " {{source_freq.units}} rolling average of"
                          f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: mean over {{source_freq.units}}",
+    },
+    "mean_of_difference": {
+        "identifier":    "mean_of_difference_between_{{source_freq.adjective}}"
+                         "_{{climate_vars[0].standard_name}}"
+                         "_and_{{climate_vars[1].standard_name}}",
+        "standard_name": "range_between_{{climate_vars[0].standard_name}}"
+                         "_and_{{climate_vars[1].standard_name}}", # not CF
+        "long_name":     "Mean of difference between {{climate_vars[0].long_name}}"
+                         " and {{climate_vars[1].long_name}}.",
+        "cell_methods":  "time: range within {{source_freq.units}}"
+                         " time: mean over {{source_freq.units}}",
     },
 
 }

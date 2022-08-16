@@ -41,6 +41,7 @@ class Registry:
 
     @staticmethod
     def get_item_aliases(item: _item_class) -> list[str]:
+        """Should be overridden."""
         return [item.name.upper()]
 
     @classmethod

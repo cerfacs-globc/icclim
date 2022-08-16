@@ -15,7 +15,7 @@ from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import resample_doy, select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
-from xclim.core.units import to_agg_units
+from xclim.core.units import convert_units_to, to_agg_units
 from xclim.core.utils import PercentileDataArray
 from xclim.indices import run_length
 
@@ -437,6 +437,30 @@ def min_of_rolling_average(
     )
 
 
+def mean_of_difference(
+    climate_vars: list[ClimateVariable],
+    freq: str,
+    *args,  # noqa
+    **kwargs,  # noqa
+):
+    if len(climate_vars) != 2:
+        raise InvalidIcclimArgumentError(
+            "mean_of_difference can only be computed on two"
+            " variables sharing the same kind of values "
+            "(e.g. temperatures)"
+        )
+    if climate_vars[0].threshold or climate_vars[1].threshold:
+        raise InvalidIcclimArgumentError(
+            "mean_of_difference cannot be computed with thresholds."
+        )
+    var_0 = climate_vars[0].study_da
+    var_1 = climate_vars[1].study_da
+    var_0 = convert_units_to(var_0, var_1)
+    mean_of_diff = (var_0 - var_1).resample(time=freq).mean(dim="time")
+    mean_of_diff.attrs["units"] = var_0.attrs["units"]
+    return mean_of_diff
+
+
 def max_of_rolling_average(
     climate_vars: list[ClimateVariable],
     freq: str,
@@ -557,6 +581,7 @@ class GenericIndicatorRegistry(Registry):
     MinOfRollingAverage = GenericIndicator(
         "min_of_rolling_average", min_of_rolling_average
     )
+    MeanOfDifference = GenericIndicator("mean_of_difference", mean_of_difference)
 
 
 def _check_single_var(
@@ -571,14 +596,13 @@ def _check_single_var(
     )
 
 
-def _must_run_bootstrap(da: DataArray, threshold: Threshold) -> bool:
+def _must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
     """Avoid bootstrapping if there is one single year overlapping
     or no year overlapping or all year overlapping.
     """
-    # TODO: When true add bootstrap to metadata with add_bootstrap_meta
     # TODO: Don't run bootstrap when not on extreme percentile
     #       (below 20? 10? or above 80? 90?)
-    if not threshold.is_doy_per_threshold:
+    if threshold is None or not threshold.is_doy_per_threshold:
         return False
     reference = threshold.value
     study_years = np.unique(da.indexes.get("time").year)
