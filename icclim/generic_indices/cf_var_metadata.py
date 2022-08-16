@@ -60,7 +60,7 @@ class CfVarMetadataRegistry(Registry):
     TAS = CfVarMetadata(
         short_name="tg",
         standard_name="average_air_temperature",
-        long_name="average temperature",
+        long_name="average air temperature",
         aliases=[
             "tas",
             "tavg",
@@ -83,7 +83,7 @@ class CfVarMetadataRegistry(Registry):
     TAS_MIN = CfVarMetadata(
         short_name="tn",
         standard_name="minimum_air_temperature",
-        long_name="minimum temperature",
+        long_name="minimum air temperature",
         aliases=[
             "tasmin",
             "tasminAdjust",
@@ -101,7 +101,7 @@ class CfVarMetadataRegistry(Registry):
     TAS_MAX = CfVarMetadata(
         short_name="tx",
         standard_name="maximum_air_temperature",
-        long_name="maximum temperature",
+        long_name="maximum air temperature",
         aliases=[
             "tasmax",
             "tasmaxAdjust",
