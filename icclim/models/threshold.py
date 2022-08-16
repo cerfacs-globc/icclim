@@ -159,13 +159,15 @@ class Threshold:
         self.interpolation = interpolation
         self.base_period_time_range = base_period_time_range
 
-    def get_metadata(self, src_freq: Frequency) -> dict[str, Any]:
+    def get_metadata(
+        self, src_freq: Frequency, must_run_bootstrap: bool = False
+    ) -> dict[str, Any]:
         # TODO: [xclim backport] localize/translate these with templates
         if self.value.size == 1:
             res = {
                 "standard_name": f"{self.operator.standard_name}"
                 f"_{self.value.values[()]}"
-                f"_{self.unit}",
+                f"_{self.unit}",  # not cf
                 "long_name": f"{self.operator.long_name}"
                 f" {self.value.values[()]}"
                 f" {self.unit}",
@@ -188,10 +190,17 @@ class Threshold:
                 window = self.value.attrs.get("window", "")
                 self.additional_metadata.append(
                     f"day of year percentiles were computed per grid cell, on the {bds}"
-                    f" period, with a {window} {src_freq.units} window for each day of"
-                    f" year"
+                    f" period, with a centred {window} {src_freq.units} window to"
+                    f" aggregate values around each day of year"
                 )
-            #     todo: add if bootstrap ran or not to metadata
+                if must_run_bootstrap:
+                    self.additional_metadata.append(
+                        "the bootstrap algorithm has been"
+                        " applied to compute doy"
+                        " percentiles for the period"
+                        " overlapping both the reference"
+                        " period and the studied period"
+                    )
             else:
                 if percentiles.size == 1:
                     display_perc = f"{percentiles[0]}th period percentile"
@@ -235,13 +244,13 @@ class Threshold:
                 f" It was a {type(self.value)}."
             )
         if self.threshold_min_value:
-            min_t = self.threshold_min_value.get_metadata(src_freq)
+            min_t = self.threshold_min_value.get_metadata(src_freq, False)
             self.additional_metadata.append(
-                f"only values" f" {min_t['long_name']}" f" were considered"
+                f"only values {min_t['long_name']} were considered"
             )
         if len(self.additional_metadata) > 0:
             added_meta = map(lambda s: s.capitalize(), self.additional_metadata)
-            added_meta = "(" + (". ".join(added_meta) + ")")
+            added_meta = "(" + (". ".join(added_meta)) + ")"
             res.update({"additional_metadata": added_meta})
         return res
 

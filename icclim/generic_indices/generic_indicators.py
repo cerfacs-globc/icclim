@@ -607,7 +607,9 @@ def _get_inputs_metadata(
 ) -> list[dict[str, str]]:
     return list(
         map(
-            lambda cf_var: cf_var.build_indicator_metadata(freq),
+            lambda cf_var: cf_var.build_indicator_metadata(
+                freq, _must_run_bootstrap(cf_var.study_da, cf_var.threshold)
+            ),
             climate_vars,
         )
     )

@@ -46,9 +46,11 @@ class ClimateVariable:
     global_metadata: GlobalMetadata  # todo to be replaced by provenance processing
     threshold: Threshold | None = None
 
-    def build_indicator_metadata(self, src_freq: Frequency) -> dict[str, str]:
+    def build_indicator_metadata(
+        self, src_freq: Frequency, must_run_bootstrap: bool
+    ) -> dict[str, str]:
         return {
-            "threshold": self.threshold.get_metadata(src_freq),
+            "threshold": self.threshold.get_metadata(src_freq, must_run_bootstrap),
         } | self.cf_meta.get_metadata()
 
 

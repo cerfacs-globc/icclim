@@ -32,12 +32,26 @@ COMBINED_VARS_STANDARD_NAME = (
         "{% endif %}"
     "{% endfor %}"
 )
-OPTIONAL_THRESHOLD_TEMPLATE = (
-    "{% if climate_vars[0].threshold %}"
-        "when {{climate_vars[0].long_name}} is {{climate_vars[0].threshold.long_name}}"
+SINGLE_VAR_LONG_NAME = (
+    "{{source_freq.adjective}}"
+    " {{climate_vars[0].long_name}}"
+    " related to{{climate_vars[0].threshold.value}}"
+    " for each {{output_freq.long_name}}."
+    "{% if climate_vars[0].threshold.additional_metadata %}"
+        " {{climate_vars[0].threshold.additional_metadata}}"
     "{% endif %}"
 )
-
+SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE = (
+    "{{source_freq.adjective}}"
+    " {{climate_vars[0].long_name}}"
+    "{% if climate_vars[0].threshold %}"
+        " when {{climate_vars[0].long_name}} is {{climate_vars[0].threshold.long_name}}"
+    "{% endif %}"
+    " for each {{output_freq.long_name}}."
+    "{% if climate_vars[0].threshold.additional_metadata %}"
+        " {{climate_vars[0].threshold.additional_metadata}}"
+    "{% endif %}"
+)
 
 EN: dict[str, IndicatorMetadata] = {
     "count_occurrences": {
@@ -84,13 +98,7 @@ EN: dict[str, IndicatorMetadata] = {
         "standard_name": "integral_of"
                          "_{{climate_vars[0].standard_name}}"
                          "_excess_wrt_time",
-        "long_name":     "Excess of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         " related to{{climate_vars[0].threshold.long_name}}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                         "{% endif %}",
+        "long_name":     f"Excess of {SINGLE_VAR_LONG_NAME}",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },
     "deficit": {
@@ -100,13 +108,7 @@ EN: dict[str, IndicatorMetadata] = {
                          "_deficit",
         "standard_name": "integral_of_{{climate_vars[0].standard_name}}"
                          "_deficit_wrt_time",
-        "long_name":     "Deficit of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         " related to{{climate_vars[0].threshold.value}}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                         "{% endif %}",
+        "long_name":     f"Deficit of {SINGLE_VAR_LONG_NAME}",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },
     "fraction_of_total": {
@@ -115,14 +117,7 @@ EN: dict[str, IndicatorMetadata] = {
         "standard_name":  # not cf
                         "fraction_of_thresholded_{{climate_vars[0].standard_name}}"
                         "_on_total",
-        "long_name":    "Fraction of {{source_freq.adjective}}"
-                        " {{climate_vars[0].long_name}}"
-                        " {{climate_vars[0].threshold.long_name}}"
-                        " on total {{climate_vars[0].long_name}}"
-                        " for each {{output_freq.long_name}}."
-                        "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                        "{% endif %}",
+        "long_name":    f"Fraction of {SINGLE_VAR_LONG_NAME}",
         # not cf
         "cell_methods": "time: fraction over {{source_freq.units}}",
     },
@@ -130,127 +125,75 @@ EN: dict[str, IndicatorMetadata] = {
         "identifier":    "maximum_of_{{source_freq.adjective}}"
                          "_{{climate_vars[0].standard_name}}",
         "standard_name": "{{climate_vars[0].standard_name}}",
-        "long_name":     "Maximum of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                         "{% endif %}",
+        "long_name":     f"Maximum of {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: maximum over {{source_freq.units}}",
     },
     "minimum": {
         "identifier":   "minimum_of_{{source_freq.adjective}}"
                         "_{{climate_vars[0].standard_name}}",
-        "standard_name":
-                        "{{climate_vars[0].standard_name}}"
-        ,
-        "long_name":    "Minimum of {{source_freq.adjective}}"
-                        " {{climate_vars[0].long_name}}"
-                        f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                        " for each {{output_freq.long_name}}."
-                        "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                        "{% endif %}",
+        "standard_name":"{{climate_vars[0].standard_name}}",
+        "long_name":    "Minimum of"
+                        f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods": "time: minimum over {{source_freq.units}}",
     },
     "average": {
         "identifier":    "average_of_{{source_freq.adjective}}"
                          "_{{climate_vars[0].standard_name}}",
         "standard_name": "{{climate_vars[0].standard_name}}",
-        "long_name":     "Average of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                        "{% endif %}",
+        "long_name":     "Average of"
+                         f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: mean over {{source_freq.units}}",
     },
     "sum": {
         "identifier":    "sum_of_{{source_freq.adjective}}"
                          "_{{climate_vars[0].standard_name}}",
         "standard_name": "{{climate_vars[0].standard_name}}",
-        "long_name":     "Sum of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                         "{% endif %}",
+        "long_name":     "Sum of"
+                         f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },
     "std": {
         "identifier":    "standard_deviation_of_{{source_freq.adjective}}"
                          "_{{climate_vars[0].standard_name}}",
         "standard_name": "{{climate_vars[0].standard_name}}",
-        "long_name":     "Standard deviation of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                         "{% endif %}",
+        "long_name":     "Standard deviation of"
+                         f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: standard_deviation over {{source_freq.units}}",
     },
     "max_of_rolling_sum": {
         "identifier":    "maximum_rolling_sum_of_{{source_freq.adjective}}"
                          "_{{climate_vars[0].standard_name}}",
         "standard_name": "{{climate_vars[0].standard_name}}",
-        "long_name":     "Maximum rolling sum of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}."
-                         "{% endif %}"
-                         " A rolling window of {{rolling_window_width}}"
-                         " {{source_freq.units}} was used to aggregate values.",
+        "long_name":     "Maximum {{rolling_window_width}}"
+                         " {{source_freq.units}} rolling sum of"
+                         f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },
     "min_of_rolling_sum": {
         "identifier":    "minimum_rolling_sum_of_{{source_freq.adjective}}"
                          "_{{climate_vars[0].standard_name}}",
         "standard_name": "{{climate_vars[0].standard_name}}",
-        "long_name":     "Minimum rolling sum of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                         "{% endif %}"
-                         " With a rolling window of {{rolling_window_width}}"
-                         " {{source_freq.units}}.",
+        "long_name":     "Minimum {{rolling_window_width}}"
+                         " {{source_freq.units}} rolling sum of"
+                         f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },
     "min_of_rolling_average": {
         "identifier":    "minimum_rolling_average_of_{{source_freq.adjective}}"
                          "_{{climate_vars[0].standard_name}}",
         "standard_name": "{{climate_vars[0].standard_name}}",
-        "long_name":     "Minimum rolling average of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                         "{% endif %}"
-                         " With a rolling window of {{rolling_window_width}}"
-                         " {{source_freq.units}}.",
+        "long_name":     "Minimum {{rolling_window_width}}"
+                         " {{source_freq.units}} rolling average of"
+                         f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: mean over {{source_freq.units}}",
     },
     "max_of_rolling_average": {
         "identifier":    "maximum_rolling_average_of_{{source_freq.adjective}}"
                          "_{{climate_vars[0].standard_name}}",
         "standard_name": "{{climate_vars[0].standard_name}}",
-        "long_name":     "Maximum rolling average of {{source_freq.adjective}}"
-                         " {{climate_vars[0].long_name}}"
-                         f" {OPTIONAL_THRESHOLD_TEMPLATE}"
-                         " for each {{output_freq.long_name}}."
-                         "{% if climate_vars[0].threshold.additional_metadata %}"
-                            " {{climate_vars[0].threshold.additional_metadata}}"
-                         "{% endif %}"
-                         " With a rolling window of {{rolling_window_width}}"
-                         " {{source_freq.units}}.",
+        "long_name":     "Maximum {{rolling_window_width}}"
+                         " {{source_freq.units}} rolling average of"
+                         f" {SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE}",
         "cell_methods":  "time: mean over {{source_freq.units}}",
     },
 
