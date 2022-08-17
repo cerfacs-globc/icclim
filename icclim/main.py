@@ -28,23 +28,30 @@ from icclim.generic_indices.generic_indicators import (
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.models.climate_index import ClimateIndex
-from icclim.models.climate_variable import read_climate_vars
+from icclim.models.climate_variable import (
+    build_climate_vars,
+    must_add_reference_var,
+    to_dictionary,
+)
 from icclim.models.constants import ICCLIM_VERSION, UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
-from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
+from icclim.models.quantile_interpolation import (
+    QuantileInterpolation,
+    QuantileInterpolationRegistry,
+)
 from icclim.models.threshold import Threshold
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import InFileType
 from icclim.user_indices.calc_operation import CalcOperationRegistry, compute_user_index
+from icclim.utils import read_date
 
 log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
-GENERIC_THRESHOLD_KEY = "generic_threshold"
 
 
 def indices(
@@ -123,19 +130,16 @@ def indice(*args, **kwargs):
 
 def generic(
     in_files: InFileType,
-    indicator=GenericIndicatorRegistry.CountOccurrences.name,
+    index_name=GenericIndicatorRegistry.CountOccurrences.name,
     **kwargs,
 ) -> Dataset:
     # TODO: instead of `icclim.generic`,
     #       it would make more sense to have each reducer as part of the public API.
     #       In which case, `reducer` and `index_name` could be merged together
     #       (at api level).
-    if kwargs.get("index_name"):
-        raise InvalidIcclimArgumentError("With generic, index_name must be empty")
     return index(
         in_files=in_files,
-        index_name=GENERIC_THRESHOLD_KEY,
-        indicator=indicator,
+        index_name=index_name,
         **kwargs,
     )
 
@@ -148,7 +152,6 @@ def index(
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold = None,
-    indicator: str | Indicator = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -222,18 +225,19 @@ def index(
     callback_percentage_total : int
         ``optional`` Total percentage value (default: 100).
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     window_width : int
         ``optional`` User defined window width for related indices (default: 5).
         Ignored for non related indices.
@@ -278,55 +282,55 @@ def index(
             " or `index_name` for one of the ECA&D indices."
         )
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
-    if isinstance(threshold, str):
-        # merge the icclim.index flat parameters
-        threshold = Threshold(
-            threshold,
-            doy_window_width=window_width,
-            base_period_time_range=base_period_time_range,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-        )
-    elif isinstance(threshold, Sequence):
-        threshs = []
-        for t in threshold:
-            if not isinstance(t, Threshold):
-                t = Threshold(
-                    t,
-                    doy_window_width=window_width,
-                    base_period_time_range=base_period_time_range,
-                    only_leap_years=only_leap_years,
-                    interpolation=interpolation,
-                )
-            threshs.append(t)
-        threshold = threshs
+    build_threshold = _get_threshold_builder(
+        doy_window_width=window_width,
+        base_period_time_range=base_period_time_range,
+        only_leap_years=only_leap_years,
+        interpolation=interpolation,
+    )
     if index_name is not None:
-        if (
-            ecad_index := EcadIndexRegistry.lookup(index_name, no_error=True)
-        ) is not None:
-            index = ecad_index
+        index = EcadIndexRegistry.lookup(index_name, no_error=True)
+        if index is not None:
             if threshold is not None:
                 raise InvalidIcclimArgumentError(
                     "ECAD indices threshold cannot be "
                     "configured. Use a generic index "
                     "instead."
                 )
-        elif index_name == GENERIC_THRESHOLD_KEY:
-            index = GenericIndicatorRegistry.lookup(indicator)
         else:
-            raise InvalidIcclimArgumentError(f"Unknown index {index_name}.")
+            index = GenericIndicatorRegistry.lookup(index_name)
     else:
         index = None
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
-    climate_vars = read_climate_vars(
-        ignore_Feb29th,
-        in_files,
-        index,
-        sampling_frequency,
-        threshold,
-        time_range,
-        var_name,
+    if isinstance(threshold, str):
+        threshold = build_threshold(threshold)
+    elif isinstance(threshold, Sequence):
+        threshold = [
+            build_threshold(threshold)
+            for t in threshold
+            if not isinstance(t, Threshold)
+        ]
+    climate_vars_dict = to_dictionary(in_files, var_name, index, threshold)
+    # We use groupby instead of resample when there is a single variable that must be
+    # compared to its reference period values.
+    is_single_var = must_add_reference_var(
+        threshold, climate_vars_dict, base_period_time_range
     )
+    climate_vars = build_climate_vars(
+        climate_vars_dict=climate_vars_dict,
+        ignore_Feb29th=ignore_Feb29th,
+        index=index,
+        sampling_frequency=sampling_frequency,
+        threshold=threshold,
+        time_range=time_range,
+        base_period=base_period_time_range,
+    )
+    if base_period_time_range is not None:
+        reference_period = tuple(
+            map(lambda t: read_date(t).strftime("%m-%d-%Y"), base_period_time_range)
+        )
+    else:
+        reference_period = None
     config = IndexConfig(
         save_percentile=save_percentile,
         frequency=sampling_frequency,
@@ -337,8 +341,11 @@ def index(
         interpolation=interpolation,
         callback=callback,
         index=index,
+        is_single_var=is_single_var,
+        reference_period=reference_period,  # noqa
     )
     if user_index is not None:
+        # todo: replace by user_index -> generic index
         result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
     else:
         _check_valid_config(index, config)
@@ -380,7 +387,7 @@ def _write_output_file(
         time_encoding = {UNITS_ATTRIBUTE_KEY: "days since 1850-1-1"}
     result_ds.to_netcdf(
         file_path,
-        format=netcdf_version.value,
+        format=netcdf_version.name,
         encoding={"time": time_encoding},
     )
 
@@ -482,7 +489,7 @@ def _compute_standard_climate_index(
     result_da, percentiles_da = compute()
     result_da = result_da.rename(climate_index.identifier)
     result_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(config.out_unit, result_da)
-    if config.frequency.post_processing is not None:
+    if config.frequency.post_processing is not None and "time" in result_da.dims:
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
         result_ds = resampled_da.to_dataset()
         if time_bounds is not None:
@@ -532,17 +539,14 @@ def _build_history(
         initial_history = result_da.attrs[HISTORY_CF_KEY]
     else:
         # append xclim history
-        initial_history = f"{initial_history}\n{result_da.attrs['history']}"
+        initial_history = f"{initial_history}\n{result_da.attrs[HISTORY_CF_KEY]}"
     del result_da.attrs[HISTORY_CF_KEY]
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    start_time = result_da.time[0].dt.strftime("%m-%d-%Y").data[()]
-    end_time = result_da.time[-1].dt.strftime("%m-%d-%Y").data[()]
     return (
         f"{initial_history}\n"
         f" [{current_time}]"
         f" Calculation of {indice_computed.identifier}"
         f" index ({config.frequency.adjective})"
-        f" from {start_time} to {end_time}"
         f" - icclim version: {ICCLIM_VERSION}"
     )
 
@@ -556,3 +560,18 @@ def _check_valid_config(index: ClimateIndex, config: IndexConfig):
             " However, it will NOT take into account spells beginning before the season"
             " start!"
         )
+
+
+def _get_threshold_builder(
+    doy_window_width: int,
+    base_period_time_range: Sequence[datetime | str] | None,
+    only_leap_years: bool,
+    interpolation: QuantileInterpolation,
+) -> Callable:
+    return lambda t: Threshold(
+        t,
+        doy_window_width=doy_window_width,
+        base_period_time_range=base_period_time_range,
+        only_leap_years=only_leap_years,
+        interpolation=interpolation,
+    )

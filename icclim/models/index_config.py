@@ -52,6 +52,8 @@ class IndexConfig:
     save_percentile: bool
     interpolation: QuantileInterpolation
     index: ClimateIndex
+    is_single_var: bool
+    reference_period: tuple[str, str]
 
     @property
     def is_percent(self) -> bool:

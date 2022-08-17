@@ -117,7 +117,7 @@ class Threshold:
             value = partial(
                 build_doy_per,
                 per_val=float(value),
-                base_period_time_range=base_period_time_range,
+                reference_period=base_period_time_range,
                 interpolation=interpolation,
                 only_leap_years=only_leap_years,
                 doy_window_width=doy_window_width,
@@ -128,7 +128,7 @@ class Threshold:
             value = partial(
                 build_period_per,
                 per_val=float(value),
-                base_period_time_range=base_period_time_range,
+                reference_period=base_period_time_range,
                 interpolation=interpolation,
                 only_leap_years=only_leap_years,
                 percentile_min_value=threshold_min_value,
@@ -157,7 +157,7 @@ class Threshold:
         self.doy_window_width = doy_window_width
         self.only_leap_years = only_leap_years
         self.interpolation = interpolation
-        self.base_period_time_range = base_period_time_range
+        self.reference_period = base_period_time_range
 
     def get_metadata(
         self, src_freq: Frequency, must_run_bootstrap: bool = False
@@ -267,7 +267,7 @@ def _check_threshold_var_name(threshold_var_name: str | None) -> None:
 
 def build_period_per(
     per_val: float,
-    base_period_time_range: Sequence[str],
+    reference_period: Sequence[str],
     interpolation: QuantileInterpolation,
     only_leap_years: bool,
     sampling_frequency: Frequency,
@@ -279,7 +279,7 @@ def build_period_per(
 
     reference = build_reference_da(
         study_da,
-        base_period_time_range,
+        reference_period,
         only_leap_years,
         sampling_frequency,
         percentile_min_value=percentile_min_value,
@@ -312,7 +312,7 @@ def build_period_per(
 
 def build_doy_per(
     per_val: float,
-    base_period_time_range: Sequence[str],
+    reference_period: Sequence[str],
     interpolation: QuantileInterpolation,
     only_leap_years: bool,
     doy_window_width: int,
@@ -325,7 +325,7 @@ def build_doy_per(
 
     reference = build_reference_da(
         study_da,
-        base_period_time_range,
+        reference_period,
         only_leap_years,
         sampling_frequency,
         percentile_min_value,

@@ -39,6 +39,10 @@ SEASON_ERR_MSG = (
     " such as ['19 july', '14 august']."
 )
 
+# RUN_INDEXER is a special value used for group by when there is no proper groupby to do
+# but instead a filtering should be applied before the reducer.
+RUN_INDEXER = "run_indexer"
+
 
 def get_seasonal_time_updater(
     start_month: int, end_month: int, start_day: int = 1, end_day: int = None
@@ -155,8 +159,9 @@ class Frequency:
     units: str
     indexer: Indexer | None
     long_name: str
-    time_clipping: Callable[[DataArray], DataArray] | None = None
+    group_by_key: str | None
 
+    time_clipping: Callable[[DataArray], DataArray] | None = None
     # time_clipping is a workaround for a "missing" feature of xclim.
     # It allow to compute seasons for indices computing spells by ignoring values
     # outside the season bounds.
@@ -180,6 +185,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_time_bounds_updater("H"),
         units="hours",
         long_name="hour",
+        group_by_key="time.hour",
     )
     """Resample to hourly values"""
 
@@ -191,6 +197,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_time_bounds_updater("D"),
         units="days",
         long_name="day",
+        group_by_key="time.dayofyear",
     )
     """Resample to daily values"""
 
@@ -202,6 +209,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_time_bounds_updater("MS"),
         units="months",
         long_name="month",
+        group_by_key="time.month",
     )
     """Resample to monthly values"""
 
@@ -213,6 +221,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_time_bounds_updater("YS"),
         units="years",
         long_name="year",
+        group_by_key="time.year",
     )
     """Resample to yearly values."""
 
@@ -224,6 +233,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_seasonal_time_updater(AMJJAS_MONTHS[0], AMJJAS_MONTHS[-1]),
         units="half_year_summers",
         long_name="AMJJAS season",
+        group_by_key=RUN_INDEXER,
     )
     """Resample to summer half-year, from April to September included."""
 
@@ -235,6 +245,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_seasonal_time_updater(ONDJFM_MONTHS[0], ONDJFM_MONTHS[-1]),
         units="half_year_winters",
         long_name="ONDJFM season",
+        group_by_key=RUN_INDEXER,
     )
     """Resample to winter half-year, from October to March included."""
 
@@ -246,6 +257,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_seasonal_time_updater(DJF_MONTHS[0], DJF_MONTHS[-1]),
         units="winters",
         long_name="DJF winter",
+        group_by_key=RUN_INDEXER,
     )
     """Resample to winter season, from December to February included."""
 
@@ -257,6 +269,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_seasonal_time_updater(MAM_MONTHS[0], MAM_MONTHS[-1]),
         units="springs",
         long_name="MAM season",
+        group_by_key=RUN_INDEXER,
     )
     """Resample to spring season, from March to May included."""
 
@@ -268,6 +281,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_seasonal_time_updater(JJA_MONTHS[0], JJA_MONTHS[-1]),
         units="summers",
         long_name="JJA season",
+        group_by_key=RUN_INDEXER,
     )
     """Resample to summer season, from June to Agust included."""
 
@@ -279,6 +293,7 @@ class FrequencyRegistry(Registry):
         post_processing=get_seasonal_time_updater(SON_MONTHS[0], SON_MONTHS[-1]),
         units="autumns",
         long_name="SON season",
+        group_by_key=RUN_INDEXER,
     )
     """Resample to fall season, from September to November included."""
 
@@ -294,8 +309,12 @@ class FrequencyRegistry(Registry):
             return None
         raise InvalidIcclimArgumentError(
             f"Unknown frequency {item}."
-            f"Use a Frequency from {[f for f in FrequencyRegistry.values()]}"
+            f" Use a Frequency from {[f for f in FrequencyRegistry.all_aliases()]}"
         )
+
+    @staticmethod
+    def get_item_aliases(item: Frequency) -> list[str]:
+        return item.accepted_values
 
 
 def _get_end_date(
@@ -341,6 +360,7 @@ def _get_frequency_from_string(query: str) -> Frequency:
         indexer=None,
         units=query,
         long_name=_get_long_name(query),
+        group_by_key=None,
     )
 
 
@@ -389,6 +409,7 @@ def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
         accepted_values=[],
         units="months",
         long_name=f"monthly time series (months: {months})",
+        group_by_key=RUN_INDEXER,
     )
 
 
@@ -428,6 +449,7 @@ def _build_seasonal_frequency_between_dates(
         units=f"{MONTHS_MAP[begin_date.month]}_{MONTHS_MAP[end_date.month]}_seasons",
         long_name=f"seasonal time series"
         f" (season: from {begin_formatted} to {end_formatted})",
+        group_by_key=RUN_INDEXER,
     )
 
 
@@ -452,6 +474,7 @@ def _build_seasonal_frequency_for_months(season: tuple | list, clipped: bool):
         accepted_values=[],
         units=f"{MONTHS_MAP[season[0]]}_{MONTHS_MAP[season[-1]]}_seasons",
         long_name=f"seasonal time series (season: {season})",
+        group_by_key=RUN_INDEXER,
     )
 
 

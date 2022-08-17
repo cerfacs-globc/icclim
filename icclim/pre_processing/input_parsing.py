@@ -190,8 +190,10 @@ def _guess_dataset_var_names(index: ClimateIndex, ds: Dataset) -> list[str]:
     return climate_var_names
 
 
-def guess_input_type(data: DataArray) -> CfVarMetadata:
-    cf_input = CfVarMetadataRegistry.lookup(str(data.name))
+def guess_input_type(data: DataArray) -> CfVarMetadata | None:
+    cf_input = CfVarMetadataRegistry.lookup(str(data.name), no_error=True)
+    if cf_input is None:
+        return None
     cf_input.frequency = FrequencyRegistry.lookup(
         xr.infer_freq(data.time) or DEFAULT_INPUT_FREQUENCY
     )
@@ -204,7 +206,7 @@ def build_study_da(
     time_range: Sequence[str] | None,
     ignore_Feb29th: bool,
     sampling_frequency: Frequency,
-    cf_meta_unit: str,
+    cf_meta: CfVarMetadata | None,
 ) -> DataArray:
     if time_range is not None:
         check_time_range_pre_validity("time_range", time_range)
@@ -224,8 +226,8 @@ def build_study_da(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if sampling_frequency.time_clipping is not None:
         da = sampling_frequency.time_clipping(da)
-    if da.attrs.get(UNITS_ATTRIBUTE_KEY, None):
-        da.attrs[UNITS_ATTRIBUTE_KEY] = cf_meta_unit
+    if da.attrs.get(UNITS_ATTRIBUTE_KEY, None) is None and cf_meta is not None:
+        da.attrs[UNITS_ATTRIBUTE_KEY] = cf_meta.units
     da = da.chunk("auto")
     return da
 

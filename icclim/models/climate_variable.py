@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Callable, Sequence
-from warnings import warn
 
 from xarray.core.dataarray import DataArray
 
@@ -16,6 +15,7 @@ from icclim.models.frequency import Frequency
 from icclim.models.threshold import Threshold
 from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.pre_processing.input_parsing import (
+    build_reference_da,
     build_study_da,
     guess_input_type,
     guess_var_names,
@@ -28,27 +28,29 @@ class ClimateVariable:
     """Internal icclim structure. It groups together the input variable (study_da),
     its associated metadata (cf_meta) and the threshold it must be compared to.
 
-    Parameters
+    Attributes
     ----------
     name: str
         Name of the variable.
+    cf_meta: CfVarMetadata
+        CF metadata bounded to the standard variable used for this ClimateVariable.
     study_da: DataArray
         The variable studied.
-    cf_meta: CfVarMetadata
-        metadata
     threshold: Threshold | None
         thresholds for this variable
     """
 
     name: str
-    cf_meta: CfVarMetadata
+    cf_meta: CfVarMetadata | None
     study_da: DataArray
     global_metadata: GlobalMetadata  # todo to be replaced by provenance processing
     threshold: Threshold | None = None
 
     def build_indicator_metadata(
         self, src_freq: Frequency, must_run_bootstrap: bool
-    ) -> dict[str, str]:
+    ) -> dict[str, str] | None:
+        if self.cf_meta is None:
+            return None
         if self.threshold:
             return {
                 "threshold": self.threshold.get_metadata(src_freq, must_run_bootstrap),
@@ -57,31 +59,67 @@ class ClimateVariable:
             return self.cf_meta.get_metadata()
 
 
-def read_climate_vars(
+def build_climate_vars(
+    climate_vars_dict: dict[str, InFileDictionary],
     ignore_Feb29th: bool,
-    in_files: InFileType,
     index: ClimateIndex,
     sampling_frequency: Frequency,
-    threshold: Threshold,
+    threshold: Threshold | None,
     time_range: Sequence[str],
-    var_names: str | Sequence[str] | None,
+    base_period: Sequence[str] | None,
 ) -> list[ClimateVariable]:
-    iter_in_files = _to_dictionary(in_files, var_names, index, threshold).items()
+    if must_add_reference_var(threshold, climate_vars_dict, base_period):
+        added_var = build_reference_var_dict(
+            base_period, climate_vars_dict, index, sampling_frequency
+        )
+        climate_vars_dict.update(added_var)
     return [
         _build_climate_var(
-            k,
-            v,
-            ignore_Feb29th,
-            index,
-            sampling_frequency,
-            threshold,
-            time_range,
+            k, v, ignore_Feb29th, index, sampling_frequency, threshold, time_range
         )
-        for k, v in iter_in_files
+        for k, v in climate_vars_dict.items()
     ]
 
 
-def _to_dictionary(
+def build_reference_var_dict(
+    base_period, in_files, index, sampling_frequency
+) -> dict[str, InFileDictionary]:
+    """This function add a secondary variable for indices such as anomaly that needs
+    exactly two variables but where the second variable could just be a subset of the
+    first one.
+    """
+    var_name = list(in_files.keys())[0]
+    if isinstance(in_files, dict):
+        study_ds = read_dataset(list(in_files.values())[0]["study"], index, var_name)
+    else:
+        study_ds = read_dataset(list(in_files.values())[0], index, var_name)
+    v = build_reference_da(
+        study_ds[var_name],
+        base_period,
+        only_leap_years=False,
+        sampling_frequency=sampling_frequency,
+        percentile_min_value=None,
+    )
+    return {var_name + "_reference": {"study": v}}
+
+
+def must_add_reference_var(
+    threshold,
+    climate_vars_dict,
+    base_period: Sequence[str] | None,
+) -> bool:
+    if isinstance(climate_vars_dict, dict):
+        t = list(climate_vars_dict.values())[0].get("threshold", None)
+        return t is None and len(climate_vars_dict) == 1 and base_period is not None
+    else:
+        return (
+            threshold is None
+            and len(climate_vars_dict) == 1
+            and base_period is not None
+        )
+
+
+def to_dictionary(
     in_files: InFileType,
     var_names: Sequence[str],
     index: ClimateIndex,
@@ -89,7 +127,12 @@ def _to_dictionary(
 ) -> dict[str, InFileDictionary]:
     if isinstance(in_files, dict):
         if var_names is not None:
-            warn("`var_name` is ignored, `in_files` keys are used instead.")
+            raise InvalidIcclimArgumentError(
+                "`var_name` must be None when `in_files`"
+                " is a dictionary."
+                " The dictionary keys are used in place of"
+                " `var_name`."
+            )
         return in_files
     if not isinstance(in_files, dict):
         input_dataset = read_dataset(in_files, index, var_names)
@@ -141,7 +184,7 @@ def _build_climate_var(
         time_range,
         ignore_Feb29th,
         sampling_frequency,
-        cf_meta.units,
+        cf_meta,
     )
     if climate_var_thresh is not None:
         if isinstance(climate_var_thresh, str):

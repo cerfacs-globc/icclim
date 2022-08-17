@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from icclim.generic_indices.cf_var_metadata import IndicatorMetadata
 
 # fmt: off
@@ -97,7 +99,7 @@ EN: dict[str, IndicatorMetadata] = {
                          "_{{climate_vars[0].standard_name}}"
                          "_excess_wrt_time",
         "long_name":     f"Excess of {SINGLE_VAR_LONG_NAME}",
-        "cell_methods":  "time: sum over {{source_freq.units}}",
+        "cell_methods":  "time: difference over {{source_freq.units}}",
     },
     "deficit": {
         "identifier":    "integral_of_{{source_freq.adjective}}"
@@ -107,7 +109,7 @@ EN: dict[str, IndicatorMetadata] = {
         "standard_name": "integral_of_{{climate_vars[0].standard_name}}"
                          "_deficit_wrt_time",
         "long_name":     f"Deficit of {SINGLE_VAR_LONG_NAME}",
-        "cell_methods":  "time: sum over {{source_freq.units}}",
+        "cell_methods":  "time: difference over {{source_freq.units}}",
     },
     "fraction_of_total": {
         "identifier":   "fraction_of_thresholded_{{climate_vars[0].short_name}}"
@@ -219,7 +221,8 @@ EN: dict[str, IndicatorMetadata] = {
                          " {{climate_vars[1].long_name}}"
                          " for each {{output_freq.long_name}}.",
         "cell_methods":  "time: range within {{source_freq.units}}"
-                         " time: mean over {{source_freq.units}}",
+                         " time: maximum over {{source_freq.units}}"
+                         " time: minimum over {{source_freq.units}}",
     },
     "mean_of_absolute_one_time_step_difference":  {
         "identifier":    "mean_of_absolute_{{source_freq.adjective}}_difference_between"
@@ -236,5 +239,34 @@ EN: dict[str, IndicatorMetadata] = {
         "cell_methods":  "time: range within {{source_freq.units}}"
                          " time: difference over {{source_freq.units}}"
                          " time: mean over {{source_freq.units}}",
+    },
+    "difference_of_means":  {
+        "identifier":    "difference_of_means_between"
+                         "_{{climate_vars[0].short_name}}"
+                         "_and"
+                         "{% if is_single_var %}"
+                            "_reference_period"
+                         "{% else %}"
+                            "_{{climate_vars[1].short_name}}"
+                         "{% endif%}",
+        "standard_name": "{{climate_vars[0].standard_name}}"
+                         "{% if not is_single_var %}"
+                            "_to_{{climate_vars[1].standard_name}}"
+                         "{% endif%}"
+                         "_anomaly", # not CF
+        "long_name":     "{{output_freq.adjective}} difference between the"
+                         " averaged {{source_freq.adjective}}"
+                         " {{climate_vars[0].long_name}}"
+                         " and"
+                         "{% if is_single_var %}"
+                            " its averaged {{source_freq.adjective}} values for the"
+                            " {{reference_period}} period."
+                         "{% else %}"
+                            " the {{output_freq.adjective}}"
+                            " averaged {{source_freq.adjective}}"
+                            " {{climate_vars[1].long_name}}"
+                         "{% endif%}",
+        "cell_methods":  "time: mean over {{source_freq.units}}"
+                         " time: difference over {{source_freq.units}}",
     },
 }
