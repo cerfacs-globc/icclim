@@ -84,7 +84,7 @@ def csdi(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         per_window=config.window,
         per_interpolation=config.interpolation,
         min_spell_duration=6,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         callback=config.callback,
         xclim_index_fun=atmos.cold_spell_duration_index,
     )
@@ -97,7 +97,7 @@ def tg10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         tas_per_thresh=10,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
         callback=config.callback,
         xclim_index_fun=atmos.tg10p,
@@ -111,7 +111,7 @@ def tn10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         tas_per_thresh=10,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
         callback=config.callback,
         xclim_index_fun=atmos.tn10p,
@@ -125,7 +125,7 @@ def tx10p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         tas_per_thresh=10,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
         callback=config.callback,
         xclim_index_fun=atmos.tx10p,
@@ -183,7 +183,7 @@ def wsdi(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         per_window=config.window,
         per_interpolation=config.interpolation,
         min_spell_duration=6,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         callback=config.callback,
         xclim_index_fun=atmos.warm_spell_duration_index,
     )
@@ -196,7 +196,7 @@ def tg90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         tas_per_thresh=90,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
         callback=config.callback,
         xclim_index_fun=atmos.tg90p,
@@ -210,7 +210,7 @@ def tn90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         tas_per_thresh=90,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
         callback=config.callback,
         xclim_index_fun=atmos.tn90p,
@@ -224,7 +224,7 @@ def tx90p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         tas_per_thresh=90,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
         callback=config.callback,
         xclim_index_fun=atmos.tx90p,
@@ -329,7 +329,7 @@ def r75p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         freq=config.frequency,
         pr_per_thresh=75.0,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
     )
 
@@ -340,7 +340,7 @@ def r75ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         freq=config.frequency,
         pr_per_thresh=75.0,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
     )
 
 
@@ -350,7 +350,7 @@ def r95p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         freq=config.frequency,
         pr_per_thresh=95.0,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
     )
 
@@ -361,7 +361,7 @@ def r95ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         freq=config.frequency,
         pr_per_thresh=95.0,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
     )
 
 
@@ -371,7 +371,7 @@ def r99p(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         freq=config.frequency,
         pr_per_thresh=99,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         is_percent=config.is_percent,
     )
 
@@ -382,7 +382,7 @@ def r99ptot(config: IndexConfig) -> tuple[DataArray, DataArray | None]:
         freq=config.frequency,
         pr_per_thresh=99,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
     )
 
 
@@ -477,7 +477,7 @@ def cd(config: IndexConfig) -> DataArray:
         pr_per_thresh=25,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         callback=config.callback,
         xclim_index_fun=atmos.cold_and_dry_days,
     )
@@ -492,7 +492,7 @@ def cw(config: IndexConfig) -> DataArray:
         pr_per_thresh=75,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         callback=config.callback,
         xclim_index_fun=atmos.cold_and_wet_days,
     )
@@ -507,7 +507,7 @@ def wd(config: IndexConfig) -> DataArray:
         pr_per_thresh=25,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         callback=config.callback,
         xclim_index_fun=atmos.warm_and_dry_days,
     )
@@ -522,7 +522,7 @@ def ww(config: IndexConfig) -> DataArray:
         pr_per_thresh=75,
         per_window=config.window,
         per_interpolation=config.interpolation,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
         callback=config.callback,
         xclim_index_fun=atmos.warm_and_wet_days,
     )

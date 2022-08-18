@@ -46,7 +46,7 @@ class Indicator(metaclass=abc.ABCMeta):
     ]
 
     @abc.abstractmethod
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> DataArray:
         ...
 
     @abc.abstractmethod
@@ -208,7 +208,7 @@ class GenericIndicator(ResamplingIndicator):
             src_freq=src_freq,
         )
 
-    def __call__(self, *args, config: IndexConfig, **kwargs) -> DataArray:
+    def __call__(self, config: IndexConfig) -> DataArray:
         # icclim  wrapper
         src_freq = config.climate_variables[0].cf_meta.frequency
         jinja_scope = {

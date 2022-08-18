@@ -7,7 +7,6 @@ This module expose the index API endpoint as long as a few other functions.
 """
 from __future__ import annotations
 
-import copy
 import logging
 import time
 from datetime import datetime
@@ -29,6 +28,7 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.models.climate_index import ClimateIndex
 from icclim.models.climate_variable import (
+    ClimateVariable,
     build_climate_vars,
     must_add_reference_var,
     to_dictionary,
@@ -165,9 +165,9 @@ def index(
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = NetcdfVersionRegistry.NETCDF4,
     user_index: UserIndexDict | None = None,
-    save_percentile: bool = False,
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
-    # deprecated parameters
     indice_name: str = None,
     user_indice: UserIndexDict = None,
     transfer_limit_Mbytes: float = None,
@@ -271,9 +271,16 @@ def index(
 
     """
     _setup(callback, callback_percentage_start_value, logs_verbosity)
-    index_name, user_index = _handle_deprecated_params(
-        index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
+    index_name, user_index, save_thresholds = _handle_deprecated_params(
+        index_name,
+        user_index,
+        save_thresholds,
+        indice_name,
+        transfer_limit_Mbytes,
+        user_indice,
+        save_percentile,
     )
+    del indice_name, transfer_limit_Mbytes, user_indice, save_percentile
     # -- Choose index to compute
     if user_index is None and index_name is None:
         raise InvalidIcclimArgumentError(
@@ -306,9 +313,7 @@ def index(
         threshold = build_threshold(threshold)
     elif isinstance(threshold, Sequence):
         threshold = [
-            build_threshold(threshold)
-            for t in threshold
-            if not isinstance(t, Threshold)
+            build_threshold(t) for t in threshold if not isinstance(t, Threshold)
         ]
     climate_vars_dict = to_dictionary(in_files, var_name, index, threshold)
     # We use groupby instead of resample when there is a single variable that must be
@@ -332,7 +337,7 @@ def index(
     else:
         reference_period = None
     config = IndexConfig(
-        save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         frequency=sampling_frequency,
         climate_variables=climate_vars,
         window=window_width,
@@ -393,8 +398,14 @@ def _write_output_file(
 
 
 def _handle_deprecated_params(
-    index_name, indice_name, transfer_limit_Mbytes, user_index, user_indice
-) -> tuple[str, UserIndexDict]:
+    index_name,
+    user_index,
+    save_thresholds,
+    indice_name,
+    transfer_limit_Mbytes,
+    user_indice,
+    save_percentile,
+) -> tuple[str, UserIndexDict, bool]:
     if indice_name is not None:
         log.deprecation_warning(old="indice_name", new="index_name")
         index_name = indice_name
@@ -403,7 +414,10 @@ def _handle_deprecated_params(
         user_index = user_indice
     if transfer_limit_Mbytes is not None:
         log.deprecation_warning(old="transfer_limit_Mbytes")
-    return index_name, user_index
+    if save_percentile is not None:
+        log.deprecation_warning(old="save_percentile", new="save_thresholds")
+        save_thresholds = save_percentile
+    return index_name, user_index, save_thresholds
 
 
 def _setup(callback, callback_start_value, logs_verbosity):
@@ -433,7 +447,7 @@ def _compute_custom_climate_index(
         freq=config.frequency,
         climate_variables=config.climate_variables,
         is_percent=config.is_percent,
-        save_percentile=config.save_percentile,
+        save_percentile=config.save_thresholds,
     )
     user_indice_da = compute_user_index(user_indice_config)
     user_indice_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(
@@ -470,23 +484,12 @@ def _compute_standard_climate_index(
     initial_history: str | None,
     initial_source: str,
 ) -> Dataset:
-    # todo remove config as it's very likely useless with generic indicators
-    def compute(threshold: float | None = None):
-        conf = copy.copy(config)
-        if threshold is not None:
-            conf.scalar_thresholds = threshold
-        if config.frequency.time_clipping is not None:
-            # xclim missing values checking system will not work with clipped time
-            with xclim.set_options(check_missing="skip"):
-                res = climate_index(conf)
-        else:
-            res = climate_index(conf)  # todo need to merge ClimateIndex and Indicator
-        if isinstance(res, tuple):
-            return res
-        else:
-            return res, None
-
-    result_da, percentiles_da = compute()
+    if config.frequency.time_clipping is not None:
+        # xclim missing values checking system will not work with clipped time
+        with xclim.set_options(check_missing="skip"):
+            result_da = climate_index(config)
+    else:
+        result_da = climate_index(config)
     result_da = result_da.rename(climate_index.identifier)
     result_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(config.out_unit, result_da)
     if config.frequency.post_processing is not None and "time" in result_da.dims:
@@ -497,8 +500,10 @@ def _compute_standard_climate_index(
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
         result_ds = result_da.to_dataset()
-    if percentiles_da is not None:
-        result_ds = xr.merge([result_ds, percentiles_da])
+    if config.save_thresholds:
+        result_ds = xr.merge(
+            [result_ds, _format_thresholds_for_export(config.climate_variables)]
+        )
     history = _build_history(result_da, config, initial_history, climate_index)
     result_ds = _add_ecad_index_metadata(
         result_ds, climate_index, history, initial_source
@@ -575,3 +580,11 @@ def _get_threshold_builder(
         only_leap_years=only_leap_years,
         interpolation=interpolation,
     )
+
+
+def _format_thresholds_for_export(climate_vars: list[ClimateVariable]) -> Dataset:
+    return xr.merge([_format_threshold(v) for v in climate_vars])
+
+
+def _format_threshold(cf_var: ClimateVariable) -> DataArray:
+    return cf_var.threshold.value.rename(cf_var.name + "_thresholds").reindex()

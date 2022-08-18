@@ -49,7 +49,7 @@ class IndexConfig:
     out_unit: str | None
     callback: Callable[[int], None] | None
     netcdf_version: NetcdfVersion
-    save_percentile: bool
+    save_thresholds: bool
     interpolation: QuantileInterpolation
     index: ClimateIndex
     is_single_var: bool

@@ -17,8 +17,6 @@ PERCENTILES_COORD = "percentiles"
 IN_BASE_IDENTIFIER = "reference_epoch"
 # coordinate of day of year values (usually from 1 to 365/366)
 DOY_COORDINATE = "dayofyear"
-# threshold dimension, either percentiles or simple per grid cell scalars
-THRESHOLD_COORDINATE = "threshold"
 # Units attribute key for DataArray(s)
 UNITS_ATTRIBUTE_KEY =  "units"
 

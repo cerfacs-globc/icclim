@@ -16,7 +16,6 @@ from icclim.models.constants import (
     DOY_COORDINATE,
     DOY_PERCENTILE_UNIT,
     PERIOD_PERCENTILE_UNIT,
-    THRESHOLD_COORDINATE,
     UNITS_ATTRIBUTE_KEY,
 )
 from icclim.models.frequency import Frequency
@@ -26,6 +25,7 @@ from icclim.models.quantile_interpolation import (
     QuantileInterpolationRegistry,
 )
 from icclim.pre_processing.input_parsing import (
+    build_reference_da,
     is_dataset_path,
     read_dataset,
     read_string_threshold,
@@ -108,10 +108,7 @@ class Threshold:
                 is_doy_per_threshold = True
         elif is_number_sequence(value):
             # e.g. Threshold(">", [2,3,4], "degC")
-            value = DataArray(
-                data=value,
-                coords={THRESHOLD_COORDINATE: value},
-            )
+            value = DataArray(data=value)
         elif unit == DOY_PERCENTILE_UNIT:
             value = partial(
                 build_doy_per,
@@ -133,7 +130,7 @@ class Threshold:
                 percentile_min_value=threshold_min_value,
             )
         elif isinstance(value, (float, int)):
-            value = DataArray(data=value, coords={THRESHOLD_COORDINATE: value})
+            value = DataArray(data=value)
         elif isinstance(value, DataArray):
             #  nothing to do
             ...
@@ -267,9 +264,6 @@ def build_period_per(
     study_da: DataArray,
     percentile_min_value: float | None,
 ) -> PercentileDataArray:
-    # todo [refacto] move back to threshold ?
-    from icclim.pre_processing.input_parsing import build_reference_da
-
     reference = build_reference_da(
         study_da,
         reference_period,
@@ -313,9 +307,6 @@ def build_doy_per(
     study_da: DataArray,
     percentile_min_value: float | None,
 ) -> PercentileDataArray:
-    # todo [refacto] move back to threshold ?
-    from icclim.pre_processing.input_parsing import build_reference_da
-
     reference = build_reference_da(
         study_da,
         reference_period,
