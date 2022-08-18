@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 from functools import reduce
-from typing import Callable
+from typing import Any, Callable
 
 import numpy
 import numpy as np
@@ -19,7 +19,7 @@ from xclim.core.units import convert_units_to, to_agg_units
 from xclim.core.utils import PercentileDataArray
 from xclim.indices import run_length
 
-from icclim.generic_indices.generic_templates import EN
+from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY
@@ -103,34 +103,27 @@ class ResamplingIndicator(Indicator):
     def preprocess(
         self,
         climate_vars: list[ClimateVariable],
-        jinja_scope: dict,
+        jinja_scope: dict[str, Any],
         output_frequency: Frequency,
         src_freq: Frequency,
-        indexer: dict,
-        *args,
-        **kwargs,
     ) -> list[ClimateVariable]:
         self.datachecks(climate_vars, src_freq.pandas_freq)
         self.cfcheck(climate_vars)
-        self.format(
-            jinja_scope=jinja_scope,
-            **kwargs,
-        )
-        if indexer:
+        self.format(jinja_scope=jinja_scope)
+        if output_frequency.indexer:
             for climate_var in climate_vars:
-                climate_var.study_da = select_time(climate_var.study_da, **indexer)
+                climate_var.study_da = select_time(
+                    climate_var.study_da, **output_frequency.indexer
+                )
         return climate_vars
 
     def postprocess(
         self,
         result: DataArray,
-        /,
         das: list[DataArray],
         output_freq: str,
         src_freq: str,
         indexer: dict = None,
-        *args,
-        **kwargs,
     ):
         if self.missing == "skip":
             return self._handle_missing_values(
@@ -145,10 +138,10 @@ class ResamplingIndicator(Indicator):
         result.attrs["history"] = ""
         return result
 
-    def format(self, /, jinja_scope, **kwargs):  # noqa ignore extra kwargs
+    def format(self, jinja_scope: dict):
         for property in self.templated_properties:
             template = jinja_env.from_string(
-                getattr(self, property),  # todo [xclim backport] localize this.
+                getattr(self, property),
                 globals=jinja_scope,
             )
             setattr(self, property, template.render())
@@ -181,10 +174,14 @@ class GenericIndicator(ResamplingIndicator):
     name: str
 
     def __init__(
-        self, name: str, process: Callable, missing="from_context", missing_options=None
+        self,
+        name: str,
+        process: Callable[..., DataArray],
+        missing: str = "from_context",
+        missing_options=None,
     ):
         super().__init__(missing=missing, missing_options=missing_options)
-        local = EN
+        local = INDICATORS_TEMPLATES_EN
         self.name = name
         self.process = process
         self.identifier = local[name]["identifier"]
@@ -195,58 +192,42 @@ class GenericIndicator(ResamplingIndicator):
     def preprocess(
         self,
         climate_vars: list[ClimateVariable],
+        jinja_scope: dict[str, Any],
         output_frequency: Frequency,
         src_freq: Frequency,
-        indexer: dict,
-        min_spell_length: int,
-        rolling_window_width: int,
-        is_single_var: bool,
-        reference_period: tuple[str, str],
-        *args,
-        **kwargs,
     ) -> list[ClimateVariable]:
         if not _same_freq_for_all(climate_vars):
             raise InvalidIcclimArgumentError(
                 "All variables must have the same time frequency (for example daily) to"
                 " be compared with each others, but this was not the case."
             )
-        jinja_scope = {
-            # todo [xclim backport] localize these
-            "output_freq": output_frequency,
-            "source_freq": src_freq,
-            "min_spell_length": min_spell_length,
-            "rolling_window_width": rolling_window_width,
-            "np": numpy,
-            "enumerate": enumerate,
-            "len": len,
-            "climate_vars": _get_inputs_metadata(climate_vars, src_freq),
-            "is_single_var": is_single_var,
-            "reference_period": reference_period,
-        }
         return super().preprocess(
             climate_vars=climate_vars,
             jinja_scope=jinja_scope,
             output_frequency=output_frequency,
             src_freq=src_freq,
-            indexer=output_frequency.indexer,
-            *args,
-            **kwargs,
         )
 
-    def __call__(self, /, config: IndexConfig, *args, **kwargs) -> DataArray:
+    def __call__(self, *args, config: IndexConfig, **kwargs) -> DataArray:
         # icclim  wrapper
         src_freq = config.climate_variables[0].cf_meta.frequency
+        jinja_scope = {
+            "output_freq": config.frequency,
+            "source_freq": src_freq,
+            "min_spell_length": config.window,
+            "rolling_window_width": config.window,
+            "np": numpy,
+            "enumerate": enumerate,
+            "len": len,
+            "climate_vars": _get_inputs_metadata(config.climate_variables, src_freq),
+            "is_single_var": config.is_single_var,
+            "reference_period": config.reference_period,
+        }
         climate_vars = self.preprocess(
+            climate_vars=config.climate_variables,
+            jinja_scope=jinja_scope,
             output_frequency=config.frequency,
             src_freq=src_freq,
-            indexer=config.frequency.indexer,
-            climate_vars=config.climate_variables,
-            min_spell_length=config.window,
-            rolling_window_width=config.window,
-            is_single_var=config.is_single_var,
-            reference_period=config.reference_period,
-            *args,
-            **kwargs,
         )
         result = self.process(
             climate_vars=climate_vars,
@@ -262,9 +243,6 @@ class GenericIndicator(ResamplingIndicator):
             output_freq=config.frequency.pandas_freq,
             src_freq=src_freq.pandas_freq,
         )
-
-    def compute(self, /, *args, **kwargs) -> DataArray:
-        ...
 
 
 def count_occurrences(

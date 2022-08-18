@@ -52,7 +52,6 @@ class Threshold:
     operator: Operator
     value: DataArray | Callable[[Frequency, DataArray], PercentileDataArray]
     threshold_var_name: str | None  # may be guessed if missing
-    additional_metadata: list[str]
 
     # -- Percentile specific properties:
     climatology_bounds: Sequence[str, str] | None  # may be guessed if missing
@@ -151,7 +150,6 @@ class Threshold:
             Threshold(">=" + threshold_min_value) if threshold_min_value else None
         )
         self.unit = unit
-        self.additional_metadata = []
         self.threshold_var_name = threshold_var_name
         self.climatology_bounds = climatology_bounds
         self.doy_window_width = doy_window_width
@@ -163,17 +161,15 @@ class Threshold:
         self, src_freq: Frequency, must_run_bootstrap: bool = False
     ) -> dict[str, Any]:
         # TODO: [xclim backport] localize/translate these with templates
+        additional_metadata = []
         if self.value.size == 1:
             res = {
                 "standard_name": f"{self.operator.standard_name}"
-                f"_{self.value.values[()]}"
-                f"_{self.unit}",  # not cf
+                f"_threshold",  # not cf
                 "long_name": f"{self.operator.long_name}"
                 f" {self.value.values[()]}"
                 f" {self.unit}",
-                "short_name": f"{self.operator.short_name}"
-                f"_{self.value.values[()]}"
-                f"_{self.unit}",
+                "short_name": f"{self.operator.short_name}_threshold",
             }
         elif isinstance(self.value, PercentileDataArray):
             percentiles = self.value.coords["percentiles"].values
@@ -181,41 +177,39 @@ class Threshold:
             if self.is_doy_per_threshold:
                 if percentiles.size == 1:
                     display_perc = f"{percentiles[0]}th day of year percentile"
-                    standard_name = f"{percentiles[0]}th_doy_percentile"
-                    short_name = f"{percentiles[0]}th_doy_per"
+                    standard_name = "doy_percentile_threshold"
+                    short_name = "doy_per_threshold"
                 else:
                     display_perc = str(list(map(lambda x: f"{x}th", percentiles)))
-                    standard_name = "_doy_percentiles"
-                    short_name = "_doy_pers"
+                    standard_name = "_doy_percentile_thresholds"
+                    short_name = "_doy_per_thresholds"
                 window = self.value.attrs.get("window", "")
-                self.additional_metadata.append(
+                additional_metadata.append(
                     f"day of year percentiles were computed per grid cell, on the {bds}"
                     f" period, with a centred {window} {src_freq.units} window to"
                     f" aggregate values around each day of year"
                 )
                 if must_run_bootstrap:
-                    self.additional_metadata.append(
-                        "the bootstrap algorithm has been"
-                        " applied to compute doy"
-                        " percentiles for the period"
-                        " overlapping both the reference"
+                    additional_metadata.append(
+                        "the bootstrap algorithm has been applied to compute doy"
+                        " percentiles for the period overlapping both the reference"
                         " period and the studied period"
                     )
             else:
                 if percentiles.size == 1:
                     display_perc = f"{percentiles[0]}th period percentile"
-                    standard_name = f"{percentiles[0]}th_period_percentile"
-                    short_name = f"{percentiles[0]}th_period_per"
+                    standard_name = "period_percentile_threshold"
+                    short_name = "period_per_threshold"
                 else:
                     display_perc = (
                         str(list(map(lambda x: f"{x}th", percentiles)))
                         + " period percentiles"
                     )
-                    standard_name = "_period_percentiles"
-                    short_name = "period_pers"
-                self.additional_metadata.append(
+                    standard_name = "_period_percentile_thresholds"
+                    short_name = "period_per_thresholds"
+                additional_metadata.append(
                     f"period percentiles were computed per grid cell, on the {bds}"
-                    f" period"
+                    " period"
                 )
             res = {
                 "standard_name": f"{self.operator.standard_name}_{standard_name}",
@@ -240,16 +234,15 @@ class Threshold:
             }
         else:
             raise NotImplementedError(
-                f"Threshold::value must be a DataArray."
-                f" It was a {type(self.value)}."
+                f"Threshold::value must be a DataArray. It was a {type(self.value)}."
             )
         if self.threshold_min_value:
             min_t = self.threshold_min_value.get_metadata(src_freq, False)
-            self.additional_metadata.append(
+            additional_metadata.append(
                 f"only values {min_t['long_name']} were considered"
             )
-        if len(self.additional_metadata) > 0:
-            added_meta = map(lambda s: s.capitalize(), self.additional_metadata)
+        if len(additional_metadata) > 0:
+            added_meta = map(lambda s: s.capitalize(), additional_metadata)
             added_meta = "(" + (". ".join(added_meta)) + ")"
             res.update({"additional_metadata": added_meta})
         return res

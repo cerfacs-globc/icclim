@@ -14,7 +14,7 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 @dataclasses.dataclass
 class IndexConfig:
     """
-    Configuration class for standard indices.
+    DTO class to map icclim.index input to the Indicator usable configs.
 
     Parameters
     ----------

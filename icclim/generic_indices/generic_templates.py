@@ -56,7 +56,7 @@ SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE = (
     "{% endif %}"
 )
 
-EN: dict[str, IndicatorMetadata] = {
+INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
     "count_occurrences": {
         "identifier":    "number_of_{{source_freq.units}}_when"
                          f"_{COMBINED_VARS_IDENTIFIER}",
