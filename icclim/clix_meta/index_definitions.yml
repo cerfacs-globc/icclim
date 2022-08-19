@@ -916,7 +916,7 @@ indices:
       var_name: "ctngt{TT}"
       standard_name: spell_length_of_days_with_air_temperature_above_threshold
       proposed_standard_name: spell_length_with_air_temperature_above_threshold
-      long_name: "Maximum number of consequtive days with Tmin > {TT}C"
+      long_name: "Maximum number of consecutive days with Tmin > {TT}C"
       units: "day"
       cell_methods:
         - time: minimum within days
@@ -944,7 +944,7 @@ indices:
       comment: "count of days when daily minimum temperature is above {TT} degC"
 
   cfd:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -980,7 +980,7 @@ indices:
       comment:
 
   csu:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -1027,7 +1027,7 @@ indices:
       var_name: "ctnlt{TT}"
       standard_name: spell_length_of_days_with_air_temperature_below_threshold
       proposed_standard_name: spell_length_with_air_temperature_below_threshold
-      long_name: "Maximum number of consequtive days with Tmin < {TT}C"
+      long_name: "Maximum number of consecutive days with Tmin < {TT}C"
       units: "day"
       cell_methods:
         - time: minimum within days
@@ -1066,7 +1066,7 @@ indices:
       var_name: "ctnge{TT}"
       standard_name: spell_length_of_days_with_air_temperature_above_threshold
       proposed_standard_name: spell_length_with_air_temperature_at_or_above_threshold
-      long_name: "Maximum number of consequtive days with Tmin >= {TT}C"
+      long_name: "Maximum number of consecutive days with Tmin >= {TT}C"
       units: "day"
       cell_methods:
         - time: minimum within days
@@ -1105,7 +1105,7 @@ indices:
       var_name: "ctnle{TT}"
       standard_name: spell_length_of_days_with_air_temperature_below_threshold
       proposed_standard_name: spell_length_with_air_temperature_at_or_below_threshold
-      long_name: "Maximum number of consequtive days with Tmin <= {TT}C"
+      long_name: "Maximum number of consecutive days with Tmin <= {TT}C"
       units: "day"
       cell_methods:
         - time: minimum within days
@@ -1144,7 +1144,7 @@ indices:
       var_name: "ctxgt{TT}"
       standard_name: spell_length_of_days_with_air_temperature_above_threshold
       proposed_standard_name: spell_length_with_air_temperature_above_threshold
-      long_name: "Maximum number of consequtive days with Tmax > {TT}C"
+      long_name: "Maximum number of consecutive days with Tmax > {TT}C"
       units: "day"
       cell_methods:
         - time: maximum within days
@@ -1183,7 +1183,7 @@ indices:
       var_name: "ctxlt{TT}"
       standard_name: spell_length_of_days_with_air_temperature_below_threshold
       proposed_standard_name: spell_length_with_air_temperature_below_threshold
-      long_name: "Maximum number of consequtive days with Tmax < {TT}C"
+      long_name: "Maximum number of consecutive days with Tmax < {TT}C"
       units: "day"
       cell_methods:
         - time: maximum within days
@@ -1222,7 +1222,7 @@ indices:
       var_name: "ctxge{TT}"
       standard_name: spell_length_of_days_with_air_temperature_above_threshold
       proposed_standard_name: spell_length_with_air_temperature_at_or_above_threshold
-      long_name: "Maximum number of consequtive days with Tmax >= {TT}C"
+      long_name: "Maximum number of consecutive days with Tmax >= {TT}C"
       units: "day"
       cell_methods:
         - time: maximum within days
@@ -1261,7 +1261,7 @@ indices:
       var_name: "ctxle{TT}"
       standard_name: spell_length_of_days_with_air_temperature_below_threshold
       proposed_standard_name: spell_length_with_air_temperature_at_or_below_threshold
-      long_name: "Maximum number of consequtive days with Tmax <= {TT}C"
+      long_name: "Maximum number of consecutive days with Tmax <= {TT}C"
       units: "day"
       cell_methods:
         - time: maximum within days
@@ -1300,7 +1300,7 @@ indices:
       var_name: "ctmgt{TT}"
       standard_name: spell_length_of_days_with_air_temperature_above_threshold
       proposed_standard_name: spell_length_with_air_temperature_above_threshold
-      long_name: "Maximum number of consequtive days with Tmean > {TT}C"
+      long_name: "Maximum number of consecutive days with Tmean > {TT}C"
       units: "day"
       cell_methods:
         - time: mean within days
@@ -1339,7 +1339,7 @@ indices:
       var_name: "ctmlt{TT}"
       standard_name: spell_length_of_days_with_air_temperature_below_threshold
       proposed_standard_name: spell_length_with_air_temperature_below_threshold
-      long_name: "Maximum number of consequtive days with Tmean < {TT}C"
+      long_name: "Maximum number of consecutive days with Tmean < {TT}C"
       units: "day"
       cell_methods:
         - time: mean within days
@@ -1378,7 +1378,7 @@ indices:
       var_name: "ctmge{TT}"
       standard_name: spell_length_of_days_with_air_temperature_above_threshold
       proposed_standard_name: spell_length_with_air_temperature_at_or_above_threshold
-      long_name: "Maximum number of consequtive days with Tmean >= {TT}C"
+      long_name: "Maximum number of consecutive days with Tmean >= {TT}C"
       units: "day"
       cell_methods:
         - time: mean within days
@@ -1417,7 +1417,7 @@ indices:
       var_name: "ctmle{TT}"
       standard_name: spell_length_of_days_with_air_temperature_below_threshold
       proposed_standard_name: spell_length_with_air_temperature_at_or_below_threshold
-      long_name: "Maximum number of consequtive days with Tmean <= {TT}C"
+      long_name: "Maximum number of consecutive days with Tmean <= {TT}C"
       units: "day"
       cell_methods:
         - time: mean within days
@@ -2118,7 +2118,7 @@ indices:
 
   tg10p:
     # modified in icclim
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2151,7 +2151,7 @@ indices:
 
   tg90p:
     # modified in icclim
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2436,7 +2436,7 @@ indices:
       comment: "mean of daily temperature range"
 
   vdtr:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2463,7 +2463,7 @@ indices:
       comment:
 
   etr:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2584,7 +2584,7 @@ indices:
       comment:
 
   hd17:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2792,7 +2792,7 @@ indices:
       comment:
 
   gd4:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -2972,7 +2972,7 @@ indices:
       comment:
 
   rr1:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3338,7 +3338,7 @@ indices:
       comment:
 
   rh:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3367,7 +3367,7 @@ indices:
       comment:
 
   rr:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3406,7 +3406,7 @@ indices:
       comment:
 
   pp:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3435,7 +3435,7 @@ indices:
       comment:
 
   tg:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3464,7 +3464,7 @@ indices:
       comment:
 
   tn:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3493,7 +3493,7 @@ indices:
       comment:
 
   tx:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3522,7 +3522,7 @@ indices:
       comment:
 
   sd:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3551,7 +3551,7 @@ indices:
       comment:
 
   sd1:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3587,7 +3587,7 @@ indices:
       comment:
 
   sd5cm:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3623,7 +3623,7 @@ indices:
       comment:
 
   sd50cm:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3659,7 +3659,7 @@ indices:
       comment:
 
   sd{D}cm:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3695,7 +3695,7 @@ indices:
       comment:
 
   ss:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3723,7 +3723,7 @@ indices:
       comment:
 
   fxx:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3752,7 +3752,7 @@ indices:
       comment:
 
   fg6bft:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3788,7 +3788,7 @@ indices:
       comment:
 
   fgcalm:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3824,7 +3824,7 @@ indices:
       comment:
 
   fg:
-    reference: ECA&D
+    reference: ECAD
     period:
       allowed:
         annual:
@@ -3991,8 +3991,7 @@ indices:
     output:
       var_name: "cd"
       standard_name:
-      long_name: "Days with TG < 25th percentile of daily mean temperature\n\ \ \ \ \
-      and RR <25th percentile of daily precipitation sum (cold/dry days)"
+      long_name: "Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days)"
       units: "1"
       cell_methods:
     input:
@@ -4005,8 +4004,7 @@ indices:
     output:
       var_name: "cw"
       standard_name:
-      long_name: "Days with TG < 25th percentile of daily mean temperature\n\ \ \ \ \
-      and RR >75th percentile of daily precipitation sum (cold/wet days)"
+      long_name: "Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days)"
       units: "1"
       cell_methods:
     input:
@@ -4019,8 +4017,7 @@ indices:
     output:
       var_name: "wd"
       standard_name:
-      long_name: "Days with TG > 75th percentile of daily mean temperature\n\ \ \ \ \
-      and RR <25th percentile of daily precipitation sum (warm/dry days)"
+      long_name: "Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days)"
       units: "1"
       cell_methods:
     input:
@@ -4033,8 +4030,7 @@ indices:
     output:
       var_name: "ww"
       standard_name:
-      long_name: "Days with TG > 75th percentile of daily mean temperature\n\ \ \ \ \
-      and RR >75th percentile of daily precipitation sum (warm/wet days)"
+      long_name: "Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days)"
       units: "1"
       cell_methods:
     input:
