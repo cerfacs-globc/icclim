@@ -3,20 +3,19 @@ This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
 """
+# flake8: noqa E501
 from __future__ import annotations
 
 import datetime
+from typing import Sequence
 
 from xarray.core.dataset import Dataset
 
 import icclim
-from icclim.icclim_logger import Verbosity, VerbosityRegistry
-from icclim.models.frequency import FrequencyLike, FrequencyRegistry
-from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
-from icclim.models.quantile_interpolation import (
-    QuantileInterpolation,
-    QuantileInterpolationRegistry,
-)
+from icclim.icclim_logger import Verbosity
+from icclim.models.frequency import Frequency, FrequencyLike
+from icclim.models.netcdf_version import NetcdfVersion
+from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import InFileType
 
@@ -76,13 +75,13 @@ __all__ = [
 
 def tg(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TG: Mean of daily mean temperature
@@ -122,7 +121,7 @@ def tg(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str |
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -143,18 +142,19 @@ def tg(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def tn(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersion = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TN: Mean of daily minimum temperature
@@ -194,7 +194,7 @@ def tn(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -215,18 +215,19 @@ def tn(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def tx(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TX: Mean of daily maximum temperature
@@ -266,7 +267,7 @@ def tx(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -287,18 +288,19 @@ def tx(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def dtr(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     DTR: Mean Diurnal Temperature Range
@@ -338,7 +340,7 @@ def dtr(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -359,18 +361,19 @@ def dtr(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def etr(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     ETR: Intra-period extreme temperature range
@@ -410,7 +413,7 @@ def etr(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -431,18 +434,19 @@ def etr(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def vdtr(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     vDTR: Mean day-to-day variation in Diurnal Temperature Range
@@ -482,7 +486,7 @@ def vdtr(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -503,19 +507,19 @@ def vdtr(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def su(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     SU: Number of Summer Days (Tmax > 25C)
@@ -553,14 +557,9 @@ def su(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -578,23 +577,23 @@ def su(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 25 degree_Celsius",
+        out_unit="day",
     )
 
 
 def tr(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TR: Number of Tropical Nights (Tmin > 20C)
@@ -632,14 +631,9 @@ def tr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -657,30 +651,28 @@ def tr(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 20 degree_Celsius",
+        out_unit="day",
     )
 
 
 def wsdi(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolation
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersion = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     WSDI: Warm-spell duration index (days)
@@ -718,37 +710,30 @@ def wsdi(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -769,36 +754,33 @@ def wsdi(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold=">= 90 doy_per",
+        out_unit="day",
     )
 
 
 def tg90p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TG90p: Days when Tmean > 90th percentile
@@ -836,39 +818,30 @@ def tg90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -889,37 +862,33 @@ def tg90p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold=">= 90 doy_per",
+        out_unit="day",
     )
 
 
 def tn90p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TN90p: Days when Tmin > 90th percentile
@@ -957,39 +926,30 @@ def tn90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -1010,37 +970,33 @@ def tn90p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold=">= 90 doy_per",
+        out_unit="day",
     )
 
 
 def tx90p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TX90p: Days when Tmax > 90th daily percentile
@@ -1078,39 +1034,30 @@ def tx90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -1131,28 +1078,28 @@ def tx90p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold=">= 90 doy_per",
+        out_unit="day",
     )
 
 
 def txx(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TXx: Maximum daily maximum temperature
@@ -1192,7 +1139,7 @@ def txx(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -1213,18 +1160,19 @@ def txx(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def tnx(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TNx: Maximum daily minimum temperature
@@ -1264,7 +1212,7 @@ def tnx(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -1285,19 +1233,19 @@ def tnx(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def csu(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     CSU: Maximum number of consecutive summer days (Tmax >25 C)
@@ -1335,14 +1283,9 @@ def csu(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -1360,23 +1303,23 @@ def csu(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold="> 25 degree_Celsius",
+        out_unit="day",
     )
 
 
 def gd4(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     GD4: Growing degree days (sum of Tmean > 4 C)
@@ -1414,14 +1357,9 @@ def gd4(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -1439,23 +1377,23 @@ def gd4(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold="4 degree_Celsius",
+        out_unit="degree_Celsius day",
     )
 
 
 def fd(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     FD: Number of Frost Days (Tmin < 0C)
@@ -1493,14 +1431,9 @@ def fd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -1518,23 +1451,23 @@ def fd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold="< 0 degree_Celsius",
+        out_unit="day",
     )
 
 
 def cfd(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     CFD: Maximum number of consecutive frost days (Tmin < 0 C)
@@ -1572,14 +1505,9 @@ def cfd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -1597,23 +1525,23 @@ def cfd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold="< 0 degree_Celsius",
+        out_unit="day",
     )
 
 
 def hd17(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     HD17: Heating degree days (sum of Tmean < 17 C)
@@ -1651,14 +1579,9 @@ def hd17(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -1676,23 +1599,23 @@ def hd17(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold="17 degree_Celsius",
+        out_unit="degree_Celsius day",
     )
 
 
 def id(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     ID: Number of sharp Ice Days (Tmax < 0C)
@@ -1730,14 +1653,9 @@ def id(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -1755,31 +1673,28 @@ def id(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold="< 0 degree_Celsius",
+        out_unit="day",
     )
 
 
 def tg10p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TG10p: Days when Tmean < 10th percentile
@@ -1817,39 +1732,30 @@ def tg10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -1870,37 +1776,33 @@ def tg10p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="< 10 doy_per",
+        out_unit="day",
     )
 
 
 def tn10p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TN10p: Days when Tmin < 10th percentile
@@ -1938,39 +1840,30 @@ def tn10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -1991,37 +1884,33 @@ def tn10p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="< 10 doy_per",
+        out_unit="day",
     )
 
 
 def tx10p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TX10p: Days when Tmax < 10th percentile
@@ -2059,39 +1948,30 @@ def tx10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -2112,28 +1992,28 @@ def tx10p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="< 10 doy_per",
+        out_unit="day",
     )
 
 
 def txn(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TXn: Minimum daily maximum temperature
@@ -2173,7 +2053,7 @@ def txn(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2194,18 +2074,19 @@ def txn(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def tnn(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     TNn: Minimum daily minimum temperature
@@ -2245,7 +2126,7 @@ def tnn(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2266,26 +2147,24 @@ def tnn(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="degree_Celsius",
     )
 
 
 def csdi(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     CSDI: Cold-spell duration index (days)
@@ -2323,37 +2202,30 @@ def csdi(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -2374,27 +2246,28 @@ def csdi(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="< 10 doy_per",
+        out_unit="day",
     )
 
 
 def cdd(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     CDD: Maximum consecutive dry days (Precip < 1mm)
@@ -2434,7 +2307,7 @@ def cdd(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2455,18 +2328,20 @@ def cdd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold="< 1 mm day-1",
+        out_unit="day",
     )
 
 
 def prcptot(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     PRCPTOT: Total precipitation during Wet Days
@@ -2506,7 +2381,7 @@ def prcptot(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2527,18 +2402,20 @@ def prcptot(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 1 mm day-1",
+        out_unit="mm",
     )
 
 
 def rr1(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     RR1: Number of Wet Days (precip >= 1 mm)
@@ -2578,7 +2455,7 @@ def rr1(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2599,18 +2476,20 @@ def rr1(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 1 mm day-1",
+        out_unit="day",
     )
 
 
 def sdii(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     SDII: Average precipitation during Wet Days (SDII)
@@ -2650,7 +2529,7 @@ def sdii(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2671,18 +2550,20 @@ def sdii(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 1 mm day-1",
+        out_unit="mm day-1",
     )
 
 
 def cwd(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     CWD: Maximum consecutive wet days (Precip >= 1mm)
@@ -2722,7 +2603,7 @@ def cwd(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2743,18 +2624,20 @@ def cwd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 1 mm day-1",
+        out_unit="day",
     )
 
 
 def r10mm(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     R10mm: Number of heavy precipitation days (Precip >=10mm)
@@ -2794,7 +2677,7 @@ def r10mm(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2815,18 +2698,20 @@ def r10mm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 10 mm day-1",
+        out_unit="day",
     )
 
 
 def r20mm(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     R20mm: Number of very heavy precipitation days (Precip >= 20mm)
@@ -2866,7 +2751,7 @@ def r20mm(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2887,21 +2772,23 @@ def r20mm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 20 mm day-1",
+        out_unit="day",
     )
 
 
 def rx1day(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
-    RX1day: Maximum 1-day precipitation
+    RX1day: maximum 1-day total precipitation
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -2938,7 +2825,7 @@ def rx1day(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -2959,21 +2846,22 @@ def rx1day(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="mm day-1",
     )
 
 
 def rx5day(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
-    RX5day: Maximum 5-day precipitation
+    RX5day: maximum 5-day total precipitation
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3010,7 +2898,7 @@ def rx5day(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -3031,29 +2919,27 @@ def rx5day(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="mm",
     )
 
 
 def r75p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
-    R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (days)
+    R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (d)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3088,36 +2974,30 @@ def r75p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -3138,34 +3018,33 @@ def r75p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="> 75 period_per",
+        out_unit="day",
     )
 
 
 def r75ptot(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile)
@@ -3203,34 +3082,30 @@ def r75ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -3251,34 +3126,33 @@ def r75ptot(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="> 75 period_per",
+        out_unit="",
     )
 
 
 def r95p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     R95p: Days with RR > 95th percentile of daily amounts (very wet days) (days)
@@ -3316,36 +3190,30 @@ def r95p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -3366,34 +3234,33 @@ def r95p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="> 95 period_per",
+        out_unit="day",
     )
 
 
 def r95ptot(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     R95pTOT: Precipitation fraction due to very wet days (> 95th percentile)
@@ -3431,34 +3298,30 @@ def r95ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -3479,37 +3342,36 @@ def r95ptot(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="> 95 period_per",
+        out_unit="",
     )
 
 
 def r99p(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
-    R99p: Days with RR > 99th percentile of daily amounts (extremely wet days) (days)
+    R99p: Days with RR > 99th percentile of daily amounts (extremely wet days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -3544,36 +3406,30 @@ def r99p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -3594,34 +3450,33 @@ def r99p(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
-        out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="> 99 period_per",
+        out_unit="day",
     )
 
 
 def r99ptot(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: float | list[float] | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     R99pTOT: Precipitation fraction due to extremely wet days (> 99th percentile)
@@ -3659,34 +3514,30 @@ def r99ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
-        ``optional`` User defined threshold for certain indices.
-        Default depend on the index, see their individual definition.
-        When a list of threshold is provided, the index will be computed for each
-        thresholds.
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -3707,26 +3558,28 @@ def r99ptot(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        threshold=threshold,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold="> 99 period_per",
+        out_unit="",
     )
 
 
 def sd(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     SD: Mean of daily snow depth
@@ -3766,7 +3619,7 @@ def sd(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -3787,18 +3640,19 @@ def sd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        out_unit="cm",
     )
 
 
 def sd1(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     SD1: Snow days (SD >= 1 cm)
@@ -3838,7 +3692,7 @@ def sd1(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -3859,18 +3713,20 @@ def sd1(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 1 cm",
+        out_unit="day",
     )
 
 
 def sd5cm(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     SD5cm: Number of days with snow depth >= 5 cm
@@ -3910,7 +3766,7 @@ def sd5cm(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -3931,18 +3787,20 @@ def sd5cm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 5 cm",
+        out_unit="day",
     )
 
 
 def sd50cm(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     SD50cm: Number of days with snow depth >= 50 cm
@@ -3982,7 +3840,7 @@ def sd50cm(
         If ``out_file`` already exists, icclim will overwrite it!
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
@@ -4003,29 +3861,28 @@ def sd50cm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        threshold=">= 50 cm",
+        out_unit="day",
     )
 
 
 def cd(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
-    CD: Days with TG < 25th percentile of daily mean temperature
-    and RR <25th percentile of daily precipitation sum (cold/dry days)
+    CD: Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4061,31 +3918,29 @@ def cd(
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -4107,36 +3962,35 @@ def cd(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold=["< 25 doy_per", "< 25 doy_per"],
+        out_unit="day",
     )
 
 
 def cw(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
-    CW: Days with TG < 25th percentile of daily mean temperature
-    and RR >75th percentile of daily precipitation sum (cold/wet days)
+    CW: Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4172,31 +4026,29 @@ def cw(
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -4218,36 +4070,35 @@ def cw(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold=["< 25 doy_per", "> 75 doy_per"],
+        out_unit="day",
     )
 
 
 def wd(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
-    WD: Days with TG > 75th percentile of daily mean temperature
-    and RR <25th percentile of daily precipitation sum (warm/dry days)
+    WD: Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4283,31 +4134,29 @@ def wd(
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -4329,36 +4178,35 @@ def wd(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold=["> 75 doy_per", "< 25 doy_per"],
+        out_unit="day",
     )
 
 
 def ww(
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
-    window_width: int = 5,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str
-    | QuantileInterpolationRegistry
-    | None = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
-    WW: Days with TG > 75th percentile of daily mean temperature
-    and RR >75th percentile of daily precipitation sum (warm/wet days)
+    WW: Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days)
 
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
@@ -4394,31 +4242,29 @@ def ww(
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolationRegistry | None
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "hyndman_fan"}``
         Default is "hyndman_fan", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -4440,30 +4286,33 @@ def ww(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
-        window_width=window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        threshold=["> 75 doy_per", "> 75 doy_per"],
+        out_unit="day",
     )
 
 
 def custom_index(
     user_index: UserIndexDict,
     in_files: InFileType,
-    var_name: str | list[str] | None = None,
-    slice_mode: FrequencyLike = FrequencyRegistry.YEAR,
-    time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: list[datetime] | list[str] | tuple[str, str] | None = None,
+    base_period_time_range: Sequence[datetime | str] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersionRegistry = NetcdfVersionRegistry.NETCDF4,
-    save_percentile: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_percentile: bool = None,
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
     """
     This function can be used to create indices using simple operators.
@@ -4502,25 +4351,26 @@ def custom_index(
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
     base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period on which percentiles are
-        computed.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if  `time_range` is None.
-        On temperature based indices relying on percentiles (TX90p, WSDI...), the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        On indices not relying on percentiles, this parameter is ignored.
+        ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
-        For strings, many format are accepted.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     out_unit : str | None
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | icclim.models.netcdf_version.NETCDF_VERSION_REGISTRY
+    netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_percentile : bool
         ``optional`` True if the percentiles should be saved within the resulting netcdf
@@ -4546,5 +4396,6 @@ def custom_index(
         out_unit=out_unit,
         netcdf_version=netcdf_version,
         save_percentile=save_percentile,
+        save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
     )

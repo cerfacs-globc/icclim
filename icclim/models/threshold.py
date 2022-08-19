@@ -183,7 +183,7 @@ class Threshold:
                 window = self.value.attrs.get("window", "")
                 additional_metadata.append(
                     f"day of year percentiles were computed per grid cell, on the {bds}"
-                    f" period, with a centred {window} {src_freq.units} window to"
+                    f" period, with a {window} {src_freq.units} centred window to"
                     f" aggregate values around each day of year"
                 )
                 if must_run_bootstrap:

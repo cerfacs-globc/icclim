@@ -5,6 +5,7 @@ from typing import Any, Callable, Optional, Tuple, Union
 
 from xarray import DataArray
 
+# from generic_indices.generic_indicators import GenericIndicator
 from icclim.models.index_group import IndexGroup
 
 ComputeIndexFun = Callable[
@@ -13,8 +14,11 @@ ComputeIndexFun = Callable[
 
 
 @dataclass
-class ClimateIndex:
-    """Climate index data class.
+class StandardIndex:
+    """Standard Index data class.
+    It is used to describe how a GenericIndicator should be setup to compute a climate
+    index that has been defined in the literature (such as ECA&D's ATBD document).
+
 
     Attributes
     ----------
@@ -39,22 +43,21 @@ class ClimateIndex:
     """
 
     short_name: str
-    compute: ComputeIndexFun
     group: IndexGroup
     input_variables: list[list[str]] | None  # None when index is generic
+    generic_indicator: Any  # Any -> GenericIndicator
     qualifiers: list[str] | None = None
     source: str | None = None
     definition: str | None = None
-    output_var_name: str | None = None  # when None use short_name
+    threshold: str | None = None
+    output_unit: str | None = None
+    # additional, index specific args
+    rolling_window_width: int | None = None
+    doy_window_width: int | None = None
+    min_spell_length: int | None = None
 
     def __str__(self):
         return f"{self.group} | {self.short_name} | {self.definition}"
 
-    def format_output_name(self, threshold: list[float] | None = None) -> str:
-        if self.output_var_name is None or threshold is None:
-            return self.short_name
-        else:
-            return self.output_var_name.replace("{xx}", "_".join(map(str, threshold)))
-
     def __call__(self, *args, **kwargs):
-        self.compute(*args, **kwargs)
+        self.generic_indicator(*args, **kwargs)

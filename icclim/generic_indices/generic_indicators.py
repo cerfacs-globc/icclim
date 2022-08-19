@@ -173,14 +173,8 @@ class ResamplingIndicator(Indicator):
 class GenericIndicator(ResamplingIndicator):
     name: str
 
-    def __init__(
-        self,
-        name: str,
-        process: Callable[..., DataArray],
-        missing: str = "from_context",
-        missing_options=None,
-    ):
-        super().__init__(missing=missing, missing_options=missing_options)
+    def __init__(self, name: str, process: Callable[..., DataArray], **kwargs):
+        super().__init__(**kwargs)
         local = INDICATORS_TEMPLATES_EN
         self.name = name
         self.process = process
@@ -574,10 +568,10 @@ def _run_simple_reducer(
             bootstrap=_must_run_bootstrap(study, threshold),
             is_doy_per=threshold.is_doy_per_threshold,
         ).squeeze()
-        x = study.where(exceedance)
+        study = study.where(exceedance)
     else:
-        x = study
-    return reducer_op(x.resample(time=resample_freq), dim=dim)
+        study = study
+    return reducer_op(study.resample(time=resample_freq), dim=dim)
 
 
 def _run_exceedances_reducer(
@@ -620,6 +614,7 @@ def _compute_exceedance(
 class GenericIndicatorRegistry(Registry):
     _item_class = GenericIndicator
 
+    # todo: replace strings by a ref to the LOCAL dictionary keys
     CountOccurrences = GenericIndicator("count_occurrences", count_occurrences)
     MaxConsecutiveOccurrence = GenericIndicator(
         "max_consecutive_occurrence", max_consecutive_occurrence
@@ -653,6 +648,14 @@ class GenericIndicatorRegistry(Registry):
         "difference_of_means",
         difference_of_means,
     )
+    # DoyPercentile = GenericIndicator(
+    #     "doy_percentile",
+    #     doy_percentile,
+    # )
+    # PeriodPercentile = GenericIndicator(
+    #     "period_percentile",
+    #     period_percentile,
+    # )
 
 
 def _check_single_var(

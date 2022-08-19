@@ -21,12 +21,13 @@ from xarray.core.dataset import Dataset
 from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndexRegistry, get_season_excluded_indices
 from icclim.generic_indices.generic_indicators import (
+    GenericIndicator,
     GenericIndicatorRegistry,
     Indicator,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
-from icclim.models.climate_index import ClimateIndex
+from icclim.models.climate_index import StandardIndex
 from icclim.models.climate_variable import (
     ClimateVariable,
     build_climate_vars,
@@ -148,7 +149,7 @@ def index(
     in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | Sequence[str] | None = None,
-    slice_mode: FrequencyLike | Frequency = FrequencyRegistry.YEAR,
+    slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold = None,
@@ -159,15 +160,13 @@ def index(
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: (
-        str | QuantileInterpolationRegistry | None
-    ) = QuantileInterpolationRegistry.MEDIAN_UNBIASED,
+    interpolation: str | QuantileInterpolation | None = "median_unbiased",
     out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersion = NetcdfVersionRegistry.NETCDF4,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
     user_index: UserIndexDict | None = None,
     save_percentile: bool = None,
     save_thresholds: bool = False,
-    logs_verbosity: Verbosity | str = VerbosityRegistry.LOW,
+    logs_verbosity: Verbosity | str = "LOW",
     indice_name: str = None,
     user_indice: UserIndexDict = None,
     transfer_limit_Mbytes: float = None,
@@ -295,16 +294,10 @@ def index(
         only_leap_years=only_leap_years,
         interpolation=interpolation,
     )
+    index: StandardIndex | GenericIndicator | None
     if index_name is not None:
         index = EcadIndexRegistry.lookup(index_name, no_error=True)
-        if index is not None:
-            if threshold is not None:
-                raise InvalidIcclimArgumentError(
-                    "ECAD indices threshold cannot be "
-                    "configured. Use a generic index "
-                    "instead."
-                )
-        else:
+        if index is None:
             index = GenericIndicatorRegistry.lookup(index_name)
     else:
         index = None
@@ -354,11 +347,18 @@ def index(
         result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
     else:
         _check_valid_config(index, config)
+        if isinstance(index, StandardIndex):
+            indicator = index.generic_indicator
+            rename = index.short_name
+        else:
+            indicator = index
+            rename = None
         result_ds = _compute_standard_climate_index(
             config=config,
-            climate_index=index,
+            climate_index=indicator,
             initial_history=climate_vars[0].global_metadata["history"],
             initial_source=climate_vars[0].global_metadata["source"],
+            rename=rename,
         )
     if reset := result_ds.attrs.get("reset_coords_dict", None):
         result_ds = result_ds.rename(reset)
@@ -479,10 +479,11 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
 
 
 def _compute_standard_climate_index(
-    climate_index: Indicator,
+    climate_index: GenericIndicator | None,
     config: IndexConfig,
     initial_history: str | None,
     initial_source: str,
+    rename: str | None = None,
 ) -> Dataset:
     if config.frequency.time_clipping is not None:
         # xclim missing values checking system will not work with clipped time
@@ -490,7 +491,10 @@ def _compute_standard_climate_index(
             result_da = climate_index(config)
     else:
         result_da = climate_index(config)
-    result_da = result_da.rename(climate_index.identifier)
+    if rename:
+        result_da = result_da.rename(rename)
+    else:
+        result_da = result_da.rename(climate_index.identifier)
     result_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(config.out_unit, result_da)
     if config.frequency.post_processing is not None and "time" in result_da.dims:
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
@@ -556,7 +560,7 @@ def _build_history(
     )
 
 
-def _check_valid_config(index: ClimateIndex, config: IndexConfig):
+def _check_valid_config(index: StandardIndex, config: IndexConfig):
     if index in get_season_excluded_indices() and config.frequency.indexer is not None:
         raise InvalidIcclimArgumentError(
             "Indices computing a spell cannot be computed on un-clipped season for now."

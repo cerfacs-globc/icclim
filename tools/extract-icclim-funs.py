@@ -20,13 +20,15 @@ import re
 import sys
 from pathlib import Path
 
+from models.climate_index import StandardIndex
+
 import icclim
-from icclim.ecad.ecad_indices import EcadIndex
+from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.models.constants import (
-    MODIFIABLE_QUANTILE_WINDOW,
-    MODIFIABLE_THRESHOLD,
-    MODIFIABLE_UNIT,
+    DOY_WINDOW,
+    MIN_SPELL_WINDOW,
     QUANTILE_BASED,
+    ROLLING_WINDOW,
 )
 
 ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]
@@ -45,9 +47,10 @@ QUANTILE_INDEX_FIELDS = [
     "only_leap_years",
     "interpolation",
     "save_percentile",
+    "save_thresholds",
 ]
 
-MODIFIABLE_QUANTILE_WINDOW_FIELD = "window_width"
+WINDOW_FIELD = "window_width"
 MODIFIABLE_THRESHOLD_FIELD = "threshold"
 MODIFIABLE_UNIT_FIELD = "out_unit"
 
@@ -60,9 +63,7 @@ END_NOTE = """
 
 """
 
-DEFAULT_OUTPUT_PATH = (
-    Path(os.path.dirname(os.path.abspath(__file__))) / "icclim_wrapped.py"
-)
+DEFAULT_OUTPUT_PATH = Path(os.path.dirname(os.path.abspath(__file__))) / "pouet.py"
 
 
 def run(path):
@@ -72,29 +73,31 @@ This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
 """
+# flake8: noqa E501
 from __future__ import annotations
 
 import datetime
+from typing import Sequence
 
 from xarray.core.dataset import Dataset
 
 import icclim
-from icclim.icclim_logger import VerbosityRegistry
-from icclim.models.frequency import FrequencyRegistry, SliceMode
-from icclim.models.netcdf_version import NetcdfVersionRegistry, NetcdfVersion
-from icclim.models.quantile_interpolation import (
-    QuantileInterpolationRegistry,
-    QuantileInterpolation,
-)
+from icclim.icclim_logger import Verbosity
+from icclim.models.frequency import Frequency, FrequencyLike
+from icclim.models.netcdf_version import NetcdfVersion
+from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import InFileType
 
 __all__ = [
 '''
-        acc += ",\n".join(list(map(lambda x: f'{TAB}"{x.name.lower()}"', EcadIndex)))
+        ecad_indices = EcadIndexRegistry.values()
+        acc += ",\n".join(
+            list(map(lambda x: f'{TAB}"{x.short_name.lower()}"', ecad_indices))
+        )
         acc += f',\n{TAB}"custom_index",\n]\n'
-        for index in EcadIndex:
-            acc += get_ecad_index_declaration(index)
+        for index in ecad_indices:
+            acc += get_standard_index_declaration(index)
         acc += get_user_index_declaration()
         f.write(acc)
 
@@ -154,7 +157,7 @@ def build_fun_signature_args(args) -> str:
     return f"\n{TAB}" + f",\n{TAB}".join(map(get_parameter_declaration, args.values()))
 
 
-def get_ecad_index_declaration(index: EcadIndex) -> str:
+def get_standard_index_declaration(index: StandardIndex) -> str:
     icclim_index_args = dict(inspect.signature(icclim.index).parameters)
     pop_args = []
     # Pop deprecated args
@@ -167,23 +170,25 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
     pop_args.append("callback_percentage_start_value")
     pop_args.append("callback_percentage_total")
     pop_args.append("index_name")  # specified with function name
+    pop_args.append("threshold")
+    pop_args.append("out_unit")
     qualifiers = [] if index.qualifiers is None else index.qualifiers
     if QUANTILE_BASED not in qualifiers:
         for arg in QUANTILE_INDEX_FIELDS:
             pop_args.append(arg)
-    if MODIFIABLE_QUANTILE_WINDOW not in qualifiers:
-        pop_args.append(MODIFIABLE_QUANTILE_WINDOW_FIELD)
-    if MODIFIABLE_THRESHOLD not in qualifiers:
-        pop_args.append(MODIFIABLE_THRESHOLD_FIELD)
-    if MODIFIABLE_UNIT not in qualifiers:
-        pop_args.append(MODIFIABLE_UNIT_FIELD)
-
+    if (
+        ROLLING_WINDOW not in qualifiers
+        or MIN_SPELL_WINDOW not in qualifiers
+        or DOY_WINDOW not in qualifiers
+    ):
+        pop_args.append(WINDOW_FIELD)
+    #     todo put default arg instead,
+    #          disallow configuration of those for standard indices
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
-    # TODO replace these concatenation mess with a proper template (jinja or similar)...
     fun_signature_args = build_fun_signature_args(icclim_index_args)
     fun_signature = (
-        f"\n\ndef {index.name.lower()}({fun_signature_args},\n) -> Dataset:\n"
+        f"\n\ndef {index.short_name.lower()}({fun_signature_args},\n) -> Dataset:\n"
     )
     args_docs = get_params_docstring(
         list(icclim_index_args.keys()), icclim.index.__doc__
@@ -196,10 +201,17 @@ def get_ecad_index_declaration(index: EcadIndex) -> str:
         f"{END_NOTE}"
         f'{TAB}"""\n'
     )
-    index_name_arg = f'\n{TAB}{TAB}index_name="{index.name}",\n{TAB}{TAB}'
+    index_name_arg = f'\n{TAB}{TAB}index_name="{index.short_name.upper()}",\n{TAB}{TAB}'
+
     fun_call_args = index_name_arg + f",\n{TAB}{TAB}".join(
         [a + "=" + a for a in icclim_index_args]
     )
+    if isinstance(index.threshold, str):
+        fun_call_args += f',\n{TAB}{TAB}threshold="{index.threshold}"'
+    elif isinstance(index.threshold, list):
+        fun_call_args += f",\n{TAB}{TAB}threshold={index.threshold}"
+    if index.output_unit is not None:
+        fun_call_args += f',\n{TAB}{TAB}out_unit="{index.output_unit}"'
     fun_call = f"{TAB}return icclim.index({fun_call_args},\n{TAB})\n"
     return f"{fun_signature}{docstring}{fun_call}"
 

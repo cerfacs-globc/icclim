@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses
 from typing import Callable
 
-from icclim.models.climate_index import ClimateIndex
+from icclim.models.climate_index import StandardIndex
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import PR, SFC_WIND, TAS, TAS_MAX, TAS_MIN
 from icclim.models.frequency import Frequency
@@ -51,7 +51,7 @@ class IndexConfig:
     netcdf_version: NetcdfVersion
     save_thresholds: bool
     interpolation: QuantileInterpolation
-    index: ClimateIndex
+    index: StandardIndex
     is_single_var: bool
     reference_period: tuple[str, str]
 

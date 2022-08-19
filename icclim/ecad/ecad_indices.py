@@ -1,64 +1,15 @@
 from __future__ import annotations
 
-from icclim.clix_meta.clix_meta_indices import ClixMetaIndices
-from icclim.ecad.ecad_functions import (
-    cd,
-    cdd,
-    cfd,
-    csdi,
-    csu,
-    cw,
-    cwd,
-    dtr,
-    etr,
-    fd,
-    gd4,
-    hd17,
-    id,
-    prcptot,
-    r10mm,
-    r20mm,
-    r75p,
-    r75ptot,
-    r95p,
-    r95ptot,
-    r99p,
-    r99ptot,
-    rr1,
-    rx1day,
-    rx5day,
-    sd,
-    sd1,
-    sd5cm,
-    sd50cm,
-    sdii,
-    su,
-    tg,
-    tg10p,
-    tg90p,
-    tn,
-    tn10p,
-    tn90p,
-    tnn,
-    tnx,
-    tr,
-    tx,
-    tx10p,
-    tx90p,
-    txn,
-    txx,
-    vdtr,
-    wd,
-    wsdi,
-    ww,
-)
-from icclim.models.climate_index import ClimateIndex
+from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
+from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import (
+    DOY_WINDOW,
     ECAD_ATBD,
-    MODIFIABLE_QUANTILE_WINDOW,
+    MIN_SPELL_WINDOW,
     MODIFIABLE_UNIT,
     PR,
     QUANTILE_BASED,
+    ROLLING_WINDOW,
     TAS,
     TAS_MAX,
     TAS_MIN,
@@ -66,26 +17,16 @@ from icclim.models.constants import (
 from icclim.models.index_group import IndexGroupRegistry
 from icclim.models.registry import Registry
 
-clix_indices = ClixMetaIndices.get_instance()
-
-
-def _get_clix_definition(short_name: str) -> str:
-    definition = ""
-    clix_index = clix_indices.lookup(short_name)
-    if clix_index is not None:
-        definition = clix_index["output"]["long_name"]
-    return definition
-
 
 class EcadIndexRegistry(Registry):
-    _item_class = ClimateIndex
+    _item_class = StandardIndex
     # TODO Add indices wind gust, wind direction,
     #                  radiation , pressure,
     #                  cloud cover, sunshine,
     #                  humidity
 
     @staticmethod
-    def get_item_aliases(item: ClimateIndex) -> list[str]:
+    def get_item_aliases(item: StandardIndex) -> list[str]:
         return [item.short_name]
 
     @classmethod
@@ -95,501 +36,589 @@ class EcadIndexRegistry(Registry):
             for i in cls.values()
         ]
 
-    TG = ClimateIndex(
-        definition=_get_clix_definition("TG"),
+    TG = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Average,
+        output_unit="degree_Celsius",
+        definition="Mean of daily mean temperature",
         source=ECAD_ATBD,
         short_name="TG",
-        compute=lambda c: tg(c),
         group=IndexGroupRegistry.TEMPERATURE,
         input_variables=[TAS],
     )
-    TN = ClimateIndex(
-        definition=_get_clix_definition("TN"),
+    TN = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Average,
+        output_unit="degree_Celsius",
+        definition="Mean of daily minimum temperature",
         source=ECAD_ATBD,
         short_name="TN",
-        compute=lambda c: tn(c),
         group=IndexGroupRegistry.TEMPERATURE,
         input_variables=[TAS_MIN],
     )
-    TX = ClimateIndex(
-        definition=_get_clix_definition("TX"),
+    TX = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Average,
+        output_unit="degree_Celsius",
+        definition="Mean of daily maximum temperature",
         source=ECAD_ATBD,
         short_name="TX",
-        compute=lambda c: tx(c),
         group=IndexGroupRegistry.TEMPERATURE,
         input_variables=[TAS_MAX],
     )
-    DTR = ClimateIndex(
-        definition=_get_clix_definition("DTR"),
+    DTR = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.MeanOfDifference,
+        output_unit="degree_Celsius",
+        definition="Mean Diurnal Temperature Range",
         source=ECAD_ATBD,
         short_name="DTR",
-        compute=lambda c: dtr(c),
         group=IndexGroupRegistry.TEMPERATURE,
         input_variables=[TAS_MAX, TAS_MIN],
     )
-    ETR = ClimateIndex(
-        definition=_get_clix_definition("ETR"),
+    ETR = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.DifferenceOfExtremes,
+        output_unit="degree_Celsius",
+        definition="Intra-period extreme temperature range",
         source=ECAD_ATBD,
         short_name="ETR",
-        compute=lambda c: etr(c),
         group=IndexGroupRegistry.TEMPERATURE,
         input_variables=[TAS_MAX, TAS_MIN],
     )
-    VDTR = ClimateIndex(
-        definition=_get_clix_definition("vDTR"),
+    VDTR = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference,
+        output_unit="degree_Celsius",
+        definition="Mean day-to-day variation in Diurnal Temperature Range",
         source=ECAD_ATBD,
         short_name="vDTR",
-        compute=lambda c: vdtr(c),
         group=IndexGroupRegistry.TEMPERATURE,
         input_variables=[TAS_MAX, TAS_MIN],
     )
     # Heat
-    SU = ClimateIndex(
-        definition=_get_clix_definition("SU"),
+    SU = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        output_unit="day",
+        definition="Number of Summer Days (Tmax > 25C)",
         source=ECAD_ATBD,
         short_name="SU",
-        compute=lambda c: su(c),
+        threshold=">= 25 degree_Celsius",
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS_MAX],
         qualifiers=[],
-        output_var_name="SU_{xx}",
     )
-    TR = ClimateIndex(
-        definition=_get_clix_definition("TR"),
+    TR = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        output_unit="day",
+        definition="Number of Tropical Nights (Tmin > 20C)",
         source=ECAD_ATBD,
         short_name="TR",
-        compute=lambda c: tr(c),
+        threshold=">= 20 degree_Celsius",
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS_MIN],
         qualifiers=[],
-        output_var_name="TR_{xx}",
     )
-    WSDI = ClimateIndex(
-        definition=_get_clix_definition("WSDI"),
+    WSDI = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.SumOfSpellLengths,
+        output_unit="day",
+        definition="Warm-spell duration index (days)",
         source=ECAD_ATBD,
         short_name="WSDI",
-        compute=lambda c: wsdi(c),
+        threshold=">= 90 doy_per",
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_QUANTILE_WINDOW,
+            DOY_WINDOW,
+            MIN_SPELL_WINDOW,
         ],
-        output_var_name="WSDI_{xx}",
+        doy_window_width=5,
+        min_spell_length=6,
     )
-    TG90P = ClimateIndex(
-        definition=_get_clix_definition("TG90p"),
+    TG90P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        output_unit="day",
+        definition="Days when Tmean > 90th percentile",
+        threshold=">= 90 doy_per",
         source=ECAD_ATBD,
         short_name="TG90p",
-        compute=lambda c: tg90p(c),
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_QUANTILE_WINDOW,
+            DOY_WINDOW,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="TG_above_{xx}_P",
+        doy_window_width=5,
     )
-    TN90P = ClimateIndex(
-        definition=_get_clix_definition("TN90p"),
+    TN90P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        output_unit="day",
+        definition="Days when Tmin > 90th percentile",
+        threshold=">= 90 doy_per",
         source=ECAD_ATBD,
         short_name="TN90p",
-        compute=lambda c: tn90p(c),
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS_MIN],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_QUANTILE_WINDOW,
+            DOY_WINDOW,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="TN_above_{xx}_P",
+        doy_window_width=5,
     )
-    TX90P = ClimateIndex(
-        definition=_get_clix_definition("TX90p"),
+    TX90P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=">= 90 doy_per",
+        output_unit="day",
+        definition="Days when Tmax > 90th daily percentile",
         source=ECAD_ATBD,
         short_name="TX90p",
-        compute=lambda c: tx90p(c),
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_QUANTILE_WINDOW,
+            DOY_WINDOW,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="TX_above_{xx}_P",
+        doy_window_width=5,
     )
-    TXX = ClimateIndex(
-        definition=_get_clix_definition("TXx"),
+    TXX = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Maximum,
+        output_unit="degree_Celsius",
+        definition="Maximum daily maximum temperature",
         source=ECAD_ATBD,
         short_name="TXx",
-        compute=lambda c: txx(c),
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS_MAX],
     )
-    TNX = ClimateIndex(
-        definition=_get_clix_definition("TNx"),
+    TNX = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Minimum,
+        output_unit="degree_Celsius",
+        definition="Maximum daily minimum temperature",
         source=ECAD_ATBD,
         short_name="TNx",
-        compute=lambda c: tnx(c),
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS_MIN],
     )
-    CSU = ClimateIndex(
-        definition=_get_clix_definition("CSU"),
+    CSU = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        threshold="> 25 degree_Celsius",
+        output_unit="day",
+        definition="Maximum number of consecutive summer days (Tmax >25 C)",
         source=ECAD_ATBD,
         short_name="CSU",
-        compute=lambda c: csu(c),
         group=IndexGroupRegistry.HEAT,
         input_variables=[TAS_MAX],
         qualifiers=[],
-        output_var_name="CSU_{xx}",
     )
     # Cold
-    GD4 = ClimateIndex(
-        definition=_get_clix_definition("GD4"),
+    GD4 = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Excess,
+        threshold="4 degree_Celsius",
+        output_unit="degree_Celsius day",
+        definition="Growing degree days (sum of Tmean > 4 C)",
         source=ECAD_ATBD,
         short_name="GD4",
-        compute=lambda c: gd4(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS],
         qualifiers=[],
-        output_var_name="GD_{xx}",
     )
-    FD = ClimateIndex(
-        definition=_get_clix_definition("FD"),
+    FD = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="< 0 degree_Celsius",
+        output_unit="day",
+        definition="Number of Frost Days (Tmin < 0C)",
         source=ECAD_ATBD,
         short_name="FD",
-        compute=lambda c: fd(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS_MIN],
         qualifiers=[],
-        output_var_name="FD_{xx}",
     )
-    CFD = ClimateIndex(
-        definition=_get_clix_definition("CFD"),
+    CFD = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        threshold="< 0 degree_Celsius",
+        output_unit="day",
+        definition="Maximum number of consecutive frost days (Tmin < 0 C)",
         source=ECAD_ATBD,
         short_name="CFD",
-        compute=lambda c: cfd(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS_MIN],
         qualifiers=[],
-        output_var_name="CFD_{xx}",
     )
-    HD17 = ClimateIndex(
-        definition=_get_clix_definition("HD17"),
+    HD17 = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Deficit,
+        threshold="17 degree_Celsius",
+        output_unit="degree_Celsius day",
+        definition="Heating degree days (sum of Tmean < 17 C)",
         source=ECAD_ATBD,
         short_name="HD17",
-        compute=lambda c: hd17(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS],
         qualifiers=[],
-        output_var_name="HD_{xx}",
     )
-    ID = ClimateIndex(
-        definition=_get_clix_definition("ID"),
+    ID = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="< 0 degree_Celsius",
+        output_unit="day",
+        definition="Number of sharp Ice Days (Tmax < 0C)",
         source=ECAD_ATBD,
         short_name="ID",
-        compute=lambda c: id(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS_MAX],
         qualifiers=[],
-        output_var_name="ID_{xx}",
     )
-    TG10P = ClimateIndex(
-        definition=_get_clix_definition("TG10p"),
+    TG10P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="< 10 doy_per",
+        output_unit="day",
+        definition="Days when Tmean < 10th percentile",
         source=ECAD_ATBD,
         short_name="TG10p",
-        compute=lambda c: tg10p(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_QUANTILE_WINDOW,
+            DOY_WINDOW,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="TG_below_{xx}_P",
+        doy_window_width=5,
     )
-    TN10P = ClimateIndex(
-        definition=_get_clix_definition("TN10p"),
+    TN10P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="< 10 doy_per",
+        output_unit="day",
+        definition="Days when Tmin < 10th percentile",
         source=ECAD_ATBD,
         short_name="TN10p",
-        compute=lambda c: tn10p(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS_MIN],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_QUANTILE_WINDOW,
+            DOY_WINDOW,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="TN_below_{xx}_P",
+        doy_window_width=5,
     )
-    TX10P = ClimateIndex(
-        definition=_get_clix_definition("TX10p"),
+    TX10P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="< 10 doy_per",
+        output_unit="day",
+        definition="Days when Tmax < 10th percentile",
         source=ECAD_ATBD,
         short_name="TX10p",
-        compute=lambda c: tx10p(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_QUANTILE_WINDOW,
+            DOY_WINDOW,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="TX_below_{xx}_P",
+        doy_window_width=5,
     )
-    TXN = ClimateIndex(
-        definition=_get_clix_definition("TXn"),
+    TXN = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Minimum,
+        output_unit="degree_Celsius",
+        definition="Minimum daily maximum temperature",
         source=ECAD_ATBD,
         short_name="TXn",
-        compute=lambda c: txn(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS_MAX],
     )
-    TNN = ClimateIndex(
-        definition=_get_clix_definition("TNn"),
+    TNN = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Minimum,
+        output_unit="degree_Celsius",
+        definition="Minimum daily minimum temperature",
         source=ECAD_ATBD,
         short_name="TNn",
-        compute=lambda c: tnn(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS_MIN],
     )
-    CSDI = ClimateIndex(
-        definition=_get_clix_definition("CSDI"),
+    CSDI = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.SumOfSpellLengths,
+        threshold="< 10 doy_per",
+        output_unit="day",
+        definition="Cold-spell duration index (days)",
         source=ECAD_ATBD,
         short_name="CSDI",
-        compute=lambda c: csdi(c),
         group=IndexGroupRegistry.COLD,
         input_variables=[TAS_MIN],
-        qualifiers=[
-            QUANTILE_BASED,
-            MODIFIABLE_QUANTILE_WINDOW,
-        ],
-        output_var_name="CSDI_{xx}",
+        qualifiers=[QUANTILE_BASED, DOY_WINDOW, MIN_SPELL_WINDOW],
+        doy_window_width=5,
+        min_spell_length=6,
     )
     # Drought
-    CDD = ClimateIndex(
-        definition=_get_clix_definition("CDD"),
+    CDD = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        threshold="< 1 mm day-1",
+        output_unit="day",
+        definition="Maximum consecutive dry days (Precip < 1mm)",
         source=ECAD_ATBD,
         short_name="CDD",
-        compute=lambda c: cdd(c),
         group=IndexGroupRegistry.DROUGHT,
         input_variables=[PR],
     )
     # Rain
-    PRCPTOT = ClimateIndex(
-        definition=_get_clix_definition("PRCPT"),
+    PRCPTOT = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Sum,
+        threshold=">= 1 mm day-1",
+        output_unit="mm",
+        definition="Total precipitation during Wet Days",
         source=ECAD_ATBD,
         short_name="PRCPTOT",
-        compute=lambda c: prcptot(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
     )
-    RR1 = ClimateIndex(
-        definition=_get_clix_definition("RR1"),
+    RR1 = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=">= 1 mm day-1",
+        output_unit="day",
+        definition="Number of Wet Days (precip >= 1 mm)",
         source=ECAD_ATBD,
         short_name="RR1",
-        compute=lambda c: rr1(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
     )
-    SDII = ClimateIndex(
-        definition=_get_clix_definition("SDII"),
+    SDII = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Average,
+        threshold=">= 1 mm day-1",
+        output_unit="mm day-1",
+        definition="Average precipitation during Wet Days (SDII)",
         source=ECAD_ATBD,
         short_name="SDII",
-        compute=lambda c: sdii(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
     )
-    CWD = ClimateIndex(
-        definition=_get_clix_definition("CWD"),
+    CWD = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        threshold=">= 1 mm day-1",
+        output_unit="day",
+        definition="Maximum consecutive wet days (Precip >= 1mm)",
         source=ECAD_ATBD,
         short_name="CWD",
-        compute=lambda c: cwd(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
     )
-    R10MM = ClimateIndex(
-        definition=_get_clix_definition("R10mm"),
+    R10MM = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=">= 10 mm day-1",
+        output_unit="day",
+        definition="Number of heavy precipitation days (Precip >=10mm)",
         source=ECAD_ATBD,
         short_name="R10mm",
-        compute=lambda c: r10mm(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
     )
-    R20MM = ClimateIndex(
-        definition=_get_clix_definition("R20mm"),
+    R20MM = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=">= 20 mm day-1",
+        output_unit="day",
+        definition="Number of very heavy precipitation days (Precip >= 20mm)",
         source=ECAD_ATBD,
         short_name="R20mm",
-        compute=lambda c: r20mm(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
     )
-    RX1DAY = ClimateIndex(
-        definition=_get_clix_definition("RX1da"),
+    RX1DAY = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Maximum,
+        output_unit="mm day-1",
+        definition="maximum 1-day total precipitation",  # from xclim
         source=ECAD_ATBD,
         short_name="RX1day",
-        compute=lambda c: rx1day(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
     )
-    RX5DAY = ClimateIndex(
-        definition=_get_clix_definition("RX5da"),
+    RX5DAY = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.MaxOfRollingSum,
+        output_unit="mm",
+        definition="maximum 5-day total precipitation",  # from xclim
         source=ECAD_ATBD,
         short_name="RX5day",
-        compute=lambda c: rx5day(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
+        qualifiers=[ROLLING_WINDOW],
+        rolling_window_width=5,
     )
-    R75P = ClimateIndex(
-        definition=_get_clix_definition("R75p"),
+    R75P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="> 75 period_per",
+        output_unit="day",
+        definition="Days with RR > 75th percentile of daily amounts (moderate wet days)"
+        " (d)",
         source=ECAD_ATBD,
         short_name="R75p",
-        compute=lambda c: r75p(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
         qualifiers=[
             QUANTILE_BASED,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="R_above_{xx}_P",
     )
-    R75PTOT = ClimateIndex(
-        definition=_get_clix_definition("R75pT"),
+    R75PTOT = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
+        threshold="> 75 period_per",
+        output_unit="",  # unit less
+        definition="Precipitation fraction due to moderate wet days"
+        " (> 75th percentile)",
         source=ECAD_ATBD,
         short_name="R75pTOT",
-        compute=lambda c: r75ptot(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
         qualifiers=[
             QUANTILE_BASED,
         ],
-        output_var_name="R_above_{xx}_PTOT",
     )
-    R95P = ClimateIndex(
-        definition=_get_clix_definition("R95p"),
+    R95P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="> 95 period_per",
+        output_unit="day",
+        definition="Days with RR > 95th percentile of daily amounts (very wet days)"
+        " (days)",
         source=ECAD_ATBD,
         short_name="R95p",
-        compute=lambda c: r95p(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
         qualifiers=[
             QUANTILE_BASED,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="R_above_{xx}_P",
     )
-    R95PTOT = ClimateIndex(
-        definition=_get_clix_definition("R95pT"),
+    R95PTOT = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
+        threshold="> 95 period_per",
+        output_unit="",  # unit less
+        definition="Precipitation fraction due to very wet days (> 95th percentile)",
         source=ECAD_ATBD,
         short_name="R95pTOT",
-        compute=lambda c: r95ptot(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
         qualifiers=[
             QUANTILE_BASED,
         ],
-        output_var_name="R_above_{xx}_PTOT",
     )
-    R99P = ClimateIndex(
-        definition=_get_clix_definition("R99p"),
+    R99P = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="> 99 period_per",
+        output_unit="day",
+        definition="Days with RR > 99th percentile of daily amounts"
+        " (extremely wet days)",
         source=ECAD_ATBD,
         short_name="R99p",
-        compute=lambda c: r99p(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
         qualifiers=[
             QUANTILE_BASED,
             MODIFIABLE_UNIT,
         ],
-        output_var_name="R_above_{xx}_P",
     )
-    R99PTOT = ClimateIndex(
-        definition=_get_clix_definition("R99pT"),
+    R99PTOT = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
+        threshold="> 99 period_per",
+        output_unit="",  # unit less
+        definition="Precipitation fraction due to extremely wet days"
+        " (> 99th percentile)",
         source=ECAD_ATBD,
         short_name="R99pTOT",
-        compute=lambda c: r99ptot(c),
         group=IndexGroupRegistry.RAIN,
         input_variables=[PR],
         qualifiers=[
             QUANTILE_BASED,
         ],
-        output_var_name="R_above_{xx}_PTOT",
     )
     # Snow
-    SD = ClimateIndex(
-        definition=_get_clix_definition("SD"),
+    SD = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.Average,
+        output_unit="cm",
+        definition="Mean of daily snow depth",
         source=ECAD_ATBD,
         short_name="SD",
-        compute=lambda c: sd(c),
         group=IndexGroupRegistry.SNOW,
         input_variables=[PR],
     )
-    SD1 = ClimateIndex(
-        definition=_get_clix_definition("SD1"),
+    SD1 = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=">= 1 cm",
+        output_unit="day",
+        definition="Snow days (SD >= 1 cm)",
         source=ECAD_ATBD,
         short_name="SD1",
-        compute=lambda c: sd1(c),
         group=IndexGroupRegistry.SNOW,
         input_variables=[PR],
     )
-    SD5CM = ClimateIndex(
-        definition=_get_clix_definition("SD5cm"),
+    SD5CM = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        output_unit="day",
+        threshold=">= 5 cm",
+        definition="Number of days with snow depth >= 5 cm",
         source=ECAD_ATBD,
         short_name="SD5cm",
-        compute=lambda c: sd5cm(c),
         group=IndexGroupRegistry.SNOW,
         input_variables=[PR],
     )
-    SD50CM = ClimateIndex(
-        definition=_get_clix_definition("SD50c"),
+    SD50CM = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=">= 50 cm",
+        output_unit="day",
+        definition="Number of days with snow depth >= 50 cm",
         source=ECAD_ATBD,
         short_name="SD50cm",
-        compute=lambda c: sd50cm(c),
         group=IndexGroupRegistry.SNOW,
         input_variables=[PR],
     )
     # Compound (precipitation and temperature)
-    CD = ClimateIndex(
-        definition=_get_clix_definition("CD"),
+    CD = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=["< 25 doy_per", "< 25 doy_per"],
+        output_unit="day",
+        definition="Days with TG < 25th percentile of daily mean temperature and"
+        " RR <25th percentile of daily precipitation sum (cold/dry days)",
         source=ECAD_ATBD,
         short_name="CD",
-        compute=lambda c: cd(c),
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[TAS, PR],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW],
+        qualifiers=[QUANTILE_BASED, DOY_WINDOW],
+        doy_window_width=5,
     )
-    CW = ClimateIndex(
-        definition=_get_clix_definition("CW"),
+    CW = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=["< 25 doy_per", "> 75 doy_per"],
+        output_unit="day",
+        definition="Days with TG < 25th percentile of daily mean temperature and"
+        " RR >75th percentile of daily precipitation sum (cold/wet days)",
         source=ECAD_ATBD,
         short_name="CW",
-        compute=lambda c: cw(c),
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[TAS, PR],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW],
+        qualifiers=[QUANTILE_BASED, DOY_WINDOW],
+        doy_window_width=5,
     )
-    WD = ClimateIndex(
-        definition=_get_clix_definition("WD"),
+    WD = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=["> 75 doy_per", "< 25 doy_per"],
+        output_unit="day",
+        definition="Days with TG > 75th percentile of daily mean temperature and"
+        " RR <25th percentile of daily precipitation sum (warm/dry days)",
         source=ECAD_ATBD,
         short_name="WD",
-        compute=lambda c: wd(c),
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[TAS, PR],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW],
+        qualifiers=[QUANTILE_BASED, DOY_WINDOW],
+        doy_window_width=5,
     )
-    WW = ClimateIndex(
-        definition=_get_clix_definition("WW"),
+    WW = StandardIndex(
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=["> 75 doy_per", "> 75 doy_per"],  # todo: use a dictionary instead ?
+        output_unit="day",
+        definition="Days with TG > 75th percentile of daily mean temperature and"
+        " RR >75th percentile of daily precipitation sum (warm/wet days)",
         source=ECAD_ATBD,
         short_name="WW",
-        compute=lambda c: ww(c),
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[TAS, PR],
-        qualifiers=[QUANTILE_BASED, MODIFIABLE_QUANTILE_WINDOW],
+        qualifiers=[QUANTILE_BASED, DOY_WINDOW],
+        doy_window_width=5,
     )
 
 
-def get_season_excluded_indices() -> list[ClimateIndex]:
+def get_season_excluded_indices() -> list[StandardIndex]:
     """List of indices which cannot be computed with seasonal slice_mode."""
+    # todo: DELETE ?
+    #       turn it into check if it's MaxConsecutive or SumSpellLength or rum_mean ?
     return [
         EcadIndexRegistry.WSDI,
         EcadIndexRegistry.CSU,

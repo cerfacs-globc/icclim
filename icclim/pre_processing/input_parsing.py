@@ -2,21 +2,26 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from typing import Sequence
+from typing import Any, Hashable, Sequence
 
 import numpy as np
 import xarray as xr
 import xclim
+
+# from icclim.generic_indices.generic_indicators import GenericIndicator
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
 
-from icclim.generic_indices.cf_var_metadata import CfVarMetadata, CfVarMetadataRegistry
+from icclim.generic_indices.cf_var_metadata import (
+    CfVarMetadataRegistry,
+    StandardVariable,
+)
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileType
 from icclim.models.cf_calendar import CfCalendarRegistry
-from icclim.models.climate_index import ClimateIndex
+from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY, VALID_PERCENTILE_DIMENSION
 from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
@@ -27,9 +32,9 @@ DEFAULT_INPUT_FREQUENCY = "days"
 
 def guess_var_names(
     ds: Dataset,
-    index: ClimateIndex | None = None,
+    index: StandardIndex | Any | None = None,  # Any -> GenericIndicator
     var_names: str | Sequence[str] | None = None,
-) -> list[str]:
+) -> list[Hashable]:
     if var_names is None:
         if index is None:
             raise InvalidIcclimArgumentError(
@@ -46,7 +51,7 @@ def guess_var_names(
 
 def read_dataset(
     in_files: InFileType,
-    index: ClimateIndex = None,
+    index: StandardIndex | Any | None = None,  # Any -> GenericIndicator
     var_name: str | Sequence[str] = None,  # used only if input is a DataArray
 ) -> Dataset:
     if isinstance(in_files, Dataset):
@@ -133,7 +138,7 @@ def read_clim_bounds(
 
 
 def _read_dataarray(
-    data: DataArray, index: ClimateIndex = None, var_name: str | Sequence[str] = None
+    data: DataArray, index: StandardIndex = None, var_name: str | Sequence[str] = None
 ) -> Dataset:
     if isinstance(var_name, (tuple, list)):
         if len(var_name) > 1:
@@ -143,7 +148,7 @@ def _read_dataarray(
             )
         else:
             var_name = var_name[0]
-    if isinstance(index, ClimateIndex):
+    if isinstance(index, StandardIndex):
         if index.input_variables and len(index.input_variables) > 1:
             raise InvalidIcclimArgumentError(
                 f"Index {index.short_name} needs {len(index.input_variables)} "
@@ -158,7 +163,9 @@ def _read_dataarray(
     return data.to_dataset(name=data_name, promote_attrs=True)
 
 
-def _guess_dataset_var_names(index: ClimateIndex, ds: Dataset) -> list[str]:
+def _guess_dataset_var_names(
+    index: StandardIndex | Any, ds: Dataset  # Any -> GenericIndicator
+) -> list[Hashable]:
     """Try to guess the variable names using the expected kind of variable for
     the index.
     """
@@ -172,25 +179,38 @@ def _guess_dataset_var_names(index: ClimateIndex, ds: Dataset) -> list[str]:
             f" from your input dataset: {list(ds.data_vars)}."
         )
 
-    index_expected_vars = index.input_variables
-    # todo if index_expected_vars is empty find all standard variable using cf_input
-    if len(ds.data_vars) == 1:
-        if len(index_expected_vars) != 1:
+    if isinstance(index, StandardIndex):
+        index_expected_vars = index.input_variables
+        if len(ds.data_vars) == 1:
+            if len(index_expected_vars) != 1:
+                raise get_error()
+            return [get_name_of_first_var(ds)]
+        climate_var_names = []
+        for indice_var in index_expected_vars:
+            for alias in indice_var:
+                # check if dataset contains this alias
+                if _is_alias_valid(ds, index, alias):
+                    climate_var_names.append(alias)
+                    break
+        if len(climate_var_names) < len(index_expected_vars):
             raise get_error()
-        return [get_name_of_first_var(ds)]
-    climate_var_names = []
-    for indice_var in index_expected_vars:
-        for alias in indice_var:
-            # check if dataset contains this alias
-            if _is_alias_valid(ds, index, alias):
-                climate_var_names.append(alias)
-                break
-    if len(climate_var_names) < len(index_expected_vars):
-        raise get_error()
-    return climate_var_names
+        return climate_var_names
+    else:
+        if len(ds.data_vars) == 1:
+            return [get_name_of_first_var(ds)]
+        else:
+            return _find_standard_vars(ds)
 
 
-def guess_input_type(data: DataArray) -> CfVarMetadata | None:
+def _find_standard_vars(ds: Dataset) -> list[Hashable]:
+    return [
+        v
+        for v in ds.data_vars
+        if CfVarMetadataRegistry.lookup(str(v), no_error=True) is not None
+    ]
+
+
+def guess_input_type(data: DataArray) -> StandardVariable | None:
     cf_input = CfVarMetadataRegistry.lookup(str(data.name), no_error=True)
     if cf_input is None:
         return None
@@ -206,7 +226,7 @@ def build_study_da(
     time_range: Sequence[str] | None,
     ignore_Feb29th: bool,
     sampling_frequency: Frequency,
-    cf_meta: CfVarMetadata | None,
+    cf_meta: StandardVariable | None,
 ) -> DataArray:
     if time_range is not None:
         check_time_range_pre_validity("time_range", time_range)

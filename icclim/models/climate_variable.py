@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from typing import Any, Callable, Sequence
 
 from xarray.core.dataarray import DataArray
 
-from icclim.generic_indices.cf_var_metadata import CfVarMetadata
+from icclim.generic_indices.cf_var_metadata import StandardVariable
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileType
-from icclim.models.climate_index import ClimateIndex
+from icclim.models.climate_index import StandardIndex
 from icclim.models.consolidated_metadata import GlobalMetadata
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency
@@ -32,7 +32,7 @@ class ClimateVariable:
     ----------
     name: str
         Name of the variable.
-    cf_meta: CfVarMetadata
+    cf_meta: StandardVariable
         CF metadata bounded to the standard variable used for this ClimateVariable.
     study_da: DataArray
         The variable studied.
@@ -41,7 +41,7 @@ class ClimateVariable:
     """
 
     name: str
-    cf_meta: CfVarMetadata | None
+    cf_meta: StandardVariable | None
     study_da: DataArray
     global_metadata: GlobalMetadata  # todo to be replaced by provenance processing
     threshold: Threshold | None = None
@@ -62,7 +62,7 @@ class ClimateVariable:
 def build_climate_vars(
     climate_vars_dict: dict[str, InFileDictionary],
     ignore_Feb29th: bool,
-    index: ClimateIndex,
+    index: StandardIndex | Any | None,
     sampling_frequency: Frequency,
     threshold: Threshold | None,
     time_range: Sequence[str],
@@ -82,7 +82,10 @@ def build_climate_vars(
 
 
 def build_reference_var_dict(
-    base_period, in_files, index, sampling_frequency
+    base_period,
+    in_files,
+    index: StandardIndex | Any | None,  # Any -> GenericIndicator
+    sampling_frequency,
 ) -> dict[str, InFileDictionary]:
     """This function add a secondary variable for indices such as anomaly that needs
     exactly two variables but where the second variable could just be a subset of the
@@ -122,7 +125,7 @@ def must_add_reference_var(
 def to_dictionary(
     in_files: InFileType,
     var_names: Sequence[str],
-    index: ClimateIndex,
+    index: StandardIndex | Any | None,  # Any -> GenericIndicator
     threshold: Threshold | Sequence[Threshold],
 ) -> dict[str, InFileDictionary]:
     if isinstance(in_files, dict):
@@ -161,7 +164,7 @@ def _build_climate_var(
     climate_var_name: str,
     climate_var_data: InFileDictionary | InFileBaseType,
     ignore_Feb29th: bool,
-    index: ClimateIndex,
+    index: StandardIndex | Any | None,  # Any -> GenericIndicator
     sampling_frequency: Frequency,
     threshold: Threshold | None,
     time_range: Sequence[str],

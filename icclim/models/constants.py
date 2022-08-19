@@ -22,6 +22,7 @@ UNITS_ATTRIBUTE_KEY =  "units"
 
 # Aliases of input variables names.
 # Source: clix-meta (modified)
+# todo remove in favor of CfVarMetadata
 PR = ["pr", "prAdjust","prAdjust", "prec", "rr", "precip", "PREC", "Prec", "RR", "PRECIP", "Precip"]
 TAS = ["tas", "tavg", "ta", "tasAdjust","tasAdjust", "tmean", "tm", "tg", "meant", "TMEAN", "Tmean", "TM", "TG", "MEANT", "meanT", "tasmidpoint"]
 TAS_MAX = ["tasmax", "tasmaxAdjust","tasmaxAdjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX", "MAXT", "maxT"]
@@ -46,7 +47,9 @@ ECAD_ATBD = "ECA&D, Algorithm Theoretical Basis Document (ATBD) v11"
 QUANTILE_BASED = "QUANTILE_BASED"  # fields: QUANTILE_INDEX_FIELDS
 MODIFIABLE_UNIT = "MODIFIABLE_UNIT"  # fields: out_unit
 MODIFIABLE_THRESHOLD = "MODIFIABLE_THRESHOLD"  # fields: threshold
-MODIFIABLE_QUANTILE_WINDOW = "MODIFIABLE_QUANTILE_WINDOW"  # fields: window_width
+DOY_WINDOW = "MODIFIABLE_QUANTILE_WINDOW"  # fields: window_width
+ROLLING_WINDOW = "ROLLING_WINDOW"  # fields: window_width
+MIN_SPELL_WINDOW = "MIN_SPELL_WINDOW"  # fields: window_width todo change field associated (can work on wsdi/csdi)?
 
 # Map of months index to their short name, used to get a pandas frequency anchor
 MONTHS_MAP = {1:"JAN",  2:"FEB", 3:"MAR", 4:"APR", 5:"MAY", 6:"JUN", 7:"JUL", 8:"AUG", 9:"SEP", 10:"OCT", 11:"NOV", 12:"DEC" }

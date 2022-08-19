@@ -10,7 +10,7 @@ from ecad.ecad_indices import EcadIndexRegistry
 import icclim
 from icclim.icclim_logger import VerbosityRegistry
 from icclim.models.constants import (
-    MODIFIABLE_QUANTILE_WINDOW,
+    DOY_WINDOW,
     MODIFIABLE_THRESHOLD,
     MODIFIABLE_UNIT,
     QUANTILE_BASED,
@@ -48,7 +48,7 @@ def build_expected_args(index):
                 "save_percentile": False,
             }
         )
-    if MODIFIABLE_QUANTILE_WINDOW in qualifiers:
+    if DOY_WINDOW in qualifiers:
         expected_call_args.update({"window_width": 5})
     if MODIFIABLE_UNIT in qualifiers:
         expected_call_args.update({"out_unit": None})
