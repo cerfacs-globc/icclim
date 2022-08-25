@@ -5,9 +5,9 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-from ecad.ecad_indices import EcadIndexRegistry
 
 import icclim
+from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_logger import VerbosityRegistry
 from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import QUANTILE_BASED
