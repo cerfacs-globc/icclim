@@ -6,8 +6,8 @@
 from __future__ import annotations
 
 import dataclasses
+import re
 from datetime import timedelta
-from functools import reduce
 from typing import Any, Callable, Sequence
 
 import cftime
@@ -23,7 +23,7 @@ from icclim.icclim_types import FrequencyLike, Indexer
 from icclim.models.constants import (
     AMJJAS_MONTHS,
     DJF_MONTHS,
-    FREQ_MAPPING,
+    EN_FREQ_MAPPING,
     JJA_MONTHS,
     MAM_MONTHS,
     MONTHS_MAP,
@@ -489,8 +489,12 @@ def _get_filter_between_dates(begin_date: str, end_date: str):
 
 
 def _get_long_name(pandas_freq: str):
-    return reduce(
-        lambda x, y: x + y,  # concat
-        map(lambda f: FREQ_MAPPING[f], pandas_freq.split("-")),
-        "",
-    )
+    no_digit_freq = re.findall(r"\D+", pandas_freq)[0]
+    multiplier = re.findall(r"\d+", pandas_freq)
+    freqs = no_digit_freq.split("-")[::-1]  # reverse
+    freqs = [EN_FREQ_MAPPING[f] for f in freqs]
+    freqs = " ".join(freqs)
+    if multiplier:
+        return multiplier[0] + freqs
+    else:
+        return freqs

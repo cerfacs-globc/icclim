@@ -39,7 +39,7 @@ def anomaly(config: UserIndexConfig):
             f" To be valid, it must be within the dataset time range."
         )
     return operators.anomaly(
-        da=config.climate_variables[0].study_da,
+        da=config.climate_variables[0].studied_data,
         da_ref=config.climate_variables[0].reference_da,
         percent=config.is_percent,
     )
@@ -51,7 +51,7 @@ def run_sum(config: UserIndexConfig):
             "Please provide an extreme_mode and a window_width to user_index."
         )
     return operators.run_sum(
-        da=config.climate_variables[0].study_da,
+        da=config.climate_variables[0].studied_data,
         extreme_mode=config.extreme_mode,
         window_width=config.window_width,
         coef=config.coef,
@@ -66,7 +66,7 @@ def run_mean(config: UserIndexConfig):
             "Please provide a extreme mode and a window width."
         )
     return operators.run_mean(
-        da=config.climate_variables[0].study_da,
+        da=config.climate_variables[0].studied_data,
         extreme_mode=config.extreme_mode,
         window_width=config.window_width,
         coef=config.coef,
@@ -87,7 +87,7 @@ def max_consecutive_event_count(config: UserIndexConfig):
         )
     # todo fix reference_da
     return operators.max_consecutive_event_count(
-        da=config.climate_variables[0].study_da,
+        da=config.climate_variables[0].studied_data,
         in_base_da=config.climate_variables[0].reference_da,
         logical_operation=config.logical_operation,
         threshold=config.thresh,
@@ -104,7 +104,7 @@ def count_events(config: UserIndexConfig):
             f" Please provide a threshold and a logical operation."
         )
     return operators.count_events(
-        das=list(map(lambda x: x.study_da, config.climate_variables)),
+        das=list(map(lambda x: x.studied_data, config.climate_variables)),
         in_base_das=list(map(lambda x: x.reference_da, config.climate_variables)),
         logical_operation=config.nb_event_config.logical_operation,
         link_logical_operations=config.nb_event_config.link_logical_operations,
@@ -176,7 +176,7 @@ def _check_and_get_simple_threshold(
 
 def _check_and_get_da(config: UserIndexConfig) -> DataArray:
     if len(config.climate_variables) == 1:
-        return config.climate_variables[0].study_da
+        return config.climate_variables[0].studied_data
     else:
         raise InvalidIcclimArgumentError(
             f"There must be exactly one variable for {config.calc_operation}."

@@ -6,6 +6,8 @@ Release history
 * [enh] Add generic indices
 * [enh] Make in_files.var.threshold and threshold parameters work with string values (a value with a unit or a percentile stamp)
 * [maint] **BREAKING CHANGE:** ECAD indices are no longer configurable! Use a generic index instead.
+* [fix] **BREAKING CHANGE:** ECAD indices CW, CD, WW, WD were computing the precipitation percentiles on day of year values where it should have been percentiles of the whole period (excluding dry days). This has been fixed.
+* [maint] icclim no longer carries a version of the clix-meta yml file. Previously it was used to generate the doc string and a few metadata of ECAD indices. It's no longer needed as we have put these metadata within StandardIndex declaration.
 
 5.4.0
 -----

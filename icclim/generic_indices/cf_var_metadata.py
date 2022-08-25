@@ -3,7 +3,6 @@ from __future__ import annotations
 import dataclasses
 from typing import Hashable, TypedDict
 
-from icclim.models.frequency import Frequency
 from icclim.models.registry import Registry
 
 
@@ -22,7 +21,6 @@ class StandardVariable(Hashable):
     aliases: list[str]
     default_units: str
     # todo: rework units, each constant instance should not have runtime values
-    frequency: Frequency = None
     units: str = None  # runtime unit
     # todo add a run_time name ?
     #      So that we could have in the same Dataset tas and tasAdjust for example.
@@ -37,12 +35,11 @@ class StandardVariable(Hashable):
             standard_name=self.standard_name,
             long_name=self.long_name,
             units=self.units,
-            frequency=self.frequency,
             short_name=self.short_name,
         )
 
 
-class CfVarMetadataRegistry(Registry):
+class StandardVariableRegistry(Registry):
     _item_class = StandardVariable
     PR = StandardVariable(
         short_name="pr",
@@ -170,7 +167,6 @@ class CfVarMetadataRegistry(Registry):
         aliases=["snw", "swe", "SW"],
         default_units="",  # todo
     )
-
     # todo add sunshine, cloudiness
 
     @staticmethod

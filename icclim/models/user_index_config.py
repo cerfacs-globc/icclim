@@ -85,7 +85,7 @@ class UserIndexConfig:
         self.is_percent = is_percent
         if freq.indexer is not None:
             for cf_var in climate_variables:
-                cf_var.study_da = select_time(cf_var.study_da, **freq.indexer)
+                cf_var.studied_data = select_time(cf_var.studied_data, **freq.indexer)
                 cf_var.reference_da = select_time(cf_var.reference_da, **freq.indexer)
         self.climate_variables = climate_variables
         if thresh is not None and logical_operation is not None:
@@ -96,7 +96,9 @@ class UserIndexConfig:
         if (rtr := ref_time_range) is not None:
             rtr = [get_date_to_iso_format(date) for date in rtr]
             for cf_var in climate_variables:
-                cf_var.reference_da = cf_var.study_da.sel(time=slice(rtr[0], rtr[1]))
+                cf_var.reference_da = cf_var.studied_data.sel(
+                    time=slice(rtr[0], rtr[1])
+                )
 
 
 def get_nb_event_conf(

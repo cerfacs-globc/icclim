@@ -11,7 +11,7 @@ import pytest
 import xarray as xr
 
 import icclim
-from icclim.ecad.ecad_indices import EcadIndexRegistry, get_season_excluded_indices
+from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import ICCLIM_VERSION, UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import FrequencyRegistry
@@ -86,7 +86,7 @@ class Test_Integration:
 
     def test_index_SU(self):
         res = icclim.index(
-            indice_name="SU",
+            index_name="SU",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
         )
@@ -95,7 +95,7 @@ class Test_Integration:
 
     def test_index_SU__on_dataset(self):
         res = icclim.index(
-            indice_name="SU",
+            index_name="SU",
             var_name="data",
             in_files=self.dataset_with_time_bounds,
             out_file=self.OUTPUT_FILE,
@@ -115,31 +115,17 @@ class Test_Integration:
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.DTR)
 
-    def test_index_SU__custom_threshold(self):
-        res = icclim.su(in_files=self.data, out_file=self.OUTPUT_FILE, threshold=42)
-        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
-        assert res.coords["thresholds"] == 42
-        np.testing.assert_array_equal(0, res.SU_42)
-
-    def test_index_SU__multiple_thresholds(self):
-        res = icclim.su(
-            in_files=self.data, out_file=self.OUTPUT_FILE, threshold=[42, 53]
-        )
-        assert res.attrs["title"] == "SU_42_53"
-        np.testing.assert_array_equal(res.coords["thresholds"], [42, 53])
-        np.testing.assert_array_equal(0, res.SU_42_53)
-
-    def test_index_TX90p__multiple_thresholds(self):
-        res = icclim.tx90p(
-            in_files=self.data,
+    def test_index_CD(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        res = icclim.index(
+            index_name="CD",
+            in_files=ds,
             out_file=self.OUTPUT_FILE,
-            threshold=[42, 53],
-            save_percentile=True,
         )
-        assert res.attrs["title"] == "TX_above_42_53_P"
-        np.testing.assert_array_equal(res.coords["percentiles"], [42, 53])
-        assert res.percentiles is not None
-        np.testing.assert_array_equal(0, res.TX_above_42_53_P)
+        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        np.testing.assert_array_equal(0, res.CD)
 
     def test__preserve_initial_history(self):
         self.data.attrs["history"] = "pouet pouet cacahuête"
@@ -149,13 +135,13 @@ class Test_Integration:
     def test_index_SU__time_selection(self):
         # WHEN
         res_string_dates = icclim.index(
-            indice_name="SU",
+            index_name="SU",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
             time_range=("19 july 2042", "14 august 2044"),
         )
         res_datetime_dates = icclim.index(
-            indice_name="SU",
+            index_name="SU",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
             time_range=[datetime(2042, 7, 19), datetime(2044, 8, 14)],
@@ -173,7 +159,7 @@ class Test_Integration:
     def test_index_SU__pandas_time_slice_mode(self):
         # WHEN
         res = icclim.index(
-            indice_name="SU",
+            index_name="SU",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
             slice_mode="2W-WED",
@@ -181,10 +167,14 @@ class Test_Integration:
         # THEN
         assert res.time_bounds[0, 0] == np.datetime64(datetime(2042, 1, 1))
         assert res.time_bounds[0, 1] == np.datetime64(datetime(2042, 1, 14))
+        assert (
+            res.SU.attrs["standard_name"]
+            == "number_of_days_with_maximum_air_temperature_above_threshold"
+        )
 
     def test_index_SU__monthy_sampled(self):
         res = icclim.index(
-            indice_name="SU",
+            index_name="SU",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
             slice_mode=FrequencyRegistry.MONTH,
@@ -196,7 +186,7 @@ class Test_Integration:
 
     def test_index_SU__monthy_sampled_cf_time(self):
         res = icclim.index(
-            indice_name="SU",
+            index_name="SU",
             in_files=self.data_cf_time,
             out_file=self.OUTPUT_FILE,
             slice_mode=FrequencyRegistry.MONTH,
@@ -214,7 +204,7 @@ class Test_Integration:
 
     def test_index_SU__DJF_cf_time(self):
         res = icclim.index(
-            indice_name="SU",
+            index_name="SU",
             in_files=self.data_cf_time,
             out_file=self.OUTPUT_FILE,
             slice_mode=FrequencyRegistry.DJF,
@@ -367,10 +357,7 @@ class Test_Integration:
         ).compute()
         for i in EcadIndexRegistry.values():
             # No variable in input to compute snow indices
-            if (
-                i.group == IndexGroupRegistry.SNOW
-                or i.climate_index in get_season_excluded_indices()
-            ):
+            if i.group == IndexGroupRegistry.SNOW:
                 assert res.data_vars.get(i.short_name, None) is None
             else:
                 assert res[i.short_name] is not None
@@ -388,13 +375,3 @@ class Test_Integration:
                 out_file=self.OUTPUT_FILE,
                 ignore_error=False,
             )
-
-    def test_index_R75p_custom_threshold(self):
-        ds = self.data.to_dataset(name="pr")
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
-        res = icclim.index(
-            index_name="R75p", in_files=ds, out_file=self.OUTPUT_FILE, threshold=33
-        )
-        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
-        assert "R_above_33_P" in res.data_vars
-        np.testing.assert_array_equal(0, res.R_above_33_P)

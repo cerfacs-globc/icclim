@@ -155,7 +155,10 @@ class Threshold:
         self.reference_period = base_period_time_range
 
     def get_metadata(
-        self, src_freq: Frequency, must_run_bootstrap: bool = False
+        self,
+        src_freq: Frequency,
+        must_run_bootstrap: bool = False,
+        indicator_name: str | None = None,
     ) -> dict[str, Any]:
         # TODO: [xclim backport] localize/translate these with templates
         additional_metadata = []
@@ -169,7 +172,7 @@ class Threshold:
                 "short_name": f"{self.operator.short_name}_threshold",
             }
         elif isinstance(self.value, PercentileDataArray):
-            percentiles = self.value.coords["percentiles"].values
+            percentiles = self.value.coords[indicator_name + "_percentiles"].values
             bds = self.value.attrs.get("climatology_bounds")
             if self.is_doy_per_threshold:
                 if percentiles.size == 1:
@@ -261,11 +264,12 @@ def build_period_per(
     interpolation: QuantileInterpolation,
     only_leap_years: bool,
     sampling_frequency: Frequency,
-    study_da: DataArray,
+    studied_data: DataArray,
     percentile_min_value: float | None,
+    indicator_name: str,
 ) -> PercentileDataArray:
     reference = build_reference_da(
-        study_da,
+        studied_data,
         reference_period,
         only_leap_years,
         sampling_frequency,
@@ -294,6 +298,7 @@ def build_period_per(
         source=computed_per,
         climatology_bounds=build_climatology_bounds(reference),
     )
+    res = res.rename({"percentiles": indicator_name + "_percentiles"})
     return res
 
 
@@ -304,11 +309,12 @@ def build_doy_per(
     only_leap_years: bool,
     doy_window_width: int,
     sampling_frequency: Frequency,
-    study_da: DataArray,
+    studied_data: DataArray,
     percentile_min_value: float | None,
+    indicator_name: str,
 ) -> PercentileDataArray:
     reference = build_reference_da(
-        study_da,
+        studied_data,
         reference_period,
         only_leap_years,
         sampling_frequency,
@@ -321,4 +327,5 @@ def build_doy_per(
         alpha=interpolation.alpha,
         beta=interpolation.beta,
     ).compute()  # "optimization" (diminish dask scheduler workload)
+    res = res.rename({"percentiles": indicator_name + "_percentiles"})
     return res

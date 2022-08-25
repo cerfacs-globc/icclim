@@ -2,28 +2,26 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from typing import Any, Hashable, Sequence
+from typing import Hashable, Sequence
 
 import numpy as np
 import xarray as xr
 import xclim
-
-# from icclim.generic_indices.generic_indicators import GenericIndicator
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
 
 from icclim.generic_indices.cf_var_metadata import (
-    CfVarMetadataRegistry,
     StandardVariable,
+    StandardVariableRegistry,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY, VALID_PERCENTILE_DIMENSION
-from icclim.models.frequency import Frequency, FrequencyRegistry
+from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.utils import get_date_to_iso_format
 
@@ -32,15 +30,15 @@ DEFAULT_INPUT_FREQUENCY = "days"
 
 def guess_var_names(
     ds: Dataset,
-    index: StandardIndex | Any | None = None,  # Any -> GenericIndicator
-    var_names: str | Sequence[str] | None = None,
+    var_names: str | Sequence[str] | None,
+    standard_index: StandardIndex | None,
 ) -> list[Hashable]:
     if var_names is None:
-        if index is None:
+        if standard_index is None:
             raise InvalidIcclimArgumentError(
                 "Unable to guess variable(s) name. Provide it/them using `var_name`."
             )
-        return _guess_dataset_var_names(index, ds)
+        return _guess_dataset_var_names(ds=ds, standard_index=standard_index)
     elif isinstance(var_names, str):
         return [var_names]
     elif isinstance(var_names, (list, tuple)):
@@ -51,13 +49,13 @@ def guess_var_names(
 
 def read_dataset(
     in_files: InFileType,
-    index: StandardIndex | Any | None = None,  # Any -> GenericIndicator
-    var_name: str | Sequence[str] = None,  # used only if input is a DataArray
+    standard_index: StandardIndex | None,
+    var_name: str | Sequence[str] = None,
 ) -> Dataset:
     if isinstance(in_files, Dataset):
         ds = in_files
     elif isinstance(in_files, DataArray):
-        ds = _read_dataarray(in_files, index, var_name=var_name)
+        ds = _read_dataarray(in_files, standard_index=standard_index, var_name=var_name)
     elif is_glob_path(in_files) or (
         isinstance(in_files, (list, tuple)) and is_netcdf_path(in_files[0])
     ):
@@ -138,7 +136,9 @@ def read_clim_bounds(
 
 
 def _read_dataarray(
-    data: DataArray, index: StandardIndex = None, var_name: str | Sequence[str] = None
+    data: DataArray,
+    standard_index: StandardIndex | None = None,
+    var_name: str | Sequence[str] = None,
 ) -> Dataset:
     if isinstance(var_name, (tuple, list)):
         if len(var_name) > 1:
@@ -148,48 +148,39 @@ def _read_dataarray(
             )
         else:
             var_name = var_name[0]
-    if isinstance(index, StandardIndex):
-        if index.input_variables and len(index.input_variables) > 1:
-            raise InvalidIcclimArgumentError(
-                f"Index {index.short_name} needs {len(index.input_variables)} "
-                f"variables."
-                f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
-                f" zarr store."
-            )
-        # first alias of the unique variable
-        data_name = var_name or index.input_variables[0][0]
+    if standard_index is not None:
+        data_name = var_name or standard_index.input_variables[0].short_name or None
     else:
         data_name = var_name or data.name or "unnamed_var"
     return data.to_dataset(name=data_name, promote_attrs=True)
 
 
 def _guess_dataset_var_names(
-    index: StandardIndex | Any, ds: Dataset  # Any -> GenericIndicator
+    standard_index: StandardIndex, ds: Dataset
 ) -> list[Hashable]:
     """Try to guess the variable names using the expected kind of variable for
     the index.
     """
 
     def get_error() -> Exception:
-        main_aliases = ", ".join(map(lambda v: v[0], index_expected_vars))
+        main_aliases = ", ".join(map(lambda v: v.short_name, index_expected_vars))
         return InvalidIcclimArgumentError(
-            f"Index {index.short_name} needs the following variable(s)"
-            f" [{main_aliases}], some of them were not recognized in the input."
-            f" Use `var_name` parameter to explicitly use data variable names"
-            f" from your input dataset: {list(ds.data_vars)}."
+            f"Index {standard_index.short_name} needs the following variable(s)"
+            f" [{main_aliases}], but the input variables were {list(ds.data_vars)}."
+            f" Use `var_name` parameter to explicitly set variable names."
         )
 
-    if isinstance(index, StandardIndex):
-        index_expected_vars = index.input_variables
+    if standard_index is not None:
+        index_expected_vars = standard_index.input_variables
         if len(ds.data_vars) == 1:
             if len(index_expected_vars) != 1:
                 raise get_error()
             return [get_name_of_first_var(ds)]
         climate_var_names = []
-        for indice_var in index_expected_vars:
-            for alias in indice_var:
+        for standard_var in index_expected_vars:
+            for alias in standard_var.aliases:
                 # check if dataset contains this alias
-                if _is_alias_valid(ds, index, alias):
+                if _is_alias_valid(ds, standard_index, alias):
                     climate_var_names.append(alias)
                     break
         if len(climate_var_names) < len(index_expected_vars):
@@ -206,27 +197,29 @@ def _find_standard_vars(ds: Dataset) -> list[Hashable]:
     return [
         v
         for v in ds.data_vars
-        if CfVarMetadataRegistry.lookup(str(v), no_error=True) is not None
+        if StandardVariableRegistry.lookup(str(v), no_error=True) is not None
     ]
 
 
 def guess_input_type(data: DataArray) -> StandardVariable | None:
-    cf_input = CfVarMetadataRegistry.lookup(str(data.name), no_error=True)
+    cf_input = StandardVariableRegistry.lookup(str(data.name), no_error=True)
+    if cf_input is None and data.attrs.get("standard_name", None) is not None:
+        cf_input = StandardVariableRegistry.lookup(
+            data.attrs.get("standard_name"), no_error=True
+        )
     if cf_input is None:
         return None
-    cf_input.frequency = FrequencyRegistry.lookup(
-        xr.infer_freq(data.time) or DEFAULT_INPUT_FREQUENCY
-    )
+    #  todo: why duplicate the unit on a contant ?
     cf_input.units = data.attrs.get(UNITS_ATTRIBUTE_KEY, cf_input.default_units)
     return cf_input
 
 
-def build_study_da(
+def build_studied_data(
     original_da: DataArray,
     time_range: Sequence[str] | None,
     ignore_Feb29th: bool,
     sampling_frequency: Frequency,
-    cf_meta: StandardVariable | None,
+    standard_var: StandardVariable | None,
 ) -> DataArray:
     if time_range is not None:
         check_time_range_pre_validity("time_range", time_range)
@@ -246,8 +239,8 @@ def build_study_da(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if sampling_frequency.time_clipping is not None:
         da = sampling_frequency.time_clipping(da)
-    if da.attrs.get(UNITS_ATTRIBUTE_KEY, None) is None and cf_meta is not None:
-        da.attrs[UNITS_ATTRIBUTE_KEY] = cf_meta.units
+    if da.attrs.get(UNITS_ATTRIBUTE_KEY, None) is None and standard_var is not None:
+        da.attrs[UNITS_ATTRIBUTE_KEY] = standard_var.units
     da = da.chunk("auto")
     return da
 

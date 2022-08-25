@@ -3,9 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Tuple, Union
 
+# from generic_indices.generic_indicators import GenericIndicator
+from generic_indices.cf_var_metadata import StandardVariable
 from xarray import DataArray
 
-# from generic_indices.generic_indicators import GenericIndicator
 from icclim.models.index_group import IndexGroup
 
 ComputeIndexFun = Callable[
@@ -44,7 +45,7 @@ class StandardIndex:
 
     short_name: str
     group: IndexGroup
-    input_variables: list[list[str]] | None  # None when index is generic
+    input_variables: list[StandardVariable] | None  # None when index is generic
     generic_indicator: Any  # Any -> GenericIndicator
     qualifiers: list[str] | None = None
     source: str | None = None

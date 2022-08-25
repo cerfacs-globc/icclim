@@ -19,7 +19,7 @@ from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 from icclim.ecad.ecad_functions import IndexConfig
-from icclim.ecad.ecad_indices import EcadIndexRegistry, get_season_excluded_indices
+from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.generic_indices.generic_indicators import (
     GenericIndicator,
     GenericIndicatorRegistry,
@@ -90,7 +90,7 @@ def indices(
         indices = [EcadIndexRegistry.lookup(i) for i in index_group]
     elif index_group == IndexGroupRegistry.WILD_CARD_GROUP or (
         isinstance(index_group, str)
-        and index_group.lower() == IndexGroupRegistry.WILD_CARD_GROUP.value
+        and index_group.lower() == IndexGroupRegistry.WILD_CARD_GROUP.name
     ):
         indices = EcadIndexRegistry.values()
     else:
@@ -294,34 +294,46 @@ def index(
         only_leap_years=only_leap_years,
         interpolation=interpolation,
     )
-    index: StandardIndex | GenericIndicator | None
+    indicator: GenericIndicator | None
+    standard_index: StandardIndex | None = None
     if index_name is not None:
-        index = EcadIndexRegistry.lookup(index_name, no_error=True)
-        if index is None:
-            index = GenericIndicatorRegistry.lookup(index_name)
+        standard_index = EcadIndexRegistry.lookup(index_name, no_error=True)
+        if standard_index is None:
+            indicator = GenericIndicatorRegistry.lookup(index_name)
+            rename = None
+        else:
+            indicator = standard_index.generic_indicator
+            threshold = standard_index.threshold
+            rename = standard_index.short_name
     else:
-        index = None
+        indicator = None
+        rename = None
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     if isinstance(threshold, str):
         threshold = build_threshold(threshold)
     elif isinstance(threshold, Sequence):
-        threshold = [
-            build_threshold(t) for t in threshold if not isinstance(t, Threshold)
-        ]
-    climate_vars_dict = to_dictionary(in_files, var_name, index, threshold)
+        threshold = [build_threshold(t) for t in threshold]
+    climate_vars_dict = to_dictionary(
+        in_files=in_files,
+        var_names=var_name,
+        threshold=threshold,
+        standard_index=standard_index,
+    )
     # We use groupby instead of resample when there is a single variable that must be
     # compared to its reference period values.
     is_single_var = must_add_reference_var(
         threshold, climate_vars_dict, base_period_time_range
     )
+    indicator_name = standard_index.short_name if standard_index else indicator.name
     climate_vars = build_climate_vars(
         climate_vars_dict=climate_vars_dict,
         ignore_Feb29th=ignore_Feb29th,
-        index=index,
         sampling_frequency=sampling_frequency,
         threshold=threshold,
         time_range=time_range,
         base_period=base_period_time_range,
+        standard_index=standard_index,
+        indicator_name=indicator_name,
     )
     if base_period_time_range is not None:
         reference_period = tuple(
@@ -338,21 +350,15 @@ def index(
         netcdf_version=NetcdfVersionRegistry.lookup(netcdf_version),
         interpolation=interpolation,
         callback=callback,
-        index=index,
+        index=indicator,
         is_single_var=is_single_var,
         reference_period=reference_period,  # noqa
+        indicator_name=indicator_name,
     )
     if user_index is not None:
         # todo: replace by user_index -> generic index
         result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
     else:
-        _check_valid_config(index, config)
-        if isinstance(index, StandardIndex):
-            indicator = index.generic_indicator
-            rename = index.short_name
-        else:
-            indicator = index
-            rename = None
         result_ds = _compute_standard_climate_index(
             config=config,
             climate_index=indicator,
@@ -367,7 +373,7 @@ def index(
         _write_output_file(
             result_ds,
             climate_vars[0].global_metadata["time_encoding"],
-            netcdf_version,
+            config.netcdf_version,
             out_file,
         )
     callback(callback_percentage_total)
@@ -560,30 +566,25 @@ def _build_history(
     )
 
 
-def _check_valid_config(index: StandardIndex, config: IndexConfig):
-    if index in get_season_excluded_indices() and config.frequency.indexer is not None:
-        raise InvalidIcclimArgumentError(
-            "Indices computing a spell cannot be computed on un-clipped season for now."
-            " Instead, you can use a clipped_season like this:"
-            "`slice_mode=['clipped_season', [12,1,2]]` (example of a DJF season)."
-            " However, it will NOT take into account spells beginning before the season"
-            " start!"
-        )
-
-
 def _get_threshold_builder(
     doy_window_width: int,
     base_period_time_range: Sequence[datetime | str] | None,
     only_leap_years: bool,
     interpolation: QuantileInterpolation,
 ) -> Callable:
-    return lambda t: Threshold(
-        t,
-        doy_window_width=doy_window_width,
-        base_period_time_range=base_period_time_range,
-        only_leap_years=only_leap_years,
-        interpolation=interpolation,
-    )
+    def build_threshold(t: str | Threshold):
+        if isinstance(t, Threshold):
+            return t
+        else:
+            return Threshold(
+                t,
+                doy_window_width=doy_window_width,
+                base_period_time_range=base_period_time_range,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+            )
+
+    return build_threshold
 
 
 def _format_thresholds_for_export(climate_vars: list[ClimateVariable]) -> Dataset:

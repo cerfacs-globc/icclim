@@ -20,21 +20,6 @@ DOY_COORDINATE = "dayofyear"
 # Units attribute key for DataArray(s)
 UNITS_ATTRIBUTE_KEY =  "units"
 
-# Aliases of input variables names.
-# Source: clix-meta (modified)
-# todo remove in favor of CfVarMetadata
-PR = ["pr", "prAdjust","prAdjust", "prec", "rr", "precip", "PREC", "Prec", "RR", "PRECIP", "Precip"]
-TAS = ["tas", "tavg", "ta", "tasAdjust","tasAdjust", "tmean", "tm", "tg", "meant", "TMEAN", "Tmean", "TM", "TG", "MEANT", "meanT", "tasmidpoint"]
-TAS_MAX = ["tasmax", "tasmaxAdjust","tasmaxAdjust", "tmax", "tx", "maxt", "TMAX", "Tmax", "TX", "MAXT", "maxT"]
-TAS_MIN = ["tasmin", "tasminAdjust","tasminAdjust", "tmin", "tn", "mint", "TMIN", "Tmin", "TN", "MINT", "minT"]
-HURS = ["hurs", "hursAdjust", "rh", "RH"]
-PSL = ["psl", "mslp", "slp", "pp", "MSLP", "SLP", "PP"]
-SND = ["snd", "sd", "SD"]
-SUND = ["sund", "ss", "SS"]
-WSGS_MAX = ["wsgsmax", "fx", "FX"]
-SFC_WIND = ["sfcWind", "sfcwind", "fg", "FG"]
-SNW = ["snw", "swe", "SW"]
-
 
 # Aliases of input percentiles variables names
 # Source icclim dev
@@ -69,17 +54,19 @@ DOY_PERCENTILE_UNIT = "doy_per"
 # Mapping of frequencies to generate metadata
 # copied from xclim and updated.
 # todo: it's weird to group in the same dictionary things that have different purposes.
-FREQ_MAPPING = {
-    "YS": "annual", "Y": "annual", "AS": "annual", "A": "annual",
-    "MS": "monthly", "M": "monthly",
-    "QS": "seasonal", "Q": "seasonal",
-    "D": "daily",
-    "H": "hourly",
+EN_FREQ_MAPPING = {
+    "YS": "year(s)", "Y": "year(s)", "AS": "year(s)", "A": "year(s)",
+    "QS": "season(s)", "Q": "season(s)",
+    "MS": "month(s)", "M": "month(s)",
+    "W": "week(s)",
+    "D": "day(s)",
+    "H": "hour(s)",
     "JAN": "January starting", "FEB": "February starting", "MAR": "March starting", "APR": "April starting", "MAY": "May starting", "JUN": "June starting", "JUL": "July starting", "AUG": "August starting", "SEP": "September starting", "OCT": "October starting", "NOV": "November starting", "DEC": "December starting",
     # Arguments to "indexer"
     "DJF": "wintry", "MAM": "springlong", "JJA": "summery", "SON": "autumnal",
     "norm": "Normal",
     "m1": "january",  "m2": "february",  "m3": "march",  "m4": "april",  "m5": "may",  "m6": "june",  "m7": "july",  "m8": "august",  "m9": "september",  "m10": "october",  "m11": "november",  "m12": "december",
+    "MON": "monday starting", "TUE": "tuesday starting", "WED": "wednesday starting", "THU": "thursday starting", "FRI": "friday starting", "SAT": "saturday starting", "SUN": "sunday starting"
 }
 
 # Special CF unit

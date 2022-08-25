@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from copy import deepcopy
+
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
 
@@ -27,7 +29,7 @@ class Registry:
         q = query.upper()
         for key, item in cls.catalog().items():
             if q == key.upper() or q in cls.get_item_aliases(item):
-                return item
+                return deepcopy(item)
         if no_error:
             return None
         raise InvalidIcclimArgumentError(

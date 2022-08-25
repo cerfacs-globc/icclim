@@ -54,13 +54,13 @@
 #         kw = config.xclim_kwargs  # todo add xclim_kwargs to icclim::index
 #         for param_name, param_value in indicator.parameters.items():
 #             if "pr" == param_name:
-#                 kw.update({"pr": config.pr.study_da})
+#                 kw.update({"pr": config.pr.studied_data})
 #             elif "tas" == param_name:
-#                 kw.update({"tas": config.tas.study_da})
+#                 kw.update({"tas": config.tas.studied_data})
 #             elif "tasmax" == param_name:
-#                 kw.update({"tasmax": config.tasmax.study_da})
+#                 kw.update({"tasmax": config.tasmax.studied_data})
 #             elif "tasmin" == param_name:
-#                 kw.update({"tasmin": config.tasmin.study_da})
+#                 kw.update({"tasmin": config.tasmin.studied_data})
 #             elif "pr_per" == param_name:
 #                 pr_per = _compute_precip_percentile_over_period(
 #                     config.pr, config.interpolation, config.scalar_thresholds

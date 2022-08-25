@@ -48,10 +48,10 @@ class Test_compute:
     def test_simple_percentile_pr(self):
         # GIVEN
         cf_var = ClimateVariable("tas", stub_pr(5), stub_pr(5))
-        cf_var.study_da.data[15:30] += 10
-        cf_var.study_da.data[366 + 15 : 366 + 30] = 2  # Ignore because not in base
-        cf_var.reference_da = cf_var.study_da.sel(
-            time=cf_var.study_da.time.dt.year == 2042
+        cf_var.studied_data.data[15:30] += 10
+        cf_var.studied_data.data[366 + 15 : 366 + 30] = 2  # Ignore because not in base
+        cf_var.reference_da = cf_var.studied_data.sel(
+            time=cf_var.studied_data.time.dt.year == 2042
         )
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = CalcOperationRegistry.MIN
@@ -66,9 +66,9 @@ class Test_compute:
 
     def test_simple_percentile_temp(self):
         cf_var = ClimateVariable("tas", stub_tas(5), stub_tas(5))
-        cf_var.study_da.data[15:30] = 1
-        cf_var.reference_da = cf_var.study_da.sel(
-            time=cf_var.study_da.time.dt.year.isin([2042, 2043])
+        cf_var.studied_data.data[15:30] = 1
+        cf_var.reference_da = cf_var.studied_data.sel(
+            time=cf_var.studied_data.time.dt.year.isin([2042, 2043])
         )
         user_index = stub_user_index([cf_var])
         user_index.calc_operation = "min"

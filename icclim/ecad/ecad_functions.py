@@ -23,7 +23,7 @@ from icclim.models.index_config import IndexConfig
 
 def prcptot(config: IndexConfig) -> DataArray:
     result = atmos.precip_accumulation(
-        _filter_in_wet_days(config.pr.study_da, dry_day_value=0),
+        _filter_in_wet_days(config.pr.studied_data, dry_day_value=0),
         **config.frequency.build_frequency_kwargs(),
     )
     return result

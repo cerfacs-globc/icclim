@@ -164,7 +164,7 @@ def _unsafe_create_optimized_zarr_store(
     with dask.config.set(DEFAULT_DASK_CONF):
         logger.info("Rechunking in progress, this will take some time.")
         is_ds_zarr = is_zarr_path(in_files)
-        ds = read_dataset(in_files, index=None, var_name=var_name)
+        ds = read_dataset(in_files, standard_var=None, var_name=var_name)
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_name, ds.data_vars.keys()))
         if len(ds.data_vars.keys()) == 0:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from icclim.generic_indices.cf_var_metadata import StandardVariableRegistry
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import (
@@ -7,15 +8,12 @@ from icclim.models.constants import (
     ECAD_ATBD,
     MIN_SPELL_WINDOW,
     MODIFIABLE_UNIT,
-    PR,
     QUANTILE_BASED,
     ROLLING_WINDOW,
-    TAS,
-    TAS_MAX,
-    TAS_MIN,
 )
 from icclim.models.index_group import IndexGroupRegistry
 from icclim.models.registry import Registry
+from icclim.models.threshold import Threshold
 
 
 class EcadIndexRegistry(Registry):
@@ -43,7 +41,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TG",
         group=IndexGroupRegistry.TEMPERATURE,
-        input_variables=[TAS],
+        input_variables=[StandardVariableRegistry.TAS],
     )
     TN = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.Average,
@@ -52,7 +50,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TN",
         group=IndexGroupRegistry.TEMPERATURE,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
     )
     TX = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.Average,
@@ -61,7 +59,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TX",
         group=IndexGroupRegistry.TEMPERATURE,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
     )
     DTR = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.MeanOfDifference,
@@ -70,7 +68,10 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="DTR",
         group=IndexGroupRegistry.TEMPERATURE,
-        input_variables=[TAS_MAX, TAS_MIN],
+        input_variables=[
+            StandardVariableRegistry.TAS_MAX,
+            StandardVariableRegistry.TAS_MIN,
+        ],
     )
     ETR = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.DifferenceOfExtremes,
@@ -79,7 +80,10 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="ETR",
         group=IndexGroupRegistry.TEMPERATURE,
-        input_variables=[TAS_MAX, TAS_MIN],
+        input_variables=[
+            StandardVariableRegistry.TAS_MAX,
+            StandardVariableRegistry.TAS_MIN,
+        ],
     )
     VDTR = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference,
@@ -88,7 +92,10 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="vDTR",
         group=IndexGroupRegistry.TEMPERATURE,
-        input_variables=[TAS_MAX, TAS_MIN],
+        input_variables=[
+            StandardVariableRegistry.TAS_MAX,
+            StandardVariableRegistry.TAS_MIN,
+        ],
     )
     # Heat
     SU = StandardIndex(
@@ -99,7 +106,7 @@ class EcadIndexRegistry(Registry):
         short_name="SU",
         threshold=">= 25 degree_Celsius",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[],
     )
     TR = StandardIndex(
@@ -110,7 +117,7 @@ class EcadIndexRegistry(Registry):
         short_name="TR",
         threshold=">= 20 degree_Celsius",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[],
     )
     WSDI = StandardIndex(
@@ -121,7 +128,7 @@ class EcadIndexRegistry(Registry):
         short_name="WSDI",
         threshold=">= 90 doy_per",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
             DOY_WINDOW,
@@ -138,7 +145,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TG90p",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS],
+        input_variables=[StandardVariableRegistry.TAS],
         qualifiers=[
             QUANTILE_BASED,
             DOY_WINDOW,
@@ -154,7 +161,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TN90p",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[
             QUANTILE_BASED,
             DOY_WINDOW,
@@ -170,7 +177,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TX90p",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
             DOY_WINDOW,
@@ -185,7 +192,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TXx",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
     )
     TNX = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.Minimum,
@@ -194,7 +201,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TNx",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
     )
     CSU = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
@@ -204,7 +211,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="CSU",
         group=IndexGroupRegistry.HEAT,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[],
     )
     # Cold
@@ -216,7 +223,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="GD4",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS],
+        input_variables=[StandardVariableRegistry.TAS],
         qualifiers=[],
     )
     FD = StandardIndex(
@@ -227,7 +234,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="FD",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[],
     )
     CFD = StandardIndex(
@@ -238,7 +245,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="CFD",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[],
     )
     HD17 = StandardIndex(
@@ -249,7 +256,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="HD17",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS],
+        input_variables=[StandardVariableRegistry.TAS],
         qualifiers=[],
     )
     ID = StandardIndex(
@@ -260,7 +267,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="ID",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[],
     )
     TG10P = StandardIndex(
@@ -271,7 +278,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TG10p",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS],
+        input_variables=[StandardVariableRegistry.TAS],
         qualifiers=[
             QUANTILE_BASED,
             DOY_WINDOW,
@@ -287,7 +294,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TN10p",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[
             QUANTILE_BASED,
             DOY_WINDOW,
@@ -303,7 +310,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TX10p",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
             DOY_WINDOW,
@@ -318,7 +325,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TXn",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS_MAX],
+        input_variables=[StandardVariableRegistry.TAS_MAX],
     )
     TNN = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.Minimum,
@@ -327,7 +334,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="TNn",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
     )
     CSDI = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.SumOfSpellLengths,
@@ -337,7 +344,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="CSDI",
         group=IndexGroupRegistry.COLD,
-        input_variables=[TAS_MIN],
+        input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[QUANTILE_BASED, DOY_WINDOW, MIN_SPELL_WINDOW],
         doy_window_width=5,
         min_spell_length=6,
@@ -351,7 +358,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="CDD",
         group=IndexGroupRegistry.DROUGHT,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     # Rain
     PRCPTOT = StandardIndex(
@@ -362,7 +369,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="PRCPTOT",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     RR1 = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
@@ -372,7 +379,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="RR1",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     SDII = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.Average,
@@ -382,7 +389,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SDII",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     CWD = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
@@ -392,7 +399,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="CWD",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     R10MM = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
@@ -402,7 +409,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="R10mm",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     R20MM = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
@@ -412,7 +419,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="R20mm",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     RX1DAY = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.Maximum,
@@ -421,7 +428,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="RX1day",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     RX5DAY = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.MaxOfRollingSum,
@@ -430,20 +437,20 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="RX5day",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[ROLLING_WINDOW],
         rolling_window_width=5,
     )
     R75P = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold="> 75 period_per",
+        threshold=Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 75th percentile of daily amounts (moderate wet days)"
         " (d)",
         source=ECAD_ATBD,
         short_name="R75p",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
             MODIFIABLE_UNIT,
@@ -451,28 +458,28 @@ class EcadIndexRegistry(Registry):
     )
     R75PTOT = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
-        threshold="> 75 period_per",
+        threshold=Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="",  # unit less
         definition="Precipitation fraction due to moderate wet days"
         " (> 75th percentile)",
         source=ECAD_ATBD,
         short_name="R75pTOT",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
         ],
     )
     R95P = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold="> 95 period_per",
+        threshold=Threshold("> 95 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 95th percentile of daily amounts (very wet days)"
         " (days)",
         source=ECAD_ATBD,
         short_name="R95p",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
             MODIFIABLE_UNIT,
@@ -480,27 +487,27 @@ class EcadIndexRegistry(Registry):
     )
     R95PTOT = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
-        threshold="> 95 period_per",
+        threshold=Threshold("> 95 period_per", threshold_min_value="1 mm/day"),
         output_unit="",  # unit less
         definition="Precipitation fraction due to very wet days (> 95th percentile)",
         source=ECAD_ATBD,
         short_name="R95pTOT",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
         ],
     )
     R99P = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold="> 99 period_per",
+        threshold=Threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 99th percentile of daily amounts"
         " (extremely wet days)",
         source=ECAD_ATBD,
         short_name="R99p",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
             MODIFIABLE_UNIT,
@@ -508,14 +515,14 @@ class EcadIndexRegistry(Registry):
     )
     R99PTOT = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
-        threshold="> 99 period_per",
+        threshold=Threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="",  # unit less
         definition="Precipitation fraction due to extremely wet days"
         " (> 99th percentile)",
         source=ECAD_ATBD,
         short_name="R99pTOT",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
         ],
@@ -528,7 +535,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     SD1 = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
@@ -538,7 +545,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD1",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     SD5CM = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
@@ -548,7 +555,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD5cm",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     SD50CM = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
@@ -558,77 +565,71 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD50cm",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[PR],
+        input_variables=[StandardVariableRegistry.PR],
     )
     # Compound (precipitation and temperature)
     CD = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=["< 25 doy_per", "< 25 doy_per"],
+        threshold=[
+            "< 25 doy_per",
+            Threshold("< 25 period_per", threshold_min_value="1 mm/day"),
+        ],
         output_unit="day",
         definition="Days with TG < 25th percentile of daily mean temperature and"
         " RR <25th percentile of daily precipitation sum (cold/dry days)",
         source=ECAD_ATBD,
         short_name="CD",
         group=IndexGroupRegistry.COMPOUND,
-        input_variables=[TAS, PR],
+        input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED, DOY_WINDOW],
         doy_window_width=5,
     )
     CW = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=["< 25 doy_per", "> 75 doy_per"],
+        threshold=[
+            "< 25 doy_per",
+            Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+        ],
         output_unit="day",
         definition="Days with TG < 25th percentile of daily mean temperature and"
         " RR >75th percentile of daily precipitation sum (cold/wet days)",
         source=ECAD_ATBD,
         short_name="CW",
         group=IndexGroupRegistry.COMPOUND,
-        input_variables=[TAS, PR],
+        input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED, DOY_WINDOW],
         doy_window_width=5,
     )
     WD = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=["> 75 doy_per", "< 25 doy_per"],
+        threshold=[
+            "> 75 doy_per",
+            Threshold("< 25 period_per", threshold_min_value="1 mm/day"),
+        ],
         output_unit="day",
         definition="Days with TG > 75th percentile of daily mean temperature and"
         " RR <25th percentile of daily precipitation sum (warm/dry days)",
         source=ECAD_ATBD,
         short_name="WD",
         group=IndexGroupRegistry.COMPOUND,
-        input_variables=[TAS, PR],
+        input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED, DOY_WINDOW],
         doy_window_width=5,
     )
     WW = StandardIndex(
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=["> 75 doy_per", "> 75 doy_per"],  # todo: use a dictionary instead ?
+        # todo: use a dictionary for threshold instead ?
+        threshold=[
+            "> 75 doy_per",
+            Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+        ],
         output_unit="day",
         definition="Days with TG > 75th percentile of daily mean temperature and"
         " RR >75th percentile of daily precipitation sum (warm/wet days)",
         source=ECAD_ATBD,
         short_name="WW",
         group=IndexGroupRegistry.COMPOUND,
-        input_variables=[TAS, PR],
+        input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED, DOY_WINDOW],
         doy_window_width=5,
     )
-
-
-def get_season_excluded_indices() -> list[StandardIndex]:
-    """List of indices which cannot be computed with seasonal slice_mode."""
-    # todo: DELETE ?
-    #       turn it into check if it's MaxConsecutive or SumSpellLength or rum_mean ?
-    return [
-        EcadIndexRegistry.WSDI,
-        EcadIndexRegistry.CSU,
-        EcadIndexRegistry.CFD,
-        EcadIndexRegistry.CSDI,
-        EcadIndexRegistry.CDD,
-        EcadIndexRegistry.CWD,
-        EcadIndexRegistry.RX5DAY,
-        EcadIndexRegistry.CD,
-        EcadIndexRegistry.CW,
-        EcadIndexRegistry.WD,
-        EcadIndexRegistry.WW,
-    ]

@@ -31,4 +31,4 @@ class Test_UserindexConfig:
         assert config.thresh == 273.15
         assert config.date_event
         assert config.freq == FrequencyRegistry.MONTH
-        assert config.climate_variables[0].study_da is tas
+        assert config.climate_variables[0].studied_data is tas
