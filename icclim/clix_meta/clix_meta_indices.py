@@ -40,9 +40,7 @@ class ClixMetaIndex(TypedDict):
 
 
 class ClixMetaIndices:
-    """
-    Singleton to access content of clix-meta yaml file.
-    """
+    """Singleton to access content of clix-meta yaml file."""
 
     __instance: Any = None
     indices_record: dict[str, ClixMetaIndex]

@@ -963,7 +963,7 @@ indices:
     input:
       data: tasmin
     index_function:
-      name: count_occurrences
+      name: spell_length
       parameters:
         threshold:
           kind: quantity
@@ -999,7 +999,7 @@ indices:
     input:
       data: tasmax
     index_function:
-      name: count_occurrences
+      name: spell_length
       parameters:
         threshold:
           kind: quantity
