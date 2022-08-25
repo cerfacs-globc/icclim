@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
-from generic_indices.cf_var_metadata import StandardVariable
 from xarray import DataArray
 
+from icclim.generic_indices.cf_var_metadata import StandardVariable
 from icclim.models.index_group import IndexGroup
 
 ComputeIndexFun = Callable[
