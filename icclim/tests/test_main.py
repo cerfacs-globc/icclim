@@ -12,7 +12,6 @@ import xarray as xr
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import ICCLIM_VERSION, UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_group import IndexGroupRegistry
@@ -255,7 +254,7 @@ class Test_Integration:
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset__seasonal_clip(self):
+    def test_indices_all_from_Dataset__seasonal(self):
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
@@ -267,12 +266,12 @@ class Test_Integration:
             index_group="all",
             in_files=ds,
             out_file=self.OUTPUT_FILE,
-            slice_mode=["clipped_season", [1, 2, 3]],
+            slice_mode=["season", [1, 2, 3]],
         )
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset__between_dates_seasonal_clip(self):
+    def test_indices_all_from_Dataset__between_dates_seasonal(self):
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
@@ -284,12 +283,12 @@ class Test_Integration:
             index_group="all",
             in_files=ds,
             out_file=self.OUTPUT_FILE,
-            slice_mode=["clipped_season", ["07-19", "08-14"]],
+            slice_mode=["season", ["07-19", "08-14"]],
         )
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset__JFM_seasonal_clip(self):
+    def test_indices_all_from_Dataset__JFM_seasonal(self):
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
@@ -301,31 +300,12 @@ class Test_Integration:
             index_group="all",
             in_files=ds,
             out_file=self.OUTPUT_FILE,
-            slice_mode=["clipped_season", [1, 2, 3]],
+            slice_mode=["season", [1, 2, 3]],
         )
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset__seasonal_error(self):
-        # GIVEN
-        ds = self.data.to_dataset(name="tas")
-        ds["tasmax"] = self.data
-        ds["tasmin"] = self.data
-        ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
-        ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
-        # THEN
-        with pytest.raises(InvalidIcclimArgumentError):
-            # WHEN
-            icclim.indices(
-                index_group=["WSDI"],
-                in_files=ds,
-                out_file=self.OUTPUT_FILE,
-                slice_mode=["season", [1, 2, 3]],
-            )
-
-    def test_indices_all_from_Dataset__between_year_clipped_season(self):
+    def test_indices_all_from_Dataset__between_year_season(self):
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
@@ -337,7 +317,7 @@ class Test_Integration:
             index_group="all",
             in_files=ds,
             out_file=self.OUTPUT_FILE,
-            slice_mode=["clipped_season", [12, 1, 2, 3]],
+            slice_mode=["season", [12, 1, 2, 3]],
         )
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None

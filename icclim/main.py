@@ -328,7 +328,6 @@ def index(
     climate_vars = build_climate_vars(
         climate_vars_dict=climate_vars_dict,
         ignore_Feb29th=ignore_Feb29th,
-        sampling_frequency=sampling_frequency,
         threshold=threshold,
         time_range=time_range,
         base_period=base_period_time_range,
@@ -491,12 +490,7 @@ def _compute_standard_climate_index(
     initial_source: str,
     rename: str | None = None,
 ) -> Dataset:
-    if config.frequency.time_clipping is not None:
-        # xclim missing values checking system will not work with clipped time
-        with xclim.set_options(check_missing="skip"):
-            result_da = climate_index(config)
-    else:
-        result_da = climate_index(config)
+    result_da = climate_index(config)
     if rename:
         result_da = result_da.rename(rename)
     else:

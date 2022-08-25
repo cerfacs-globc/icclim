@@ -69,7 +69,6 @@ class ClimateVariable:
 def build_climate_vars(
     climate_vars_dict: dict[str, InFileDictionary],
     ignore_Feb29th: bool,
-    sampling_frequency: Frequency,
     threshold: Threshold | None,
     time_range: Sequence[str],
     base_period: Sequence[str] | None,
@@ -80,7 +79,6 @@ def build_climate_vars(
         added_var = build_reference_var_dict(
             base_period,
             climate_vars_dict,
-            sampling_frequency=sampling_frequency,
             standard_index=standard_index,
         )
         climate_vars_dict.update(added_var)
@@ -89,7 +87,6 @@ def build_climate_vars(
             k,
             v,
             ignore_Feb29th,
-            sampling_frequency,
             threshold,
             time_range,
             standard_index=standard_index,
@@ -103,7 +100,6 @@ def build_reference_var_dict(
     reference_period: Sequence[str] | None,
     in_files,
     standard_index: StandardIndex,
-    sampling_frequency: Frequency,
 ) -> dict[str, InFileDictionary]:
     """This function add a secondary variable for indices such as anomaly that needs
     exactly two variables but where the second variable could just be a subset of the
@@ -128,7 +124,6 @@ def build_reference_var_dict(
         study_ds[var_name],
         reference_period,
         only_leap_years=False,
-        sampling_frequency=sampling_frequency,
         percentile_min_value=None,
     )
     return {var_name + "_reference": {"study": v}}
@@ -194,7 +189,6 @@ def _build_climate_var(
     climate_var_name: str,
     climate_var_data: InFileDictionary | InFileBaseType,
     ignore_Feb29th: bool,
-    sampling_frequency: Frequency,
     threshold: Threshold | None,
     time_range: Sequence[str],
     standard_index: StandardIndex | None,
@@ -222,12 +216,11 @@ def _build_climate_var(
         study_ds[climate_var_name],
         time_range,
         ignore_Feb29th,
-        sampling_frequency,
         standard_var,
     )
     if climate_var_thresh is not None:
         climate_var_thresh = _build_threshold(
-            indicator_name, climate_var_thresh, sampling_frequency, studied_data
+            indicator_name, climate_var_thresh, studied_data
         )
     return ClimateVariable(
         name=climate_var_name,
@@ -248,14 +241,12 @@ def _build_climate_var(
 def _build_threshold(
     indicator_name: str,
     climate_var_thresh: str | Threshold,
-    sampling_frequency: Frequency,
     studied_data: DataArray,
 ) -> Threshold:
     if isinstance(climate_var_thresh, str):
         climate_var_thresh: Threshold = Threshold(climate_var_thresh)
     if isinstance(climate_var_thresh.value, Callable):
         climate_var_thresh.value = climate_var_thresh.value(
-            sampling_frequency=sampling_frequency,
             studied_data=studied_data,
             indicator_name=indicator_name,
         )

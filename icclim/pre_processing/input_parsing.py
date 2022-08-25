@@ -21,7 +21,6 @@ from icclim.icclim_types import InFileBaseType, InFileType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY, VALID_PERCENTILE_DIMENSION
-from icclim.models.frequency import Frequency
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.utils import get_date_to_iso_format
 
@@ -218,7 +217,6 @@ def build_studied_data(
     original_da: DataArray,
     time_range: Sequence[str] | None,
     ignore_Feb29th: bool,
-    sampling_frequency: Frequency,
     standard_var: StandardVariable | None,
 ) -> DataArray:
     if time_range is not None:
@@ -237,8 +235,6 @@ def build_studied_data(
         da = original_da
     if ignore_Feb29th:
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
-    if sampling_frequency.time_clipping is not None:
-        da = sampling_frequency.time_clipping(da)
     if da.attrs.get(UNITS_ATTRIBUTE_KEY, None) is None and standard_var is not None:
         da.attrs[UNITS_ATTRIBUTE_KEY] = standard_var.units
     da = da.chunk("auto")
@@ -340,7 +336,6 @@ def build_reference_da(
     original_da: DataArray,
     base_period_time_range: Sequence[datetime | str] | None,
     only_leap_years: bool,
-    sampling_frequency: Frequency,
     percentile_min_value: str | float | None,
 ) -> DataArray:
     # todo [refacto] move back to threshold ?
@@ -356,8 +351,6 @@ def build_reference_da(
         check_time_range_post_validity(
             reference, original_da, "base_period_time_range", base_period_time_range
         )
-    if sampling_frequency.time_clipping is not None:
-        reference = sampling_frequency.time_clipping(reference)
     if only_leap_years:
         reference = reduce_only_leap_years(original_da)
     if percentile_min_value:

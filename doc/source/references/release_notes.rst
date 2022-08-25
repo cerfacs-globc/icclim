@@ -8,6 +8,7 @@ Release history
 * [maint] **BREAKING CHANGE:** ECAD indices are no longer configurable! Use a generic index instead.
 * [fix] **BREAKING CHANGE:** ECAD indices CW, CD, WW, WD were computing the precipitation percentiles on day of year values where it should have been percentiles of the whole period (excluding dry days). This has been fixed.
 * [maint] icclim no longer carries a version of the clix-meta yml file. Previously it was used to generate the doc string and a few metadata of ECAD indices. It's no longer needed as we have put these metadata within StandardIndex declaration.
+* [maint] **BREAKING CHANGE:** Removed the `clipped_season` option from `slice_mode`. With generic indices, `season` should work with every indices. In particular, spell based indices (e.g. wsdi) compute the spell length before doing the resampling operation.
 
 5.4.0
 -----

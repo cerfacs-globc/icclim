@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, List, Literal, Sequence, Tuple, Union
+from typing import Dict, List, Literal, Sequence, Tuple, Union
 
 from xarray import DataArray, Dataset
 
@@ -12,5 +12,4 @@ FrequencyLike = Union[str, List[Union[str, Tuple, int]], Tuple[str, Union[List, 
 MonthsIndexer = Dict[Literal["month"], Sequence[int]]
 # DatesIndexer format: ("01-25", "02-28")
 DatesIndexer = Dict[Literal["date_bounds"], Tuple[str, str]]
-ClippedSeasonIndexer = Callable
-Indexer = Union[MonthsIndexer, DatesIndexer, ClippedSeasonIndexer]
+Indexer = Union[MonthsIndexer, DatesIndexer]

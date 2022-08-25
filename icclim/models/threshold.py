@@ -263,7 +263,6 @@ def build_period_per(
     reference_period: Sequence[str],
     interpolation: QuantileInterpolation,
     only_leap_years: bool,
-    sampling_frequency: Frequency,
     studied_data: DataArray,
     percentile_min_value: float | None,
     indicator_name: str,
@@ -272,7 +271,6 @@ def build_period_per(
         studied_data,
         reference_period,
         only_leap_years,
-        sampling_frequency,
         percentile_min_value=percentile_min_value,
     )
     computed_per = xr.apply_ufunc(
@@ -308,7 +306,6 @@ def build_doy_per(
     interpolation: QuantileInterpolation,
     only_leap_years: bool,
     doy_window_width: int,
-    sampling_frequency: Frequency,
     studied_data: DataArray,
     percentile_min_value: float | None,
     indicator_name: str,
@@ -317,7 +314,6 @@ def build_doy_per(
         studied_data,
         reference_period,
         only_leap_years,
-        sampling_frequency,
         percentile_min_value,
     )
     res = percentile_doy(
