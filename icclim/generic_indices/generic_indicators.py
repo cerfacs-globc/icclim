@@ -16,7 +16,7 @@ from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import resample_doy, select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
-from xclim.core.units import convert_units_to, to_agg_units
+from xclim.core.units import convert_units_to, rate2amount, to_agg_units
 from xclim.core.utils import PercentileDataArray
 from xclim.indices import run_length
 
@@ -110,6 +110,7 @@ class ResamplingIndicator(Indicator):
         output_frequency: Frequency,
         src_freq: Frequency,
         indicator: GenericIndicator,
+        output_unit: str | None,
     ) -> list[ClimateVariable]:
         self.datachecks(climate_vars, src_freq.pandas_freq)
         self.cfcheck(climate_vars)
@@ -128,7 +129,10 @@ class ResamplingIndicator(Indicator):
         output_freq: str,
         src_freq: str,
         indexer: dict,
+        out_unit: str | None,
     ):
+        if out_unit is not None:
+            result = convert_units_to(result, out_unit)
         if self.missing != "skip" and indexer is not None:
             result = self._handle_missing_values(
                 resample_freq=output_freq,
@@ -204,18 +208,29 @@ class GenericIndicator(ResamplingIndicator):
         output_frequency: Frequency,
         src_freq: Frequency,
         indicator: GenericIndicator,
+        output_unit: str | None,
     ) -> list[ClimateVariable]:
         if not _same_freq_for_all(climate_vars):
             raise InvalidIcclimArgumentError(
                 "All variables must have the same time frequency (for example daily) to"
                 " be compared with each others, but this was not the case."
             )
+        if output_unit is not None and is_amount_unit(output_unit):
+            for climate_var in climate_vars:
+                current_unit = climate_var.studied_data.attrs.get(
+                    UNITS_ATTRIBUTE_KEY, None
+                )
+                if current_unit is not None and not is_amount_unit(current_unit):
+                    climate_var.studied_data = rate2amount(
+                        climate_var.studied_data, out_units=output_unit
+                    )
         return super().preprocess(
             climate_vars=climate_vars,
             jinja_scope=jinja_scope,
             output_frequency=output_frequency,
             src_freq=src_freq,
             indicator=indicator,
+            output_unit=output_unit,
         )
 
     def __call__(self, config: IndexConfig) -> DataArray:
@@ -241,6 +256,7 @@ class GenericIndicator(ResamplingIndicator):
             output_frequency=config.frequency,
             src_freq=src_freq,
             indicator=self,
+            output_unit=config.out_unit,
         )
         result = self.process(
             climate_vars=climate_vars,
@@ -256,6 +272,7 @@ class GenericIndicator(ResamplingIndicator):
             output_freq=config.frequency.pandas_freq,
             src_freq=src_freq.pandas_freq,
             indexer=config.frequency.indexer,
+            out_unit=config.out_unit,
         )
 
 
@@ -783,3 +800,10 @@ def _get_inputs_metadata(
             climate_vars,
         )
     )
+
+
+def is_amount_unit(unit: str) -> bool:
+    # todo: maybe there is a more generic way to handle that with pint,
+    #       we could try to convert to pint and check if it has a "day-1" in it
+    #       (or a similar "by-time" unit)
+    return unit in ["cm", "mm"]
