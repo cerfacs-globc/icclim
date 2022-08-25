@@ -39,12 +39,10 @@ def test_update_to_standard_coords():
         }
     )
     # WHEN
-    res, revert = update_to_standard_coords(ds)
+    res = update_to_standard_coords(ds)
     # THEN
-    assert "lat" in res.coords
     assert "time" in res.coords
-    assert "lon" in res.coords
-    assert res.rename(revert).coords.keys() == ds.coords.keys()
+    assert res.coords.keys() == ds.coords.keys()
 
 
 class Test_ReadDataset:

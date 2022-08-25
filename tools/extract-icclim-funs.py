@@ -20,16 +20,11 @@ import re
 import sys
 from pathlib import Path
 
-from models.climate_index import StandardIndex
-
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.models.constants import (
-    DOY_WINDOW,
-    MIN_SPELL_WINDOW,
-    QUANTILE_BASED,
-    ROLLING_WINDOW,
-)
+from icclim.models.climate_index import StandardIndex
+from icclim.models.constants import QUANTILE_BASED
+from icclim.models.threshold import Threshold
 
 ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]
 # Note: callback args are not included below
@@ -46,13 +41,8 @@ QUANTILE_INDEX_FIELDS = [
     "base_period_time_range",
     "only_leap_years",
     "interpolation",
-    "save_percentile",
     "save_thresholds",
 ]
-
-WINDOW_FIELD = "window_width"
-MODIFIABLE_THRESHOLD_FIELD = "threshold"
-MODIFIABLE_UNIT_FIELD = "out_unit"
 
 TAB = "    "
 
@@ -86,6 +76,7 @@ from icclim.icclim_logger import Verbosity
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.threshold import Threshold
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import InFileType
 
@@ -164,6 +155,7 @@ def get_standard_index_declaration(index: StandardIndex) -> str:
     pop_args.append("indice_name")
     pop_args.append("user_indice")
     pop_args.append("transfer_limit_Mbytes")
+    pop_args.append("save_percentile")
     # Pop unnecessary args
     pop_args.append("user_index")
     pop_args.append("callback")
@@ -172,18 +164,12 @@ def get_standard_index_declaration(index: StandardIndex) -> str:
     pop_args.append("index_name")  # specified with function name
     pop_args.append("threshold")
     pop_args.append("out_unit")
+    pop_args.append("window_width")
     qualifiers = [] if index.qualifiers is None else index.qualifiers
-    if QUANTILE_BASED not in qualifiers:
+    is_per_based = QUANTILE_BASED in qualifiers
+    if not is_per_based:
         for arg in QUANTILE_INDEX_FIELDS:
             pop_args.append(arg)
-    if (
-        ROLLING_WINDOW not in qualifiers
-        or MIN_SPELL_WINDOW not in qualifiers
-        or DOY_WINDOW not in qualifiers
-    ):
-        pop_args.append(WINDOW_FIELD)
-    #     todo put default arg instead,
-    #          disallow configuration of those for standard indices
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
     fun_signature_args = build_fun_signature_args(icclim_index_args)
@@ -206,10 +192,15 @@ def get_standard_index_declaration(index: StandardIndex) -> str:
     fun_call_args = index_name_arg + f",\n{TAB}{TAB}".join(
         [a + "=" + a for a in icclim_index_args]
     )
-    if isinstance(index.threshold, str):
-        fun_call_args += f',\n{TAB}{TAB}threshold="{index.threshold}"'
-    elif isinstance(index.threshold, list):
-        fun_call_args += f",\n{TAB}{TAB}threshold={index.threshold}"
+    if isinstance(index.threshold, (str, Threshold)):
+        fun_call_args += (
+            f",\n{TAB}{TAB}threshold={format_thresh(index.threshold, is_per_based)}"
+        )
+    elif isinstance(index.threshold, (list, tuple)):
+        fun_call_args += f",\n{TAB}{TAB}threshold=["
+        for t in index.threshold:
+            fun_call_args += format_thresh(t, is_per_based) + ","
+        fun_call_args += "]"
     if index.output_unit is not None:
         fun_call_args += f',\n{TAB}{TAB}out_unit="{index.output_unit}"'
     fun_call = f"{TAB}return icclim.index({fun_call_args},\n{TAB})\n"
@@ -241,6 +232,22 @@ def get_params_docstring(args: list[str], index_docstring: str) -> str:
         if matches[-1].group().strip().startswith(arg):
             result += index_docstring[matches[-1].start() :]
     return result
+
+
+def format_thresh(t: str | Threshold, is_percentile_based: bool) -> str:
+    if isinstance(t, str):
+        t = Threshold(t)
+    params = f'{TAB}{TAB}{TAB}query="{t.initial_query}",\n'
+    if is_percentile_based:
+        params += (
+            f"{TAB}{TAB}{TAB}doy_window_width={t.doy_window_width},\n"
+            f"{TAB}{TAB}{TAB}only_leap_years=only_leap_years,\n"
+            f"{TAB}{TAB}{TAB}interpolation=interpolation,\n"
+            f"{TAB}{TAB}{TAB}reference_period=base_period_time_range,\n"
+        )
+    if t.threshold_min_value is not None:
+        params += f'{TAB}{TAB}{TAB}threshold_min_value="{t.threshold_min_value.initial_query}",\n'
+    return f"{TAB}{TAB}{TAB}Threshold({params})"
 
 
 if __name__ == "__main__":

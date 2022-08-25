@@ -73,20 +73,11 @@ def read_dataset(
 
 def update_to_standard_coords(ds: Dataset) -> Dataset:
     """
-    Mutate input ds to use more icclim friendly coordinate name.
+    Mutate input ds to use more icclim friendly coordinate names.
     """
     # TODO see if cf-xarray could replace this
-    reset = {}
-    if ds.coords.get("latitude") is not None:
-        ds = ds.rename({"latitude": "lat"})
-        reset.update({"lat": "latitude"})
-    if ds.coords.get("longitude") is not None:
-        ds = ds.rename({"longitude": "lon"})
-        reset.update({"lon": "longitude"})
     if ds.coords.get("t") is not None:
         ds = ds.rename({"t": "time"})
-        reset.update({"time": "t"})
-    ds.attrs["reset_coords_dict"] = reset
     return ds
 
 

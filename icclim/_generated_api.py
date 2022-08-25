@@ -16,6 +16,7 @@ from icclim.icclim_logger import Verbosity
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
+from icclim.models.threshold import Threshold
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.input_parsing import InFileType
 
@@ -580,7 +581,9 @@ def su(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 25 degree_Celsius",
+        threshold=Threshold(
+            query=">= 25 degree_Celsius",
+        ),
         out_unit="day",
     )
 
@@ -654,7 +657,9 @@ def tr(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 20 degree_Celsius",
+        threshold=Threshold(
+            query=">= 20 degree_Celsius",
+        ),
         out_unit="day",
     )
 
@@ -670,7 +675,6 @@ def wsdi(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -730,14 +734,11 @@ def wsdi(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -759,10 +760,15 @@ def wsdi(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold=">= 90 doy_per",
+        threshold=Threshold(
+            query=">= 90 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
         out_unit="day",
     )
 
@@ -778,7 +784,6 @@ def tg90p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -838,14 +843,11 @@ def tg90p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -867,10 +869,15 @@ def tg90p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold=">= 90 doy_per",
+        threshold=Threshold(
+            query=">= 90 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
         out_unit="day",
     )
 
@@ -886,7 +893,6 @@ def tn90p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -946,14 +952,11 @@ def tn90p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -975,10 +978,15 @@ def tn90p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold=">= 90 doy_per",
+        threshold=Threshold(
+            query=">= 90 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
         out_unit="day",
     )
 
@@ -994,7 +1002,6 @@ def tx90p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -1054,14 +1061,11 @@ def tx90p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -1083,10 +1087,15 @@ def tx90p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold=">= 90 doy_per",
+        threshold=Threshold(
+            query=">= 90 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
         out_unit="day",
     )
 
@@ -1306,7 +1315,9 @@ def csu(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold="> 25 degree_Celsius",
+        threshold=Threshold(
+            query="> 25 degree_Celsius",
+        ),
         out_unit="day",
     )
 
@@ -1380,7 +1391,9 @@ def gd4(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold="4 degree_Celsius",
+        threshold=Threshold(
+            query="4 degree_Celsius",
+        ),
         out_unit="degree_Celsius day",
     )
 
@@ -1454,7 +1467,9 @@ def fd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold="< 0 degree_Celsius",
+        threshold=Threshold(
+            query="< 0 degree_Celsius",
+        ),
         out_unit="day",
     )
 
@@ -1528,7 +1543,9 @@ def cfd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold="< 0 degree_Celsius",
+        threshold=Threshold(
+            query="< 0 degree_Celsius",
+        ),
         out_unit="day",
     )
 
@@ -1602,7 +1619,9 @@ def hd17(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold="17 degree_Celsius",
+        threshold=Threshold(
+            query="17 degree_Celsius",
+        ),
         out_unit="degree_Celsius day",
     )
 
@@ -1676,7 +1695,9 @@ def id(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold="< 0 degree_Celsius",
+        threshold=Threshold(
+            query="< 0 degree_Celsius",
+        ),
         out_unit="day",
     )
 
@@ -1692,7 +1713,6 @@ def tg10p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -1752,14 +1772,11 @@ def tg10p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -1781,10 +1798,15 @@ def tg10p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="< 10 doy_per",
+        threshold=Threshold(
+            query="< 10 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
         out_unit="day",
     )
 
@@ -1800,7 +1822,6 @@ def tn10p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -1860,14 +1881,11 @@ def tn10p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -1889,10 +1907,15 @@ def tn10p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="< 10 doy_per",
+        threshold=Threshold(
+            query="< 10 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
         out_unit="day",
     )
 
@@ -1908,7 +1931,6 @@ def tx10p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -1968,14 +1990,11 @@ def tx10p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -1997,10 +2016,15 @@ def tx10p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="< 10 doy_per",
+        threshold=Threshold(
+            query="< 10 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
         out_unit="day",
     )
 
@@ -2162,7 +2186,6 @@ def csdi(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -2222,14 +2245,11 @@ def csdi(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -2251,10 +2271,15 @@ def csdi(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="< 10 doy_per",
+        threshold=Threshold(
+            query="< 10 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
         out_unit="day",
     )
 
@@ -2328,7 +2353,9 @@ def cdd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold="< 1 mm day-1",
+        threshold=Threshold(
+            query="< 1 mm day-1",
+        ),
         out_unit="day",
     )
 
@@ -2402,7 +2429,9 @@ def prcptot(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 1 mm day-1",
+        threshold=Threshold(
+            query=">= 1 mm day-1",
+        ),
         out_unit="mm",
     )
 
@@ -2476,7 +2505,9 @@ def rr1(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 1 mm day-1",
+        threshold=Threshold(
+            query=">= 1 mm day-1",
+        ),
         out_unit="day",
     )
 
@@ -2550,7 +2581,9 @@ def sdii(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 1 mm day-1",
+        threshold=Threshold(
+            query=">= 1 mm day-1",
+        ),
         out_unit="mm day-1",
     )
 
@@ -2624,7 +2657,9 @@ def cwd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 1 mm day-1",
+        threshold=Threshold(
+            query=">= 1 mm day-1",
+        ),
         out_unit="day",
     )
 
@@ -2698,7 +2733,9 @@ def r10mm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 10 mm day-1",
+        threshold=Threshold(
+            query=">= 10 mm day-1",
+        ),
         out_unit="day",
     )
 
@@ -2772,7 +2809,9 @@ def r20mm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 20 mm day-1",
+        threshold=Threshold(
+            query=">= 20 mm day-1",
+        ),
         out_unit="day",
     )
 
@@ -2934,7 +2973,6 @@ def r75p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -2994,14 +3032,11 @@ def r75p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -3023,10 +3058,16 @@ def r75p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="> 75 period_per",
+        threshold=Threshold(
+            query="> 75 period_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+            threshold_min_value="1 mm/day",
+        ),
         out_unit="day",
     )
 
@@ -3042,7 +3083,6 @@ def r75ptot(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -3102,14 +3142,11 @@ def r75ptot(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -3131,10 +3168,16 @@ def r75ptot(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="> 75 period_per",
+        threshold=Threshold(
+            query="> 75 period_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+            threshold_min_value="1 mm/day",
+        ),
         out_unit="",
     )
 
@@ -3150,7 +3193,6 @@ def r95p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -3210,14 +3252,11 @@ def r95p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -3239,10 +3278,16 @@ def r95p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="> 95 period_per",
+        threshold=Threshold(
+            query="> 95 period_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+            threshold_min_value="1 mm/day",
+        ),
         out_unit="day",
     )
 
@@ -3258,7 +3303,6 @@ def r95ptot(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -3318,14 +3362,11 @@ def r95ptot(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -3347,10 +3388,16 @@ def r95ptot(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="> 95 period_per",
+        threshold=Threshold(
+            query="> 95 period_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+            threshold_min_value="1 mm/day",
+        ),
         out_unit="",
     )
 
@@ -3366,7 +3413,6 @@ def r99p(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -3426,14 +3472,11 @@ def r99p(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -3455,10 +3498,16 @@ def r99p(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="> 99 period_per",
+        threshold=Threshold(
+            query="> 99 period_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+            threshold_min_value="1 mm/day",
+        ),
         out_unit="day",
     )
 
@@ -3474,7 +3523,6 @@ def r99ptot(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -3534,14 +3582,11 @@ def r99ptot(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -3563,10 +3608,16 @@ def r99ptot(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold="> 99 period_per",
+        threshold=Threshold(
+            query="> 99 period_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+            threshold_min_value="1 mm/day",
+        ),
         out_unit="",
     )
 
@@ -3713,7 +3764,9 @@ def sd1(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 1 cm",
+        threshold=Threshold(
+            query=">= 1 cm",
+        ),
         out_unit="day",
     )
 
@@ -3787,7 +3840,9 @@ def sd5cm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 5 cm",
+        threshold=Threshold(
+            query=">= 5 cm",
+        ),
         out_unit="day",
     )
 
@@ -3861,7 +3916,9 @@ def sd50cm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
-        threshold=">= 50 cm",
+        threshold=Threshold(
+            query=">= 50 cm",
+        ),
         out_unit="day",
     )
 
@@ -3877,7 +3934,6 @@ def cd(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -3937,14 +3993,11 @@ def cd(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -3966,10 +4019,25 @@ def cd(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold=["< 25 doy_per", "< 25 doy_per"],
+        threshold=[
+            Threshold(
+                query="< 25 doy_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+            ),
+            Threshold(
+                query="< 25 period_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+                threshold_min_value="1 mm/day",
+            ),
+        ],
         out_unit="day",
     )
 
@@ -3985,7 +4053,6 @@ def cw(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -4045,14 +4112,11 @@ def cw(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -4074,10 +4138,25 @@ def cw(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold=["< 25 doy_per", "> 75 doy_per"],
+        threshold=[
+            Threshold(
+                query="< 25 doy_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+            ),
+            Threshold(
+                query="> 75 period_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+                threshold_min_value="1 mm/day",
+            ),
+        ],
         out_unit="day",
     )
 
@@ -4093,7 +4172,6 @@ def wd(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -4153,14 +4231,11 @@ def wd(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -4182,10 +4257,25 @@ def wd(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold=["> 75 doy_per", "< 25 doy_per"],
+        threshold=[
+            Threshold(
+                query="> 75 doy_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+            ),
+            Threshold(
+                query="< 25 period_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+                threshold_min_value="1 mm/day",
+            ),
+        ],
         out_unit="day",
     )
 
@@ -4201,7 +4291,6 @@ def ww(
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation | None = "median_unbiased",
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:
@@ -4261,14 +4350,11 @@ def ww(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
@@ -4290,10 +4376,25 @@ def ww(
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
-        threshold=["> 75 doy_per", "> 75 doy_per"],
+        threshold=[
+            Threshold(
+                query="> 75 doy_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+            ),
+            Threshold(
+                query="> 75 period_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+                threshold_min_value="1 mm/day",
+            ),
+        ],
         out_unit="day",
     )
 
@@ -4310,7 +4411,7 @@ def custom_index(
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = None,
+    save_percentile: bool = False,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
 ) -> Dataset:

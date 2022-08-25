@@ -37,35 +37,30 @@ class Test_build_frequency_over_list:
 
     def test_lookup_month(self):
         freq = FrequencyRegistry.lookup(["month", [1, 4, 3]])
-        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_season(self):
         freq = FrequencyRegistry.lookup(["season", [1, 2, 3, 4]])
-        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-JAN"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_season_tuple(self):
         freq = FrequencyRegistry.lookup(("season", [1, 2, 3, 4]))
-        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-JAN"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_pandas_freq(self):
         freq = FrequencyRegistry.lookup("3MS")
-        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "3MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_winter__deprecated_tuple(self):
         freq = FrequencyRegistry.lookup(["season", ([11, 12], [1, 2, 3, 4])])
-        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-NOV"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
@@ -80,14 +75,12 @@ class Test_build_frequency_over_list:
 
     def test_lookup__winter(self):
         freq = FrequencyRegistry.lookup(["season", [11, 12, 1, 2]])
-        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-NOV"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
     def test_lookup_season__between_dates(self):
         freq = FrequencyRegistry.lookup(["season", ["07-19", "08-14"]])
-        assert freq == FrequencyRegistry.CUSTOM
         assert freq.pandas_freq == "AS-JUL"
         assert freq.accepted_values == []
         assert freq.post_processing is not None

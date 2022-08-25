@@ -31,10 +31,6 @@ ECAD_ATBD = "ECA&D, Algorithm Theoretical Basis Document (ATBD) v11"
 # Index qualifiers (needed to generate the API)
 QUANTILE_BASED = "QUANTILE_BASED"  # fields: QUANTILE_INDEX_FIELDS
 MODIFIABLE_UNIT = "MODIFIABLE_UNIT"  # fields: out_unit
-MODIFIABLE_THRESHOLD = "MODIFIABLE_THRESHOLD"  # fields: threshold
-DOY_WINDOW = "MODIFIABLE_QUANTILE_WINDOW"  # fields: window_width
-ROLLING_WINDOW = "ROLLING_WINDOW"  # fields: window_width
-MIN_SPELL_WINDOW = "MIN_SPELL_WINDOW"  # fields: window_width todo change field associated (can work on wsdi/csdi)?
 
 # Map of months index to their short name, used to get a pandas frequency anchor
 MONTHS_MAP = {1:"JAN",  2:"FEB", 3:"MAR", 4:"APR", 5:"MAY", 6:"JUN", 7:"JUL", 8:"AUG", 9:"SEP", 10:"OCT", 11:"NOV", 12:"DEC" }

@@ -54,7 +54,6 @@ class Threshold:
     threshold_var_name: str | None  # may be guessed if missing
 
     # -- Percentile specific properties:
-    climatology_bounds: Sequence[str, str] | None  # may be guessed if missing
     reference_period: Sequence[str]
     doy_window_width: int
     only_leap_years: bool
@@ -82,26 +81,31 @@ class Threshold:
         value: ThresholdValueType = None,
         unit: str | None = None,
         threshold_var_name: str | None = None,
-        climatology_bounds: Sequence[str, str] | None = None,
         doy_window_width: int = 5,
         only_leap_years: bool = False,
         interpolation=QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-        base_period_time_range: Sequence[datetime | str] | None = None,
+        reference_period: Sequence[datetime | str] | None = None,
         threshold_min_value: str | float | None = None,
     ):
         is_doy_per_threshold = False
         if isinstance(query, str) and value is None and unit is None:
             operator, unit, value = read_string_threshold(query)
+            self.initial_query = query
         else:
             operator = query
+            self.initial_query = None
         if is_dataset_path(value) or isinstance(value, Dataset):
             # e.g. Threshold(">", "thresh*.nc" , "degC")
-            ds = value if isinstance(value, Dataset) else read_dataset(value)
+            ds = (
+                value
+                if isinstance(value, Dataset)
+                else read_dataset(value, standard_index=None)
+            )
             _check_threshold_var_name(threshold_var_name)
             value = read_threshold_DataArray(
                 ds[threshold_var_name],
                 threshold_min_value=threshold_min_value,
-                climatology_bounds=climatology_bounds,
+                climatology_bounds=reference_period,
                 unit=unit,
             )
             if DOY_COORDINATE in value.coords:
@@ -113,7 +117,7 @@ class Threshold:
             value = partial(
                 build_doy_per,
                 per_val=float(value),
-                reference_period=base_period_time_range,
+                reference_period=reference_period,
                 interpolation=interpolation,
                 only_leap_years=only_leap_years,
                 doy_window_width=doy_window_width,
@@ -124,7 +128,7 @@ class Threshold:
             value = partial(
                 build_period_per,
                 per_val=float(value),
-                reference_period=base_period_time_range,
+                reference_period=reference_period,
                 interpolation=interpolation,
                 only_leap_years=only_leap_years,
                 percentile_min_value=threshold_min_value,
@@ -144,15 +148,26 @@ class Threshold:
         )
         self.value = value
         self.threshold_min_value = (
-            Threshold(">=" + threshold_min_value) if threshold_min_value else None
+            Threshold(threshold_min_value) if threshold_min_value else None
         )
         self.unit = unit
         self.threshold_var_name = threshold_var_name
-        self.climatology_bounds = climatology_bounds
         self.doy_window_width = doy_window_width
         self.only_leap_years = only_leap_years
         self.interpolation = interpolation
-        self.reference_period = base_period_time_range
+        self.reference_period = reference_period
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Threshold)
+            and self.initial_query == other.initial_query
+            and self.doy_window_width == other.doy_window_width
+            and self.only_leap_years == other.only_leap_years
+            and self.interpolation == other.interpolation
+            and self.reference_period == other.reference_period
+            and self.unit == other.unit
+            and self.threshold_min_value == other.threshold_min_value
+        )
 
     def get_metadata(
         self,

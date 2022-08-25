@@ -145,7 +145,7 @@ def create_optimized_zarr_store(
         _remove_stores(*stores_to_remove, filesystem=filesystem)
 
 
-def _remove_stores(*stores, filesystem):
+def _remove_stores(*stores, filesystem: AbstractFileSystem):
     for s in stores:
         try:
             filesystem.rm(s, recursive=True, maxdepth=100)
@@ -164,7 +164,7 @@ def _unsafe_create_optimized_zarr_store(
     with dask.config.set(DEFAULT_DASK_CONF):
         logger.info("Rechunking in progress, this will take some time.")
         is_ds_zarr = is_zarr_path(in_files)
-        ds = read_dataset(in_files, standard_var=None, var_name=var_name)
+        ds = read_dataset(in_files, standard_index=None, var_name=var_name)
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_name, ds.data_vars.keys()))
         if len(ds.data_vars.keys()) == 0:
@@ -216,7 +216,7 @@ def _build_default_chunking(ds: Dataset) -> dict:
     return chunking
 
 
-def _is_rechunking_unnecessary(ds, chunking) -> bool:
+def _is_rechunking_unnecessary(ds: Dataset, chunking: dict[str, int] | None) -> bool:
     cp = copy.deepcopy(ds.chunks)
     if chunking is None:
         return len(ds.chunks["time"]) == 1

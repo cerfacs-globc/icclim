@@ -5,12 +5,13 @@ import pandas as pd
 import pytest
 import xarray as xr
 
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendarRegistry
 
 
 class Test_CfCalendar:
     def test_error_lookup(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(InvalidIcclimArgumentError):
             CfCalendarRegistry.lookup("NOPE!")
 
     @pytest.mark.parametrize(

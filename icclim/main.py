@@ -152,7 +152,7 @@ def index(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: str | Threshold = None,
+    threshold: str | Threshold | Sequence[str | Threshold] = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -164,7 +164,7 @@ def index(
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     user_index: UserIndexDict | None = None,
-    save_percentile: bool = None,
+    save_percentile: bool = False,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     indice_name: str = None,
@@ -246,8 +246,8 @@ def index(
         ``optional`` Ignoring or not February 29th (default: False).
     interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
-        ``{"linear", "hyndman_fan"}``
-        Default is "hyndman_fan", a.k.a type 8 or method 8.
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     out_unit : str | None
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
@@ -301,13 +301,16 @@ def index(
         if standard_index is None:
             indicator = GenericIndicatorRegistry.lookup(index_name)
             rename = None
+            output_unit = out_unit
         else:
             indicator = standard_index.generic_indicator
             threshold = standard_index.threshold
             rename = standard_index.short_name
+            output_unit = out_unit or standard_index.output_unit
     else:
         indicator = None
         rename = None
+        output_unit = out_unit
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     if isinstance(threshold, str):
         threshold = build_threshold(threshold)
@@ -345,11 +348,10 @@ def index(
         frequency=sampling_frequency,
         climate_variables=climate_vars,
         window=window_width,
-        out_unit=out_unit,
+        out_unit=output_unit,
         netcdf_version=NetcdfVersionRegistry.lookup(netcdf_version),
         interpolation=interpolation,
         callback=callback,
-        index=indicator,
         is_single_var=is_single_var,
         reference_period=reference_period,  # noqa
         indicator_name=indicator_name,
@@ -359,8 +361,8 @@ def index(
         result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
     else:
         result_ds = _compute_standard_climate_index(
-            config=config,
             climate_index=indicator,
+            config=config,
             initial_history=climate_vars[0].global_metadata["history"],
             initial_source=climate_vars[0].global_metadata["source"],
             rename=rename,
@@ -573,7 +575,7 @@ def _get_threshold_builder(
             return Threshold(
                 t,
                 doy_window_width=doy_window_width,
-                base_period_time_range=base_period_time_range,
+                reference_period=base_period_time_range,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
             )

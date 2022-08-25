@@ -9,12 +9,8 @@ from ecad.ecad_indices import EcadIndexRegistry
 
 import icclim
 from icclim.icclim_logger import VerbosityRegistry
-from icclim.models.constants import (
-    DOY_WINDOW,
-    MODIFIABLE_THRESHOLD,
-    MODIFIABLE_UNIT,
-    QUANTILE_BASED,
-)
+from icclim.models.climate_index import StandardIndex
+from icclim.models.constants import QUANTILE_BASED
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.netcdf_version import NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
@@ -33,25 +29,22 @@ DEFAULT_ARGS = dict(
 )
 
 
-def build_expected_args(index):
-    expected_call_args = {"index_name": index.name}
+def build_expected_args(index: StandardIndex):
+    expected_call_args = {"index_name": index.short_name.upper()}
     expected_call_args.update(DEFAULT_ARGS)
     qualifiers = [] if index.qualifiers is None else index.qualifiers
-    if MODIFIABLE_THRESHOLD in qualifiers:
-        expected_call_args.update({"threshold": None})
     if QUANTILE_BASED in qualifiers:
         expected_call_args.update(
             {
                 "base_period_time_range": None,
                 "only_leap_years": False,
-                "interpolation": QuantileInterpolationRegistry.MEDIAN_UNBIASED,
-                "save_percentile": False,
+                "interpolation": QuantileInterpolationRegistry.MEDIAN_UNBIASED.name,
+                "save_thresholds": False,
             }
         )
-    if DOY_WINDOW in qualifiers:
-        expected_call_args.update({"window_width": 5})
-    if MODIFIABLE_UNIT in qualifiers:
-        expected_call_args.update({"out_unit": None})
+    if index.threshold is not None:
+        expected_call_args.update({"threshold": index.threshold})
+    expected_call_args.update({"out_unit": index.output_unit})
 
     return expected_call_args
 
@@ -61,7 +54,7 @@ def test_generated_api(generic_index_fun_mock: MagicMock):
     for i in EcadIndexRegistry.values():
         print(i)
         # GIVEN
-        api_index_fun = eval(f"icclim.{i.name.lower()}")
+        api_index_fun = eval(f"icclim.{i.short_name.lower()}")
         # WHEN
         api_index_fun(**DEFAULT_ARGS)
         # THEN

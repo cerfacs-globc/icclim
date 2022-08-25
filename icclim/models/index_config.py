@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Callable
+from typing import Callable
 
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-
-# from icclim.generic_indices.generic_indicators import GenericIndicator
 
 
 @dataclasses.dataclass
@@ -51,7 +49,6 @@ class IndexConfig:
     netcdf_version: NetcdfVersion
     save_thresholds: bool
     interpolation: QuantileInterpolation
-    index: Any  # todo Any -> GenericIndicator
     is_single_var: bool
     reference_period: tuple[str, str]
     indicator_name: str

@@ -3,14 +3,7 @@ from __future__ import annotations
 from icclim.generic_indices.cf_var_metadata import StandardVariableRegistry
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.models.climate_index import StandardIndex
-from icclim.models.constants import (
-    DOY_WINDOW,
-    ECAD_ATBD,
-    MIN_SPELL_WINDOW,
-    MODIFIABLE_UNIT,
-    QUANTILE_BASED,
-    ROLLING_WINDOW,
-)
+from icclim.models.constants import ECAD_ATBD, QUANTILE_BASED
 from icclim.models.index_group import IndexGroupRegistry
 from icclim.models.registry import Registry
 from icclim.models.threshold import Threshold
@@ -18,10 +11,10 @@ from icclim.models.threshold import Threshold
 
 class EcadIndexRegistry(Registry):
     _item_class = StandardIndex
-    # TODO Add indices wind gust, wind direction,
-    #                  radiation , pressure,
-    #                  cloud cover, sunshine,
-    #                  humidity
+    # TODO Add indices of wind gust, wind direction,
+    #                     radiation, pressure,
+    #                     cloud cover, sunshine,
+    #                     humidity
 
     @staticmethod
     def get_item_aliases(item: StandardIndex) -> list[str]:
@@ -131,8 +124,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
-            DOY_WINDOW,
-            MIN_SPELL_WINDOW,
         ],
         doy_window_width=5,
         min_spell_length=6,
@@ -148,8 +139,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.TAS],
         qualifiers=[
             QUANTILE_BASED,
-            DOY_WINDOW,
-            MODIFIABLE_UNIT,
         ],
         doy_window_width=5,
     )
@@ -164,8 +153,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[
             QUANTILE_BASED,
-            DOY_WINDOW,
-            MODIFIABLE_UNIT,
         ],
         doy_window_width=5,
     )
@@ -180,8 +167,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
-            DOY_WINDOW,
-            MODIFIABLE_UNIT,
         ],
         doy_window_width=5,
     )
@@ -281,8 +266,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.TAS],
         qualifiers=[
             QUANTILE_BASED,
-            DOY_WINDOW,
-            MODIFIABLE_UNIT,
         ],
         doy_window_width=5,
     )
@@ -297,8 +280,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[
             QUANTILE_BASED,
-            DOY_WINDOW,
-            MODIFIABLE_UNIT,
         ],
         doy_window_width=5,
     )
@@ -313,8 +294,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[
             QUANTILE_BASED,
-            DOY_WINDOW,
-            MODIFIABLE_UNIT,
         ],
         doy_window_width=5,
     )
@@ -345,7 +324,7 @@ class EcadIndexRegistry(Registry):
         short_name="CSDI",
         group=IndexGroupRegistry.COLD,
         input_variables=[StandardVariableRegistry.TAS_MIN],
-        qualifiers=[QUANTILE_BASED, DOY_WINDOW, MIN_SPELL_WINDOW],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
         min_spell_length=6,
     )
@@ -438,7 +417,7 @@ class EcadIndexRegistry(Registry):
         short_name="RX5day",
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.PR],
-        qualifiers=[ROLLING_WINDOW],
+        qualifiers=[],
         rolling_window_width=5,
     )
     R75P = StandardIndex(
@@ -453,7 +432,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_UNIT,
         ],
     )
     R75PTOT = StandardIndex(
@@ -482,7 +460,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_UNIT,
         ],
     )
     R95PTOT = StandardIndex(
@@ -510,7 +487,6 @@ class EcadIndexRegistry(Registry):
         input_variables=[StandardVariableRegistry.PR],
         qualifiers=[
             QUANTILE_BASED,
-            MODIFIABLE_UNIT,
         ],
     )
     R99PTOT = StandardIndex(
@@ -581,7 +557,9 @@ class EcadIndexRegistry(Registry):
         short_name="CD",
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
-        qualifiers=[QUANTILE_BASED, DOY_WINDOW],
+        qualifiers=[
+            QUANTILE_BASED,
+        ],
         doy_window_width=5,
     )
     CW = StandardIndex(
@@ -597,7 +575,9 @@ class EcadIndexRegistry(Registry):
         short_name="CW",
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
-        qualifiers=[QUANTILE_BASED, DOY_WINDOW],
+        qualifiers=[
+            QUANTILE_BASED,
+        ],
         doy_window_width=5,
     )
     WD = StandardIndex(
@@ -613,7 +593,9 @@ class EcadIndexRegistry(Registry):
         short_name="WD",
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
-        qualifiers=[QUANTILE_BASED, DOY_WINDOW],
+        qualifiers=[
+            QUANTILE_BASED,
+        ],
         doy_window_width=5,
     )
     WW = StandardIndex(
@@ -630,6 +612,8 @@ class EcadIndexRegistry(Registry):
         short_name="WW",
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
-        qualifiers=[QUANTILE_BASED, DOY_WINDOW],
+        qualifiers=[
+            QUANTILE_BASED,
+        ],
         doy_window_width=5,
     )

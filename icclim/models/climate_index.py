@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
-# from generic_indices.generic_indicators import GenericIndicator
 from generic_indices.cf_var_metadata import StandardVariable
 from xarray import DataArray
 
@@ -50,7 +49,7 @@ class StandardIndex:
     qualifiers: list[str] | None = None
     source: str | None = None
     definition: str | None = None
-    threshold: str | None = None
+    threshold: str | None | Any | Sequence[str | Any] = None  # Any -> Threshold
     output_unit: str | None = None
     # additional, index specific args
     rolling_window_width: int | None = None
