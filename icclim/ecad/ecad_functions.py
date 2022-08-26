@@ -8,7 +8,6 @@ from warnings import warn
 import numpy as np
 import xarray as xr
 from xarray import DataArray
-from xclim import atmos
 from xclim.core.units import convert_units_to
 
 from icclim.models.cf_calendar import CfCalendarRegistry
@@ -18,15 +17,6 @@ from icclim.models.constants import (
     UNITS_ATTRIBUTE_KEY,
 )
 from icclim.models.frequency import Frequency, FrequencyRegistry
-from icclim.models.index_config import IndexConfig
-
-
-def prcptot(config: IndexConfig) -> DataArray:
-    result = atmos.precip_accumulation(
-        _filter_in_wet_days(config.pr.studied_data, dry_day_value=0),
-        **config.frequency.build_frequency_kwargs(),
-    )
-    return result
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:

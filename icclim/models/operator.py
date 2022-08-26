@@ -12,9 +12,8 @@ from icclim.models.registry import Registry
 def _reach_err(_, __):
     # can't raise error in lambda
     raise InvalidIcclimArgumentError(
-        "Reach operator can't be called."
-        " Try to fill threshold with an operand"
-        " (e.g. >= in '>= 22 degC')."
+        "Reach operator can't be called. Try to fill threshold with an operand"
+        " (e.g. '>=' in '>= 22 degC')."
     )
 
 

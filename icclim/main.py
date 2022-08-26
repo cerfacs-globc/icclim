@@ -18,7 +18,6 @@ import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim.ecad.ecad_functions import IndexConfig
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.generic_indices.generic_indicators import (
     GenericIndicator,
@@ -27,7 +26,7 @@ from icclim.generic_indices.generic_indicators import (
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
-from icclim.models.climate_index import StandardIndex
+from icclim.icclim_types import InFileType
 from icclim.models.climate_variable import (
     ClimateVariable,
     build_climate_vars,
@@ -36,16 +35,17 @@ from icclim.models.climate_variable import (
 )
 from icclim.models.constants import ICCLIM_VERSION, UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
+from icclim.models.index_config import IndexConfig
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import (
     QuantileInterpolation,
     QuantileInterpolationRegistry,
 )
+from icclim.models.standard_index import StandardIndex
 from icclim.models.threshold import Threshold
 from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
-from icclim.pre_processing.input_parsing import InFileType
 from icclim.user_indices.calc_operation import CalcOperationRegistry, compute_user_index
 from icclim.utils import read_date
 
@@ -160,7 +160,7 @@ def index(
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
-    interpolation: str | QuantileInterpolation | None = "median_unbiased",
+    interpolation: str | QuantileInterpolation = "median_unbiased",
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     user_index: UserIndexDict | None = None,

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from icclim.generic_indices.cf_var_metadata import StandardVariableRegistry
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
-from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import ECAD_ATBD, QUANTILE_BASED
 from icclim.models.index_group import IndexGroupRegistry
 from icclim.models.registry import Registry
+from icclim.models.standard_index import StandardIndex
 from icclim.models.threshold import Threshold
 
 

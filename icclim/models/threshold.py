@@ -37,6 +37,9 @@ ThresholdValueType = Union[
     str, float, int, Dataset, DataArray, Sequence[Union[float, int, str]], None
 ]
 
+# TODO: [refacto] a model file/class should not have that much logic,
+#       move stuff to a thresholdFactory or something similar
+
 
 class Threshold:
     """
@@ -83,7 +86,7 @@ class Threshold:
         threshold_var_name: str | None = None,
         doy_window_width: int = 5,
         only_leap_years: bool = False,
-        interpolation=QuantileInterpolationRegistry.MEDIAN_UNBIASED,
+        interpolation: str | QuantileInterpolation = "median_unbiased",
         reference_period: Sequence[datetime | str] | None = None,
         threshold_min_value: str | float | None = None,
     ):
@@ -94,12 +97,14 @@ class Threshold:
         else:
             operator = query
             self.initial_query = None
+        if isinstance(interpolation, str):
+            interpolation = QuantileInterpolationRegistry.lookup(interpolation)
         if is_dataset_path(value) or isinstance(value, Dataset):
             # e.g. Threshold(">", "thresh*.nc" , "degC")
             ds = (
                 value
                 if isinstance(value, Dataset)
-                else read_dataset(value, standard_index=None)
+                else read_dataset(value, standard_var=None)
             )
             _check_threshold_var_name(threshold_var_name)
             value = read_threshold_DataArray(

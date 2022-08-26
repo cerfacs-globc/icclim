@@ -9,10 +9,10 @@ from xarray.core.dataarray import DataArray
 from icclim.generic_indices.cf_var_metadata import StandardVariable
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileType
-from icclim.models.climate_index import StandardIndex
-from icclim.models.consolidated_metadata import GlobalMetadata
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency, FrequencyRegistry
+from icclim.models.global_metadata import GlobalMetadata
+from icclim.models.standard_index import StandardIndex
 from icclim.models.threshold import Threshold
 from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.pre_processing.input_parsing import (
@@ -23,6 +23,9 @@ from icclim.pre_processing.input_parsing import (
     guess_var_names,
     read_dataset,
 )
+
+# TODO: [refacto] a model file/class should not have that much logic,
+#       move stuff to a ClimateVariableFactory or something similar
 
 
 @dataclass
@@ -75,31 +78,49 @@ def build_climate_vars(
     standard_index: StandardIndex | None,
     indicator_name: str,
 ) -> list[ClimateVariable]:
+    if standard_index is not None and len(standard_index.input_variables) > len(
+        climate_vars_dict
+    ):
+        raise InvalidIcclimArgumentError(
+            f"Index {standard_index.short_name} needs"
+            f" {len(standard_index.input_variables)} variables."
+            f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
+            f" zarr store."
+        )
     if must_add_reference_var(threshold, climate_vars_dict, base_period):
+        standard_var = (
+            standard_index.input_variables[0] if standard_index is not None else None
+        )
         added_var = build_reference_var_dict(
             base_period,
             climate_vars_dict,
-            standard_index=standard_index,
+            standard_var=standard_var,
         )
         climate_vars_dict.update(added_var)
-    return [
-        _build_climate_var(
-            k,
-            v,
-            ignore_Feb29th,
-            threshold,
-            time_range,
-            standard_index=standard_index,
-            indicator_name=indicator_name,
+    acc = []
+    for i, k_v in enumerate(climate_vars_dict.items()):
+        if standard_index is not None:
+            standard_var = standard_index.input_variables[i]
+        else:
+            standard_var = None
+        acc.append(
+            _build_climate_var(
+                k_v[0],
+                k_v[1],
+                ignore_Feb29th,
+                threshold,
+                time_range,
+                standard_var=standard_var,
+                indicator_name=indicator_name,
+            )
         )
-        for k, v in climate_vars_dict.items()
-    ]
+    return acc
 
 
 def build_reference_var_dict(
     reference_period: Sequence[str] | None,
     in_files,
-    standard_index: StandardIndex,
+    standard_var: StandardVariable,
 ) -> dict[str, InFileDictionary]:
     """This function add a secondary variable for indices such as anomaly that needs
     exactly two variables but where the second variable could just be a subset of the
@@ -113,12 +134,12 @@ def build_reference_var_dict(
     if isinstance(in_files, dict):
         study_ds = read_dataset(
             list(in_files.values())[0]["study"],
-            standard_index=standard_index,
+            standard_var=standard_var,
             var_name=var_name,
         )
     else:
         study_ds = read_dataset(
-            list(in_files.values())[0], standard_index=standard_index, var_name=var_name
+            list(in_files.values())[0], standard_var=standard_var, var_name=var_name
         )
     v = build_reference_da(
         study_ds[var_name],
@@ -138,7 +159,7 @@ def must_add_reference_var(
     Example case: the anomaly of tx(60-2100) by tx(60-90).
     """
     if isinstance(climate_vars_dict, dict):
-        t = list(climate_vars_dict.values())[0].get("threshold", None)
+        t = list(climate_vars_dict.values())[0].get("thresholds", None)
         return t is None and len(climate_vars_dict) == 1 and base_period is not None
     else:
         return (
@@ -163,7 +184,9 @@ def to_dictionary(
                 " The dictionary keys are used in place of `var_name`."
             )
     else:
-        input_dataset = read_dataset(in_files, standard_index, var_names)
+        input_dataset = read_dataset(
+            in_files, standard_index.input_variables[0], var_names
+        )
         var_names = guess_var_names(
             input_dataset, standard_index=standard_index, var_names=var_names
         )
@@ -191,12 +214,12 @@ def _build_climate_var(
     ignore_Feb29th: bool,
     threshold: Threshold | None,
     time_range: Sequence[str],
-    standard_index: StandardIndex | None,
+    standard_var: StandardVariable | None,
     indicator_name: str,
 ) -> ClimateVariable:
     if isinstance(climate_var_data, dict):
         study_ds = read_dataset(
-            climate_var_data["study"], standard_index, climate_var_name
+            climate_var_data["study"], standard_var, climate_var_name
         )
         # todo: deprecate climate_var_data.get("per_var_name", None)
         #       for threshold_var_name
@@ -206,11 +229,9 @@ def _build_climate_var(
             climate_var_thresh = threshold
     else:
         climate_var_data: InFileBaseType
-        study_ds = read_dataset(climate_var_data, standard_index, climate_var_name)
+        study_ds = read_dataset(climate_var_data, standard_var, climate_var_name)
         climate_var_thresh = threshold
-    if standard_index is not None and len(standard_index.input_variables) == 1:
-        standard_var = standard_index.input_variables[0]
-    else:
+    if standard_var is None:
         standard_var = guess_input_type(study_ds[climate_var_name])
     studied_data = build_studied_data(
         study_ds[climate_var_name],

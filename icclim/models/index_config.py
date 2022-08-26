@@ -55,4 +55,5 @@ class IndexConfig:
 
     @property
     def is_percent(self) -> bool:
+        # todo delete ? unit handling should be in GenericIndicator postprocessing
         return self.out_unit == "%"

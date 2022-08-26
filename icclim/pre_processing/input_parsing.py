@@ -17,11 +17,11 @@ from icclim.generic_indices.cf_var_metadata import (
     StandardVariableRegistry,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.icclim_types import InFileBaseType, InFileType
+from icclim.icclim_types import InFileBaseType
 from icclim.models.cf_calendar import CfCalendarRegistry
-from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY, VALID_PERCENTILE_DIMENSION
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
+from icclim.models.standard_index import StandardIndex
 from icclim.utils import get_date_to_iso_format
 
 DEFAULT_INPUT_FREQUENCY = "days"
@@ -47,14 +47,14 @@ def guess_var_names(
 
 
 def read_dataset(
-    in_files: InFileType,
-    standard_index: StandardIndex | None,
+    in_files: InFileBaseType,
+    standard_var: StandardVariable | None = None,
     var_name: str | Sequence[str] = None,
 ) -> Dataset:
     if isinstance(in_files, Dataset):
         ds = in_files
     elif isinstance(in_files, DataArray):
-        ds = _read_dataarray(in_files, standard_index=standard_index, var_name=var_name)
+        ds = _read_dataarray(in_files, standard_var=standard_var, var_name=var_name)
     elif is_glob_path(in_files) or (
         isinstance(in_files, (list, tuple)) and is_netcdf_path(in_files[0])
     ):
@@ -67,7 +67,9 @@ def read_dataset(
     elif is_zarr_path(in_files):
         ds = xr.open_zarr(in_files)
     else:
-        raise NotImplementedError("`in_files` format was not recognized.")
+        raise NotImplementedError(
+            f"`in_files` format {type(in_files)} was not" f" recognized."
+        )
     return update_to_standard_coords(ds)
 
 
@@ -104,9 +106,8 @@ def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
             per_dim_name = f"{d}s"
     if per_dim_name is None:
         raise InvalidIcclimArgumentError(
-            "Percentile data must contain a recognizable"
-            " percentiles dimension such as 'percentiles',"
-            " 'quantile', 'per' or 'centile'."
+            "Percentile data must contain a recognizable percentiles dimension such as"
+            " 'percentiles', 'quantile', 'per' or 'centile'."
         )
     per_da = per_da.rename({per_dim_name: "percentiles"})
     if "quantile" in per_dim_name:
@@ -127,7 +128,7 @@ def read_clim_bounds(
 
 def _read_dataarray(
     data: DataArray,
-    standard_index: StandardIndex | None = None,
+    standard_var: StandardVariable | None = None,
     var_name: str | Sequence[str] = None,
 ) -> Dataset:
     if isinstance(var_name, (tuple, list)):
@@ -138,8 +139,7 @@ def _read_dataarray(
             )
         else:
             var_name = var_name[0]
-    if standard_index is not None:
-        data_name = var_name or standard_index.input_variables[0].short_name or None
+        data_name = var_name or standard_var.short_name or None
     else:
         data_name = var_name or data.name or "unnamed_var"
     return data.to_dataset(name=data_name, promote_attrs=True)
@@ -153,7 +153,9 @@ def _guess_dataset_var_names(
     """
 
     def get_error() -> Exception:
-        main_aliases = ", ".join(map(lambda v: v.short_name, index_expected_vars))
+        main_aliases = ", ".join(
+            map(lambda v: v.short_name, standard_index.input_variables)
+        )
         return InvalidIcclimArgumentError(
             f"Index {standard_index.short_name} needs the following variable(s)"
             f" [{main_aliases}], but the input variables were {list(ds.data_vars)}."
@@ -161,19 +163,18 @@ def _guess_dataset_var_names(
         )
 
     if standard_index is not None:
-        index_expected_vars = standard_index.input_variables
         if len(ds.data_vars) == 1:
-            if len(index_expected_vars) != 1:
+            if len(standard_index.input_variables) != 1:
                 raise get_error()
             return [get_name_of_first_var(ds)]
         climate_var_names = []
-        for standard_var in index_expected_vars:
-            for alias in standard_var.aliases:
+        for expected_standard_var in standard_index.input_variables:
+            for alias in expected_standard_var.aliases:
                 # check if dataset contains this alias
                 if _is_alias_valid(ds, standard_index, alias):
                     climate_var_names.append(alias)
                     break
-        if len(climate_var_names) < len(index_expected_vars):
+        if len(climate_var_names) < len(standard_index.input_variables):
             raise get_error()
         return climate_var_names
     else:

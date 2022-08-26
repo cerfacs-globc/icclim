@@ -9,11 +9,12 @@ import pytest
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_logger import VerbosityRegistry
-from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import QUANTILE_BASED
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.netcdf_version import NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
+from icclim.models.standard_index import StandardIndex
+from icclim.models.threshold import Threshold
 from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.calc_operation import CalcOperation, CalcOperationRegistry
 
@@ -43,7 +44,18 @@ def build_expected_args(index: StandardIndex):
             }
         )
     if index.threshold is not None:
-        expected_call_args.update({"threshold": index.threshold})
+        if isinstance(index.threshold, str):
+            t = Threshold(index.threshold)
+        elif isinstance(index.threshold, (list, tuple)):
+            t = []
+            for thresh in index.threshold:
+                if isinstance(thresh, str):
+                    t.append(Threshold(thresh))
+                else:
+                    t.append(thresh)
+        else:
+            t = index.threshold
+        expected_call_args.update({"threshold": t})
     expected_call_args.update({"out_unit": index.output_unit})
 
     return expected_call_args

@@ -22,8 +22,8 @@ from pathlib import Path
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.models.climate_index import StandardIndex
 from icclim.models.constants import QUANTILE_BASED
+from icclim.models.standard_index import StandardIndex
 from icclim.models.threshold import Threshold
 
 ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]
@@ -73,12 +73,12 @@ from xarray.core.dataset import Dataset
 
 import icclim
 from icclim.icclim_logger import Verbosity
+from icclim.icclim_types import InFileType
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.threshold import Threshold
 from icclim.models.user_index_dict import UserIndexDict
-from icclim.pre_processing.input_parsing import InFileType
 
 __all__ = [
 '''
