@@ -48,6 +48,7 @@ class StandardIndex:
     generic_indicator: Any  # Any -> GenericIndicator
     qualifiers: list[str] | None = None
     source: str | None = None
+    reference: str | None = None
     definition: str | None = None
     threshold: str | None | Any | Sequence[str | Any] = None  # Any -> Threshold
     output_unit: str | None = None
