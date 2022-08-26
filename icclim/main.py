@@ -7,7 +7,6 @@ This module expose the index API endpoint as long as a few other functions.
 """
 from __future__ import annotations
 
-import logging
 import time
 from datetime import datetime
 from typing import Callable, Literal, Sequence
@@ -33,26 +32,31 @@ from icclim.models.climate_variable import (
     must_add_reference_var,
     to_dictionary,
 )
-from icclim.models.constants import ICCLIM_VERSION, UNITS_ATTRIBUTE_KEY
+from icclim.models.constants import (
+    ICCLIM_VERSION,
+    PERCENTILE_THRESHOLD_STAMP,
+    UNITS_ATTRIBUTE_KEY,
+)
 from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
+from icclim.models.operator import Operator, OperatorRegistry
 from icclim.models.quantile_interpolation import (
     QuantileInterpolation,
     QuantileInterpolationRegistry,
 )
 from icclim.models.standard_index import StandardIndex
 from icclim.models.threshold import Threshold
-from icclim.models.user_index_config import UserIndexConfig
 from icclim.models.user_index_dict import UserIndexDict
-from icclim.user_indices.calc_operation import CalcOperationRegistry, compute_user_index
+from icclim.user_indices.calc_operation import CalcOperationRegistry
 from icclim.utils import read_date
 
 log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
+ICCLIM_REFERENCE = "icclim"
 
 
 def indices(
@@ -145,6 +149,58 @@ def generic(
     )
 
 
+def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
+    calc_op = user_index["calc_operation"]
+    map = {
+        CalcOperationRegistry.MAX: GenericIndicatorRegistry.Maximum,
+        CalcOperationRegistry.MIN: GenericIndicatorRegistry.Minimum,
+        CalcOperationRegistry.SUM: GenericIndicatorRegistry.Sum,
+        CalcOperationRegistry.MEAN: GenericIndicatorRegistry.Average,
+        CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.CountOccurrences,
+        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.MaxConsecutiveOccurrence,  # noqa
+        CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.DifferenceOfMeans,
+    }
+    if calc_op is CalcOperationRegistry.RUN_SUM:
+        if user_index["extreme_mode"] == "max":
+            indicator = GenericIndicatorRegistry.MaxOfRollingSum
+        elif user_index["extreme_mode"] == "min":
+            indicator = GenericIndicatorRegistry.MinOfRollingSum
+        else:
+            raise NotImplementedError()
+    elif calc_op is CalcOperationRegistry.RUN_MEAN:
+        if user_index["extreme_mode"] == "max":
+            indicator = GenericIndicatorRegistry.MaxOfRollingAverage
+        elif user_index["extreme_mode"] == "min":
+            indicator = GenericIndicatorRegistry.MinOfRollingAverage
+        else:
+            raise NotImplementedError()
+    else:
+        indicator = map.get(user_index["calc_operation"], None)
+        if indicator is None:
+            raise NotImplementedError()
+    return indicator
+
+
+def read_threshold(
+    user_index: UserIndexDict, build_threshold: Callable[[str | Threshold], Threshold]
+) -> Threshold | None:
+    thresh = user_index.get("thresh", None)
+    if thresh is None:
+        return None
+    if isinstance(thresh, Threshold):
+        return thresh
+    logical_operation: Operator = OperatorRegistry.lookup(
+        user_index["logical_operation"]
+    )
+    if isinstance(thresh, str) and thresh.endswith(PERCENTILE_THRESHOLD_STAMP):
+        thresh = thresh.replace(PERCENTILE_THRESHOLD_STAMP, "")
+    else:
+        thresh = str(thresh)
+
+    thresh = logical_operation.operand + thresh
+    return build_threshold(str(thresh))
+
+
 def index(
     in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
@@ -164,9 +220,10 @@ def index(
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     user_index: UserIndexDict | None = None,
-    save_percentile: bool = False,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    *,
+    save_percentile: bool = False,
     indice_name: str = None,
     user_indice: UserIndexDict = None,
     transfer_limit_Mbytes: float = None,
@@ -294,9 +351,15 @@ def index(
         only_leap_years=only_leap_years,
         interpolation=interpolation,
     )
-    indicator: GenericIndicator | None
+    indicator: GenericIndicator
     standard_index: StandardIndex | None = None
-    if index_name is not None:
+    if user_index is not None:
+        indicator = read_indicator(user_index)
+        if threshold is None:
+            threshold = read_threshold(user_index, build_threshold)
+        rename = index_name or user_index.get("index_name", None) or "user_index"
+        output_unit = out_unit
+    elif index_name is not None:
         standard_index = EcadIndexRegistry.lookup(index_name, no_error=True)
         if standard_index is None:
             indicator = GenericIndicatorRegistry.lookup(index_name)
@@ -308,9 +371,10 @@ def index(
             rename = standard_index.short_name
             output_unit = out_unit or standard_index.output_unit
     else:
-        indicator = None
-        rename = None
-        output_unit = out_unit
+        raise InvalidIcclimArgumentError(
+            "You must fill either index_name or user_index"
+            "to compute a climate index."
+        )
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     if isinstance(threshold, str):
         threshold = build_threshold(threshold)
@@ -356,17 +420,16 @@ def index(
         reference_period=reference_period,  # noqa
         indicator_name=indicator_name,
     )
-    if user_index is not None:
-        # todo: replace by user_index -> generic index
-        result_ds = _compute_custom_climate_index(config=config, user_index=user_index)
-    else:
-        result_ds = _compute_standard_climate_index(
-            climate_index=indicator,
-            config=config,
-            initial_history=climate_vars[0].global_metadata["history"],
-            initial_source=climate_vars[0].global_metadata["source"],
-            rename=rename,
-        )
+    result_ds = _compute_standard_climate_index(
+        climate_index=indicator,
+        config=config,
+        initial_history=climate_vars[0].global_metadata["history"],
+        initial_source=climate_vars[0].global_metadata["source"],
+        rename=rename,
+        reference=standard_index.reference
+        if standard_index is not None
+        else ICCLIM_REFERENCE,
+    )
     if reset := result_ds.attrs.get("reset_coords_dict", None):
         result_ds = result_ds.rename(reset)
         del result_ds.attrs["reset_coords_dict"]
@@ -439,37 +502,6 @@ def _setup(callback, callback_start_value, logs_verbosity):
     callback(callback_start_value)
 
 
-def _compute_custom_climate_index(
-    config: IndexConfig, user_index: UserIndexDict
-) -> Dataset:
-    logging.info("Calculating user index.")
-    result_ds = Dataset()
-    deprecated_name = user_index.get("indice_name", None)
-    if deprecated_name is not None:
-        user_index["index_name"] = deprecated_name
-        del user_index["indice_name"]
-        log.deprecation_warning("indice_name", "index_name")
-    user_indice_config = UserIndexConfig(
-        **user_index,
-        freq=config.frequency,
-        climate_variables=config.climate_variables,
-        is_percent=config.is_percent,
-        save_percentile=config.save_thresholds,
-    )
-    user_indice_da = compute_user_index(user_indice_config)
-    user_indice_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(
-        config.out_unit, user_indice_da
-    )
-    if user_indice_config.calc_operation is CalcOperationRegistry.ANOMALY:
-        # with anomaly time axis disappear
-        result_ds[user_indice_config.index_name] = user_indice_da
-        return result_ds
-    user_indice_da, time_bounds = config.frequency.post_processing(user_indice_da)
-    result_ds[user_indice_config.index_name] = user_indice_da
-    result_ds["time_bounds"] = time_bounds
-    return result_ds
-
-
 def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
     da_unit = da.attrs.get(UNITS_ATTRIBUTE_KEY, None)
     if da_unit is None:
@@ -490,6 +522,7 @@ def _compute_standard_climate_index(
     config: IndexConfig,
     initial_history: str | None,
     initial_source: str,
+    reference: str,
     rename: str | None = None,
 ) -> Dataset:
     result_da = climate_index(config)
@@ -512,7 +545,7 @@ def _compute_standard_climate_index(
         )
     history = _build_history(result_da, config, initial_history, climate_index)
     result_ds = _add_ecad_index_metadata(
-        result_ds, climate_index, history, initial_source
+        result_ds, climate_index, history, initial_source, reference
     )
     return result_ds
 
@@ -522,12 +555,12 @@ def _add_ecad_index_metadata(
     computed_index: Indicator,
     history: str,
     initial_source: str,
+    reference: str,
 ) -> Dataset:
     result_ds.attrs.update(
         dict(
             title=computed_index.standard_name,
-            references="ATBD of the ECA&D indices calculation"
-            " (https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf)",
+            references=reference,
             institution="Climate impact portal (https://climate4impact.eu)",
             history=history,
             source=initial_source if initial_source is not None else "",
@@ -567,7 +600,7 @@ def _get_threshold_builder(
     base_period_time_range: Sequence[datetime | str] | None,
     only_leap_years: bool,
     interpolation: QuantileInterpolation,
-) -> Callable:
+) -> Callable[[str | Threshold], Threshold]:
     def build_threshold(t: str | Threshold):
         if isinstance(t, Threshold):
             return t

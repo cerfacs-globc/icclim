@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Callable, Literal
+from typing import Callable, Hashable, Literal
 
 from xarray.core.dataarray import DataArray
 
@@ -21,11 +21,6 @@ CalcOperationLiteral = Literal[
     "run_sum",
     "anomaly",
 ]
-
-
-def compute_user_index(config: UserIndexConfig) -> DataArray:
-    operation = CalcOperationRegistry.lookup(config.calc_operation)
-    return operation.compute_fun(config)
 
 
 def anomaly(config: UserIndexConfig):
@@ -193,9 +188,12 @@ def _check_and_get_in_base_da(config: UserIndexConfig) -> DataArray | None:
 
 
 @dataclasses.dataclass
-class CalcOperation:
+class CalcOperation(Hashable):
     name: str
     compute: Callable
+
+    def __hash__(self):
+        return hash(self.name)
 
 
 class CalcOperationRegistry(Registry):
