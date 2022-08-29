@@ -34,8 +34,8 @@ class OperatorRegistry(Registry):
     _item_class = Operator
 
     @staticmethod
-    def get_item_aliases(op):
-        return op.aliases
+    def get_item_aliases(op) -> list[str]:
+        return list(map(str.upper, op.aliases))
 
     GREATER = Operator(
         short_name="gt",

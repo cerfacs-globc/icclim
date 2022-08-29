@@ -136,9 +136,7 @@ class EcadIndexRegistry(Registry):
         threshold=">= 90 doy_per",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS_MAX],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
         min_spell_length=6,
     )
@@ -152,9 +150,7 @@ class EcadIndexRegistry(Registry):
         short_name="TG90p",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     TN90P = StandardIndex(
@@ -167,9 +163,7 @@ class EcadIndexRegistry(Registry):
         short_name="TN90p",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS_MIN],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     TX90P = StandardIndex(
@@ -182,9 +176,7 @@ class EcadIndexRegistry(Registry):
         short_name="TX90p",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS_MAX],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     TXX = StandardIndex(
@@ -290,9 +282,7 @@ class EcadIndexRegistry(Registry):
         short_name="TG10p",
         group=IndexGroupRegistry.COLD,
         input_variables=[StandardVariableRegistry.TAS],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     TN10P = StandardIndex(
@@ -305,9 +295,7 @@ class EcadIndexRegistry(Registry):
         short_name="TN10p",
         group=IndexGroupRegistry.COLD,
         input_variables=[StandardVariableRegistry.TAS_MIN],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     TX10P = StandardIndex(
@@ -320,9 +308,7 @@ class EcadIndexRegistry(Registry):
         short_name="TX10p",
         group=IndexGroupRegistry.COLD,
         input_variables=[StandardVariableRegistry.TAS_MAX],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     TXN = StandardIndex(
@@ -471,9 +457,7 @@ class EcadIndexRegistry(Registry):
         short_name="R75p",
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
     )
     R75PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -486,9 +470,7 @@ class EcadIndexRegistry(Registry):
         short_name="R75pTOT",
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
     )
     R95P = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -501,9 +483,7 @@ class EcadIndexRegistry(Registry):
         short_name="R95p",
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
     )
     R95PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -515,9 +495,7 @@ class EcadIndexRegistry(Registry):
         short_name="R95pTOT",
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
     )
     R99P = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -530,9 +508,7 @@ class EcadIndexRegistry(Registry):
         short_name="R99p",
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
     )
     R99PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -545,9 +521,7 @@ class EcadIndexRegistry(Registry):
         short_name="R99pTOT",
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
     )
     # Snow
     SD = StandardIndex(
@@ -608,9 +582,7 @@ class EcadIndexRegistry(Registry):
         short_name="CD",
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     CW = StandardIndex(
@@ -627,9 +599,7 @@ class EcadIndexRegistry(Registry):
         short_name="CW",
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     WD = StandardIndex(
@@ -646,15 +616,13 @@ class EcadIndexRegistry(Registry):
         short_name="WD",
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
     WW = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        # todo: use a dictionary for threshold instead ?
+        # todo: Use a dictionary StandardMetadata->Threshold for threshold instead ?
         threshold=[
             "> 75 doy_per",
             Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
@@ -666,8 +634,6 @@ class EcadIndexRegistry(Registry):
         short_name="WW",
         group=IndexGroupRegistry.COMPOUND,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
-        qualifiers=[
-            QUANTILE_BASED,
-        ],
+        qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )

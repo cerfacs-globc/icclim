@@ -20,12 +20,6 @@ class StandardVariable(Hashable):
     long_name: str
     aliases: list[str]
     default_units: str
-    # todo: rework units, each constant instance should not have runtime values
-    units: str = None  # runtime unit
-    # todo add a run_time name ?
-    #      So that we could have in the same Dataset tas and tasAdjust for example.
-    #      In that case, below declaration should probably be classes instead of
-    #      instances (to instantiate two TAS in the example)
 
     def __hash__(self) -> int:
         return hash(self.short_name + self.standard_name)
@@ -34,7 +28,6 @@ class StandardVariable(Hashable):
         return dict(
             standard_name=self.standard_name,
             long_name=self.long_name,
-            units=self.units,
             short_name=self.short_name,
         )
 
@@ -123,49 +116,49 @@ class StandardVariableRegistry(Registry):
         standard_name="relative_humidity",
         long_name="relative humidity",
         aliases=["hurs", "hursAdjust", "rh", "RH"],
-        default_units="",  # todo
+        default_units="1",  # %
     )
     PSL = StandardVariable(
         short_name="psl",
         standard_name="air_pressure_at_sea_level ",
         long_name="air pressure",
         aliases=["psl", "mslp", "slp", "pp", "MSLP", "SLP", "PP"],
-        default_units="",  # todo
+        default_units="PA",
     )
     SND = StandardVariable(
         short_name="snd",
         standard_name="surface_snow_thickness",
         long_name="snow thickness",
         aliases=["snd", "sd", "SD"],
-        default_units="cm",
+        default_units="m",
     )
     SUND = StandardVariable(
         short_name="sund",
         standard_name="duration_of_sunshine",
         long_name="duration of sunshine",
         aliases=["sund", "ss", "SS"],
-        default_units="",  # todo
+        default_units="s",
     )
     WSGS_MAX = StandardVariable(
         short_name="wsgs_max",
         standard_name="wind_speed_of_gust",
         long_name="wind speed of gust",
         aliases=["wsgsmax", "fx", "FX"],
-        default_units="",  # todo
+        default_units="m/s",
     )
     SFC_WIND = StandardVariable(
         short_name="sfcWind",
         standard_name="wind_speed",
         long_name="wind speed",
         aliases=["sfcWind", "sfcwind", "fg", "FG"],
-        default_units="",  # todo
+        default_units="m/s",
     )
     SNW = StandardVariable(
         short_name="snw",
         standard_name="surface_snow_amount",
         long_name="surface snow amount",
         aliases=["snw", "swe", "SW"],
-        default_units="",  # todo
+        default_units="kg m-2",
     )
     # todo add sunshine, cloudiness
 

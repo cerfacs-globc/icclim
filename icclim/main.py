@@ -133,22 +133,6 @@ def indice(*args, **kwargs):
     return index(*args, **kwargs)
 
 
-def generic(
-    in_files: InFileType,
-    index_name=GenericIndicatorRegistry.CountOccurrences.name,
-    **kwargs,
-) -> Dataset:
-    # TODO: instead of `icclim.generic`,
-    #       it would make more sense to have each reducer as part of the public API.
-    #       In which case, `reducer` and `index_name` could be merged together
-    #       (at api level).
-    return index(
-        in_files=in_files,
-        index_name=index_name,
-        **kwargs,
-    )
-
-
 def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
     calc_op = user_index["calc_operation"]
     map = {
@@ -417,7 +401,7 @@ def index(
         interpolation=interpolation,
         callback=callback,
         is_single_var=is_single_var,
-        reference_period=reference_period,  # noqa
+        reference_period=reference_period,
         indicator_name=indicator_name,
     )
     result_ds = _compute_standard_climate_index(
@@ -430,9 +414,6 @@ def index(
         if standard_index is not None
         else ICCLIM_REFERENCE,
     )
-    if reset := result_ds.attrs.get("reset_coords_dict", None):
-        result_ds = result_ds.rename(reset)
-        del result_ds.attrs["reset_coords_dict"]
     if out_file is not None:
         _write_output_file(
             result_ds,

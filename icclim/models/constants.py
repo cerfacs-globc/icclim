@@ -49,7 +49,6 @@ DOY_PERCENTILE_UNIT = "doy_per"
 
 # Mapping of frequencies to generate metadata
 # copied from xclim and updated.
-# todo: it's weird to group in the same dictionary things that have different purposes.
 EN_FREQ_MAPPING = {
     "YS": "year(s)", "Y": "year(s)", "AS": "year(s)", "A": "year(s)",
     "QS": "season(s)", "Q": "season(s)",

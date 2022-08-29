@@ -50,7 +50,7 @@ class IndexConfig:
     save_thresholds: bool
     interpolation: QuantileInterpolation
     is_single_var: bool
-    reference_period: tuple[str, str]
+    reference_period: tuple[str, str] | None
     indicator_name: str
 
     @property

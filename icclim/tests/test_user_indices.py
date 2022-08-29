@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from icclim.models.frequency import FrequencyRegistry
-from icclim.models.index_config import ClimateVariable
 from icclim.models.operator import OperatorRegistry
 from icclim.models.user_index_config import UserIndexConfig
-from icclim.tests.testing_utils import stub_tas
 
 
 class Test_UserindexConfig:
+    @patch("icclim.models.climate_variable.ClimateVariable")
     @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple_from_dict(self, use_dask):
+    def test_simple_from_dict(self, climate_var_mock: MagicMock, use_dask):
         dico = {
             "index_name": "my_index",
             "calc_operation": "min",
@@ -19,11 +20,10 @@ class Test_UserindexConfig:
             "thresh": 0 + 273.15,
             "date_event": True,
         }
-        tas = stub_tas(use_dask=use_dask)
         config = UserIndexConfig(
             **dico,
             freq=FrequencyRegistry.MONTH,
-            climate_variables=[ClimateVariable("tas", tas, tas)],
+            climate_variables=[climate_var_mock],
         )
         assert config.index_name == "my_index"
         assert config.calc_operation == "min"
@@ -31,4 +31,4 @@ class Test_UserindexConfig:
         assert config.thresh == 273.15
         assert config.date_event
         assert config.freq == FrequencyRegistry.MONTH
-        assert config.climate_variables[0].studied_data is tas
+        assert config.climate_variables[0] is climate_var_mock

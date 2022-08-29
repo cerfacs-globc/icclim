@@ -692,7 +692,6 @@ def _compute_exceedance(
 class GenericIndicatorRegistry(Registry):
     _item_class = GenericIndicator
 
-    # todo: replace strings by a ref to the LOCAL dictionary keys
     CountOccurrences = GenericIndicator("count_occurrences", count_occurrences)
     MaxConsecutiveOccurrence = GenericIndicator(
         "max_consecutive_occurrence",
@@ -806,4 +805,4 @@ def is_amount_unit(unit: str) -> bool:
     # todo: maybe there is a more generic way to handle that with pint,
     #       we could try to convert to pint and check if it has a "day-1" in it
     #       (or a similar "by-time" unit)
-    return unit in ["cm", "mm"]
+    return unit in ["cm", "mm", "m"]

@@ -200,8 +200,6 @@ def guess_input_type(data: DataArray) -> StandardVariable | None:
         )
     if cf_input is None:
         return None
-    #  todo: why duplicate the unit on a contant ?
-    cf_input.units = data.attrs.get(UNITS_ATTRIBUTE_KEY, cf_input.default_units)
     return cf_input
 
 
@@ -228,7 +226,7 @@ def build_studied_data(
     if ignore_Feb29th:
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_ATTRIBUTE_KEY, None) is None and standard_var is not None:
-        da.attrs[UNITS_ATTRIBUTE_KEY] = standard_var.units
+        da.attrs[UNITS_ATTRIBUTE_KEY] = standard_var.default_units
     da = da.chunk("auto")
     return da
 
