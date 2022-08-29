@@ -4,12 +4,12 @@ import datetime
 from typing import Literal, TypedDict
 
 from icclim.models.logical_link import LogicalLink
-from icclim.user_indices.calc_operation import CalcOperation, CalcOperationLiteral
+from icclim.user_indices.calc_operation import CalcOperation, CalcOperationLike
 
 
 class UserIndexDict(TypedDict, total=False):
     index_name: str
-    calc_operation: CalcOperationLiteral | CalcOperation
+    calc_operation: CalcOperationLike | CalcOperation
     logical_operation: str | None  # >= | <= | ...| ==
     thresh: str | float | None
     extreme_mode: Literal["min", "max"] | None

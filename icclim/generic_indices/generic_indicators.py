@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import abc
-from functools import reduce
+from datetime import timedelta
+from functools import partial, reduce
 from typing import Any, Callable
 
 import numpy
@@ -275,6 +276,7 @@ class GenericIndicator(ResamplingIndicator):
             is_single_var=config.is_single_var,
             logical_link=config.logical_link,
             date_event=config.date_event,
+            source_freq_delta=src_freq.delta,
         )
         return self.postprocess(
             result,
@@ -290,13 +292,18 @@ def count_occurrences(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     logical_link: LogicalLink,
+    date_event: bool,
     *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
+    if date_event:
+        reducer_op = count_occurrences_with_date
+    else:
+        reducer_op = partial(DataArray.sum, dim="time")
     return _run_exceedances_reducer(
         climate_vars=climate_vars,
         resample_freq=resample_freq.pandas_freq,
-        reducer_op=lambda mask: mask.sum(dim="time"),
+        reducer_op=reducer_op,
         logical_link=logical_link,
     )
 
@@ -305,6 +312,8 @@ def max_consecutive_occurrence(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     logical_link: LogicalLink,
+    date_event: bool,
+    source_freq_delta: timedelta,
     *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
@@ -315,9 +324,13 @@ def max_consecutive_occurrence(
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     if resample_freq.indexer:
         rle = select_time(rle, **resample_freq.indexer)
-    max_consecutive_occurrence = rle.resample(time=resample_freq.pandas_freq).max(
-        dim="time"
-    )
+    resampled = rle.resample(time=resample_freq.pandas_freq)
+    if date_event:
+        max_consecutive_occurrence = consecutive_occurrences_with_dates(
+            resampled, source_freq_delta
+        )
+    else:
+        max_consecutive_occurrence = resampled.max(dim="time")
     return to_agg_units(
         max_consecutive_occurrence, climate_vars[0].studied_data, "count"
     )
@@ -889,6 +902,55 @@ def _reduce_with_date_event(
             DataArray(data=reduced_result, dims=["lat", "lon"], coords=coordinates)
         )
     return xr.concat(acc, "time")
+
+
+def count_occurrences_with_date(resampled: DataArrayResample):
+    acc: list[DataArray] = []
+    for label, sample in resampled:
+        # Fixme probably not safe to compute on huge dataset,
+        #  it should be fixed with
+        #  https://github.com/pydata/xarray/issues/2511
+        sample = sample.compute()
+        first = sample.isel(time=sample.argmax("time")).time
+        reversed_time = sample[::-1, :, :]
+        last = reversed_time.isel(time=reversed_time.argmax("time")).time
+        new_coords = {c: sample[c] for c in sample.coords if c != "time"}
+        new_coords["event_date_start"] = first
+        new_coords["event_date_end"] = last
+        new_coords["time"] = label
+        acc.append(
+            DataArray(
+                data=sample.sum(dim="time"),
+                coords=new_coords,
+            )
+        )
+    return xr.concat(acc, "time")
+
+
+def consecutive_occurrences_with_dates(
+    resampled: DataArrayResample, source_freq_delta: timedelta
+):
+    acc = []
+    for label, sample in resampled:
+        # todo might be unnecessary to replace NaN by 0 with the new rle
+        #      (if the new rle does not generate NaN)
+        sample = sample.where(~np.isnan(sample), 0)
+        time_index_of_max_rle = sample.argmax(dim="time")
+        # fixme: `.compute` is needed until xarray merges this pr:
+        #        https://github.com/pydata/xarray/pull/5873
+        time_index_of_max_rle = time_index_of_max_rle.compute()
+        longest_run = sample[{"time": time_index_of_max_rle}]
+        start_time = sample.isel(
+            time=time_index_of_max_rle.where(time_index_of_max_rle > 0, 0)
+        ).time
+        end_time = start_time + (longest_run * source_freq_delta)
+        new_coords = {c: sample[c] for c in sample.coords if c != "time"}
+        new_coords["event_date_start"] = start_time
+        new_coords["event_date_end"] = end_time
+        new_coords["time"] = label
+        acc.append(DataArray(data=longest_run, coords=new_coords))
+    max_consecutive_occurrence = xr.concat(acc, "time")
+    return max_consecutive_occurrence
 
 
 def is_amount_unit(unit: str) -> bool:

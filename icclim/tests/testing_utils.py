@@ -6,9 +6,6 @@ import xarray
 import xarray as xr
 
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY
-from icclim.models.frequency import FrequencyRegistry
-from icclim.models.index_config import ClimateVariable
-from icclim.models.user_index_config import UserIndexConfig
 
 VALUE_COUNT = 365 * 5 + 1  # 5 years of data (with 1 leap year)
 COORDS = dict(
@@ -19,15 +16,6 @@ COORDS = dict(
 K2C = 273.15
 
 CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")
-
-
-def stub_user_index(cf_vars: list[ClimateVariable]):
-    return UserIndexConfig(
-        index_name="Yolo",
-        calc_operation="noop",
-        freq=FrequencyRegistry.MONTH,
-        climate_variables=cf_vars,
-    )
 
 
 def stub_tas(tas_value: float = 1.0, use_dask=False, use_cftime=False):

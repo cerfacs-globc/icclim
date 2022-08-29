@@ -23,6 +23,7 @@ from icclim.models.constants import (
     AMJJAS_MONTHS,
     DJF_MONTHS,
     EN_FREQ_MAPPING,
+    FREQ_DELTA_MAPPING,
     JJA_MONTHS,
     MAM_MONTHS,
     MONTHS_MAP,
@@ -159,6 +160,7 @@ class Frequency:
     indexer: Indexer | None
     long_name: str
     group_by_key: str | None
+    delta: timedelta | np.timedelta64
 
     def build_frequency_kwargs(self) -> dict[str, Any]:
         """Build kwargs with possible keys in {"freq", "month", "date_bounds"}"""
@@ -180,6 +182,7 @@ class FrequencyRegistry(Registry):
         units="hours",
         long_name="hour",
         group_by_key="time.hour",
+        delta=np.timedelta64(1, "h"),
     )
     """Resample to hourly values"""
 
@@ -192,6 +195,7 @@ class FrequencyRegistry(Registry):
         units="days",
         long_name="day",
         group_by_key="time.dayofyear",
+        delta=np.timedelta64(1, "D"),
     )
     """Resample to daily values"""
 
@@ -204,6 +208,7 @@ class FrequencyRegistry(Registry):
         units="months",
         long_name="month",
         group_by_key="time.month",
+        delta=np.timedelta64(1, "M"),
     )
     """Resample to monthly values"""
 
@@ -216,6 +221,7 @@ class FrequencyRegistry(Registry):
         units="years",
         long_name="year",
         group_by_key="time.year",
+        delta=np.timedelta64(1, "Y"),
     )
     """Resample to yearly values."""
 
@@ -228,6 +234,7 @@ class FrequencyRegistry(Registry):
         units="half_year_summers",
         long_name="AMJJAS season",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(6, "M"),
     )
     """Resample to summer half-year, from April to September included."""
 
@@ -240,6 +247,7 @@ class FrequencyRegistry(Registry):
         units="half_year_winters",
         long_name="ONDJFM season",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(6, "M"),
     )
     """Resample to winter half-year, from October to March included."""
 
@@ -252,6 +260,7 @@ class FrequencyRegistry(Registry):
         units="winters",
         long_name="DJF winter",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(3, "M"),
     )
     """Resample to winter season, from December to February included."""
 
@@ -264,6 +273,7 @@ class FrequencyRegistry(Registry):
         units="springs",
         long_name="MAM season",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(3, "M"),
     )
     """Resample to spring season, from March to May included."""
 
@@ -276,6 +286,7 @@ class FrequencyRegistry(Registry):
         units="summers",
         long_name="JJA season",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(3, "M"),
     )
     """Resample to summer season, from June to Agust included."""
 
@@ -288,6 +299,7 @@ class FrequencyRegistry(Registry):
         units="autumns",
         long_name="SON season",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(3, "M"),
     )
     """Resample to fall season, from September to November included."""
 
@@ -355,6 +367,7 @@ def _get_frequency_from_string(query: str) -> Frequency:
         units=query,
         long_name=_get_long_name(query),
         group_by_key=None,
+        delta=_get_delta(query),
     )
 
 
@@ -401,6 +414,7 @@ def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
         units="months",
         long_name=f"monthly time series (months: {months})",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(1, "M"),
     )
 
 
@@ -433,6 +447,7 @@ def _build_seasonal_frequency_between_dates(season: Sequence[str]) -> Frequency:
         long_name=f"seasonal time series"
         f" (season: from {begin_formatted} to {end_formatted})",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(end_date - begin_date),
     )
 
 
@@ -452,10 +467,11 @@ def _build_seasonal_frequency_for_months(season: tuple | list):
         units=f"{MONTHS_MAP[season[0]]}_{MONTHS_MAP[season[-1]]}_seasons",
         long_name=f"seasonal time series (season: {season})",
         group_by_key=RUN_INDEXER,
+        delta=np.timedelta64(len(season), "M"),
     )
 
 
-def _get_long_name(pandas_freq: str):
+def _get_long_name(pandas_freq: str) -> str:
     no_digit_freq = re.findall(r"\D+", pandas_freq)[0]
     multiplier = re.findall(r"\d+", pandas_freq)
     freqs = no_digit_freq.split("-")[::-1]  # reverse
@@ -465,3 +481,15 @@ def _get_long_name(pandas_freq: str):
         return multiplier[0] + freqs
     else:
         return freqs
+
+
+def _get_delta(pandas_freq: str) -> timedelta:
+    (
+        base,
+        freq,
+    ) = FREQ_DELTA_MAPPING[re.findall(r"\D+", pandas_freq)[0].split("-")[0]]
+    multiplier = re.findall(r"\d+", pandas_freq)
+    if multiplier:
+        return np.timedelta64(base * multiplier, freq)
+    else:
+        return np.timedelta64(base, freq)

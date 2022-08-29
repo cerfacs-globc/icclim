@@ -161,6 +161,7 @@ class StandardVariableRegistry(Registry):
         default_units="kg m-2",
     )
     # todo add sunshine, cloudiness
+    # todo add aliases from cmip6/cordex https://docs.google.com/spreadsheets/d/1qUauozwXkq7r1g-L4ALMIkCNINIhhCPx/edit?rtpof=true&sd=true#gid=1672965248 # noqa
 
     @staticmethod
     def get_item_aliases(item: StandardVariable) -> list[str]:

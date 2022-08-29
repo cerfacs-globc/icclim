@@ -184,11 +184,14 @@ def to_dictionary(
                 " The dictionary keys are used in place of `var_name`."
             )
     else:
+        standard_var = (
+            standard_index.input_variables[0] if standard_index is not None else None
+        )
         input_dataset = read_dataset(
-            in_files, standard_index.input_variables[0], var_names
+            in_files=in_files, standard_var=standard_var, var_name=var_names
         )
         var_names = guess_var_names(
-            input_dataset, standard_index=standard_index, var_names=var_names
+            ds=input_dataset, standard_index=standard_index, var_names=var_names
         )
         if threshold:
             if not isinstance(threshold, Sequence):

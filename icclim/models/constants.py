@@ -63,6 +63,14 @@ EN_FREQ_MAPPING = {
     "m1": "january",  "m2": "february",  "m3": "march",  "m4": "april",  "m5": "may",  "m6": "june",  "m7": "july",  "m8": "august",  "m9": "september",  "m10": "october",  "m11": "november",  "m12": "december",
     "MON": "monday starting", "TUE": "tuesday starting", "WED": "wednesday starting", "THU": "thursday starting", "FRI": "friday starting", "SAT": "saturday starting", "SUN": "sunday starting"
 }
+FREQ_DELTA_MAPPING = {
+    "YS": (1, "Y" ), "Y": (1, "Y" ), "AS": (1, "Y" ), "A": (1, "Y" ),
+    "QS": (3, "M" ), "Q": (3, "M" ),
+    "MS": (1, "M" ), "M": (1, "M" ),
+    "W": (7, "D" ),
+    "D": (1, "D" ),
+    "H": (1, "H" ),
+}
 
 # Special CF unit
 PART_OF_A_WHOLE_UNIT = "1"

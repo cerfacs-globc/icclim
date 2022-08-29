@@ -134,77 +134,6 @@ def indice(*args, **kwargs):
     return index(*args, **kwargs)
 
 
-def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
-    calc_op = user_index["calc_operation"]
-    map = {
-        CalcOperationRegistry.MAX: GenericIndicatorRegistry.Maximum,
-        CalcOperationRegistry.MIN: GenericIndicatorRegistry.Minimum,
-        CalcOperationRegistry.SUM: GenericIndicatorRegistry.Sum,
-        CalcOperationRegistry.MEAN: GenericIndicatorRegistry.Average,
-        CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.CountOccurrences,
-        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.MaxConsecutiveOccurrence,  # noqa
-        CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.DifferenceOfMeans,
-    }
-    if calc_op is CalcOperationRegistry.RUN_SUM:
-        if user_index["extreme_mode"] == "max":
-            indicator = GenericIndicatorRegistry.MaxOfRollingSum
-        elif user_index["extreme_mode"] == "min":
-            indicator = GenericIndicatorRegistry.MinOfRollingSum
-        else:
-            raise NotImplementedError()
-    elif calc_op is CalcOperationRegistry.RUN_MEAN:
-        if user_index["extreme_mode"] == "max":
-            indicator = GenericIndicatorRegistry.MaxOfRollingAverage
-        elif user_index["extreme_mode"] == "min":
-            indicator = GenericIndicatorRegistry.MinOfRollingAverage
-        else:
-            raise NotImplementedError()
-    else:
-        indicator = map.get(user_index["calc_operation"], None)
-        if indicator is None:
-            raise NotImplementedError()
-    return indicator
-
-
-def read_threshold(
-    user_index: UserIndexDict, build_threshold: Callable[[str | Threshold], Threshold]
-) -> Threshold | None:
-    thresh = user_index.get("thresh", None)
-    if thresh is None:
-        return None
-    if isinstance(thresh, Threshold):
-        return thresh
-    logical_operation: Operator = OperatorRegistry.lookup(
-        user_index["logical_operation"]
-    )
-    if isinstance(thresh, str) and thresh.endswith(PERCENTILE_THRESHOLD_STAMP):
-        thresh = thresh.replace(PERCENTILE_THRESHOLD_STAMP, "")
-    else:
-        thresh = str(thresh)
-
-    thresh = logical_operation.operand + thresh
-    return build_threshold(str(thresh))
-
-
-def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
-    # todo add unit test using it
-    logical_link = user_index.get("link_logical_operations", None)
-    if logical_link is None:
-        return LogicalLinkRegistry.LOGICAL_AND
-    else:
-        return LogicalLinkRegistry.lookup(logical_link)
-
-
-def read_coef(user_index: UserIndexDict) -> float | None:
-    # todo add unit test using it
-    return user_index.get("coef", None)
-
-
-def read_date_event(user_index: UserIndexDict) -> float | None:
-    # todo add unit test using it
-    return user_index.get("date_event", False)
-
-
 def index(
     in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
@@ -228,7 +157,7 @@ def index(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,  # todo is the name explicit enough ?
     *,
-    save_percentile: bool = False,
+    save_percentile: bool | None = None,  # default to None for deprecation
     indice_name: str = None,
     user_indice: UserIndexDict = None,
     transfer_limit_Mbytes: float = None,
@@ -343,12 +272,6 @@ def index(
     )
     del indice_name, transfer_limit_Mbytes, user_indice, save_percentile
     # -- Choose index to compute
-    if user_index is None and index_name is None:
-        raise InvalidIcclimArgumentError(
-            "No index to compute."
-            " You must provide either `user_index` to compute a customized index"
-            " or `index_name` for one of the ECA&D indices."
-        )
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     build_threshold = _get_threshold_builder(
         doy_window_width=window_width,
@@ -371,8 +294,6 @@ def index(
         rename = index_name or user_index.get("index_name", None) or "user_index"
         output_unit = out_unit
     elif index_name is not None:
-        # todo Add logical_link to the index API ?
-        #      (it's only configurable through user_index at the moment)
         logical_link = LogicalLinkRegistry.LOGICAL_AND
         coef = None
         standard_index = EcadIndexRegistry.lookup(index_name, no_error=True)
@@ -637,3 +558,78 @@ def _format_thresholds_for_export(climate_vars: list[ClimateVariable]) -> Datase
 
 def _format_threshold(cf_var: ClimateVariable) -> DataArray:
     return cf_var.threshold.value.rename(cf_var.name + "_thresholds").reindex()
+
+
+# TODO: [refacto] Move these function read_tagadada to input_parsing
+#       or user_index_parsing
+
+
+def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
+    calc_op = user_index["calc_operation"]
+    map = {
+        CalcOperationRegistry.MAX: GenericIndicatorRegistry.Maximum,
+        CalcOperationRegistry.MIN: GenericIndicatorRegistry.Minimum,
+        CalcOperationRegistry.SUM: GenericIndicatorRegistry.Sum,
+        CalcOperationRegistry.MEAN: GenericIndicatorRegistry.Average,
+        CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.CountOccurrences,
+        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.MaxConsecutiveOccurrence,  # noqa
+        CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.DifferenceOfMeans,
+    }
+    if calc_op is CalcOperationRegistry.RUN_SUM:
+        if user_index["extreme_mode"] == "max":
+            indicator = GenericIndicatorRegistry.MaxOfRollingSum
+        elif user_index["extreme_mode"] == "min":
+            indicator = GenericIndicatorRegistry.MinOfRollingSum
+        else:
+            raise NotImplementedError()
+    elif calc_op is CalcOperationRegistry.RUN_MEAN:
+        if user_index["extreme_mode"] == "max":
+            indicator = GenericIndicatorRegistry.MaxOfRollingAverage
+        elif user_index["extreme_mode"] == "min":
+            indicator = GenericIndicatorRegistry.MinOfRollingAverage
+        else:
+            raise NotImplementedError()
+    else:
+        indicator = map.get(user_index["calc_operation"], None)
+        if indicator is None:
+            raise NotImplementedError()
+    return indicator
+
+
+def read_threshold(
+    user_index: UserIndexDict, build_threshold: Callable[[str | Threshold], Threshold]
+) -> Threshold | None:
+    thresh = user_index.get("thresh", None)
+    if thresh is None:
+        return None
+    if isinstance(thresh, Threshold):
+        return thresh
+    logical_operation: Operator = OperatorRegistry.lookup(
+        user_index["logical_operation"]
+    )
+    if isinstance(thresh, str) and thresh.endswith(PERCENTILE_THRESHOLD_STAMP):
+        thresh = thresh.replace(PERCENTILE_THRESHOLD_STAMP, "")
+    else:
+        thresh = str(thresh)
+
+    thresh = logical_operation.operand + thresh
+    return build_threshold(str(thresh))
+
+
+def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
+    # todo add unit test using it
+    logical_link = user_index.get("link_logical_operations", None)
+    if logical_link is None:
+        return LogicalLinkRegistry.LOGICAL_AND
+    else:
+        return LogicalLinkRegistry.lookup(logical_link)
+
+
+def read_coef(user_index: UserIndexDict) -> float | None:
+    # todo add unit test using it
+    return user_index.get("coef", None)
+
+
+def read_date_event(user_index: UserIndexDict) -> float | None:
+    # todo add unit test using it
+    return user_index.get("date_event", False)
