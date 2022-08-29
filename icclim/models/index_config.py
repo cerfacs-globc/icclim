@@ -55,6 +55,7 @@ class IndexConfig:
     indicator_name: str
     logical_link: LogicalLink
     coef: float | None
+    date_event: bool
 
     @property
     def is_percent(self) -> bool:

@@ -16,7 +16,7 @@ class UserIndexDict(TypedDict, total=False):
 
     link_logical_operations: Literal["and", "or"] | LogicalLink | None
     coef: float | None
-    date_event: bool | None  # todo what do we do with that ?
+    date_event: bool
 
     # -- deprecated
     indice_name: str | None

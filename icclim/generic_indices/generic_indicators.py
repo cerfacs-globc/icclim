@@ -274,6 +274,7 @@ class GenericIndicator(ResamplingIndicator):
             group_by_freq=config.frequency.group_by_key,
             is_single_var=config.is_single_var,
             logical_link=config.logical_link,
+            date_event=config.date_event,
         )
         return self.postprocess(
             result,
@@ -418,22 +419,30 @@ def fraction_of_total(
 def maximum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
+    date_event: bool,
     *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
-        climate_vars, resample_freq.pandas_freq, DataArrayResample.max
+        climate_vars=climate_vars,
+        resample_freq=resample_freq.pandas_freq,
+        reducer_op=DataArrayResample.max,
+        date_event=date_event,
     )
 
 
 def minimum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
+    date_event: bool,
     *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
-        climate_vars, resample_freq.pandas_freq, DataArrayResample.min
+        climate_vars=climate_vars,
+        resample_freq=resample_freq.pandas_freq,
+        reducer_op=DataArrayResample.min,
+        date_event=date_event,
     )
 
 
@@ -444,7 +453,10 @@ def average(
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
-        climate_vars, resample_freq.pandas_freq, DataArrayResample.mean
+        climate_vars=climate_vars,
+        resample_freq=resample_freq.pandas_freq,
+        reducer_op=DataArrayResample.mean,
+        date_event=False,
     )
 
 
@@ -455,7 +467,10 @@ def sum(
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
-        climate_vars, resample_freq.pandas_freq, DataArrayResample.sum
+        climate_vars=climate_vars,
+        resample_freq=resample_freq.pandas_freq,
+        reducer_op=DataArrayResample.sum,
+        date_event=False,
     )
 
 
@@ -466,7 +481,7 @@ def std(
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
-        climate_vars, resample_freq.pandas_freq, DataArrayResample.std
+        climate_vars, resample_freq.pandas_freq, DataArrayResample.std, date_event=False
     )
 
 
@@ -474,15 +489,17 @@ def max_of_rolling_sum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     rolling_window_width: int,
+    date_event: bool,
     *args,  # noqa
     **kwargs,  # noqa
 ):
     return _run_rolling_reducer(
-        climate_vars,
-        resample_freq,
-        rolling_window_width,
-        DataArrayRolling.sum,
-        DataArray.max,
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+        rolling_window_width=rolling_window_width,
+        rolling_op=DataArrayRolling.sum,
+        resampled_op=DataArrayResample.max,
+        date_event=date_event,
     )
 
 
@@ -490,15 +507,17 @@ def min_of_rolling_sum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     rolling_window_width: int,
+    date_event: bool,
     *args,  # noqa
     **kwargs,  # noqa
 ):
     return _run_rolling_reducer(
-        climate_vars,
-        resample_freq,
-        rolling_window_width,
-        DataArrayRolling.sum,
-        DataArray.min,
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+        rolling_window_width=rolling_window_width,
+        rolling_op=DataArrayRolling.sum,
+        resampled_op=DataArrayResample.min,
+        date_event=date_event,
     )
 
 
@@ -506,15 +525,35 @@ def min_of_rolling_average(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     rolling_window_width: int,
+    date_event: bool,
     *args,  # noqa
     **kwargs,  # noqa
 ):
     return _run_rolling_reducer(
-        climate_vars,
-        resample_freq,
-        rolling_window_width,
-        DataArrayRolling.mean,
-        DataArray.min,
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+        rolling_window_width=rolling_window_width,
+        rolling_op=DataArrayRolling.mean,
+        resampled_op=DataArrayResample.min,
+        date_event=date_event,
+    )
+
+
+def max_of_rolling_average(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    rolling_window_width: int,
+    date_event: bool,
+    *args,  # noqa
+    **kwargs,  # noqa
+):
+    return _run_rolling_reducer(
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+        rolling_window_width=rolling_window_width,
+        rolling_op=DataArrayRolling.mean,
+        resampled_op=DataArrayResample.min,
+        date_event=date_event,
     )
 
 
@@ -596,29 +635,13 @@ def _check_couple_of_var(climate_vars: list[ClimateVariable], indicator: str):
     return var_0, var_1
 
 
-def max_of_rolling_average(
-    climate_vars: list[ClimateVariable],
-    resample_freq: Frequency,
-    rolling_window_width: int,
-    *args,  # noqa
-    **kwargs,  # noqa
-):
-    return _run_rolling_reducer(
-        climate_vars,
-        resample_freq,
-        rolling_window_width,
-        DataArrayRolling.mean,
-        DataArray.min,
-    )
-
-
 def _run_rolling_reducer(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     rolling_window_width: int,
-    accumulator_op: Callable[[DataArrayRolling], DataArray],  # sum | mean
-    reducer_op: Callable[..., DataArray],  # max | min
-    dim="time",
+    rolling_op: Callable[[DataArrayRolling], DataArray],  # sum | mean
+    resampled_op: Callable[[...], DataArray],  # max | min
+    date_event: bool,
 ):
     thresh_operator, study, threshold = _check_single_var(climate_vars)
     if threshold:
@@ -630,20 +653,24 @@ def _run_rolling_reducer(
             bootstrap=_must_run_bootstrap(study, threshold),
             is_doy_per=threshold.is_doy_per_threshold,
         ).squeeze()
-        data = study.where(exceedance)
+        study = study.where(exceedance)
     else:
-        data = study
-    data = accumulator_op(data.rolling(time=rolling_window_width)).resample(
-        time=resample_freq.pandas_freq
-    )
-    return reducer_op(data, dim=dim)
+        study = study
+    study = rolling_op(study.rolling(time=rolling_window_width))
+    study = study.resample(time=resample_freq.pandas_freq)
+    if date_event:
+        return _reduce_with_date_event(
+            resampled=study, reducer=resampled_op, window=rolling_window_width
+        )
+    else:
+        return resampled_op(study, dim="time")  # type:ignore
 
 
 def _run_simple_reducer(
     climate_vars: list[ClimateVariable],
     resample_freq: str,
     reducer_op: Callable[..., DataArray],
-    dim="time",
+    date_event: bool,
 ):
     thresh_op, study, threshold = _check_single_var(climate_vars)
     if threshold:
@@ -658,7 +685,13 @@ def _run_simple_reducer(
         study = study.where(exceedance)
     else:
         study = study
-    return reducer_op(study.resample(time=resample_freq), dim=dim)
+    if date_event:
+        return _reduce_with_date_event(
+            resampled=study.resample(time=resample_freq),
+            reducer=reducer_op,
+        )
+    else:
+        return reducer_op(study.resample(time=resample_freq), dim="time")
 
 
 def _run_exceedances_reducer(
@@ -755,6 +788,10 @@ class GenericIndicatorRegistry(Registry):
     #     "period_percentile",
     #     period_percentile,
     # )
+    # MoyPercentile = GenericIndicator(
+    #     "moy_percentile",
+    #     moy_percentile,
+    # )
 
 
 def _check_single_var(
@@ -815,6 +852,43 @@ def _get_inputs_metadata(
             climate_vars,
         )
     )
+
+
+def _reduce_with_date_event(
+    resampled: DataArrayResample,
+    reducer: Callable[[DataArrayResample], DataArray],
+    window: int | None = None,
+) -> DataArray:
+    acc: list[DataArray] = []
+    if reducer == DataArrayResample.max:
+        group_reducer = DataArray.argmax
+    elif reducer == DataArrayResample.min:
+        group_reducer = DataArray.argmin
+    else:
+        raise NotImplementedError(
+            f"Can't compute date_event due to unknown reducer:" f" '{reducer}'"
+        )
+    for label, value in resampled:
+        reduced_result = value.isel(time=group_reducer(value, dim="time"))
+        if window is not None:
+            coordinates = dict(
+                time=label,
+                lat=value.lat,
+                lon=value.lon,
+                event_date_start=reduced_result.time,
+                event_date_end=reduced_result.time + np.timedelta64(window, "D"),
+            )
+        else:
+            coordinates = dict(
+                time=label,
+                lat=value.lat,
+                lon=value.lon,
+                event_date=reduced_result.time,
+            )
+        acc.append(
+            DataArray(data=reduced_result, dims=["lat", "lon"], coords=coordinates)
+        )
+    return xr.concat(acc, "time")
 
 
 def is_amount_unit(unit: str) -> bool:

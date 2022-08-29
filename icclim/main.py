@@ -200,6 +200,11 @@ def read_coef(user_index: UserIndexDict) -> float | None:
     return user_index.get("coef", None)
 
 
+def read_date_event(user_index: UserIndexDict) -> float | None:
+    # todo add unit test using it
+    return user_index.get("date_event", False)
+
+
 def index(
     in_files: InFileType,
     index_name: str | None = None,  # optional when computing user_indices
@@ -221,6 +226,7 @@ def index(
     user_index: UserIndexDict | None = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,  # todo is the name explicit enough ?
     *,
     save_percentile: bool = False,
     indice_name: str = None,
@@ -361,6 +367,7 @@ def index(
             threshold = read_threshold(user_index, build_threshold)
         logical_link = read_logical_link(user_index)
         coef = read_coef(user_index)
+        date_event = read_date_event(user_index)
         rename = index_name or user_index.get("index_name", None) or "user_index"
         output_unit = out_unit
     elif index_name is not None:
@@ -429,6 +436,7 @@ def index(
         indicator_name=indicator_name,
         logical_link=logical_link,
         coef=coef,
+        date_event=date_event,
     )
     result_ds = _compute_standard_climate_index(
         climate_index=indicator,
