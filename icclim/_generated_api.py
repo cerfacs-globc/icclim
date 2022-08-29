@@ -83,6 +83,7 @@ def tg(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TG: Mean of daily mean temperature
@@ -143,6 +144,7 @@ def tg(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -156,6 +158,7 @@ def tn(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TN: Mean of daily minimum temperature
@@ -216,6 +219,7 @@ def tn(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -229,6 +233,7 @@ def tx(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TX: Mean of daily maximum temperature
@@ -289,6 +294,7 @@ def tx(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -302,6 +308,7 @@ def dtr(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     DTR: Mean Diurnal Temperature Range
@@ -362,6 +369,7 @@ def dtr(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -375,6 +383,7 @@ def etr(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     ETR: Intra-period extreme temperature range
@@ -435,6 +444,7 @@ def etr(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -448,6 +458,7 @@ def vdtr(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     vDTR: Mean day-to-day variation in Diurnal Temperature Range
@@ -508,6 +519,7 @@ def vdtr(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -521,6 +533,7 @@ def su(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     SU: Number of Summer Days (Tmax > 25C)
@@ -581,6 +594,7 @@ def su(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 25 degree_Celsius",
         ),
@@ -597,6 +611,7 @@ def tr(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TR: Number of Tropical Nights (Tmin > 20C)
@@ -657,6 +672,7 @@ def tr(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 20 degree_Celsius",
         ),
@@ -677,6 +693,7 @@ def wsdi(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     WSDI: Warm-spell duration index (days)
@@ -762,6 +779,7 @@ def wsdi(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 90 doy_per",
             doy_window_width=5,
@@ -786,6 +804,7 @@ def tg90p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TG90p: Days when Tmean > 90th percentile
@@ -871,6 +890,7 @@ def tg90p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 90 doy_per",
             doy_window_width=5,
@@ -895,6 +915,7 @@ def tn90p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TN90p: Days when Tmin > 90th percentile
@@ -980,6 +1001,7 @@ def tn90p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 90 doy_per",
             doy_window_width=5,
@@ -1004,6 +1026,7 @@ def tx90p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TX90p: Days when Tmax > 90th daily percentile
@@ -1089,6 +1112,7 @@ def tx90p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 90 doy_per",
             doy_window_width=5,
@@ -1109,6 +1133,7 @@ def txx(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TXx: Maximum daily maximum temperature
@@ -1169,6 +1194,7 @@ def txx(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -1182,6 +1208,7 @@ def tnx(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TNx: Maximum daily minimum temperature
@@ -1242,6 +1269,7 @@ def tnx(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -1255,6 +1283,7 @@ def csu(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     CSU: Maximum number of consecutive summer days (Tmax >25 C)
@@ -1315,6 +1344,7 @@ def csu(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="> 25 degree_Celsius",
         ),
@@ -1331,6 +1361,7 @@ def gd4(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     GD4: Growing degree days (sum of Tmean > 4 C)
@@ -1391,6 +1422,7 @@ def gd4(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="4 degree_Celsius",
         ),
@@ -1407,6 +1439,7 @@ def fd(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     FD: Number of Frost Days (Tmin < 0C)
@@ -1467,6 +1500,7 @@ def fd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="< 0 degree_Celsius",
         ),
@@ -1483,6 +1517,7 @@ def cfd(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     CFD: Maximum number of consecutive frost days (Tmin < 0 C)
@@ -1543,6 +1578,7 @@ def cfd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="< 0 degree_Celsius",
         ),
@@ -1559,6 +1595,7 @@ def hd17(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     HD17: Heating degree days (sum of Tmean < 17 C)
@@ -1619,6 +1656,7 @@ def hd17(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="17 degree_Celsius",
         ),
@@ -1635,6 +1673,7 @@ def id(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     ID: Number of sharp Ice Days (Tmax < 0C)
@@ -1695,6 +1734,7 @@ def id(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="< 0 degree_Celsius",
         ),
@@ -1715,6 +1755,7 @@ def tg10p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TG10p: Days when Tmean < 10th percentile
@@ -1800,6 +1841,7 @@ def tg10p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -1824,6 +1866,7 @@ def tn10p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TN10p: Days when Tmin < 10th percentile
@@ -1909,6 +1952,7 @@ def tn10p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -1933,6 +1977,7 @@ def tx10p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TX10p: Days when Tmax < 10th percentile
@@ -2018,6 +2063,7 @@ def tx10p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -2038,6 +2084,7 @@ def txn(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TXn: Minimum daily maximum temperature
@@ -2098,6 +2145,7 @@ def txn(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -2111,6 +2159,7 @@ def tnn(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     TNn: Minimum daily minimum temperature
@@ -2171,6 +2220,7 @@ def tnn(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="degree_Celsius",
     )
 
@@ -2188,6 +2238,7 @@ def csdi(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     CSDI: Cold-spell duration index (days)
@@ -2273,6 +2324,7 @@ def csdi(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -2293,6 +2345,7 @@ def cdd(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     CDD: Maximum consecutive dry days (Precip < 1mm)
@@ -2353,6 +2406,7 @@ def cdd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="< 1 mm day-1",
         ),
@@ -2369,6 +2423,7 @@ def prcptot(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     PRCPTOT: Total precipitation during Wet Days
@@ -2429,6 +2484,7 @@ def prcptot(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 1 mm day-1",
         ),
@@ -2445,6 +2501,7 @@ def rr1(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     RR1: Number of Wet Days (precip >= 1 mm)
@@ -2505,6 +2562,7 @@ def rr1(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 1 mm day-1",
         ),
@@ -2521,6 +2579,7 @@ def sdii(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     SDII: Average precipitation during Wet Days (SDII)
@@ -2581,6 +2640,7 @@ def sdii(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 1 mm day-1",
         ),
@@ -2597,6 +2657,7 @@ def cwd(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     CWD: Maximum consecutive wet days (Precip >= 1mm)
@@ -2657,6 +2718,7 @@ def cwd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 1 mm day-1",
         ),
@@ -2673,6 +2735,7 @@ def r10mm(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     R10mm: Number of heavy precipitation days (Precip >=10mm)
@@ -2733,6 +2796,7 @@ def r10mm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 10 mm day-1",
         ),
@@ -2749,6 +2813,7 @@ def r20mm(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     R20mm: Number of very heavy precipitation days (Precip >= 20mm)
@@ -2809,6 +2874,7 @@ def r20mm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 20 mm day-1",
         ),
@@ -2825,6 +2891,7 @@ def rx1day(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     RX1day: maximum 1-day total precipitation
@@ -2885,6 +2952,7 @@ def rx1day(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="mm day-1",
     )
 
@@ -2898,6 +2966,7 @@ def rx5day(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     RX5day: maximum 5-day total precipitation
@@ -2958,6 +3027,7 @@ def rx5day(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="mm",
     )
 
@@ -2975,6 +3045,7 @@ def r75p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (d)
@@ -3060,6 +3131,7 @@ def r75p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="> 75 period_per",
             doy_window_width=5,
@@ -3085,6 +3157,7 @@ def r75ptot(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile)
@@ -3170,6 +3243,7 @@ def r75ptot(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="> 75 period_per",
             doy_window_width=5,
@@ -3195,6 +3269,7 @@ def r95p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     R95p: Days with RR > 95th percentile of daily amounts (very wet days) (days)
@@ -3280,6 +3355,7 @@ def r95p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="> 95 period_per",
             doy_window_width=5,
@@ -3305,6 +3381,7 @@ def r95ptot(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     R95pTOT: Precipitation fraction due to very wet days (> 95th percentile)
@@ -3390,6 +3467,7 @@ def r95ptot(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="> 95 period_per",
             doy_window_width=5,
@@ -3415,6 +3493,7 @@ def r99p(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     R99p: Days with RR > 99th percentile of daily amounts (extremely wet days)
@@ -3500,6 +3579,7 @@ def r99p(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="> 99 period_per",
             doy_window_width=5,
@@ -3525,6 +3605,7 @@ def r99ptot(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     R99pTOT: Precipitation fraction due to extremely wet days (> 99th percentile)
@@ -3610,6 +3691,7 @@ def r99ptot(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query="> 99 period_per",
             doy_window_width=5,
@@ -3631,6 +3713,7 @@ def sd(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     SD: Mean of daily snow depth
@@ -3691,6 +3774,7 @@ def sd(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         out_unit="cm",
     )
 
@@ -3704,6 +3788,7 @@ def sd1(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     SD1: Snow days (SD >= 1 cm)
@@ -3764,6 +3849,7 @@ def sd1(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 1 cm",
         ),
@@ -3780,6 +3866,7 @@ def sd5cm(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     SD5cm: Number of days with snow depth >= 5 cm
@@ -3840,6 +3927,7 @@ def sd5cm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 5 cm",
         ),
@@ -3856,6 +3944,7 @@ def sd50cm(
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     SD50cm: Number of days with snow depth >= 50 cm
@@ -3916,6 +4005,7 @@ def sd50cm(
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=Threshold(
             query=">= 50 cm",
         ),
@@ -3936,6 +4026,7 @@ def cd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     CD: Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days)
@@ -4021,6 +4112,7 @@ def cd(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=[
             Threshold(
                 query="< 25 doy_per",
@@ -4055,6 +4147,7 @@ def cw(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     CW: Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days)
@@ -4140,6 +4233,7 @@ def cw(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=[
             Threshold(
                 query="< 25 doy_per",
@@ -4174,6 +4268,7 @@ def wd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     WD: Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days)
@@ -4259,6 +4354,7 @@ def wd(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=[
             Threshold(
                 query="> 75 doy_per",
@@ -4293,6 +4389,7 @@ def ww(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
 ) -> Dataset:
     """
     WW: Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days)
@@ -4378,6 +4475,7 @@ def ww(
         netcdf_version=netcdf_version,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
         threshold=[
             Threshold(
                 query="> 75 doy_per",
@@ -4411,9 +4509,10 @@ def custom_index(
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_percentile: bool = False,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+    save_percentile: bool | None = None,
 ) -> Dataset:
     """
     This function can be used to create indices using simple operators.
@@ -4473,12 +4572,12 @@ def custom_index(
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
-         file (default: False).
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    save_percentile : bool
+        ``optional`` True if the percentiles should be saved within the resulting netcdf
+         file (default: False).
 
     Notes
     -----
@@ -4496,7 +4595,8 @@ def custom_index(
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
-        save_percentile=save_percentile,
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        save_percentile=save_percentile,
     )
