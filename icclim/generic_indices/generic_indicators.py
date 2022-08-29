@@ -112,6 +112,7 @@ class ResamplingIndicator(Indicator):
         src_freq: Frequency,
         indicator: GenericIndicator,
         output_unit: str | None,
+        coef: float | None,
     ) -> list[ClimateVariable]:
         self.datachecks(climate_vars, src_freq.pandas_freq)
         self.cfcheck(climate_vars)
@@ -210,6 +211,7 @@ class GenericIndicator(ResamplingIndicator):
         src_freq: Frequency,
         indicator: GenericIndicator,
         output_unit: str | None,
+        coef: float | None,
     ) -> list[ClimateVariable]:
         if not _same_freq_for_all(climate_vars):
             raise InvalidIcclimArgumentError(
@@ -225,6 +227,9 @@ class GenericIndicator(ResamplingIndicator):
                     climate_var.studied_data = rate2amount(
                         climate_var.studied_data, out_units=output_unit
                     )
+        if coef is not None:
+            for climate_var in climate_vars:
+                climate_var.studied_data = coef * climate_var.studied_data
         return super().preprocess(
             climate_vars=climate_vars,
             jinja_scope=jinja_scope,
@@ -232,6 +237,7 @@ class GenericIndicator(ResamplingIndicator):
             src_freq=src_freq,
             indicator=indicator,
             output_unit=output_unit,
+            coef=coef,
         )
 
     def __call__(self, config: IndexConfig) -> DataArray:
@@ -258,6 +264,7 @@ class GenericIndicator(ResamplingIndicator):
             src_freq=src_freq,
             indicator=self,
             output_unit=config.out_unit,
+            coef=config.coef,
         )
         result = self.process(
             climate_vars=climate_vars,

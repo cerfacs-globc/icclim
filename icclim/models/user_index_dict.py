@@ -15,7 +15,7 @@ class UserIndexDict(TypedDict, total=False):
     extreme_mode: Literal["min", "max"] | None
 
     link_logical_operations: Literal["and", "or"] | LogicalLink | None
-    coef: float | None  # todo what do we do with that ?
+    coef: float | None
     date_event: bool | None  # todo what do we do with that ?
 
     # -- deprecated

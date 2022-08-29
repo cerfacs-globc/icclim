@@ -54,6 +54,7 @@ class IndexConfig:
     reference_period: tuple[str, str] | None
     indicator_name: str
     logical_link: LogicalLink
+    coef: float | None
 
     @property
     def is_percent(self) -> bool:
