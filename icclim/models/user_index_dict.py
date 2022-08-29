@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 from typing import Literal, TypedDict
 
+from icclim.models.logical_link import LogicalLink
 from icclim.user_indices.calc_operation import CalcOperation, CalcOperationLiteral
 
 
@@ -13,9 +14,7 @@ class UserIndexDict(TypedDict, total=False):
     thresh: str | float | None
     extreme_mode: Literal["min", "max"] | None
 
-    link_logical_operations: Literal[
-        "and", "or"
-    ] | None  # todo what do we do with that ?
+    link_logical_operations: Literal["and", "or"] | LogicalLink | None
     coef: float | None  # todo what do we do with that ?
     date_event: bool | None  # todo what do we do with that ?
 

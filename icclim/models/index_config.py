@@ -5,6 +5,7 @@ from typing import Callable
 
 from icclim.models.climate_variable import ClimateVariable
 from icclim.models.frequency import Frequency
+from icclim.models.logical_link import LogicalLink
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 
@@ -52,6 +53,7 @@ class IndexConfig:
     is_single_var: bool
     reference_period: tuple[str, str] | None
     indicator_name: str
+    logical_link: LogicalLink
 
     @property
     def is_percent(self) -> bool:

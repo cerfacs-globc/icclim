@@ -46,6 +46,7 @@ class StandardIndex:
     group: IndexGroup
     input_variables: list[StandardVariable] | None  # None when index is generic
     generic_indicator: Any  # Any -> GenericIndicator
+    # todo: merge qualifiers with group into a Set of qualifiers ?
     qualifiers: list[str] | None = None
     source: str | None = None
     reference: str | None = None

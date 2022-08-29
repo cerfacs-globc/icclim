@@ -40,6 +40,7 @@ from icclim.models.constants import (
 from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
+from icclim.models.logical_link import LogicalLink, LogicalLinkRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
 from icclim.models.operator import Operator, OperatorRegistry
 from icclim.models.quantile_interpolation import (
@@ -183,6 +184,14 @@ def read_threshold(
 
     thresh = logical_operation.operand + thresh
     return build_threshold(str(thresh))
+
+
+def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
+    logical_link = user_index.get("link_logical_operations", None)
+    if logical_link is None:
+        return LogicalLinkRegistry.LOGICAL_AND
+    else:
+        return LogicalLinkRegistry.lookup(logical_link)
 
 
 def index(
@@ -337,13 +346,18 @@ def index(
     )
     indicator: GenericIndicator
     standard_index: StandardIndex | None = None
+    logical_link: LogicalLink
     if user_index is not None:
         indicator = read_indicator(user_index)
         if threshold is None:
             threshold = read_threshold(user_index, build_threshold)
+        logical_link = read_logical_link(user_index)
         rename = index_name or user_index.get("index_name", None) or "user_index"
         output_unit = out_unit
     elif index_name is not None:
+        # todo Add logical_link to the index API ?
+        #      (it's only configurable through user_index at the moment)
+        logical_link = LogicalLinkRegistry.LOGICAL_AND
         standard_index = EcadIndexRegistry.lookup(index_name, no_error=True)
         if standard_index is None:
             indicator = GenericIndicatorRegistry.lookup(index_name)
@@ -403,6 +417,7 @@ def index(
         is_single_var=is_single_var,
         reference_period=reference_period,
         indicator_name=indicator_name,
+        logical_link=logical_link,
     )
     result_ds = _compute_standard_climate_index(
         climate_index=indicator,

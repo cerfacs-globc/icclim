@@ -26,6 +26,7 @@ from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.frequency import Frequency
 from icclim.models.index_config import IndexConfig
+from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import Operator
 from icclim.models.registry import Registry
 from icclim.models.threshold import Threshold
@@ -265,6 +266,7 @@ class GenericIndicator(ResamplingIndicator):
             rolling_window_width=config.window,
             group_by_freq=config.frequency.group_by_key,
             is_single_var=config.is_single_var,
+            logical_link=config.logical_link,
         )
         return self.postprocess(
             result,
@@ -279,6 +281,7 @@ class GenericIndicator(ResamplingIndicator):
 def count_occurrences(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
+    logical_link: LogicalLink,
     *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
@@ -286,16 +289,20 @@ def count_occurrences(
         climate_vars=climate_vars,
         resample_freq=resample_freq.pandas_freq,
         reducer_op=lambda mask: mask.sum(dim="time"),
+        logical_link=logical_link,
     )
 
 
 def max_consecutive_occurrence(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
+    logical_link: LogicalLink,
     *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
-    merged_exceedances = _compute_exceedances(climate_vars, resample_freq.pandas_freq)
+    merged_exceedances = _compute_exceedances(
+        climate_vars, resample_freq.pandas_freq, logical_link
+    )
     # todo wait for xclim#1134 to benefit from the run_length algo update
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     if resample_freq.indexer:
@@ -311,11 +318,14 @@ def max_consecutive_occurrence(
 def sum_of_spell_lengths(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    min_spell_length: int = 6,
+    logical_link: LogicalLink,
+    min_spell_length: int,
     *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
-    merged_exceedances = _compute_exceedances(climate_vars, resample_freq.pandas_freq)
+    merged_exceedances = _compute_exceedances(
+        climate_vars, resample_freq.pandas_freq, logical_link
+    )
     # todo wait for xclim#1134 to benefit from the run_length algo update
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
@@ -648,14 +658,15 @@ def _run_exceedances_reducer(
     climate_vars: list[ClimateVariable],
     resample_freq: str,
     reducer_op: Callable[[DataArray], DataArray],
+    logical_link: LogicalLink,
 ):
-    merged_exceedances = _compute_exceedances(climate_vars, resample_freq)
+    merged_exceedances = _compute_exceedances(climate_vars, resample_freq, logical_link)
     result = reducer_op(merged_exceedances.resample(time=resample_freq))
     return to_agg_units(result, climate_vars[0].studied_data, "count")
 
 
 def _compute_exceedances(
-    climate_vars: list[ClimateVariable], resample_freq: str
+    climate_vars: list[ClimateVariable], resample_freq: str, logical_link: LogicalLink
 ) -> DataArray:
     exceedances = [
         _compute_exceedance(
@@ -670,9 +681,7 @@ def _compute_exceedances(
         ).squeeze()
         for climate_var in climate_vars
     ]
-    # we assume all climate vars have compatible dimensions
-    merged_exceedances: DataArray = reduce(np.logical_and, exceedances)  # noqa np -> xr
-    return merged_exceedances
+    return logical_link(exceedances)
 
 
 @percentile_bootstrap
