@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from icclim.generic_indices.cf_var_metadata import StandardVariableRegistry
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
-from icclim.models.constants import ECAD_ATBD, PART_OF_A_WHOLE_UNIT, QUANTILE_BASED
+from icclim.models.constants import ECAD_ATBD, QUANTILE_BASED
 from icclim.models.index_group import IndexGroupRegistry
 from icclim.models.registry import Registry
 from icclim.models.standard_index import StandardIndex
@@ -463,7 +463,7 @@ class EcadIndexRegistry(Registry):
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
         threshold=Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
-        output_unit=PART_OF_A_WHOLE_UNIT,
+        output_unit="%",
         definition="Precipitation fraction due to moderate wet days"
         " (> 75th percentile)",
         source=ECAD_ATBD,
@@ -489,7 +489,7 @@ class EcadIndexRegistry(Registry):
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
         threshold=Threshold("> 95 period_per", threshold_min_value="1 mm/day"),
-        output_unit=PART_OF_A_WHOLE_UNIT,
+        output_unit="%",
         definition="Precipitation fraction due to very wet days (> 95th percentile)",
         source=ECAD_ATBD,
         short_name="R95pTOT",
@@ -514,7 +514,7 @@ class EcadIndexRegistry(Registry):
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
         threshold=Threshold("> 99 period_per", threshold_min_value="1 mm/day"),
-        output_unit=PART_OF_A_WHOLE_UNIT,
+        output_unit="%",
         definition="Precipitation fraction due to extremely wet days"
         " (> 99th percentile)",
         source=ECAD_ATBD,

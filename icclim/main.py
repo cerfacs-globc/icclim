@@ -141,11 +141,11 @@ def index(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: str | Threshold | Sequence[str | Threshold] = None,
+    threshold: str | Threshold | Sequence[str] | Sequence[Threshold] = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: Sequence[datetime | str] | None = None,
+    base_period_time_range: Sequence[datetime] | Sequence[str] | None = None,
     window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -155,7 +155,7 @@ def index(
     user_index: UserIndexDict | None = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,  # todo is the name explicit enough ?
+    date_event: bool = False,  # todo is `date_event` explicit enough ?
     *,
     save_percentile: bool | None = None,  # default to None for deprecation
     indice_name: str = None,

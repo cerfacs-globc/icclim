@@ -4,6 +4,7 @@ import abc
 from datetime import timedelta
 from functools import partial, reduce
 from typing import Any, Callable
+from warnings import warn
 
 import numpy
 import numpy as np
@@ -23,9 +24,10 @@ from xclim.indices import run_length
 
 from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_variable import ClimateVariable
-from icclim.models.constants import UNITS_ATTRIBUTE_KEY
-from icclim.models.frequency import Frequency
+from icclim.models.constants import PART_OF_A_WHOLE_UNIT, UNITS_ATTRIBUTE_KEY
+from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import Operator
@@ -219,12 +221,12 @@ class GenericIndicator(ResamplingIndicator):
                 "All variables must have the same time frequency (for example daily) to"
                 " be compared with each others, but this was not the case."
             )
-        if output_unit is not None and is_amount_unit(output_unit):
+        if output_unit is not None and _is_amount_unit(output_unit):
             for climate_var in climate_vars:
                 current_unit = climate_var.studied_data.attrs.get(
                     UNITS_ATTRIBUTE_KEY, None
                 )
-                if current_unit is not None and not is_amount_unit(current_unit):
+                if current_unit is not None and not _is_amount_unit(current_unit):
                     climate_var.studied_data = rate2amount(
                         climate_var.studied_data, out_units=output_unit
                     )
@@ -277,6 +279,7 @@ class GenericIndicator(ResamplingIndicator):
             logical_link=config.logical_link,
             date_event=config.date_event,
             source_freq_delta=src_freq.delta,
+            to_percent=config.out_unit == "%",
         )
         return self.postprocess(
             result,
@@ -293,19 +296,24 @@ def count_occurrences(
     resample_freq: Frequency,
     logical_link: LogicalLink,
     date_event: bool,
+    to_percent: bool,
     *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     if date_event:
-        reducer_op = count_occurrences_with_date
+        reducer_op = _count_occurrences_with_date
     else:
         reducer_op = partial(DataArray.sum, dim="time")
-    return _run_exceedances_reducer(
-        climate_vars=climate_vars,
-        resample_freq=resample_freq.pandas_freq,
-        reducer_op=reducer_op,
-        logical_link=logical_link,
+    merged_exceedances = _compute_exceedances(
+        climate_vars, resample_freq.pandas_freq, logical_link
     )
+    result = reducer_op(merged_exceedances.resample(time=resample_freq.pandas_freq))
+    if to_percent:
+        result = _to_percent(result, resample_freq)
+        result.attrs[UNITS_ATTRIBUTE_KEY] = "%"
+        return result
+    else:
+        return to_agg_units(result, climate_vars[0].studied_data, "count")
 
 
 def max_consecutive_occurrence(
@@ -326,7 +334,7 @@ def max_consecutive_occurrence(
         rle = select_time(rle, **resample_freq.indexer)
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
-        max_consecutive_occurrence = consecutive_occurrences_with_dates(
+        max_consecutive_occurrence = _consecutive_occurrences_with_dates(
             resampled, source_freq_delta
         )
     else:
@@ -425,7 +433,7 @@ def fraction_of_total(
         study.where(exceedance).resample(time=resample_freq.pandas_freq).sum(dim="time")
     )
     res = over / total
-    res.attrs[UNITS_ATTRIBUTE_KEY] = ""  # unit less
+    res.attrs[UNITS_ATTRIBUTE_KEY] = PART_OF_A_WHOLE_UNIT
     return res
 
 
@@ -438,7 +446,7 @@ def maximum(
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars=climate_vars,
-        resample_freq=resample_freq.pandas_freq,
+        resample_freq=resample_freq,
         reducer_op=DataArrayResample.max,
         date_event=date_event,
     )
@@ -453,7 +461,7 @@ def minimum(
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars=climate_vars,
-        resample_freq=resample_freq.pandas_freq,
+        resample_freq=resample_freq,
         reducer_op=DataArrayResample.min,
         date_event=date_event,
     )
@@ -467,7 +475,7 @@ def average(
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars=climate_vars,
-        resample_freq=resample_freq.pandas_freq,
+        resample_freq=resample_freq,
         reducer_op=DataArrayResample.mean,
         date_event=False,
     )
@@ -481,7 +489,7 @@ def sum(
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars=climate_vars,
-        resample_freq=resample_freq.pandas_freq,
+        resample_freq=resample_freq,
         reducer_op=DataArrayResample.sum,
         date_event=False,
     )
@@ -494,7 +502,7 @@ def std(
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
-        climate_vars, resample_freq.pandas_freq, DataArrayResample.std, date_event=False
+        climate_vars, resample_freq, DataArrayResample.std, date_event=False
     )
 
 
@@ -503,6 +511,7 @@ def max_of_rolling_sum(
     resample_freq: Frequency,
     rolling_window_width: int,
     date_event: bool,
+    source_freq_delta: timedelta,
     *args,  # noqa
     **kwargs,  # noqa
 ):
@@ -513,6 +522,7 @@ def max_of_rolling_sum(
         rolling_op=DataArrayRolling.sum,
         resampled_op=DataArrayResample.max,
         date_event=date_event,
+        source_freq_delta=source_freq_delta,
     )
 
 
@@ -521,6 +531,7 @@ def min_of_rolling_sum(
     resample_freq: Frequency,
     rolling_window_width: int,
     date_event: bool,
+    source_freq_delta: timedelta,
     *args,  # noqa
     **kwargs,  # noqa
 ):
@@ -531,6 +542,7 @@ def min_of_rolling_sum(
         rolling_op=DataArrayRolling.sum,
         resampled_op=DataArrayResample.min,
         date_event=date_event,
+        source_freq_delta=source_freq_delta,
     )
 
 
@@ -539,6 +551,7 @@ def min_of_rolling_average(
     resample_freq: Frequency,
     rolling_window_width: int,
     date_event: bool,
+    source_freq_delta: timedelta,
     *args,  # noqa
     **kwargs,  # noqa
 ):
@@ -549,6 +562,7 @@ def min_of_rolling_average(
         rolling_op=DataArrayRolling.mean,
         resampled_op=DataArrayResample.min,
         date_event=date_event,
+        source_freq_delta=source_freq_delta,
     )
 
 
@@ -557,6 +571,7 @@ def max_of_rolling_average(
     resample_freq: Frequency,
     rolling_window_width: int,
     date_event: bool,
+    source_freq_delta: timedelta,
     *args,  # noqa
     **kwargs,  # noqa
 ):
@@ -567,6 +582,7 @@ def max_of_rolling_average(
         rolling_op=DataArrayRolling.mean,
         resampled_op=DataArrayResample.min,
         date_event=date_event,
+        source_freq_delta=source_freq_delta,
     )
 
 
@@ -631,126 +647,6 @@ def difference_of_means(
     return diff_of_means
 
 
-def _check_couple_of_var(climate_vars: list[ClimateVariable], indicator: str):
-    if len(climate_vars) != 2:
-        raise InvalidIcclimArgumentError(
-            f"{indicator} can only be computed on two"
-            " variables sharing the same kind of values "
-            "(e.g. temperatures)"
-        )
-    if climate_vars[0].threshold or climate_vars[1].threshold:
-        raise InvalidIcclimArgumentError(
-            f"{indicator} cannot be computed with thresholds."
-        )
-    var_0 = climate_vars[0].studied_data
-    var_1 = climate_vars[1].studied_data
-    var_0 = convert_units_to(var_0, var_1)
-    return var_0, var_1
-
-
-def _run_rolling_reducer(
-    climate_vars: list[ClimateVariable],
-    resample_freq: Frequency,
-    rolling_window_width: int,
-    rolling_op: Callable[[DataArrayRolling], DataArray],  # sum | mean
-    resampled_op: Callable[[...], DataArray],  # max | min
-    date_event: bool,
-):
-    thresh_operator, study, threshold = _check_single_var(climate_vars)
-    if threshold:
-        exceedance = _compute_exceedance(
-            operator=thresh_operator,
-            study=study,
-            freq=resample_freq.pandas_freq,
-            threshold=threshold.value,
-            bootstrap=_must_run_bootstrap(study, threshold),
-            is_doy_per=threshold.is_doy_per_threshold,
-        ).squeeze()
-        study = study.where(exceedance)
-    else:
-        study = study
-    study = rolling_op(study.rolling(time=rolling_window_width))
-    study = study.resample(time=resample_freq.pandas_freq)
-    if date_event:
-        return _reduce_with_date_event(
-            resampled=study, reducer=resampled_op, window=rolling_window_width
-        )
-    else:
-        return resampled_op(study, dim="time")  # type:ignore
-
-
-def _run_simple_reducer(
-    climate_vars: list[ClimateVariable],
-    resample_freq: str,
-    reducer_op: Callable[..., DataArray],
-    date_event: bool,
-):
-    thresh_op, study, threshold = _check_single_var(climate_vars)
-    if threshold:
-        exceedance = _compute_exceedance(
-            operator=thresh_op,
-            study=study,
-            freq=resample_freq,
-            threshold=threshold.value,
-            bootstrap=_must_run_bootstrap(study, threshold),
-            is_doy_per=threshold.is_doy_per_threshold,
-        ).squeeze()
-        study = study.where(exceedance)
-    else:
-        study = study
-    if date_event:
-        return _reduce_with_date_event(
-            resampled=study.resample(time=resample_freq),
-            reducer=reducer_op,
-        )
-    else:
-        return reducer_op(study.resample(time=resample_freq), dim="time")
-
-
-def _run_exceedances_reducer(
-    climate_vars: list[ClimateVariable],
-    resample_freq: str,
-    reducer_op: Callable[[DataArray], DataArray],
-    logical_link: LogicalLink,
-):
-    merged_exceedances = _compute_exceedances(climate_vars, resample_freq, logical_link)
-    result = reducer_op(merged_exceedances.resample(time=resample_freq))
-    return to_agg_units(result, climate_vars[0].studied_data, "count")
-
-
-def _compute_exceedances(
-    climate_vars: list[ClimateVariable], resample_freq: str, logical_link: LogicalLink
-) -> DataArray:
-    exceedances = [
-        _compute_exceedance(
-            operator=climate_var.threshold.operator,
-            study=climate_var.studied_data,
-            threshold=climate_var.threshold.value,
-            freq=resample_freq,
-            bootstrap=_must_run_bootstrap(
-                climate_var.studied_data, climate_var.threshold
-            ),
-            is_doy_per=climate_var.threshold.is_doy_per_threshold,
-        ).squeeze()
-        for climate_var in climate_vars
-    ]
-    return logical_link(exceedances)
-
-
-@percentile_bootstrap
-def _compute_exceedance(
-    study: DataArray,
-    threshold: DataArray | PercentileDataArray,
-    operator: Operator,
-    freq: str,  # noqa @percentile_bootstrap (don't rename it, it breaks bootstrap)
-    bootstrap: bool,  # noqa @percentile_bootstrap
-    is_doy_per: bool,
-) -> DataArray:
-    if is_doy_per:
-        threshold = resample_doy(threshold, study)
-    return operator(study, threshold)
-
-
 class GenericIndicatorRegistry(Registry):
     _item_class = GenericIndicator
 
@@ -793,6 +689,7 @@ class GenericIndicatorRegistry(Registry):
         "difference_of_means",
         difference_of_means,
     )
+    # TODO: implement or remove comments below
     # DoyPercentile = GenericIndicator(
     #     "doy_percentile",
     #     doy_percentile,
@@ -805,6 +702,119 @@ class GenericIndicatorRegistry(Registry):
     #     "moy_percentile",
     #     moy_percentile,
     # )
+
+
+@percentile_bootstrap
+def _compute_exceedance(
+    study: DataArray,
+    threshold: DataArray | PercentileDataArray,
+    operator: Operator,
+    freq: str,  # noqa @percentile_bootstrap (don't rename it, it breaks bootstrap)
+    bootstrap: bool,  # noqa @percentile_bootstrap
+    is_doy_per: bool,
+) -> DataArray:
+    if is_doy_per:
+        threshold = resample_doy(threshold, study)
+    return operator(study, threshold)
+
+
+def _check_couple_of_var(climate_vars: list[ClimateVariable], indicator: str):
+    if len(climate_vars) != 2:
+        raise InvalidIcclimArgumentError(
+            f"{indicator} can only be computed on two"
+            " variables sharing the same kind of values "
+            "(e.g. temperatures)"
+        )
+    if climate_vars[0].threshold or climate_vars[1].threshold:
+        raise InvalidIcclimArgumentError(
+            f"{indicator} cannot be computed with thresholds."
+        )
+    var_0 = climate_vars[0].studied_data
+    var_1 = climate_vars[1].studied_data
+    var_0 = convert_units_to(var_0, var_1)
+    return var_0, var_1
+
+
+def _run_rolling_reducer(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    rolling_window_width: int,
+    rolling_op: Callable[[DataArrayRolling], DataArray],  # sum | mean
+    resampled_op: Callable[[...], DataArray],  # max | min
+    date_event: bool,
+    source_freq_delta: timedelta,
+) -> DataArray:
+    thresh_operator, study, threshold = _check_single_var(climate_vars)
+    if threshold:
+        exceedance = _compute_exceedance(
+            operator=thresh_operator,
+            study=study,
+            freq=resample_freq.pandas_freq,
+            threshold=threshold.value,
+            bootstrap=_must_run_bootstrap(study, threshold),
+            is_doy_per=threshold.is_doy_per_threshold,
+        ).squeeze()
+        study = study.where(exceedance)
+    else:
+        study = study
+    study = rolling_op(study.rolling(time=rolling_window_width))
+    study = study.resample(time=resample_freq.pandas_freq)
+    if date_event:
+        return _reduce_with_date_event(
+            resampled=study,
+            reducer=resampled_op,
+            window=rolling_window_width,
+            source_delta=source_freq_delta,
+        )
+    else:
+        return resampled_op(study, dim="time")  # type:ignore
+
+
+def _run_simple_reducer(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    reducer_op: Callable[..., DataArray],
+    date_event: bool,
+):
+    thresh_op, study, threshold = _check_single_var(climate_vars)
+    if threshold:
+        exceedance = _compute_exceedance(
+            operator=thresh_op,
+            study=study,
+            freq=resample_freq.pandas_freq,
+            threshold=threshold.value,
+            bootstrap=_must_run_bootstrap(study, threshold),
+            is_doy_per=threshold.is_doy_per_threshold,
+        ).squeeze()
+        study = study.where(exceedance)
+    else:
+        study = study
+    if date_event:
+        return _reduce_with_date_event(
+            resampled=study.resample(time=resample_freq.pandas_freq),
+            reducer=reducer_op,
+        )
+    else:
+        return reducer_op(study.resample(time=resample_freq.pandas_freq), dim="time")
+
+
+def _compute_exceedances(
+    climate_vars: list[ClimateVariable], resample_freq: str, logical_link: LogicalLink
+) -> DataArray:
+    exceedances = [
+        _compute_exceedance(
+            operator=climate_var.threshold.operator,
+            study=climate_var.studied_data,
+            threshold=climate_var.threshold.value,
+            freq=resample_freq,
+            bootstrap=_must_run_bootstrap(
+                climate_var.studied_data, climate_var.threshold
+            ),
+            is_doy_per=climate_var.threshold.is_doy_per_threshold,
+        ).squeeze()
+        for climate_var in climate_vars
+    ]
+    return logical_link(exceedances)
 
 
 def _check_single_var(
@@ -870,6 +880,7 @@ def _get_inputs_metadata(
 def _reduce_with_date_event(
     resampled: DataArrayResample,
     reducer: Callable[[DataArrayResample], DataArray],
+    source_delta: timedelta | None = None,
     window: int | None = None,
 ) -> DataArray:
     acc: list[DataArray] = []
@@ -881,30 +892,28 @@ def _reduce_with_date_event(
         raise NotImplementedError(
             f"Can't compute date_event due to unknown reducer:" f" '{reducer}'"
         )
-    for label, value in resampled:
-        reduced_result = value.isel(time=group_reducer(value, dim="time"))
+    for label, sample in resampled:
+        reduced_result = sample.isel(time=group_reducer(sample, dim="time"))
         if window is not None:
-            coordinates = dict(
-                time=label,
-                lat=value.lat,
-                lon=value.lon,
-                event_date_start=reduced_result.time,
-                event_date_end=reduced_result.time + np.timedelta64(window, "D"),
+            result = _add_date_coords(
+                original_sample=sample,
+                result=sample.sum(dim="time"),
+                start_time=reduced_result.time,
+                end_time=reduced_result.time + window * source_delta,
+                label=label,
             )
         else:
-            coordinates = dict(
-                time=label,
-                lat=value.lat,
-                lon=value.lon,
+            result = _add_date_coords(
+                original_sample=sample,
+                result=sample.sum(dim="time"),
                 event_date=reduced_result.time,
+                label=label,
             )
-        acc.append(
-            DataArray(data=reduced_result, dims=["lat", "lon"], coords=coordinates)
-        )
+        acc.append(result)
     return xr.concat(acc, "time")
 
 
-def count_occurrences_with_date(resampled: DataArrayResample):
+def _count_occurrences_with_date(resampled: DataArrayResample):
     acc: list[DataArray] = []
     for label, sample in resampled:
         # Fixme probably not safe to compute on huge dataset,
@@ -914,20 +923,18 @@ def count_occurrences_with_date(resampled: DataArrayResample):
         first = sample.isel(time=sample.argmax("time")).time
         reversed_time = sample[::-1, :, :]
         last = reversed_time.isel(time=reversed_time.argmax("time")).time
-        new_coords = {c: sample[c] for c in sample.coords if c != "time"}
-        new_coords["event_date_start"] = first
-        new_coords["event_date_end"] = last
-        new_coords["time"] = label
-        acc.append(
-            DataArray(
-                data=sample.sum(dim="time"),
-                coords=new_coords,
-            )
+        dated_occurrences = _add_date_coords(
+            original_sample=sample,
+            result=sample.sum(dim="time"),
+            start_time=first,
+            end_time=last,
+            label=label,
         )
+        acc.append(dated_occurrences)
     return xr.concat(acc, "time")
 
 
-def consecutive_occurrences_with_dates(
+def _consecutive_occurrences_with_dates(
     resampled: DataArrayResample, source_freq_delta: timedelta
 ):
     acc = []
@@ -939,22 +946,89 @@ def consecutive_occurrences_with_dates(
         # fixme: `.compute` is needed until xarray merges this pr:
         #        https://github.com/pydata/xarray/pull/5873
         time_index_of_max_rle = time_index_of_max_rle.compute()
-        longest_run = sample[{"time": time_index_of_max_rle}]
+        dated_longest_run = sample[{"time": time_index_of_max_rle}]
         start_time = sample.isel(
             time=time_index_of_max_rle.where(time_index_of_max_rle > 0, 0)
         ).time
-        end_time = start_time + (longest_run * source_freq_delta)
-        new_coords = {c: sample[c] for c in sample.coords if c != "time"}
-        new_coords["event_date_start"] = start_time
-        new_coords["event_date_end"] = end_time
-        new_coords["time"] = label
-        acc.append(DataArray(data=longest_run, coords=new_coords))
+        end_time = start_time + (dated_longest_run * source_freq_delta)
+        dated_longest_run = _add_date_coords(
+            original_sample=sample,
+            result=dated_longest_run,
+            start_time=start_time,
+            end_time=end_time,
+            label=label,
+        )
+        acc.append(dated_longest_run)
     max_consecutive_occurrence = xr.concat(acc, "time")
     return max_consecutive_occurrence
 
 
-def is_amount_unit(unit: str) -> bool:
+def _add_date_coords(
+    original_sample: DataArray,
+    result: DataArray,
+    label: str | np.datetime64,
+    start_time: DataArray = None,
+    end_time: DataArray = None,
+    event_date: DataArray = None,
+) -> DataArray:
+    new_coords = {c: original_sample[c] for c in original_sample.coords if c != "time"}
+    if event_date is None:
+        new_coords["event_date_start"] = start_time
+        new_coords["event_date_end"] = end_time
+    else:
+        new_coords["event_date"] = event_date
+    new_coords["time"] = label
+    return DataArray(data=result, coords=new_coords)
+
+
+def _is_amount_unit(unit: str) -> bool:
     # todo: maybe there is a more generic way to handle that with pint,
     #       we could try to convert to pint and check if it has a "day-1" in it
     #       (or a similar "by-time" unit)
     return unit in ["cm", "mm", "m"]
+
+
+def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
+    if sampling_freq == FrequencyRegistry.MONTH:
+        da = da / da.time.dt.daysinmonth * 100
+    elif sampling_freq == FrequencyRegistry.YEAR:
+        coef = xr.full_like(da, 1)
+        leap_years = _is_leap_year(da)
+        coef[{"time": leap_years}] = 366
+        coef[{"time": ~leap_years}] = 365
+        da = da / coef
+    elif sampling_freq == FrequencyRegistry.AMJJAS:
+        da = da / 183
+    elif sampling_freq == FrequencyRegistry.ONDJFM:
+        coef = xr.full_like(da, 1)
+        leap_years = _is_leap_year(da)
+        coef[{"time": leap_years}] = 183
+        coef[{"time": ~leap_years}] = 182
+        da = da / coef
+    elif sampling_freq == FrequencyRegistry.DJF:
+        coef = xr.full_like(da, 1)
+        leap_years = _is_leap_year(da)
+        coef[{"time": leap_years}] = 91
+        coef[{"time": ~leap_years}] = 90
+        da = da / coef
+    elif sampling_freq in [FrequencyRegistry.MAM, FrequencyRegistry.JJA]:
+        da = da / 92
+    elif sampling_freq == FrequencyRegistry.SON:
+        da = da / 91
+    else:
+        # TODO improve this for custom resampling
+        warn(
+            "For now, '%' unit can only be used when `slice_mode` is one of: "
+            "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}."
+        )
+        return da
+    da.attrs[UNITS_ATTRIBUTE_KEY] = PART_OF_A_WHOLE_UNIT
+    return da
+
+
+def _is_leap_year(da: DataArray) -> np.ndarray:
+    time_index = da.indexes.get("time")
+    if isinstance(time_index, xr.CFTimeIndex):
+        return CfCalendarRegistry.lookup(time_index.calendar).is_leap(da.time.dt.year)
+    else:
+        return da.time.dt.is_leap_year

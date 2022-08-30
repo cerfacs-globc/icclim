@@ -13,9 +13,10 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 @dataclasses.dataclass
 class IndexConfig:
     """
-    DTO class to map icclim.index input to the Indicator usable configs.
+    DTO class to map icclim.index input the parameters of the different indicator
+    compute functions.
 
-    Parameters
+    Attributes
     ----------
     frequency: Frequency
         The expected resampling frequency of the output.
@@ -24,9 +25,6 @@ class IndexConfig:
     save_percentile: bool = False
         On percentile based indices, if True, this saves the percentile in the output
         netcdf.
-    is_percent:
-        On indices resulting in a numbers of days, if True, this converts the results to
-        % of the sampling frequency
     netcdf_version:
         Netcdf version to be used when creating the output
     window:
@@ -56,8 +54,3 @@ class IndexConfig:
     logical_link: LogicalLink
     coef: float | None
     date_event: bool
-
-    @property
-    def is_percent(self) -> bool:
-        # todo delete ? unit handling should be in GenericIndicator postprocessing
-        return self.out_unit == "%"
