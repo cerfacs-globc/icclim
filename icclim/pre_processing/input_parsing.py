@@ -33,10 +33,6 @@ def guess_var_names(
     standard_index: StandardIndex | None,
 ) -> list[Hashable]:
     if var_names is None:
-        if standard_index is None:
-            raise InvalidIcclimArgumentError(
-                "Unable to guess variable(s) name. Provide it/them using `var_name`."
-            )
         return _guess_dataset_var_names(ds=ds, standard_index=standard_index)
     elif isinstance(var_names, str):
         return [var_names]
