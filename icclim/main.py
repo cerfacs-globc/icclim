@@ -565,7 +565,7 @@ def _format_threshold(cf_var: ClimateVariable) -> DataArray:
 
 
 def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
-    calc_op = user_index["calc_operation"]
+    calc_op = CalcOperationRegistry.lookup(user_index["calc_operation"])
     map = {
         CalcOperationRegistry.MAX: GenericIndicatorRegistry.Maximum,
         CalcOperationRegistry.MIN: GenericIndicatorRegistry.Minimum,
@@ -590,9 +590,7 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         else:
             raise NotImplementedError()
     else:
-        indicator = map.get(user_index["calc_operation"], None)
-        if indicator is None:
-            raise NotImplementedError()
+        indicator = map.get(calc_op)
     return indicator
 
 
