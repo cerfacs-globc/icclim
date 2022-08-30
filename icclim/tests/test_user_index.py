@@ -1,133 +1,113 @@
 from __future__ import annotations
 
-import numpy as np
-import pytest
-import xarray as xr
+from xclim.core.calendar import build_climatology_bounds
 
+import icclim
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.models.logical_link import LogicalLinkRegistry
 from icclim.models.operator import OperatorRegistry
-from icclim.models.user_index_config import ExtremeModeRegistry
 from icclim.tests.testing_utils import stub_tas
-from icclim.user_indices.operators import (
-    _apply_coef,
-    anomaly,
-    count_events,
-    max,
-    max_consecutive_event_count,
-    mean,
-    min,
-    run_mean,
-    run_sum,
-    sum,
-)
-
-
-class Test_apply_coef:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple(self, use_dask):
-        # GIVEN
-        da = stub_tas(use_dask=use_dask)
-        # WHEN
-        result = _apply_coef(4.0, da)
-        # THEN
-        np.testing.assert_equal(result.data, 4.0)
 
 
 class Test_max:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple(self, use_dask):
-        da = stub_tas(use_dask=use_dask)
+    def test_simple(self):
+        da = stub_tas(use_dask=False)
         da.data[1] = 20
         # WHEN
-        result = max(
-            da=da,
-            coef=1,
-            logical_operation=None,
-            threshold=None,
-            freq="YS",
-            date_event=True,
+        result = icclim.index(
+            in_files=da,
+            user_index=dict(
+                index_name="data", calc_operation="max", coef=1, logical_operation=None
+            ),
         )
         # THEN
         assert result.data[0] == 20
 
 
 class Test_min:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple(self, use_dask):
-        da = stub_tas(use_dask=use_dask)
+    def test_simple(self):
+        da = stub_tas(use_dask=False)
         da.data[1] = -20
         # WHEN
-        result = min(da=da, freq="YS")
+        result = icclim.index(
+            in_files=da,
+            user_index=dict(index_name="data", calc_operation="min"),
+        )
         # THEN
         assert result.data[0] == -20
 
 
 class Test_mean:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple(self, use_dask):
-        da = stub_tas(use_dask=use_dask)
+    def test_simple(self):
+        da = stub_tas(use_dask=False)
         da[2] = 366
         # WHEN
-        result = mean(
-            da=da,
-            freq="YS",
+        result = icclim.index(
+            in_files=da,
+            user_index=dict(index_name="data", calc_operation="mean"),
         )
         # THEN
         assert result.data[0] == 2
 
 
 class Test_sum:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple(self, use_dask):
-        da = stub_tas(use_dask=use_dask)
+    def test_simple(self):
+        da = stub_tas(use_dask=False)
         # WHEN
-        result = sum(da=da, freq="YS")
+        result = icclim.index(
+            in_files=da,
+            user_index=dict(index_name="data", calc_operation="sum"),
+            slice_mode="year",
+        )
         # THEN
         assert result.data[0] == 365
 
 
 class Test_count_events:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple(self, use_dask):
+    def test_simple(self):
         # GIVEN
-        da = stub_tas(10, use_dask)
+        da = stub_tas(10, False)
         da[1] = 15
         da[2] = 16
         # WHEN
-        result = count_events(
-            das=[da],
-            in_base_das=[None],
-            logical_operation=[OperatorRegistry.GREATER],
-            thresholds=[15],
-            freq="MS",
+        result = icclim.index(
+            in_files=da,
+            user_index=dict(
+                index_name="data",
+                calc_operation="nb_events",
+                thresh=15,
+                logical_operation=OperatorRegistry.GREATER,
+            ),
+            slice_mode="month",
         )
         # THEN
-        assert result[0] == 1
+        assert result.data[0] == 1
 
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple_percentile(self, use_dask):
+    def test_simple_percentile(self):
         # GIVEN
-        da = stub_tas(10, use_dask)
+        da = stub_tas(10, False)
         da[1] = 15
         da[2] = 16
         # WHEN
-        result = count_events(
-            das=[da],
-            in_base_das=[da],
-            logical_operation=[OperatorRegistry.GREATER],
-            thresholds=["80p"],
-            freq="MS",
-        )
+        result = icclim.index(
+            in_files=da,
+            user_index=dict(
+                index_name="data",
+                calc_operation="nb_events",
+                thresh="80p",
+                logical_operation=OperatorRegistry.GREATER,
+            ),
+            base_period_time_range=build_climatology_bounds(da),
+            slice_mode="month",
+        ).compute()
         # THEN
-        xr.testing.assert_duckarray_equal(result.isel(time=0), 2)
+        assert result.data.isel(time=0) == 2
 
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_multi_threshold_or(self, use_dask):
+    def test_multi_threshold_or(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
+        tmax = stub_tas(10, False)
         tmax[1] = 15
-        tmin = stub_tas(-10, use_dask)
+        tmin = stub_tas(-10, False)
         # WHEN
         result = count_events(
             das=[tmax, tmin],
@@ -140,12 +120,11 @@ class Test_count_events:
         # THEN
         assert result[0] == 1
 
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_multi_threshold_and(self, use_dask):
+    def test_multi_threshold_and(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
+        tmax = stub_tas(10, False)
         tmax[1] = 15
-        tmin = stub_tas(-10, use_dask)
+        tmin = stub_tas(-10, False)
         tmin[1] = -20
         # WHEN
         result = count_events(
@@ -161,10 +140,9 @@ class Test_count_events:
 
 
 class Test_run_mean:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple_min(self, use_dask):
+    def test_simple_min(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
+        tmax = stub_tas(10, False)
         tmax[30] = 0
         tmax[29] = 0
         tmax[28] = 0
@@ -182,10 +160,9 @@ class Test_run_mean:
         assert result[1] == 2
         assert result[2] == 10
 
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple_max(self, use_dask):
+    def test_simple_max(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
+        tmax = stub_tas(10, False)
         tmax[30] = 20
         # WHEN
         result = run_mean(
@@ -201,10 +178,9 @@ class Test_run_mean:
 
 
 class Test_run_sum:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple_min(self, use_dask):
+    def test_simple_min(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
+        tmax = stub_tas(10, False)
         tmax[30] = 0
         tmax[29] = 0
         tmax[28] = 0
@@ -222,10 +198,9 @@ class Test_run_sum:
         assert result[1] == 10
         assert result[2] == 50
 
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple_max(self, use_dask):
+    def test_simple_max(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
+        tmax = stub_tas(10, False)
         tmax[30] = 20
         # WHEN
         result = run_sum(
@@ -241,10 +216,9 @@ class Test_run_sum:
 
 
 class Test_max_consecutive_event_count:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple(self, use_dask):
+    def test_simple(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
+        tmax = stub_tas(10, False)
         tmax[30] = 15  # On 31th january
         # WHEN
         result = max_consecutive_event_count(
@@ -259,21 +233,19 @@ class Test_max_consecutive_event_count:
 
 
 class Test_anomaly:
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple(self, use_dask):
+    def test_simple(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
-        tmax2 = stub_tas(11, use_dask)
+        tmax = stub_tas(10, False)
+        tmax2 = stub_tas(11, False)
         # WHEN
         result = anomaly(da_ref=tmax, da=tmax2, percent=False)
         # THEN
         assert result == 1
 
-    @pytest.mark.parametrize("use_dask", [True, False])
-    def test_simple_percent(self, use_dask):
+    def test_simple_percent(self):
         # GIVEN
-        tmax = stub_tas(10, use_dask)
-        tmax2 = stub_tas(11, use_dask)
+        tmax = stub_tas(10, False)
+        tmax2 = stub_tas(11, False)
         # WHEN
         result = anomaly(da_ref=tmax, da=tmax2, percent=True)
         # THEN
