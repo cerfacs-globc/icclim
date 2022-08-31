@@ -580,7 +580,7 @@ def max_of_rolling_average(
         resample_freq=resample_freq,
         rolling_window_width=rolling_window_width,
         rolling_op=DataArrayRolling.mean,
-        resampled_op=DataArrayResample.min,
+        resampled_op=DataArrayResample.max,
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
