@@ -3,8 +3,11 @@ from __future__ import annotations
 from xclim.core.calendar import build_climatology_bounds
 
 import icclim
-from icclim.models.constants import UNITS_ATTRIBUTE_KEY
-from icclim.models.logical_link import LogicalLinkRegistry
+from icclim.models.constants import (
+    UNITS_ATTRIBUTE_KEY,
+    USER_INDEX_PRECIPITATION_STAMP,
+    USER_INDEX_TEMPERATURE_STAMP,
+)
 from icclim.models.operator import OperatorRegistry
 from icclim.tests.testing_utils import stub_tas
 
@@ -83,7 +86,48 @@ class Test_count_events:
         # THEN
         assert result.data[0] == 1
 
-    def test_simple_percentile(self):
+    def test_simple_default_percentile(self):
+        # GIVEN
+        da = stub_tas(10, False)
+        da[1] = 15
+        da[2] = 16
+        # WHEN
+        result = icclim.index(
+            in_files=da,
+            user_index=dict(
+                index_name="data",
+                calc_operation="nb_events",
+                thresh="50p",
+                logical_operation=OperatorRegistry.GREATER,
+            ),
+            base_period_time_range=build_climatology_bounds(da),
+            slice_mode="month",
+        )
+        # THEN
+        assert result.data.isel(time=0) == 2
+
+    def test_simple_period_percentile(self):
+        # GIVEN
+        da = stub_tas(10, False)
+        da[1] = 15
+        da[2] = 16
+        # WHEN
+        result = icclim.index(
+            in_files=da,
+            user_index=dict(
+                index_name="data",
+                calc_operation="nb_events",
+                thresh="50p",
+                var_type=USER_INDEX_PRECIPITATION_STAMP,
+                logical_operation=OperatorRegistry.GREATER,
+            ),
+            base_period_time_range=build_climatology_bounds(da),
+            slice_mode="month",
+        )
+        # THEN
+        assert result.data.isel(time=0) == 2
+
+    def test_simple_doy_percentile(self):
         # GIVEN
         da = stub_tas(10, False)
         da[1] = 15
@@ -95,11 +139,12 @@ class Test_count_events:
                 index_name="data",
                 calc_operation="nb_events",
                 thresh="80p",
+                var_type=USER_INDEX_TEMPERATURE_STAMP,
                 logical_operation=OperatorRegistry.GREATER,
             ),
             base_period_time_range=build_climatology_bounds(da),
             slice_mode="month",
-        ).compute()
+        )
         # THEN
         assert result.data.isel(time=0) == 2
 
@@ -109,16 +154,20 @@ class Test_count_events:
         tmax[1] = 15
         tmin = stub_tas(-10, False)
         # WHEN
-        result = count_events(
-            das=[tmax, tmin],
-            in_base_das=[None],
-            logical_operation=[OperatorRegistry.GREATER, OperatorRegistry.EQUAL],
-            thresholds=[12, -20],
-            link_logical_operations=LogicalLinkRegistry.LOGICAL_OR,
-            freq="MS",
+        result = icclim.index(
+            in_files={"tmax": tmax, "tmin": tmin},
+            index_name="data",
+            user_index=dict(
+                calc_operation="nb_events",
+                thresh=[12, -20],
+                var_type=USER_INDEX_TEMPERATURE_STAMP,
+                logical_operation=[OperatorRegistry.GREATER, OperatorRegistry.EQUAL],
+                link_logical_operations="or",
+            ),
+            slice_mode="month",
         )
         # THEN
-        assert result[0] == 1
+        assert result.data[0] == 1
 
     def test_multi_threshold_and(self):
         # GIVEN
@@ -127,20 +176,24 @@ class Test_count_events:
         tmin = stub_tas(-10, False)
         tmin[1] = -20
         # WHEN
-        result = count_events(
-            das=[tmax, tmin],
-            in_base_das=[None],
-            logical_operation=[OperatorRegistry.GREATER, OperatorRegistry.EQUAL],
-            thresholds=[12, -20],
-            link_logical_operations=LogicalLinkRegistry.LOGICAL_AND,
-            freq="MS",
+        result = icclim.index(
+            in_files={"tmax": tmax, "tmin": tmin},
+            index_name="data",
+            user_index=dict(
+                calc_operation="nb_events",
+                thresh=[12, -20],
+                var_type=USER_INDEX_TEMPERATURE_STAMP,
+                logical_operation=[OperatorRegistry.GREATER, OperatorRegistry.EQUAL],
+                link_logical_operations="and",
+            ),
+            slice_mode="month",
         )
         # THEN
-        assert result[0] == 1
+        assert result.data[0] == 1
 
 
 class Test_run_mean:
-    def test_simple_min(self):
+    def test_run_mean_min(self):
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 0
@@ -149,36 +202,44 @@ class Test_run_mean:
         tmax[27] = 0
         tmax[26] = 0
         # WHEN
-        result = run_mean(
-            da=tmax,
-            extreme_mode=ExtremeModeRegistry.MIN,
-            window_width=5,
-            freq="MS",
+        result = icclim.index(
+            in_files={"tmax": tmax},
+            index_name="data",
+            user_index=dict(
+                calc_operation="run_mean",
+                extreme_mode="min",
+                window_width=5,
+            ),
+            slice_mode="month",
         )
         # THEN
-        assert result[0] == 0
-        assert result[1] == 2
-        assert result[2] == 10
+        assert result.data[0] == 0
+        assert result.data[1] == 2
+        assert result.data[2] == 10
 
-    def test_simple_max(self):
+    def test_run_mean_max(self):
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 20
         # WHEN
-        result = run_mean(
-            da=tmax,
-            extreme_mode=ExtremeModeRegistry.MAX,
-            window_width=2,
-            freq="MS",
+        result = icclim.index(
+            in_files={"tmax": tmax},
+            index_name="data",
+            rolling_window_width=2,
+            user_index=dict(
+                calc_operation="run_mean",
+                extreme_mode="max",
+            ),
+            slice_mode="month",
         )
         # THEN
-        assert result[0] == 15
-        assert result[1] == 15
-        assert result[2] == 10
+        assert result.data[0] == 15
+        assert result.data[1] == 15
+        assert result.data[2] == 10
 
 
 class Test_run_sum:
-    def test_simple_min(self):
+    def test_run_sum_min(self):
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 0
@@ -187,32 +248,40 @@ class Test_run_sum:
         tmax[27] = 0
         tmax[26] = 0
         # WHEN
-        result = run_sum(
-            da=tmax,
-            extreme_mode=ExtremeModeRegistry.MIN,
-            window_width=5,
-            freq="MS",
+        result = icclim.index(
+            in_files={"tmax": tmax},
+            index_name="data",
+            rolling_window_width=5,
+            user_index=dict(
+                calc_operation="run_sum",
+                extreme_mode="min",
+            ),
+            slice_mode="month",
         )
         # THEN
-        assert result[0] == 0
-        assert result[1] == 10
-        assert result[2] == 50
+        assert result.data[0] == 0
+        assert result.data[1] == 10
+        assert result.data[2] == 50
 
-    def test_simple_max(self):
+    def test_run_sum_max(self):
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 20
         # WHEN
-        result = run_sum(
-            da=tmax,
-            extreme_mode=ExtremeModeRegistry.MAX,
-            window_width=2,
-            freq="MS",
+        result = icclim.index(
+            in_files={"tmax": tmax},
+            index_name="data",
+            rolling_window_width=2,
+            user_index=dict(
+                calc_operation="run_sum",
+                extreme_mode="max",
+            ),
+            slice_mode="month",
         )
         # THEN
-        assert result[0] == 30
-        assert result[1] == 30
-        assert result[2] == 20
+        assert result.data[0] == 30
+        assert result.data[1] == 30
+        assert result.data[2] == 20
 
 
 class Test_max_consecutive_event_count:
@@ -221,15 +290,19 @@ class Test_max_consecutive_event_count:
         tmax = stub_tas(10, False)
         tmax[30] = 15  # On 31th january
         # WHEN
-        result = max_consecutive_event_count(
-            da=tmax,
-            logical_operation=OperatorRegistry.EQUAL,
-            threshold=10.0,
-            freq="YS",
+        result = icclim.index(
+            in_files={"tmax": tmax},
+            index_name="data",
+            user_index=dict(
+                calc_operation="max_nb_consecutive_events",
+                thresh=10.0,
+                logical_operation=OperatorRegistry.EQUAL,
+            ),
+            slice_mode="year",
         )
         # THEN
-        assert result[0] == 334
-        assert result[1] == 365
+        assert result.data[0] == 1795
+        assert result.data[1].isnull()
 
 
 class Test_anomaly:
@@ -238,16 +311,54 @@ class Test_anomaly:
         tmax = stub_tas(10, False)
         tmax2 = stub_tas(11, False)
         # WHEN
-        result = anomaly(da_ref=tmax, da=tmax2, percent=False)
+        result = icclim.index(
+            in_files={"tmax2": tmax2, "tmax": tmax},
+            index_name="data",
+            user_index=dict(
+                calc_operation="anomaly",
+            ),
+            slice_mode="year",
+        )
         # THEN
-        assert result == 1
+        assert (result.data == 1).all()
+        assert result.data.attrs[UNITS_ATTRIBUTE_KEY] == tmax.attrs[UNITS_ATTRIBUTE_KEY]
+
+    def test_single_var(self):
+        # GIVEN
+        tmax = stub_tas(10, False)
+        first_year = tmax.time.dt.year.min().values[()]
+        tmax = tmax.where(tmax.time.dt.year <= first_year + 1, 11)  #
+        ref = tmax.sel(time=slice(str(first_year), str(first_year + 1)))
+        ref_bds = build_climatology_bounds(ref)
+        study = tmax.where(~tmax.time.dt.year.isin(ref.time.dt.year), drop=True)
+        study_bds = build_climatology_bounds(study)
+        # WHEN
+        result = icclim.index(
+            in_files={"tmax": tmax},
+            time_range=study_bds,
+            base_period_time_range=ref_bds,
+            index_name="data",
+            user_index=dict(
+                calc_operation="anomaly",
+            ),
+            slice_mode="month",
+        )
+        # THEN
+        assert (result.data == 1).all()
+        assert len(result.data.month) == 12
+        assert result.data.attrs[UNITS_ATTRIBUTE_KEY] == tmax.attrs[UNITS_ATTRIBUTE_KEY]
 
     def test_simple_percent(self):
         # GIVEN
         tmax = stub_tas(10, False)
         tmax2 = stub_tas(11, False)
         # WHEN
-        result = anomaly(da_ref=tmax, da=tmax2, percent=True)
+        result = icclim.index(
+            index_name="data",
+            in_files={"tmax2": tmax2, "tmax": tmax},
+            out_unit="%",
+            user_index=dict(calc_operation="anomaly"),
+        )
         # THEN
-        assert result == 10
-        assert result.attrs[UNITS_ATTRIBUTE_KEY] == "%"
+        assert (result.data == 10).all()
+        assert result.data.attrs[UNITS_ATTRIBUTE_KEY] == "%"

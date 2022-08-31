@@ -8,7 +8,17 @@ Release history
 * [maint] **BREAKING CHANGE:** ECAD indices are no longer configurable! Use a generic index instead.
 * [fix] **BREAKING CHANGE:** ECAD indices CW, CD, WW, WD were computing the precipitation percentiles on day of year values where it should have been percentiles of the whole period (excluding dry days). This has been fixed.
 * [maint] icclim no longer carries a version of the clix-meta yml file. Previously it was used to generate the doc string and a few metadata of ECAD indices. It's no longer needed as we have put these metadata within StandardIndex declaration.
-* [maint] **BREAKING CHANGE:** Removed the `clipped_season` option from `slice_mode`. With generic indices, `season` should work with every indices. In particular, spell based indices (e.g. wsdi) compute the spell length before doing the resampling operation.
+* [maint] **BREAKING CHANGE:** Removed the `clipped_season` option from `slice_mode`. With generic indices, `season` should work with every indices.
+In particular, spell based indices (e.g. wsdi) are mapped to `max_consecutive_occurrence` generic indicator, which computes the spell length before doing the resampling operation.
+So a spell that start and end outside the output frequency interval is properly accounted for its whole duration.
+That's for example the case of `slice_mode="month"`, but with a spell that start in january and end in March, the whole spell length would be available in january results.
+* [maint] **BREAKING CHANGE:** User index `max_nb_consecutive_events` is also mapped to `max_consecutive_occurrence`, consequently spells are also counted for their whole duration.
+* [enh] Make it possible to pass a simple dictionary in `in_files`, merging together basic `in_files` and `var_name` features.
+It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
+* [enh] Add `min_spell_length` parameter to index API in order to control the minimum duration of spells in `sum_of_spell_lengths`.
+* [enh] Add `rolling_window_width` parameter to index API in order to control the width of the rolling window in `max|min_of_rolling_sum|average`.
+* [enh] Add `doy_window_width` parameter to index API in order to control the width of aggregation windows when computing doy percentiles.
+* [maint] Deprecate `window_width` parameter. When filled, it is mapped to It is still mapped `doy_window_width`.
 
 5.4.0
 -----

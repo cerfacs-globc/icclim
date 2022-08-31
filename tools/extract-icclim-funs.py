@@ -73,7 +73,7 @@ from xarray.core.dataset import Dataset
 
 import icclim
 from icclim.icclim_logger import Verbosity
-from icclim.icclim_types import InFileType
+from icclim.icclim_types import InFileLike
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -100,15 +100,14 @@ def get_user_index_declaration() -> str:
     pop_args.append("indice_name")
     pop_args.append("user_indice")
     pop_args.append("transfer_limit_Mbytes")
+    pop_args.append("save_percentile")
+    pop_args.append("window_width")
     # Pop unnecessary args
     pop_args.append("callback")
     pop_args.append("callback_percentage_start_value")
     pop_args.append("callback_percentage_total")
     pop_args.append("index_name")
     pop_args.append("threshold")
-    pop_args.append("window_width")
-    # Pop not implemented yet
-    pop_args.append("interpolation")
     # Pop manually added arg
     pop_args.append("user_index")  # for `custom_index`, user_index is mandatory
     for pop_arg in pop_args:
@@ -156,15 +155,32 @@ def get_standard_index_declaration(index: StandardIndex) -> str:
     pop_args.append("user_indice")
     pop_args.append("transfer_limit_Mbytes")
     pop_args.append("save_percentile")
+    pop_args.append("window_width")
     # Pop unnecessary args
     pop_args.append("user_index")
     pop_args.append("callback")
     pop_args.append("callback_percentage_start_value")
     pop_args.append("callback_percentage_total")
-    pop_args.append("index_name")  # specified with function name
+    # index_name -> specified with function name
+    pop_args.append("index_name")
+    # threshold;
+    # popped because not configurable on StandardIndices
+    # (ECAD requires specific thresholds)
     pop_args.append("threshold")
+    # out_unit;
+    # popped because not configurable on StandardIndices
+    # (ECAD requires specific untis)
     pop_args.append("out_unit")
-    pop_args.append("window_width")
+    # doy_window_width -> doy per window;
+    # popped because not configurable on StandardIndices
+    # (ECAD requires 5)
+    pop_args.append("doy_window_width")
+    # rolling_window_width; popped because no standard index rely on rolling window
+    pop_args.append("rolling_window_width")
+    # min_spell_length
+    # -> min spell length to be taken into account for `sum_of_spell_length` indices;
+    # popped because not configurable on StandardIndices (ECAD requires 6)
+    pop_args.append("min_spell_length")
     qualifiers = [] if index.qualifiers is None else index.qualifiers
     is_per_based = QUANTILE_BASED in qualifiers
     if not is_per_based:
@@ -224,13 +240,16 @@ def get_parameter_declaration(param: inspect.Parameter) -> str:
 
 def get_params_docstring(args: list[str], index_docstring: str) -> str:
     result = f"{TAB}Parameters\n{TAB}----------\n"
-    matches = list(re.compile(".+ : .*").finditer(index_docstring))
+    args_declaration = list(re.compile(r"\n\s{4}\w+.*: .*").finditer(index_docstring))
     for arg in args:
-        for i in range(0, len(matches) - 2):
-            if matches[i].group().strip().startswith(arg):
-                result += index_docstring[matches[i].start() : matches[i + 1].start()]
-        if matches[-1].group().strip().startswith(arg):
-            result += index_docstring[matches[-1].start() :]
+        for i in range(0, len(args_declaration) - 2):
+            if args_declaration[i].group().strip().startswith(arg):
+                result += index_docstring[
+                    args_declaration[i].start() : args_declaration[i + 1].start()
+                ]
+        if args_declaration[-1].group().strip().startswith(arg):
+            # Add everything after the last argument
+            result += index_docstring[args_declaration[-1].start() :]
     return result
 
 

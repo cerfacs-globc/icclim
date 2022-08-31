@@ -23,4 +23,4 @@ class InFileDictionary(TypedDict, total=False):
     """
 
     study: InFileBaseType
-    thresholds: Threshold
+    thresholds: Threshold | None

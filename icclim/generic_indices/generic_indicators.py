@@ -249,15 +249,15 @@ class GenericIndicator(ResamplingIndicator):
         jinja_scope = {
             "output_freq": config.frequency,
             "source_freq": src_freq,
-            "min_spell_length": config.window,
-            "rolling_window_width": config.window,
+            "min_spell_length": config.min_spell_length,
+            "rolling_window_width": config.rolling_window_width,
             "np": numpy,
             "enumerate": enumerate,
             "len": len,
             "climate_vars": _get_inputs_metadata(
                 config.climate_variables, src_freq, config.indicator_name
             ),
-            "is_single_var": config.is_single_var,
+            "is_compared_to_reference": config.is_compared_to_reference,
             "reference_period": config.reference_period,
         }
         climate_vars = self.preprocess(
@@ -272,10 +272,10 @@ class GenericIndicator(ResamplingIndicator):
         result = self.process(
             climate_vars=climate_vars,
             resample_freq=config.frequency,
-            min_spell_length=config.window,
-            rolling_window_width=config.window,
+            min_spell_length=config.min_spell_length,
+            rolling_window_width=config.rolling_window_width,
             group_by_freq=config.frequency.group_by_key,
-            is_single_var=config.is_single_var,
+            is_compared_to_reference=config.is_compared_to_reference,
             logical_link=config.logical_link,
             date_event=config.date_event,
             source_freq_delta=src_freq.delta,
@@ -629,21 +629,26 @@ def mean_of_absolute_one_time_step_difference(
 
 def difference_of_means(
     climate_vars: list[ClimateVariable],
-    is_single_var: bool,
+    is_compared_to_reference: bool,
+    to_percent: bool,
     group_by_freq: str | None = None,
     resample_freq: Frequency | None = None,
     *args,  # noqa
     **kwargs,  # noqa
 ):
     var_0, var_1 = _check_couple_of_var(climate_vars, "difference_of_means")
-    if is_single_var:
-        mean_0 = var_0.groupby(group_by_freq).mean()
-        mean_1 = var_1.groupby(group_by_freq).mean()
+    if is_compared_to_reference:
+        mean_var_0 = var_0.groupby(group_by_freq).mean()
+        mean_var_1 = var_1.groupby(group_by_freq).mean()
     else:
-        mean_0 = var_0.resample(time=resample_freq.pandas_freq).mean()
-        mean_1 = var_1.resample(time=resample_freq.pandas_freq).mean()
-    diff_of_means = mean_0 - mean_1
-    diff_of_means.attrs["units"] = var_0.attrs["units"]
+        mean_var_0 = var_0.resample(time=resample_freq.pandas_freq).mean()
+        mean_var_1 = var_1.resample(time=resample_freq.pandas_freq).mean()
+    diff_of_means = mean_var_0 - mean_var_1
+    if to_percent:
+        diff_of_means = diff_of_means / mean_var_1 * 100
+        diff_of_means.attrs["units"] = "%"
+    else:
+        diff_of_means.attrs["units"] = var_0.attrs["units"]
     return diff_of_means
 
 
@@ -755,8 +760,6 @@ def _run_rolling_reducer(
             is_doy_per=threshold.is_doy_per_threshold,
         ).squeeze()
         study = study.where(exceedance)
-    else:
-        study = study
     study = rolling_op(study.rolling(time=rolling_window_width))
     study = study.resample(time=resample_freq.pandas_freq)
     if date_event:
@@ -777,7 +780,7 @@ def _run_simple_reducer(
     date_event: bool,
 ):
     thresh_op, study, threshold = _check_single_var(climate_vars)
-    if threshold:
+    if threshold is not None:
         exceedance = _compute_exceedance(
             operator=thresh_op,
             study=study,
@@ -786,16 +789,18 @@ def _run_simple_reducer(
             bootstrap=_must_run_bootstrap(study, threshold),
             is_doy_per=threshold.is_doy_per_threshold,
         ).squeeze()
-        study = study.where(exceedance)
+        filtered_study = study.where(exceedance)
     else:
-        study = study
+        filtered_study = study
     if date_event:
         return _reduce_with_date_event(
-            resampled=study.resample(time=resample_freq.pandas_freq),
+            resampled=filtered_study.resample(time=resample_freq.pandas_freq),
             reducer=reducer_op,
         )
     else:
-        return reducer_op(study.resample(time=resample_freq.pandas_freq), dim="time")
+        return reducer_op(
+            filtered_study.resample(time=resample_freq.pandas_freq), dim="time"
+        )
 
 
 def _compute_exceedances(
@@ -941,7 +946,7 @@ def _consecutive_occurrences_with_dates(
     for label, sample in resampled:
         # todo might be unnecessary to replace NaN by 0 with the new rle
         #      (if the new rle does not generate NaN)
-        sample = sample.where(~np.isnan(sample), 0)
+        sample = sample.where(~sample.isnull(), 0)
         time_index_of_max_rle = sample.argmax(dim="time")
         # fixme: `.compute` is needed until xarray merges this pr:
         #        https://github.com/pydata/xarray/pull/5873

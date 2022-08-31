@@ -483,12 +483,27 @@ def _get_long_name(pandas_freq: str) -> str:
         return freqs
 
 
-def _get_delta(pandas_freq: str) -> timedelta:
-    (
-        base,
-        freq,
-    ) = FREQ_DELTA_MAPPING[re.findall(r"\D+", pandas_freq)[0].split("-")[0]]
-    multiplier = re.findall(r"\d+", pandas_freq)
+def _get_delta(pandas_freq: str) -> np.timedelta64:
+    """
+    Build timedelta from a "pandas frequency" string.
+    A "pandas frequency" string may look like ["2AS-DEC", "3W-TUE", "M", ... ]
+    The anchor, such as "DEC" in "AS-DEC", does not modify the delta.
+
+    Parameters
+    ----------
+    pandas_freq : str
+    The frequency query.
+
+    Returns
+    -------
+    The timedelta corresponding to this frequency.
+    For example, "2AS-DEC" would return a 2 years delta.
+    """
+    # [0] to ignore the anchor
+    non_digit = re.findall(r"\D+", pandas_freq)[0].split("-")[0]
+    base, freq = FREQ_DELTA_MAPPING[non_digit]
+    # we assume the starting digits are the multiplier.
+    multiplier = int(re.findall(r"\d+", pandas_freq)[0])
     if multiplier:
         return np.timedelta64(base * multiplier, freq)
     else:

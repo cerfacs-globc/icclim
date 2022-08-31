@@ -42,13 +42,14 @@ class IndexConfig:
 
     frequency: Frequency
     climate_variables: list[ClimateVariable]
-    window: int | None
+    min_spell_length: int | None
+    rolling_window_width: int | None
     out_unit: str | None
     callback: Callable[[int], None] | None
     netcdf_version: NetcdfVersion
     save_thresholds: bool
     interpolation: QuantileInterpolation
-    is_single_var: bool
+    is_compared_to_reference: bool
     reference_period: tuple[str, str] | None
     indicator_name: str
     logical_link: LogicalLink

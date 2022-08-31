@@ -27,6 +27,7 @@ DEFAULT_ARGS = dict(
     ignore_Feb29th=False,
     netcdf_version=NetcdfVersionRegistry.NETCDF4,
     logs_verbosity=VerbosityRegistry.LOW,
+    date_event=False,
 )
 
 
@@ -87,8 +88,13 @@ def test_custom_index(index_fun_mock: MagicMock):
         ignore_Feb29th=False,
         out_unit=None,
         netcdf_version=NetcdfVersionRegistry.NETCDF4,
-        save_percentile=False,
         logs_verbosity=VerbosityRegistry.LOW,
+        doy_window_width=5,
+        save_thresholds=False,
+        date_event=False,
+        min_spell_length=6,
+        rolling_window_width=5,
+        interpolation="median_unbiased",
         user_index={
             "index_name": "pouet",
             "calc_operation": "nb_events",
@@ -149,9 +155,9 @@ def test_txx__months_slice_mode():
 def test_custom_index__season_slice_mode(
     operator: CalcOperation, expectation_year_1, expectation_year_2
 ):
-    tas = stub_tas(2.0)
-    tas.loc[{"time": "2042-01-01"}] = 303.15
-    tas.loc[{"time": "2042-12-01"}] = 280.15
+    tas = stub_tas(275.0)
+    tas.loc[{"time": "2043-01-01"}] = 303.15
+    tas.loc[{"time": "2043-12-01"}] = 280.15
     res = icclim.custom_index(
         in_files=tas,
         slice_mode=["season", [12, 1]],
@@ -163,22 +169,26 @@ def test_custom_index__season_slice_mode(
             "thresh": 275,
         },
     )
-    np.testing.assert_almost_equal(res.pouet.isel(time=0), expectation_year_1)
-    np.testing.assert_almost_equal(res.pouet.isel(time=1), expectation_year_2)
+    # missing values algo applied for first and last years
+    np.testing.assert_almost_equal(res.pouet.isel(time=0), np.NAN)
+    np.testing.assert_almost_equal(res.pouet.isel(time=-1), np.NAN)
+    np.testing.assert_almost_equal(res.pouet.isel(time=1), expectation_year_1)
+    np.testing.assert_almost_equal(res.pouet.isel(time=2), expectation_year_2)
 
 
 # integration test
 @pytest.mark.parametrize(
     "operator, expectation_year_1, expectation_year_2",
     [
-        (CalcOperationRegistry.RUN_MEAN, 2, 2),
-        (CalcOperationRegistry.RUN_SUM, 14, 14),
+        (CalcOperationRegistry.RUN_MEAN, 275.0, 276.0),
+        (CalcOperationRegistry.RUN_SUM, 1925.0, 1932.0),
     ],
 )
 def test_custom_index_run_algos__season_slice_mode(
     operator, expectation_year_1, expectation_year_2
 ):
-    tas = stub_tas(2.0)
+    tas = stub_tas(275.0)
+    tas.loc[{"time": "2043-12-01"}] = 282.0
     res = icclim.custom_index(
         in_files=tas,
         slice_mode=["season", [12, 1]],
@@ -190,8 +200,11 @@ def test_custom_index_run_algos__season_slice_mode(
             "window_width": 7,
         },
     )
-    np.testing.assert_almost_equal(res.pouet.isel(time=0), expectation_year_1)
-    np.testing.assert_almost_equal(res.pouet.isel(time=1), expectation_year_2)
+    # missing values algo applied for first and last years
+    np.testing.assert_almost_equal(res.pouet.isel(time=0), np.NAN)
+    np.testing.assert_almost_equal(res.pouet.isel(time=-1), np.NAN)
+    np.testing.assert_almost_equal(res.pouet.isel(time=1), expectation_year_1)
+    np.testing.assert_almost_equal(res.pouet.isel(time=2), expectation_year_2)
 
 
 def test_custom_index_anomaly__season_slice_mode():
@@ -206,5 +219,5 @@ def test_custom_index_anomaly__season_slice_mode():
             "calc_operation": CalcOperationRegistry.ANOMALY,
             "ref_time_range": [datetime(2042, 1, 1), datetime(2044, 12, 31)],
         },
-    )
+    ).compute()
     np.testing.assert_almost_equal(res.anomaly, 0.96129032)

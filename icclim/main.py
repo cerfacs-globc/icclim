@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime
+from functools import partial
 from typing import Callable, Literal, Sequence
 from warnings import warn
 
@@ -25,7 +26,7 @@ from icclim.generic_indices.generic_indicators import (
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
-from icclim.icclim_types import InFileType
+from icclim.icclim_types import InFileLike
 from icclim.models.climate_variable import (
     ClimateVariable,
     build_climate_vars,
@@ -36,13 +37,15 @@ from icclim.models.constants import (
     ICCLIM_VERSION,
     PERCENTILE_THRESHOLD_STAMP,
     UNITS_ATTRIBUTE_KEY,
+    USER_INDEX_PRECIPITATION_STAMP,
+    USER_INDEX_TEMPERATURE_STAMP,
 )
 from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.logical_link import LogicalLink, LogicalLinkRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
-from icclim.models.operator import Operator, OperatorRegistry
+from icclim.models.operator import OperatorRegistry
 from icclim.models.quantile_interpolation import (
     QuantileInterpolation,
     QuantileInterpolationRegistry,
@@ -78,6 +81,8 @@ def indices(
         The value "all" can also be used to compute every indices.
         Note that the input given by ``in_files`` must include all the necessary
         variables to compute the indices of this group.
+    ignore_error: bool
+        When True, ignore indices that fails to compute.
     kwargs : Dict
         ``icclim.index`` keyword arguments.
 
@@ -125,7 +130,7 @@ def indices(
     return ds
 
 
-def indice(*args, **kwargs):
+def indice(*args, **kwargs) -> Dataset:
     """
     Deprecated proxy for `icclim.index` function.
     To be deleted in a futur version.
@@ -135,7 +140,7 @@ def indice(*args, **kwargs):
 
 
 def index(
-    in_files: InFileType,
+    in_files: InFileLike,
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
@@ -146,7 +151,7 @@ def index(
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
     base_period_time_range: Sequence[datetime] | Sequence[str] | None = None,
-    window_width: int = 5,
+    doy_window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -155,9 +160,13 @@ def index(
     user_index: UserIndexDict | None = None,
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,  # todo is `date_event` explicit enough ?
+    date_event: bool = False,
+    min_spell_length: int | None = 6,
+    rolling_window_width: int | None = 5,
     *,
-    save_percentile: bool | None = None,  # default to None for deprecation
+    # deprecated params are kwargs only
+    window_width: int | None = None,
+    save_percentile: bool | None = None,
     indice_name: str = None,
     user_indice: UserIndexDict = None,
     transfer_limit_Mbytes: float = None,
@@ -167,19 +176,19 @@ def index(
 
     Parameters
     ----------
-    in_files : str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
-    index_name : str
+    index_name: str
         Climate index name.
         For ECA&D index, case insensitive name used to lookup the index.
         For user index, it's the name of the output variable.
-    var_name : str | list[str] | None
+    var_name: str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the climate
         index wanted.
         Mandatory for a user index.
-    slice_mode : SliceMode
+    slice_mode: SliceMode
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -188,33 +197,33 @@ def index(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime ] | list[str]  | tuple[str, str] | None
+    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None
+    out_file: str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    threshold : float | list[float] | None
+    threshold: float | list[float] | None
         ``optional`` User defined threshold for certain indices.
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
-    transfer_limit_Mbytes : float
+    transfer_limit_Mbytes: float
         Deprecated, does not have any effect.
-    callback : Callable[[int], None]
+    callback: Callable[[int], None]
         ``optional`` Progress bar printing. If ``None``, progress bar will not be
         printed.
-    callback_percentage_start_value : int
+    callback_percentage_start_value: int
         ``optional`` Initial value of percentage of the progress bar (default: 0).
-    callback_percentage_total : int
+    callback_percentage_total: int
         ``optional`` Total percentage value (default: 100).
-    base_period_time_range : list[datetime ] | list[str]  | tuple[str, str] | None
+    base_period_time_range: list[datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -228,71 +237,96 @@ def index(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    window_width : int
-        ``optional`` User defined window width for related indices (default: 5).
-        Ignored for non related indices.
-    only_leap_years : bool
+    doy_window_width: int
+        ``optional`` Window width used to aggreagte day of year values when computing
+        day of year percentiles (doy_per)
+        Default: 5 (5 days).
+    min_spell_length: int
+        ``optional`` Minimum spell duration to be taken into account when computing the
+        sum_of_spell_lengths.
+    rolling_window_width: int
+        ``optional`` Window width of the rolling window for indicators such as
+        `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`  # noqa
+    only_leap_years: bool
         ``optional`` Option for February 29th (default: False).
-    ignore_Feb29th : bool
+    ignore_Feb29th: bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None
+    interpolation: str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
-    out_unit : str | None
+    out_unit: str | None
         ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
-    netcdf_version : str | NetcdfVersion
+    netcdf_version: str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    user_index : UserIndexDict
+    user_index: UserIndexDict
         ``optional`` A dictionary with parameters for user defined index.
         See :ref:`Custom indices`.
         Ignored for ECA&D indices.
-    save_percentile : bool
-        ``optional`` True if the percentiles should be saved within the resulting netcdf
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting netcdf
          file (default: False).
-    logs_verbosity : str | Verbosity
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+    logs_verbosity: str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    indice_name : str | None
+    indice_name: str | None
         DEPRECATED, use index_name instead.
-    user_indice : dict | None
+    user_indice: dict | None
         DEPRECATED, use user_index instead.
+    window_width: int
+        DEPRECATED, use doy_window_width, min_spell_length or rolling_window_width
+        instead.
+    save_percentile: bool
+        DEPRECATED, use save_thresholds instead.
 
     """
     _setup(callback, callback_percentage_start_value, logs_verbosity)
-    index_name, user_index, save_thresholds = _handle_deprecated_params(
+    (
         index_name,
         user_index,
         save_thresholds,
+        doy_window_width,
+    ) = _handle_deprecated_params(
+        index_name,
+        user_index,
+        save_thresholds,
+        doy_window_width,
         indice_name,
         transfer_limit_Mbytes,
         user_indice,
         save_percentile,
+        window_width,
     )
-    del indice_name, transfer_limit_Mbytes, user_indice, save_percentile
+    del indice_name, transfer_limit_Mbytes, user_indice, save_percentile, window_width
     # -- Choose index to compute
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
-    build_threshold = _get_threshold_builder(
-        doy_window_width=window_width,
-        base_period_time_range=base_period_time_range,
-        only_leap_years=only_leap_years,
-        interpolation=interpolation,
-    )
     indicator: GenericIndicator
     standard_index: StandardIndex | None
     logical_link: LogicalLink
     coef: float | None
+    build_configured_threshold = partial(
+        build_threshold,
+        doy_window_width=doy_window_width,
+        base_period_time_range=base_period_time_range,
+        only_leap_years=only_leap_years,
+        interpolation=interpolation,
+    )
     if user_index is not None:
         standard_index = None
         indicator = read_indicator(user_index)
         if threshold is None:
-            threshold = read_threshold(user_index, build_threshold)
+            threshold = read_threshold(user_index, build_configured_threshold)
         logical_link = read_logical_link(user_index)
         coef = read_coef(user_index)
         date_event = read_date_event(user_index)
         rename = index_name or user_index.get("index_name", None) or "user_index"
         output_unit = out_unit
+        rolling_window_width = user_index.get("window_width", rolling_window_width)
     elif index_name is not None:
         logical_link = LogicalLinkRegistry.LOGICAL_AND
         coef = None
@@ -313,9 +347,9 @@ def index(
         )
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     if isinstance(threshold, str):
-        threshold = build_threshold(threshold)
+        threshold = build_configured_threshold(threshold)
     elif isinstance(threshold, Sequence):
-        threshold = [build_threshold(t) for t in threshold]
+        threshold = [build_configured_threshold(t) for t in threshold]
     climate_vars_dict = to_dictionary(
         in_files=in_files,
         var_names=var_name,
@@ -324,14 +358,15 @@ def index(
     )
     # We use groupby instead of resample when there is a single variable that must be
     # compared to its reference period values.
-    is_single_var = must_add_reference_var(
-        threshold, climate_vars_dict, base_period_time_range
+    is_compared_to_reference = must_add_reference_var(
+        climate_vars_dict, base_period_time_range
     )
-    indicator_name = standard_index.short_name if standard_index else indicator.name
+    indicator_name = (
+        standard_index.short_name if standard_index is not None else indicator.name
+    )
     climate_vars = build_climate_vars(
         climate_vars_dict=climate_vars_dict,
         ignore_Feb29th=ignore_Feb29th,
-        threshold=threshold,
         time_range=time_range,
         base_period=base_period_time_range,
         standard_index=standard_index,
@@ -347,12 +382,13 @@ def index(
         save_thresholds=save_thresholds,
         frequency=sampling_frequency,
         climate_variables=climate_vars,
-        window=window_width,
+        min_spell_length=min_spell_length,
+        rolling_window_width=rolling_window_width,
         out_unit=output_unit,
         netcdf_version=NetcdfVersionRegistry.lookup(netcdf_version),
         interpolation=interpolation,
         callback=callback,
-        is_single_var=is_single_var,
+        is_compared_to_reference=is_compared_to_reference,
         reference_period=reference_period,
         indicator_name=indicator_name,
         logical_link=logical_link,
@@ -407,11 +443,13 @@ def _handle_deprecated_params(
     index_name,
     user_index,
     save_thresholds,
+    doy_window_width,
     indice_name,
     transfer_limit_Mbytes,
     user_indice,
     save_percentile,
-) -> tuple[str, UserIndexDict, bool]:
+    window_width,
+) -> tuple[str, UserIndexDict, bool, int]:
     if indice_name is not None:
         log.deprecation_warning(old="indice_name", new="index_name")
         index_name = indice_name
@@ -423,7 +461,10 @@ def _handle_deprecated_params(
     if save_percentile is not None:
         log.deprecation_warning(old="save_percentile", new="save_thresholds")
         save_thresholds = save_percentile
-    return index_name, user_index, save_thresholds
+    if window_width is not None:
+        log.deprecation_warning(old="window_width", new="doy_window_width")
+        doy_window_width = window_width
+    return index_name, user_index, save_thresholds, doy_window_width
 
 
 def _setup(callback, callback_start_value, logs_verbosity):
@@ -531,25 +572,23 @@ def _build_history(
     )
 
 
-def _get_threshold_builder(
+def build_threshold(
+    threshold: str | Threshold,
     doy_window_width: int,
     base_period_time_range: Sequence[datetime | str] | None,
     only_leap_years: bool,
     interpolation: QuantileInterpolation,
-) -> Callable[[str | Threshold], Threshold]:
-    def build_threshold(t: str | Threshold):
-        if isinstance(t, Threshold):
-            return t
-        else:
-            return Threshold(
-                t,
-                doy_window_width=doy_window_width,
-                reference_period=base_period_time_range,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-            )
-
-    return build_threshold
+) -> Threshold:
+    if isinstance(threshold, Threshold):
+        return threshold
+    else:
+        return Threshold(
+            threshold,
+            doy_window_width=doy_window_width,
+            reference_period=base_period_time_range,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+        )
 
 
 def _format_thresholds_for_export(climate_vars: list[ClimateVariable]) -> Dataset:
@@ -560,58 +599,84 @@ def _format_threshold(cf_var: ClimateVariable) -> DataArray:
     return cf_var.threshold.value.rename(cf_var.name + "_thresholds").reindex()
 
 
-# TODO: [refacto] Move these function read_tagadada to input_parsing
-#       or user_index_parsing
+# TODO: [refacto] Move these functions "read_tagadada" to input_parsing  or
+#       user_index_parsing
 
 
 def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
     calc_op = CalcOperationRegistry.lookup(user_index["calc_operation"])
     map = {
-        CalcOperationRegistry.MAX: GenericIndicatorRegistry.Maximum,
-        CalcOperationRegistry.MIN: GenericIndicatorRegistry.Minimum,
-        CalcOperationRegistry.SUM: GenericIndicatorRegistry.Sum,
-        CalcOperationRegistry.MEAN: GenericIndicatorRegistry.Average,
-        CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.CountOccurrences,
-        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.MaxConsecutiveOccurrence,  # noqa
-        CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.DifferenceOfMeans,
+        CalcOperationRegistry.MAX: GenericIndicatorRegistry.lookup("Maximum"),
+        CalcOperationRegistry.MIN: GenericIndicatorRegistry.lookup("Minimum"),
+        CalcOperationRegistry.SUM: GenericIndicatorRegistry.lookup("Sum"),
+        CalcOperationRegistry.MEAN: GenericIndicatorRegistry.lookup("Average"),
+        CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.lookup(
+            "CountOccurrences"
+        ),
+        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.lookup(  # noqa
+            "MaxConsecutiveOccurrence"
+        ),
+        CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.lookup(
+            "DifferenceOfMeans"
+        ),
     }
-    if calc_op is CalcOperationRegistry.RUN_SUM:
+    if calc_op == CalcOperationRegistry.RUN_SUM:
         if user_index["extreme_mode"] == "max":
-            indicator = GenericIndicatorRegistry.MaxOfRollingSum
+            indicator = GenericIndicatorRegistry.lookup("MaxOfRollingSum")
         elif user_index["extreme_mode"] == "min":
-            indicator = GenericIndicatorRegistry.MinOfRollingSum
+            indicator = GenericIndicatorRegistry.lookup("MinOfRollingSum")
         else:
             raise NotImplementedError()
-    elif calc_op is CalcOperationRegistry.RUN_MEAN:
+    elif calc_op == CalcOperationRegistry.RUN_MEAN:
         if user_index["extreme_mode"] == "max":
-            indicator = GenericIndicatorRegistry.MaxOfRollingAverage
+            indicator = GenericIndicatorRegistry.lookup("MaxOfRollingAverage")
         elif user_index["extreme_mode"] == "min":
-            indicator = GenericIndicatorRegistry.MinOfRollingAverage
+            indicator = GenericIndicatorRegistry.lookup("MinOfRollingAverage")
         else:
             raise NotImplementedError()
     else:
         indicator = map.get(calc_op)
+    if indicator is None:
+        raise InvalidIcclimArgumentError(
+            f"Unknown user_index calc_operation:" f" '{user_index['calc_operation']}'"
+        )
     return indicator
 
 
 def read_threshold(
     user_index: UserIndexDict, build_threshold: Callable[[str | Threshold], Threshold]
-) -> Threshold | None:
+) -> Threshold | None | Sequence[Threshold]:
     thresh = user_index.get("thresh", None)
-    if thresh is None:
-        return None
-    if isinstance(thresh, Threshold):
+    if (
+        thresh is None
+        or isinstance(thresh, Threshold)
+        or (
+            isinstance(thresh, (tuple, list))
+            and all(map(lambda th: isinstance(th, Threshold), thresh))
+        )
+    ):
         return thresh
-    logical_operation: Operator = OperatorRegistry.lookup(
-        user_index["logical_operation"]
-    )
-    if isinstance(thresh, str) and thresh.endswith(PERCENTILE_THRESHOLD_STAMP):
-        thresh = thresh.replace(PERCENTILE_THRESHOLD_STAMP, "")
-    else:
-        thresh = str(thresh)
-
-    thresh = logical_operation.operand + thresh
-    return build_threshold(str(thresh))
+    logical_operation = user_index["logical_operation"]
+    if not isinstance(logical_operation, (tuple, list)):
+        logical_operation = [logical_operation]
+    logical_operation = [OperatorRegistry.lookup(op) for op in logical_operation]
+    if not isinstance(thresh, (tuple, list)):
+        thresh = [thresh]
+    acc = []
+    for i, t in enumerate(thresh):
+        if isinstance(t, str) and t.endswith(PERCENTILE_THRESHOLD_STAMP):
+            var_type = user_index.get("var_type", None)
+            if var_type == USER_INDEX_TEMPERATURE_STAMP:
+                replace_unit = "doy_per"
+            elif var_type == USER_INDEX_PRECIPITATION_STAMP:
+                replace_unit = "period_per"
+            else:
+                replace_unit = "period_per"  # default to period percentiles ?
+            t = t.replace(PERCENTILE_THRESHOLD_STAMP, " " + replace_unit)
+        else:
+            t = str(t)
+        acc.append(build_threshold(str(logical_operation[i].operand + t)))
+    return acc
 
 
 def read_logical_link(user_index: UserIndexDict) -> LogicalLink:

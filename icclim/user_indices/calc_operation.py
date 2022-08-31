@@ -27,14 +27,16 @@ class CalcOperation(Hashable):
 
 
 class CalcOperationRegistry(Registry):
-    # todo remove once deprecation is finished (v6.1 ?)
+    # todo remove class once deprecation is finished (v6.1 ?)
     _item_class = CalcOperation
     MAX = CalcOperation("max")
     MIN = CalcOperation("min")
     SUM = CalcOperation("sum")
     MEAN = CalcOperation("mean")
     EVENT_COUNT = CalcOperation("nb_events")
-    MAX_NUMBER_OF_CONSECUTIVE_EVENTS = ("max_nb_consecutive_events",)
+    MAX_NUMBER_OF_CONSECUTIVE_EVENTS = CalcOperation(
+        "max_nb_consecutive_events",
+    )
     RUN_MEAN = CalcOperation("run_mean")
     RUN_SUM = CalcOperation("run_sum")
     ANOMALY = CalcOperation("anomaly")

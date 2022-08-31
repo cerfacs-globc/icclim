@@ -170,14 +170,6 @@ class Test_ReadDataset:
         assert "tas" in res_ds.data_vars
         assert "tontontonthetatilotetatoux" in res_ds.data_vars
 
-    def test_guess_variables__error_no_index(self):
-        # GIVEN
-        ds = xr.Dataset({"tas": self.tas_da})
-        # THEN
-        with pytest.raises(InvalidIcclimArgumentError):
-            # WHEN
-            guess_var_names(ds, var_names=None, standard_index=None)
-
     def test_guess_variables__cant_guess_var_name(self):
         # GIVEN
         ds = xr.Dataset({"canard": self.tas_da, "bergeronnette": self.tas_da})

@@ -8,8 +8,8 @@ ICCLIM_VERSION = "5.4.0"
 # placeholders for user_index
 PERCENTILE_THRESHOLD_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm
-PRECIPITATION = "p"
-TEMPERATURE = "t"
+USER_INDEX_PRECIPITATION_STAMP = "p"
+USER_INDEX_TEMPERATURE_STAMP = "t"
 
 # percentiles dimension from percentile_doy
 PERCENTILES_COORD = "percentiles"

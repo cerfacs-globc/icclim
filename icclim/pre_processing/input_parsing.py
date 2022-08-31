@@ -62,6 +62,13 @@ def read_dataset(
         ds = xr.open_dataset(in_files)
     elif is_zarr_path(in_files):
         ds = xr.open_zarr(in_files)
+    elif isinstance(in_files, (list, tuple)):
+        return xr.merge(
+            [
+                read_dataset(in_file, standard_var, var_name[i])
+                for i, in_file in enumerate(in_files)
+            ]
+        )
     else:
         raise NotImplementedError(
             f"`in_files` format {type(in_files)} was not" f" recognized."
