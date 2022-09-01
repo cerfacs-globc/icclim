@@ -55,3 +55,4 @@ class IndexConfig:
     logical_link: LogicalLink
     coef: float | None
     date_event: bool
+    sampling_method: str

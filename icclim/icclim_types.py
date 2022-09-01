@@ -14,3 +14,5 @@ MonthsIndexer = Dict[Literal["month"], Sequence[int]]
 # DatesIndexer format: ("01-25", "02-28")
 DatesIndexer = Dict[Literal["date_bounds"], Tuple[str, str]]
 Indexer = Union[MonthsIndexer, DatesIndexer]
+
+SamplingMethodLike = Literal["groupby", "resample", "groupby_ref_and_resample_study"]

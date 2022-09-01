@@ -73,7 +73,7 @@ from xarray.core.dataset import Dataset
 
 import icclim
 from icclim.icclim_logger import Verbosity
-from icclim.icclim_types import InFileLike
+from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -108,7 +108,7 @@ def get_user_index_declaration() -> str:
     pop_args.append("callback_percentage_total")
     pop_args.append("index_name")
     pop_args.append("threshold")
-    # Pop manually added arg
+    # Pop manually added args
     pop_args.append("user_index")  # for `custom_index`, user_index is mandatory
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
@@ -181,6 +181,9 @@ def get_standard_index_declaration(index: StandardIndex) -> str:
     # -> min spell length to be taken into account for `sum_of_spell_length` indices;
     # popped because not configurable on StandardIndices (ECAD requires 6)
     pop_args.append("min_spell_length")
+    # pop not implemented yet args
+    pop_args.append("sampling_method")
+
     qualifiers = [] if index.qualifiers is None else index.qualifiers
     is_per_based = QUANTILE_BASED in qualifiers
     if not is_per_based:

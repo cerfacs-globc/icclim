@@ -413,7 +413,7 @@ def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
         accepted_values=[],
         units="months",
         long_name=f"monthly time series (months: {months})",
-        group_by_key=RUN_INDEXER,
+        group_by_key="time.month",
         delta=np.timedelta64(1, "M"),
     )
 

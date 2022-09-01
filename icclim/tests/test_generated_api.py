@@ -8,6 +8,7 @@ import pytest
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import VerbosityRegistry
 from icclim.models.constants import QUANTILE_BASED
 from icclim.models.frequency import FrequencyRegistry
@@ -92,6 +93,7 @@ def test_custom_index(index_fun_mock: MagicMock):
         doy_window_width=5,
         save_thresholds=False,
         date_event=False,
+        sampling_method="resample",
         min_spell_length=6,
         rolling_window_width=5,
         interpolation="median_unbiased",
@@ -168,7 +170,7 @@ def test_custom_index__season_slice_mode(
             "logical_operation": "gt",
             "thresh": 275,
         },
-    )
+    ).compute()
     # missing values algo applied for first and last years
     np.testing.assert_almost_equal(res.pouet.isel(time=0), np.NAN)
     np.testing.assert_almost_equal(res.pouet.isel(time=-1), np.NAN)
@@ -207,17 +209,88 @@ def test_custom_index_run_algos__season_slice_mode(
     np.testing.assert_almost_equal(res.pouet.isel(time=2), expectation_year_2)
 
 
-def test_custom_index_anomaly__season_slice_mode():
+def test_custom_index_anomaly__error_single_var():
+    tas = stub_tas(2.0)
+    with pytest.raises(InvalidIcclimArgumentError):
+        # error: it needs 2 vars or 1 var and a ref period
+        icclim.custom_index(
+            in_files=tas,
+            user_index={
+                "index_name": "anomaly",
+                "calc_operation": CalcOperationRegistry.ANOMALY,
+            },
+        )
+
+
+def test_custom_index_anomaly__error_():
+    tas = stub_tas(2.0)
+    with pytest.raises(InvalidIcclimArgumentError):
+        # error: Can't resample the reference variable if it is already a
+        # subsample of the studied variable. (need another sampling_method)
+        icclim.custom_index(
+            in_files=tas,
+            slice_mode=["season", [12, 1]],
+            base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+            user_index={
+                "index_name": "anomaly",
+                "calc_operation": CalcOperationRegistry.ANOMALY,
+            },
+        )
+
+
+def test_custom_index_anomaly__datetime_ref_period():
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
     res = icclim.custom_index(
         in_files=tas,
         slice_mode=["season", [12, 1]],
-        var_name="a_name",
+        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        sampling_method="groupby_ref_and_resample_study",
         user_index={
             "index_name": "anomaly",
             "calc_operation": CalcOperationRegistry.ANOMALY,
-            "ref_time_range": [datetime(2042, 1, 1), datetime(2044, 12, 31)],
         },
     ).compute()
+    # missing values algo applied for first and last years
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2041"), np.NAN)
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2042"), 0)
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2043"), 0)
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2044"), 4.80645161)
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2045"), 0)
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2046"), np.NAN)
+
+
+def test_custom_index_anomaly__grouby_season():
+    tas = stub_tas(2.0)
+    tas.loc[{"time": "2045-01-01"}] = 300
+    res = icclim.custom_index(
+        in_files=tas,
+        slice_mode=["season", [12, 1]],
+        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        sampling_method="groupby",
+        user_index={
+            "index_name": "anomaly",
+            "calc_operation": CalcOperationRegistry.ANOMALY,
+        },
+    ).compute()
+    # missing values algo applied for first and last years
     np.testing.assert_almost_equal(res.anomaly, 0.96129032)
+
+
+def test_custom_index_anomaly__grouby_month():
+    tas = stub_tas(2.0)
+    tas.loc[{"time": "2045-01-01"}] = 300
+    res = icclim.custom_index(
+        in_files=tas,
+        slice_mode="month",
+        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        sampling_method="groupby",
+        user_index={
+            "index_name": "anomaly",
+            "calc_operation": CalcOperationRegistry.ANOMALY,
+        },
+    ).compute()
+    # missing values algo applied for first and last years
+    assert len(res.anomaly.month) == 12
+    np.testing.assert_almost_equal(res.anomaly.sel(month=2), 0)
+    np.testing.assert_almost_equal(res.anomaly.sel(month=1), 1.92258065)

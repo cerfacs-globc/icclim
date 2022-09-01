@@ -51,6 +51,7 @@ class ClimateVariable:
     global_metadata: GlobalMetadata
     source_frequency: Frequency
     threshold: Threshold | None = None
+    is_reference: bool = False
 
     def build_indicator_metadata(
         self, src_freq: Frequency, must_run_bootstrap: bool, indicator_name: str
@@ -84,6 +85,7 @@ def build_climate_vars(
     base_period: Sequence[str] | None,
     standard_index: StandardIndex | None,
     indicator_name: str,
+    is_compared_to_reference: bool,
 ) -> list[ClimateVariable]:
     if standard_index is not None and len(standard_index.input_variables) > len(
         climate_vars_dict
@@ -110,11 +112,11 @@ def build_climate_vars(
                 indicator_name=indicator_name,
             )
         )
-    if must_add_reference_var(climate_vars_dict, base_period):
+    if is_compared_to_reference:
         standard_var = (
             standard_index.input_variables[0] if standard_index is not None else None
         )
-        added_var = build_reference_variable(
+        added_var = _build_reference_variable(
             base_period,
             climate_vars_dict,
             standard_var=standard_var,
@@ -123,7 +125,7 @@ def build_climate_vars(
     return acc
 
 
-def build_reference_variable(
+def _build_reference_variable(
     reference_period: Sequence[str] | None,
     in_files,
     standard_var: StandardVariable,
@@ -166,6 +168,7 @@ def build_reference_variable(
         source_frequency=FrequencyRegistry.lookup(
             xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY
         ),
+        is_reference=True,
     )
 
 

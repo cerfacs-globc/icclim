@@ -13,7 +13,7 @@ from xarray.core.dataset import Dataset
 
 import icclim
 from icclim.icclim_logger import Verbosity
-from icclim.icclim_types import InFileLike
+from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -4766,6 +4766,7 @@ def custom_index(
     date_event: bool = False,
     min_spell_length: int | None = 6,
     rolling_window_width: int | None = 5,
+    sampling_method: SamplingMethodLike = "resample",
 ) -> Dataset:
     """
     This function can be used to create indices using simple operators.
@@ -4851,6 +4852,13 @@ def custom_index(
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`  # noqa
+    sampling_method: str
+        Choose whether the output sampling configured in `slice_mode` is a
+        `groupby` operation or a `resample` operation (as per xarray definition).
+        Possible values: ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
+        (default: "resample")
+        `groupby_ref_and_resample_study` may only be used when computing the
+        `difference_of_means` (a.k.a the anomaly).
     Notes
     -----
     This function has been auto-generated.
@@ -4874,4 +4882,5 @@ def custom_index(
         date_event=date_event,
         min_spell_length=min_spell_length,
         rolling_window_width=rolling_window_width,
+        sampling_method=sampling_method,
     )

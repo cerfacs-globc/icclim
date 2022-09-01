@@ -74,3 +74,8 @@ FREQ_DELTA_MAPPING = {
 
 # Special CF unit
 PART_OF_A_WHOLE_UNIT = "1"
+
+# companion parameter to slice_mode
+GROUP_BY_METHOD = "groupby"
+RESAMPLE_METHOD = "resample"
+GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD = "groupby_ref_and_resample_study"

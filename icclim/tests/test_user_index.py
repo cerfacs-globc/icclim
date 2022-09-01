@@ -338,6 +338,7 @@ class Test_anomaly:
             time_range=study_bds,
             base_period_time_range=ref_bds,
             index_name="data",
+            sampling_method="groupby",
             user_index=dict(
                 calc_operation="anomaly",
             ),

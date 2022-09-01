@@ -26,7 +26,7 @@ from icclim.generic_indices.generic_indicators import (
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
-from icclim.icclim_types import InFileLike
+from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.climate_variable import (
     ClimateVariable,
     build_climate_vars,
@@ -36,6 +36,7 @@ from icclim.models.climate_variable import (
 from icclim.models.constants import (
     ICCLIM_VERSION,
     PERCENTILE_THRESHOLD_STAMP,
+    RESAMPLE_METHOD,
     UNITS_ATTRIBUTE_KEY,
     USER_INDEX_PRECIPITATION_STAMP,
     USER_INDEX_TEMPERATURE_STAMP,
@@ -163,6 +164,7 @@ def index(
     date_event: bool = False,
     min_spell_length: int | None = 6,
     rolling_window_width: int | None = 5,
+    sampling_method: SamplingMethodLike = RESAMPLE_METHOD,
     *,
     # deprecated params are kwargs only
     window_width: int | None = None,
@@ -274,6 +276,13 @@ def index(
     logs_verbosity: str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    sampling_method: str
+        Choose whether the output sampling configured in `slice_mode` is a
+        `groupby` operation or a `resample` operation (as per xarray definition).
+        Possible values: ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
+        (default: "resample")
+        `groupby_ref_and_resample_study` may only be used when computing the
+        `difference_of_means` (a.k.a the anomaly).
     indice_name: str | None
         DEPRECATED, use index_name instead.
     user_indice: dict | None
@@ -327,6 +336,9 @@ def index(
         rename = index_name or user_index.get("index_name", None) or "user_index"
         output_unit = out_unit
         rolling_window_width = user_index.get("window_width", rolling_window_width)
+        base_period_time_range = user_index.get(
+            "ref_time_range", base_period_time_range
+        )
     elif index_name is not None:
         logical_link = LogicalLinkRegistry.LOGICAL_AND
         coef = None
@@ -371,6 +383,7 @@ def index(
         base_period=base_period_time_range,
         standard_index=standard_index,
         indicator_name=indicator_name,
+        is_compared_to_reference=is_compared_to_reference,
     )
     if base_period_time_range is not None:
         reference_period = tuple(
@@ -394,6 +407,7 @@ def index(
         logical_link=logical_link,
         coef=coef,
         date_event=date_event,
+        sampling_method=sampling_method,
     )
     result_ds = _compute_standard_climate_index(
         climate_index=indicator,

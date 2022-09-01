@@ -26,8 +26,14 @@ from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_variable import ClimateVariable
-from icclim.models.constants import PART_OF_A_WHOLE_UNIT, UNITS_ATTRIBUTE_KEY
-from icclim.models.frequency import Frequency, FrequencyRegistry
+from icclim.models.constants import (
+    GROUP_BY_METHOD,
+    GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
+    PART_OF_A_WHOLE_UNIT,
+    RESAMPLE_METHOD,
+    UNITS_ATTRIBUTE_KEY,
+)
+from icclim.models.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import Operator
@@ -111,26 +117,17 @@ class ResamplingIndicator(Indicator):
         self,
         climate_vars: list[ClimateVariable],
         jinja_scope: dict[str, Any],
-        output_frequency: Frequency,
         src_freq: Frequency,
-        indicator: GenericIndicator,
-        output_unit: str | None,
-        coef: float | None,
     ) -> list[ClimateVariable]:
         self.datachecks(climate_vars, src_freq.pandas_freq)
         self.cfcheck(climate_vars)
         self.format(jinja_scope=jinja_scope)
-        if output_frequency.indexer and indicator.select_time_before_computation:
-            for climate_var in climate_vars:
-                climate_var.studied_data = select_time(
-                    climate_var.studied_data, **output_frequency.indexer
-                )
         return climate_vars
 
     def postprocess(
         self,
         result: DataArray,
-        das: list[DataArray],
+        climate_vars: list[ClimateVariable],
         output_freq: str,
         src_freq: str,
         indexer: dict,
@@ -139,13 +136,19 @@ class ResamplingIndicator(Indicator):
         if out_unit is not None:
             result = convert_units_to(result, out_unit)
         if self.missing != "skip" and indexer is not None:
-            result = self._handle_missing_values(
-                resample_freq=output_freq,
-                src_freq=src_freq,
-                indexer=indexer,
-                in_data=das,
-                out_data=result,
-            )
+            # reference variable is a subset of the studied variable,
+            # so no need to check it.
+            das = filter(lambda cv: not cv.is_reference, climate_vars)
+            das = map(lambda cv: cv.studied_data, das)
+            das = list(das)
+            if "time" in result.dims:
+                result = self._handle_missing_values(
+                    resample_freq=output_freq,
+                    src_freq=src_freq,
+                    indexer=indexer,
+                    in_data=das,
+                    out_data=result,
+                )
         for prop in self.templated_properties:
             result.attrs[prop] = getattr(self, prop)
         result.attrs["history"] = ""
@@ -193,7 +196,10 @@ class GenericIndicator(ResamplingIndicator):
         self,
         name: str,
         process: Callable[..., DataArray],
-        select_time_before_computation=True,
+        select_time_before_computation: bool = True,
+        check_vars: Callable[[list[ClimateVariable], GenericIndicator], None]
+        | None = None,
+        sampling_methods: list[str] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -205,21 +211,40 @@ class GenericIndicator(ResamplingIndicator):
         self.standard_name = local[name]["standard_name"]
         self.cell_methods = local[name]["cell_methods"]
         self.long_name = local[name]["long_name"]
+        self.check_vars = check_vars
+        self.sampling_methods = (
+            sampling_methods if sampling_methods is not None else [RESAMPLE_METHOD]
+        )
 
-    def preprocess(
+    def preprocess(  # noqa signature != from super
         self,
         climate_vars: list[ClimateVariable],
         jinja_scope: dict[str, Any],
         output_frequency: Frequency,
         src_freq: Frequency,
-        indicator: GenericIndicator,
         output_unit: str | None,
         coef: float | None,
+        sampling_method: str,
+        is_compared_to_reference: bool,
     ) -> list[ClimateVariable]:
         if not _same_freq_for_all(climate_vars):
             raise InvalidIcclimArgumentError(
                 "All variables must have the same time frequency (for example daily) to"
                 " be compared with each others, but this was not the case."
+            )
+        if self.check_vars is not None:
+            self.check_vars(climate_vars, self)
+        if sampling_method not in self.sampling_methods:
+            raise InvalidIcclimArgumentError(
+                f"{self.name} can only be computed with the following"
+                f" sampling_method(s): {self.sampling_methods}"
+            )
+        if is_compared_to_reference and sampling_method == RESAMPLE_METHOD:
+            raise InvalidIcclimArgumentError(
+                "It does not make sense to resample the reference variable if it is"
+                " already a subsample of the studied variable. Try setting"
+                f" `sampling_method='{GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}'`"
+                f" instead."
             )
         if output_unit is not None and _is_amount_unit(output_unit):
             for climate_var in climate_vars:
@@ -233,14 +258,15 @@ class GenericIndicator(ResamplingIndicator):
         if coef is not None:
             for climate_var in climate_vars:
                 climate_var.studied_data = coef * climate_var.studied_data
+        if output_frequency.indexer and self.select_time_before_computation:
+            for climate_var in climate_vars:
+                climate_var.studied_data = select_time(
+                    climate_var.studied_data, **output_frequency.indexer, drop=True
+                )
         return super().preprocess(
             climate_vars=climate_vars,
             jinja_scope=jinja_scope,
-            output_frequency=output_frequency,
             src_freq=src_freq,
-            indicator=indicator,
-            output_unit=output_unit,
-            coef=coef,
         )
 
     def __call__(self, config: IndexConfig) -> DataArray:
@@ -265,9 +291,10 @@ class GenericIndicator(ResamplingIndicator):
             jinja_scope=jinja_scope,
             output_frequency=config.frequency,
             src_freq=src_freq,
-            indicator=self,
             output_unit=config.out_unit,
             coef=config.coef,
+            sampling_method=config.sampling_method,
+            is_compared_to_reference=config.is_compared_to_reference,
         )
         result = self.process(
             climate_vars=climate_vars,
@@ -280,10 +307,11 @@ class GenericIndicator(ResamplingIndicator):
             date_event=config.date_event,
             source_freq_delta=src_freq.delta,
             to_percent=config.out_unit == "%",
+            sampling_method=config.sampling_method,
         )
         return self.postprocess(
             result,
-            das=list(map(lambda cv: cv.studied_data, climate_vars)),
+            climate_vars=climate_vars,
             output_freq=config.frequency.pandas_freq,
             src_freq=src_freq.pandas_freq,
             indexer=config.frequency.indexer,
@@ -297,7 +325,6 @@ def count_occurrences(
     logical_link: LogicalLink,
     date_event: bool,
     to_percent: bool,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     if date_event:
@@ -322,7 +349,6 @@ def max_consecutive_occurrence(
     logical_link: LogicalLink,
     date_event: bool,
     source_freq_delta: timedelta,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     merged_exceedances = _compute_exceedances(
@@ -349,7 +375,6 @@ def sum_of_spell_lengths(
     resample_freq: Frequency,
     logical_link: LogicalLink,
     min_spell_length: int,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     merged_exceedances = _compute_exceedances(
@@ -369,10 +394,9 @@ def sum_of_spell_lengths(
 def excess(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
-    op, study, threshold = _check_single_var(climate_vars)
+    op, study, threshold = _get_single_var(climate_vars)
     if threshold.is_doy_per_threshold:
         thresh = resample_doy(threshold.value, study)
     else:
@@ -389,10 +413,9 @@ def excess(
 def deficit(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
-    op, study, threshold = _check_single_var(climate_vars)
+    op, study, threshold = _get_single_var(climate_vars)
     if threshold.is_doy_per_threshold:
         thresh = resample_doy(threshold.value, study)
     else:
@@ -409,10 +432,9 @@ def deficit(
 def fraction_of_total(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
-    op, study, threshold = _check_single_var(climate_vars)
+    op, study, threshold = _get_single_var(climate_vars)
     if threshold.threshold_min_value:
         total = (
             study.where(op(study, threshold.threshold_min_value.value))
@@ -441,7 +463,6 @@ def maximum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     date_event: bool,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
@@ -456,7 +477,6 @@ def minimum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     date_event: bool,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
@@ -470,7 +490,6 @@ def minimum(
 def average(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
@@ -484,7 +503,6 @@ def average(
 def sum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
@@ -498,7 +516,6 @@ def sum(
 def std(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
@@ -512,7 +529,6 @@ def max_of_rolling_sum(
     rolling_window_width: int,
     date_event: bool,
     source_freq_delta: timedelta,
-    *args,  # noqa
     **kwargs,  # noqa
 ):
     return _run_rolling_reducer(
@@ -532,7 +548,6 @@ def min_of_rolling_sum(
     rolling_window_width: int,
     date_event: bool,
     source_freq_delta: timedelta,
-    *args,  # noqa
     **kwargs,  # noqa
 ):
     return _run_rolling_reducer(
@@ -552,7 +567,6 @@ def min_of_rolling_average(
     rolling_window_width: int,
     date_event: bool,
     source_freq_delta: timedelta,
-    *args,  # noqa
     **kwargs,  # noqa
 ):
     return _run_rolling_reducer(
@@ -572,7 +586,6 @@ def max_of_rolling_average(
     rolling_window_width: int,
     date_event: bool,
     source_freq_delta: timedelta,
-    *args,  # noqa
     **kwargs,  # noqa
 ):
     return _run_rolling_reducer(
@@ -589,10 +602,9 @@ def max_of_rolling_average(
 def mean_of_difference(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
 ):
-    var_0, var_1 = _check_couple_of_var(climate_vars, "mean_of_difference")
+    var_0, var_1 = _get_couple_of_var(climate_vars, "mean_of_difference")
     mean_of_diff = (var_0 - var_1).resample(time=resample_freq.pandas_freq).mean()
     mean_of_diff.attrs["units"] = var_0.attrs["units"]
     return mean_of_diff
@@ -601,10 +613,9 @@ def mean_of_difference(
 def difference_of_extremes(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
 ):
-    var_0, var_1 = _check_couple_of_var(climate_vars, "difference_of_extremes")
+    var_0, var_1 = _get_couple_of_var(climate_vars, "difference_of_extremes")
     max_var_0 = var_0.resample(time=resample_freq.pandas_freq).max()
     min_var_1 = var_1.resample(time=resample_freq.pandas_freq).min()
     diff_of_extremes = max_var_0 - min_var_1
@@ -615,10 +626,26 @@ def difference_of_extremes(
 def mean_of_absolute_one_time_step_difference(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    *args,  # noqa
     **kwargs,  # noqa
-):
-    var_0, var_1 = _check_couple_of_var(
+) -> DataArray:
+    """
+    Generification of ECAD's vDTR index.
+
+    Parameters
+    ----------
+    climate_vars : List[ClimateVariable]
+    The two climate variables necessary to compute the indicator.
+    resample_freq :  Frequency
+    Expected frequency of the output.
+    kwargs : dict
+    Ignored keyword arguments (for compatibility).
+
+    Returns
+    -------
+    DataArray
+    mean_of_absolute_one_time_step_difference as a xarray.DataArray
+    """
+    var_0, var_1 = _get_couple_of_var(
         climate_vars, "mean_of_absolute_one_time_step_difference"
     )
     one_time_step_diff = (var_0 - var_1).diff(dim="time")
@@ -629,20 +656,34 @@ def mean_of_absolute_one_time_step_difference(
 
 def difference_of_means(
     climate_vars: list[ClimateVariable],
-    is_compared_to_reference: bool,
     to_percent: bool,
-    group_by_freq: str | None = None,
-    resample_freq: Frequency | None = None,
-    *args,  # noqa
+    resample_freq: Frequency,
+    sampling_method: str,
     **kwargs,  # noqa
 ):
-    var_0, var_1 = _check_couple_of_var(climate_vars, "difference_of_means")
-    if is_compared_to_reference:
-        mean_var_0 = var_0.groupby(group_by_freq).mean()
-        mean_var_1 = var_1.groupby(group_by_freq).mean()
-    else:
+    var_0, var_1 = _get_couple_of_var(climate_vars, "difference_of_means")
+    if sampling_method == GROUP_BY_METHOD:
+        if resample_freq.group_by_key == RUN_INDEXER:
+            mean_var_0 = var_0.mean(dim="time")
+            mean_var_1 = var_1.mean(dim="time")
+        else:
+            mean_var_0 = var_0.groupby(resample_freq.group_by_key).mean()
+            mean_var_1 = var_1.groupby(resample_freq.group_by_key).mean()
+    elif sampling_method == RESAMPLE_METHOD:
         mean_var_0 = var_0.resample(time=resample_freq.pandas_freq).mean()
         mean_var_1 = var_1.resample(time=resample_freq.pandas_freq).mean()
+    elif sampling_method == GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD:
+        if resample_freq.group_by_key == RUN_INDEXER:
+            mean_var_0 = var_0.resample(time=resample_freq.pandas_freq).mean()
+            # data is already filtered with only the indexed values.
+            # Thus there is only one "group".
+            mean_var_1 = var_1.mean(dim="time")
+        else:
+            return diff_of_means_of_resampled_x_by_groupedby_y(
+                resample_freq, to_percent, var_0, var_1
+            )
+    else:
+        raise NotImplementedError(f"Unknown sampling_method: '{sampling_method}'.")
     diff_of_means = mean_var_0 - mean_var_1
     if to_percent:
         diff_of_means = diff_of_means / mean_var_1 * 100
@@ -650,6 +691,45 @@ def difference_of_means(
     else:
         diff_of_means.attrs["units"] = var_0.attrs["units"]
     return diff_of_means
+
+
+def diff_of_means_of_resampled_x_by_groupedby_y(
+    resample_freq: Frequency, to_percent: bool, var_0: DataArray, var_1: DataArray
+) -> DataArray:
+    mean_var_1 = var_1.groupby(resample_freq.group_by_key).mean()
+    acc = []
+    for label, sample in var_0.resample(time=resample_freq.pandas_freq):
+        sample_mean = sample.mean()
+        ref_month_mean = mean_var_1.sel(month=sample_mean.time.dt.month)
+        sample_diff_of_means = sample_mean - ref_month_mean
+        if to_percent:
+            sample_diff_of_means = sample_diff_of_means / ref_month_mean * 100
+        acc.append(sample_diff_of_means)
+    diff_of_means = xr.concat(acc, dim="time")
+    if to_percent:
+        diff_of_means.attrs["units"] = "%"
+    else:
+        diff_of_means.attrs["units"] = var_0.attrs["units"]
+    return diff_of_means
+
+
+def check_single_var(climate_vars: list[ClimateVariable], indicator: GenericIndicator):
+    if len(climate_vars) > 1:
+        raise InvalidIcclimArgumentError(
+            f"{indicator.name} can only be computed on a" f" single variable."
+        )
+
+
+def check_couple_of_vars(
+    climate_vars: list[ClimateVariable], indicator: GenericIndicator
+):
+    if len(climate_vars) != 2:
+        raise InvalidIcclimArgumentError(
+            f"{indicator.name} can only be computed on two variables sharing the same"
+            f" unit (e.g. 2 temperatures). Either provide a `base_period_time_range` to"
+            f" create a reference variable or directly provide a secondary variable"
+            f" with `in_files` or `var_name`."
+        )
 
 
 class GenericIndicatorRegistry(Registry):
@@ -666,33 +746,50 @@ class GenericIndicatorRegistry(Registry):
         sum_of_spell_lengths,
         select_time_before_computation=False,
     )
-    Excess = GenericIndicator("excess", excess)
-    Deficit = GenericIndicator("deficit", deficit)
-    FractionOfTotal = GenericIndicator("fraction_of_total", fraction_of_total)
+    Excess = GenericIndicator("excess", excess, check_vars=check_single_var)
+    Deficit = GenericIndicator("deficit", deficit, check_vars=check_single_var)
+    FractionOfTotal = GenericIndicator(
+        "fraction_of_total", fraction_of_total, check_vars=check_single_var
+    )
     Maximum = GenericIndicator("maximum", maximum)
     Minimum = GenericIndicator("minimum", minimum)
     Average = GenericIndicator("average", average)
     Sum = GenericIndicator("sum", sum)
     StandardDeviation = GenericIndicator("std", std)
-    MaxOfRollingSum = GenericIndicator("max_of_rolling_sum", max_of_rolling_sum)
-    MinOfRollingSum = GenericIndicator("min_of_rolling_sum", min_of_rolling_sum)
+    MaxOfRollingSum = GenericIndicator(
+        "max_of_rolling_sum", max_of_rolling_sum, check_vars=check_single_var
+    )
+    MinOfRollingSum = GenericIndicator(
+        "min_of_rolling_sum", min_of_rolling_sum, check_vars=check_single_var
+    )
     MaxOfRollingAverage = GenericIndicator(
-        "max_of_rolling_average", max_of_rolling_average
+        "max_of_rolling_average", max_of_rolling_average, check_vars=check_single_var
     )
     MinOfRollingAverage = GenericIndicator(
-        "min_of_rolling_average", min_of_rolling_average
+        "min_of_rolling_average", min_of_rolling_average, check_vars=check_single_var
     )
-    MeanOfDifference = GenericIndicator("mean_of_difference", mean_of_difference)
+    MeanOfDifference = GenericIndicator(
+        "mean_of_difference", mean_of_difference, check_vars=check_couple_of_vars
+    )
     DifferenceOfExtremes = GenericIndicator(
-        "difference_of_extremes", difference_of_extremes
+        "difference_of_extremes",
+        difference_of_extremes,
+        check_vars=check_couple_of_vars,
     )
     MeanOfAbsoluteOneTimeStepDifference = GenericIndicator(
         "mean_of_absolute_one_time_step_difference",
         mean_of_absolute_one_time_step_difference,
+        check_vars=check_couple_of_vars,
     )
     DifferenceOfMeans = GenericIndicator(
         "difference_of_means",
         difference_of_means,
+        check_vars=check_couple_of_vars,
+        sampling_methods=[
+            RESAMPLE_METHOD,
+            GROUP_BY_METHOD,
+            GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
+        ],
     )
     # TODO: implement or remove comments below
     # DoyPercentile = GenericIndicator(
@@ -723,13 +820,9 @@ def _compute_exceedance(
     return operator(study, threshold)
 
 
-def _check_couple_of_var(climate_vars: list[ClimateVariable], indicator: str):
-    if len(climate_vars) != 2:
-        raise InvalidIcclimArgumentError(
-            f"{indicator} can only be computed on two"
-            " variables sharing the same kind of values "
-            "(e.g. temperatures)"
-        )
+def _get_couple_of_var(
+    climate_vars: list[ClimateVariable], indicator: str
+) -> tuple[DataArray, DataArray]:
     if climate_vars[0].threshold or climate_vars[1].threshold:
         raise InvalidIcclimArgumentError(
             f"{indicator} cannot be computed with thresholds."
@@ -749,7 +842,7 @@ def _run_rolling_reducer(
     date_event: bool,
     source_freq_delta: timedelta,
 ) -> DataArray:
-    thresh_operator, study, threshold = _check_single_var(climate_vars)
+    thresh_operator, study, threshold = _get_single_var(climate_vars)
     if threshold:
         exceedance = _compute_exceedance(
             operator=thresh_operator,
@@ -779,7 +872,7 @@ def _run_simple_reducer(
     reducer_op: Callable[..., DataArray],
     date_event: bool,
 ):
-    thresh_op, study, threshold = _check_single_var(climate_vars)
+    thresh_op, study, threshold = _get_single_var(climate_vars)
     if threshold is not None:
         exceedance = _compute_exceedance(
             operator=thresh_op,
@@ -822,11 +915,9 @@ def _compute_exceedances(
     return logical_link(exceedances)
 
 
-def _check_single_var(
+def _get_single_var(
     climate_vars: list[ClimateVariable],
 ) -> tuple[Operator | None, DataArray, Threshold | None]:
-    if len(climate_vars) > 1:
-        raise InvalidIcclimArgumentError("Too many variables.")
     if climate_vars[0].threshold:
         return (
             climate_vars[0].threshold.operator,

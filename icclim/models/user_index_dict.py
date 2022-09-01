@@ -19,9 +19,7 @@ class UserIndexDict(TypedDict, total=False):
     date_event: bool
     var_type: Literal["t", "p"] | None
     window_width: int | None
+    ref_time_range: list[datetime] | list[str] | tuple[str, str] | None
 
     # -- deprecated
     indice_name: str | None
-    # ref_time_range is ignored in the new API
-    # -> we use the icclim::index base_period_time_range
-    ref_time_range: list[datetime] | list[str] | tuple[str, str] | None
