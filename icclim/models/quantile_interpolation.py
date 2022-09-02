@@ -1,23 +1,19 @@
 from __future__ import annotations
 
-from enum import Enum
+import dataclasses
+
+from icclim.models.registry import Registry
 
 
-class QuantileInterpolation(Enum):
-    LINEAR = ("linear", 1, 1)
-    MEDIAN_UNBIASED = ("hyndman_fan", 1.0 / 3, 1.0 / 3)
+@dataclasses.dataclass
+class QuantileInterpolation:
+    name: str
+    alpha: float
+    beta: float
 
-    def __init__(self, alias, alpha, beta):
-        self.alias = alias
-        self.alpha = alpha
-        self.beta = beta
 
-    @staticmethod
-    def lookup(s: str):
-        for interpolation in QuantileInterpolation:
-            if interpolation.value.upper() == s.upper():
-                return interpolation
-        valid_values = list(map(lambda x: x.value, QuantileInterpolation))
-        raise NotImplementedError(
-            f"Interpolation must be one of the following: {valid_values}"
-        )
+class QuantileInterpolationRegistry(Registry):
+    _item_class = QuantileInterpolation
+
+    LINEAR = QuantileInterpolation("linear", 1, 1)
+    MEDIAN_UNBIASED = QuantileInterpolation("median_unbiased", 1.0 / 3, 1.0 / 3)

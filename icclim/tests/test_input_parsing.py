@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import shutil
-from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -10,10 +9,10 @@ import pytest
 import xarray as xr
 from xclim.core.utils import PercentileDataArray
 
-from icclim.ecad.ecad_indices import EcadIndex
+from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.constants import UNITS_ATTRIBUTE_KEY
 from icclim.pre_processing.input_parsing import (
-    InFileDictionary,
     guess_var_names,
     read_dataset,
     update_to_standard_coords,
@@ -33,17 +32,14 @@ def test_update_to_standard_coords():
                 ),
                 dims=["t", "latitude", "longitude"],
                 name="pr",
-                attrs={"units": "kg m-2 d-1"},
+                attrs={UNITS_ATTRIBUTE_KEY: "kg m-2 d-1"},
             )
         }
     )
     # WHEN
-    res, revert = update_to_standard_coords(ds)
+    res = update_to_standard_coords(ds)
     # THEN
-    assert "lat" in res.coords
     assert "time" in res.coords
-    assert "lon" in res.coords
-    assert res.rename(revert).coords.keys() == ds.coords.keys()
 
 
 class Test_ReadDataset:
@@ -62,11 +58,11 @@ class Test_ReadDataset:
             coords=dict(
                 latitude=[42],
                 longitude=[42],
-                t=pd.date_range("2042-01-01", periods=10, freq="D"),
+                time=pd.date_range("2042-01-01", periods=10, freq="D"),
             ),
-            dims=["t", "latitude", "longitude"],
+            dims=["time", "latitude", "longitude"],
             name="pr",
-            attrs={"units": "kg m-2 d-1"},
+            attrs={UNITS_ATTRIBUTE_KEY: "kg m-2 d-1"},
         )
         self.tas_da = xr.DataArray(
             data=np.full(10, 42).reshape((10, 1, 1)),
@@ -77,7 +73,7 @@ class Test_ReadDataset:
             ),
             dims=["t", "latitude", "longitude"],
             name="tas",
-            attrs={"units": "degC"},
+            attrs={UNITS_ATTRIBUTE_KEY: "degC"},
         )
         yield
         # -- teardown
@@ -97,18 +93,6 @@ class Test_ReadDataset:
         res = read_dataset(self.pr_da)
         # THEN
         assert "pr" in res.data_vars
-
-    def test_read_dataset_xr_DataArray__error_1_var_when_2_needed(self):
-        # THEN
-        with pytest.raises(InvalidIcclimArgumentError):
-            # WHEN
-            read_dataset(self.pr_da, EcadIndex.WW)
-
-    def test_read_dataset_xr_DataArray__rename_var(self):
-        # WHEN
-        ds_res = read_dataset(self.pr_da, EcadIndex.TX90P)
-        # THEN
-        xr.testing.assert_equal(ds_res.tasmax, self.pr_da)
 
     def test_read_dataset_xr_da_user_index_success(self):
         # WHEN
@@ -164,15 +148,10 @@ class Test_ReadDataset:
         ds = xr.Dataset({"tas": self.tas_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
         # WHEN
-        res_ds = read_dataset(
-            in_data={"ninja": self.OUTPUT_NC_FILE, "precipitoto": self.pr_da}
-        )
+        res_ds = read_dataset(self.OUTPUT_NC_FILE)
         # THEN
         # asserts variable names are the ones in the actual DataArray/Datasets
-        assert "ninja" not in res_ds.data_vars
-        assert "precipitoto" in res_ds.data_vars
         assert "tas" in res_ds.data_vars
-        assert "pr" not in res_ds.data_vars
 
     def test_read_dataset__with_percentiles(self):
         # GIVEN
@@ -184,82 +163,34 @@ class Test_ReadDataset:
         per = PercentileDataArray.from_da(
             per, climatology_bounds=["1994-12-02", "1999-01-01"]
         )
+        ds["tontontonthetatilotetatoux"] = per
         # WHEN
-        res_ds = read_dataset(
-            in_data={
-                "tatas": {
-                    "study": ds,
-                    "thresholds": per,
-                    "climatology_bounds": ("1994-12-02", "1999-01-01"),
-                    "per_var_name": "tontontonthetatilotetatoux",
-                }
-            }
-        )
+        res_ds = read_dataset(ds)
         # THEN
         assert "tas" in res_ds.data_vars
-        # A bit weird that
-        assert "tatas_thresholds" in res_ds.data_vars
+        assert "tontontonthetatilotetatoux" in res_ds.data_vars
 
-    def test_read_dataset__error_no_percentiles_dimension(self):
+    def test_guess_variables__cant_guess_var_name(self):
         # GIVEN
-        ds = xr.Dataset({"tas": self.tas_da})
-        ds.to_netcdf(self.OUTPUT_NC_FILE)
-        # WHEN
-        tas: InFileDictionary = {
-            "study": ds,
-            "thresholds": self.tas_da,
-        }
+        ds = xr.Dataset({"canard": self.tas_da, "bergeronnette": self.tas_da})
         # THEN
         with pytest.raises(InvalidIcclimArgumentError):
             # WHEN
-            read_dataset(in_data={"tatas": tas})
-
-    def test_guess_variables__error_no_index(self):
-        # GIVEN
-        ds = xr.Dataset({"tas": self.tas_da})
-        # THEN
-        with pytest.raises(InvalidIcclimArgumentError):
-            # WHEN
-            guess_var_names(ds)
-
-    def test_guess_variables__error_too_many_args(self):
-        # GIVEN
-        ds = xr.Dataset({"tas": self.tas_da})
-        # THEN
-        with pytest.raises(InvalidIcclimArgumentError):
-            # WHEN
-            guess_var_names(ds, in_data={}, var_names=["coin-coin"])
-
-    def test_guess_variables__error_wrong_name_for_index(self):
-        # GIVEN
-        ds = xr.Dataset({"tas": self.tas_da})
-        # THEN
-        with pytest.raises(InvalidIcclimArgumentError):
-            # WHEN
-            guess_var_names(ds, index=EcadIndex.DTR.climate_index)
+            guess_var_names(ds, standard_index=EcadIndexRegistry.SU, var_names=None)
 
     def test_guess_variables__simple(self):
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         # WHEN
-        res = guess_var_names(ds, index=EcadIndex.TG.climate_index)
+        res = guess_var_names(ds, standard_index=EcadIndexRegistry.TG, var_names=None)
         # THEN
         assert res == ["tas"]
-
-    @patch("icclim.pre_processing.input_parsing.InFileType")
-    def test_guess_variables__from_dict(self, in_file_mock: MagicMock):
-        # GIVEN
-        ds = xr.Dataset({"tas": self.tas_da})
-        # WHEN
-        res = guess_var_names(ds, in_data={"pouet": in_file_mock})
-        # THEN
-        assert res == ["pouet"]
 
     def test_guess_variables__from_string(self):
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         # WHEN
-        res = guess_var_names(ds, var_names="cocoLasticot")
+        res = guess_var_names(ds, standard_index=None, var_names="cocoLasticot")
         # THEN
         assert res == ["cocoLasticot"]
 
@@ -267,14 +198,14 @@ class Test_ReadDataset:
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         # WHEN
-        res = guess_var_names(ds, var_names=["pinçon"])
+        res = guess_var_names(ds, standard_index=None, var_names=["pinçon"])
         # THEN
         assert res == ["pinçon"]
 
     def test_guess_variables__from_alias(self):
         # GIVEN
-        ds = xr.Dataset({"tasmaxAdjust": self.tas_da})
+        ds = xr.Dataset({"tasmaxAdjust": self.tas_da, "turlututut": self.tas_da})
         # WHEN
-        res = guess_var_names(ds, index=EcadIndex.SU.climate_index)
+        res = guess_var_names(ds, standard_index=EcadIndexRegistry.SU, var_names=None)
         # THEN
         assert res == ["tasmaxAdjust"]

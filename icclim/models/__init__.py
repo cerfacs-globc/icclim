@@ -1,4 +1,4 @@
 """
-models package contains mostly class and enum declarations and should have as less as
-possible logic in it.
+models package contains mostly DTO classes. they should have as few as
+possible logic in them.
 """

@@ -1,30 +1,27 @@
 from __future__ import annotations
 
+import dataclasses
 import logging
 import time
-from enum import Enum
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.registry import Registry
 
 
-class Verbosity(Enum):
-    LOW = ("LOW", "INFO")
-    HIGH = ("HIGH", "INFO")
-    SILENT = ("SILENT", "ERROR")
+@dataclasses.dataclass
+class Verbosity:
+    verbosity_level: str
+    log_level: str
 
-    def __init__(self, icc_verbosity: str, log_level: str):
-        self.icc_verbosity = icc_verbosity
-        self.log_level = log_level
+
+class VerbosityRegistry(Registry):
+    _item_class = Verbosity
+    LOW = Verbosity("LOW", "INFO")
+    HIGH = Verbosity("HIGH", "INFO")
+    SILENT = Verbosity("SILENT", "ERROR")
 
     @staticmethod
-    def lookup(query: str) -> Verbosity:
-        for v in Verbosity:
-            if query.upper() == v.name:
-                return v
-        raise InvalidIcclimArgumentError(
-            f"Unrecognized log verbosity {query}. "
-            f"Use one of {[v.name for v in Verbosity]}"
-        )
+    def get_item_aliases(item: Verbosity) -> list[str]:
+        return [item.verbosity_level.upper()]
 
 
 class IcclimLogger:
@@ -33,10 +30,10 @@ class IcclimLogger:
     """
 
     __instance = None
-    verbosity: Verbosity = Verbosity.LOW
+    verbosity: Verbosity = VerbosityRegistry.LOW
 
     @staticmethod
-    def get_instance(verbosity: Verbosity = Verbosity.LOW):
+    def get_instance(verbosity: Verbosity = VerbosityRegistry.LOW):
         if IcclimLogger.__instance is None:
             IcclimLogger(verbosity)
         return IcclimLogger.__instance
@@ -55,7 +52,7 @@ class IcclimLogger:
 
     def set_verbosity(self, verbosity: str | Verbosity):
         if isinstance(verbosity, str):
-            verbosity = Verbosity.lookup(verbosity)
+            verbosity = VerbosityRegistry.lookup(verbosity)
         self.verbosity = verbosity
         logging.root.setLevel(verbosity.log_level)
 
@@ -64,9 +61,9 @@ class IcclimLogger:
 
         # flake8: noqa
         time_now = time.asctime(time.gmtime())
-        if self.verbosity == Verbosity.SILENT:
+        if self.verbosity == VerbosityRegistry.SILENT:
             return
-        if self.verbosity == Verbosity.LOW:
+        if self.verbosity == VerbosityRegistry.LOW:
             logging.info(f"--- icclim {icclim_version}")
             logging.info("--- BEGIN EXECUTION")
             return
@@ -104,9 +101,9 @@ class IcclimLogger:
 
         # flake8: noqa
         time_now = time.asctime(time.gmtime())
-        if self.verbosity == Verbosity.SILENT:
+        if self.verbosity == VerbosityRegistry.SILENT:
             return
-        if self.verbosity == Verbosity.LOW:
+        if self.verbosity == VerbosityRegistry.LOW:
             logging.info(f"--- icclim {icclim_version}")
             logging.info("--- CPU SECS = %-10.3f", time_cpu)
             logging.info("--- END EXECUTION")

@@ -1,21 +1,19 @@
 from __future__ import annotations
 
-from enum import Enum
+import dataclasses
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.registry import Registry
 
 
-class NetcdfVersion(Enum):
-    NETCDF4 = "NETCDF4"
-    NETCDF4_CLASSIC = "NETCDF4_CLASSIC"
-    NETCDF3_CLASSIC = "NETCDF3_CLASSIC"
-    NETCDF3_64BIT = "NETCDF3_64BIT"
+@dataclasses.dataclass
+class NetcdfVersion:
+    name: str
 
-    @staticmethod
-    def lookup(query: str | NetcdfVersion):
-        if isinstance(query, NetcdfVersion):
-            return query
-        for version in NetcdfVersion:
-            if version.name.upper() == query.upper():
-                return version
-        raise InvalidIcclimArgumentError(f"Unknown netcdf version {query}")
+
+class NetcdfVersionRegistry(Registry):
+    _item_class = NetcdfVersion
+
+    NETCDF4 = NetcdfVersion("NETCDF4")
+    NETCDF4_CLASSIC = NetcdfVersion("NETCDF4_CLASSIC")
+    NETCDF3_CLASSIC = NetcdfVersion("NETCDF3_CLASSIC")
+    NETCDF3_64BIT = NetcdfVersion("NETCDF3_64BIT")

@@ -1,34 +1,32 @@
 from __future__ import annotations
 
-from enum import Enum
+import dataclasses
 from typing import Any
 
+from icclim.models.registry import Registry
 
-class IndexGroup(Enum):
-    TEMPERATURE = "temperature"
-    HEAT = "heat"
-    COLD = "cold"
-    DROUGHT = "drought"
-    RAIN = "rain"
-    SNOW = "snow"
-    COMPOUND = "compound"
-    WILD_CARD_GROUP = "all"  # no index bound to it
 
-    @staticmethod
-    def lookup(query: str | IndexGroup) -> IndexGroup:
-        if isinstance(query, IndexGroup):
-            return query
-        for gr in IndexGroup:
-            if gr.value.upper() == query.upper():
-                return gr
-        valid_values = list(map(lambda x: x.value, IndexGroup))
-        raise NotImplementedError(
-            f"IndexGroup must be one of the following: {valid_values},"
-            f" but query was {query}."
-        )
+@dataclasses.dataclass
+class IndexGroup:
+    name: str
 
     def get_indices(self) -> list[Any]:
-        # import locally to avoid circular dependency (an index has already a group)
-        from icclim.ecad.ecad_indices import EcadIndex
+        # import locally to avoid circular dependency (an index has a IndexGroup)
+        from icclim.ecad.ecad_indices import EcadIndexRegistry
 
-        return list(filter(lambda i: i.group == self, EcadIndex))
+        return list(filter(lambda i: i.group == self, EcadIndexRegistry.values()))
+
+
+class IndexGroupRegistry(Registry):
+    _item_class = IndexGroup
+
+    TEMPERATURE = IndexGroup("temperature")
+    HEAT = IndexGroup("heat")
+    COLD = IndexGroup("cold")
+    DROUGHT = IndexGroup("drought")
+    RAIN = IndexGroup("rain")
+    SNOW = IndexGroup("snow")
+    COMPOUND = IndexGroup("compound")
+    GENERIC = IndexGroup("generic")
+    # no climate index should be bounded to "all"
+    WILD_CARD_GROUP = IndexGroup("all")

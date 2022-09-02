@@ -1,181 +1,105 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, List, TypedDict, Union
+import re
+from datetime import datetime
+from typing import Hashable, Sequence
 
+import numpy as np
 import xarray as xr
 import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
+from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
 
-from icclim.ecad.ecad_indices import EcadIndex
+from icclim.generic_indices.cf_var_metadata import (
+    StandardVariable,
+    StandardVariableRegistry,
+)
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.cf_calendar import CfCalendar
-from icclim.models.cf_variable import CfVariable
-from icclim.models.climate_index import ClimateIndex
-from icclim.models.constants import VALID_PERCENTILE_DIMENSION
-from icclim.models.frequency import Frequency
-from icclim.models.index_group import IndexGroup
+from icclim.icclim_types import InFileBaseType
+from icclim.models.cf_calendar import CfCalendarRegistry
+from icclim.models.constants import UNITS_ATTRIBUTE_KEY, VALID_PERCENTILE_DIMENSION
+from icclim.models.index_group import IndexGroup, IndexGroupRegistry
+from icclim.models.standard_index import StandardIndex
 from icclim.utils import get_date_to_iso_format
 
-# zarr or netcdf, or list of netcdf or xarray struct
-InFileBaseType = Union[str, List[str], Dataset, DataArray]
-
-
-class InFileDictionary(TypedDict, total=False):
-    """Dictionary grouping in_files and var_name functionnalities.
-    It also allows to use a different input for percentiles.
-
-    Examples
-    --------
-
-    >>> in_files = {
-    ...    "tasmax": { "study": "tasmax-store.zarr",
-    ...                "thresholds": ["per-1.nc", "per-2.nc"],
-    ...                "climatology_bounds":['1990-01-01', '1991-12-31'],
-    ...                "per_var_name":"tas_max_per" },
-    ...    "pr": "pr.nc",
-    ...    "tasmin": {"study": "tasmin.nc"},
-    ...     }
-    """
-
-    study: InFileBaseType
-    thresholds: InFileBaseType | None
-    climatology_bounds: tuple[str, str] | list[str] | None  # may be guessed if missing
-    per_var_name: str | None  # may be guessed if missing
-
-
-InFileType = Union[Dict[str, Union[InFileDictionary, InFileBaseType]], InFileBaseType]
+DEFAULT_INPUT_FREQUENCY = "days"
 
 
 def guess_var_names(
     ds: Dataset,
-    in_data: InFileType | None = None,
-    index: ClimateIndex | None = None,
-    var_names: str | list[str] | None = None,
-) -> list[str]:
-    if isinstance(in_data, dict):
-        # case InFileDictionary
-        if var_names is not None:
-            raise InvalidIcclimArgumentError(
-                "When `in_files` is a dictionary, `var_name` must be empty."
-                " The dictionary's keys are the expected variable names."
-            )
-        return list(in_data.keys())
-    elif var_names is None:
-        if index is None:
-            raise InvalidIcclimArgumentError(
-                "Unable to guess variable name." " Provide one using `var_name`"
-            )
-        return _guess_dataset_var_names(index, ds)
+    var_names: str | Sequence[str] | None,
+    standard_index: StandardIndex | None,
+) -> list[Hashable]:
+    if var_names is None:
+        return _guess_dataset_var_names(ds=ds, standard_index=standard_index)
     elif isinstance(var_names, str):
         return [var_names]
-    elif isinstance(var_names, list):
+    elif isinstance(var_names, (list, tuple)):
         return var_names
     else:
         raise NotImplementedError("`var_name` must be a string a list or None.")
 
 
 def read_dataset(
-    in_data: InFileType,
-    index: EcadIndex = None,
-    var_name: str | list[str] = None,  # used only if input is a DataArray
+    in_files: InFileBaseType,
+    standard_var: StandardVariable | None = None,
+    var_name: str | Sequence[str] = None,
 ) -> Dataset:
-    if isinstance(in_data, dict):
-        return _read_dictionary(in_data, index)
-    elif isinstance(in_data, Dataset):
-        return in_data
-    elif isinstance(in_data, DataArray):
-        return _read_dataarray(in_data, index, var_name=var_name)
-    elif isinstance(in_data, list):
+    if isinstance(in_files, Dataset):
+        ds = in_files
+    elif isinstance(in_files, DataArray):
+        ds = _read_dataarray(in_files, standard_var=standard_var, var_name=var_name)
+    elif is_glob_path(in_files) or (
+        isinstance(in_files, (list, tuple)) and is_netcdf_path(in_files[0])
+    ):
         # we assumes it's a list of netCDF files
         #  join="override" is used for cases some dimension are a tiny bit different
         #  in different files (was the case with eobs).
-        return xr.open_mfdataset(in_data, parallel=True, join="override")
-    elif is_netcdf(in_data):
-        return xr.open_dataset(in_data)
-    elif is_zarr(in_data):
-        return xr.open_zarr(in_data)
-    else:
-        raise NotImplementedError("`in_files` format was not recognized.")
-
-
-def build_cf_variables(
-    var_names: list[str],
-    ds: Dataset,
-    time_range: list[str] | None,
-    ignore_Feb29th: bool,
-    base_period_time_range: list[str] | None,
-    only_leap_years: bool,
-    freq: Frequency,
-) -> list[CfVariable]:
-    return [
-        _build_cf_variable(
-            ds=ds,
-            name=var_name,
-            time_range=time_range,
-            ignore_Feb29th=ignore_Feb29th,
-            base_period_time_range=base_period_time_range,
-            only_leap_years=only_leap_years,
-            time_clipping=freq.time_clipping,
+        ds = xr.open_mfdataset(in_files, parallel=True, join="override")
+    elif is_netcdf_path(in_files):
+        ds = xr.open_dataset(in_files)
+    elif is_zarr_path(in_files):
+        ds = xr.open_zarr(in_files)
+    elif isinstance(in_files, (list, tuple)):
+        return xr.merge(
+            [
+                read_dataset(in_file, standard_var, var_name[i])
+                for i, in_file in enumerate(in_files)
+            ]
         )
-        for var_name in var_names
-    ]
+    else:
+        raise NotImplementedError(
+            f"`in_files` format {type(in_files)} was not" f" recognized."
+        )
+    return update_to_standard_coords(ds)
 
 
-def update_to_standard_coords(ds: Dataset) -> tuple[Dataset, dict]:
+def update_to_standard_coords(ds: Dataset) -> Dataset:
     """
-    Mutate input ds to use more icclim friendly coordinate name.
+    Mutate input ds to use more icclim friendly coordinate names.
     """
     # TODO see if cf-xarray could replace this
-    revert = {}
-    if ds.coords.get("latitude") is not None:
-        ds = ds.rename({"latitude": "lat"})
-        revert.update({"lat": "latitude"})
-    if ds.coords.get("longitude") is not None:
-        ds = ds.rename({"longitude": "lon"})
-        revert.update({"lon": "longitude"})
     if ds.coords.get("t") is not None:
         ds = ds.rename({"t": "time"})
-        revert.update({"time": "t"})
-    return ds, revert
+    return ds
 
 
-def is_zarr(data: InFileBaseType):
-    return isinstance(data, str) and ".nc" not in data
+def is_zarr_path(path: InFileBaseType) -> bool:
+    return isinstance(path, str) and ".zarr" in path
 
 
-def is_netcdf(data: InFileBaseType):
-    return isinstance(data, str) and ".nc" in data
+def is_netcdf_path(path: InFileBaseType) -> bool:
+    return isinstance(path, str) and ".nc" in path
 
 
-def _read_dictionary(in_data, index):
-    ds_acc = []
-    for climate_var_name, climate_var_data in in_data.items():
-        if isinstance(climate_var_data, dict):
-            study_ds = read_dataset(climate_var_data["study"], index, climate_var_name)
-            if climate_var_data.get("thresholds", None) is not None:
-                ds_acc.append(_read_thresholds(climate_var_data, climate_var_name))
-        else:
-            study_ds = read_dataset(climate_var_data, index, climate_var_name)
-        ds_acc.append(study_ds)
-    return xr.merge(ds_acc)
+def is_glob_path(path: InFileBaseType) -> bool:
+    return isinstance(path, str) and "*" in path
 
 
-def _read_thresholds(climate_var_data: InFileDictionary, climate_var_name: str):
-    per_ds = read_dataset(climate_var_data["thresholds"], index=None)
-    per_var_name = _get_percentile_var_name(per_ds, climate_var_data, climate_var_name)
-    per_da = per_ds[per_var_name].rename(f"{climate_var_name}_thresholds")
-    per_da = _standardize_percentile_dim_name(per_da)
-    per_da = PercentileDataArray.from_da(
-        per_da,
-        climatology_bounds=_read_clim_bounds(climate_var_data, per_da),
-    )
-    return per_da
-
-
-def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
-    # This function could probably be backported to xclim PercentileDataArray
+def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
+    # todo [xclim backport] This function could probably be in PercentileDataArray
     per_dim_name = None
     for d in VALID_PERCENTILE_DIMENSION:
         if d in per_da.dims:
@@ -185,9 +109,8 @@ def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
             per_dim_name = f"{d}s"
     if per_dim_name is None:
         raise InvalidIcclimArgumentError(
-            "Percentile data must contain a recognizable"
-            " percentiles dimension such as 'percentiles',"
-            " 'quantile', 'per' or 'centile'."
+            "Percentile data must contain a recognizable percentiles dimension such as"
+            " 'percentiles', 'quantile', 'per' or 'centile'."
         )
     per_da = per_da.rename({per_dim_name: "percentiles"})
     if "quantile" in per_dim_name:
@@ -195,10 +118,10 @@ def _standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
     return per_da
 
 
-def _read_clim_bounds(input_dict: InFileDictionary, per_da: DataArray) -> list[str]:
-    bds = input_dict.get("climatology_bounds", None) or per_da.attrs.get(
-        "climatology_bounds", None
-    )
+def read_clim_bounds(
+    climatology_bounds: Sequence[str, str], per_da: DataArray
+) -> list[str]:
+    bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
     if len(bds) != 2:
         raise InvalidIcclimArgumentError(
             "climatology_bounds must be a iterable of length 2."
@@ -207,114 +130,93 @@ def _read_clim_bounds(input_dict: InFileDictionary, per_da: DataArray) -> list[s
 
 
 def _read_dataarray(
-    data: DataArray, index: EcadIndex = None, var_name: str | list[str] = None
+    data: DataArray,
+    standard_var: StandardVariable | None = None,
+    var_name: str | Sequence[str] = None,
 ) -> Dataset:
-    if isinstance(var_name, list):
+    if isinstance(var_name, (tuple, list)):
         if len(var_name) > 1:
             raise InvalidIcclimArgumentError(
                 "When the `in_file` is a DataArray, there"
-                " can only be one value in `var_name`."
+                f" can only be one value in `var_name` but var_name was: {var_name} "
             )
         else:
             var_name = var_name[0]
-    if index is not None:
-        if len(index.input_variables) > 1:
-            raise InvalidIcclimArgumentError(
-                f"Index {index.name} needs {len(index.input_variables)} variables."
-                f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
-                f" zarr store."
-            )
-        # first alias of the unique variable
-        data_name = var_name or index.input_variables[0][0]
+        data_name = var_name or standard_var.short_name or None
     else:
         data_name = var_name or data.name or "unnamed_var"
     return data.to_dataset(name=data_name, promote_attrs=True)
 
 
-def _guess_dataset_var_names(index: ClimateIndex, ds: Dataset) -> list[str]:
+def _guess_dataset_var_names(
+    standard_index: StandardIndex, ds: Dataset
+) -> list[Hashable]:
     """Try to guess the variable names using the expected kind of variable for
     the index.
     """
 
     def get_error() -> Exception:
-        main_aliases = ", ".join(map(lambda v: v[0], index_expected_vars))
+        main_aliases = ", ".join(
+            map(lambda v: v.short_name, standard_index.input_variables)
+        )
         return InvalidIcclimArgumentError(
-            f"Index {index.short_name} needs the following variable(s)"
-            f" [{main_aliases}], some of them were not recognized in the input."
-            f" Use `var_name` parameter to explicitly use data variable names"
-            f" from your input dataset: {list(ds.data_vars)}."
+            f"Index {standard_index.short_name} needs the following variable(s)"
+            f" [{main_aliases}], but the input variables were {list(ds.data_vars)}."
+            f" Use `var_name` parameter to explicitly set variable names."
         )
 
-    index_expected_vars = index.input_variables
-    if len(ds.data_vars) == 1:
-        if len(index_expected_vars) != 1:
+    if standard_index is not None:
+        if len(ds.data_vars) == 1:
+            if len(standard_index.input_variables) != 1:
+                raise get_error()
+            return [get_name_of_first_var(ds)]
+        climate_var_names = []
+        for expected_standard_var in standard_index.input_variables:
+            for alias in expected_standard_var.aliases:
+                # check if dataset contains this alias
+                if _is_alias_valid(ds, standard_index, alias):
+                    climate_var_names.append(alias)
+                    break
+        if len(climate_var_names) < len(standard_index.input_variables):
             raise get_error()
-        return [_get_name_of_first_var(ds)]
-    climate_var_names = []
-    for indice_var in index_expected_vars:
-        for alias in indice_var:
-            # check if dataset contains this alias
-            if _is_alias_valid(ds, index, alias):
-                climate_var_names.append(alias)
-                break
-    if len(climate_var_names) < len(index_expected_vars):
-        raise get_error()
-    return climate_var_names
+        return climate_var_names
+    else:
+        if len(ds.data_vars) == 1:
+            return [get_name_of_first_var(ds)]
+        else:
+            return _find_standard_vars(ds)
 
 
-def _has_percentile_variable(ds: Dataset, name: str) -> bool:
-    # fixme: Not the best to use a string (the name) to identify percentiles data
-    return f"{name}_thresholds" in ds.data_vars
+def _find_standard_vars(ds: Dataset) -> list[Hashable]:
+    return [
+        v
+        for v in ds.data_vars
+        if StandardVariableRegistry.lookup(str(v), no_error=True) is not None
+    ]
 
 
-def _build_cf_variable(
-    ds: Dataset,
-    name: str,
-    time_range: list[str] | None,
+def guess_input_type(data: DataArray) -> StandardVariable | None:
+    cf_input = StandardVariableRegistry.lookup(str(data.name), no_error=True)
+    if cf_input is None and data.attrs.get("standard_name", None) is not None:
+        cf_input = StandardVariableRegistry.lookup(
+            data.attrs.get("standard_name"), no_error=True
+        )
+    if cf_input is None:
+        return None
+    return cf_input
+
+
+def build_studied_data(
+    original_da: DataArray,
+    time_range: Sequence[str] | None,
     ignore_Feb29th: bool,
-    base_period_time_range: list[str] | None,
-    only_leap_years: bool,
-    time_clipping: Callable,
-) -> CfVariable:
-    if len(ds.data_vars) == 1:
-        da = ds[_get_name_of_first_var(ds)]
-    else:
-        da = ds[name]
-    study_da = _build_study_da(da, time_range, ignore_Feb29th)
-    if _has_percentile_variable(ds, name):
-        if base_period_time_range is not None:
-            raise InvalidIcclimArgumentError(
-                "Cannot determine the data to use for percentiles when both"
-                " `base_period_time_range` and an in_files `thresholds` are given."
-                " Please fill only one of the two."
-            )
-        reference_da = PercentileDataArray.from_da(ds[f"{name}_thresholds"])
-    elif base_period_time_range is not None:
-        reference_da = _build_reference_da(da, base_period_time_range, only_leap_years)
-    else:
-        reference_da = study_da
-    if time_clipping is not None:
-        study_da = time_clipping(study_da)
-        reference_da = time_clipping(reference_da)
-    # TODO: all these pre-processing operations should probably be added in history
-    #       metadata or
-    #       provenance it could be a property in CfVariable which will be reused when we
-    #       update the metadata of the index, at the end.
-    #       We could have a singleton "taking notes" of each operation that must be
-    #       logged into the output netcdf/provenance/metadata
-    study_da = study_da.chunk("auto")
-    reference_da = reference_da.chunk("auto")
-    return CfVariable(name, study_da, reference_da)
-
-
-def _build_study_da(
-    original_da: DataArray, time_range: list[str] | None, ignore_Feb29th: bool
+    standard_var: StandardVariable | None,
 ) -> DataArray:
     if time_range is not None:
-        _check_time_range_pre_validity("time_range", time_range)
+        check_time_range_pre_validity("time_range", time_range)
         time_range = [get_date_to_iso_format(x) for x in time_range]
         da = original_da.sel(time=slice(time_range[0], time_range[1]))
-        _check_time_range_post_validity(da, original_da, "time_range", time_range)
+        check_time_range_post_validity(da, original_da, "time_range", time_range)
         if len(da.time) == 0:
             raise InvalidIcclimArgumentError(
                 f"The given `time_range` {time_range} "
@@ -325,39 +227,14 @@ def _build_study_da(
     else:
         da = original_da
     if ignore_Feb29th:
-        da = xclim.core.calendar.convert_calendar(da, CfCalendar.NO_LEAP.get_name())
+        da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
+    if da.attrs.get(UNITS_ATTRIBUTE_KEY, None) is None and standard_var is not None:
+        da.attrs[UNITS_ATTRIBUTE_KEY] = standard_var.default_units
+    da = da.chunk("auto")
     return da
 
 
-def _build_reference_da(
-    original_da: DataArray,
-    base_time_range: list[str],
-    only_leap_years: bool,
-) -> DataArray:
-    _check_time_range_pre_validity("base_period_time_range", base_time_range)
-    base_time_range = [get_date_to_iso_format(x) for x in base_time_range]
-    da = original_da.sel(time=slice(base_time_range[0], base_time_range[1]))
-    _check_time_range_post_validity(
-        da, original_da, "base_period_time_range", base_time_range
-    )
-    if only_leap_years:
-        da = _reduce_only_leap_years(original_da)
-    return da
-
-
-def _reduce_only_leap_years(da: DataArray) -> DataArray:
-    reduced_list = []
-    for _, val in da.groupby(da.time.dt.year):
-        if val.time.dt.dayofyear.max() == 366:
-            reduced_list.append(val)
-    if not reduced_list:
-        raise InvalidIcclimArgumentError(
-            "No leap year in current dataset. Do not use `only_leap_years` parameter."
-        )
-    return xr.concat(reduced_list, "time")
-
-
-def _check_time_range_pre_validity(key: str, tr: list) -> None:
+def check_time_range_pre_validity(key: str, tr: Sequence[datetime | str]) -> None:
     if len(tr) != 2:
         raise InvalidIcclimArgumentError(
             f"The given `{key}` {tr}"
@@ -366,7 +243,7 @@ def _check_time_range_pre_validity(key: str, tr: list) -> None:
         )
 
 
-def _check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
+def check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
     if len(da.time) == 0:
         raise InvalidIcclimArgumentError(
             f"The given `{key}` {tr} is out of the sample time bounds:"
@@ -380,7 +257,7 @@ def _is_alias_valid(ds, index, alias):
 
 
 def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
-    if group == IndexGroup.SNOW:
+    if group == IndexGroupRegistry.SNOW:
         try:
             # todo: unit check might be replaced by cf-xarray
             xclim.core.units.check_units.__wrapped__(da, "[length]")
@@ -390,33 +267,88 @@ def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
     return True
 
 
-def _get_percentile_var_name(
-    per_ds: Dataset, in_dict: InFileDictionary, climate_var_name: str
-) -> str:
-    if per_var_name := in_dict.get("per_var_name", None):
-        return per_var_name
-    elif len(per_ds.data_vars) == 1:
-        return _get_name_of_first_var(per_ds)
-    else:
-        return _guess_per_var_name(climate_var_name, per_ds)
-
-
-def _guess_per_var_name(climate_var_name: str, per_ds: Dataset) -> str:
-    data_var_names = map(lambda v: str(v.name), per_ds.data_vars)
-    for x in data_var_names:
-        if climate_var_name in x:
-            return x
-    raise InvalidIcclimArgumentError(
-        "Could not guess the variable name for percentiles"
-        f" of {climate_var_name}. Please, provide the"
-        f" explicite name using per_var_name like so:"
-        f" \u007bf'{climate_var_name}':"
-        f" \u007b'study': 'x.nc',"
-        f" 'percentiles': 'y.nc',"
-        f" per_var_name='{climate_var_name}_percentiles'"
-        f" \u007d\u007d"
-    )
-
-
-def _get_name_of_first_var(ds: Dataset) -> str:
+def get_name_of_first_var(ds: Dataset) -> str:
     return str(ds.data_vars[list(ds.data_vars.keys())[0]].name)
+
+
+def is_dataset_path(query: Sequence | str) -> bool:
+    if isinstance(query, (tuple, list)):
+        return all(map(lambda q: is_netcdf_path(q), query))
+    return is_zarr_path(query) or is_glob_path(query) or is_netcdf_path(query)
+
+
+def reduce_only_leap_years(da: DataArray) -> DataArray:
+    reduced_list = []
+    for _, val in da.groupby(da.time.dt.year):
+        if val.time.dt.dayofyear.max() == 366:
+            reduced_list.append(val)
+    if not reduced_list:
+        raise InvalidIcclimArgumentError(
+            "No leap year in current dataset. Do not use `only_leap_years` parameter."
+        )
+    return xr.concat(reduced_list, "time")
+
+
+def read_string_threshold(query: str) -> tuple[str, str, float]:
+    value = re.findall(r"-?\d+\.?\d*", query)[0]
+    value_index = query.find(value)
+    operator = query[0:value_index].strip()
+    if query.endswith(value):
+        unit = None
+    else:
+        unit = query[value_index + len(value) :].strip()
+    return operator, unit, float(value)
+
+
+def read_threshold_DataArray(
+    thresh_da: DataArray,
+    threshold_min_value: str | float,
+    climatology_bounds: Sequence[str],
+    unit: str,
+):
+    if PercentileDataArray.is_compatible(thresh_da):
+        built_value = PercentileDataArray.from_da(
+            standardize_percentile_dim_name(thresh_da),
+            read_clim_bounds(climatology_bounds, thresh_da),
+        )
+        built_value.attrs["unit"] = unit
+
+    else:
+        if threshold_min_value:
+            if isinstance(threshold_min_value, str):
+                threshold_min_value = convert_units_to(threshold_min_value, thresh_da)
+            # todo in prcptot the replacing value (np.nan) needs to be 0
+            built_value = thresh_da.where(thresh_da > threshold_min_value, np.nan)
+        else:
+            built_value = thresh_da
+        built_value.attrs["unit"] = unit
+    return built_value
+
+
+def build_reference_da(
+    original_da: DataArray,
+    base_period_time_range: Sequence[datetime | str] | None,
+    only_leap_years: bool,
+    percentile_min_value: str | float | None,
+) -> DataArray:
+    # todo [refacto] move back to threshold ?
+    reference = original_da
+    if base_period_time_range:
+        check_time_range_pre_validity("base_period_time_range", base_period_time_range)
+        base_period_time_range = [
+            get_date_to_iso_format(x) for x in base_period_time_range
+        ]
+        reference = original_da.sel(
+            time=slice(base_period_time_range[0], base_period_time_range[1])
+        )
+        check_time_range_post_validity(
+            reference, original_da, "base_period_time_range", base_period_time_range
+        )
+    if only_leap_years:
+        reference = reduce_only_leap_years(original_da)
+    if percentile_min_value:
+        if isinstance(percentile_min_value, str):
+            percentile_min_value = convert_units_to(percentile_min_value, reference)
+        # todo in prcptot the replacing value (np.nan) needs to be 0
+        reference = reference.where(reference >= percentile_min_value, np.nan)
+    return reference
