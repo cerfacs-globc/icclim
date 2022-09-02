@@ -115,11 +115,21 @@ def indices(
         kwargs["index_name"] = i.short_name
         if ignore_error:
             try:
-                acc.append(index(**kwargs))
+                res = index(**kwargs)
+                if "percentiles" in res.coords:
+                    res = res.rename({"percentiles": i.short_name + "_percentiles"})
+                if "thresholds" in res.coords:
+                    res = res.rename({"thresholds": i.short_name + "_thresholds"})
+                acc.append(res)
             except Exception:
                 warn(f"Could not compute {i.short_name}.")
         else:
-            acc.append(index(**kwargs))
+            res = index(**kwargs)
+            if "percentiles" in res.coords:
+                res = res.rename({"percentiles": i.short_name + "_percentiles"})
+            if "thresholds" in res.coords:
+                res = res.rename({"thresholds": i.short_name + "_thresholds"})
+            acc.append(res)
     ds: Dataset = xr.merge(acc)
     if out is not None:
         _write_output_file(
@@ -382,7 +392,6 @@ def index(
         time_range=time_range,
         base_period=base_period_time_range,
         standard_index=standard_index,
-        indicator_name=indicator_name,
         is_compared_to_reference=is_compared_to_reference,
     )
     if base_period_time_range is not None:
@@ -520,7 +529,7 @@ def _compute_standard_climate_index(
     if rename:
         result_da = result_da.rename(rename)
     else:
-        result_da = result_da.rename(climate_index.identifier)
+        result_da = result_da.rename(climate_index.name)
     result_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(config.out_unit, result_da)
     if config.frequency.post_processing is not None and "time" in result_da.dims:
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
@@ -580,7 +589,7 @@ def _build_history(
     return (
         f"{initial_history}\n"
         f" [{current_time}]"
-        f" Calculation of {indice_computed.identifier}"
+        f" Calculation of {indice_computed.name}"
         f" index ({config.frequency.adjective})"
         f" - icclim version: {ICCLIM_VERSION}"
     )

@@ -624,7 +624,7 @@ def su(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=Threshold(
-            query=">= 25 degree_Celsius",
+            query="> 25 degree_Celsius",
         ),
         out_unit="day",
     )
@@ -706,7 +706,7 @@ def tr(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=Threshold(
-            query=">= 20 degree_Celsius",
+            query="> 20 degree_Celsius",
         ),
         out_unit="day",
     )
@@ -820,7 +820,7 @@ def wsdi(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=Threshold(
-            query=">= 90 doy_per",
+            query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
@@ -938,7 +938,7 @@ def tg90p(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=Threshold(
-            query=">= 90 doy_per",
+            query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
@@ -1056,7 +1056,7 @@ def tn90p(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=Threshold(
-            query=">= 90 doy_per",
+            query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
@@ -1174,7 +1174,7 @@ def tx90p(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=Threshold(
-            query=">= 90 doy_per",
+            query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,

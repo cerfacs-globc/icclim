@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+from abc import ABC
 from datetime import timedelta
 from functools import partial, reduce
 from typing import Any, Callable
@@ -13,10 +14,11 @@ from jinja2 import Environment
 from xarray import DataArray
 from xarray.core.resample import DataArrayResample
 from xarray.core.rolling import DataArrayRolling
-from xclim.core import datachecks
 from xclim.core.bootstrapping import percentile_bootstrap
-from xclim.core.calendar import resample_doy, select_time
+from xclim.core.calendar import build_climatology_bounds, resample_doy, select_time
 from xclim.core.cfchecks import cfcheck_from_name
+from xclim.core.datachecks import check_freq
+from xclim.core.missing import MissingBase
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 from xclim.core.units import convert_units_to, rate2amount, to_agg_units
 from xclim.core.utils import PercentileDataArray
@@ -30,6 +32,7 @@ from icclim.models.constants import (
     GROUP_BY_METHOD,
     GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
     PART_OF_A_WHOLE_UNIT,
+    REFERENCE_PERIOD_ID,
     RESAMPLE_METHOD,
     UNITS_ATTRIBUTE_KEY,
 )
@@ -43,14 +46,22 @@ from icclim.models.threshold import Threshold
 jinja_env = Environment()
 
 
+class MissingMethodLike(metaclass=abc.ABCMeta):
+    """workaround xclim missing type"""
+
+    def execute(self, *args, **kwargs) -> MissingBase:
+        ...
+
+    def validate(self, *args, **kwargs) -> bool:
+        ...
+
+
 class Indicator(metaclass=abc.ABCMeta):
-    identifier: str
     standard_name: str
     long_name: str
     cell_methods: str
 
     templated_properties = [
-        "identifier",
         "standard_name",
         "long_name",
         "cell_methods",
@@ -69,7 +80,13 @@ class Indicator(metaclass=abc.ABCMeta):
         ...
 
 
-class ResamplingIndicator(Indicator):
+class ResamplingIndicator(Indicator, ABC):
+    """Abstract class for indicators.
+    It implements some preprocessing common logic:
+    *
+
+    """
+
     missing: str
     missing_options: dict | None
 
@@ -80,38 +97,11 @@ class ResamplingIndicator(Indicator):
             raise ValueError(
                 "Cannot set `missing_options` with `missing` method being from context."
             )
-        missing_method = MISSING_METHODS[self.missing]
+        missing_method: MissingMethodLike = MISSING_METHODS[self.missing]  # noqa typing
         self._missing = missing_method.execute
         if self.missing_options:
             missing_method.validate(**self.missing_options)
         super().__init__()
-
-    def datachecks(self, climate_vars: list[ClimateVariable], src_freq: str):
-        if src_freq is None:
-            return
-        for climate_var in climate_vars:
-            da = climate_var.studied_data
-            if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
-                # todo useless ? (checks are done in CLimateVariable building)
-                datachecks.check_freq(da, src_freq, strict=True)
-
-    def cfcheck(self, climate_vars: list[ClimateVariable]):
-        """Compare metadata attributes to CF-Convention standards.
-
-        Default cfchecks use the specifications in `xclim.core.utils.VARIABLES`,
-        assuming the indicator's inputs are using the CMIP6/xclim variable names
-        correctly.
-        Variables absent from these default specs are silently ignored.
-
-        When subclassing this method, use functions decorated using
-        `xclim.core.options.cfcheck`.
-        """
-        for da in climate_vars:
-            try:
-                cfcheck_from_name(str(da.name), da)
-            except KeyError:
-                # Silently ignore unknown variables.
-                pass
 
     def preprocess(
         self,
@@ -119,8 +109,8 @@ class ResamplingIndicator(Indicator):
         jinja_scope: dict[str, Any],
         src_freq: Frequency,
     ) -> list[ClimateVariable]:
-        self.datachecks(climate_vars, src_freq.pandas_freq)
-        self.cfcheck(climate_vars)
+        _check_data(climate_vars, src_freq.pandas_freq)
+        _check_cf(climate_vars)
         self.format(jinja_scope=jinja_scope)
         return climate_vars
 
@@ -155,12 +145,12 @@ class ResamplingIndicator(Indicator):
         return result
 
     def format(self, jinja_scope: dict):
-        for property in self.templated_properties:
+        for templated_property in self.templated_properties:
             template = jinja_env.from_string(
-                getattr(self, property),
+                getattr(self, templated_property),
                 globals=jinja_scope,
             )
-            setattr(self, property, template.render())
+            setattr(self, templated_property, template.render())
 
     def _handle_missing_values(
         self,
@@ -173,20 +163,47 @@ class ResamplingIndicator(Indicator):
         options = self.missing_options or OPTIONS[MISSING_OPTIONS].get(self.missing, {})
         # We flag periods according to the missing method. skip variables without a time
         # coordinate.
+        missing_method: MissingMethodLike = MISSING_METHODS[self.missing]  # noqa typing
         miss = (
-            MISSING_METHODS[self.missing].execute(
-                da, resample_freq, src_freq, options, indexer
-            )
+            missing_method.execute(da, resample_freq, src_freq, options, indexer)
             for da in in_data
             if "time" in da.coords
         )
         # Reduce by or and broadcast to ensure the same length in time
         # When indexing is used and there are no valid points in the last period,
         # mask will not include it
-        mask = reduce(np.logical_or, miss)
+        mask = reduce(np.logical_or, miss)  # noqa typing
         if isinstance(mask, DataArray) and mask.time.size < out_data.time.size:
             mask = mask.reindex(time=out_data.time, fill_value=True)
         return out_data.where(~mask)
+
+
+def _check_cf(climate_vars: list[ClimateVariable]):
+    """Compare metadata attributes to CF-Convention standards.
+
+    Default cfchecks use the specifications in `xclim.core.utils.VARIABLES`,
+    assuming the indicator's inputs are using the CMIP6/xclim variable names
+    correctly.
+    Variables absent from these default specs are silently ignored.
+
+    When subclassing this method, use functions decorated using
+    `xclim.core.options.cfcheck`.
+    """
+    for da in climate_vars:
+        try:
+            cfcheck_from_name(str(da.name), da)
+        except KeyError:
+            # Silently ignore unknown variables.
+            pass
+
+
+def _check_data(climate_vars: list[ClimateVariable], src_freq: str):
+    if src_freq is None:
+        return
+    for climate_var in climate_vars:
+        da = climate_var.studied_data
+        if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
+            check_freq(da, src_freq, strict=True)
 
 
 class GenericIndicator(ResamplingIndicator):
@@ -197,8 +214,9 @@ class GenericIndicator(ResamplingIndicator):
         name: str,
         process: Callable[..., DataArray],
         select_time_before_computation: bool = True,
-        check_vars: Callable[[list[ClimateVariable], GenericIndicator], None]
-        | None = None,
+        check_vars: (
+            Callable[[list[ClimateVariable], GenericIndicator], None] | None
+        ) = None,
         sampling_methods: list[str] = None,
         **kwargs,
     ):
@@ -207,7 +225,6 @@ class GenericIndicator(ResamplingIndicator):
         self.name = name
         self.process = process
         self.select_time_before_computation = select_time_before_computation
-        self.identifier = local[name]["identifier"]
         self.standard_name = local[name]["standard_name"]
         self.cell_methods = local[name]["cell_methods"]
         self.long_name = local[name]["long_name"]
@@ -360,14 +377,10 @@ def max_consecutive_occurrence(
         rle = select_time(rle, **resample_freq.indexer)
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
-        max_consecutive_occurrence = _consecutive_occurrences_with_dates(
-            resampled, source_freq_delta
-        )
+        result = _consecutive_occurrences_with_dates(resampled, source_freq_delta)
     else:
-        max_consecutive_occurrence = resampled.max(dim="time")
-    return to_agg_units(
-        max_consecutive_occurrence, climate_vars[0].studied_data, "count"
-    )
+        result = resampled.max(dim="time")
+    return to_agg_units(result, climate_vars[0].studied_data, "count")
 
 
 def sum_of_spell_lengths(
@@ -385,10 +398,8 @@ def sum_of_spell_lengths(
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
     if resample_freq.indexer:
         cropped_rle = select_time(cropped_rle, **resample_freq.indexer)
-    sum_of_spell_lengths = cropped_rle.resample(time=resample_freq.pandas_freq).max(
-        dim="time"
-    )
-    return to_agg_units(sum_of_spell_lengths, climate_vars[0].studied_data, "count")
+    result = cropped_rle.resample(time=resample_freq.pandas_freq).max(dim="time")
+    return to_agg_units(result, climate_vars[0].studied_data, "count")
 
 
 def excess(
@@ -452,7 +463,9 @@ def fraction_of_total(
         is_doy_per=threshold.is_doy_per_threshold,
     ).squeeze()
     over = (
-        study.where(exceedance).resample(time=resample_freq.pandas_freq).sum(dim="time")
+        study.where(exceedance, 0)
+        .resample(time=resample_freq.pandas_freq)
+        .sum(dim="time")
     )
     res = over / total
     res.attrs[UNITS_ATTRIBUTE_KEY] = PART_OF_A_WHOLE_UNIT
@@ -513,7 +526,7 @@ def sum(
     )
 
 
-def std(
+def standard_deviation(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     **kwargs,  # noqa
@@ -604,9 +617,9 @@ def mean_of_difference(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ):
-    var_0, var_1 = _get_couple_of_var(climate_vars, "mean_of_difference")
-    mean_of_diff = (var_0 - var_1).resample(time=resample_freq.pandas_freq).mean()
-    mean_of_diff.attrs["units"] = var_0.attrs["units"]
+    study, ref = _get_couple_of_var(climate_vars, "mean_of_difference")
+    mean_of_diff = (study - ref).resample(time=resample_freq.pandas_freq).mean()
+    mean_of_diff.attrs["units"] = study.attrs["units"]
     return mean_of_diff
 
 
@@ -615,11 +628,11 @@ def difference_of_extremes(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ):
-    var_0, var_1 = _get_couple_of_var(climate_vars, "difference_of_extremes")
-    max_var_0 = var_0.resample(time=resample_freq.pandas_freq).max()
-    min_var_1 = var_1.resample(time=resample_freq.pandas_freq).min()
-    diff_of_extremes = max_var_0 - min_var_1
-    diff_of_extremes.attrs["units"] = var_0.attrs["units"]
+    study, ref = _get_couple_of_var(climate_vars, "difference_of_extremes")
+    max_study = study.resample(time=resample_freq.pandas_freq).max()
+    min_ref = ref.resample(time=resample_freq.pandas_freq).min()
+    diff_of_extremes = max_study - min_ref
+    diff_of_extremes.attrs["units"] = study.attrs["units"]
     return diff_of_extremes
 
 
@@ -645,12 +658,12 @@ def mean_of_absolute_one_time_step_difference(
     DataArray
     mean_of_absolute_one_time_step_difference as a xarray.DataArray
     """
-    var_0, var_1 = _get_couple_of_var(
+    study, ref = _get_couple_of_var(
         climate_vars, "mean_of_absolute_one_time_step_difference"
     )
-    one_time_step_diff = (var_0 - var_1).diff(dim="time")
+    one_time_step_diff = (study - ref).diff(dim="time")
     res = abs(one_time_step_diff).resample(time=resample_freq.pandas_freq).mean()
-    res.attrs["units"] = var_0.attrs["units"]
+    res.attrs["units"] = study.attrs["units"]
     return res
 
 
@@ -749,6 +762,9 @@ def check_couple_of_vars(
 
 
 class GenericIndicatorRegistry(Registry):
+    def __init__(self):
+        super().__init__()
+
     _item_class = GenericIndicator
 
     CountOccurrences = GenericIndicator("count_occurrences", count_occurrences)
@@ -771,7 +787,7 @@ class GenericIndicatorRegistry(Registry):
     Minimum = GenericIndicator("minimum", minimum)
     Average = GenericIndicator("average", average)
     Sum = GenericIndicator("sum", sum)
-    StandardDeviation = GenericIndicator("std", std)
+    StandardDeviation = GenericIndicator("standard_deviation", standard_deviation)
     MaxOfRollingSum = GenericIndicator(
         "max_of_rolling_sum", max_of_rolling_sum, check_vars=check_single_var
     )
@@ -833,7 +849,10 @@ def _compute_exceedance(
 ) -> DataArray:
     if is_doy_per:
         threshold = resample_doy(threshold, study)
-    return operator(study, threshold)
+    res = operator(study, threshold)
+    if bootstrap:
+        res.attrs[REFERENCE_PERIOD_ID] = build_climatology_bounds(study)
+    return res
 
 
 def _get_couple_of_var(
@@ -843,10 +862,10 @@ def _get_couple_of_var(
         raise InvalidIcclimArgumentError(
             f"{indicator} cannot be computed with thresholds."
         )
-    var_0 = climate_vars[0].studied_data
-    var_1 = climate_vars[1].studied_data
-    var_0 = convert_units_to(var_0, var_1)
-    return var_0, var_1
+    study = climate_vars[0].studied_data
+    ref = climate_vars[1].studied_data
+    study = convert_units_to(study, ref)
+    return study, ref
 
 
 def _run_rolling_reducer(
@@ -941,7 +960,7 @@ def _get_single_var(
             climate_vars[0].threshold,
         )
     else:
-        return (None, climate_vars[0].studied_data, None)
+        return None, climate_vars[0].studied_data, None
 
 
 def _must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
@@ -1033,7 +1052,7 @@ def _count_occurrences_with_date(resampled: DataArrayResample):
         #  https://github.com/pydata/xarray/issues/2511
         sample = sample.compute()
         first = sample.isel(time=sample.argmax("time")).time
-        reversed_time = sample[::-1, :, :]
+        reversed_time = sample.reindex(time=list(reversed(sample.time.values)))
         last = reversed_time.isel(time=reversed_time.argmax("time")).time
         dated_occurrences = _add_date_coords(
             original_sample=sample,
@@ -1071,8 +1090,8 @@ def _consecutive_occurrences_with_dates(
             label=label,
         )
         acc.append(dated_longest_run)
-    max_consecutive_occurrence = xr.concat(acc, "time")
-    return max_consecutive_occurrence
+    result = xr.concat(acc, "time")
+    return result
 
 
 def _add_date_coords(

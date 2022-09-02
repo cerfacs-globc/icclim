@@ -14,11 +14,11 @@ USER_INDEX_TEMPERATURE_STAMP = "t"
 # percentiles dimension from percentile_doy
 PERCENTILES_COORD = "percentiles"
 # attribut holding the in_base time bounds
-IN_BASE_IDENTIFIER = "reference_epoch"
+REFERENCE_PERIOD_ID = "reference_epoch"
 # coordinate of day of year values (usually from 1 to 365/366)
 DOY_COORDINATE = "dayofyear"
 # Units attribute key for DataArray(s)
-UNITS_ATTRIBUTE_KEY =  "units"
+UNITS_ATTRIBUTE_KEY = "units"
 
 
 # Aliases of input percentiles variables names

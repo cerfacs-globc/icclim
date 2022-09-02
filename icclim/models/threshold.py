@@ -192,7 +192,7 @@ class Threshold:
                 "short_name": f"{self.operator.short_name}_threshold",
             }
         elif isinstance(self.value, PercentileDataArray):
-            percentiles = self.value.coords[indicator_name + "_percentiles"].values
+            percentiles = self.value.coords["percentiles"].values
             bds = self.value.attrs.get("climatology_bounds")
             if self.is_doy_per_threshold:
                 if percentiles.size == 1:
@@ -285,7 +285,6 @@ def build_period_per(
     only_leap_years: bool,
     studied_data: DataArray,
     percentile_min_value: float | None,
-    indicator_name: str,
 ) -> PercentileDataArray:
     reference = build_reference_da(
         studied_data,
@@ -316,7 +315,6 @@ def build_period_per(
         source=computed_per,
         climatology_bounds=build_climatology_bounds(reference),
     )
-    res = res.rename({"percentiles": indicator_name + "_percentiles"})
     return res
 
 
@@ -328,7 +326,6 @@ def build_doy_per(
     doy_window_width: int,
     studied_data: DataArray,
     percentile_min_value: float | None,
-    indicator_name: str,
 ) -> PercentileDataArray:
     reference = build_reference_da(
         studied_data,
@@ -343,5 +340,4 @@ def build_doy_per(
         alpha=interpolation.alpha,
         beta=interpolation.beta,
     ).compute()  # "optimization" (diminish dask scheduler workload)
-    res = res.rename({"percentiles": indicator_name + "_percentiles"})
     return res

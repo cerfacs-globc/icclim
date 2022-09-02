@@ -12,9 +12,16 @@ import xarray as xr
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.models.constants import ICCLIM_VERSION, UNITS_ATTRIBUTE_KEY
+from icclim.models.constants import (
+    ICCLIM_VERSION,
+    PART_OF_A_WHOLE_UNIT,
+    REFERENCE_PERIOD_ID,
+    UNITS_ATTRIBUTE_KEY,
+)
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_group import IndexGroupRegistry
+from icclim.models.threshold import Threshold
+from icclim.tests.testing_utils import K2C, stub_pr, stub_tas
 
 
 @patch("icclim.main.index")
@@ -84,13 +91,13 @@ class Test_Integration:
             pass
 
     def test_index_SU(self):
+        tas = stub_tas(tas_value=26 + K2C)
+        tas[:5] = 0
         res = icclim.index(
-            index_name="SU",
-            in_files=self.data,
-            out_file=self.OUTPUT_FILE,
+            index_name="SU", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
         )
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
-        np.testing.assert_array_equal(0, res.SU)
+        assert res.SU.isel(time=0) == 26  # January
 
     def test_index_SU__on_dataset(self):
         res = icclim.index(
@@ -221,7 +228,7 @@ class Test_Integration:
             2042, 2, 28, 0, 0, 0, 0
         )
 
-    def test_indices_from_DataArray(self):
+    def test_indices__from_DataArray(self):
         res = icclim.indices(
             index_group=IndexGroupRegistry.HEAT,
             in_files=self.data,
@@ -355,3 +362,246 @@ class Test_Integration:
                 out_file=self.OUTPUT_FILE,
                 ignore_error=False,
             )
+
+    def test_index_TR(self):
+        tas = stub_tas(tas_value=26 + K2C)
+        tas[:5] = 0
+        res = icclim.index(
+            index_name="TR", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
+        )
+        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert res.TR.isel(time=0) == 26  # January
+
+    def test_index_prcptot(self):
+        pr = stub_pr(value=2)
+        pr[:10] = 0
+        res = icclim.index(
+            index_name="prcptot",
+            in_files=pr,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+        assert res.isel(time=0) == 42.0
+
+    def test_index_csu(self):
+        tas = stub_tas(tas_value=26 + K2C)
+        tas[10:15] = 0
+        res = icclim.index(
+            index_name="csu", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
+        )
+        assert res.isel(time=0) == 16
+
+    def test_index_gd4(self):
+        tas = stub_tas(tas_value=26 + K2C)
+        tas[5:15] = 0
+        res = icclim.index(
+            index_name="gd4", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
+        )
+        expected = (26 - 4) * 21
+        assert (
+            res.isel(time=0) == expected
+        )  # 21 days in January above 4 degC (at 26degC)
+
+    def test_index_cfd(self):
+        tas = stub_tas(tas_value=26 + K2C)
+        tas[5:15] = 0
+        res = icclim.index(
+            index_name="cfd", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
+        )
+        assert res.isel(time=0) == 1
+
+    def test_index_fd(self):
+        tas = stub_tas(tas_value=26 + K2C)
+        tas[5:15] = 0
+        tas[20:25] = 0
+        res = icclim.index(
+            index_name="fd", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
+        )
+        assert res.isel(time=0) == 15
+
+    def test_index_hd17(self):
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[5:10] = 0
+        res = icclim.index(
+            index_name="hd17", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
+        )
+        assert res.isel(time=0) == 5 * (17 + K2C)
+
+    def test_index_tx90p__no_bootstrap_because_one_single_year_of_ref(self):
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[5:15] = 0
+        res = icclim.index(
+            index_name="tx90p",
+            in_files=tas,
+            doy_window_width=5,
+            base_period_time_range=("2042-01-01", "2042-12-31"),
+            time_range=("2042-01-01", "2045-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+        assert REFERENCE_PERIOD_ID not in res.TX90p.attrs
+        # The 90th percentile here is clipped to the maximum of tas window (27 degC)
+        # due to the "median_unbiased" interpolation.
+        # Thus no value are strictly above it.
+        assert res.TX90p.isel(time=0) == 0
+
+    def test_index_tx90p__no_bootstrap_because_no_overlap(self):
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[5:10] = 0
+        res = icclim.index(
+            index_name="tx90p",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2043-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2042-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+        assert REFERENCE_PERIOD_ID not in res.TX90p.attrs
+        # resample_doy add a day where 90th per is below tas
+        assert res.TX90p.isel(time=0) == 6
+
+    def test_index_tx90p__bootstrap_2_years(self):
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[5:10] = 0
+        res = icclim.index(
+            index_name="tx90p",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+        assert REFERENCE_PERIOD_ID in res.TX90p.attrs
+        # 2042 values are compared to 2043's 90th percentile due to bootstrap
+        assert res.TX90p.sel(time="2042-01") == 0
+        # 2043 values are compared to 2042's 90th percentile due to bootstrap
+        assert res.TX90p.sel(time="2043-01") == 5
+
+    def test_index_wsdi__no_bootstrap_because_no_overlap(self):
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[0:10] = 0
+        res = icclim.index(
+            index_name="wsdi",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2043-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2042-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+        assert REFERENCE_PERIOD_ID not in res.WSDI.attrs
+        # 1 more day than in tas because of resample_doy that interpolate values
+        assert res.WSDI.isel(time=0) == 11
+
+    def test_index_csdi__no_bootstrap_because_no_overlap(self):
+        tas = stub_tas(tas_value=2 + K2C)
+        tas[0:10] = 35 + K2C
+        res = icclim.index(
+            index_name="csdi",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2043-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2042-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+        assert REFERENCE_PERIOD_ID not in res.CSDI.attrs
+        print(res.CSDI.isel(time=0).compute())
+        # 1 more day than in tas because of resample_doy that interpolate values
+        assert res.CSDI.isel(time=0) == 11
+
+    def test_count_occurrences__date_event(self):
+        tas = stub_tas(tas_value=2 + K2C)
+        tas[10] = 35 + K2C
+        res = icclim.index(
+            tas,
+            var_name=["tmin"],
+            index_name="count_occurrences",
+            threshold=">= 22 degree_Celsius",
+            slice_mode="month",
+            date_event=True,
+        ).compute()
+        assert "event_date_start" in res.coords
+        assert "event_date_end" in res.coords
+        assert res.count_occurrences.isel(time=0).event_date_end == np.datetime64(
+            "2042-01-11"
+        )
+        assert res.count_occurrences.isel(time=0).event_date_start == np.datetime64(
+            "2042-01-11"
+        )
+
+    def test_count_occurrences__to_percent(self):
+        tas = stub_tas(tas_value=2 + K2C)
+        tas[10] = 35 + K2C
+        res = icclim.index(
+            tas,
+            var_name=["tmin"],
+            index_name="count_occurrences",
+            threshold=">= 22 degree_Celsius",
+            slice_mode="month",
+            out_unit="%",
+        ).compute()
+        assert res.count_occurrences.attrs[UNITS_ATTRIBUTE_KEY] == "%"
+        assert res.count_occurrences.isel(time=0) == 1 / 31 * 100
+
+    def test_excess__on_doy_percentile(self):
+        tas = stub_tas(tas_value=10 + K2C).rename("tas")
+        tas[10] = 5 + K2C
+        res = icclim.index(
+            tas,
+            index_name="excess",
+            time_range=["2044-01-01", "2045-12-31"],
+            threshold=Threshold(
+                "10 doy_per",
+                doy_window_width=1,
+                reference_period=["2042-01-01", "2042-12-31"],
+            ),
+            slice_mode="month",
+            save_thresholds=True,
+        ).compute()
+        # not exactly 5 because of resample_doy interpolation
+        np.testing.assert_almost_equal(res.excess.isel(time=0), 5.01369863)
+        print(res)
+        assert "tas_thresholds" in res.data_vars
+
+    def test_deficit__on_doy_percentile(self):
+        tas = stub_tas(tas_value=5 + K2C).rename("tas")
+        tas[10] = 10 + K2C
+        res = icclim.index(
+            tas,
+            index_name="deficit",
+            time_range=["2044-01-01", "2045-12-31"],
+            threshold=Threshold(
+                "10 doy_per",
+                doy_window_width=1,
+                reference_period=["2042-01-01", "2042-12-31"],
+            ),
+            slice_mode="month",
+            save_thresholds=True,
+        ).compute()
+        # not exactly 5 because of resample_doy interpolation
+        np.testing.assert_almost_equal(res.deficit.isel(time=0), 5.01369863)
+        assert "tas_thresholds" in res.data_vars
+
+    def test_fraction_of_total(self):
+        tas = stub_tas(tas_value=25 + K2C).rename("tas")
+        tas[tas.time.dt.date == np.datetime64("2042-06-10")] = 10 + K2C
+        res = icclim.index(
+            tas,
+            index_name="fraction_of_total",
+            threshold="> 20 degree_Celsius",
+            slice_mode="jja",
+        ).compute()
+        np.testing.assert_almost_equal(res.fraction_of_total.isel(time=0), 0.98967164)
+        assert res.fraction_of_total.isel(time=1) == 1
+        assert res.fraction_of_total.attrs[UNITS_ATTRIBUTE_KEY] == PART_OF_A_WHOLE_UNIT
+
+    def test_std(self):
+        tas = stub_tas(tas_value=25 + K2C).rename("tas")
+        res = icclim.index(
+            tas,
+            index_name="standard_deviation",
+        ).compute()
+        np.testing.assert_almost_equal(res.standard_deviation.isel(time=0), 0)

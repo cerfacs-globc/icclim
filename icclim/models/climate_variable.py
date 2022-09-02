@@ -84,7 +84,6 @@ def build_climate_vars(
     time_range: Sequence[str],
     base_period: Sequence[str] | None,
     standard_index: StandardIndex | None,
-    indicator_name: str,
     is_compared_to_reference: bool,
 ) -> list[ClimateVariable]:
     if standard_index is not None and len(standard_index.input_variables) > len(
@@ -109,7 +108,6 @@ def build_climate_vars(
                 ignore_Feb29th,
                 time_range,
                 standard_var=standard_var,
-                indicator_name=indicator_name,
             )
         )
     if is_compared_to_reference:
@@ -249,7 +247,6 @@ def _build_climate_var(
     ignore_Feb29th: bool,
     time_range: Sequence[str],
     standard_var: StandardVariable | None,
-    indicator_name: str,
 ) -> ClimateVariable:
     if isinstance(climate_var_data, dict):
         study_ds = read_dataset(
@@ -272,7 +269,9 @@ def _build_climate_var(
     )
     if climate_var_thresh is not None:
         climate_var_thresh = _build_threshold(
-            indicator_name, climate_var_thresh, studied_data
+            climate_var_thresh=climate_var_thresh,
+            original_data=study_ds[climate_var_name],
+            conversion_unit=studied_data.attrs[UNITS_ATTRIBUTE_KEY],
         )
     return ClimateVariable(
         name=climate_var_name,
@@ -291,17 +290,16 @@ def _build_climate_var(
 
 
 def _build_threshold(
-    indicator_name: str,
     climate_var_thresh: str | Threshold,
-    studied_data: DataArray,
+    original_data: DataArray,
+    conversion_unit: str,
 ) -> Threshold:
     if isinstance(climate_var_thresh, str):
         climate_var_thresh: Threshold = Threshold(climate_var_thresh)
     if isinstance(climate_var_thresh.value, Callable):
         climate_var_thresh.value = climate_var_thresh.value(
-            studied_data=studied_data,
-            indicator_name=indicator_name,
+            studied_data=original_data,
         )
-    climate_var_thresh.unit = studied_data.attrs[UNITS_ATTRIBUTE_KEY]
+    climate_var_thresh.unit = conversion_unit
     climate_var_thresh.value = climate_var_thresh.value.chunk("auto")
     return climate_var_thresh

@@ -260,6 +260,71 @@ def test_custom_index_anomaly__datetime_ref_period():
     np.testing.assert_almost_equal(res.anomaly.sel(time="2046"), np.NAN)
 
 
+def test_custom_index_anomaly__groupby_and_resample_month():
+    tas = stub_tas(2.0)
+    tas.loc[{"time": "2045-01-01"}] = 300
+    res = icclim.custom_index(
+        in_files=tas,
+        slice_mode="month",
+        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        sampling_method="groupby_ref_and_resample_study",
+        user_index={
+            "index_name": "anomaly",
+            "calc_operation": CalcOperationRegistry.ANOMALY,
+        },
+    ).compute()
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2045-01"), 9.61290323)
+
+
+def test_custom_index_anomaly__groupby_and_resample_year():
+    tas = stub_tas(2.0)
+    tas.loc[{"time": "2045-01-01"}] = 300
+    res = icclim.custom_index(
+        in_files=tas,
+        slice_mode="year",
+        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        sampling_method="groupby_ref_and_resample_study",
+        user_index={
+            "index_name": "anomaly",
+            "calc_operation": CalcOperationRegistry.ANOMALY,
+        },
+    ).compute()
+    print(res.anomaly.sel(time="2045"))
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2045"), 0.81643836)
+
+
+def test_custom_index_anomaly__groupby_and_resample_day():
+    tas = stub_tas(2.0)
+    tas.loc[{"time": "2045-01-01"}] = 300
+    res = icclim.custom_index(
+        in_files=tas,
+        slice_mode="day",
+        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        sampling_method="groupby_ref_and_resample_study",
+        user_index={
+            "index_name": "anomaly",
+            "calc_operation": CalcOperationRegistry.ANOMALY,
+        },
+    ).compute()
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2045-01-01"), 298)
+
+
+def test_custom_index_anomaly__groupby_and_resample_hour():
+    tas = stub_tas(2.0)
+    tas.loc[{"time": "2045-01-01"}] = 300
+    with pytest.raises(NotImplementedError):
+        icclim.custom_index(
+            in_files=tas,
+            slice_mode="hour",
+            base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+            sampling_method="groupby_ref_and_resample_study",
+            user_index={
+                "index_name": "anomaly",
+                "calc_operation": CalcOperationRegistry.ANOMALY,
+            },
+        )
+
+
 def test_custom_index_anomaly__grouby_season():
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300

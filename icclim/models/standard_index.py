@@ -63,3 +63,15 @@ class StandardIndex:
 
     def __call__(self, *args, **kwargs):
         self.generic_indicator(*args, **kwargs)
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, StandardIndex):
+            return False
+        return (
+            self.generic_indicator.name == other.generic_indicator.name
+            and self.threshold == other.threshold
+            and self.output_unit == other.output_unit
+            and self.rolling_window_width == other.rolling_window_width
+            and self.doy_window_width == other.doy_window_width
+            and self.min_spell_length == other.min_spell_length
+        )
