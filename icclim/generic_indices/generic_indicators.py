@@ -443,6 +443,7 @@ def deficit(
 def fraction_of_total(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
+    to_percent: bool,
     **kwargs,  # noqa
 ) -> DataArray:
     op, study, threshold = _get_single_var(climate_vars)
@@ -468,7 +469,11 @@ def fraction_of_total(
         .sum(dim="time")
     )
     res = over / total
-    res.attrs[UNITS_ATTRIBUTE_KEY] = PART_OF_A_WHOLE_UNIT
+    if to_percent:
+        res = res * 100
+        res.attrs[UNITS_ATTRIBUTE_KEY] = "%"
+    else:
+        res.attrs[UNITS_ATTRIBUTE_KEY] = PART_OF_A_WHOLE_UNIT
     return res
 
 
@@ -823,19 +828,6 @@ class GenericIndicatorRegistry(Registry):
             GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
         ],
     )
-    # TODO: implement or remove comments below
-    # DoyPercentile = GenericIndicator(
-    #     "doy_percentile",
-    #     doy_percentile,
-    # )
-    # PeriodPercentile = GenericIndicator(
-    #     "period_percentile",
-    #     period_percentile,
-    # )
-    # MoyPercentile = GenericIndicator(
-    #     "moy_percentile",
-    #     moy_percentile,
-    # )
 
 
 @percentile_bootstrap

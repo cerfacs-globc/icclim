@@ -598,6 +598,20 @@ class Test_Integration:
         assert res.fraction_of_total.isel(time=1) == 1
         assert res.fraction_of_total.attrs[UNITS_ATTRIBUTE_KEY] == PART_OF_A_WHOLE_UNIT
 
+    def test_fraction_of_total_percent(self):
+        tas = stub_tas(tas_value=25 + K2C).rename("tas")
+        tas[tas.time.dt.date == np.datetime64("2042-06-10")] = 10 + K2C
+        res = icclim.index(
+            tas,
+            index_name="fraction_of_total",
+            threshold="> 20 degree_Celsius",
+            out_unit="%",
+            slice_mode="jja",
+        ).compute()
+        np.testing.assert_almost_equal(res.fraction_of_total.isel(time=0), 98.96716372)
+        assert res.fraction_of_total.isel(time=1) == 100
+        assert res.fraction_of_total.attrs[UNITS_ATTRIBUTE_KEY] == "%"
+
     def test_std(self):
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
         res = icclim.index(
