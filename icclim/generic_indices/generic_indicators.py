@@ -661,55 +661,71 @@ def difference_of_means(
     sampling_method: str,
     **kwargs,  # noqa
 ):
-    var_0, var_1 = _get_couple_of_var(climate_vars, "difference_of_means")
+    study, ref = _get_couple_of_var(climate_vars, "difference_of_means")
     if sampling_method == GROUP_BY_METHOD:
         if resample_freq.group_by_key == RUN_INDEXER:
-            mean_var_0 = var_0.mean(dim="time")
-            mean_var_1 = var_1.mean(dim="time")
+            mean_study = study.mean(dim="time")
+            mean_ref = ref.mean(dim="time")
         else:
-            mean_var_0 = var_0.groupby(resample_freq.group_by_key).mean()
-            mean_var_1 = var_1.groupby(resample_freq.group_by_key).mean()
+            mean_study = study.groupby(resample_freq.group_by_key).mean()
+            mean_ref = ref.groupby(resample_freq.group_by_key).mean()
     elif sampling_method == RESAMPLE_METHOD:
-        mean_var_0 = var_0.resample(time=resample_freq.pandas_freq).mean()
-        mean_var_1 = var_1.resample(time=resample_freq.pandas_freq).mean()
+        mean_study = study.resample(time=resample_freq.pandas_freq).mean()
+        mean_ref = ref.resample(time=resample_freq.pandas_freq).mean()
     elif sampling_method == GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD:
-        if resample_freq.group_by_key == RUN_INDEXER:
-            mean_var_0 = var_0.resample(time=resample_freq.pandas_freq).mean()
+        if (
+            resample_freq.group_by_key == RUN_INDEXER
+            or resample_freq == FrequencyRegistry.YEAR
+        ):
+            mean_study = study.resample(time=resample_freq.pandas_freq).mean()
             # data is already filtered with only the indexed values.
             # Thus there is only one "group".
-            mean_var_1 = var_1.mean(dim="time")
+            mean_ref = ref.mean(dim="time")
         else:
             return diff_of_means_of_resampled_x_by_groupedby_y(
-                resample_freq, to_percent, var_0, var_1
+                resample_freq, to_percent, study, ref
             )
     else:
         raise NotImplementedError(f"Unknown sampling_method: '{sampling_method}'.")
-    diff_of_means = mean_var_0 - mean_var_1
+    diff_of_means = mean_study - mean_ref
     if to_percent:
-        diff_of_means = diff_of_means / mean_var_1 * 100
+        diff_of_means = diff_of_means / mean_ref * 100
         diff_of_means.attrs["units"] = "%"
     else:
-        diff_of_means.attrs["units"] = var_0.attrs["units"]
+        diff_of_means.attrs["units"] = study.attrs["units"]
     return diff_of_means
 
 
 def diff_of_means_of_resampled_x_by_groupedby_y(
-    resample_freq: Frequency, to_percent: bool, var_0: DataArray, var_1: DataArray
+    resample_freq: Frequency, to_percent: bool, study: DataArray, ref: DataArray
 ) -> DataArray:
-    mean_var_1 = var_1.groupby(resample_freq.group_by_key).mean()
+    mean_ref = ref.groupby(resample_freq.group_by_key).mean()
     acc = []
-    for label, sample in var_0.resample(time=resample_freq.pandas_freq):
-        sample_mean = sample.mean()
-        ref_month_mean = mean_var_1.sel(month=sample_mean.time.dt.month)
-        sample_diff_of_means = sample_mean - ref_month_mean
+    if resample_freq == FrequencyRegistry.MONTH:
+        key = "month"
+        dt_selector = lambda x: x.time.dt.month  # noqa lamdab assigned
+    elif resample_freq == FrequencyRegistry.DAY:
+        key = "dayofyear"
+        dt_selector = lambda x: x.time.dt.dayofyear  # noqa lamdab assigned
+    else:
+        raise NotImplementedError(
+            f"Can't use {GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}"
+            f" with the frequency {resample_freq.long_name}."
+        )
+    for label, sample in study.resample(time=resample_freq.pandas_freq):
+        sample_mean = sample.mean(dim="time")
+        ref_group_mean = mean_ref.sel({key: dt_selector(sample).values[0]})
+        sample_diff_of_means = sample_mean - ref_group_mean
         if to_percent:
-            sample_diff_of_means = sample_diff_of_means / ref_month_mean * 100
+            sample_diff_of_means = sample_diff_of_means / ref_group_mean * 100
+        del sample_diff_of_means[key]
+        sample_diff_of_means = sample_diff_of_means.expand_dims(time=[label])
         acc.append(sample_diff_of_means)
     diff_of_means = xr.concat(acc, dim="time")
     if to_percent:
         diff_of_means.attrs["units"] = "%"
     else:
-        diff_of_means.attrs["units"] = var_0.attrs["units"]
+        diff_of_means.attrs["units"] = study.attrs["units"]
     return diff_of_means
 
 
