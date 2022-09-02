@@ -26,10 +26,9 @@ class EcadIndexRegistry(Registry):
         return [item.short_name]
 
     @classmethod
-    def list(cls) -> list[str]:
+    def list(cls: EcadIndexRegistry) -> list[str]:
         return [
-            f"{i.group.built_value} | {i.short_name} | {i.definition}"
-            for i in cls.values()
+            f"{i.group.name} | {i.short_name} | {i.definition}" for i in cls.values()
         ]
 
     TG = StandardIndex(
@@ -109,7 +108,7 @@ class EcadIndexRegistry(Registry):
         definition="Number of Summer Days (Tmax > 25C)",
         source=ECAD_ATBD,
         short_name="SU",
-        threshold=">= 25 degree_Celsius",
+        threshold="> 25 degree_Celsius",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[],
@@ -121,7 +120,7 @@ class EcadIndexRegistry(Registry):
         definition="Number of Tropical Nights (Tmin > 20C)",
         source=ECAD_ATBD,
         short_name="TR",
-        threshold=">= 20 degree_Celsius",
+        threshold="> 20 degree_Celsius",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS_MIN],
         qualifiers=[],
@@ -133,7 +132,7 @@ class EcadIndexRegistry(Registry):
         definition="Warm-spell duration index (days)",
         source=ECAD_ATBD,
         short_name="WSDI",
-        threshold=">= 90 doy_per",
+        threshold="> 90 doy_per",
         group=IndexGroupRegistry.HEAT,
         input_variables=[StandardVariableRegistry.TAS_MAX],
         qualifiers=[QUANTILE_BASED],
@@ -145,7 +144,7 @@ class EcadIndexRegistry(Registry):
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         definition="Days when Tmean > 90th percentile",
-        threshold=">= 90 doy_per",
+        threshold="> 90 doy_per",
         source=ECAD_ATBD,
         short_name="TG90p",
         group=IndexGroupRegistry.HEAT,
@@ -158,7 +157,7 @@ class EcadIndexRegistry(Registry):
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         definition="Days when Tmin > 90th percentile",
-        threshold=">= 90 doy_per",
+        threshold="> 90 doy_per",
         source=ECAD_ATBD,
         short_name="TN90p",
         group=IndexGroupRegistry.HEAT,
@@ -169,7 +168,7 @@ class EcadIndexRegistry(Registry):
     TX90P = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=">= 90 doy_per",
+        threshold="> 90 doy_per",
         output_unit="day",
         definition="Days when Tmax > 90th daily percentile",
         source=ECAD_ATBD,
@@ -622,7 +621,6 @@ class EcadIndexRegistry(Registry):
     WW = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        # todo: Use a dictionary StandardMetadata->Threshold for threshold instead ?
         threshold=[
             "> 75 doy_per",
             Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
