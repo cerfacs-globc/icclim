@@ -81,11 +81,7 @@ class Indicator(metaclass=abc.ABCMeta):
 
 
 class ResamplingIndicator(Indicator, ABC):
-    """Abstract class for indicators.
-    It implements some preprocessing common logic:
-    *
-
-    """
+    """Abstract class for indicators."""
 
     missing: str
     missing_options: dict | None
@@ -213,7 +209,6 @@ class GenericIndicator(ResamplingIndicator):
         self,
         name: str,
         process: Callable[..., DataArray],
-        select_time_before_computation: bool = True,
         check_vars: (
             Callable[[list[ClimateVariable], GenericIndicator], None] | None
         ) = None,
@@ -224,7 +219,6 @@ class GenericIndicator(ResamplingIndicator):
         local = INDICATORS_TEMPLATES_EN
         self.name = name
         self.process = process
-        self.select_time_before_computation = select_time_before_computation
         self.standard_name = local[name]["standard_name"]
         self.cell_methods = local[name]["cell_methods"]
         self.long_name = local[name]["long_name"]
@@ -275,7 +269,7 @@ class GenericIndicator(ResamplingIndicator):
         if coef is not None:
             for climate_var in climate_vars:
                 climate_var.studied_data = coef * climate_var.studied_data
-        if output_frequency.indexer and self.select_time_before_computation:
+        if output_frequency.indexer:
             for climate_var in climate_vars:
                 climate_var.studied_data = select_time(
                     climate_var.studied_data, **output_frequency.indexer, drop=True
@@ -368,13 +362,12 @@ def max_consecutive_occurrence(
     source_freq_delta: timedelta,
     **kwargs,  # noqa
 ) -> DataArray:
+    if resample_freq.indexer:
+        warn("Events before the slice_mode will NOT be taken into account")
     merged_exceedances = _compute_exceedances(
         climate_vars, resample_freq.pandas_freq, logical_link
     )
-    # todo wait for xclim#1134 to benefit from the run_length algo update
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
-    if resample_freq.indexer:
-        rle = select_time(rle, **resample_freq.indexer)
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
         result = _consecutive_occurrences_with_dates(resampled, source_freq_delta)
@@ -390,14 +383,15 @@ def sum_of_spell_lengths(
     min_spell_length: int,
     **kwargs,  # noqa
 ) -> DataArray:
+    if resample_freq.indexer:
+        warn(
+            "Events before the slice_mode starting date will NOT be taken into account"
+        )
     merged_exceedances = _compute_exceedances(
         climate_vars, resample_freq.pandas_freq, logical_link
     )
-    # todo wait for xclim#1134 to benefit from the run_length algo update
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
-    if resample_freq.indexer:
-        cropped_rle = select_time(cropped_rle, **resample_freq.indexer)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).max(dim="time")
     return to_agg_units(result, climate_vars[0].studied_data, "count")
 
@@ -776,12 +770,10 @@ class GenericIndicatorRegistry(Registry):
     MaxConsecutiveOccurrence = GenericIndicator(
         "max_consecutive_occurrence",
         max_consecutive_occurrence,
-        select_time_before_computation=False,
     )
     SumOfSpellLengths = GenericIndicator(
         "sum_of_spell_lengths",
         sum_of_spell_lengths,
-        select_time_before_computation=False,
     )
     Excess = GenericIndicator("excess", excess, check_vars=check_single_var)
     Deficit = GenericIndicator("deficit", deficit, check_vars=check_single_var)
@@ -1062,8 +1054,6 @@ def _consecutive_occurrences_with_dates(
 ):
     acc = []
     for label, sample in resampled:
-        # todo might be unnecessary to replace NaN by 0 with the new rle
-        #      (if the new rle does not generate NaN)
         sample = sample.where(~sample.isnull(), 0)
         time_index_of_max_rle = sample.argmax(dim="time")
         # fixme: `.compute` is needed until xarray merges this pr:
