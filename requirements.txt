@@ -13,6 +13,6 @@ pytest
 pyyaml
 rechunker>=0.3.3
 setuptools
-xarray
-xclim~=0.37.0
+xarray>=2022.6
+xclim~=0.38.0
 zarr

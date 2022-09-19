@@ -5,8 +5,8 @@ from setuptools import find_packages, setup
 
 MINIMAL_REQUIREMENTS = [
     "numpy>=1.16",
-    "xarray>=0.17",
-    "xclim>=0.37",
+    "xarray>=2022.6",
+    "xclim>=0.38",
     "cftime>=1.4.1",
     "dask[array]",
     "netCDF4>=1.5.7",
