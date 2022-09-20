@@ -93,3 +93,19 @@ jobs:
           # Ignore error cases
           git commit -m "[skip ci] DOC: Update coverage" || true
           git push origin ${{ github.head_ref }}
+
+
+  quality:
+   needs:
+    - test
+    - generate-api
+   runs-on: ubuntu-latest
+   steps:
+     - uses: actions/checkout@v3
+     - uses: actions/setup-python@v4
+       with:
+         python-version: "3.8"
+     - name: Install pylint
+       run: pip install pylint
+     - name: Run pylint
+       run: pylint --rcfile=pylintrc --disable=import-error --exit-zero icclim
