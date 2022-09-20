@@ -27,7 +27,10 @@ Let's count the number of days above 25ºC for each year, which corresponds to t
 .. code-block:: python
 
     import icclim
-    summer_days = icclim.su("netcdf_files/tasmax_1990-2100.nc", out_file="summer_days.nc")
+
+    summer_days = icclim.su(
+        "netcdf_files/tasmax_1990-2100.nc", out_file="summer_days.nc"
+    )
 
 For more examples on how to use icclim, see icclim's `How to ... <https://icclim.readthedocs.io/en/latest/how_to/index.html>`_ documentation or
 `our notebooks <https://gitlab.com/is-enes-cdi-c4i/notebooks/-/tree/master/>`_.

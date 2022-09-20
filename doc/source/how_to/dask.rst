@@ -12,10 +12,10 @@ A configuration working well for small to medium dataset and simple climate indi
 
 >>> import dask
 >>> from distributed import Client
->>> client = Client(memory_limit='10GB', n_workers=1, threads_per_worker=8)
+>>> client = Client(memory_limit="10GB", n_workers=1, threads_per_worker=8)
 >>> dask.config.set({"array.slicing.split_large_chunks": False})
 >>> dask.config.set({"array.chunk-size": "100 MB"})
->>> icclim.index(in_files="data.nc", indice_name='SU', out_file="output.nc")
+>>> icclim.index(in_files="data.nc", indice_name="SU", out_file="output.nc")
 
 ------------------------------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ First, you can open your dataset with xarray and do your own chunking:
 
 And then use ``ds`` dataset object as input for icclim.
 
->>> icclim.index(in_files=ds, indice_name='SU', out_file="output.nc")
+>>> icclim.index(in_files=ds, indice_name="SU", out_file="output.nc")
 
 In that case, icclim will not re-chunk ``ds`` data. It is left to you to find the proper chunking.
 For more information on how to properly chunk see:
@@ -111,10 +111,10 @@ In that case, you can use ``icclim.create_optimized_zarr_store`` to first create
         in_files="netcdf_files/tas.nc",
         var_names="tas",
         target_zarr_store_name="opti.zarr",
-        keep_target_store = False,
-        chunking={"time": -1, "lat":"auto", "lon":"auto" },
-    ) as opti_tas :
-         icclim.index(
+        keep_target_store=False,
+        chunking={"time": -1, "lat": "auto", "lon": "auto"},
+    ) as opti_tas:
+        icclim.index(
             index_name="TG90p",
             in_files=opti_tas,
             slice_mode="YS",
@@ -172,7 +172,7 @@ First, if your data (and the intermediary computation) fits in memory, it might 
 To do so, simply provide the opened dataset to icclim:
 
 >>> ds = xarray.open_dataset("data.nc")
->>> icclim.index(in_files=ds, indice_name='SU', out_file="output.nc")
+>>> icclim.index(in_files=ds, indice_name="SU", out_file="output.nc")
 
 There will be no parallelization but, on small dataset it's unnecessary. Numpy is natively really fast and dask overhead
 may slow it downs.
@@ -217,7 +217,9 @@ dependency of icclim.
 
 To install it run:
 
->>> conda install dask distributed -c conda-forge
+.. code-block:: console
+
+   $ conda install dask distributed -c conda-forge
 
 See the documentation for more details: http://distributed.dask.org/en/stable/
 
@@ -240,7 +242,7 @@ the system available memory.
 
 The cluster can be configured directly through Client arguments.
 
->>> client = Client(memory_limit='16GB', n_workers=1, threads_per_worker=8)
+>>> client = Client(memory_limit="16GB", n_workers=1, threads_per_worker=8)
 
 A few notes:
 
@@ -263,7 +265,7 @@ You should configure your local cluster to use not too many threads and processe
 each process (worker) has available.
 On my 4 cores, 16GB of RAM laptop I would consider:
 
->>> client = Client(memory_limit='10GB', n_workers=1, threads_per_worker=4)
+>>> client = Client(memory_limit="10GB", n_workers=1, threads_per_worker=4)
 
 Eventually, to reduce the amount of i/o on disk we can also increase dask memory thresholds:
 
@@ -290,7 +292,7 @@ If you want to have the result as quickly as possible it's a good idea to give d
 This may render your computer "laggy" thought.
 On my 4 cores (8 CPU threads), 16GB of RAM laptop I would consider:
 
->>> client = Client(memory_limit='16GB', n_workers=1, threads_per_worker=8)
+>>> client = Client(memory_limit="16GB", n_workers=1, threads_per_worker=8)
 
 On this kind of configuration, it can be useful to add 1 or 2 workers in case a lot of i/o is necessary.
 If there are multiple workers ``memory_limit`` should be reduced accordingly.
@@ -307,7 +309,7 @@ probably much slower.
 And if you run out of swap, your computer will likely crash.
 To roll the dices use the following configuration ``memory_limit='0'`` in :
 
->>> client = Client(memory_limit='0')
+>>> client = Client(memory_limit="0")
 
 Dask will spawn a worker with multiple threads without any memory limits.
 
@@ -332,7 +334,7 @@ Real example
 
 On CMIP6 data, when computing the percentile based indices Tx90p for 20 years and, bootstrapping on 19 years we use:
 
->>> client = Client(memory_limit='16GB', n_workers=1, threads_per_worker=2)
+>>> client = Client(memory_limit="16GB", n_workers=1, threads_per_worker=2)
 >>> dask.config.set({"array.slicing.split_large_chunks": False})
 >>> dask.config.set({"array.chunk-size": "100 MB"})
 >>> dask.config.set({"distributed.worker.memory.target": "0.8"})

@@ -87,14 +87,18 @@ def create_optimized_zarr_store(
     Examples
     --------
 
-    >>> import icclim
-    >>> with icclim.create_optimized_zarr_store(
-    >>>                             in_files="tasmax.nc",
-    >>>                             var_names="tasmax",
-    >>>                             target_zarr_store_name="tasmax-store.zarr",
-    >>>                             chunking={"time": 42, "lat": 42, "lon": 42},
-    >>>                             ) as tasmax_opti:
-    >>>      su_out = icclim.index(in_files = tasmax_opti, index_name = "su")
+
+    .. code-block:: python
+
+        import icclim
+
+        with icclim.create_optimized_zarr_store(
+            in_files="tasmax.nc",
+            var_names="tasmax",
+            target_zarr_store_name="tasmax-store.zarr",
+            chunking={"time": 42, "lat": 42, "lon": 42},
+        ) as tasmax_opti:
+            su_out = icclim.index(in_files=tasmax_opti, index_name="su")
 
     Parameters
     ----------

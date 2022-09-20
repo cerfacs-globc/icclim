@@ -13,7 +13,7 @@ In icclim documentation we usually call them custom indices or user indices.
         calc_operation="max_nb_consecutive_events",
         logical_operation="<",
         thresh="5p",
-        window_width=5
+        window_width=5,
     )
     refer_period = [datetime.datetime(1991, 1, 1), datetime.datetime(1999, 12, 31)]
     study_period = [datetime.datetime(1991, 1, 1), datetime.datetime(2010, 12, 31)]
@@ -24,7 +24,7 @@ In icclim documentation we usually call them custom indices or user indices.
         slice_mode="YS",
         base_period_time_range=refer_period,
         time_range=study_period,
-        out_file="custom_csdi_5.nc"
+        out_file="custom_csdi_5.nc",
     )
 
 

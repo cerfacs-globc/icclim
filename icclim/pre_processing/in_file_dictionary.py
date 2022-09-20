@@ -13,13 +13,16 @@ class InFileDictionary(TypedDict, total=False):
     Examples
     --------
 
-    >>> in_files = {
-    ...    "tasmax": { "study": "tasmax-store.zarr",
-    ...                "threshold": Threshold(">", ["per-1.nc", "per-2.nc"])
-    ...              }
-    ...    "pr": "pr.nc",
-    ...    "tasmin": {"study": "tasmin.nc"},
-    ...     }
+    .. code-block:: python
+
+        in_files = {
+            "tasmax": {
+                "study": "tasmax-store.zarr",
+                "threshold": Threshold(">", ["per-1.nc", "per-2.nc"]),
+            },
+            "pr": "pr.nc",
+            "tasmin": {"study": "tasmin.nc"},
+        }
     """
 
     study: InFileBaseType
