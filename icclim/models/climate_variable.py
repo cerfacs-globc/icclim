@@ -54,7 +54,7 @@ class ClimateVariable:
     is_reference: bool = False
 
     def build_indicator_metadata(
-        self, src_freq: Frequency, must_run_bootstrap: bool, indicator_name: str
+        self, src_freq: Frequency, must_run_bootstrap: bool
     ) -> dict[str, str] | None:
         metadata = {"threshold": {}}
         if self.standard_var is None:
@@ -69,11 +69,7 @@ class ClimateVariable:
             metadata.update(self.standard_var.get_metadata())
         if self.threshold is not None:
             metadata.update(
-                {
-                    "threshold": self.threshold.get_metadata(
-                        src_freq, must_run_bootstrap, indicator_name
-                    )
-                }
+                {"threshold": self.threshold.get_metadata(src_freq, must_run_bootstrap)}
             )
         return metadata
 

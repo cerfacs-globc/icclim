@@ -81,11 +81,7 @@ class Indicator(metaclass=abc.ABCMeta):
 
 
 class ResamplingIndicator(Indicator, ABC):
-    """Abstract class for indicators.
-    It implements some preprocessing common logic:
-    *
-
-    """
+    """Abstract class for indicators."""
 
     missing: str
     missing_options: dict | None
@@ -213,7 +209,6 @@ class GenericIndicator(ResamplingIndicator):
         self,
         name: str,
         process: Callable[..., DataArray],
-        select_time_before_computation: bool = True,
         check_vars: (
             Callable[[list[ClimateVariable], GenericIndicator], None] | None
         ) = None,
@@ -224,7 +219,6 @@ class GenericIndicator(ResamplingIndicator):
         local = INDICATORS_TEMPLATES_EN
         self.name = name
         self.process = process
-        self.select_time_before_computation = select_time_before_computation
         self.standard_name = local[name]["standard_name"]
         self.cell_methods = local[name]["cell_methods"]
         self.long_name = local[name]["long_name"]
@@ -275,7 +269,7 @@ class GenericIndicator(ResamplingIndicator):
         if coef is not None:
             for climate_var in climate_vars:
                 climate_var.studied_data = coef * climate_var.studied_data
-        if output_frequency.indexer and self.select_time_before_computation:
+        if output_frequency.indexer:
             for climate_var in climate_vars:
                 climate_var.studied_data = select_time(
                     climate_var.studied_data, **output_frequency.indexer, drop=True
@@ -297,9 +291,7 @@ class GenericIndicator(ResamplingIndicator):
             "np": numpy,
             "enumerate": enumerate,
             "len": len,
-            "climate_vars": _get_inputs_metadata(
-                config.climate_variables, src_freq, config.indicator_name
-            ),
+            "climate_vars": _get_inputs_metadata(config.climate_variables, src_freq),
             "is_compared_to_reference": config.is_compared_to_reference,
             "reference_period": config.reference_period,
         }
@@ -371,10 +363,7 @@ def max_consecutive_occurrence(
     merged_exceedances = _compute_exceedances(
         climate_vars, resample_freq.pandas_freq, logical_link
     )
-    # todo wait for xclim#1134 to benefit from the run_length algo update
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
-    if resample_freq.indexer:
-        rle = select_time(rle, **resample_freq.indexer)
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
         result = _consecutive_occurrences_with_dates(resampled, source_freq_delta)
@@ -393,11 +382,8 @@ def sum_of_spell_lengths(
     merged_exceedances = _compute_exceedances(
         climate_vars, resample_freq.pandas_freq, logical_link
     )
-    # todo wait for xclim#1134 to benefit from the run_length algo update
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
-    if resample_freq.indexer:
-        cropped_rle = select_time(cropped_rle, **resample_freq.indexer)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).max(dim="time")
     return to_agg_units(result, climate_vars[0].studied_data, "count")
 
@@ -776,12 +762,10 @@ class GenericIndicatorRegistry(Registry):
     MaxConsecutiveOccurrence = GenericIndicator(
         "max_consecutive_occurrence",
         max_consecutive_occurrence,
-        select_time_before_computation=False,
     )
     SumOfSpellLengths = GenericIndicator(
         "sum_of_spell_lengths",
         sum_of_spell_lengths,
-        select_time_before_computation=False,
     )
     Excess = GenericIndicator("excess", excess, check_vars=check_single_var)
     Deficit = GenericIndicator("deficit", deficit, check_vars=check_single_var)
@@ -986,14 +970,13 @@ def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
 
 
 def _get_inputs_metadata(
-    climate_vars: list[ClimateVariable], resample_freq: Frequency, indicator_name
+    climate_vars: list[ClimateVariable], resample_freq: Frequency
 ) -> list[dict[str, str]]:
     return list(
         map(
             lambda cf_var: cf_var.build_indicator_metadata(
                 resample_freq,
                 _must_run_bootstrap(cf_var.studied_data, cf_var.threshold),
-                indicator_name,
             ),
             climate_vars,
         )
@@ -1062,8 +1045,6 @@ def _consecutive_occurrences_with_dates(
 ):
     acc = []
     for label, sample in resampled:
-        # todo might be unnecessary to replace NaN by 0 with the new rle
-        #      (if the new rle does not generate NaN)
         sample = sample.where(~sample.isnull(), 0)
         time_index_of_max_rle = sample.argmax(dim="time")
         # fixme: `.compute` is needed until xarray merges this pr:
