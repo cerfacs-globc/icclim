@@ -636,4 +636,4 @@ class Test_Integration:
         ).CDD
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
-        np.testing.assert_almost_equal(cdd.standard_deviation.isel(time=0), 2)
+        np.testing.assert_almost_equal(cdd.isel(time=0), 2)
