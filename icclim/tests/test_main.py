@@ -619,3 +619,18 @@ class Test_Integration:
             index_name="standard_deviation",
         ).compute()
         np.testing.assert_almost_equal(res.standard_deviation.isel(time=0), 0)
+
+    def test_slice_mode__between_date(self):
+        time_range = xr.DataArray(pd.date_range("2000", periods=365, freq="D"),
+                                  dims=["time"])
+        precipitation = xr.DataArray(np.ones(365),
+                                     coords={"time": time_range, "lat": 1, "lon": 1},
+                                     dims="time",
+                                     attrs={"units": "mm/day"},
+                                     )
+        precipitation[0:5] = [0.1, 0.1, 0.1, 2, 3]
+        cdd = icclim.cdd(in_files=precipitation,
+                         slice_mode=["season", ["01-02", "01-05"]]).CDD
+        # The 01-01 value is ignored because we clip the wanted season before computing
+        # the index
+        np.testing.assert_almost_equal(cdd.standard_deviation.isel(time=0), 2)

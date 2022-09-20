@@ -49,7 +49,7 @@ class StandardVariableRegistry(Registry):
             "PRECIP",
             "Precip",
         ],
-        default_units="mm",
+        default_units="mm/day",
     )
     TAS = StandardVariable(
         short_name="tg",

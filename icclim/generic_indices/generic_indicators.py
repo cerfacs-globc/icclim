@@ -291,9 +291,7 @@ class GenericIndicator(ResamplingIndicator):
             "np": numpy,
             "enumerate": enumerate,
             "len": len,
-            "climate_vars": _get_inputs_metadata(
-                config.climate_variables, src_freq, config.indicator_name
-            ),
+            "climate_vars": _get_inputs_metadata(config.climate_variables, src_freq),
             "is_compared_to_reference": config.is_compared_to_reference,
             "reference_period": config.reference_period,
         }
@@ -362,8 +360,6 @@ def max_consecutive_occurrence(
     source_freq_delta: timedelta,
     **kwargs,  # noqa
 ) -> DataArray:
-    if resample_freq.indexer:
-        warn("Events before the slice_mode will NOT be taken into account")
     merged_exceedances = _compute_exceedances(
         climate_vars, resample_freq.pandas_freq, logical_link
     )
@@ -383,10 +379,6 @@ def sum_of_spell_lengths(
     min_spell_length: int,
     **kwargs,  # noqa
 ) -> DataArray:
-    if resample_freq.indexer:
-        warn(
-            "Events before the slice_mode starting date will NOT be taken into account"
-        )
     merged_exceedances = _compute_exceedances(
         climate_vars, resample_freq.pandas_freq, logical_link
     )
@@ -978,14 +970,13 @@ def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
 
 
 def _get_inputs_metadata(
-    climate_vars: list[ClimateVariable], resample_freq: Frequency, indicator_name
+    climate_vars: list[ClimateVariable], resample_freq: Frequency
 ) -> list[dict[str, str]]:
     return list(
         map(
             lambda cf_var: cf_var.build_indicator_metadata(
                 resample_freq,
                 _must_run_bootstrap(cf_var.studied_data, cf_var.threshold),
-                indicator_name,
             ),
             climate_vars,
         )

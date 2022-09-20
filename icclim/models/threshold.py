@@ -47,7 +47,8 @@ class Threshold:
     - per grid cell thresh:                        "> data.nc"
     - doy percentile threshold:                    "> 98th doy_per"
     - period percentile threshold:                 "> 75th period_per"
-    - period percentile threshold with min value:  "> 98th period_per", min_value= "1mm"
+    - period percentile threshold with min value:  "> 98th period_per",
+                                                   threshold_min_value= "1mm"
     - sequence thresholds (or):                    "> 10 ºC, > 25 ºC"
                                                      thresholds are a new dimension
     """
@@ -178,7 +179,6 @@ class Threshold:
         self,
         src_freq: Frequency,
         must_run_bootstrap: bool = False,
-        indicator_name: str | None = None,
     ) -> dict[str, Any]:
         # TODO: [xclim backport] localize/translate these with templates
         additional_metadata = []
