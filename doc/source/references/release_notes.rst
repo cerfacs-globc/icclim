@@ -19,7 +19,8 @@ It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [enh] Add `rolling_window_width` parameter to index API in order to control the width of the rolling window in `max|min_of_rolling_sum|average`.
 * [enh] Add `doy_window_width` parameter to index API in order to control the width of aggregation windows when computing doy percentiles.
 * [maint] Deprecate `window_width` parameter. When filled, it is mapped to It is still mapped `doy_window_width`.
-* [maint] Upgrade to xclim 0.38 and to xarray 2022.6
+* [maint] Upgrade to xclim 0.38 and to xarray 2022.6.
+* [maint] Add BlackDoc to C.I (github actions) to keep or doc code example clean.
 
 
 5.4.0

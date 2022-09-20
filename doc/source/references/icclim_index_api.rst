@@ -49,11 +49,11 @@ New in 5.3
 Starting with icclim 5.3, ``in_files`` can describe variable names, formerly set in ``var_name``, as dictionary format.
 The dictionary keys are variable names and values are the usual in_files types (netCDF, zarr, Dataset, DataArray).
 
->>> in_files = {"tasmax" : "tasmax.nc", "pr": "precip.zarr"}
+>>> in_files = {"tasmax": "tasmax.nc", "pr": "precip.zarr"}
 
 Moreover, this new dictionary syntax can be used to specify a different set of files for percentiles.
 
->>> in_files = {"tasmax" : "tasmax.nc", "thresholds": "tasmax-90p.zarr"}
+>>> in_files = {"tasmax": "tasmax.nc", "thresholds": "tasmax-90p.zarr"}
 
 The ``thresholds`` input should contain percentile thresholds that will be used will be used in place of computing them.
 It allow to reuse percentiles computed and stored elsewhere easily.
@@ -109,9 +109,12 @@ Monthly time series filter
 ++++++++++++++++++++++++++
 Monthly time series with months selected by user (the keyword can be either `month` or `months`):
 
->>> slice_mode = ['month', [4,5,11]] # index will be computed only for April, May and November
+>>> slice_mode = [
+...     "month",
+...     [4, 5, 11],
+... ]  # index will be computed only for April, May and November
 
->>> slice_mode = ['month', [4]] # index will be computed only for April
+>>> slice_mode = ["month", [4]]  # index will be computed only for April
 
 User defined seasons
 ++++++++++++++++++++
@@ -120,15 +123,15 @@ seasons which clip all data outside their bounds (keyword `clipped_season`).
 The later is most useful on indices computing spells, if you want to totally ignore spells that could
 have started before your custom season.
 
->>> slice_mode = ['season', [4,5,6,7]] # March to July un-clipped
->>> slice_mode = ['clipped_season', [4,5,6,7]] # March to July clipped
+>>> slice_mode = ["season", [4, 5, 6, 7]]  # March to July un-clipped
+>>> slice_mode = ["clipped_season", [4, 5, 6, 7]]  # March to July clipped
 
->>> slice_mode = ['season', [11, 12, 1]] # November to January un-clipped
->>> slice_mode = ['clipped_season', ([11, 12, 1])] # November to January clipped
+>>> slice_mode = ["season", [11, 12, 1]]  # November to January un-clipped
+>>> slice_mode = ["clipped_season", ([11, 12, 1])]  # November to January clipped
 
 Additionally, you can define a season between two exact dates:
 
->>> slice_mode = ['season', ["07-19", "08-14"]]
+>>> slice_mode = ["season", ["07-19", "08-14"]]
 
 >>> slice_mode = ["clipped_season", ["07-19", "08-14"]]
 
@@ -161,7 +164,7 @@ The threshold could be one value:
 
 or a list of values:
 
->>> threshold = [20,25,30]
+>>> threshold = [20, 25, 30]
 
 .. note:: thresholds should be a float, the unit is expected to be in degrees Celsius or a unit-less for percentiles.
 

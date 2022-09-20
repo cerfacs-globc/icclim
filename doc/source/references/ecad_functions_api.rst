@@ -13,6 +13,7 @@ For example to use this new API with the index `su` you can do:
 
     import glob
     import icclim
+
     summer_days = icclim.su(in_files=glob.glob("netcdf_files/tasmax*.nc"))
 
 Generated API

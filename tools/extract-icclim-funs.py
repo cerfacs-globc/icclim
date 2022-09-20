@@ -6,10 +6,15 @@ the unused parameters are trimmed from the signature.
 
 To generate the functions first icclim must be installed in the environment.
 To install icclim from sources run:
->>> python -m setup install
+
+.. code-block:: console
+
+    python -m setup install
 
 Then the script can be run with:
->>> python ./tools/extract-icclim-funs.py
+.. code-block:: console
+
+     python ./tools/extract-icclim-funs.py
 """
 
 from __future__ import annotations
