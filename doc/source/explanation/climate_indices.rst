@@ -23,7 +23,7 @@ Climate indices allow a statistical study of variations of the dependent climato
 icclim capabilities
 ===================
 
-Currently, the 49 climate indices as defined by
+Currently, the climate indices as defined by
 `European Climate Assessment & Dataset <https://www.ecad.eu/>`_ based on
 air temperature and precipitation variables can be computed with icclim:
 

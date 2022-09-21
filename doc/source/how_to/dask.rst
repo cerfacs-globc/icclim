@@ -131,7 +131,7 @@ This can be useful if you wish to compute other indices using the same chunking.
 On performances
 ---------------
 Computation of ECA&D indices can largely be done in parallel on spatial dimensions.
-Indeed, the 49 ECA&D indices in icclim are all computed on each individual pixel independently.
+Indeed, the ECA&D indices available in icclim are all computed on each individual pixel independently.
 In a ideal world it means we could compute each pixel concurrently.
 In reality this would result in considerable efforts necessary to chunk data that much, this would be sub-optimal
 because the smaller chunk are, the greater dask overhead is.
