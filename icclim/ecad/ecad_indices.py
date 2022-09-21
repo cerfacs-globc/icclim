@@ -401,6 +401,16 @@ class EcadIndexRegistry(Registry):
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.PR],
     )
+    RR = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.Sum,
+        output_unit="mm",
+        definition="Precipitation sum (mm)",
+        source=ECAD_ATBD,
+        short_name="RR",
+        group=IndexGroupRegistry.RAIN,
+        input_variables=[StandardVariableRegistry.PR],
+    )
     R10MM = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
