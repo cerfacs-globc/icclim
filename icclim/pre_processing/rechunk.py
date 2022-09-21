@@ -58,7 +58,7 @@ def create_optimized_zarr_store(
     keep_target_store: bool = False,
     chunking: dict[str, int] | None = None,
     filesystem: str | AbstractFileSystem = LocalFileSystem(),
-) -> xr.Dataset:
+) -> Dataset:
     """
     -- EXPERIMENTAL FEATURE --
     API may changes without deprecation warning!
@@ -124,7 +124,7 @@ def create_optimized_zarr_store(
 
     Returns
     -------
-    returns xr.Dataset opened on the newly created target zarr store.
+    returns Dataset opened on the newly created target zarr store.
 
     """
     try:

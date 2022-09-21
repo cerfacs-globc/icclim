@@ -143,7 +143,7 @@ class IcclimLogger:
             "   ********************************************************************************************"
         )
 
-    def info(*args):
+    def info(self, *args):
         logging.info(args)
 
     def deprecation_warning(self, old: str, new: str = None) -> None:
