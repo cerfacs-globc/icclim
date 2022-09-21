@@ -70,7 +70,7 @@ class Test_Integration:
 
     # usually, time_bounds is not properly decoded an keep a object dtype
     time_bounds = xr.DataArray(
-        data=[[t, t + +np.timedelta64(1, "h")] for t in data.time.values],
+        data=[[t, t + np.timedelta64(1, "h")] for t in data.time.values],
         dims=["time", "bounds"],
         coords=dict(bounds=[0, 1], time=TIME_RANGE),
     ).astype("object")

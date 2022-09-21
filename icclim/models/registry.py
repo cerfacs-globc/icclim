@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from typing import Any
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 
@@ -23,7 +24,7 @@ class Registry:
         raise NotImplementedError("Don't instantiate Registry, use its class methods.")
 
     @classmethod
-    def lookup(cls, query: _item_class | str, no_error: bool = False) -> _item_class:
+    def lookup(cls, query: Any | str, no_error: bool = False) -> Any:
         if isinstance(query, cls._item_class):
             return query
         q = query.upper()
@@ -38,7 +39,7 @@ class Registry:
         )
 
     @classmethod
-    def all_aliases(cls) -> list[_item_class]:
+    def all_aliases(cls) -> list[Any]:
         return list(map(cls.get_item_aliases, list(cls.catalog().values())))
 
     @staticmethod
