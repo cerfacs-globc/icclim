@@ -31,6 +31,7 @@ It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [maint] Upgrade to xclim 0.38 and to xarray 2022.6.
 * [maint] Add BlackDoc to C.I (github actions) to keep or doc code example clean.
 * [enh] Add ECAD's RR index. It computes the sum of precipitations over days.
+* [enh] Add icclim logo and auto-generate it's version number
 
 
 5.4.0
