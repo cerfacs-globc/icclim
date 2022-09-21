@@ -637,3 +637,40 @@ class Test_Integration:
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
         np.testing.assert_almost_equal(cdd.isel(time=0), 2)
+
+    def test_rr_with_slice_mode__week(self):
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"), dims=["time"]
+        )
+        precipitation = xr.DataArray(
+            np.zeros(365),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "mm/day"},
+        )
+        precipitation[0:5] = [0.1, 0.1, 0.1, 2, 3]
+        rr = icclim.rr(in_files=precipitation, slice_mode="W").RR
+        # The 01-01 value is ignored because we clip the wanted season before computing
+        # the index
+        print(rr.values)
+        np.testing.assert_almost_equal(rr.isel(time=0), 0.2)
+        np.testing.assert_almost_equal(rr.isel(time=1), 5.1)
+
+    def test_rr_with_slice_mode__4_weeks(self):
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"), dims=["time"]
+        )
+        precipitation = xr.DataArray(
+            np.zeros(365),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "mm/day"},
+        )
+        precipitation[0:5] = [0.1, 0.1, 0.1, 2, 3]
+        rr = icclim.rr(in_files=precipitation, slice_mode="2W-FRI")
+        # The 01-01 value is ignored because we clip the wanted season before computing
+        # the index
+        print(rr.time)
+        print(rr.time_bounds)
+        np.testing.assert_almost_equal(rr.RR.isel(time=0), 5.3)
+        np.testing.assert_almost_equal(rr.RR.isel(time=1), 0)

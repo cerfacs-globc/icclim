@@ -503,8 +503,9 @@ def _get_delta(pandas_freq: str) -> np.timedelta64:
     non_digit = re.findall(r"\D+", pandas_freq)[0].split("-")[0]
     base, freq = FREQ_DELTA_MAPPING[non_digit]
     # we assume the starting digits are the multiplier.
-    multiplier = int(re.findall(r"\d+", pandas_freq)[0])
+    multiplier = re.findall(r"\d+", pandas_freq)
     if multiplier:
+        multiplier = int(multiplier[0])
         return np.timedelta64(base * multiplier, freq)
     else:
         return np.timedelta64(base, freq)
