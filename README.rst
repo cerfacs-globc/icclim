@@ -1,6 +1,8 @@
 icclim
 ======
 
+|logo|
+
 |build| |pypi| |black| |docs| |conda| |coverage| |doi|
 
 icclim is a Python library to compute climate indices.
@@ -97,3 +99,7 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
 .. |doi| image:: https://zenodo.org/badge/15936714.svg
         :target: https://zenodo.org/badge/latestdoi/15936714
         :alt: D.O.I link
+
+.. |logo| image:: https://raw.githubusercontent.com/cerfacs-globc/icclim/master/source/_static/_images/logo_icclim_colored__displayed.svg
+        :target: https://github.com/cerfacs-globc/icclim
+        :alt: icclim logo

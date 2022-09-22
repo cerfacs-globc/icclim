@@ -13,6 +13,7 @@ pytest
 pyyaml
 rechunker>=0.3.3
 setuptools
+sphinx_lfs_content
 xarray>=2022.6
 xclim~=0.38.0
 zarr

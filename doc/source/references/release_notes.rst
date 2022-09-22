@@ -7,23 +7,23 @@ Release history
 * [enh] Make in_files.var.threshold and threshold parameters work with string values (a value with a unit or a percentile stamp)
 * [maint] **BREAKING CHANGE:** ECAD indices are no longer configurable! Use generic indices instead.
 * [fix] **BREAKING CHANGE:** ECAD indices CW, CD, WW, WD were computing the precipitation percentiles on day of year
-values where it should have been percentiles of the whole period (excluding dry days). This has been fixed.
+  values where it should have been percentiles of the whole period (excluding dry days). This has been fixed.
 * [maint] icclim no longer carries a version of the clix-meta yml file.
-Previously it was used to generate the doc string and a few metadata of ECAD indices.
-It's no longer needed as we have put these metadata within StandardIndex declaration.
+  Previously it was used to generate the doc string and a few metadata of ECAD indices.
+  It's no longer needed as we have put these metadata within StandardIndex declaration.
 * [maint] **BREAKING CHANGE:** Removed the `clipped_season` option from `slice_mode`.
-With generic indices, `season` can be used with every indices.
-In particular, spell based indices (e.g. wsdi, cdd) are mapped to `max_consecutive_occurrence` or `sum_of_spell_lengths`
-generic indicators. Both compute the spell length before doing the resampling operation.
-So a spell that start and end outside the output frequency interval is properly accounted for its whole duration.
-That's for example the case of `slice_mode="month"`, a spell that would start in january and end in March,
-would be accounted in january results.
-However, when `slice_mode` is set to a season, where time is clipped and thus where xclim `select_time` is called,
-the behavior is similar to the former `clipped_season`, we first clip the time to the expected season, then we compute the index.
-Thus, events of spells that are before the season bound will be ignored in the results.
+  With generic indices, `season` can be used with every indices.
+  In particular, spell based indices (e.g. wsdi, cdd) are mapped to `max_consecutive_occurrence` or `sum_of_spell_lengths`
+  generic indicators. Both compute the spell length before doing the resampling operation.
+  So a spell that start and end outside the output frequency interval is properly accounted for its whole duration.
+  That's for example the case of `slice_mode="month"`, a spell that would start in january and end in March,
+  would be accounted in january results.
+  However, when `slice_mode` is set to a season, where time is clipped and thus where xclim `select_time` is called,
+  the behavior is similar to the former `clipped_season`, we first clip the time to the expected season, then we compute the index.
+  Thus, events of spells that are before the season bound will be ignored in the results.
 * [maint] **BREAKING CHANGE:** User index `max_nb_consecutive_events` is also mapped to `max_consecutive_occurrence`, consequently spells are also counted for their whole duration.
 * [enh] Make it possible to pass a simple dictionary in `in_files`, merging together basic `in_files` and `var_name` features.
-It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
+  It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [enh] Add `min_spell_length` parameter to index API in order to control the minimum duration of spells in `sum_of_spell_lengths`.
 * [enh] Add `rolling_window_width` parameter to index API in order to control the width of the rolling window in `max|min_of_rolling_sum|average`.
 * [enh] Add `doy_window_width` parameter to index API in order to control the width of aggregation windows when computing doy percentiles.
@@ -31,7 +31,8 @@ It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [maint] Upgrade to xclim 0.38 and to xarray 2022.6.
 * [maint] Add BlackDoc to C.I (github actions) to keep or doc code example clean.
 * [enh] Add ECAD's RR index. It computes the sum of precipitations over days.
-
+* [enh] Add icclim logo and auto-generate it's version number
+* [maint] git lfs (large file storage) has been enabled for .svg files in order to minimise the impact of logo images and their update.
 
 5.4.0
 -----
@@ -47,20 +48,20 @@ It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [enh] ``slice_mode`` type can now be tuple[str, list], it works similarly to the list in input of seasons but, it enforces a length of 2.
 * [enh] ``slice_mode``: Added `clipped_season` keyword which ignores events starting before the season bounds (original behavior of ``season``).
 * [maint] ``slice_mode``: Modified `season` keyword to take into account events (such as in CDD) starting before the season bounds.
-This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
+  This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
 * [maint] Added dataclass ClimateIndex to ease the introduction of new indices not in the ECAD standard.
 * [maint] Made use the new typing syntax thanks to ``from __future__ import annotations``.
 * [maint] Add docstring validation into flake8 checks.
 * [enh] Improve API for date related parameters ``{time_range, base_period_time_range, ref_time_range}``
-They can still be filled with a datetime object but additionally various string format are now available.
-This comes with dateparser library.
+  They can still be filled with a datetime object but additionally various string format are now available.
+  This comes with dateparser library.
 * [doc] Update callback doc as its outputted value is very inaccurate when dask is enable.
 * [enh] T(X/N/G)(10/90)p indices threshold is now configurable with `threshold` parameter.
-Example of use: `icclim.tx90p(in_files=data, threshold=[42, 99])`
+  Example of use: `icclim.tx90p(in_files=data, threshold=[42, 99])`
 * [enh|maint] threshold, history and source metadata have been updated to better describe what happens during icclim process.
 * [fix/doc] The documentation of the generated API for T(X/N/G)(10/90)p indices now properly use thier ECAD definitions instead of those from ETCCDI.
 * [enh/doc] Add [WSDI, CSDI, rxxp, rxxpTOT, CW, CD, WW, WD] indices in yaml definition.
-Note: We no longer strictly follow the yaml given by clix-meta.
+  Note: We no longer strictly follow the yaml given by clix-meta.
 * [fix] custom seasonal slice_mode was broken when it ended in december. It's now fixed and unit tested.
 * [enh] Make ``in_file`` accept a dictionary merging together ``var_name`` and ``in_file`` features.
 * [enh] ``in_file`` dictionary can now be used to pass percentiles thresholds. These thresholds will be used instead of computing them on relevant indices.
@@ -75,7 +76,7 @@ Note: We no longer strictly follow the yaml given by clix-meta.
 -----
 * [maint] Made Frequency part of SliceMode union.
 * [fix] slice_mode seasonal samplings was giving wrong results for quite a few indices. This has been fixed and the performances should also be improved by the fix.
-        However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
+  However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
 * [fix] user_index ExtremeMode config was not properly parsed when a string was used.
 * [fix] user_index Anomaly operator was not properly using the `ref_time_range` to setup a reference period as it should.
 * [fix] user_index Sum and Mean operators were broken due to a previous refactoring and a lack of unit tests, it is now fixed and tested.

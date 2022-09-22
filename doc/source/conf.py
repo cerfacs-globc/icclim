@@ -34,6 +34,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinx_lfs_content",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -56,6 +57,22 @@ html_theme = "pydata_sphinx_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+html_css_files = ["css/custom.css"]
 
+html_favicon = "_static/logo_icclim_favicon__displayed.ico"
+html_theme_options = {
+    "logo": {
+        "image_light": "logo_icclim_colored__displayed.svg",
+        "image_dark": "logo_icclim_white__displayed.svg",
+    },
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/cerfacs-globc/icclim",  # required
+            "icon": "fab fa-github-square",
+            "type": "fontawesome",
+        },
+    ],
+}
 # The master toctree document.
 master_doc = "index"

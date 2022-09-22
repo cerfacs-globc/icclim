@@ -82,6 +82,13 @@ Alternatively, you can use `sphinx-autobuild <https://pypi.org/project/sphinx-au
 First install it with pip. Then, in a separate terminal, cd into doc directory and run `sphinx-autobuild source _build`
 By default it will serve the documentation on ``localhost://8000``.
 
+Additionally, icclim now has a logo that is displayed on github and readthedocs.
+Logos are stored in `/doc/source/_static/` directory.
+The logos are svg images and the icclim version number is embed in them. Thus, they must be updated for each new icclim version.
+The `xyz__base.svg` files contains the placeholder `{{icclim.__version__}}` which is replaced in the `xyz__display.svg` files.
+Fortunately, this version number update process is automated in our C.I. as github actions (see :ref:`Continuous integration`).
+However, if one wish to edit the logo manually, he/she will need to initialize git LFS on his/her local repository.
+Refer to `this guide <https://git-lfs.github.com/>` for what is git lfs and how to init it locally.
 
 Add new standard indices
 ========================

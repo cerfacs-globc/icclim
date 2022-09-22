@@ -1,0 +1,4 @@
+# LFS tracking
+# .svg files are the logo(s) that are automatically updated in our C.I.
+*.svg filter=lfs diff=lfs merge=lfs -text
+*.ico filter=lfs diff=lfs merge=lfs -text

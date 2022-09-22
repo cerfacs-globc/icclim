@@ -59,7 +59,7 @@ The ``thresholds`` input should contain percentile thresholds that will be used 
 It allow to reuse percentiles computed and stored elsewhere easily.
 For the record, you can generate percentiles with ``save_percentile`` parameter of icclim.index.
 
-.. notes::
+.. note::
         Be aware that percentiles will **not** be bootstrapped. Thus, the result could be biased if the period on which percentiles
         were computed partially overlap the index studied period.
         See `<Computing percentile thresholds>`_ for more information on this topic.
