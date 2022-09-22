@@ -60,6 +60,14 @@ html_logo = "logo_icclim_colored__displayed.svg"
 html_theme_options = {
     "logo_only": True,
     "display_version": False,
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/cerfacs-globc/icclim",  # required
+            "icon": "fab fa-github-square",
+            "type": "fontawesome",
+        },
+    ],
 }
 # The master toctree document.
 master_doc = "index"
