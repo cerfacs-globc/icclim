@@ -53,15 +53,15 @@ Release history
 * [maint] Made use the new typing syntax thanks to ``from __future__ import annotations``.
 * [maint] Add docstring validation into flake8 checks.
 * [enh] Improve API for date related parameters ``{time_range, base_period_time_range, ref_time_range}``
-They can still be filled with a datetime object but additionally various string format are now available.
-This comes with dateparser library.
+  They can still be filled with a datetime object but additionally various string format are now available.
+  This comes with dateparser library.
 * [doc] Update callback doc as its outputted value is very inaccurate when dask is enable.
 * [enh] T(X/N/G)(10/90)p indices threshold is now configurable with `threshold` parameter.
-Example of use: `icclim.tx90p(in_files=data, threshold=[42, 99])`
+  Example of use: `icclim.tx90p(in_files=data, threshold=[42, 99])`
 * [enh|maint] threshold, history and source metadata have been updated to better describe what happens during icclim process.
 * [fix/doc] The documentation of the generated API for T(X/N/G)(10/90)p indices now properly use thier ECAD definitions instead of those from ETCCDI.
 * [enh/doc] Add [WSDI, CSDI, rxxp, rxxpTOT, CW, CD, WW, WD] indices in yaml definition.
-Note: We no longer strictly follow the yaml given by clix-meta.
+  Note: We no longer strictly follow the yaml given by clix-meta.
 * [fix] custom seasonal slice_mode was broken when it ended in december. It's now fixed and unit tested.
 * [enh] Make ``in_file`` accept a dictionary merging together ``var_name`` and ``in_file`` features.
 * [enh] ``in_file`` dictionary can now be used to pass percentiles thresholds. These thresholds will be used instead of computing them on relevant indices.
@@ -76,7 +76,7 @@ Note: We no longer strictly follow the yaml given by clix-meta.
 -----
 * [maint] Made Frequency part of SliceMode union.
 * [fix] slice_mode seasonal samplings was giving wrong results for quite a few indices. This has been fixed and the performances should also be improved by the fix.
-        However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
+  However, now seasonal slice_mode does not allow to use xclim missing values mechanisms.
 * [fix] user_index ExtremeMode config was not properly parsed when a string was used.
 * [fix] user_index Anomaly operator was not properly using the `ref_time_range` to setup a reference period as it should.
 * [fix] user_index Sum and Mean operators were broken due to a previous refactoring and a lack of unit tests, it is now fixed and tested.
