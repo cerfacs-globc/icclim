@@ -32,7 +32,7 @@ jobs:
       - name: setup git config
         run: |
           # setup the username and email.
-          git config user.name "GitHub Actions Bot"
+          git config user.name "GitHub Actions Bot - API updater"
           git config user.email "<>"
       - name: commit
         run: |
@@ -90,7 +90,7 @@ jobs:
         run: |
           # Stage the file, commit and push
           git add README.rst
-          # Ignore error cases
+          # Ignore error cases with `|| true`
           git commit -m "[skip ci] DOC: Update coverage" || true
           git push origin ${{ github.head_ref }}
 
@@ -111,7 +111,7 @@ jobs:
       - name: Install icclim
         run: python -m pip install -e .
       - name: Generate logo
-        run: python ./tools/update_logo_version.py ./doc/source/_static/logo_icclim_colored__base.svg ./doc/source/_static/logo_icclim_colored__display.svg
+        run: python ./tools/update_logo_version.py ./doc/source/_static/logo_icclim_colored__base.svg ./doc/source/_static/logo_icclim_colored__displayed.svg
       - name: create local ref
         run: |
           git fetch origin ${{ github.head_ref }}
@@ -119,12 +119,12 @@ jobs:
       - name: setup git config
         run: |
           # setup the username and email.
-          git config user.name "GitHub Actions Bot"
+          git config user.name "GitHub Actions Bot - logo updater"
           git config user.email "<>"
       - name: commit
         run: |
           # Stage the file, commit and push
-          git add icclim/_generated_api.py
-          # Ignore error cases
-          git commit -m "MAINT: Update generated API" || true
+          git add doc/source/_static/logo_icclim_colored__displayed.svg
+          # Ignore error cases with `|| true`
+          git commit -m "MAINT: Update logo" || true
           git push origin ${{ github.head_ref }}

@@ -100,6 +100,6 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
         :target: https://zenodo.org/badge/latestdoi/15936714
         :alt: D.O.I link
 
-.. |logo| image:: https://raw.githubusercontent.com/cerfacs-globc/icclim/master/source/_static/_images/logo_icclim_colored__base.svg
+.. |logo| image:: https://raw.githubusercontent.com/cerfacs-globc/icclim/master/source/_static/_images/logo_icclim_colored__displayed.svg
         :target: https://github.com/cerfacs-globc/icclim
         :alt: icclim logo
