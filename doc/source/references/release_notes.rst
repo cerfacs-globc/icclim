@@ -32,7 +32,7 @@ It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [maint] Add BlackDoc to C.I (github actions) to keep or doc code example clean.
 * [enh] Add ECAD's RR index. It computes the sum of precipitations over days.
 * [enh] Add icclim logo and auto-generate it's version number
-
+* [maint] git lfs (large file storage) has been enabled for .svg files in order to minimise the impact of logo images and their update.
 
 5.4.0
 -----
