@@ -109,7 +109,7 @@ jobs:
       - name: Install icclim
         run: python -m pip install -e .
       - name: Generate logo
-        run: python ./tools/update_logo_version.py ./doc/_static/logo_icclim_colored__base.svg ./doc/_static/logo_icclim_colored__display.svg
+        run: python ./tools/update_logo_version.py ./doc/source/_static/logo_icclim_colored__base.svg ./doc/source/_static/logo_icclim_colored__display.svg
       - name: create local ref
         run: |
           git fetch origin ${{ github.head_ref }}
