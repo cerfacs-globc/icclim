@@ -34,6 +34,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
+    "sphinx_lfs_content",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
