@@ -56,9 +56,14 @@ html_theme = "pydata_sphinx_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+html_css_files = ["css/custom.css"]
+
 html_favicon = "_static/logo_icclim_favicon__displayed.ico"
 html_theme_options = {
-    "display_version": False,
+    "logo": {
+        "image_light": "logo_icclim_colored__displayed.svg",
+        "image_dark": "logo_icclim_white__displayed.svg",
+    },
     "icon_links": [
         {
             "name": "GitHub",
@@ -67,10 +72,6 @@ html_theme_options = {
             "type": "fontawesome",
         },
     ],
-    "logo": {
-        "image_light": "_static/logo_icclim_colored__displayed.svg",
-        "image_dark": "_static/logo_icclim_white__displayed.svg",
-    },
 }
 # The master toctree document.
 master_doc = "index"
