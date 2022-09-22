@@ -7,23 +7,23 @@ Release history
 * [enh] Make in_files.var.threshold and threshold parameters work with string values (a value with a unit or a percentile stamp)
 * [maint] **BREAKING CHANGE:** ECAD indices are no longer configurable! Use generic indices instead.
 * [fix] **BREAKING CHANGE:** ECAD indices CW, CD, WW, WD were computing the precipitation percentiles on day of year
-values where it should have been percentiles of the whole period (excluding dry days). This has been fixed.
+  values where it should have been percentiles of the whole period (excluding dry days). This has been fixed.
 * [maint] icclim no longer carries a version of the clix-meta yml file.
-Previously it was used to generate the doc string and a few metadata of ECAD indices.
-It's no longer needed as we have put these metadata within StandardIndex declaration.
+  Previously it was used to generate the doc string and a few metadata of ECAD indices.
+  It's no longer needed as we have put these metadata within StandardIndex declaration.
 * [maint] **BREAKING CHANGE:** Removed the `clipped_season` option from `slice_mode`.
-With generic indices, `season` can be used with every indices.
-In particular, spell based indices (e.g. wsdi, cdd) are mapped to `max_consecutive_occurrence` or `sum_of_spell_lengths`
-generic indicators. Both compute the spell length before doing the resampling operation.
-So a spell that start and end outside the output frequency interval is properly accounted for its whole duration.
-That's for example the case of `slice_mode="month"`, a spell that would start in january and end in March,
-would be accounted in january results.
-However, when `slice_mode` is set to a season, where time is clipped and thus where xclim `select_time` is called,
-the behavior is similar to the former `clipped_season`, we first clip the time to the expected season, then we compute the index.
-Thus, events of spells that are before the season bound will be ignored in the results.
+  With generic indices, `season` can be used with every indices.
+  In particular, spell based indices (e.g. wsdi, cdd) are mapped to `max_consecutive_occurrence` or `sum_of_spell_lengths`
+  generic indicators. Both compute the spell length before doing the resampling operation.
+  So a spell that start and end outside the output frequency interval is properly accounted for its whole duration.
+  That's for example the case of `slice_mode="month"`, a spell that would start in january and end in March,
+  would be accounted in january results.
+  However, when `slice_mode` is set to a season, where time is clipped and thus where xclim `select_time` is called,
+  the behavior is similar to the former `clipped_season`, we first clip the time to the expected season, then we compute the index.
+  Thus, events of spells that are before the season bound will be ignored in the results.
 * [maint] **BREAKING CHANGE:** User index `max_nb_consecutive_events` is also mapped to `max_consecutive_occurrence`, consequently spells are also counted for their whole duration.
 * [enh] Make it possible to pass a simple dictionary in `in_files`, merging together basic `in_files` and `var_name` features.
-It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
+  It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [enh] Add `min_spell_length` parameter to index API in order to control the minimum duration of spells in `sum_of_spell_lengths`.
 * [enh] Add `rolling_window_width` parameter to index API in order to control the width of the rolling window in `max|min_of_rolling_sum|average`.
 * [enh] Add `doy_window_width` parameter to index API in order to control the width of aggregation windows when computing doy percentiles.
@@ -48,7 +48,7 @@ It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [enh] ``slice_mode`` type can now be tuple[str, list], it works similarly to the list in input of seasons but, it enforces a length of 2.
 * [enh] ``slice_mode``: Added `clipped_season` keyword which ignores events starting before the season bounds (original behavior of ``season``).
 * [maint] ``slice_mode``: Modified `season` keyword to take into account events (such as in CDD) starting before the season bounds.
-This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
+  This should improve the scientific validity of these seasonal computations. Plus it is in accordance to xclim way of doing this.
 * [maint] Added dataclass ClimateIndex to ease the introduction of new indices not in the ECAD standard.
 * [maint] Made use the new typing syntax thanks to ``from __future__ import annotations``.
 * [maint] Add docstring validation into flake8 checks.
