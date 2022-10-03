@@ -315,19 +315,21 @@ Dask will spawn a worker with multiple threads without any memory limits.
 
 Large to huge dataset (1GB and above)
 -------------------------------------
-If you which to compute climate indices of a large datasets, a personal computer is probably inappropriate.
-In that case you can deploy a real dask cluster as opposed to the LocalCluster.
+If you wish to compute climate indices of a large datasets, a personal computer may not be appropriate.
+In that case you can deploy a real dask cluster as opposed to the LocalCluster seen before.
 You can find more information on how to deploy dask cluster here: https://docs.dask.org/en/stable/scheduling.html#dask-distributed-cluster
 
-If you must run your computation on limited resources, you can try to:
+However, if you must run your computation on limited resources, you can try to:
 
 * Use only one or two threads on a single worker. This will drastically slow down the computation but very few chunks will be in memory at once letting you use quite large chunks.
-* Use small chunk size, but beware the smaller they are the more complex dask graph becomes.
-* Split you data into smaller netcdf inputs and run the computation multiple time.
+* Use small chunk size, but beware the smaller they are, the more dask creates tasks thus, the more complex the dask graph becomes.
+* Rechunk your dataset into a zarr storage to optimize file reading and reduce the amount of rechunking tasks needed by dask.
+For this, you should consider the Pangeo rechunker library to ease this process: https://rechunker.readthedocs.io/en/latest/
+A shorthand to Pangeo rechunker is available in icclim with `icclim.create_optimized_zarr_store`.
+* Split your data into smaller netcdf inputs and run the computation multiple times.
 
 The last point is the most frustrating option because chunking is supposed to do exactly that. But, sometimes
 it can be easier to chunk "by hand" than to find the exact configuration that fit for the input dataset.
-You also want to consider the Pangeo rechunker library to ease this process: https://rechunker.readthedocs.io/en/latest/
 
 Real example
 ------------
@@ -346,8 +348,9 @@ On CMIP6 data, when computing the percentile based indices Tx90p for 20 years an
 Troubleshooting and dashboard analysis
 --------------------------------------
 This section describe common warnings and errors that dask can raise.
-There are also some silent issues that dask dashboard can expose.
-A dashboard is started when running the distributed ``Client(...)`` and is usually available on ``localhost:8787``.
+There are also some silent issues that only dask dashboard can expose.
+To start the dashboard, run the distributed ``Client(...)``. It should be available on ``localhost:8787``
+as a web application (type "localhost:8787" in your browser address bar to access it).
 
 Memory overload
 ~~~~~~~~~~~~~~~
@@ -356,7 +359,8 @@ This means the computation uses more memory than what is available for the worke
 Keep in mind that:
 
 * ``memory_limit`` parameter is a limit set for each individual worker.
-* Some indices, such as percentile based indices (R__p, R__pTOT, T_90p, T_10p families) may use large amount of memory. This is especially true on temperature based indices where percentiles are bootstrapped.
+* Some indices, such as percentile based indices (R__p, R__pTOT, T_90p, T_10p families) may use large amount of memory.
+This is especially true on temperature based indices where percentiles are bootstrapped.
 * You can reduce memory footprint by using smaller chunks.
 * Each thread may load multiple chunks in memory at once.
 
