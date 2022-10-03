@@ -541,7 +541,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[StandardVariableRegistry.PR],
+        input_variables=[StandardVariableRegistry.SND],
     )
     SD1 = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -552,7 +552,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD1",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[StandardVariableRegistry.PR],
+        input_variables=[StandardVariableRegistry.SND],
     )
     SD5CM = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -563,7 +563,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD5cm",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[StandardVariableRegistry.PR],
+        input_variables=[StandardVariableRegistry.SND],
     )
     SD50CM = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -574,7 +574,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD50cm",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[StandardVariableRegistry.PR],
+        input_variables=[StandardVariableRegistry.SND],
     )
     # Compound (precipitation and temperature)
     CD = StandardIndex(
