@@ -20,7 +20,6 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.constants import UNITS_ATTRIBUTE_KEY, VALID_PERCENTILE_DIMENSION
-from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.standard_index import StandardIndex
 from icclim.utils import get_date_to_iso_format
 
@@ -154,31 +153,28 @@ def _guess_dataset_var_names(
     """Try to guess the variable names using the expected kind of variable for
     the index.
     """
-
-    def get_error() -> Exception:
+    if standard_index is not None:
         main_aliases = ", ".join(
             map(lambda v: v.short_name, standard_index.input_variables)
         )
-        return InvalidIcclimArgumentError(
+        error_msg = (
             f"Index {standard_index.short_name} needs the following variable(s)"
             f" [{main_aliases}], but the input variables were {list(ds.data_vars)}."
             f" Use `var_name` parameter to explicitly set variable names."
         )
-
-    if standard_index is not None:
         if len(ds.data_vars) == 1:
             if len(standard_index.input_variables) != 1:
-                raise get_error()
+                raise InvalidIcclimArgumentError(error_msg)
             return [get_name_of_first_var(ds)]
         climate_var_names = []
         for expected_standard_var in standard_index.input_variables:
             for alias in expected_standard_var.aliases:
                 # check if dataset contains this alias
-                if _is_alias_valid(ds, standard_index, alias):
+                if _is_alias_valid(ds, alias):
                     climate_var_names.append(alias)
                     break
         if len(climate_var_names) < len(standard_index.input_variables):
-            raise get_error()
+            raise InvalidIcclimArgumentError(error_msg)
         return climate_var_names
     else:
         if len(ds.data_vars) == 1:
@@ -252,19 +248,8 @@ def check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
         )
 
 
-def _is_alias_valid(ds, index, alias):
-    return ds.get(alias, None) is not None and _has_valid_unit(index.group, ds[alias])
-
-
-def _has_valid_unit(group: IndexGroup, da: DataArray) -> bool:
-    if group == IndexGroupRegistry.SNOW:
-        try:
-            # todo: unit check might be replaced by cf-xarray
-            xclim.core.units.check_units.__wrapped__(da, "[length]")
-        except xclim.core.utils.ValidationError:
-            return False
-    # We delegate to xclim other unit checks
-    return True
+def _is_alias_valid(ds, alias):
+    return ds.get(alias, None) is not None
 
 
 def get_name_of_first_var(ds: Dataset) -> str:
