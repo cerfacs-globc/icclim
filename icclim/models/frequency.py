@@ -315,7 +315,7 @@ class FrequencyRegistry(Registry):
             return None
         raise InvalidIcclimArgumentError(
             f"Unknown frequency {item}."
-            f" Use a Frequency from {[f for f in FrequencyRegistry.all_aliases()]}"
+            f" Use a Frequency from {FrequencyRegistry.every_aliases()}"
         )
 
     @staticmethod
