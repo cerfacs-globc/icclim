@@ -134,7 +134,7 @@ class StandardVariableRegistry(Registry):
     SND = StandardVariable(
         short_name="snd",
         standard_name="surface_snow_thickness",
-        long_name="snow thickness",
+        long_name="Snow Depth",
         aliases=["snd", "sd", "SD"],
         default_units="m",
     )
