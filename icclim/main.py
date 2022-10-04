@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime
-from functools import partial
+from functools import partial, reduce
 from typing import Callable, Literal, Sequence
 from warnings import warn
 
@@ -77,13 +77,15 @@ def indices(
     Parameters
     ----------
     index_group : "all" | str | IndexGroup | list[str]
-        Either the name of an IndexGroup, a instance of IndexGroup or a list
-        of index short names.
+        Either the name of an IndexGroup or an instance of IndexGroup or a list
+        of index short names or the name(s) of standard variable(s) (such as 'tasmax').
         The value "all" can also be used to compute every indices.
         Note that the input given by ``in_files`` must include all the necessary
         variables to compute the indices of this group.
     ignore_error: bool
-        When True, ignore indices that fails to compute.
+        When True, ignore indices that fails to compute. This is option is particularly
+        useful when used with `index_group='all'` to compute everything that can be
+        computed given the input.
     kwargs : Dict
         ``icclim.index`` keyword arguments.
 
@@ -97,15 +99,7 @@ def indices(
         file, which will contain all the index results of this group.
 
     """
-    if isinstance(index_group, (tuple, list)):
-        indices = [EcadIndexRegistry.lookup(i) for i in index_group]
-    elif index_group == IndexGroupRegistry.WILD_CARD_GROUP or (
-        isinstance(index_group, str)
-        and index_group.lower() == IndexGroupRegistry.WILD_CARD_GROUP.name
-    ):
-        indices = EcadIndexRegistry.values()
-    else:
-        indices = IndexGroupRegistry.lookup(index_group).get_indices()
+    indices = _get_indices_of_group(index_group)
     out = None
     if "out_file" in kwargs.keys():
         out = kwargs["out_file"]
@@ -139,6 +133,45 @@ def indices(
             file_path=out,
         )
     return ds
+
+
+def _get_indices_of_group(
+    query: list | tuple | str | IndexGroup,
+) -> list[StandardIndex]:
+    if query == IndexGroupRegistry.WILD_CARD_GROUP or (
+        isinstance(query, str)
+        and query.lower() == IndexGroupRegistry.WILD_CARD_GROUP.name
+    ):
+        # case of group="all"
+        return EcadIndexRegistry.values()
+    if not isinstance(query, (list, tuple)):
+        query = [query]
+    # -- Look for standard indices (e.g. index_group='tx90p')
+    indices = [EcadIndexRegistry.lookup(i, no_error=True) for i in query]
+    indices = list(filter(lambda x: x is not None, indices))
+    if len(indices) == len(query):
+        return indices
+    # -- Look for variables in standard indices (e.g. index_group='tasmax')
+    indices = []
+    for ecad_index in EcadIndexRegistry.values():
+        has_var = True
+        for var in ecad_index.input_variables:
+            is_query_in_aliases = map(
+                lambda standard_var: standard_var in var.aliases, query
+            )
+            has_var &= any(is_query_in_aliases)
+        if has_var:
+            indices.append(ecad_index)
+    if len(indices) >= len(query):
+        return indices
+    # -- Look for index group (e.g. index_group='HEAT')
+    groups = [IndexGroupRegistry.lookup(i, no_error=True) for i in query]
+    groups = list(filter(lambda x: x is not None, groups))
+    indices = map(lambda x: x.get_indices(), groups)
+    indices = reduce(lambda x, y: x + y, indices, [])  # flatten list[list]
+    if len(indices) >= len(query):
+        return indices
+    raise InvalidIcclimArgumentError(f"The index group {query} was not recognized.")
 
 
 def indice(*args, **kwargs) -> Dataset:

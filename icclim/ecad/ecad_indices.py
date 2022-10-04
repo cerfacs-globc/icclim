@@ -541,7 +541,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[StandardVariableRegistry.PR],
+        input_variables=[StandardVariableRegistry.SND],
     )
     SD1 = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -552,7 +552,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD1",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[StandardVariableRegistry.PR],
+        input_variables=[StandardVariableRegistry.SND],
     )
     SD5CM = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -563,7 +563,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD5cm",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[StandardVariableRegistry.PR],
+        input_variables=[StandardVariableRegistry.SND],
     )
     SD50CM = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -574,7 +574,7 @@ class EcadIndexRegistry(Registry):
         source=ECAD_ATBD,
         short_name="SD50cm",
         group=IndexGroupRegistry.SNOW,
-        input_variables=[StandardVariableRegistry.PR],
+        input_variables=[StandardVariableRegistry.SND],
     )
     # Compound (precipitation and temperature)
     CD = StandardIndex(
@@ -589,7 +589,7 @@ class EcadIndexRegistry(Registry):
         " RR <25th percentile of daily precipitation sum (cold/dry days)",
         source=ECAD_ATBD,
         short_name="CD",
-        group=IndexGroupRegistry.COMPOUND,
+        group=IndexGroupRegistry.TEMPERATURE | IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
@@ -606,7 +606,7 @@ class EcadIndexRegistry(Registry):
         " RR >75th percentile of daily precipitation sum (cold/wet days)",
         source=ECAD_ATBD,
         short_name="CW",
-        group=IndexGroupRegistry.COMPOUND,
+        group=IndexGroupRegistry.TEMPERATURE | IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
@@ -623,7 +623,7 @@ class EcadIndexRegistry(Registry):
         " RR <25th percentile of daily precipitation sum (warm/dry days)",
         source=ECAD_ATBD,
         short_name="WD",
-        group=IndexGroupRegistry.COMPOUND,
+        group=IndexGroupRegistry.TEMPERATURE | IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
@@ -640,7 +640,7 @@ class EcadIndexRegistry(Registry):
         " RR >75th percentile of daily precipitation sum (warm/wet days)",
         source=ECAD_ATBD,
         short_name="WW",
-        group=IndexGroupRegistry.COMPOUND,
+        group=IndexGroupRegistry.TEMPERATURE | IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED],
         doy_window_width=5,

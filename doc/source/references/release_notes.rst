@@ -5,13 +5,13 @@ Release history
 ----------------
 * [enh] Add generic indices
 * [enh] Make in_files.var.threshold and threshold parameters work with string values (a value with a unit or a percentile stamp)
-* [maint] **BREAKING CHANGE:** ECAD indices are no longer configurable! Use generic indices instead.
-* [fix] **BREAKING CHANGE:** ECAD indices CW, CD, WW, WD were computing the precipitation percentiles on day of year
+* [maint] **BREAKING CHANGE** ECAD indices are no longer configurable! Use generic indices instead.
+* [fix] **BREAKING CHANGE** ECAD indices CW, CD, WW, WD were computing the precipitation percentiles on day of year
   values where it should have been percentiles of the whole period (excluding dry days). This has been fixed.
 * [maint] icclim no longer carries a version of the clix-meta yml file.
   Previously it was used to generate the doc string and a few metadata of ECAD indices.
   It's no longer needed as we have put these metadata within StandardIndex declaration.
-* [maint] **BREAKING CHANGE:** Removed the `clipped_season` option from `slice_mode`.
+* [maint] **BREAKING CHANGE** Removed the `clipped_season` option from `slice_mode`.
   With generic indices, `season` can be used with every indices.
   In particular, spell based indices (e.g. wsdi, cdd) are mapped to `max_consecutive_occurrence` or `sum_of_spell_lengths`
   generic indicators. Both compute the spell length before doing the resampling operation.
@@ -21,7 +21,7 @@ Release history
   However, when `slice_mode` is set to a season, where time is clipped and thus where xclim `select_time` is called,
   the behavior is similar to the former `clipped_season`, we first clip the time to the expected season, then we compute the index.
   Thus, events of spells that are before the season bound will be ignored in the results.
-* [maint] **BREAKING CHANGE:** User index `max_nb_consecutive_events` is also mapped to `max_consecutive_occurrence`, consequently spells are also counted for their whole duration.
+* [maint] **BREAKING CHANGE** User index `max_nb_consecutive_events` is also mapped to `max_consecutive_occurrence`, consequently spells are also counted for their whole duration.
 * [enh] Make it possible to pass a simple dictionary in `in_files`, merging together basic `in_files` and `var_name` features.
   It looks like `in_files={"tasmax": "tasmax.nc", "tasmin": "tasmin.zarr"}`
 * [enh] Add `min_spell_length` parameter to index API in order to control the minimum duration of spells in `sum_of_spell_lengths`.
@@ -33,6 +33,9 @@ Release history
 * [enh] Add ECAD's RR index. It computes the sum of precipitations over days.
 * [enh] Add icclim logo and auto-generate it's version number
 * [maint] git lfs (large file storage) has been enabled for .svg files in order to minimise the impact of logo images and their update.
+* [enh] Improve icclim.indices to enable multi indices computation based on variable names `icclim.indices(index_group='tasmax',in_files=data)`
+* [fix] **BREAKING CHANGE** ECAD snow indices are now expecting a snow (snd) variable instead of a precipitation one.
+
 
 5.4.0
 -----

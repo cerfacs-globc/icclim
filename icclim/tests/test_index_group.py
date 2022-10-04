@@ -15,7 +15,6 @@ from icclim.models.index_group import IndexGroupRegistry
         ("drought", IndexGroupRegistry.DROUGHT),
         ("rain", IndexGroupRegistry.RAIN),
         ("snow", IndexGroupRegistry.SNOW),
-        ("compound", IndexGroupRegistry.COMPOUND),
     ],
 )
 def test_lookup_success(gr):
@@ -25,3 +24,10 @@ def test_lookup_success(gr):
 def test_lookup_error():
     with pytest.raises(InvalidIcclimArgumentError):
         IndexGroupRegistry.lookup("coin coin le canard")
+
+
+def test_union():
+    x = IndexGroupRegistry.RAIN | IndexGroupRegistry.SNOW
+    assert x.name == "rain_snow"
+    assert x.values[0] == IndexGroupRegistry.RAIN
+    assert x.values[1] == IndexGroupRegistry.SNOW

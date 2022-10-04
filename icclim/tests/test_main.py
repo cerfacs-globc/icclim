@@ -12,6 +12,7 @@ import xarray as xr
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import (
     ICCLIM_VERSION,
     PART_OF_A_WHOLE_UNIT,
@@ -237,10 +238,102 @@ class Test_Integration:
         for i in HEAT_INDICES:
             assert res[i] is not None
 
+    def test_indices__on_var_name(self):
+        res = icclim.indices(
+            index_group="tasmax",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+        )
+        for i in ["SU", "WSDI", "TX90p", "TXx", "CSU", "ID", "TX10p", "TXn"]:
+            assert res[i] is not None
+
+    def test_indices__on_index_name(self):
+        res = icclim.indices(
+            index_group="tx90p",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+        )
+        for i in ["TX90p"]:
+            assert res[i] is not None
+
+    def test_indices__on_var_names(self):
+        ds = self.data.to_dataset(name="tas")
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        res = icclim.indices(
+            index_group=["tas", "pr"],
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+        )
+        for i in [
+            "TG90p",
+            "GD4",
+            "HD17",
+            "TG10p",
+            "CDD",
+            "PRCPTOT",
+            "RR1",
+            "SDII",
+            "CWD",
+            "RR",
+            "R10mm",
+            "R20mm",
+            "RX1day",
+            "RX5day",
+            "R75p",
+            "R75pTOT",
+            "R95p",
+            "R95pTOT",
+            "R99p",
+            "R99pTOT",
+            "CD",
+            "CW",
+            "WD",
+            "WW",
+        ]:
+            assert res[i] is not None
+
+    def test_indices__on_group_union(self):
+        ds = self.data.to_dataset(name="tx")
+        ds["tn"] = self.data.copy(deep=True)
+        ds["tg"] = self.data.copy(deep=True)
+        ds["snd"] = self.data.copy(deep=True)
+        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "mm"
+        res = icclim.indices(
+            index_group=IndexGroupRegistry.HEAT | IndexGroupRegistry.SNOW,
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+        )
+        for i in [
+            "SU",
+            "TR",
+            "WSDI",
+            "TG90p",
+            "TN90p",
+            "TX90p",
+            "TXx",
+            "TNx",
+            "CSU",
+            "SD",
+            "SD1",
+            "SD5cm",
+            "SD50cm",
+        ]:
+            assert res[i] is not None
+
+    def test_indices__error(self):
+        ds = self.data.to_dataset(name="tx")
+        with pytest.raises(InvalidIcclimArgumentError):
+            icclim.indices(
+                index_group="wubaluba dub dub",
+                in_files=ds,
+                out_file=self.OUTPUT_FILE,
+            )
+
     def test_indices__snow_indices(self):
         ds = self.data.to_dataset(name="tas")
-        ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"] = self.data.copy(deep=True)
+        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group=IndexGroupRegistry.SNOW, in_files=ds, out_file=self.OUTPUT_FILE
         )
@@ -255,8 +348,8 @@ class Test_Integration:
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
-        ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"] = self.data.copy(deep=True)
+        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(index_group="all", in_files=ds, out_file=self.OUTPUT_FILE)
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
@@ -267,8 +360,8 @@ class Test_Integration:
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
-        ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"] = self.data.copy(deep=True)
+        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -284,8 +377,8 @@ class Test_Integration:
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
-        ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"] = self.data.copy(deep=True)
+        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -301,8 +394,8 @@ class Test_Integration:
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
-        ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"] = self.data.copy(deep=True)
+        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -318,8 +411,8 @@ class Test_Integration:
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
-        ds["prec"] = self.data.copy(deep=True)
-        ds["prec"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"] = self.data.copy(deep=True)
+        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
