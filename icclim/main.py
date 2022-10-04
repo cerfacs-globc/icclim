@@ -146,12 +146,12 @@ def _get_indices_of_group(
         return EcadIndexRegistry.values()
     if not isinstance(query, (list, tuple)):
         query = [query]
-    # -- Look for standard indices (index_group='tx90p')
+    # -- Look for standard indices (e.g. index_group='tx90p')
     indices = [EcadIndexRegistry.lookup(i, no_error=True) for i in query]
     indices = list(filter(lambda x: x is not None, indices))
     if len(indices) == len(query):
         return indices
-    # -- Look for variables in standard indices (index_group='tasmax')
+    # -- Look for variables in standard indices (e.g. index_group='tasmax')
     indices = []
     for ecad_index in EcadIndexRegistry.values():
         has_var = True
@@ -164,7 +164,7 @@ def _get_indices_of_group(
             indices.append(ecad_index)
     if len(indices) >= len(query):
         return indices
-    # -- Look for index group (index_group='HEAT')
+    # -- Look for index group (e.g. index_group='HEAT')
     groups = [IndexGroupRegistry.lookup(i, no_error=True) for i in query]
     groups = list(filter(lambda x: x is not None, groups))
     indices = map(lambda x: x.get_indices(), groups)
