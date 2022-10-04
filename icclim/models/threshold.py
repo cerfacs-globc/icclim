@@ -259,7 +259,7 @@ class Threshold:
         if self.threshold_min_value:
             min_t = self.threshold_min_value.get_metadata(src_freq, False)
             additional_metadata.append(
-                f"only values {min_t['long_name']} were considered"
+                f"only values >= {min_t['long_name']} were considered"
             )
         if len(additional_metadata) > 0:
             added_meta = map(lambda s: s.capitalize(), additional_metadata)
