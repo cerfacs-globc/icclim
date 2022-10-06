@@ -22,7 +22,7 @@ class CfCalendar:
 
 # todo: the whole class might be useless with the latest cftime
 #      (we don't need our own CfCalendar if we can do `da.time.dt.is_leap_year`)
-class CfCalendarRegistry(Registry):
+class CfCalendarRegistry(Registry[CfCalendar]):
     """
     Calendars known in CF plus some additional custom aliases for convenience.
     The first value of the aliases is the calendar "main" name.

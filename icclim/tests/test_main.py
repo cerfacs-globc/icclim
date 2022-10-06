@@ -17,11 +17,11 @@ from icclim.models.constants import (
     ICCLIM_VERSION,
     PART_OF_A_WHOLE_UNIT,
     REFERENCE_PERIOD_ID,
-    UNITS_ATTRIBUTE_KEY,
+    UNITS_KEY,
 )
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_group import IndexGroupRegistry
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import build_threshold
 from icclim.tests.testing_utils import K2C, stub_pr, stub_tas
 
 
@@ -59,14 +59,14 @@ class Test_Integration:
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
         coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
-        attrs={UNITS_ATTRIBUTE_KEY: "degC"},
+        attrs={UNITS_KEY: "degC"},
     )
 
     data_cf_time = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
         coords=dict(lat=[42], lon=[42], time=CF_TIME_RANGE),
-        attrs={UNITS_ATTRIBUTE_KEY: "degC"},
+        attrs={UNITS_KEY: "degC"},
     )
 
     # usually, time_bounds is not properly decoded an keep a object dtype
@@ -125,7 +125,7 @@ class Test_Integration:
     def test_index_CD(self):
         ds = self.data.to_dataset(name="tas")
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         res = icclim.index(
             index_name="CD",
             in_files=ds,
@@ -259,7 +259,7 @@ class Test_Integration:
     def test_indices__on_var_names(self):
         ds = self.data.to_dataset(name="tas")
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         res = icclim.indices(
             index_group=["tas", "pr"],
             in_files=ds,
@@ -298,7 +298,7 @@ class Test_Integration:
         ds["tn"] = self.data.copy(deep=True)
         ds["tg"] = self.data.copy(deep=True)
         ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "mm"
+        ds["snd"].attrs[UNITS_KEY] = "mm"
         res = icclim.indices(
             index_group=IndexGroupRegistry.HEAT | IndexGroupRegistry.SNOW,
             in_files=ds,
@@ -333,7 +333,7 @@ class Test_Integration:
     def test_indices__snow_indices(self):
         ds = self.data.to_dataset(name="tas")
         ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"].attrs[UNITS_KEY] = "cm"
         res = icclim.indices(
             index_group=IndexGroupRegistry.SNOW, in_files=ds, out_file=self.OUTPUT_FILE
         )
@@ -347,9 +347,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"].attrs[UNITS_KEY] = "cm"
         res = icclim.indices(index_group="all", in_files=ds, out_file=self.OUTPUT_FILE)
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
@@ -359,9 +359,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"].attrs[UNITS_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -376,9 +376,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"].attrs[UNITS_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -393,9 +393,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"].attrs[UNITS_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -410,9 +410,9 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_ATTRIBUTE_KEY] = "cm"
+        ds["snd"].attrs[UNITS_KEY] = "cm"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -427,7 +427,7 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         res: xr.Dataset = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -447,7 +447,7 @@ class Test_Integration:
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_ATTRIBUTE_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         with pytest.raises(Exception):
             icclim.indices(
                 index_group="all",
@@ -601,7 +601,6 @@ class Test_Integration:
             slice_mode="ms",
         )
         assert REFERENCE_PERIOD_ID not in res.CSDI.attrs
-        print(res.CSDI.isel(time=0).compute())
         # 1 more day than in tas because of resample_doy that interpolate values
         assert res.CSDI.isel(time=0) == 11
 
@@ -636,7 +635,7 @@ class Test_Integration:
             slice_mode="month",
             out_unit="%",
         ).compute()
-        assert res.count_occurrences.attrs[UNITS_ATTRIBUTE_KEY] == "%"
+        assert res.count_occurrences.attrs[UNITS_KEY] == "%"
         assert res.count_occurrences.isel(time=0) == 1 / 31 * 100
 
     def test_excess__on_doy_percentile(self):
@@ -646,7 +645,7 @@ class Test_Integration:
             tas,
             index_name="excess",
             time_range=["2044-01-01", "2045-12-31"],
-            threshold=Threshold(
+            threshold=build_threshold(
                 "10 doy_per",
                 doy_window_width=1,
                 reference_period=["2042-01-01", "2042-12-31"],
@@ -656,7 +655,6 @@ class Test_Integration:
         ).compute()
         # not exactly 5 because of resample_doy interpolation
         np.testing.assert_almost_equal(res.excess.isel(time=0), 5.01369863)
-        print(res)
         assert "tas_thresholds" in res.data_vars
 
     def test_deficit__on_doy_percentile(self):
@@ -666,7 +664,7 @@ class Test_Integration:
             tas,
             index_name="deficit",
             time_range=["2044-01-01", "2045-12-31"],
-            threshold=Threshold(
+            threshold=build_threshold(
                 "10 doy_per",
                 doy_window_width=1,
                 reference_period=["2042-01-01", "2042-12-31"],
@@ -689,7 +687,7 @@ class Test_Integration:
         ).compute()
         np.testing.assert_almost_equal(res.fraction_of_total.isel(time=0), 0.98967164)
         assert res.fraction_of_total.isel(time=1) == 1
-        assert res.fraction_of_total.attrs[UNITS_ATTRIBUTE_KEY] == PART_OF_A_WHOLE_UNIT
+        assert res.fraction_of_total.attrs[UNITS_KEY] == PART_OF_A_WHOLE_UNIT
 
     def test_fraction_of_total_percent(self):
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
@@ -703,7 +701,7 @@ class Test_Integration:
         ).compute()
         np.testing.assert_almost_equal(res.fraction_of_total.isel(time=0), 98.96716372)
         assert res.fraction_of_total.isel(time=1) == 100
-        assert res.fraction_of_total.attrs[UNITS_ATTRIBUTE_KEY] == "%"
+        assert res.fraction_of_total.attrs[UNITS_KEY] == "%"
 
     def test_std(self):
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
@@ -745,7 +743,6 @@ class Test_Integration:
         rr = icclim.rr(in_files=precipitation, slice_mode="W").RR
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
-        print(rr.values)
         np.testing.assert_almost_equal(rr.isel(time=0), 0.2)
         np.testing.assert_almost_equal(rr.isel(time=1), 5.1)
 
@@ -763,7 +760,5 @@ class Test_Integration:
         rr = icclim.rr(in_files=precipitation, slice_mode="2W-FRI")
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
-        print(rr.time)
-        print(rr.time_bounds)
         np.testing.assert_almost_equal(rr.RR.isel(time=0), 5.3)
         np.testing.assert_almost_equal(rr.RR.isel(time=1), 0)

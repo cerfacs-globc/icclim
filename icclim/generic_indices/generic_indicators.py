@@ -7,6 +7,7 @@ from functools import partial, reduce
 from typing import Any, Callable
 from warnings import warn
 
+import jinja2
 import numpy
 import numpy as np
 import xarray as xr
@@ -34,20 +35,22 @@ from icclim.models.constants import (
     PART_OF_A_WHOLE_UNIT,
     REFERENCE_PERIOD_ID,
     RESAMPLE_METHOD,
-    UNITS_ATTRIBUTE_KEY,
+    UNITS_KEY,
 )
 from icclim.models.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import Operator
 from icclim.models.registry import Registry
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import PercentileThreshold, Threshold
 
 jinja_env = Environment()
 
 
 class MissingMethodLike(metaclass=abc.ABCMeta):
     """workaround xclim missing type"""
+
+    # todo: PR that to xclim
 
     def execute(self, *args, **kwargs) -> MissingBase:
         ...
@@ -56,7 +59,8 @@ class MissingMethodLike(metaclass=abc.ABCMeta):
         ...
 
 
-class Indicator(metaclass=abc.ABCMeta):
+class Indicator(ABC):
+    name: str
     standard_name: str
     long_name: str
     cell_methods: str
@@ -203,8 +207,6 @@ def _check_data(climate_vars: list[ClimateVariable], src_freq: str):
 
 
 class GenericIndicator(ResamplingIndicator):
-    name: str
-
     def __init__(
         self,
         name: str,
@@ -259,9 +261,7 @@ class GenericIndicator(ResamplingIndicator):
             )
         if output_unit is not None and _is_amount_unit(output_unit):
             for climate_var in climate_vars:
-                current_unit = climate_var.studied_data.attrs.get(
-                    UNITS_ATTRIBUTE_KEY, None
-                )
+                current_unit = climate_var.studied_data.attrs.get(UNITS_KEY, None)
                 if current_unit is not None and not _is_amount_unit(current_unit):
                     climate_var.studied_data = rate2amount(
                         climate_var.studied_data, out_units=output_unit
@@ -283,18 +283,24 @@ class GenericIndicator(ResamplingIndicator):
     def __call__(self, config: IndexConfig) -> DataArray:
         # icclim  wrapper
         src_freq = config.climate_variables[0].source_frequency
-        jinja_scope = {
-            "output_freq": config.frequency,
-            "source_freq": src_freq,
-            "min_spell_length": config.min_spell_length,
-            "rolling_window_width": config.rolling_window_width,
+        base_jinja_scope = {
             "np": numpy,
             "enumerate": enumerate,
             "len": len,
-            "climate_vars": _get_inputs_metadata(config.climate_variables, src_freq),
+            "output_freq": config.frequency,
+            "source_freq": src_freq,
+        }
+        climate_vars_meta = _get_climate_vars_metadata(
+            config.climate_variables, src_freq, base_jinja_scope, jinja_env
+        )
+        jinja_scope: dict[str, Any] = {
+            "min_spell_length": config.min_spell_length,
+            "rolling_window_width": config.rolling_window_width,
+            "climate_vars": climate_vars_meta,
             "is_compared_to_reference": config.is_compared_to_reference,
             "reference_period": config.reference_period,
         }
+        jinja_scope.update(base_jinja_scope)
         climate_vars = self.preprocess(
             climate_vars=config.climate_variables,
             jinja_scope=jinja_scope,
@@ -346,7 +352,7 @@ def count_occurrences(
     result = reducer_op(merged_exceedances.resample(time=resample_freq.pandas_freq))
     if to_percent:
         result = _to_percent(result, resample_freq)
-        result.attrs[UNITS_ATTRIBUTE_KEY] = "%"
+        result.attrs[UNITS_KEY] = "%"
         return result
     else:
         return to_agg_units(result, climate_vars[0].studied_data, "count")
@@ -394,7 +400,7 @@ def excess(
     **kwargs,  # noqa
 ) -> DataArray:
     op, study, threshold = _get_single_var(climate_vars)
-    if threshold.is_doy_per_threshold:
+    if isinstance(threshold, PercentileThreshold):
         thresh = resample_doy(threshold.value, study)
     else:
         thresh = threshold.value
@@ -413,7 +419,7 @@ def deficit(
     **kwargs,  # noqa
 ) -> DataArray:
     op, study, threshold = _get_single_var(climate_vars)
-    if threshold.is_doy_per_threshold:
+    if isinstance(threshold, PercentileThreshold):
         thresh = resample_doy(threshold.value, study)
     else:
         thresh = threshold.value
@@ -433,9 +439,9 @@ def fraction_of_total(
     **kwargs,  # noqa
 ) -> DataArray:
     op, study, threshold = _get_single_var(climate_vars)
-    if threshold.threshold_min_value:
+    if threshold.threshold_min_value is not None:
         total = (
-            study.where(op(study, threshold.threshold_min_value.value))
+            study.where(op(study, threshold.threshold_min_value.m))
             .resample(time=resample_freq.pandas_freq)
             .sum(dim="time")
         )
@@ -447,7 +453,7 @@ def fraction_of_total(
         threshold=threshold.value,
         freq=resample_freq.pandas_freq,
         bootstrap=_must_run_bootstrap(study, threshold),
-        is_doy_per=threshold.is_doy_per_threshold,
+        is_doy_per=_is_doy_per(threshold),
     ).squeeze()
     over = (
         study.where(exceedance, 0)
@@ -457,9 +463,9 @@ def fraction_of_total(
     res = over / total
     if to_percent:
         res = res * 100
-        res.attrs[UNITS_ATTRIBUTE_KEY] = "%"
+        res.attrs[UNITS_KEY] = "%"
     else:
-        res.attrs[UNITS_ATTRIBUTE_KEY] = PART_OF_A_WHOLE_UNIT
+        res.attrs[UNITS_KEY] = PART_OF_A_WHOLE_UNIT
     return res
 
 
@@ -752,7 +758,7 @@ def check_couple_of_vars(
         )
 
 
-class GenericIndicatorRegistry(Registry):
+class GenericIndicatorRegistry(Registry[GenericIndicator]):
     def __init__(self):
         super().__init__()
 
@@ -819,8 +825,9 @@ def _compute_exceedance(
     study: DataArray,
     threshold: DataArray | PercentileDataArray,
     operator: Operator,
-    freq: str,  # noqa @percentile_bootstrap (don't rename it, it breaks bootstrap)
-    bootstrap: bool,  # noqa @percentile_bootstrap
+    freq: str,
+    # noqa used by @percentile_bootstrap (don't rename, it breaks bootstrap)
+    bootstrap: bool,  # noqa used by @percentile_bootstrap
     is_doy_per: bool,
 ) -> DataArray:
     if is_doy_per:
@@ -861,7 +868,7 @@ def _run_rolling_reducer(
             freq=resample_freq.pandas_freq,
             threshold=threshold.value,
             bootstrap=_must_run_bootstrap(study, threshold),
-            is_doy_per=threshold.is_doy_per_threshold,
+            is_doy_per=_is_doy_per(threshold),
         ).squeeze()
         study = study.where(exceedance)
     study = rolling_op(study.rolling(time=rolling_window_width))
@@ -891,7 +898,7 @@ def _run_simple_reducer(
             freq=resample_freq.pandas_freq,
             threshold=threshold.value,
             bootstrap=_must_run_bootstrap(study, threshold),
-            is_doy_per=threshold.is_doy_per_threshold,
+            is_doy_per=_is_doy_per(threshold),
         ).squeeze()
         filtered_study = study.where(exceedance)
     else:
@@ -919,7 +926,7 @@ def _compute_exceedances(
             bootstrap=_must_run_bootstrap(
                 climate_var.studied_data, climate_var.threshold
             ),
-            is_doy_per=climate_var.threshold.is_doy_per_threshold,
+            is_doy_per=_is_doy_per(climate_var.threshold),
         ).squeeze()
         for climate_var in climate_vars
     ]
@@ -944,8 +951,8 @@ def _must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
     or no year overlapping or all year overlapping.
     """
     # TODO: Don't run bootstrap when not on extreme percentile
-    #       (below 20? 10? or above 80? 90?)
-    if threshold is None or not threshold.is_doy_per_threshold:
+    #       (run only below 20? 10? and above 80? 90?)
+    if threshold is None or not isinstance(threshold, PercentileThreshold):
         return False
     reference = threshold.value
     study_years = np.unique(da.indexes.get("time").year)
@@ -969,18 +976,21 @@ def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
     return all(map(lambda x: x == freqs[0], freqs[1:]))
 
 
-def _get_inputs_metadata(
-    climate_vars: list[ClimateVariable], resample_freq: Frequency
+def _get_climate_vars_metadata(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    jinja_scope: dict[str, Any],
+    jinja_env: jinja2.Environment,
 ) -> list[dict[str, str]]:
-    return list(
-        map(
-            lambda cf_var: cf_var.build_indicator_metadata(
-                resample_freq,
-                _must_run_bootstrap(cf_var.studied_data, cf_var.threshold),
-            ),
-            climate_vars,
+    return [
+        c_var.build_indicator_metadata(
+            resample_freq,
+            _must_run_bootstrap(c_var.studied_data, c_var.threshold),
+            jinja_scope,
+            jinja_env,
         )
-    )
+        for c_var in climate_vars
+    ]
 
 
 def _reduce_with_date_event(
@@ -1126,7 +1136,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
             "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}."
         )
         return da
-    da.attrs[UNITS_ATTRIBUTE_KEY] = PART_OF_A_WHOLE_UNIT
+    da.attrs[UNITS_KEY] = PART_OF_A_WHOLE_UNIT
     return da
 
 
@@ -1136,3 +1146,7 @@ def _is_leap_year(da: DataArray) -> np.ndarray:
         return CfCalendarRegistry.lookup(time_index.calendar).is_leap(da.time.dt.year)
     else:
         return da.time.dt.is_leap_year
+
+
+def _is_doy_per(thresh: Threshold) -> bool:
+    return isinstance(thresh, PercentileThreshold) and thresh.is_doy_per_threshold

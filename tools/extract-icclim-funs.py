@@ -29,7 +29,7 @@ import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.models.constants import QUANTILE_BASED
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import Threshold, build_threshold
 
 ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]
 # Note: callback args are not included below
@@ -82,7 +82,7 @@ from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import build_threshold
 from icclim.models.user_index_dict import UserIndexDict
 
 __all__ = [
@@ -263,7 +263,7 @@ def get_params_docstring(args: list[str], index_docstring: str) -> str:
 
 def format_thresh(t: str | Threshold, is_percentile_based: bool) -> str:
     if isinstance(t, str):
-        t = Threshold(t)
+        t = build_threshold(t)
     params = f'{TAB}{TAB}{TAB}query="{t.initial_query}",\n'
     if is_percentile_based:
         params += (
@@ -273,8 +273,8 @@ def format_thresh(t: str | Threshold, is_percentile_based: bool) -> str:
             f"{TAB}{TAB}{TAB}reference_period=base_period_time_range,\n"
         )
     if t.threshold_min_value is not None:
-        params += f'{TAB}{TAB}{TAB}threshold_min_value="{t.threshold_min_value.initial_query}",\n'
-    return f"{TAB}{TAB}{TAB}Threshold({params})"
+        params += f'{TAB}{TAB}{TAB}threshold_min_value="{t.threshold_min_value}",\n'
+    return f"{TAB}{TAB}{TAB}build_threshold({params})"
 
 
 if __name__ == "__main__":

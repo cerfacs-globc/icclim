@@ -112,7 +112,7 @@ In case xclim has the index, in order to bind icclim to it, there are two files 
     Create a new value for the EcadIndex enum. You must fill it with :
 
     #. Index short_name, case sensitive (it is used in the output netCDF).
-    #. Ihe ``ecad_functions.py`` function to call.
+    #. The ``ecad_functions.py`` function to call.
     #. Index group.
     #. List of standard variables needed to compute this index.
     #. Qualifier, used to extract individual function into Copernicus CDS. If you have any issue with this one we can help.

@@ -30,7 +30,7 @@ class Operator:
         return self.compute(*args, **kwargs)
 
 
-class OperatorRegistry(Registry):
+class OperatorRegistry(Registry[Operator]):
     _item_class = Operator
 
     @staticmethod

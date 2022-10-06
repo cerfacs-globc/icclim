@@ -17,7 +17,7 @@ from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import build_threshold
 from icclim.models.user_index_dict import UserIndexDict
 
 __all__ = [
@@ -71,6 +71,11 @@ __all__ = [
     "cw",
     "wd",
     "ww",
+    "fxx",
+    "fg6bft",
+    "fgcalm",
+    "fg",
+    "ddnorth",
     "custom_index",
 ]
 
@@ -624,7 +629,7 @@ def su(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 25 degree_Celsius",
         ),
         out_unit="day",
@@ -706,7 +711,7 @@ def tr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 20 degree_Celsius",
         ),
         out_unit="day",
@@ -820,7 +825,7 @@ def wsdi(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -938,7 +943,7 @@ def tg90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -1056,7 +1061,7 @@ def tn90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -1174,7 +1179,7 @@ def tx90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -1418,7 +1423,7 @@ def csu(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 25 degree_Celsius",
         ),
         out_unit="day",
@@ -1500,7 +1505,7 @@ def gd4(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="4 degree_Celsius",
         ),
         out_unit="degree_Celsius day",
@@ -1582,7 +1587,7 @@ def fd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
         out_unit="day",
@@ -1664,7 +1669,7 @@ def cfd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
         out_unit="day",
@@ -1746,7 +1751,7 @@ def hd17(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="17 degree_Celsius",
         ),
         out_unit="degree_Celsius day",
@@ -1828,7 +1833,7 @@ def id(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
         out_unit="day",
@@ -1942,7 +1947,7 @@ def tg10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -2060,7 +2065,7 @@ def tn10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -2178,7 +2183,7 @@ def tx10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -2454,7 +2459,7 @@ def csdi(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -2540,7 +2545,7 @@ def cdd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 1 mm day-1",
         ),
         out_unit="day",
@@ -2622,7 +2627,7 @@ def prcptot(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 mm day-1",
         ),
         out_unit="mm",
@@ -2704,7 +2709,7 @@ def rr1(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 mm day-1",
         ),
         out_unit="day",
@@ -2786,7 +2791,7 @@ def sdii(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 mm day-1",
         ),
         out_unit="mm day-1",
@@ -2868,7 +2873,7 @@ def cwd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 mm day-1",
         ),
         out_unit="day",
@@ -3029,7 +3034,7 @@ def r10mm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 10 mm day-1",
         ),
         out_unit="day",
@@ -3111,7 +3116,7 @@ def r20mm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 20 mm day-1",
         ),
         out_unit="day",
@@ -3383,13 +3388,13 @@ def r75p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 75 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -3502,13 +3507,13 @@ def r75ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 75 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -3621,13 +3626,13 @@ def r95p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 95 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -3740,13 +3745,13 @@ def r95ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 95 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -3859,13 +3864,13 @@ def r99p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 99 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -3978,13 +3983,13 @@ def r99ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 99 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -4144,7 +4149,7 @@ def sd1(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 cm",
         ),
         out_unit="day",
@@ -4226,7 +4231,7 @@ def sd5cm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 5 cm",
         ),
         out_unit="day",
@@ -4308,7 +4313,7 @@ def sd50cm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 50 cm",
         ),
         out_unit="day",
@@ -4423,20 +4428,20 @@ def cd(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=[
-            Threshold(
+            build_threshold(
                 query="< 25 doy_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
             ),
-            Threshold(
+            build_threshold(
                 query="< 25 period_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1.0 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -4551,20 +4556,20 @@ def cw(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=[
-            Threshold(
+            build_threshold(
                 query="< 25 doy_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
             ),
-            Threshold(
+            build_threshold(
                 query="> 75 period_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1.0 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -4679,20 +4684,20 @@ def wd(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=[
-            Threshold(
+            build_threshold(
                 query="> 75 doy_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
             ),
-            Threshold(
+            build_threshold(
                 query="< 25 period_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1.0 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -4807,20 +4812,429 @@ def ww(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=[
-            Threshold(
+            build_threshold(
                 query="> 75 doy_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
             ),
-            Threshold(
+            build_threshold(
                 query="> 75 period_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1.0 millimeter / day",
+            ),
+        ],
+        out_unit="day",
+    )
+
+
+def fxx(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
+    out_file: str | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """
+    FXx: Maximum value of daily maximum wind gust
+
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+    Parameters
+    ----------
+
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the climate
+        index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="FXX",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        out_unit="m s−1",
+    )
+
+
+def fg6bft(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
+    out_file: str | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """
+    FG6Bft: Days with daily averaged wind ≥ 6 Bft (10.8 m s−1)
+
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+    Parameters
+    ----------
+
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the climate
+        index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="FG6BFT",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        threshold=build_threshold(
+            query=">= 10.8 m s−1",
+        ),
+        out_unit="day",
+    )
+
+
+def fgcalm(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
+    out_file: str | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """
+    FGcalm: Calm days, days with daily averaged wind <= 2 m s−1
+
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+    Parameters
+    ----------
+
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the climate
+        index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="FGCALM",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        threshold=build_threshold(
+            query="<= 2 m s−1",
+        ),
+        out_unit="day",
+    )
+
+
+def fg(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
+    out_file: str | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """
+    FG: Mean of daily mean wind strength
+
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+    Parameters
+    ----------
+
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the climate
+        index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="FG",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        out_unit="m s−1",
+    )
+
+
+def ddnorth(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[datetime | str] | None = None,
+    out_file: str | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """
+    DDnorth: Days with northerly winds (-45 degree < DD ≤ 45 degree)
+
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+    Parameters
+    ----------
+
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the climate
+        index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="DDNORTH",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        threshold=[
+            build_threshold(
+                query="> -45 degree",
+            ),
+            build_threshold(
+                query="<= 45 degree",
             ),
         ],
         out_unit="day",

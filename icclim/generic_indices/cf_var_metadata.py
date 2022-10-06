@@ -1,17 +1,10 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Hashable, TypedDict
+from typing import Hashable
 
 from icclim.models.constants import PART_OF_A_WHOLE_UNIT
 from icclim.models.registry import Registry
-
-
-class IndicatorMetadata(TypedDict):
-    identifier: str
-    standard_name: str
-    long_name: str
-    cell_methods: str
 
 
 @dataclasses.dataclass
@@ -33,7 +26,7 @@ class StandardVariable(Hashable):
         )
 
 
-class StandardVariableRegistry(Registry):
+class StandardVariableRegistry(Registry[StandardVariable]):
     _item_class = StandardVariable
     PR = StandardVariable(
         short_name="pr",
@@ -228,6 +221,13 @@ class StandardVariableRegistry(Registry):
         long_name="Percentage of the Grid Cell Occupied by Land",
         aliases=["sftlf"],
         default_units="%",
+    )
+    WIND_TO_DIRECTION = StandardVariable(
+        short_name="DD",
+        standard_name="wind_to_direction",
+        long_name="Daily mean wind direction",
+        aliases=["dd"],
+        default_units="degree",
     )
     # X = StandardVariable(
     #     short_name="x",
