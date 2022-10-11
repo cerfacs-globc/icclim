@@ -13,7 +13,7 @@ VERSION_PLACEHOLDER = "{{icclim.__version__}}"
 
 
 def run(inpath, outpath):
-    with open(inpath, "r") as in_file, open(outpath, "w") as out_file:
+    with open(inpath) as in_file, open(outpath, "w") as out_file:
         for line in in_file:
             if VERSION_PLACEHOLDER in line:
                 line = line.replace(VERSION_PLACEHOLDER, str(icclim.__version__))
