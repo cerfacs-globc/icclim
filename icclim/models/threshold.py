@@ -152,10 +152,9 @@ def build_threshold(
 
         t1 = build_threshold(">= 30 degC")
         assert isinstance(t1, BasicThreshold)
+
         t2 = build_threshold(">= 30 doy_per")
         assert isinstance(t2, PercentileThreshold)
-
-
 
     """
     input_thresh = _read_input(

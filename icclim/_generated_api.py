@@ -71,11 +71,6 @@ __all__ = [
     "cw",
     "wd",
     "ww",
-    "fxx",
-    "fg6bft",
-    "fgcalm",
-    "fg",
-    "ddnorth",
     "custom_index",
 ]
 
@@ -99,7 +94,7 @@ def tg(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -178,7 +173,7 @@ def tn(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -257,7 +252,7 @@ def tx(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -336,7 +331,7 @@ def dtr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -415,7 +410,7 @@ def etr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -494,7 +489,7 @@ def vdtr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -573,7 +568,7 @@ def su(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -655,7 +650,7 @@ def tr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -741,7 +736,7 @@ def wsdi(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -859,7 +854,7 @@ def tg90p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -977,7 +972,7 @@ def tn90p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1095,7 +1090,7 @@ def tx90p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1209,7 +1204,7 @@ def txx(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1288,7 +1283,7 @@ def tnx(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1367,7 +1362,7 @@ def csu(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1449,7 +1444,7 @@ def gd4(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1531,7 +1526,7 @@ def fd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1613,7 +1608,7 @@ def cfd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1695,7 +1690,7 @@ def hd17(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1777,7 +1772,7 @@ def id(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1863,7 +1858,7 @@ def tg10p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1981,7 +1976,7 @@ def tn10p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2099,7 +2094,7 @@ def tx10p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2213,7 +2208,7 @@ def txn(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2292,7 +2287,7 @@ def tnn(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2375,7 +2370,7 @@ def csdi(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2489,7 +2484,7 @@ def cdd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2571,7 +2566,7 @@ def prcptot(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2653,7 +2648,7 @@ def rr1(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2735,7 +2730,7 @@ def sdii(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2817,7 +2812,7 @@ def cwd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2899,7 +2894,7 @@ def rr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2978,7 +2973,7 @@ def r10mm(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3060,7 +3055,7 @@ def r20mm(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3142,7 +3137,7 @@ def rx1day(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3221,7 +3216,7 @@ def rx5day(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3304,7 +3299,7 @@ def r75p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3423,7 +3418,7 @@ def r75ptot(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3542,7 +3537,7 @@ def r95p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3661,7 +3656,7 @@ def r95ptot(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3780,7 +3775,7 @@ def r99p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3899,7 +3894,7 @@ def r99ptot(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4014,7 +4009,7 @@ def sd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4093,7 +4088,7 @@ def sd1(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4175,7 +4170,7 @@ def sd5cm(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4257,7 +4252,7 @@ def sd50cm(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4343,7 +4338,7 @@ def cd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4471,7 +4466,7 @@ def cw(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4599,7 +4594,7 @@ def wd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4727,7 +4722,7 @@ def ww(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4832,415 +4827,6 @@ def ww(
     )
 
 
-def fxx(
-    in_files: InFileLike,
-    var_name: str | Sequence[str] | None = None,
-    slice_mode: FrequencyLike | Frequency = "year",
-    time_range: Sequence[datetime | str] | None = None,
-    out_file: str | None = None,
-    ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersion = "NETCDF4",
-    logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,
-) -> Dataset:
-    """
-    FXx: Maximum value of daily maximum wind gust
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
-
-    Parameters
-    ----------
-
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
-        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-        or path to zarr store, or xarray.Dataset or xarray.DataArray.
-    var_name: str | list[str] | None
-        ``optional`` Target variable name to process corresponding to ``in_files``.
-        If None (default) on ECA&D index, the variable is guessed based on the climate
-        index wanted.
-        Mandatory for a user index.
-    slice_mode: SliceMode
-        Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-        (where season and month lists can be customized) or any valid pandas frequency.
-        A season can also be defined between two exact dates:
-        ``("season", ("19 july", "14 august"))``.
-        Default is "year".
-        See :ref:`slice_mode` for details.
-    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-        If ``None``, whole period of input files will be processed.
-        The dates can either be given as instance of datetime.datetime or as string
-        values. For strings, many format are accepted.
-        Default is ``None``.
-    out_file: str | None
-        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-        Default is "icclim_out.nc".
-        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-        Use the function returned value instead to retrieve the computed value.
-        If ``out_file`` already exists, icclim will overwrite it!
-    ignore_Feb29th: bool
-        ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version: str | NetcdfVersion
-        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    logs_verbosity: str | Verbosity
-        ``optional`` Configure how verbose icclim is.
-        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    date_event: bool
-        When True the date of the event (such as when a maximum is reached) will be
-        stored in coordinates variables.
-        **warning** This option may significantly slow down computation.
-    Notes
-    -----
-    This function has been auto-generated.
-
-    """
-    return icclim.index(
-        index_name="FXX",
-        in_files=in_files,
-        var_name=var_name,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        out_file=out_file,
-        ignore_Feb29th=ignore_Feb29th,
-        netcdf_version=netcdf_version,
-        logs_verbosity=logs_verbosity,
-        date_event=date_event,
-        out_unit="m s−1",
-    )
-
-
-def fg6bft(
-    in_files: InFileLike,
-    var_name: str | Sequence[str] | None = None,
-    slice_mode: FrequencyLike | Frequency = "year",
-    time_range: Sequence[datetime | str] | None = None,
-    out_file: str | None = None,
-    ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersion = "NETCDF4",
-    logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,
-) -> Dataset:
-    """
-    FG6Bft: Days with daily averaged wind ≥ 6 Bft (10.8 m s−1)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
-
-    Parameters
-    ----------
-
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
-        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-        or path to zarr store, or xarray.Dataset or xarray.DataArray.
-    var_name: str | list[str] | None
-        ``optional`` Target variable name to process corresponding to ``in_files``.
-        If None (default) on ECA&D index, the variable is guessed based on the climate
-        index wanted.
-        Mandatory for a user index.
-    slice_mode: SliceMode
-        Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-        (where season and month lists can be customized) or any valid pandas frequency.
-        A season can also be defined between two exact dates:
-        ``("season", ("19 july", "14 august"))``.
-        Default is "year".
-        See :ref:`slice_mode` for details.
-    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-        If ``None``, whole period of input files will be processed.
-        The dates can either be given as instance of datetime.datetime or as string
-        values. For strings, many format are accepted.
-        Default is ``None``.
-    out_file: str | None
-        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-        Default is "icclim_out.nc".
-        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-        Use the function returned value instead to retrieve the computed value.
-        If ``out_file`` already exists, icclim will overwrite it!
-    ignore_Feb29th: bool
-        ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version: str | NetcdfVersion
-        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    logs_verbosity: str | Verbosity
-        ``optional`` Configure how verbose icclim is.
-        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    date_event: bool
-        When True the date of the event (such as when a maximum is reached) will be
-        stored in coordinates variables.
-        **warning** This option may significantly slow down computation.
-    Notes
-    -----
-    This function has been auto-generated.
-
-    """
-    return icclim.index(
-        index_name="FG6BFT",
-        in_files=in_files,
-        var_name=var_name,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        out_file=out_file,
-        ignore_Feb29th=ignore_Feb29th,
-        netcdf_version=netcdf_version,
-        logs_verbosity=logs_verbosity,
-        date_event=date_event,
-        threshold=build_threshold(
-            query=">= 10.8 m s−1",
-        ),
-        out_unit="day",
-    )
-
-
-def fgcalm(
-    in_files: InFileLike,
-    var_name: str | Sequence[str] | None = None,
-    slice_mode: FrequencyLike | Frequency = "year",
-    time_range: Sequence[datetime | str] | None = None,
-    out_file: str | None = None,
-    ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersion = "NETCDF4",
-    logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,
-) -> Dataset:
-    """
-    FGcalm: Calm days, days with daily averaged wind <= 2 m s−1
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
-
-    Parameters
-    ----------
-
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
-        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-        or path to zarr store, or xarray.Dataset or xarray.DataArray.
-    var_name: str | list[str] | None
-        ``optional`` Target variable name to process corresponding to ``in_files``.
-        If None (default) on ECA&D index, the variable is guessed based on the climate
-        index wanted.
-        Mandatory for a user index.
-    slice_mode: SliceMode
-        Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-        (where season and month lists can be customized) or any valid pandas frequency.
-        A season can also be defined between two exact dates:
-        ``("season", ("19 july", "14 august"))``.
-        Default is "year".
-        See :ref:`slice_mode` for details.
-    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-        If ``None``, whole period of input files will be processed.
-        The dates can either be given as instance of datetime.datetime or as string
-        values. For strings, many format are accepted.
-        Default is ``None``.
-    out_file: str | None
-        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-        Default is "icclim_out.nc".
-        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-        Use the function returned value instead to retrieve the computed value.
-        If ``out_file`` already exists, icclim will overwrite it!
-    ignore_Feb29th: bool
-        ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version: str | NetcdfVersion
-        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    logs_verbosity: str | Verbosity
-        ``optional`` Configure how verbose icclim is.
-        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    date_event: bool
-        When True the date of the event (such as when a maximum is reached) will be
-        stored in coordinates variables.
-        **warning** This option may significantly slow down computation.
-    Notes
-    -----
-    This function has been auto-generated.
-
-    """
-    return icclim.index(
-        index_name="FGCALM",
-        in_files=in_files,
-        var_name=var_name,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        out_file=out_file,
-        ignore_Feb29th=ignore_Feb29th,
-        netcdf_version=netcdf_version,
-        logs_verbosity=logs_verbosity,
-        date_event=date_event,
-        threshold=build_threshold(
-            query="<= 2 m s−1",
-        ),
-        out_unit="day",
-    )
-
-
-def fg(
-    in_files: InFileLike,
-    var_name: str | Sequence[str] | None = None,
-    slice_mode: FrequencyLike | Frequency = "year",
-    time_range: Sequence[datetime | str] | None = None,
-    out_file: str | None = None,
-    ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersion = "NETCDF4",
-    logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,
-) -> Dataset:
-    """
-    FG: Mean of daily mean wind strength
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
-
-    Parameters
-    ----------
-
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
-        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-        or path to zarr store, or xarray.Dataset or xarray.DataArray.
-    var_name: str | list[str] | None
-        ``optional`` Target variable name to process corresponding to ``in_files``.
-        If None (default) on ECA&D index, the variable is guessed based on the climate
-        index wanted.
-        Mandatory for a user index.
-    slice_mode: SliceMode
-        Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-        (where season and month lists can be customized) or any valid pandas frequency.
-        A season can also be defined between two exact dates:
-        ``("season", ("19 july", "14 august"))``.
-        Default is "year".
-        See :ref:`slice_mode` for details.
-    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-        If ``None``, whole period of input files will be processed.
-        The dates can either be given as instance of datetime.datetime or as string
-        values. For strings, many format are accepted.
-        Default is ``None``.
-    out_file: str | None
-        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-        Default is "icclim_out.nc".
-        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-        Use the function returned value instead to retrieve the computed value.
-        If ``out_file`` already exists, icclim will overwrite it!
-    ignore_Feb29th: bool
-        ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version: str | NetcdfVersion
-        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    logs_verbosity: str | Verbosity
-        ``optional`` Configure how verbose icclim is.
-        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    date_event: bool
-        When True the date of the event (such as when a maximum is reached) will be
-        stored in coordinates variables.
-        **warning** This option may significantly slow down computation.
-    Notes
-    -----
-    This function has been auto-generated.
-
-    """
-    return icclim.index(
-        index_name="FG",
-        in_files=in_files,
-        var_name=var_name,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        out_file=out_file,
-        ignore_Feb29th=ignore_Feb29th,
-        netcdf_version=netcdf_version,
-        logs_verbosity=logs_verbosity,
-        date_event=date_event,
-        out_unit="m s−1",
-    )
-
-
-def ddnorth(
-    in_files: InFileLike,
-    var_name: str | Sequence[str] | None = None,
-    slice_mode: FrequencyLike | Frequency = "year",
-    time_range: Sequence[datetime | str] | None = None,
-    out_file: str | None = None,
-    ignore_Feb29th: bool = False,
-    netcdf_version: str | NetcdfVersion = "NETCDF4",
-    logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,
-) -> Dataset:
-    """
-    DDnorth: Days with northerly winds (-45 degree < DD ≤ 45 degree)
-
-    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
-
-    Parameters
-    ----------
-
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
-        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-        or path to zarr store, or xarray.Dataset or xarray.DataArray.
-    var_name: str | list[str] | None
-        ``optional`` Target variable name to process corresponding to ``in_files``.
-        If None (default) on ECA&D index, the variable is guessed based on the climate
-        index wanted.
-        Mandatory for a user index.
-    slice_mode: SliceMode
-        Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-        (where season and month lists can be customized) or any valid pandas frequency.
-        A season can also be defined between two exact dates:
-        ``("season", ("19 july", "14 august"))``.
-        Default is "year".
-        See :ref:`slice_mode` for details.
-    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
-        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-        If ``None``, whole period of input files will be processed.
-        The dates can either be given as instance of datetime.datetime or as string
-        values. For strings, many format are accepted.
-        Default is ``None``.
-    out_file: str | None
-        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-        Default is "icclim_out.nc".
-        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-        Use the function returned value instead to retrieve the computed value.
-        If ``out_file`` already exists, icclim will overwrite it!
-    ignore_Feb29th: bool
-        ``optional`` Ignoring or not February 29th (default: False).
-    netcdf_version: str | NetcdfVersion
-        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-    logs_verbosity: str | Verbosity
-        ``optional`` Configure how verbose icclim is.
-        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    date_event: bool
-        When True the date of the event (such as when a maximum is reached) will be
-        stored in coordinates variables.
-        **warning** This option may significantly slow down computation.
-    Notes
-    -----
-    This function has been auto-generated.
-
-    """
-    return icclim.index(
-        index_name="DDNORTH",
-        in_files=in_files,
-        var_name=var_name,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        out_file=out_file,
-        ignore_Feb29th=ignore_Feb29th,
-        netcdf_version=netcdf_version,
-        logs_verbosity=logs_verbosity,
-        date_event=date_event,
-        threshold=[
-            build_threshold(
-                query="> -45 degree",
-            ),
-            build_threshold(
-                query="<= 45 degree",
-            ),
-        ],
-        out_unit="day",
-    )
-
-
 def custom_index(
     user_index: UserIndexDict,
     in_files: InFileLike,
@@ -5270,7 +4856,7 @@ def custom_index(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
