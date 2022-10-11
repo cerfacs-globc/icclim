@@ -59,9 +59,16 @@ END_NOTE = """
 """
 
 DEFAULT_OUTPUT_PATH = Path(os.path.dirname(os.path.abspath(__file__))) / "pouet.py"
+PATH_TO_DOC_FILE = (
+    Path(os.path.dirname(os.path.abspath(__file__)))
+    / "../doc/source/references"
+    / "ecad_functions_api.rst"
+)
+DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
+DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
 
 
-def run(path):
+def generate_api(path):
     with open(path, "w") as f:
         acc = '''"""
 This module has been auto-generated.
@@ -277,6 +284,30 @@ def format_thresh(t: str | Threshold, is_percentile_based: bool) -> str:
     return f"{TAB}{TAB}{TAB}build_threshold({params})"
 
 
+def generate_doc(doc_path):
+    with open(doc_path) as f:
+        content = "".join(f.readlines())
+        replace_start_index = (
+            content.find(DOC_START_PLACEHOLDER) + len(DOC_START_PLACEHOLDER) + 1
+        )
+        replace_end_index = content.find(DOC_END_PLACEHOLDER)
+    with open(doc_path, "w") as f:
+        replacing_content = ""
+        replacing_content += "\n".join(
+            list(
+                map(
+                    lambda x: f"{TAB}{TAB}{x.short_name.lower()}",
+                    EcadIndexRegistry.values(),
+                )
+            )
+        )
+        replacing_content += f"\n{TAB}{TAB}custom_index\n\n"
+        replaced_centent = content[replace_start_index:replace_end_index]
+        res = content.replace(replaced_centent, replacing_content)
+        f.write(res)
+
+
 if __name__ == "__main__":
     file_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_PATH
-    run(file_path)
+    generate_api(file_path)
+    generate_doc(PATH_TO_DOC_FILE)
