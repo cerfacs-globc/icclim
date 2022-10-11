@@ -17,6 +17,7 @@ from warnings import warn
 
 import xarray as xr
 import xclim
+from pre_processing.in_file_dictionary import InFileDictionary
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
@@ -32,8 +33,7 @@ from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.climate_variable import (
     ClimateVariable,
     build_climate_vars,
-    must_add_reference_var,
-    to_dictionary,
+    read_in_files,
 )
 from icclim.models.constants import (
     ICCLIM_VERSION,
@@ -408,7 +408,7 @@ def index(
         threshold = build_configured_threshold(threshold)
     elif isinstance(threshold, Sequence):
         threshold = [build_configured_threshold(t) for t in threshold]
-    climate_vars_dict = to_dictionary(
+    climate_vars_dict = read_in_files(
         in_files=in_files,
         var_names=var_name,
         threshold=threshold,
@@ -416,7 +416,7 @@ def index(
     )
     # We use groupby instead of resample when there is a single variable that must be
     # compared to its reference period values.
-    is_compared_to_reference = must_add_reference_var(
+    is_compared_to_reference = _must_add_reference_var(
         climate_vars_dict, base_period_time_range
     )
     indicator_name = (
@@ -762,3 +762,15 @@ def read_coef(user_index: UserIndexDict) -> float | None:
 def read_date_event(user_index: UserIndexDict) -> float | None:
     # todo add unit test using it
     return user_index.get("date_event", False)
+
+
+def _must_add_reference_var(
+    climate_vars_dict: dict[str, InFileDictionary],
+    reference_period: Sequence[str] | None,
+) -> bool:
+    """True whenever the input has no threshold and only one studied variable but there
+    is a reference period.
+    Example case: the anomaly of tx(1960-2100) by tx(1960-1990).
+    """
+    t = list(climate_vars_dict.values())[0].get("thresholds", None)
+    return t is None and len(climate_vars_dict) == 1 and reference_period is not None

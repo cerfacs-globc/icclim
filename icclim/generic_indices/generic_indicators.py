@@ -178,34 +178,6 @@ class ResamplingIndicator(Indicator, ABC):
         return out_data.where(~mask)
 
 
-def _check_cf(climate_vars: list[ClimateVariable]):
-    """Compare metadata attributes to CF-Convention standards.
-
-    Default cfchecks use the specifications in `xclim.core.utils.VARIABLES`,
-    assuming the indicator's inputs are using the CMIP6/xclim variable names
-    correctly.
-    Variables absent from these default specs are silently ignored.
-
-    When subclassing this method, use functions decorated using
-    `xclim.core.options.cfcheck`.
-    """
-    for da in climate_vars:
-        try:
-            cfcheck_from_name(str(da.name), da)
-        except KeyError:
-            # Silently ignore unknown variables.
-            pass
-
-
-def _check_data(climate_vars: list[ClimateVariable], src_freq: str):
-    if src_freq is None:
-        return
-    for climate_var in climate_vars:
-        da = climate_var.studied_data
-        if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
-            check_freq(da, src_freq, strict=True)
-
-
 class GenericIndicator(ResamplingIndicator):
     def __init__(
         self,
@@ -692,7 +664,7 @@ def difference_of_means(
             # Thus there is only one "group".
             mean_ref = ref.mean(dim="time")
         else:
-            return diff_of_means_of_resampled_x_by_groupedby_y(
+            return _diff_of_means_of_resampled_x_by_groupedby_y(
                 resample_freq, to_percent, study, ref
             )
     else:
@@ -706,7 +678,7 @@ def difference_of_means(
     return diff_of_means
 
 
-def diff_of_means_of_resampled_x_by_groupedby_y(
+def _diff_of_means_of_resampled_x_by_groupedby_y(
     resample_freq: Frequency, to_percent: bool, study: DataArray, ref: DataArray
 ) -> DataArray:
     mean_ref = ref.groupby(resample_freq.group_by_key).mean()
@@ -739,14 +711,14 @@ def diff_of_means_of_resampled_x_by_groupedby_y(
     return diff_of_means
 
 
-def check_single_var(climate_vars: list[ClimateVariable], indicator: GenericIndicator):
+def _check_single_var(climate_vars: list[ClimateVariable], indicator: GenericIndicator):
     if len(climate_vars) > 1:
         raise InvalidIcclimArgumentError(
             f"{indicator.name} can only be computed on a" f" single variable."
         )
 
 
-def check_couple_of_vars(
+def _check_couple_of_vars(
     climate_vars: list[ClimateVariable], indicator: GenericIndicator
 ):
     if len(climate_vars) != 2:
@@ -773,10 +745,10 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         "sum_of_spell_lengths",
         sum_of_spell_lengths,
     )
-    Excess = GenericIndicator("excess", excess, check_vars=check_single_var)
-    Deficit = GenericIndicator("deficit", deficit, check_vars=check_single_var)
+    Excess = GenericIndicator("excess", excess, check_vars=_check_single_var)
+    Deficit = GenericIndicator("deficit", deficit, check_vars=_check_single_var)
     FractionOfTotal = GenericIndicator(
-        "fraction_of_total", fraction_of_total, check_vars=check_single_var
+        "fraction_of_total", fraction_of_total, check_vars=_check_single_var
     )
     Maximum = GenericIndicator("maximum", maximum)
     Minimum = GenericIndicator("minimum", minimum)
@@ -784,34 +756,34 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
     Sum = GenericIndicator("sum", sum)
     StandardDeviation = GenericIndicator("standard_deviation", standard_deviation)
     MaxOfRollingSum = GenericIndicator(
-        "max_of_rolling_sum", max_of_rolling_sum, check_vars=check_single_var
+        "max_of_rolling_sum", max_of_rolling_sum, check_vars=_check_single_var
     )
     MinOfRollingSum = GenericIndicator(
-        "min_of_rolling_sum", min_of_rolling_sum, check_vars=check_single_var
+        "min_of_rolling_sum", min_of_rolling_sum, check_vars=_check_single_var
     )
     MaxOfRollingAverage = GenericIndicator(
-        "max_of_rolling_average", max_of_rolling_average, check_vars=check_single_var
+        "max_of_rolling_average", max_of_rolling_average, check_vars=_check_single_var
     )
     MinOfRollingAverage = GenericIndicator(
-        "min_of_rolling_average", min_of_rolling_average, check_vars=check_single_var
+        "min_of_rolling_average", min_of_rolling_average, check_vars=_check_single_var
     )
     MeanOfDifference = GenericIndicator(
-        "mean_of_difference", mean_of_difference, check_vars=check_couple_of_vars
+        "mean_of_difference", mean_of_difference, check_vars=_check_couple_of_vars
     )
     DifferenceOfExtremes = GenericIndicator(
         "difference_of_extremes",
         difference_of_extremes,
-        check_vars=check_couple_of_vars,
+        check_vars=_check_couple_of_vars,
     )
     MeanOfAbsoluteOneTimeStepDifference = GenericIndicator(
         "mean_of_absolute_one_time_step_difference",
         mean_of_absolute_one_time_step_difference,
-        check_vars=check_couple_of_vars,
+        check_vars=_check_couple_of_vars,
     )
     DifferenceOfMeans = GenericIndicator(
         "difference_of_means",
         difference_of_means,
-        check_vars=check_couple_of_vars,
+        check_vars=_check_couple_of_vars,
         sampling_methods=[
             RESAMPLE_METHOD,
             GROUP_BY_METHOD,
@@ -825,8 +797,7 @@ def _compute_exceedance(
     study: DataArray,
     threshold: DataArray | PercentileDataArray,
     operator: Operator,
-    freq: str,
-    # noqa used by @percentile_bootstrap (don't rename, it breaks bootstrap)
+    freq: str,  # noqa used by @percentile_bootstrap (don't rename, it breaks bootstrap)
     bootstrap: bool,  # noqa used by @percentile_bootstrap
     is_doy_per: bool,
 ) -> DataArray:
@@ -1150,3 +1121,31 @@ def _is_leap_year(da: DataArray) -> np.ndarray:
 
 def _is_doy_per(thresh: Threshold) -> bool:
     return isinstance(thresh, PercentileThreshold) and thresh.is_doy_per_threshold
+
+
+def _check_cf(climate_vars: list[ClimateVariable]):
+    """Compare metadata attributes to CF-Convention standards.
+
+    Default cfchecks use the specifications in `xclim.core.utils.VARIABLES`,
+    assuming the indicator's inputs are using the CMIP6/xclim variable names
+    correctly.
+    Variables absent from these default specs are silently ignored.
+
+    When subclassing this method, use functions decorated using
+    `xclim.core.options.cfcheck`.
+    """
+    for da in climate_vars:
+        try:
+            cfcheck_from_name(str(da.name), da)
+        except KeyError:
+            # Silently ignore unknown variables.
+            pass
+
+
+def _check_data(climate_vars: list[ClimateVariable], src_freq: str):
+    if src_freq is None:
+        return
+    for climate_var in climate_vars:
+        da = climate_var.studied_data
+        if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
+            check_freq(da, src_freq, strict=True)

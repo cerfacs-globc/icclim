@@ -25,9 +25,6 @@ from icclim.pre_processing.input_parsing import (
     read_dataset,
 )
 
-# TODO: [refacto] a model file/class should not have that much logic,
-#       move stuff to a ClimateVariableFactory or something similar
-
 
 @dataclass
 class ClimateVariable:
@@ -178,19 +175,7 @@ def _build_reference_variable(
     )
 
 
-def must_add_reference_var(
-    climate_vars_dict: dict[str, InFileDictionary],
-    reference_period: Sequence[str] | None,
-) -> bool:
-    """True whenever the input has no threshold and only one studied variable but there
-    is a reference period.
-    Example case: the anomaly of tx(1960-2100) by tx(1960-1990).
-    """
-    t = list(climate_vars_dict.values())[0].get("thresholds", None)
-    return t is None and len(climate_vars_dict) == 1 and reference_period is not None
-
-
-def to_dictionary(
+def read_in_files(
     in_files: InFileLike,
     var_names: Sequence[str] | None,
     threshold: Threshold | Sequence[Threshold] | None,
