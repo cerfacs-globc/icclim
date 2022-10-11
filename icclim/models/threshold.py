@@ -105,8 +105,7 @@ def build_threshold(
     operator: Operator | str = None
         keyword argument only.
         The operator either as an instance of Operator or as a compatible string.
-        See :class:`icclim.models.operator.OperatorRegistry` for the list of all
-        operators.
+        See :py:class:`OperatorRegistry` for the list of all operators.
         When query is None and operator is None, the default ``Operator.REACH`` is used.
     value: str | float | int | Dataset | DataArray | Sequence[float | int | str] | None
         todo: [bounded threshold] update definition  (for the sequence of scalars,
@@ -140,10 +139,10 @@ def build_threshold(
         "1 mm/day".
         If threshold_min_value is a number, ``unit`` is used to quantify
         ``threshold_min_value``.
-    kwargs: dict
+    kwargs
         todo: [bounded threshold] update definition
         Additional arguments to build a PercentileThreshold.
-        See :class:`PercentileThreshold` constructor for the complete list
+        See :py:class:`PercentileThreshold` constructor for the complete list
         of possible arguments.
 
     Examples
@@ -155,6 +154,16 @@ def build_threshold(
 
         t2 = build_threshold(">= 30 doy_per")
         assert isinstance(t2, PercentileThreshold)
+
+        t3 = build_threshold(
+            operator=">=", value="path/to/tasmax_thresholds.nc", unit="K"
+        )
+        assert isinstance(t3, BasicThreshold)
+
+        tasmax = xarray.open_dataset("path/to/tasmax_thresholds.nc").tasmax
+        doys = xclim.core.calendar.percentile_doy(tasmax)
+        t4 = build_threshold(operator=">=", value=doys)
+        assert isinstance(t4, PercentileThreshold)
 
     """
     input_thresh = _read_input(

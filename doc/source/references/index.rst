@@ -14,5 +14,6 @@ This is the technical documentation of icclim. You should find here an overview 
     ecad_functions_api
     custom_indices
     frequency
+    threshold
     output_metadata
     release_notes
