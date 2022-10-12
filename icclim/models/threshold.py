@@ -12,7 +12,7 @@ import xarray as xr
 from pint import Quantity
 from xarray import DataArray, Dataset
 from xclim.core.calendar import build_climatology_bounds, percentile_doy
-from xclim.core.units import convert_units_to
+from xclim.core.units import convert_units_to, str2pint
 from xclim.core.utils import PercentileDataArray, calc_perc
 
 from icclim.generic_indices.threshold_templates import (
@@ -86,7 +86,7 @@ def build_threshold(
     unit: str | None = None,
     threshold_min_value: str | float | None | pint.Quantity = None,
     **kwargs,
-):
+) -> Threshold:
     """Factory for thresholds.
 
     Parameters
@@ -238,7 +238,7 @@ class PercentileThreshold(Threshold):
     @unit.setter
     def unit(self, unit):
         if self.is_ready:
-            if self.value.attrs.get(UNITS_KEY, None) is not None:
+            if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
                 self._prepared_value = convert_units_to(self._prepared_value, unit)
             self.value.attrs[UNITS_KEY] = unit
 
@@ -273,12 +273,13 @@ class PercentileThreshold(Threshold):
             self.is_ready = True
             self._initial_unit = None
             self._initial_value = None
+            self.unit = self._prepared_value.attrs[UNITS_KEY]
         else:
             self.is_ready = False
             self._initial_unit = unit
             self._initial_value = float(value)
+            self.unit = unit
         self.operator = operator
-        self.unit = unit
         self.threshold_var_name = threshold_var_name
         self.initial_query = initial_query
         self.threshold_min_value = threshold_min_value
@@ -376,7 +377,7 @@ class BasicThreshold(Threshold):
 
     @unit.setter
     def unit(self, unit):
-        if self.value.attrs.get(UNITS_KEY, None) is not None:
+        if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
             self.value = convert_units_to(self.value, unit)
         self.value.attrs[UNITS_KEY] = unit
 
@@ -395,7 +396,14 @@ class BasicThreshold(Threshold):
         self.is_ready = True
         self.threshold_var_name = threshold_var_name
         self.initial_query = initial_query
-        self.threshold_min_value = threshold_min_value
+        if (
+            unit is not None
+            and threshold_min_value is not None
+            and threshold_min_value.dimensionless
+        ):
+            self.threshold_min_value = float(threshold_min_value.m) * str2pint(unit)
+        else:
+            self.threshold_min_value = threshold_min_value
         self.prepare = None
 
     def __eq__(self, other):
@@ -504,7 +512,10 @@ def _build_doy_per(
 
 
 def _read_string_threshold(query: str) -> tuple[str, str, float]:
-    value = re.findall(r"-?\d+\.?\d*", query)[0]
+    value = re.findall(r"-?\d+\.?\d*", query)
+    if len(value) == 0:
+        raise InvalidIcclimArgumentError(f"Cannot build threshold from '{query}'")
+    value = value[0]
     value_index = query.find(value)
     operator = query[0:value_index].strip()
     if operator == "":
@@ -523,8 +534,15 @@ def _build_min_value(
         return None
     elif isinstance(threshold_min_value, Quantity):
         return threshold_min_value
-    elif isinstance(threshold_min_value, float):
-        return Quantity(value=threshold_min_value, units=default_unit)
+    elif isinstance(threshold_min_value, (float, int)):
+        if (
+            default_unit == PERIOD_PERCENTILE_UNIT
+            or default_unit == DOY_PERCENTILE_UNIT
+        ):
+            unit = None
+        else:
+            unit = default_unit
+        return Quantity(value=threshold_min_value, units=unit)
     elif isinstance(threshold_min_value, str):
         operator, unit, value = _read_string_threshold(threshold_min_value)
         if operator is not None and operator != "" and operator != ">=":
@@ -536,7 +554,7 @@ def _build_min_value(
         return Quantity(value=value, units=unit)
     else:
         raise NotImplementedError(
-            f"Unknown type '{type(threshold_min_value)}' for" f" `threshold_min_value`."
+            f"Unknown type '{type(threshold_min_value)}' for `threshold_min_value`."
         )
 
 
@@ -640,8 +658,12 @@ def _get_basic_threshold_conf(input: ThresholdBuilderInput) -> ThresholdBuilderI
         # e.g. build_threshold(">", "thresh*.nc" , "degC")
         thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
         built_value = _apply_min_value(thresh_da, threshold_min_value)
+        if unit is None:
+            unit = built_value.attrs.get(UNITS_KEY, None)
     elif isinstance(value, DataArray):
         built_value = _apply_min_value(value, threshold_min_value)
+        if unit is None:
+            unit = built_value.attrs.get(UNITS_KEY, None)
     elif is_number_sequence(value) or isinstance(value, (float, int)):
         # e.g. build_threshold(">", [2,3,4], "degC")
         if threshold_min_value is not None:
@@ -653,8 +675,6 @@ def _get_basic_threshold_conf(input: ThresholdBuilderInput) -> ThresholdBuilderI
         raise NotImplementedError(f"Cannot build threshold from a {type(value)}.")
     if unit is not None:
         built_value = convert_units_to(built_value, unit)
-    else:
-        built_value = built_value
     return dict(  # noqa
         operator=operator,
         value=built_value,
@@ -667,7 +687,9 @@ def _get_basic_threshold_conf(input: ThresholdBuilderInput) -> ThresholdBuilderI
 
 def _apply_min_value(thresh_da: DataArray, min_value: Quantity | None):
     if min_value is not None:
-        if min_value.unit is not None:
+        if min_value.dimensionless:
+            min_value = convert_units_to(min_value.m, thresh_da)
+        else:
             min_value = convert_units_to(str(min_value), thresh_da)
         built_value = thresh_da.where(thresh_da > min_value, np.nan)
         return built_value
@@ -701,7 +723,7 @@ def _get_dataarray_from_dataset(
 
 def _build_per_thresh_from_dataset(
     value: ThresholdValueType,
-    unit: str,
+    unit: str | None,
     threshold_var_name: str,
     reference_period: Sequence[datetime | str],
 ) -> tuple[DataArray, bool]:
@@ -710,8 +732,8 @@ def _build_per_thresh_from_dataset(
         standardize_percentile_dim_name(thresh_da),
         read_clim_bounds(reference_period, thresh_da),
     )
-    if built_value.attrs.get(UNITS_KEY, None) is None:
+    if unit is not None:
+        if built_value.attrs.get(UNITS_KEY, None) is not None:
+            built_value = convert_units_to(built_value, unit)
         built_value.attrs[UNITS_KEY] = unit
-    else:
-        built_value = convert_units_to(built_value, unit)
-    return built_value, DOY_COORDINATE in value.coords
+    return built_value, DOY_COORDINATE in built_value.coords

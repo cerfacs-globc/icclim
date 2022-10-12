@@ -17,7 +17,6 @@ from warnings import warn
 
 import xarray as xr
 import xclim
-from pre_processing.in_file_dictionary import InFileDictionary
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
@@ -56,6 +55,7 @@ from icclim.models.quantile_interpolation import (
 from icclim.models.standard_index import StandardIndex
 from icclim.models.threshold import Threshold, build_threshold
 from icclim.models.user_index_dict import UserIndexDict
+from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.user_indices.calc_operation import CalcOperationRegistry
 from icclim.utils import read_date
 
