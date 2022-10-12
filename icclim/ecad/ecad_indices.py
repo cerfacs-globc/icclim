@@ -6,7 +6,7 @@ from icclim.models.constants import ECAD_ATBD, QUANTILE_BASED
 from icclim.models.index_group import IndexGroupRegistry
 from icclim.models.registry import Registry
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import build_threshold
 
 ECAD_REFERENCE = (
     "ATBD of the ECA&D indices calculation"
@@ -14,7 +14,7 @@ ECAD_REFERENCE = (
 )
 
 
-class EcadIndexRegistry(Registry):
+class EcadIndexRegistry(Registry[StandardIndex]):
     _item_class = StandardIndex
     # TODO Add indices of wind gust, wind direction,
     #                     radiation, pressure,
@@ -458,7 +458,7 @@ class EcadIndexRegistry(Registry):
     R75P = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+        threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 75th percentile of daily amounts (moderate wet days)"
         " (d)",
@@ -471,7 +471,7 @@ class EcadIndexRegistry(Registry):
     R75PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
-        threshold=Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+        threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
         definition="Precipitation fraction due to moderate wet days"
         " (> 75th percentile)",
@@ -484,7 +484,7 @@ class EcadIndexRegistry(Registry):
     R95P = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=Threshold("> 95 period_per", threshold_min_value="1 mm/day"),
+        threshold=build_threshold("> 95 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 95th percentile of daily amounts (very wet days)"
         " (days)",
@@ -497,7 +497,7 @@ class EcadIndexRegistry(Registry):
     R95PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
-        threshold=Threshold("> 95 period_per", threshold_min_value="1 mm/day"),
+        threshold=build_threshold("> 95 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
         definition="Precipitation fraction due to very wet days (> 95th percentile)",
         source=ECAD_ATBD,
@@ -509,7 +509,7 @@ class EcadIndexRegistry(Registry):
     R99P = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=Threshold("> 99 period_per", threshold_min_value="1 mm/day"),
+        threshold=build_threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 99th percentile of daily amounts"
         " (extremely wet days)",
@@ -522,7 +522,7 @@ class EcadIndexRegistry(Registry):
     R99PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
-        threshold=Threshold("> 99 period_per", threshold_min_value="1 mm/day"),
+        threshold=build_threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
         definition="Precipitation fraction due to extremely wet days"
         " (> 99th percentile)",
@@ -582,7 +582,7 @@ class EcadIndexRegistry(Registry):
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=[
             "< 25 doy_per",
-            Threshold("< 25 period_per", threshold_min_value="1 mm/day"),
+            build_threshold("< 25 period_per", threshold_min_value="1 mm/day"),
         ],
         output_unit="day",
         definition="Days with TG < 25th percentile of daily mean temperature and"
@@ -599,7 +599,7 @@ class EcadIndexRegistry(Registry):
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=[
             "< 25 doy_per",
-            Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+            build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         ],
         output_unit="day",
         definition="Days with TG < 25th percentile of daily mean temperature and"
@@ -616,7 +616,7 @@ class EcadIndexRegistry(Registry):
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=[
             "> 75 doy_per",
-            Threshold("< 25 period_per", threshold_min_value="1 mm/day"),
+            build_threshold("< 25 period_per", threshold_min_value="1 mm/day"),
         ],
         output_unit="day",
         definition="Days with TG > 75th percentile of daily mean temperature and"
@@ -633,7 +633,7 @@ class EcadIndexRegistry(Registry):
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=[
             "> 75 doy_per",
-            Threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+            build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         ],
         output_unit="day",
         definition="Days with TG > 75th percentile of daily mean temperature and"

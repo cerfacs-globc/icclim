@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import re
 from datetime import datetime
 from typing import Hashable, Sequence
 
 import numpy as np
 import xarray as xr
 import xclim
+from pint import Quantity
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.units import convert_units_to
@@ -19,7 +19,7 @@ from icclim.generic_indices.cf_var_metadata import (
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType
 from icclim.models.cf_calendar import CfCalendarRegistry
-from icclim.models.constants import UNITS_ATTRIBUTE_KEY, VALID_PERCENTILE_DIMENSION
+from icclim.models.constants import UNITS_KEY, VALID_PERCENTILE_DIMENSION
 from icclim.models.standard_index import StandardIndex
 from icclim.utils import get_date_to_iso_format
 
@@ -118,7 +118,7 @@ def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
 
 
 def read_clim_bounds(
-    climatology_bounds: Sequence[str, str], per_da: DataArray
+    climatology_bounds: Sequence[str, str] | None, per_da: DataArray
 ) -> list[str]:
     bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
     if len(bds) != 2:
@@ -180,10 +180,10 @@ def _guess_dataset_var_names(
         if len(ds.data_vars) == 1:
             return [get_name_of_first_var(ds)]
         else:
-            return _find_standard_vars(ds)
+            return find_standard_vars(ds)
 
 
-def _find_standard_vars(ds: Dataset) -> list[Hashable]:
+def find_standard_vars(ds: Dataset) -> list[Hashable]:
     return [
         v
         for v in ds.data_vars
@@ -224,8 +224,8 @@ def build_studied_data(
         da = original_da
     if ignore_Feb29th:
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
-    if da.attrs.get(UNITS_ATTRIBUTE_KEY, None) is None and standard_var is not None:
-        da.attrs[UNITS_ATTRIBUTE_KEY] = standard_var.default_units
+    if da.attrs.get(UNITS_KEY, None) is None and standard_var is not None:
+        da.attrs[UNITS_KEY] = standard_var.default_units
     da = da.chunk("auto")
     return da
 
@@ -274,17 +274,6 @@ def reduce_only_leap_years(da: DataArray) -> DataArray:
     return xr.concat(reduced_list, "time")
 
 
-def read_string_threshold(query: str) -> tuple[str, str, float]:
-    value = re.findall(r"-?\d+\.?\d*", query)[0]
-    value_index = query.find(value)
-    operator = query[0:value_index].strip()
-    if query.endswith(value):
-        unit = None
-    else:
-        unit = query[value_index + len(value) :].strip()
-    return operator, unit, float(value)
-
-
 def read_threshold_DataArray(
     thresh_da: DataArray,
     threshold_min_value: str | float,
@@ -297,7 +286,6 @@ def read_threshold_DataArray(
             read_clim_bounds(climatology_bounds, thresh_da),
         )
         built_value.attrs["unit"] = unit
-
     else:
         if threshold_min_value:
             if isinstance(threshold_min_value, str):
@@ -314,9 +302,8 @@ def build_reference_da(
     original_da: DataArray,
     base_period_time_range: Sequence[datetime | str] | None,
     only_leap_years: bool,
-    percentile_min_value: str | float | None,
+    percentile_min_value: Quantity | None,
 ) -> DataArray:
-    # todo [refacto] move back to threshold ?
     reference = original_da
     if base_period_time_range:
         check_time_range_pre_validity("base_period_time_range", base_period_time_range)
@@ -331,9 +318,7 @@ def build_reference_da(
         )
     if only_leap_years:
         reference = reduce_only_leap_years(original_da)
-    if percentile_min_value:
-        if isinstance(percentile_min_value, str):
-            percentile_min_value = convert_units_to(percentile_min_value, reference)
-        # todo in prcptot the replacing value (np.nan) needs to be 0
+    if percentile_min_value is not None:
+        percentile_min_value = convert_units_to(str(percentile_min_value), reference)
         reference = reference.where(reference >= percentile_min_value, np.nan)
     return reference

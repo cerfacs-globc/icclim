@@ -13,7 +13,7 @@ class Verbosity:
     log_level: str
 
 
-class VerbosityRegistry(Registry):
+class VerbosityRegistry(Registry[Verbosity]):
     _item_class = Verbosity
     LOW = Verbosity("LOW", "INFO")
     HIGH = Verbosity("HIGH", "INFO")

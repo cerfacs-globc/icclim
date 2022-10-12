@@ -17,7 +17,7 @@ from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import build_threshold
 from icclim.models.user_index_dict import UserIndexDict
 
 __all__ = [
@@ -94,7 +94,7 @@ def tg(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -173,7 +173,7 @@ def tn(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -252,7 +252,7 @@ def tx(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -331,7 +331,7 @@ def dtr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -410,7 +410,7 @@ def etr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -489,7 +489,7 @@ def vdtr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -568,7 +568,7 @@ def su(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -624,7 +624,7 @@ def su(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 25 degree_Celsius",
         ),
         out_unit="day",
@@ -650,7 +650,7 @@ def tr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -706,7 +706,7 @@ def tr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 20 degree_Celsius",
         ),
         out_unit="day",
@@ -736,7 +736,7 @@ def wsdi(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -820,7 +820,7 @@ def wsdi(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -854,7 +854,7 @@ def tg90p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -938,7 +938,7 @@ def tg90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -972,7 +972,7 @@ def tn90p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1056,7 +1056,7 @@ def tn90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -1090,7 +1090,7 @@ def tx90p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1174,7 +1174,7 @@ def tx90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -1204,7 +1204,7 @@ def txx(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1283,7 +1283,7 @@ def tnx(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1362,7 +1362,7 @@ def csu(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1418,7 +1418,7 @@ def csu(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 25 degree_Celsius",
         ),
         out_unit="day",
@@ -1444,7 +1444,7 @@ def gd4(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1500,7 +1500,7 @@ def gd4(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="4 degree_Celsius",
         ),
         out_unit="degree_Celsius day",
@@ -1526,7 +1526,7 @@ def fd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1582,7 +1582,7 @@ def fd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
         out_unit="day",
@@ -1608,7 +1608,7 @@ def cfd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1664,7 +1664,7 @@ def cfd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
         out_unit="day",
@@ -1690,7 +1690,7 @@ def hd17(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1746,7 +1746,7 @@ def hd17(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="17 degree_Celsius",
         ),
         out_unit="degree_Celsius day",
@@ -1772,7 +1772,7 @@ def id(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1828,7 +1828,7 @@ def id(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
         out_unit="day",
@@ -1858,7 +1858,7 @@ def tg10p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -1942,7 +1942,7 @@ def tg10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -1976,7 +1976,7 @@ def tn10p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2060,7 +2060,7 @@ def tn10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -2094,7 +2094,7 @@ def tx10p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2178,7 +2178,7 @@ def tx10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -2208,7 +2208,7 @@ def txn(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2287,7 +2287,7 @@ def tnn(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2370,7 +2370,7 @@ def csdi(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2454,7 +2454,7 @@ def csdi(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
@@ -2484,7 +2484,7 @@ def cdd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2540,7 +2540,7 @@ def cdd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="< 1 mm day-1",
         ),
         out_unit="day",
@@ -2566,7 +2566,7 @@ def prcptot(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2622,7 +2622,7 @@ def prcptot(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 mm day-1",
         ),
         out_unit="mm",
@@ -2648,7 +2648,7 @@ def rr1(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2704,7 +2704,7 @@ def rr1(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 mm day-1",
         ),
         out_unit="day",
@@ -2730,7 +2730,7 @@ def sdii(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2786,7 +2786,7 @@ def sdii(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 mm day-1",
         ),
         out_unit="mm day-1",
@@ -2812,7 +2812,7 @@ def cwd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2868,7 +2868,7 @@ def cwd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 mm day-1",
         ),
         out_unit="day",
@@ -2894,7 +2894,7 @@ def rr(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -2973,7 +2973,7 @@ def r10mm(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3029,7 +3029,7 @@ def r10mm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 10 mm day-1",
         ),
         out_unit="day",
@@ -3055,7 +3055,7 @@ def r20mm(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3111,7 +3111,7 @@ def r20mm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 20 mm day-1",
         ),
         out_unit="day",
@@ -3137,7 +3137,7 @@ def rx1day(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3216,7 +3216,7 @@ def rx5day(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3299,7 +3299,7 @@ def r75p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3383,13 +3383,13 @@ def r75p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 75 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -3418,7 +3418,7 @@ def r75ptot(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3502,13 +3502,13 @@ def r75ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 75 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -3537,7 +3537,7 @@ def r95p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3621,13 +3621,13 @@ def r95p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 95 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -3656,7 +3656,7 @@ def r95ptot(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3740,13 +3740,13 @@ def r95ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 95 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -3775,7 +3775,7 @@ def r99p(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3859,13 +3859,13 @@ def r99p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 99 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -3894,7 +3894,7 @@ def r99ptot(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -3978,13 +3978,13 @@ def r99ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query="> 99 period_per",
             doy_window_width=5,
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm/day",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -4009,7 +4009,7 @@ def sd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4088,7 +4088,7 @@ def sd1(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4144,7 +4144,7 @@ def sd1(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 1 cm",
         ),
         out_unit="day",
@@ -4170,7 +4170,7 @@ def sd5cm(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4226,7 +4226,7 @@ def sd5cm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 5 cm",
         ),
         out_unit="day",
@@ -4252,7 +4252,7 @@ def sd50cm(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4308,7 +4308,7 @@ def sd50cm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=Threshold(
+        threshold=build_threshold(
             query=">= 50 cm",
         ),
         out_unit="day",
@@ -4338,7 +4338,7 @@ def cd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4423,20 +4423,20 @@ def cd(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=[
-            Threshold(
+            build_threshold(
                 query="< 25 doy_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
             ),
-            Threshold(
+            build_threshold(
                 query="< 25 period_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1.0 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -4466,7 +4466,7 @@ def cw(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4551,20 +4551,20 @@ def cw(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=[
-            Threshold(
+            build_threshold(
                 query="< 25 doy_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
             ),
-            Threshold(
+            build_threshold(
                 query="> 75 period_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1.0 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -4594,7 +4594,7 @@ def wd(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4679,20 +4679,20 @@ def wd(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=[
-            Threshold(
+            build_threshold(
                 query="> 75 doy_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
             ),
-            Threshold(
+            build_threshold(
                 query="< 25 period_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1.0 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -4722,7 +4722,7 @@ def ww(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None
@@ -4807,20 +4807,20 @@ def ww(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=[
-            Threshold(
+            build_threshold(
                 query="> 75 doy_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
             ),
-            Threshold(
+            build_threshold(
                 query="> 75 period_per",
                 doy_window_width=5,
                 only_leap_years=only_leap_years,
                 interpolation=interpolation,
                 reference_period=base_period_time_range,
-                threshold_min_value="1 mm/day",
+                threshold_min_value="1.0 millimeter / day",
             ),
         ],
         out_unit="day",
@@ -4856,7 +4856,7 @@ def custom_index(
     Parameters
     ----------
 
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     var_name: str | list[str] | None

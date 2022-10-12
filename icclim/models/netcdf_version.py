@@ -1,16 +1,17 @@
 from __future__ import annotations
 
 import dataclasses
+from typing import Literal
 
 from icclim.models.registry import Registry
 
 
 @dataclasses.dataclass
 class NetcdfVersion:
-    name: str
+    name: Literal["NETCDF4", "NETCDF4_CLASSIC", "NETCDF3_64BIT", "NETCDF3_CLASSIC"]
 
 
-class NetcdfVersionRegistry(Registry):
+class NetcdfVersionRegistry(Registry[NetcdfVersion]):
     _item_class = NetcdfVersion
 
     NETCDF4 = NetcdfVersion("NETCDF4")

@@ -3,7 +3,9 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 """
 Main entry point of icclim.
-This module expose the index API endpoint as long as a few other functions.
+This module expose icclim principal function, notably `index` which is use by the
+generated API.
+A convenience function `indices` is also exposed to compute multiple indices at once.
 """
 from __future__ import annotations
 
@@ -30,14 +32,13 @@ from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.climate_variable import (
     ClimateVariable,
     build_climate_vars,
-    must_add_reference_var,
-    to_dictionary,
+    read_in_files,
 )
 from icclim.models.constants import (
     ICCLIM_VERSION,
     PERCENTILE_THRESHOLD_STAMP,
     RESAMPLE_METHOD,
-    UNITS_ATTRIBUTE_KEY,
+    UNITS_KEY,
     USER_INDEX_PRECIPITATION_STAMP,
     USER_INDEX_TEMPERATURE_STAMP,
 )
@@ -46,14 +47,15 @@ from icclim.models.index_config import IndexConfig
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.logical_link import LogicalLink, LogicalLinkRegistry
 from icclim.models.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
-from icclim.models.operator import OperatorRegistry
+from icclim.models.operator import Operator, OperatorRegistry
 from icclim.models.quantile_interpolation import (
     QuantileInterpolation,
     QuantileInterpolationRegistry,
 )
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import Threshold, build_threshold
 from icclim.models.user_index_dict import UserIndexDict
+from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.user_indices.calc_operation import CalcOperationRegistry
 from icclim.utils import read_date
 
@@ -136,7 +138,7 @@ def indices(
 
 
 def _get_indices_of_group(
-    query: list | tuple | str | IndexGroup,
+    query: list | tuple | str | IndexGroup | StandardIndex,
 ) -> list[StandardIndex]:
     if query == IndexGroupRegistry.WILD_CARD_GROUP or (
         isinstance(query, str)
@@ -221,7 +223,7 @@ def index(
 
     Parameters
     ----------
-    in_files: str | list[str] | Dataset | DataArray | InputDictionary,
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
     index_name: str
@@ -362,7 +364,7 @@ def index(
     logical_link: LogicalLink
     coef: float | None
     build_configured_threshold = partial(
-        build_threshold,
+        _build_threshold,
         doy_window_width=doy_window_width,
         base_period_time_range=base_period_time_range,
         only_leap_years=only_leap_years,
@@ -372,7 +374,7 @@ def index(
         standard_index = None
         indicator = read_indicator(user_index)
         if threshold is None:
-            threshold = read_threshold(user_index, build_configured_threshold)
+            threshold = read_thresholds(user_index, build_configured_threshold)
         logical_link = read_logical_link(user_index)
         coef = read_coef(user_index)
         date_event = read_date_event(user_index)
@@ -383,6 +385,7 @@ def index(
             "ref_time_range", base_period_time_range
         )
     elif index_name is not None:
+        # TODO: [BoundedThreshold] read logical_link from threshold instead
         logical_link = LogicalLinkRegistry.LOGICAL_AND
         coef = None
         standard_index = EcadIndexRegistry.lookup(index_name, no_error=True)
@@ -405,7 +408,7 @@ def index(
         threshold = build_configured_threshold(threshold)
     elif isinstance(threshold, Sequence):
         threshold = [build_configured_threshold(t) for t in threshold]
-    climate_vars_dict = to_dictionary(
+    climate_vars_dict = read_in_files(
         in_files=in_files,
         var_names=var_name,
         threshold=threshold,
@@ -413,7 +416,7 @@ def index(
     )
     # We use groupby instead of resample when there is a single variable that must be
     # compared to its reference period values.
-    is_compared_to_reference = must_add_reference_var(
+    is_compared_to_reference = _must_add_reference_var(
         climate_vars_dict, base_period_time_range
     )
     indicator_name = (
@@ -483,11 +486,11 @@ def _write_output_file(
     if input_time_encoding:
         time_encoding = {
             "calendar": input_time_encoding.get("calendar"),
-            UNITS_ATTRIBUTE_KEY: input_time_encoding.get(UNITS_ATTRIBUTE_KEY),
+            UNITS_KEY: input_time_encoding.get(UNITS_KEY),
             "dtype": input_time_encoding.get("dtype"),
         }
     else:
-        time_encoding = {UNITS_ATTRIBUTE_KEY: "days since 1850-1-1"}
+        time_encoding = {UNITS_KEY: "days since 1850-1-1"}
     result_ds.to_netcdf(
         file_path,
         format=netcdf_version.name,
@@ -536,7 +539,7 @@ def _setup(callback, callback_start_value, logs_verbosity):
 
 
 def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
-    da_unit = da.attrs.get(UNITS_ATTRIBUTE_KEY, None)
+    da_unit = da.attrs.get(UNITS_KEY, None)
     if da_unit is None:
         if output_unit is None:
             warn(
@@ -563,7 +566,7 @@ def _compute_standard_climate_index(
         result_da = result_da.rename(rename)
     else:
         result_da = result_da.rename(climate_index.name)
-    result_da.attrs[UNITS_ATTRIBUTE_KEY] = _get_unit(config.out_unit, result_da)
+    result_da.attrs[UNITS_KEY] = _get_unit(config.out_unit, result_da)
     if config.frequency.post_processing is not None and "time" in result_da.dims:
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
         result_ds = resampled_da.to_dataset()
@@ -628,7 +631,7 @@ def _build_history(
     )
 
 
-def build_threshold(
+def _build_threshold(
     threshold: str | Threshold,
     doy_window_width: int,
     base_period_time_range: Sequence[datetime | str] | None,
@@ -638,7 +641,7 @@ def build_threshold(
     if isinstance(threshold, Threshold):
         return threshold
     else:
-        return Threshold(
+        return build_threshold(
             threshold,
             doy_window_width=doy_window_width,
             reference_period=base_period_time_range,
@@ -655,13 +658,13 @@ def _format_threshold(cf_var: ClimateVariable) -> DataArray:
     return cf_var.threshold.value.rename(cf_var.name + "_thresholds").reindex()
 
 
-# TODO: [refacto] Move these functions "read_tagadada" to input_parsing  or
-#       user_index_parsing
+# TODO move `read_indicator`, `read_threshold`, `read_logical_link`, `read_coef`,
+#      `read_date_event` to a user_index_parsing module
 
 
 def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
     calc_op = CalcOperationRegistry.lookup(user_index["calc_operation"])
-    map = {
+    user_index_map = {
         CalcOperationRegistry.MAX: GenericIndicatorRegistry.lookup("Maximum"),
         CalcOperationRegistry.MIN: GenericIndicatorRegistry.lookup("Minimum"),
         CalcOperationRegistry.SUM: GenericIndicatorRegistry.lookup("Sum"),
@@ -691,7 +694,7 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         else:
             raise NotImplementedError()
     else:
-        indicator = map.get(calc_op)
+        indicator = user_index_map.get(calc_op)
     if indicator is None:
         raise InvalidIcclimArgumentError(
             f"Unknown user_index calc_operation:" f" '{user_index['calc_operation']}'"
@@ -699,40 +702,47 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
     return indicator
 
 
-def read_threshold(
-    user_index: UserIndexDict, build_threshold: Callable[[str | Threshold], Threshold]
+def read_thresholds(
+    user_index: UserIndexDict, _build_threshold: Callable[[str | Threshold], Threshold]
 ) -> Threshold | None | Sequence[Threshold]:
     thresh = user_index.get("thresh", None)
-    if (
-        thresh is None
-        or isinstance(thresh, Threshold)
-        or (
-            isinstance(thresh, (tuple, list))
-            and all(map(lambda th: isinstance(th, Threshold), thresh))
-        )
-    ):
+    if thresh is None or isinstance(thresh, Threshold):
         return thresh
+    # todo [BoundedThreshold] re-add below code and bind to LogicalLink
+    # or (
+    #     isinstance(thresh, (tuple, list))
+    #     and all(map(lambda th: isinstance(th, Threshold), thresh))
+    # )
     logical_operation = user_index["logical_operation"]
     if not isinstance(logical_operation, (tuple, list)):
         logical_operation = [logical_operation]
-    logical_operation = [OperatorRegistry.lookup(op) for op in logical_operation]
+    logical_operations = [OperatorRegistry.lookup(op) for op in logical_operation]
+    var_type = user_index.get("var_type", None)
     if not isinstance(thresh, (tuple, list)):
-        thresh = [thresh]
-    acc = []
-    for i, t in enumerate(thresh):
-        if isinstance(t, str) and t.endswith(PERCENTILE_THRESHOLD_STAMP):
-            var_type = user_index.get("var_type", None)
-            if var_type == USER_INDEX_TEMPERATURE_STAMP:
-                replace_unit = "doy_per"
-            elif var_type == USER_INDEX_PRECIPITATION_STAMP:
-                replace_unit = "period_per"
-            else:
-                replace_unit = "period_per"  # default to period percentiles ?
-            t = t.replace(PERCENTILE_THRESHOLD_STAMP, " " + replace_unit)
+        return read_threshold(thresh, var_type, logical_operations[0], _build_threshold)
+    return [
+        read_threshold(t, var_type, logical_operations[i], _build_threshold)
+        for i, t in enumerate(thresh)
+    ]
+
+
+def read_threshold(
+    query: str | float,
+    var_type: Literal["t", "p"] | None,
+    logical_operation: Operator,
+    _build_threshold: Callable[[str], Threshold],
+) -> Threshold:
+    if isinstance(query, str) and query.endswith(PERCENTILE_THRESHOLD_STAMP):
+        if var_type == USER_INDEX_TEMPERATURE_STAMP:
+            replace_unit = "doy_per"
+        elif var_type == USER_INDEX_PRECIPITATION_STAMP:
+            replace_unit = "period_per"
         else:
-            t = str(t)
-        acc.append(build_threshold(str(logical_operation[i].operand + t)))
-    return acc
+            replace_unit = "period_per"  # default to period percentiles ?
+        t = query.replace(PERCENTILE_THRESHOLD_STAMP, " " + replace_unit)
+    else:
+        t = str(query)
+    return _build_threshold(str(logical_operation.operand + t))
 
 
 def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
@@ -752,3 +762,15 @@ def read_coef(user_index: UserIndexDict) -> float | None:
 def read_date_event(user_index: UserIndexDict) -> float | None:
     # todo add unit test using it
     return user_index.get("date_event", False)
+
+
+def _must_add_reference_var(
+    climate_vars_dict: dict[str, InFileDictionary],
+    reference_period: Sequence[str] | None,
+) -> bool:
+    """True whenever the input has no threshold and only one studied variable but there
+    is a reference period.
+    Example case: the anomaly of tx(1960-2100) by tx(1960-1990).
+    """
+    t = list(climate_vars_dict.values())[0].get("thresholds", None)
+    return t is None and len(climate_vars_dict) == 1 and reference_period is not None

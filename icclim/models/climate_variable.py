@@ -1,19 +1,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable, Sequence
+from typing import Any, Sequence
 
+import jinja2
 import xarray
 from xarray.core.dataarray import DataArray
 
 from icclim.generic_indices.cf_var_metadata import StandardVariable
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileLike
-from icclim.models.constants import UNITS_ATTRIBUTE_KEY
+from icclim.models.constants import UNITS_KEY
 from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.global_metadata import GlobalMetadata
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import PercentileThreshold, Threshold, build_threshold
 from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.pre_processing.input_parsing import (
     DEFAULT_INPUT_FREQUENCY,
@@ -23,9 +24,6 @@ from icclim.pre_processing.input_parsing import (
     guess_var_names,
     read_dataset,
 )
-
-# TODO: [refacto] a model file/class should not have that much logic,
-#       move stuff to a ClimateVariableFactory or something similar
 
 
 @dataclass
@@ -54,9 +52,13 @@ class ClimateVariable:
     is_reference: bool = False
 
     def build_indicator_metadata(
-        self, src_freq: Frequency, must_run_bootstrap: bool
-    ) -> dict[str, str] | None:
-        metadata = {"threshold": {}}
+        self,
+        src_freq: Frequency,
+        must_run_bootstrap: bool,
+        jinja_scope: dict[str, Any],
+        jinja_env: jinja2.Environment,
+    ) -> dict[str, str | dict]:
+        metadata: dict[str, str | dict] = {"threshold": {}}
         if self.standard_var is None:
             metadata.update(
                 dict(
@@ -69,7 +71,14 @@ class ClimateVariable:
             metadata.update(self.standard_var.get_metadata())
         if self.threshold is not None:
             metadata.update(
-                {"threshold": self.threshold.get_metadata(src_freq, must_run_bootstrap)}
+                {
+                    "threshold": self.threshold.format_metadata(
+                        src_freq=src_freq,
+                        must_run_bootstrap=must_run_bootstrap,
+                        jinja_scope=jinja_scope,
+                        jinja_env=jinja_env,
+                    )
+                }
             )
         return metadata
 
@@ -166,19 +175,7 @@ def _build_reference_variable(
     )
 
 
-def must_add_reference_var(
-    climate_vars_dict: dict[str, InFileDictionary],
-    reference_period: Sequence[str] | None,
-) -> bool:
-    """True whenever the input has no threshold and only one studied variable but there
-    is a reference period.
-    Example case: the anomaly of tx(1960-2100) by tx(1960-1990).
-    """
-    t = list(climate_vars_dict.values())[0].get("thresholds", None)
-    return t is None and len(climate_vars_dict) == 1 and reference_period is not None
-
-
-def to_dictionary(
+def read_in_files(
     in_files: InFileLike,
     var_names: Sequence[str] | None,
     threshold: Threshold | Sequence[Threshold] | None,
@@ -222,9 +219,18 @@ def _build_in_file_dict(
         ds=input_dataset, standard_index=standard_index, var_names=var_names
     )
     if threshold is not None:
+        if len(var_names) == 1:
+            return {
+                var_names[0]: {
+                    "study": input_dataset[var_names[0]],
+                    "thresholds": threshold,
+                }
+            }
         if not isinstance(threshold, Sequence):
             threshold = [threshold]
         if len(threshold) != len(var_names):
+            # Allow 1 var with multiple thresholds or 1 threshold per var
+            # but no other case
             raise InvalidIcclimArgumentError(
                 "There must be as many thresholds as there are variables. There was"
                 f" {len(threshold)} thresholds and {len(var_names)} variables."
@@ -267,7 +273,7 @@ def _build_climate_var(
         climate_var_thresh = _build_threshold(
             climate_var_thresh=climate_var_thresh,
             original_data=study_ds[climate_var_name],
-            conversion_unit=studied_data.attrs[UNITS_ATTRIBUTE_KEY],
+            conversion_unit=studied_data.attrs[UNITS_KEY],
         )
     return ClimateVariable(
         name=climate_var_name,
@@ -291,11 +297,11 @@ def _build_threshold(
     conversion_unit: str,
 ) -> Threshold:
     if isinstance(climate_var_thresh, str):
-        climate_var_thresh: Threshold = Threshold(climate_var_thresh)
-    if isinstance(climate_var_thresh.value, Callable):
-        climate_var_thresh.value = climate_var_thresh.value(
-            studied_data=original_data,
-        )
+        climate_var_thresh: Threshold = build_threshold(climate_var_thresh)
+    if (
+        isinstance(climate_var_thresh, PercentileThreshold)
+        and not climate_var_thresh.is_ready
+    ):
+        climate_var_thresh.prepare(original_data)
     climate_var_thresh.unit = conversion_unit
-    climate_var_thresh.value = climate_var_thresh.value.chunk("auto")
     return climate_var_thresh

@@ -19,7 +19,7 @@ class LogicalLink:
         return self.compute(*args, **kwargs)
 
 
-class LogicalLinkRegistry(Registry):
+class LogicalLinkRegistry(Registry[LogicalLink]):
     _item_class = LogicalLink
 
     LOGICAL_OR = LogicalLink(

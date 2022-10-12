@@ -9,7 +9,7 @@ import xarray as xr
 
 from icclim import create_optimized_zarr_store
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import UNITS_ATTRIBUTE_KEY
+from icclim.models.constants import UNITS_KEY
 
 
 def test_create_optimized_zarr_store_success():
@@ -24,7 +24,7 @@ def test_create_optimized_zarr_store_success():
                 ),
                 dims=["time", "lat", "lon"],
                 name="pr",
-                attrs={UNITS_ATTRIBUTE_KEY: "kg m-2 d-1"},
+                attrs={UNITS_KEY: "kg m-2 d-1"},
             )
         }
     ).chunk({"time": 2})
@@ -50,7 +50,7 @@ def test_create_optimized_zarr_store_error():
                 ),
                 dims=["time", "lat", "lon"],
                 name="pr",
-                attrs={UNITS_ATTRIBUTE_KEY: "kg m-2 d-1"},
+                attrs={UNITS_KEY: "kg m-2 d-1"},
             )
         }
     ).chunk({"time": 2})
@@ -78,7 +78,7 @@ def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock):
                 ),
                 dims=["time", "lat", "lon"],
                 name="pr",
-                attrs={UNITS_ATTRIBUTE_KEY: "kg m-2 d-1"},
+                attrs={UNITS_KEY: "kg m-2 d-1"},
             )
         }
     ).chunk({"time": 2})

@@ -18,7 +18,7 @@ REFERENCE_PERIOD_ID = "reference_epoch"
 # coordinate of day of year values (usually from 1 to 365/366)
 DOY_COORDINATE = "dayofyear"
 # Units attribute key for DataArray(s)
-UNITS_ATTRIBUTE_KEY = "units"
+UNITS_KEY = "units"
 
 
 # Aliases of input percentiles variables names
@@ -79,3 +79,5 @@ PART_OF_A_WHOLE_UNIT = "1"
 GROUP_BY_METHOD = "groupby"
 RESAMPLE_METHOD = "resample"
 GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD = "groupby_ref_and_resample_study"
+
+DEFAULT_DOY_WINDOW = 5

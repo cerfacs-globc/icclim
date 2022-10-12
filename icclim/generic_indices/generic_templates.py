@@ -1,9 +1,15 @@
 from __future__ import annotations
 
-from icclim.generic_indices.cf_var_metadata import IndicatorMetadata
+from typing import TypedDict
 
 # fmt: off
 # flake8: noqa
+
+class IndicatorMetadata(TypedDict):
+    identifier: str
+    standard_name: str
+    long_name: str
+    cell_methods: str
 
 COMBINED_VARS_LONG_NAME = (
     "{% for i, climate_var in enumerate(climate_vars) %}"

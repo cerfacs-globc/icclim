@@ -12,7 +12,7 @@ class QuantileInterpolation:
     beta: float
 
 
-class QuantileInterpolationRegistry(Registry):
+class QuantileInterpolationRegistry(Registry[QuantileInterpolation]):
     _item_class = QuantileInterpolation
 
     LINEAR = QuantileInterpolation("linear", 1, 1)

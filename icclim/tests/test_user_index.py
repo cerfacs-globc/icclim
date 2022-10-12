@@ -4,7 +4,7 @@ from xclim.core.calendar import build_climatology_bounds
 
 import icclim
 from icclim.models.constants import (
-    UNITS_ATTRIBUTE_KEY,
+    UNITS_KEY,
     USER_INDEX_PRECIPITATION_STAMP,
     USER_INDEX_TEMPERATURE_STAMP,
 )
@@ -321,7 +321,7 @@ class Test_anomaly:
         )
         # THEN
         assert (result.data == 1).all()
-        assert result.data.attrs[UNITS_ATTRIBUTE_KEY] == tmax.attrs[UNITS_ATTRIBUTE_KEY]
+        assert result.data.attrs[UNITS_KEY] == tmax.attrs[UNITS_KEY]
 
     def test_single_var(self):
         # GIVEN
@@ -347,7 +347,7 @@ class Test_anomaly:
         # THEN
         assert (result.data == 1).all()
         assert len(result.data.month) == 12
-        assert result.data.attrs[UNITS_ATTRIBUTE_KEY] == tmax.attrs[UNITS_ATTRIBUTE_KEY]
+        assert result.data.attrs[UNITS_KEY] == tmax.attrs[UNITS_KEY]
 
     def test_simple_percent(self):
         # GIVEN
@@ -362,4 +362,4 @@ class Test_anomaly:
         )
         # THEN
         assert (result.data == 10).all()
-        assert result.data.attrs[UNITS_ATTRIBUTE_KEY] == "%"
+        assert result.data.attrs[UNITS_KEY] == "%"

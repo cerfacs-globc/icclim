@@ -30,6 +30,7 @@ release = icclim.__version__
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
@@ -74,5 +75,16 @@ html_theme_options = {
         },
     ],
 }
+
+intersphinx_mapping = {
+    "clisops": ("https://clisops.readthedocs.io/en/latest/", None),
+    "flox": ("https://flox.readthedocs.io/en/latest/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "sklearn": ("https://scikit-learn.org/stable/", None),
+    "statsmodels": ("https://www.statsmodels.org/stable/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "xclim": ("https://xclim.readthedocs.io/en/stable/", None),
+}
+
 # The master toctree document.
 master_doc = "index"

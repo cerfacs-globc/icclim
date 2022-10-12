@@ -170,7 +170,7 @@ class Frequency:
         return kwargs
 
 
-class FrequencyRegistry(Registry):
+class FrequencyRegistry(Registry[Frequency]):
     _item_class = Frequency
 
     HOUR = Frequency(

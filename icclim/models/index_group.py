@@ -41,7 +41,7 @@ class IndexGroup:
         return other.name == self.name
 
 
-class IndexGroupRegistry(Registry):
+class IndexGroupRegistry(Registry[IndexGroup]):
     _item_class = IndexGroup
 
     TEMPERATURE = IndexGroup("temperature")
@@ -50,5 +50,6 @@ class IndexGroupRegistry(Registry):
     DROUGHT = IndexGroup("drought")
     RAIN = IndexGroup("rain")
     SNOW = IndexGroup("snow")
+    WIND = IndexGroup("wind")
     # no climate index should be bounded to "all"
     WILD_CARD_GROUP = IndexGroup("all")

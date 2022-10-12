@@ -6,4 +6,4 @@ from typing import TypedDict
 class GlobalMetadata(TypedDict):
     history: str | None
     source: str | None
-    time_encoding: dict | None  # to read from ds.time.encoding
+    time_encoding: dict | None  # to be read from ds.time.encoding

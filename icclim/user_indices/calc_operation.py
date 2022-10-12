@@ -26,7 +26,7 @@ class CalcOperation(Hashable):
         return hash(self.name)
 
 
-class CalcOperationRegistry(Registry):
+class CalcOperationRegistry(Registry[CalcOperation]):
     # todo remove class once deprecation is finished (v6.1 ?)
     _item_class = CalcOperation
     MAX = CalcOperation("max")

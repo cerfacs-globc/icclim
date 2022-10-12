@@ -15,7 +15,7 @@ from icclim.models.frequency import FrequencyRegistry
 from icclim.models.netcdf_version import NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import Threshold
+from icclim.models.threshold import build_threshold
 from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.calc_operation import CalcOperation, CalcOperationRegistry
 
@@ -47,12 +47,12 @@ def build_expected_args(index: StandardIndex):
         )
     if index.threshold is not None:
         if isinstance(index.threshold, str):
-            t = Threshold(index.threshold)
+            t = build_threshold(index.threshold)
         elif isinstance(index.threshold, (list, tuple)):
             t = []
             for thresh in index.threshold:
                 if isinstance(thresh, str):
-                    t.append(Threshold(thresh))
+                    t.append(build_threshold(thresh))
                 else:
                     t.append(thresh)
         else:
@@ -289,7 +289,6 @@ def test_custom_index_anomaly__groupby_and_resample_year():
             "calc_operation": CalcOperationRegistry.ANOMALY,
         },
     ).compute()
-    print(res.anomaly.sel(time="2045"))
     np.testing.assert_almost_equal(res.anomaly.sel(time="2045"), 0.81643836)
 
 
