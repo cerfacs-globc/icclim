@@ -2541,7 +2541,7 @@ def cdd(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=build_threshold(
-            query="< 1 mm day-1",
+            query="< 1 mm/day",
         ),
         out_unit="day",
     )
@@ -2623,7 +2623,7 @@ def prcptot(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=build_threshold(
-            query=">= 1 mm day-1",
+            query=">= 1 mm/day",
         ),
         out_unit="mm",
     )
@@ -2705,7 +2705,7 @@ def rr1(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=build_threshold(
-            query=">= 1 mm day-1",
+            query=">= 1 mm/day",
         ),
         out_unit="day",
     )
@@ -2787,9 +2787,9 @@ def sdii(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=build_threshold(
-            query=">= 1 mm day-1",
+            query=">= 1 mm/day",
         ),
-        out_unit="mm day-1",
+        out_unit="mm/day",
     )
 
 
@@ -2869,7 +2869,7 @@ def cwd(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=build_threshold(
-            query=">= 1 mm day-1",
+            query=">= 1 mm/day",
         ),
         out_unit="day",
     )
@@ -3030,7 +3030,7 @@ def r10mm(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=build_threshold(
-            query=">= 10 mm day-1",
+            query=">= 10 mm/day",
         ),
         out_unit="day",
     )
@@ -3112,7 +3112,7 @@ def r20mm(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         threshold=build_threshold(
-            query=">= 20 mm day-1",
+            query=">= 20 mm/day",
         ),
         out_unit="day",
     )
@@ -3193,7 +3193,7 @@ def rx1day(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        out_unit="mm day-1",
+        out_unit="mm/day",
     )
 
 

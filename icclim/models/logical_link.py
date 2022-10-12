@@ -23,8 +23,10 @@ class LogicalLinkRegistry(Registry[LogicalLink]):
     _item_class = LogicalLink
 
     LOGICAL_OR = LogicalLink(
-        "or", lambda data_list: reduce(np.logical_or, data_list)  # type:ignore
+        name="or",
+        compute=lambda data_list: reduce(np.logical_or, data_list),  # type:ignore
     )
     LOGICAL_AND = LogicalLink(
-        "and", lambda data_list: reduce(np.logical_and, data_list)  # type:ignore
+        name="and",
+        compute=lambda data_list: reduce(np.logical_and, data_list),  # type:ignore
     )

@@ -5,15 +5,21 @@ from typing import Callable
 
 import numpy as np
 import pandas as pd
-import pint
 import pytest
 import xarray as xr
 from xclim.core.calendar import percentile_doy
+from xclim.core.units import units as xc_units
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import UNITS_KEY
+from icclim.models.logical_link import LogicalLinkRegistry
 from icclim.models.operator import OperatorRegistry
-from icclim.models.threshold import BasicThreshold, PercentileThreshold, build_threshold
+from icclim.models.threshold import (
+    BasicThreshold,
+    BoundedThreshold,
+    PercentileThreshold,
+    build_threshold,
+)
 
 
 def test_value_error():
@@ -32,6 +38,30 @@ def test_build_threshold__from_query():
     assert res.operator == OperatorRegistry.GREATER
     assert res.value == 10
     assert res.unit == "degC"
+
+
+def test_build_bounded_threshold__from_query():
+    res = build_threshold(">10degC and <20degC")
+    assert isinstance(res, BoundedThreshold)
+    assert res.left_threshold.operator == OperatorRegistry.GREATER
+    assert res.left_threshold.value == 10
+    assert res.left_threshold.unit == "degC"
+    assert res.logical_link == LogicalLinkRegistry.LOGICAL_AND
+    assert res.right_threshold.operator == OperatorRegistry.LOWER
+    assert res.right_threshold.value == 20
+    assert res.right_threshold.unit == "degC"
+
+
+def test_build_bounded_threshold__from_args():
+    res = build_threshold(thresholds=42, logical_link=42)
+    assert isinstance(res, BoundedThreshold)
+    assert res.leftThreshold.operator == OperatorRegistry.GREATER
+    assert res.leftThreshold.value == 10
+    assert res.leftThreshold.unit == "degC"
+    assert res.logicalLink == LogicalLinkRegistry.LOGICAL_AND
+    assert res.rightThreshold.operator == OperatorRegistry.LOWER
+    assert res.rightThreshold.value == 20
+    assert res.rightThreshold.unit == "degC"
 
 
 def test_basic_threshold_eq():
@@ -62,12 +92,12 @@ def test_per_threshold_min_value__type_error():
 
 def test_per_threshold_min_value__string():
     a = build_threshold(">10doy_per", threshold_min_value="10 degC")
-    assert a.threshold_min_value == pint.Quantity(10, "degC")
+    assert a.threshold_min_value == xc_units.Quantity(10, "degC")
 
 
 def test_per_threshold_min_value__quantity():
-    a = build_threshold(">10doy_per", threshold_min_value=pint.Quantity(10, "degC"))
-    assert a.threshold_min_value == pint.Quantity(10, "degC")
+    a = build_threshold(">10doy_per", threshold_min_value=xc_units.Quantity(10, "degC"))
+    assert a.threshold_min_value == xc_units.Quantity(10, "degC")
 
 
 def test_per_threshold_min_value__number():
@@ -131,7 +161,7 @@ class Test_FileBased:
         res = build_threshold(
             operator=">=", value=self.IN_FILE_PATH, threshold_min_value=5
         )
-        assert res.threshold_min_value == pint.Quantity(5, "degC")
+        assert res.threshold_min_value == xc_units.Quantity(5, "degC")
 
     def test_build_percentile_threshold__from_file(self):
         doys = percentile_doy(self.data)

@@ -348,7 +348,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     CDD = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
-        threshold="< 1 mm day-1",
+        threshold="< 1 mm/day",
         output_unit="day",
         definition="Maximum consecutive dry days (Precip < 1mm)",
         source=ECAD_ATBD,
@@ -360,7 +360,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     PRCPTOT = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.Sum,
-        threshold=">= 1 mm day-1",
+        threshold=">= 1 mm/day",
         output_unit="mm",
         definition="Total precipitation during Wet Days",
         source=ECAD_ATBD,
@@ -371,7 +371,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     RR1 = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=">= 1 mm day-1",
+        threshold=">= 1 mm/day",
         output_unit="day",
         definition="Number of Wet Days (precip >= 1 mm)",
         source=ECAD_ATBD,
@@ -382,8 +382,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     SDII = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.Average,
-        threshold=">= 1 mm day-1",
-        output_unit="mm day-1",
+        threshold=">= 1 mm/day",
+        output_unit="mm/day",
         definition="Average precipitation during Wet Days (SDII)",
         source=ECAD_ATBD,
         short_name="SDII",
@@ -393,7 +393,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     CWD = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
-        threshold=">= 1 mm day-1",
+        threshold=">= 1 mm/day",
         output_unit="day",
         definition="Maximum consecutive wet days (Precip >= 1mm)",
         source=ECAD_ATBD,
@@ -414,7 +414,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     R10MM = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=">= 10 mm day-1",
+        threshold=">= 10 mm/day",
         output_unit="day",
         definition="Number of heavy precipitation days (Precip >=10mm)",
         source=ECAD_ATBD,
@@ -425,7 +425,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     R20MM = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=">= 20 mm day-1",
+        threshold=">= 20 mm/day",
         output_unit="day",
         definition="Number of very heavy precipitation days (Precip >= 20mm)",
         source=ECAD_ATBD,
@@ -436,7 +436,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     RX1DAY = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.Maximum,
-        output_unit="mm day-1",
+        output_unit="mm/day",
         definition="maximum 1-day total precipitation",  # from xclim
         source=ECAD_ATBD,
         short_name="RX1day",

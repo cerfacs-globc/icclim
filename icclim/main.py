@@ -454,7 +454,7 @@ def index(
         date_event=date_event,
         sampling_method=sampling_method,
     )
-    result_ds = _compute_standard_climate_index(
+    result_ds = _compute_climate_index(
         climate_index=indicator,
         config=config,
         initial_history=climate_vars[0].global_metadata["history"],
@@ -553,7 +553,7 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
         return da_unit
 
 
-def _compute_standard_climate_index(
+def _compute_climate_index(
     climate_index: GenericIndicator | None,
     config: IndexConfig,
     initial_history: str | None,
