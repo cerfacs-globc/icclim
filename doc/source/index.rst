@@ -46,3 +46,14 @@ Maintainers
 ~~~~~~~~~~~
 - Christian Page, `@pagecp <https://github.com/pagecp/>`_ <christian.page[at]cerfacs.fr>
 - Abel Aoun, `@bzah <https://github.com/bzah>`_ <abel.aoun[at]cerfacs.fr>
+
+Grants
+------
+This open-source project has been possible thanks to funding by the European Commission projects:
+
+* FP7-CLIPC (2013-2016)
+* FP7-IS-ENES2 (2013-2017)
+* EUDAT2020 (2015-2018)
+* H2020-IS-ENES3 (2019-2022)
+
+icclim's beautiful logo is a creation of `Carole Petetin <https://carolepetetin.com>`_ and has been funded by H2020-IS-ENES3 (2019-2022).
