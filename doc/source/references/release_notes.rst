@@ -31,11 +31,11 @@ Release history
 * [maint] Upgrade to xclim 0.38 and to xarray 2022.6.
 * [maint] Add BlackDoc to C.I (github actions) to keep or doc code example clean.
 * [enh] Add ECAD's RR index. It computes the sum of precipitations over days.
-* [enh] Add icclim logo and auto-generate it's version number
-* [maint] git lfs (large file storage) has been enabled for .svg files in order to minimise the impact of logo images and their update.
+* [enh] Add icclim logo and auto-update its inner version number.
+* [maint] Enable git lfs (large file storage) for `.svg` files to minimise the impact on storage of logo updates.
 * [enh] Improve icclim.indices to enable multi indices computation based on variable names `icclim.indices(index_group='tasmax',in_files=data)`
 * [fix] **BREAKING CHANGE** ECAD snow indices are now expecting a snow (snd) variable instead of a precipitation one.
-
+* [enh] Add `build_threshold` function that acts as a factory to create different kind of Threshold.
 
 5.4.0
 -----
