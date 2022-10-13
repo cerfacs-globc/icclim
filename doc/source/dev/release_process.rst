@@ -37,6 +37,8 @@ Release process
         In that case, create the environment from icclim environment.yml file to
         pull all needed dependencies from conda.
 
+#. Test basic index such as `icclim.su("simple-tasmax-data.nc")`
+
 #. Upload to pypi for real.
 
     .. code-block:: sh
