@@ -56,4 +56,4 @@ This open-source project has been possible thanks to funding by the European Com
 * EUDAT2020 (2015-2018)
 * H2020-IS-ENES3 (2019-2023)
 
-The beautiful icclim logo is a creation of `Carole Petetin <https://carolepetetin.com>`_ and has been funded by the H2020 `IS-ENES3 <https://is.enes.org >`_ project grant agreement No 824084 (2019-2023).
+The beautiful icclim logo is a creation of `Carole Petetin <https://carolepetetin.com>`_ and has been funded by the H2020 `IS-ENES3 <https://is.enes.org>`_ project grant agreement No 824084 (2019-2023).
