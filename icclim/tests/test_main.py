@@ -638,6 +638,56 @@ class Test_Integration:
         assert res.count_occurrences.attrs[UNITS_KEY] == "%"
         assert res.count_occurrences.isel(time=0) == 1 / 31 * 100
 
+    def test_count_occurrences__multiple_simple_thresholds(self):
+        tas = stub_tas(tas_value=2 + K2C)
+        tas[10] = 35 + K2C
+        res = icclim.index(
+            tas,
+            var_name=["tmin"],
+            index_name="count_occurrences",
+            threshold=build_threshold(value=[1, 30], operator=">=", unit="deg_C"),
+            slice_mode="month",
+            save_thresholds=True,
+        ).compute()
+        assert res.count_occurrences.attrs[UNITS_KEY] == "d"
+        print(res.count_occurrences)
+        assert res.count_occurrences.isel(time=0).sel(threshold=1) == 31
+        # The 5 days rolling turn the 1 day unusual value into a 5 day time lapse
+        assert res.count_occurrences.isel(time=0).sel(threshold=30) == 1
+
+    def test_count_occurrences__multiple_doy_per_thresholds(self):
+        tas = stub_tas(tas_value=2 + K2C)
+        tas[10] = 35 + K2C
+        res = icclim.index(
+            tas,
+            var_name=["tmin"],
+            index_name="count_occurrences",
+            threshold=build_threshold(value=[10, 99], operator=">=", unit="doy_per"),
+            slice_mode="month",
+            save_thresholds=True,
+        ).compute()
+        assert res.count_occurrences.attrs[UNITS_KEY] == "d"
+        assert res.count_occurrences.isel(time=0).sel(percentiles=10) == 31
+        # The 5 days rolling turn the 1 day unusual value into a 5 day time lapse
+        assert res.count_occurrences.isel(time=0).sel(percentiles=99) == 26
+
+    def test_count_occurrences__multiple_period_per_thresholds(self):
+        tas = stub_tas(tas_value=-20 + K2C)
+        tas[10] = 35 + K2C
+        res = icclim.index(
+            tas,
+            var_name=["tmin"],
+            index_name="count_occurrences",
+            threshold=build_threshold(
+                value=[10, 99.95], operator=">=", unit="period_per"
+            ),
+            slice_mode="month",
+            save_thresholds=True,
+        ).compute()
+        assert res.count_occurrences.attrs[UNITS_KEY] == "d"
+        assert res.count_occurrences.isel(time=0).sel(percentiles=10) == 31
+        assert res.count_occurrences.isel(time=0).sel(percentiles=99.95) == 1
+
     def test_excess__on_doy_percentile(self):
         tas = stub_tas(tas_value=10 + K2C).rename("tas")
         tas[10] = 5 + K2C

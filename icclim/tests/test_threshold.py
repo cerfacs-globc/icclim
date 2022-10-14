@@ -52,16 +52,57 @@ def test_build_bounded_threshold__from_query():
     assert res.right_threshold.unit == "degC"
 
 
+def test_build_bounded_threshold__from_and():
+    t1 = build_threshold(">10degC")
+    t2 = build_threshold(">12 doy_per")
+    t3 = t1 & t2
+    assert isinstance(t3, BoundedThreshold)
+    assert isinstance(t3.left_threshold, BasicThreshold)
+    assert t3.left_threshold.operator == OperatorRegistry.GREATER
+    assert t3.left_threshold.value == 10
+    assert t3.left_threshold.unit == "degC"
+    assert t3.logical_link == LogicalLinkRegistry.LOGICAL_AND
+    assert isinstance(t3.right_threshold, PercentileThreshold)
+    assert t3.right_threshold.is_ready is False
+    assert t3.right_threshold.operator == OperatorRegistry.GREATER
+    assert t3.right_threshold._initial_unit == "doy_per"
+    assert t3.right_threshold._initial_value == [12]
+
+
+def test_build_bounded_threshold__from_or():
+    t1 = build_threshold(">10degC")
+    t2 = build_threshold(">12 doy_per")
+    t3 = t1 | t2
+    assert isinstance(t3, BoundedThreshold)
+    assert isinstance(t3.left_threshold, BasicThreshold)
+    assert t3.left_threshold.operator == OperatorRegistry.GREATER
+    assert t3.left_threshold.value == 10
+    assert t3.left_threshold.unit == "degC"
+    assert t3.logical_link == LogicalLinkRegistry.LOGICAL_OR
+    assert isinstance(t3.right_threshold, PercentileThreshold)
+    assert t3.right_threshold.is_ready is False
+    assert t3.right_threshold.operator == OperatorRegistry.GREATER
+    assert t3.right_threshold._initial_unit == "doy_per"
+    assert t3.right_threshold._initial_value == [12]
+
+
 def test_build_bounded_threshold__from_args():
-    res = build_threshold(thresholds=42, logical_link=42)
-    assert isinstance(res, BoundedThreshold)
-    assert res.leftThreshold.operator == OperatorRegistry.GREATER
-    assert res.leftThreshold.value == 10
-    assert res.leftThreshold.unit == "degC"
-    assert res.logicalLink == LogicalLinkRegistry.LOGICAL_AND
-    assert res.rightThreshold.operator == OperatorRegistry.LOWER
-    assert res.rightThreshold.value == 20
-    assert res.rightThreshold.unit == "degC"
+    t1 = build_threshold(">10degC")
+    t2 = build_threshold(">12 doy_per")
+    t3 = build_threshold(
+        thresholds=(t1, t2), logical_link=LogicalLinkRegistry.LOGICAL_OR
+    )
+    assert isinstance(t3, BoundedThreshold)
+    assert isinstance(t3.left_threshold, BasicThreshold)
+    assert t3.left_threshold.operator == OperatorRegistry.GREATER
+    assert t3.left_threshold.value == 10
+    assert t3.left_threshold.unit == "degC"
+    assert t3.logical_link == LogicalLinkRegistry.LOGICAL_OR
+    assert isinstance(t3.right_threshold, PercentileThreshold)
+    assert t3.right_threshold.is_ready is False
+    assert t3.right_threshold.operator == OperatorRegistry.GREATER
+    assert t3.right_threshold._initial_unit == "doy_per"
+    assert t3.right_threshold._initial_value == [12]
 
 
 def test_basic_threshold_eq():
@@ -78,6 +119,15 @@ def test_percentile_threshold_eq():
     c = build_threshold(">20doy_per")
     assert a == b
     assert a != c
+
+
+def test_bounded_threshold_eq():
+    a = build_threshold(">10doy_per")
+    b = build_threshold(">10doy_per")
+    c = build_threshold(">20doy_per")
+    assert a & c == b & c
+    assert a & b == b & a
+    assert a & b != b & c
 
 
 def test_per_threshold_min_value__operand_error():
@@ -115,7 +165,7 @@ def test_build_per_threshold__from_query():
     res = build_threshold("<= 99 doy_per")
     assert isinstance(res, PercentileThreshold)
     assert res.operator == OperatorRegistry.LOWER_OR_EQUAL
-    assert res._initial_value == 99
+    assert res._initial_value == [99]
     assert res.unit == "doy_per"  # not computed yet
     assert res._initial_unit == "doy_per"
     assert res.is_ready is False

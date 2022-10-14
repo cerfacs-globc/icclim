@@ -13,6 +13,9 @@ from icclim.models.registry import Registry
 @dataclasses.dataclass
 class LogicalLink:
     name: str
+    standard_name: str
+    long_name: str
+    short_name: str
     compute: Callable[[list[DataArray]], DataArray]
 
     def __call__(self, *args, **kwargs) -> DataArray:
@@ -24,9 +27,15 @@ class LogicalLinkRegistry(Registry[LogicalLink]):
 
     LOGICAL_OR = LogicalLink(
         name="or",
+        standard_name="OR",
+        long_name="OR",
+        short_name="OR",
         compute=lambda data_list: reduce(np.logical_or, data_list),  # type:ignore
     )
     LOGICAL_AND = LogicalLink(
         name="and",
+        standard_name="AND",
+        long_name="AND",
+        short_name="AND",
         compute=lambda data_list: reduce(np.logical_and, data_list),  # type:ignore
     )

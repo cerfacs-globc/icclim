@@ -14,7 +14,6 @@ import pint
 import xarray as xr
 from jinja2 import Environment
 from pint import DefinitionSyntaxError, Quantity, UndefinedUnitError
-from utils import icc_convert_units_to
 from xarray import DataArray
 from xarray.core.resample import DataArrayResample
 from xarray.core.rolling import DataArrayRolling
@@ -24,6 +23,7 @@ from xclim.core.datachecks import check_freq
 from xclim.core.missing import MissingBase
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 from xclim.core.units import rate2amount, str2pint, to_agg_units
+from xclim.core.units import units as xc_units
 from xclim.indices import run_length
 
 from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
@@ -44,6 +44,7 @@ from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import OperatorRegistry
 from icclim.models.registry import Registry
 from icclim.models.threshold import PercentileThreshold, Threshold
+from icclim.utils import icc_convert_units_to
 
 jinja_env = Environment()
 
@@ -1058,7 +1059,7 @@ def _add_date_coords(
 
 def _is_amount_unit(unit: str) -> bool:
     try:
-        return pint.Unit(unit) in pint.Unit("meter").compatible_units()
+        return xc_units.Unit(unit) in pint.Unit("meter").compatible_units()
     except (UndefinedUnitError, DefinitionSyntaxError):
         return False
 
