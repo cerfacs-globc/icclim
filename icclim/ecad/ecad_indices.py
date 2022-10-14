@@ -645,3 +645,15 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
     )
+    # WIND
+    DDNORTH = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="> -45 degree AND <= 45 degree",
+        output_unit="day",
+        definition="Days with northerly winds (-45 degree < DD ≤ 45 degree)",
+        source=ECAD_ATBD,
+        short_name="DDnorth",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
+    )

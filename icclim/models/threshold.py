@@ -780,7 +780,7 @@ def _read_bounded_threshold(
             raise NotImplementedError(f"Unknown type '{type(t)}'")
     if len(acc) > 2:
         raise NotImplementedError(
-            "Can't build BoundedThreshold on more than 2" " thresholds."
+            "Can't build BoundedThreshold on more than 2 thresholds."
         )
     return {  # noqa
         "initial_query": None,

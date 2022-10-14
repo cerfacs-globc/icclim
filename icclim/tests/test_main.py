@@ -350,6 +350,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(index_group="all", in_files=ds, out_file=self.OUTPUT_FILE)
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
@@ -362,6 +364,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -379,6 +383,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -396,6 +402,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -413,6 +421,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -428,6 +438,8 @@ class Test_Integration:
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res: xr.Dataset = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -812,3 +824,22 @@ class Test_Integration:
         # the index
         np.testing.assert_almost_equal(rr.RR.isel(time=0), 5.3)
         np.testing.assert_almost_equal(rr.RR.isel(time=1), 0)
+
+    def test_ddnorth(self):
+        # GIVEN
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"), dims=["time"]
+        )
+        dd = xr.DataArray(
+            np.zeros(365),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "degree"},
+        )
+        dd.loc[{"time": slice("2000-01-01", "2000-01-05")}] = 50
+        dd.loc[{"time": slice("2000-03-01", "2000-03-02")}] = -50
+        # WHEN
+        ddnorth = icclim.ddnorth(in_files=dd, slice_mode="month")
+        # THEN
+        assert ddnorth.isel(time=0) == 26
+        assert ddnorth.isel(time=3) == 29
