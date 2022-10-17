@@ -39,7 +39,8 @@ Release history
 * [enh] Add BoundedThreshold class. It allows to compute multiple threshold for a single variable.
   This feature is necessary for indices such as ECAD's "DDnorth".
   Instances of BoundedThreshold are created with the `build_threshold` factory function, E.G. `build_threshold(">= -20 degree AND <= 20 degree ")`
-
+* [enh] Make it possible to compute multiple percentiles at once.
+* [maint] Update coverage computation. Now tests files are ignored when calculating the code coverage, thus it dropped a little (by 3%).
 
 5.4.0
 -----

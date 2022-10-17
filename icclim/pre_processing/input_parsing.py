@@ -9,6 +9,7 @@ import xclim
 from pint import Quantity
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
+from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
 
 from icclim.generic_indices.cf_var_metadata import (
@@ -20,7 +21,7 @@ from icclim.icclim_types import InFileBaseType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.constants import UNITS_KEY, VALID_PERCENTILE_DIMENSION
 from icclim.models.standard_index import StandardIndex
-from icclim.utils import get_date_to_iso_format, icc_convert_units_to
+from icclim.utils import get_date_to_iso_format
 
 DEFAULT_INPUT_FREQUENCY = "days"
 
@@ -298,9 +299,7 @@ def read_threshold_DataArray(
     else:
         if threshold_min_value:
             if isinstance(threshold_min_value, str):
-                threshold_min_value = icc_convert_units_to(
-                    threshold_min_value, thresh_da
-                )
+                threshold_min_value = convert_units_to(threshold_min_value, thresh_da)
             # todo in prcptot the replacing value (np.nan) needs to be 0
             built_value = thresh_da.where(thresh_da > threshold_min_value, np.nan)
         else:
@@ -330,8 +329,6 @@ def build_reference_da(
     if only_leap_years:
         reference = reduce_only_leap_years(original_da)
     if percentile_min_value is not None:
-        percentile_min_value = icc_convert_units_to(
-            str(percentile_min_value), reference
-        )
+        percentile_min_value = convert_units_to(str(percentile_min_value), reference)
         reference = reference.where(reference >= percentile_min_value, np.nan)
     return reference

@@ -10,7 +10,6 @@ from warnings import warn
 import jinja2
 import numpy
 import numpy as np
-import pint
 import xarray as xr
 from jinja2 import Environment
 from pint import DefinitionSyntaxError, Quantity, UndefinedUnitError
@@ -22,8 +21,9 @@ from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.datachecks import check_freq
 from xclim.core.missing import MissingBase
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
-from xclim.core.units import rate2amount, str2pint, to_agg_units
+from xclim.core.units import convert_units_to, rate2amount, str2pint, to_agg_units
 from xclim.core.units import units as xc_units
+from xclim.core.units import units2pint
 from xclim.indices import run_length
 
 from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
@@ -44,7 +44,6 @@ from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import OperatorRegistry
 from icclim.models.registry import Registry
 from icclim.models.threshold import PercentileThreshold, Threshold
-from icclim.utils import icc_convert_units_to
 
 jinja_env = Environment()
 
@@ -126,7 +125,7 @@ class ResamplingIndicator(Indicator, ABC):
         out_unit: str | None,
     ):
         if out_unit is not None:
-            result = icc_convert_units_to(result, out_unit)
+            result = convert_units_to(result, out_unit)
         if self.missing != "skip" and indexer is not None:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
@@ -475,14 +474,13 @@ def sum(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ) -> DataArray:
-    res = _run_simple_reducer(
+    return _run_simple_reducer(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
         reducer_op=DataArrayResample.sum,
         date_event=False,
         must_convert_rate=True,
     )
-    return res
 
 
 def standard_deviation(
@@ -805,7 +803,7 @@ def _get_couple_of_var(
         )
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
-    study = icc_convert_units_to(study, ref)
+    study = convert_units_to(study, ref)
     return study, ref
 
 
@@ -1059,7 +1057,8 @@ def _add_date_coords(
 
 def _is_amount_unit(unit: str) -> bool:
     try:
-        return xc_units.Unit(unit) in pint.Unit("meter").compatible_units()
+        u = units2pint(unit)  # turn a cf u
+        return xc_units.Quantity(1, u).check("[length]")
     except (UndefinedUnitError, DefinitionSyntaxError):
         return False
 
