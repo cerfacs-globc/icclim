@@ -50,7 +50,7 @@ INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
     "count_occurrences": {
         "long_name":     "Number of {{source_freq.units}}"
                          f" when {COMBINED_VARS_LONG_NAME}",
-        "standard_name": "number_of_{{source_freq.units}}_with"
+        "standard_name": "number_of_{{source_freq.units}}_when"
                          f"_{COMBINED_VARS_STANDARD_NAME}",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },

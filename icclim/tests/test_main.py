@@ -176,7 +176,12 @@ class Test_Integration:
         assert res.time_bounds[0, 1] == np.datetime64(datetime(2042, 1, 14))
         assert (
             res.SU.attrs["standard_name"]
-            == "number_of_days_with_maximum_air_temperature_above_threshold"
+            == "number_of_days_when_maximum_air_temperature_is_greater_than_threshold"
+        )
+        assert (
+            res.SU.attrs["long_name"]
+            == "Number of days when maximum air temperature is greater than 25.0"
+            " degC for each 2 wednesday starting week(s)."
         )
 
     def test_index_SU__monthy_sampled(self):
