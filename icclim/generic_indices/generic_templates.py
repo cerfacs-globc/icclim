@@ -15,9 +15,6 @@ COMBINED_VARS_LONG_NAME = (
     "{% for i, climate_var in enumerate(climate_vars) %}"
         "{{climate_var.long_name}} is"
         " {{climate_var.threshold.long_name}}"
-        "{% if climate_var.threshold.additional_metadata %}"
-            " {{climate_var.threshold.additional_metadata}}."
-        "{% endif %}"
         "{% if i != len(climate_vars) - 1 %}"
             " And "
         "{% endif%}"
@@ -27,6 +24,7 @@ COMBINED_VARS_LONG_NAME = (
 COMBINED_VARS_STANDARD_NAME = (
     "{% for i, climate_var in enumerate(climate_vars) %}"
         "{{climate_var.standard_name}}"
+        "_is_{{climate_var.threshold.standard_name}}"
         "{% if i != len(climate_vars) - 1 %}"
             "_and_"
         "{% endif %}"
@@ -35,22 +33,17 @@ COMBINED_VARS_STANDARD_NAME = (
 SINGLE_VAR_LONG_NAME = (
     "{{source_freq.adjective}}"
     " {{climate_vars[0].long_name}}"
-    " related to{{climate_vars[0].threshold.value}}"
+    " related to {{climate_vars[0].threshold.value}}"
     " for each {{output_freq.long_name}}."
-    "{% if climate_vars[0].threshold.additional_metadata %}"
-        " {{climate_vars[0].threshold.additional_metadata}}"
-    "{% endif %}"
 )
 SINGLE_VAR_LONG_NAME_WITH_EXCEEDANCE = (
     "{{source_freq.adjective}}"
     " {{climate_vars[0].long_name}}"
     "{% if climate_vars[0].threshold %}"
-        " when {{climate_vars[0].long_name}} is {{climate_vars[0].threshold.long_name}}"
+        " when {{climate_vars[0].long_name}}"
+        " is {{climate_vars[0].threshold.long_name}}"
     "{% endif %}"
     " for each {{output_freq.long_name}}."
-    "{% if climate_vars[0].threshold.additional_metadata %}"
-        " {{climate_vars[0].threshold.additional_metadata}}"
-    "{% endif %}"
 )
 
 INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
@@ -58,14 +51,12 @@ INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
         "long_name":     "Number of {{source_freq.units}}"
                          f" when {COMBINED_VARS_LONG_NAME}",
         "standard_name": "number_of_{{source_freq.units}}_with"
-                         f"_{COMBINED_VARS_STANDARD_NAME}"
-                         "_above_threshold",
+                         f"_{COMBINED_VARS_STANDARD_NAME}",
         "cell_methods":  "time: sum over {{source_freq.units}}",
     },
     "max_consecutive_occurrence": {
         "standard_name": "spell_length_of_{{source_freq.units}}_with"
-                         f"_{COMBINED_VARS_STANDARD_NAME}"
-                         "_above_threshold",
+                         f"_{COMBINED_VARS_STANDARD_NAME}",
         "long_name":     "Maximum number of consecutive {{source_freq.units}} when"
                          f" {COMBINED_VARS_LONG_NAME}",
         "cell_methods":  "time: maximum over {{source_freq.units}}",
@@ -73,8 +64,7 @@ INDICATORS_TEMPLATES_EN: dict[str, IndicatorMetadata] = {
     "sum_of_spell_lengths": {
         "standard_name":  # not CF
                         "spell_length_of_{{source_freq.units}}_with"
-                        f"_{COMBINED_VARS_STANDARD_NAME}"
-                        "_above_thresholds",
+                        f"_{COMBINED_VARS_STANDARD_NAME}",
         "long_name":    "Sum of spell lengths of at least {{min_spell_length}}"
                         " {{source_freq.units}} when"
                         f" {COMBINED_VARS_LONG_NAME}",
