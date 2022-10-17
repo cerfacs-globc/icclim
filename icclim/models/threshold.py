@@ -106,13 +106,11 @@ def build_threshold(
         See :py:class:`OperatorRegistry` for the list of all operators.
         When query is None and operator is None, the default ``Operator.REACH`` is used.
     value: str | float | int | Dataset | DataArray | Sequence[float | int | str] | None
-        todo: [bounded threshold] update definition  (for the sequence of scalars,
-        todo: (suite)             if LogicalLink is None, keep the same behavior)
         keyword argument only.
         The threshold value(s), default to None.
         It can be:
         * a simple scalar threshold
-        * in combinaison with ``unit``, a percentile that will be computed per-grid cell
+        * a percentile that will be computed per-grid cell (in combinaison with `unit`)
         * per-grid cell thresholds defined by a DataArray, a Dataset or a string path to
         a netcdf/zarr.
         * a sequence of scalars, the indicator will then be computed for each value and
@@ -138,7 +136,6 @@ def build_threshold(
         If threshold_min_value is a number, ``unit`` is used to quantify
         ``threshold_min_value``.
     kwargs
-        todo: [bounded threshold] update definition
         Additional arguments to build a PercentileThreshold.
         See :py:class:`PercentileThreshold` constructor for the complete list
         of possible arguments.
@@ -147,21 +144,38 @@ def build_threshold(
     --------
     .. code-block:: python
 
-        t1 = build_threshold(">= 30 degC")
-        assert isinstance(t1, BasicThreshold)
+        # Scalar threshold
+        scalar_t = build_threshold(">= 30 degC")
+        assert isinstance(scalar_t, BasicThreshold)
 
-        t2 = build_threshold(">= 30 doy_per")
-        assert isinstance(t2, PercentileThreshold)
+        # Daily percentile threshold
+        doy_t = build_threshold(">= 30 doy_per")
+        assert isinstance(doy_t, PercentileThreshold)
 
-        t3 = build_threshold(
+        # Per grid-cell threshold
+        grided_t = build_threshold(
             operator=">=", value="path/to/tasmax_thresholds.nc", unit="K"
         )
-        assert isinstance(t3, BasicThreshold)
+        assert isinstance(grided_t, BasicThreshold)
 
+        # Daily percentile threshold, from a file
         tasmax = xarray.open_dataset("path/to/tasmax_thresholds.nc").tasmax
         doys = xclim.core.calendar.percentile_doy(tasmax)
-        t4 = build_threshold(operator=">=", value=doys)
-        assert isinstance(t4, PercentileThreshold)
+        doy_file_t = build_threshold(operator=">=", value=doys)
+        assert isinstance(doy_file_t, PercentileThreshold)
+
+        # Bounded threshold
+        bounded_t = build_threshold(">= -20 degree AND <= 20 degree ")
+        # equivalent to:
+        x = build_threshold(">= -20 degree")
+        y = build_threshold("<= 20 degree")
+        bounded_t2 = x & y
+        assert bounded_t == bounded_t2
+        # equivalent to:
+        bounded_t3 = build_threshold(thresholds=[x, y], logical_link="AND")
+        assert bounded_t == bounded_t3
+        assert isinstance(bounded_t, BoundedThreshold)
+
 
     """
     input_thresh = _read_input(
@@ -252,6 +266,11 @@ class Threshold(metaclass=abc.ABCMeta):
 
 
 class BoundedThreshold(Threshold):
+    """
+    Threshold binding class to compute two thresholds for a single variable.
+    The logical link can be either "OR" or "AND".
+    """
+
     left_threshold: Threshold
     right_threshold: Threshold
     logical_link: LogicalLink
@@ -768,7 +787,7 @@ def _read_input(
 
 
 def _read_bounded_threshold(
-    thresholds: tuple[Threshold, Threshold], logical_link: LogicalLink
+    thresholds: tuple[Threshold, Threshold], logical_link: LogicalLink | str
 ) -> ThresholdBuilderInput:
     acc = []
     for t in thresholds:
@@ -782,6 +801,8 @@ def _read_bounded_threshold(
         raise NotImplementedError(
             "Can't build BoundedThreshold on more than 2 thresholds."
         )
+    if isinstance(logical_link, str):
+        logical_link = LogicalLinkRegistry.lookup(logical_link)
     return {  # noqa
         "initial_query": None,
         "thresholds": tuple(acc),
