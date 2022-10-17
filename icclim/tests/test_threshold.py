@@ -52,6 +52,11 @@ def test_build_bounded_threshold__from_query():
     assert res.right_threshold.unit == "degC"
 
 
+def test_build_bounded_threshold__error():
+    with pytest.raises(NotImplementedError):
+        build_threshold(thresholds=[">10degC", ">11degC", ">12degC"], logical_link="or")
+
+
 def test_build_bounded_threshold__from_and():
     t1 = build_threshold(">10degC")
     t2 = build_threshold(">12 doy_per")
@@ -123,11 +128,12 @@ def test_percentile_threshold_eq():
 
 def test_bounded_threshold_eq():
     a = build_threshold(">10doy_per")
-    b = build_threshold(">10doy_per")
+    a_bis = build_threshold(">10doy_per")
+    b = build_threshold(">15doy_per")
     c = build_threshold(">20doy_per")
-    assert a & c == b & c
+    assert a & b == a_bis & b
     assert a & b == b & a
-    assert a & b != b & c
+    assert a & b != a & c
 
 
 def test_per_threshold_min_value__operand_error():
@@ -161,6 +167,11 @@ def test_threshold_min_value__number():
         build_threshold(">10degC", threshold_min_value=5)
 
 
+def test_threshold_min_value__error():
+    with pytest.raises(NotImplementedError):
+        build_threshold(None)
+
+
 def test_build_per_threshold__from_query():
     res = build_threshold("<= 99 doy_per")
     assert isinstance(res, PercentileThreshold)
@@ -172,6 +183,56 @@ def test_build_per_threshold__from_query():
     assert isinstance(res.prepare, Callable)
     with pytest.raises(RuntimeError):  # not computed yet
         res.value  # noqa
+
+
+def test_build_basic_threshold__from_dataarray():
+    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    data = xr.DataArray(
+        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        dims=["time", "lat", "lon"],
+        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
+        attrs={UNITS_KEY: "degC"},
+        name="toto",
+    )
+    res = build_threshold(operator=">=", value=data, threshold_min_value="280K")
+    assert isinstance(res, BasicThreshold)
+    assert res.operator == OperatorRegistry.GREATER_OR_EQUAL
+    xr.testing.assert_equal(res.value, data)
+    assert res.unit == "degC"
+    assert res.is_ready is True
+
+
+def test_build_basic_threshold__from_dataset():
+    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    ds = xr.DataArray(
+        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        dims=["time", "lat", "lon"],
+        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
+        attrs={UNITS_KEY: "degC"},
+        name="tas",
+    ).to_dataset()
+    ds["tutu"] = ds["tas"]
+    res = build_threshold(operator=">=", value=ds, threshold_min_value="280K")
+    assert isinstance(res, BasicThreshold)
+    assert res.operator == OperatorRegistry.GREATER_OR_EQUAL
+    xr.testing.assert_equal(res.value, ds["tas"])
+    assert res.unit == "degC"
+    assert res.is_ready is True
+
+
+def test_build_basic_threshold__from_dataset__error():
+    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    ds = xr.DataArray(
+        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        dims=["time", "lat", "lon"],
+        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
+        attrs={UNITS_KEY: "degC"},
+        name="toto",
+    ).to_dataset()
+    ds["tutu"] = ds.toto
+    with pytest.raises(InvalidIcclimArgumentError):
+        # multiple variable without any recognizable one
+        build_threshold(operator=">=", value=ds, threshold_min_value="280K")
 
 
 class Test_FileBased:
