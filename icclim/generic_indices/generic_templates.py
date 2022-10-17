@@ -6,7 +6,6 @@ from typing import TypedDict
 # flake8: noqa
 
 class IndicatorMetadata(TypedDict):
-    identifier: str
     standard_name: str
     long_name: str
     cell_methods: str
