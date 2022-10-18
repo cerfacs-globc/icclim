@@ -78,6 +78,14 @@ Generated API
         cw
         wd
         ww
+        fxx
+        fg6bft
+        fgcalm
+        fg
+        ddnorth
+        ddeast
+        ddsouth
+        ddwest
         custom_index
 
         .. Generated API comment:End
