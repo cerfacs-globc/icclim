@@ -4,8 +4,8 @@ from typing import Any, TypedDict
 
 # fmt: off
 # flake8: noqa
+from numpy import ndarray
 from pint import Quantity
-from xarray import DataArray
 
 
 class ThresholdMetadata(TypedDict):
@@ -20,6 +20,7 @@ class ThresholdTemplateDict(TypedDict):
     multiple_doy_percentiles: ThresholdMetadata
     single_period_percentile: ThresholdMetadata
     multiple_period_percentiles: ThresholdMetadata
+    bounded_threshold: ThresholdMetadata
 
 class PercentileTemplateConfig(TypedDict, total=False):
     climatology_bounds: list[str]
@@ -27,7 +28,7 @@ class PercentileTemplateConfig(TypedDict, total=False):
     src_freq: Any
     operator: Any
     unit: str | None
-    per_coord: DataArray | float
+    per_coord: ndarray | float
     threshold_min_value: Quantity | None
     must_run_bootstrap: bool
 
@@ -68,7 +69,7 @@ EN_THRESHOLD_TEMPLATE: ThresholdTemplateDict = {
                              " and {{max_value}}"
                              " {{unit}}."
                          "{% endif %}"
-                         "{% if threshold_min_value is not None %}"
+                         "{% if threshold_min_value %}"
                              f" {THRESHOLD_MIN_VALUE_TEMPLATE}"
                          "{% endif %}",
         "short_name":    "{{operator.short_name}}_threshold",
@@ -77,7 +78,7 @@ EN_THRESHOLD_TEMPLATE: ThresholdTemplateDict = {
         "standard_name": "{{operator.standard_name}}_doy_percentile_threshold",
         "long_name":     "{{operator.long_name}}"
                          " {{per_coord}}th day of year percentile"
-                         "{% if threshold_min_value is not None %}"
+                         "{% if threshold_min_value %}"
                              f" {THRESHOLD_MIN_VALUE_TEMPLATE}"
                          "{% endif %}",
         "short_name":    "doy_per_threshold",
@@ -86,7 +87,7 @@ EN_THRESHOLD_TEMPLATE: ThresholdTemplateDict = {
         "standard_name": "{{operator.standard_name}}_doy_percentile_thresholds",
         "long_name":     "{{operator.long_name}}"
                          " {{per_coord}} day of year percentiles"
-                         "{% if threshold_min_value is not None %}"
+                         "{% if threshold_min_value %}"
                              f" {THRESHOLD_MIN_VALUE_TEMPLATE}"
                          "{% endif %}",
         "short_name":    "doy_per_thresholds",
@@ -95,7 +96,7 @@ EN_THRESHOLD_TEMPLATE: ThresholdTemplateDict = {
         "standard_name": "{{operator.standard_name}}_period_percentile_threshold",
         "long_name":     "{{operator.long_name}}"
                          " {{per_coord}}th period percentile"
-                         "{% if threshold_min_value is not None %}"
+                         "{% if threshold_min_value %}"
                              f" {THRESHOLD_MIN_VALUE_TEMPLATE}"
                          "{% endif %}",
         "short_name":    "period_per_threshold",
@@ -104,9 +105,20 @@ EN_THRESHOLD_TEMPLATE: ThresholdTemplateDict = {
         "standard_name": "{{operator.standard_name}}_period_percentile_thresholds",
         "long_name":     "{{operator.long_name}}"
                          " {{per_coord}} period percentiles"
-                         "{% if threshold_min_value is not None %}"
+                         "{% if threshold_min_value %}"
                              f" {THRESHOLD_MIN_VALUE_TEMPLATE}"
                          "{% endif %}",
         "short_name":    "period_per_thresholds",
+    },
+    "bounded_threshold": {
+        "standard_name": "{{left_threshold.standard_name}}"
+                         "_{{logical_link.standard_name}}"
+                         "_{{right_threshold.standard_name}}",
+        "long_name":     "{{left_threshold.long_name}}"
+                         " {{logical_link.long_name}}"
+                         " {{right_threshold.long_name}}",
+        "short_name":    "{{left_threshold.short_name}}"
+                         "_{{logical_link.short_name}}"
+                         "_{{right_threshold.short_name}}",
     },
 }

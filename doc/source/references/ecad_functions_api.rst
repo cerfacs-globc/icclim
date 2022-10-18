@@ -78,6 +78,7 @@ Generated API
         cw
         wd
         ww
+        ddnorth
         custom_index
 
         .. Generated API comment:End

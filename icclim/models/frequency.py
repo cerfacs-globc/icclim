@@ -478,7 +478,7 @@ def _get_long_name(pandas_freq: str) -> str:
     freqs = [EN_FREQ_MAPPING[f] for f in freqs]
     freqs = " ".join(freqs)
     if multiplier:
-        return multiplier[0] + freqs
+        return f"{multiplier[0]} {freqs}"
     else:
         return freqs
 

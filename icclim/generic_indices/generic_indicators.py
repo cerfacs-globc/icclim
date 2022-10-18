@@ -12,17 +12,18 @@ import numpy
 import numpy as np
 import xarray as xr
 from jinja2 import Environment
+from pint import DefinitionSyntaxError, Quantity, UndefinedUnitError
 from xarray import DataArray
 from xarray.core.resample import DataArrayResample
 from xarray.core.rolling import DataArrayRolling
-from xclim.core.bootstrapping import percentile_bootstrap
-from xclim.core.calendar import build_climatology_bounds, resample_doy, select_time
+from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.datachecks import check_freq
 from xclim.core.missing import MissingBase
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
-from xclim.core.units import convert_units_to, rate2amount, to_agg_units
-from xclim.core.utils import PercentileDataArray
+from xclim.core.units import convert_units_to, rate2amount, str2pint, to_agg_units
+from xclim.core.units import units as xc_units
+from xclim.core.units import units2pint
 from xclim.indices import run_length
 
 from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
@@ -40,7 +41,7 @@ from icclim.models.constants import (
 from icclim.models.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.logical_link import LogicalLink
-from icclim.models.operator import Operator
+from icclim.models.operator import OperatorRegistry
 from icclim.models.registry import Registry
 from icclim.models.threshold import PercentileThreshold, Threshold
 
@@ -371,16 +372,12 @@ def excess(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ) -> DataArray:
-    op, study, threshold = _get_single_var(climate_vars)
-    if isinstance(threshold, PercentileThreshold):
-        thresh = resample_doy(threshold.value, study)
-    else:
-        thresh = threshold.value
+    study, threshold = _get_single_var(climate_vars)
+    if threshold.operator is not OperatorRegistry.REACH:
+        raise InvalidIcclimArgumentError("")
+    excesses = threshold.compute(study, override_op=lambda da, th: da - th)
     res = (
-        (study - thresh)
-        .clip(min=0)
-        .resample(time=resample_freq.pandas_freq)
-        .sum(dim="time")
+        (excesses).clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     )
     return to_agg_units(res, study, "delta_prod")
 
@@ -390,17 +387,9 @@ def deficit(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ) -> DataArray:
-    op, study, threshold = _get_single_var(climate_vars)
-    if isinstance(threshold, PercentileThreshold):
-        thresh = resample_doy(threshold.value, study)
-    else:
-        thresh = threshold.value
-    res = (
-        (thresh - study)
-        .clip(min=0)
-        .resample(time=resample_freq.pandas_freq)
-        .sum(dim="time")
-    )
+    study, threshold = _get_single_var(climate_vars)
+    deficit = threshold.compute(study, override_op=lambda da, th: th - da)
+    res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     return to_agg_units(res, study, "delta_prod")
 
 
@@ -410,22 +399,20 @@ def fraction_of_total(
     to_percent: bool,
     **kwargs,  # noqa
 ) -> DataArray:
-    op, study, threshold = _get_single_var(climate_vars)
+    study, threshold = _get_single_var(climate_vars)
     if threshold.threshold_min_value is not None:
         total = (
-            study.where(op(study, threshold.threshold_min_value.m))
+            study.where(threshold.operator(study, threshold.threshold_min_value.m))
             .resample(time=resample_freq.pandas_freq)
             .sum(dim="time")
         )
     else:
         total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")
     exceedance = _compute_exceedance(
-        operator=op,
         study=study,
-        threshold=threshold.value,
+        threshold=threshold,
         freq=resample_freq.pandas_freq,
         bootstrap=_must_run_bootstrap(study, threshold),
-        is_doy_per=_is_doy_per(threshold),
     ).squeeze()
     over = (
         study.where(exceedance, 0)
@@ -492,6 +479,7 @@ def sum(
         resample_freq=resample_freq,
         reducer_op=DataArrayResample.sum,
         date_event=False,
+        must_convert_rate=True,
     )
 
 
@@ -792,21 +780,18 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
     )
 
 
-@percentile_bootstrap
 def _compute_exceedance(
     study: DataArray,
-    threshold: DataArray | PercentileDataArray,
-    operator: Operator,
+    threshold: Threshold,
     freq: str,  # noqa used by @percentile_bootstrap (don't rename, it breaks bootstrap)
     bootstrap: bool,  # noqa used by @percentile_bootstrap
-    is_doy_per: bool,
 ) -> DataArray:
-    if is_doy_per:
-        threshold = resample_doy(threshold, study)
-    res = operator(study, threshold)
+    exceedances = threshold.compute(study, freq=freq, bootstrap=bootstrap)
     if bootstrap:
-        res.attrs[REFERENCE_PERIOD_ID] = build_climatology_bounds(study)
-    return res
+        exceedances.attrs[REFERENCE_PERIOD_ID] = threshold.value.attrs[
+            "climatology_bounds"
+        ]
+    return exceedances
 
 
 def _get_couple_of_var(
@@ -831,15 +816,13 @@ def _run_rolling_reducer(
     date_event: bool,
     source_freq_delta: timedelta,
 ) -> DataArray:
-    thresh_operator, study, threshold = _get_single_var(climate_vars)
+    study, threshold = _get_single_var(climate_vars)
     if threshold:
         exceedance = _compute_exceedance(
-            operator=thresh_operator,
             study=study,
             freq=resample_freq.pandas_freq,
-            threshold=threshold.value,
+            threshold=threshold,
             bootstrap=_must_run_bootstrap(study, threshold),
-            is_doy_per=_is_doy_per(threshold),
         ).squeeze()
         study = study.where(exceedance)
     study = rolling_op(study.rolling(time=rolling_window_width))
@@ -860,20 +843,22 @@ def _run_simple_reducer(
     resample_freq: Frequency,
     reducer_op: Callable[..., DataArray],
     date_event: bool,
+    must_convert_rate: bool = False,
 ):
-    thresh_op, study, threshold = _get_single_var(climate_vars)
+    study, threshold = _get_single_var(climate_vars)
     if threshold is not None:
         exceedance = _compute_exceedance(
-            operator=thresh_op,
             study=study,
             freq=resample_freq.pandas_freq,
-            threshold=threshold.value,
+            threshold=threshold,
             bootstrap=_must_run_bootstrap(study, threshold),
-            is_doy_per=_is_doy_per(threshold),
         ).squeeze()
         filtered_study = study.where(exceedance)
     else:
         filtered_study = study
+    if must_convert_rate:
+        if _is_rate(filtered_study):
+            filtered_study = rate2amount(filtered_study)
     if date_event:
         return _reduce_with_date_event(
             resampled=filtered_study.resample(time=resample_freq.pandas_freq),
@@ -890,14 +875,12 @@ def _compute_exceedances(
 ) -> DataArray:
     exceedances = [
         _compute_exceedance(
-            operator=climate_var.threshold.operator,
             study=climate_var.studied_data,
-            threshold=climate_var.threshold.value,
+            threshold=climate_var.threshold,
             freq=resample_freq,
             bootstrap=_must_run_bootstrap(
                 climate_var.studied_data, climate_var.threshold
             ),
-            is_doy_per=_is_doy_per(climate_var.threshold),
         ).squeeze()
         for climate_var in climate_vars
     ]
@@ -906,15 +889,14 @@ def _compute_exceedances(
 
 def _get_single_var(
     climate_vars: list[ClimateVariable],
-) -> tuple[Operator | None, DataArray, Threshold | None]:
+) -> tuple[DataArray, Threshold | None]:
     if climate_vars[0].threshold:
         return (
-            climate_vars[0].threshold.operator,
             climate_vars[0].studied_data,
             climate_vars[0].threshold,
         )
     else:
-        return None, climate_vars[0].studied_data, None
+        return climate_vars[0].studied_data, None
 
 
 def _must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
@@ -923,7 +905,14 @@ def _must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
     """
     # TODO: Don't run bootstrap when not on extreme percentile
     #       (run only below 20? 10? and above 80? 90?)
-    if threshold is None or not isinstance(threshold, PercentileThreshold):
+    if (
+        threshold is None
+        or not isinstance(threshold, PercentileThreshold)
+        or (
+            isinstance(threshold, PercentileThreshold)
+            and not threshold.is_doy_per_threshold
+        )
+    ):
         return False
     reference = threshold.value
     study_years = np.unique(da.indexes.get("time").year)
@@ -977,7 +966,7 @@ def _reduce_with_date_event(
         group_reducer = DataArray.argmin
     else:
         raise NotImplementedError(
-            f"Can't compute date_event due to unknown reducer:" f" '{reducer}'"
+            f"Can't compute `date_event` due to unknown reducer:" f" '{reducer}'"
         )
     for label, sample in resampled:
         reduced_result = sample.isel(time=group_reducer(sample, dim="time"))
@@ -1067,10 +1056,11 @@ def _add_date_coords(
 
 
 def _is_amount_unit(unit: str) -> bool:
-    # todo: maybe there is a more generic way to handle that with pint,
-    #       we could try to convert to pint and check if it has a "day-1" in it
-    #       (or a similar "by-time" unit)
-    return unit in ["cm", "mm", "m"]
+    try:
+        u = units2pint(unit)  # turn a cf u
+        return xc_units.Quantity(1, u).check("[length]")
+    except (UndefinedUnitError, DefinitionSyntaxError):
+        return False
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
@@ -1119,10 +1109,6 @@ def _is_leap_year(da: DataArray) -> np.ndarray:
         return da.time.dt.is_leap_year
 
 
-def _is_doy_per(thresh: Threshold) -> bool:
-    return isinstance(thresh, PercentileThreshold) and thresh.is_doy_per_threshold
-
-
 def _check_cf(climate_vars: list[ClimateVariable]):
     """Compare metadata attributes to CF-Convention standards.
 
@@ -1149,3 +1135,9 @@ def _check_data(climate_vars: list[ClimateVariable], src_freq: str):
         da = climate_var.studied_data
         if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
             check_freq(da, src_freq, strict=True)
+
+
+def _is_rate(query: Quantity | DataArray) -> bool:
+    if isinstance(query, DataArray):
+        query = str2pint(query.attrs[UNITS_KEY])
+    return query.dimensionality.get("[time]", None) == -1

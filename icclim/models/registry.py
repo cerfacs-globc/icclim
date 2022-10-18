@@ -20,7 +20,7 @@ class Registry(Generic[T]):
     tables for items with aliases and no case sensitivity.
     """
 
-    _item_class: type  # runtime T
+    _item_class: type  # runtime type for the generic `T`
 
     def __init__(self):
         raise NotImplementedError("Don't instantiate Registry, use its class methods.")

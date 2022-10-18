@@ -171,7 +171,7 @@ def _guess_dataset_var_names(
             for alias in expected_standard_var.aliases:
                 # check if dataset contains this alias
                 if _is_alias_valid(ds, alias):
-                    climate_var_names.append(alias)
+                    climate_var_names.append(_get_actual_name(ds, alias))
                     break
         if len(climate_var_names) < len(standard_index.input_variables):
             raise InvalidIcclimArgumentError(error_msg)
@@ -248,8 +248,18 @@ def check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
         )
 
 
-def _is_alias_valid(ds, alias):
-    return ds.get(alias, None) is not None
+def _is_alias_valid(ds, alias) -> bool:
+    for ds_var in ds.data_vars:
+        if str(ds_var).upper() == alias.upper():
+            return True
+    return False
+
+
+def _get_actual_name(ds, alias) -> str:
+    for ds_var in ds.data_vars:
+        if str(ds_var).upper() == alias.upper():
+            return ds_var
+    raise KeyError(f"Could not find {alias} in dataset.")
 
 
 def get_name_of_first_var(ds: Dataset) -> str:

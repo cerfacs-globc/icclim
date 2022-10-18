@@ -36,6 +36,11 @@ Release history
 * [enh] Improve icclim.indices to enable multi indices computation based on variable names `icclim.indices(index_group='tasmax',in_files=data)`
 * [fix] **BREAKING CHANGE** ECAD snow indices are now expecting a snow (snd) variable instead of a precipitation one.
 * [enh] Add `build_threshold` function that acts as a factory to create different kind of Threshold.
+* [enh] Add BoundedThreshold class. It allows to compute multiple threshold for a single variable.
+  This feature is necessary for indices such as ECAD's "DDnorth".
+  Instances of BoundedThreshold are created with the `build_threshold` factory function, E.G. `build_threshold(">= -20 degree AND <= 20 degree ")`
+* [enh] Make it possible to compute multiple percentiles at once.
+* [maint] Update coverage computation. Now tests files are ignored when calculating the code coverage, thus it dropped a little (by 3%).
 
 5.4.0
 -----

@@ -49,6 +49,7 @@ DOY_PERCENTILE_UNIT = "doy_per"
 
 # Mapping of frequencies to generate metadata
 # copied from xclim and updated.
+# todo: we should probably turn that mapping to jinja templates to make it easier to maintain
 EN_FREQ_MAPPING = {
     "YS": "year(s)", "Y": "year(s)", "AS": "year(s)", "A": "year(s)",
     "QS": "season(s)", "Q": "season(s)",

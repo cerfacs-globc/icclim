@@ -176,7 +176,12 @@ class Test_Integration:
         assert res.time_bounds[0, 1] == np.datetime64(datetime(2042, 1, 14))
         assert (
             res.SU.attrs["standard_name"]
-            == "number_of_days_with_maximum_air_temperature_above_threshold"
+            == "number_of_days_when_maximum_air_temperature_is_greater_than_threshold"
+        )
+        assert (
+            res.SU.attrs["long_name"]
+            == "Number of days when maximum air temperature is greater than 25.0"
+            " degC for each 2 wednesday starting week(s)."
         )
 
     def test_index_SU__monthy_sampled(self):
@@ -350,6 +355,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(index_group="all", in_files=ds, out_file=self.OUTPUT_FILE)
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
@@ -362,6 +369,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -379,6 +388,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -396,6 +407,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -413,6 +426,8 @@ class Test_Integration:
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -428,6 +443,8 @@ class Test_Integration:
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
+        ds["DD"] = self.data.copy(deep=True)
+        ds["DD"].attrs[UNITS_KEY] = "degree"
         res: xr.Dataset = icclim.indices(
             index_group="all",
             in_files=ds,
@@ -638,6 +655,56 @@ class Test_Integration:
         assert res.count_occurrences.attrs[UNITS_KEY] == "%"
         assert res.count_occurrences.isel(time=0) == 1 / 31 * 100
 
+    def test_count_occurrences__multiple_simple_thresholds(self):
+        tas = stub_tas(tas_value=2 + K2C)
+        tas[10] = 35 + K2C
+        res = icclim.index(
+            tas,
+            var_name=["tmin"],
+            index_name="count_occurrences",
+            threshold=build_threshold(value=[1, 30], operator=">=", unit="deg_C"),
+            slice_mode="month",
+            save_thresholds=True,
+        ).compute()
+        assert res.count_occurrences.attrs[UNITS_KEY] == "d"
+        print(res.count_occurrences)
+        assert res.count_occurrences.isel(time=0).sel(threshold=1) == 31
+        # The 5 days rolling turn the 1 day unusual value into a 5 day time lapse
+        assert res.count_occurrences.isel(time=0).sel(threshold=30) == 1
+
+    def test_count_occurrences__multiple_doy_per_thresholds(self):
+        tas = stub_tas(tas_value=2 + K2C)
+        tas[10] = 35 + K2C
+        res = icclim.index(
+            tas,
+            var_name=["tmin"],
+            index_name="count_occurrences",
+            threshold=build_threshold(value=[10, 99], operator=">=", unit="doy_per"),
+            slice_mode="month",
+            save_thresholds=True,
+        ).compute()
+        assert res.count_occurrences.attrs[UNITS_KEY] == "d"
+        assert res.count_occurrences.isel(time=0).sel(percentiles=10) == 31
+        # The 5 days rolling turn the 1 day unusual value into a 5 day time lapse
+        assert res.count_occurrences.isel(time=0).sel(percentiles=99) == 26
+
+    def test_count_occurrences__multiple_period_per_thresholds(self):
+        tas = stub_tas(tas_value=-20 + K2C)
+        tas[10] = 35 + K2C
+        res = icclim.index(
+            tas,
+            var_name=["tmin"],
+            index_name="count_occurrences",
+            threshold=build_threshold(
+                value=[10, 99.95], operator=">=", unit="period_per"
+            ),
+            slice_mode="month",
+            save_thresholds=True,
+        ).compute()
+        assert res.count_occurrences.attrs[UNITS_KEY] == "d"
+        assert res.count_occurrences.isel(time=0).sel(percentiles=10) == 31
+        assert res.count_occurrences.isel(time=0).sel(percentiles=99.95) == 1
+
     def test_excess__on_doy_percentile(self):
         tas = stub_tas(tas_value=10 + K2C).rename("tas")
         tas[10] = 5 + K2C
@@ -762,3 +829,22 @@ class Test_Integration:
         # the index
         np.testing.assert_almost_equal(rr.RR.isel(time=0), 5.3)
         np.testing.assert_almost_equal(rr.RR.isel(time=1), 0)
+
+    def test_ddnorth(self):
+        # GIVEN
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"), dims=["time"]
+        )
+        dd = xr.DataArray(
+            np.zeros(365),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "degree"},
+        )
+        dd.loc[{"time": slice("2000-01-01", "2000-01-05")}] = 50
+        dd.loc[{"time": slice("2000-03-01", "2000-03-02")}] = -50
+        # WHEN
+        ddnorth = icclim.ddnorth(in_files=dd, slice_mode="month")
+        # THEN
+        assert ddnorth.isel(time=0) == 26
+        assert ddnorth.isel(time=3) == 29
