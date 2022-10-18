@@ -145,9 +145,9 @@ Additionally, you can define a season between two exact dates:
 ~~~~~~~~~~~~~
 It is possible to set a user define threshold for the following indices:
 
-* SU (default threshold: 25ºC)
-* CSU (default threshold: 25ºC)
-* TR (default threshold: 20ºC)
+* SU (default threshold: 25°C)
+* CSU (default threshold: 25°C)
+* TR (default threshold: 20°C)
 * CSDI (default 10th percentile)
 * WSDI (default 90th percentile)
 * TX90p (default 90th percentile)
