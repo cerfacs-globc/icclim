@@ -108,6 +108,7 @@ def indices(
         del kwargs["out_file"]
     acc = []
     for i in indices:
+        log.info(f"Computing index '{i.short_name}'")
         kwargs["index_name"] = i.short_name
         if ignore_error:
             try:

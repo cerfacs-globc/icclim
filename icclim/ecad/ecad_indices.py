@@ -646,14 +646,89 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         doy_window_width=5,
     )
     # WIND
+    FXX = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.Maximum,
+        output_unit="m s-1",
+        definition="Maximum value of daily maximum wind gust",
+        source=ECAD_ATBD,
+        short_name="FXx",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WSGS_MAX],
+    )
+    FG6BFT = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=">= 10.8 m s-1",
+        output_unit="day",
+        definition="Days with daily averaged wind ≥ 6 Bft (10.8 m s-1)",
+        source=ECAD_ATBD,
+        short_name="FG6Bft",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.SFC_WIND],
+    )
+    FGCALM = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="<= 2 m s-1",
+        output_unit="day",
+        definition="Calm days, days with daily averaged wind <= 2 m s-1",
+        source=ECAD_ATBD,
+        short_name="FGcalm",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.SFC_WIND],
+    )
+    FG = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.Average,
+        output_unit="m s-1",
+        definition="Mean of daily mean wind strength",
+        source=ECAD_ATBD,
+        short_name="FG",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.SFC_WIND],
+    )
     DDNORTH = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold="> -45 degree AND <= 45 degree",
+        threshold=build_threshold("> 315 degree OR <= 45 degree"),
         output_unit="day",
-        definition="Days with northerly winds (-45 degree < DD ≤ 45 degree)",
+        definition="Days with northerly winds (DD > 315° or DD ≤ 45°)",
         source=ECAD_ATBD,
         short_name="DDnorth",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
+    )
+    DDEAST = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=build_threshold("> 45 degree AND <= 135 degree"),
+        output_unit="day",
+        definition="Days with easterly winds (45° < DD <= 135°)",
+        source=ECAD_ATBD,
+        short_name="DDeast",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
+    )
+    DDSOUTH = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=build_threshold("> 135 degree AND <= 225 degree"),
+        output_unit="day",
+        definition="Days with southerly winds (135° < DD <= 225°)",
+        source=ECAD_ATBD,
+        short_name="DDsouth",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
+    )
+    DDWEST = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=build_threshold("> 225 degree AND <= 315 degree"),
+        output_unit="day",
+        definition="Days with westerly winds (225° < DD <= 315°)",
+        source=ECAD_ATBD,
+        short_name="DDwest",
         group=IndexGroupRegistry.WIND,
         input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
     )
