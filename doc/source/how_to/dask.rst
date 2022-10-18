@@ -152,7 +152,7 @@ The more there are chunks the more routes are created.
 In extreme cases, when there are a lot of chunks, the graph may take eons to create and the computation may never start.
 This means that configuring a small chunk size leads to a potentially large graph.
 
-The graph is also dependant of the actual calculation. A climate index like "SU" (count of days above 25ºC)
+The graph is also dependant of the actual calculation. A climate index like "SU" (count of days above 25°C)
 will obviously create a much simpler graph than WSDI (longest spell of at least 6 consecutive days where maximum daily
 temperature is above the 90th daily percentile).
 Finally the resampling may also play a role in the graph complexity. In icclim we control it with ``slice_mode`` parameter.

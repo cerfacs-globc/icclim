@@ -114,7 +114,7 @@ def test_txx__season_slice_mode():
     # GIVEN
     tas = stub_tas()
     tas.loc[{"time": "2043-02-02"}] = 295
-    tas.loc[{"time": "2043-01-01"}] = 303.15  # 30ºC 273.15
+    tas.loc[{"time": "2043-01-01"}] = 303.15  # 30°C 273.15
     # WHEN
     res = icclim.txx(tas, slice_mode=["season", [11, 12, 1, 2]]).compute()
     # THEN
@@ -130,7 +130,7 @@ def test_txx__season_slice_mode():
 def test_txx__months_slice_mode():
     tas = stub_tas()
     tas.loc[{"time": "2042-11-02"}] = 295
-    tas.loc[{"time": "2042-01-01"}] = 303.15  # 30ºC 273.15
+    tas.loc[{"time": "2042-01-01"}] = 303.15  # 30°C 273.15
     res = icclim.txx(tas, slice_mode=["months", [11, 1]]).compute()
     np.testing.assert_array_equal(res.TXx.isel(time=0), 30)
     np.testing.assert_array_equal(res.TXx.isel(time=1), np.NAN)

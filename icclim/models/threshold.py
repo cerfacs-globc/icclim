@@ -200,13 +200,13 @@ def build_threshold(
 
 class Threshold(metaclass=abc.ABCMeta):
     """
-    - scalar thresh:                               "> 25 ºC"
+    - scalar thresh:                               "> 25 °C"
     - per grid cell thresh:                        "> data.nc"
     - doy percentile threshold:                    "> 98th doy_per"
     - period percentile threshold:                 "> 75th period_per"
     - period percentile threshold with min value:  "> 98th period_per",
                                                    threshold_min_value= "1mm"
-    - sequence thresholds (or):                    "> 10 ºC, > 25 ºC"
+    - sequence thresholds (or):                    "> 10 °C, > 25 °C"
                                                      thresholds are a new dimension
     """
 
