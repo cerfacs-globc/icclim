@@ -76,6 +76,10 @@ def indices(
     The input dataset(s) must include all the necessary variables.
     It can only be used with keyword arguments (kwargs)
 
+    .. notes
+        If ``output_file`` is part of kwargs, the result is written in a single netCDF
+        file, which will contain all the index results of this group.
+
     Parameters
     ----------
     index_group : "all" | str | IndexGroup | list[str]
@@ -95,10 +99,6 @@ def indices(
     -------
     xr.Dataset
         A Dataset with one data variable per index.
-
-    .. notes
-        If ``output_file`` is part of kwargs, the result is written in a single netCDF
-        file, which will contain all the index results of this group.
 
     """
     indices = _get_indices_of_group(index_group)
