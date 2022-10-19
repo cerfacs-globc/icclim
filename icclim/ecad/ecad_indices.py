@@ -691,7 +691,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     DDNORTH = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=build_threshold("> 315 degree OR <= 45 degree"),
+        threshold="> 315 degree OR <= 45 degree",
         output_unit="day",
         definition="Days with northerly winds (DD > 315° or DD ≤ 45°)",
         source=ECAD_ATBD,
@@ -702,7 +702,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     DDEAST = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=build_threshold("> 45 degree AND <= 135 degree"),
+        threshold="> 45 degree AND <= 135 degree",
         output_unit="day",
         definition="Days with easterly winds (45° < DD <= 135°)",
         source=ECAD_ATBD,
@@ -713,7 +713,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     DDSOUTH = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=build_threshold("> 135 degree AND <= 225 degree"),
+        threshold="> 135 degree AND <= 225 degree",
         output_unit="day",
         definition="Days with southerly winds (135° < DD <= 225°)",
         source=ECAD_ATBD,
@@ -724,7 +724,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     DDWEST = StandardIndex(
         reference=ECAD_REFERENCE,
         generic_indicator=GenericIndicatorRegistry.CountOccurrences,
-        threshold=build_threshold("> 225 degree AND <= 315 degree"),
+        threshold="> 225 degree AND <= 315 degree",
         output_unit="day",
         definition="Days with westerly winds (225° < DD <= 315°)",
         source=ECAD_ATBD,
