@@ -387,6 +387,29 @@ class BoundedThreshold(Threshold):
 
 
 class PercentileThreshold(Threshold):
+    """
+    Percentile based threshold.
+    The percentiles to be computed are expected to be either:
+    * "doy percentiles" (unit "doy_per"). They are usually used for temperatures indices
+    such as the ECAD Tx90p.
+    These percentiles are computed per day of year (doy) and by aggregating
+    values on the time axis ranged by `reference_period`, using the
+    `doy_window_width` parameter to control the time axis window of aggregation.
+    The resulting `value` is a DataArray with a "dayofyear" dimension ranging from
+    0 to 365 with one value per day of the year.
+    * "period percentiles" (unit "period_per"). They are usually used for liquide
+    precipitation indices such as the ECAD's R75p or even r75pTOT.
+    These percentiles are computed per grid cell on the period ranged by
+    `reference_period`.
+    The resulting `value` is a DataArray with per grid cell values and no time axis.
+
+    `is_ready` becomes True when `prepare` method has been called, the actual
+    percentiles are then computed and accessible in `value` property.
+    Once `is_ready` is True, `unit` property can be set and will attempt a pint unit
+    conversion similar to what is done on `BasicThreshold`.
+    Before that, setting unit has no effect.
+    """
+
     reference_period: Sequence[str]
     doy_window_width: int
     only_leap_years: bool
@@ -404,7 +427,7 @@ class PercentileThreshold(Threshold):
         return self._initial_unit
 
     @unit.setter
-    def unit(self, unit):
+    def unit(self, unit: str | xr.DataArray | pint.Quantity | pint.Unit):
         if self.is_ready:
             if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
                 self._prepared_value = convert_units_to(self._prepared_value, unit)
@@ -596,6 +619,14 @@ class PercentileThreshold(Threshold):
 
 
 class BasicThreshold(Threshold):
+    """
+    Pint ready threshold.
+    When built, `value` is always turned into a `xarray.DataArray`.
+    The `unit` property as a setter that will attempt a unit conversion using
+    units found in xclim's pint registry.
+    The actual unit can be overridden by modify `value.attrs["units"]` directly.
+    """
+
     @property
     def unit(self) -> str | None:
         return self.value.attrs[UNITS_KEY]
