@@ -27,9 +27,14 @@ from pathlib import Path
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
+from icclim.icclim_logger import Verbosity
 from icclim.models.constants import QUANTILE_BASED
+from icclim.models.frequency import Frequency
+from icclim.models.netcdf_version import NetcdfVersion
+from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import Threshold, build_threshold
+from icclim.models.threshold import PercentileThreshold, Threshold, build_threshold
+from icclim.models.user_index_dict import UserIndexDict
 
 ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]
 # Note: callback args are not included below
@@ -70,7 +75,7 @@ DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
 
 def generate_api(path):
     with open(path, "w") as f:
-        acc = '''"""
+        acc = f'''"""
 This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
@@ -84,13 +89,13 @@ from typing import Sequence
 from xarray.core.dataset import Dataset
 
 import icclim
-from icclim.icclim_logger import Verbosity
+from {Verbosity.__module__} import {Verbosity.__name__}
 from icclim.icclim_types import InFileLike, SamplingMethodLike
-from icclim.models.frequency import Frequency, FrequencyLike
-from icclim.models.netcdf_version import NetcdfVersion
-from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.threshold import build_threshold
-from icclim.models.user_index_dict import UserIndexDict
+from {Frequency.__module__} import {Frequency.__name__}, FrequencyLike
+from {NetcdfVersion.__module__} import {NetcdfVersion.__name__}
+from {QuantileInterpolation.__module__} import {QuantileInterpolation.__name__}
+from {build_threshold.__module__} import {build_threshold.__name__}
+from {UserIndexDict.__module__} import {UserIndexDict.__name__}
 
 __all__ = [
 '''
@@ -224,13 +229,11 @@ def get_standard_index_declaration(index: StandardIndex) -> str:
         [a + "=" + a for a in icclim_index_args]
     )
     if isinstance(index.threshold, (str, Threshold)):
-        fun_call_args += (
-            f",\n{TAB}{TAB}threshold={format_thresh(index.threshold, is_per_based)}"
-        )
+        fun_call_args += f",\n{TAB}{TAB}threshold={format_thresh(index.threshold)}"
     elif isinstance(index.threshold, (list, tuple)):
         fun_call_args += f",\n{TAB}{TAB}threshold=["
         for t in index.threshold:
-            fun_call_args += format_thresh(t, is_per_based) + ","
+            fun_call_args += format_thresh(t) + ","
         fun_call_args += "]"
     if index.output_unit is not None:
         fun_call_args += f',\n{TAB}{TAB}out_unit="{index.output_unit}"'
@@ -268,20 +271,23 @@ def get_params_docstring(args: list[str], index_docstring: str) -> str:
     return result
 
 
-def format_thresh(t: str | Threshold, is_percentile_based: bool) -> str:
+def format_thresh(t: str | Threshold) -> str:
+    params = {}
     if isinstance(t, str):
         t = build_threshold(t)
-    params = f'{TAB}{TAB}{TAB}query="{t.initial_query}",\n'
-    if is_percentile_based:
-        params += (
-            f"{TAB}{TAB}{TAB}doy_window_width={t.doy_window_width},\n"
-            f"{TAB}{TAB}{TAB}only_leap_years=only_leap_years,\n"
-            f"{TAB}{TAB}{TAB}interpolation=interpolation,\n"
-            f"{TAB}{TAB}{TAB}reference_period=base_period_time_range,\n"
-        )
+    params["query"] = f'"{t.initial_query}"'
+    if isinstance(t, PercentileThreshold):
+        params["doy_window_width"] = t.doy_window_width
+        params["only_leap_years"] = "only_leap_years"
+        params["interpolation"] = "interpolation"
+        params["reference_period"] = "base_period_time_range"
     if t.threshold_min_value is not None:
-        params += f'{TAB}{TAB}{TAB}threshold_min_value="{t.threshold_min_value}",\n'
-    return f"{TAB}{TAB}{TAB}build_threshold({params})"
+        params["threshold_min_value"] = f'"{t.threshold_min_value}"'
+    acc = f"{build_threshold.__name__}("
+    for k, v in params.items():
+        acc += f"{k}={v},\n"
+    acc += ")"
+    return acc
 
 
 def generate_doc(doc_path):
