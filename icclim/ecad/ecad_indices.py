@@ -732,3 +732,14 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         group=IndexGroupRegistry.WIND,
         input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
     )
+    # Cloudiness
+    CC = StandardIndex(
+        reference=ECAD_REFERENCE,
+        generic_indicator=GenericIndicatorRegistry.Average,
+        output_unit="oktas",
+        definition="Mean of daily cloud cover",
+        source=ECAD_ATBD,
+        short_name="FG",
+        group=IndexGroupRegistry.CLOUD,
+        input_variables=[StandardVariableRegistry.SFC_WIND],
+    )

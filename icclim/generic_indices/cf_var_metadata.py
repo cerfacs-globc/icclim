@@ -229,6 +229,13 @@ class StandardVariableRegistry(Registry[StandardVariable]):
         aliases=["dd"],
         default_units="degree",
     )
+    CC = StandardVariable(
+        short_name="DD",
+        standard_name="wind_to_direction",
+        long_name="Daily mean cloud cover",
+        aliases=["dd"],
+        default_units="degree",
+    )
     # X = StandardVariable(
     #     short_name="x",
     #     standard_name="y",
