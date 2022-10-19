@@ -27,13 +27,17 @@ from pathlib import Path
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
+from icclim.generic_indices.threshold import (
+    PercentileThreshold,
+    Threshold,
+    build_threshold,
+)
 from icclim.icclim_logger import Verbosity
 from icclim.models.constants import QUANTILE_BASED
 from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import PercentileThreshold, Threshold, build_threshold
 from icclim.models.user_index_dict import UserIndexDict
 
 ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]

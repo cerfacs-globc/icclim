@@ -5,8 +5,8 @@ from typing import Any, Callable, Optional, Sequence, Tuple, Union
 
 from xarray import DataArray
 
-from icclim.generic_indices.cf_var_metadata import StandardVariable
-from icclim.models.index_group import IndexGroup
+import icclim.models.index_group
+from icclim.generic_indices.standard_variable import StandardVariable
 
 ComputeIndexFun = Callable[
     [Any], Union[DataArray, Tuple[DataArray, Optional[DataArray]]]
@@ -43,9 +43,9 @@ class StandardIndex:
     """
 
     short_name: str
-    group: IndexGroup
+    group: icclim.models.index_group.IndexGroup
     input_variables: list[StandardVariable] | None  # None when index is generic
-    generic_indicator: Any  # Any -> GenericIndicator
+    indicator: Any  # Any -> Indicator
     # todo: merge qualifiers with group into a Set of qualifiers ?
     qualifiers: list[str] | None = None
     source: str | None = None
@@ -62,13 +62,13 @@ class StandardIndex:
         return f"{self.group} | {self.short_name} | {self.definition}"
 
     def __call__(self, *args, **kwargs):
-        self.generic_indicator(*args, **kwargs)
+        self.indicator(*args, **kwargs)
 
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, StandardIndex):
             return False
         return (
-            self.generic_indicator.name == other.generic_indicator.name
+            self.indicator == other.indicator
             and self.threshold == other.threshold
             and self.output_unit == other.output_unit
             and self.rolling_window_width == other.rolling_window_width

@@ -26,6 +26,7 @@ from icclim.generic_indices.generic_indicators import (
     GenericIndicatorRegistry,
     Indicator,
 )
+from icclim.generic_indices.threshold import Threshold, build_threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.icclim_types import InFileLike, SamplingMethodLike
@@ -53,7 +54,6 @@ from icclim.models.quantile_interpolation import (
     QuantileInterpolationRegistry,
 )
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import Threshold, build_threshold
 from icclim.models.user_index_dict import UserIndexDict
 from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.user_indices.calc_operation import CalcOperationRegistry
@@ -360,7 +360,7 @@ def index(
     del indice_name, transfer_limit_Mbytes, user_indice, save_percentile, window_width
     # -- Choose index to compute
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
-    indicator: GenericIndicator
+    indicator: Indicator
     standard_index: StandardIndex | None
     logical_link: LogicalLink
     coef: float | None
@@ -395,7 +395,7 @@ def index(
             rename = None
             output_unit = out_unit
         else:
-            indicator = standard_index.generic_indicator
+            indicator = standard_index.indicator
             threshold = standard_index.threshold
             rename = standard_index.short_name
             output_unit = out_unit or standard_index.output_unit
@@ -555,7 +555,7 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
 
 
 def _compute_climate_index(
-    climate_index: GenericIndicator | None,
+    climate_index: Indicator | None,
     config: IndexConfig,
     initial_history: str | None,
     initial_source: str,

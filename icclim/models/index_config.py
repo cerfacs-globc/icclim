@@ -20,14 +20,14 @@ class IndexConfig:
     ----------
     frequency: Frequency
         The expected resampling frequency of the output.
-    cf_variables:
+    climate_variables: list[ClimateVariable]
         List of CfVariable necessary to compute the index.
     save_percentile: bool = False
         On percentile based indices, if True, this saves the percentile in the output
         netcdf.
     netcdf_version:
         Netcdf version to be used when creating the output
-    window:
+    rolling_window_width:
         On indices relying on a rolling window of days, configure the window width.
     scalar_thresholds:
         On indices relying on a threshold, configure the threshold value. Unit less.

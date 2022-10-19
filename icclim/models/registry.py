@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC
 from copy import deepcopy
 from typing import Generic, TypeVar
 
@@ -8,7 +9,7 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 T = TypeVar("T")
 
 
-class Registry(Generic[T]):
+class Registry(Generic[T], ABC):
     """This class is a fancy enum to easily store and find constant items of
     similar type.
     It acts as a namespace so there is no need to instantiate it or any of
@@ -21,9 +22,6 @@ class Registry(Generic[T]):
     """
 
     _item_class: type  # runtime type for the generic `T`
-
-    def __init__(self):
-        raise NotImplementedError("Don't instantiate Registry, use its class methods.")
 
     @classmethod
     def lookup(cls, query: T | str, no_error: bool = False) -> T:

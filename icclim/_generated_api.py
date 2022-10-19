@@ -12,12 +12,12 @@ from typing import Sequence
 from xarray.core.dataset import Dataset
 
 import icclim
+from icclim.generic_indices.threshold import build_threshold
 from icclim.icclim_logger import Verbosity
 from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.frequency import Frequency, FrequencyLike
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.threshold import build_threshold
 from icclim.models.user_index_dict import UserIndexDict
 
 __all__ = [
