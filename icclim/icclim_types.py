@@ -4,7 +4,7 @@ from typing import Dict, List, Literal, Sequence, Tuple, Union
 
 from xarray import DataArray, Dataset
 
-InFileBaseType = Union[str, List[str], Dataset, DataArray]
+InFileBaseType = Union[str, Sequence[str], Dataset, DataArray]
 ThresholdedDict = Dict[str, Union[Dict]]  # Dict === InFileDictionary
 InFileLike = Union[ThresholdedDict, InFileBaseType, Dict[str, InFileBaseType]]
 
