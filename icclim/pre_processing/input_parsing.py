@@ -21,7 +21,7 @@ from icclim.icclim_types import InFileBaseType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.constants import UNITS_KEY, VALID_PERCENTILE_DIMENSION
 from icclim.models.standard_index import StandardIndex
-from icclim.utils import get_date_to_iso_format
+from icclim.utils import get_date_to_iso_format, is_precipitation_amount
 
 DEFAULT_INPUT_FREQUENCY = "days"
 
@@ -215,10 +215,9 @@ def build_studied_data(
         check_time_range_post_validity(da, original_da, "time_range", time_range)
         if len(da.time) == 0:
             raise InvalidIcclimArgumentError(
-                f"The given `time_range` {time_range} "
-                f"is out of the dataset time period: "
-                f"{original_da.time.min().dt.floor('D').values} "
-                f"- {original_da.time.max().dt.floor('D').values}."
+                f"The given `time_range` {time_range} is out of the dataset time"
+                f" period: {original_da.time.min().dt.floor('D').values}"
+                f" - {original_da.time.max().dt.floor('D').values}."
             )
     else:
         da = original_da
@@ -226,6 +225,8 @@ def build_studied_data(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_KEY, None) is None and standard_var is not None:
         da.attrs[UNITS_KEY] = standard_var.default_units
+    if is_precipitation_amount(da):
+        da = xclim.core.units.amount2rate(da)
     da = da.chunk("auto")
     return da
 
@@ -258,7 +259,7 @@ def _is_alias_valid(ds, alias) -> bool:
 def _get_actual_name(ds, alias) -> str:
     for ds_var in ds.data_vars:
         if str(ds_var).upper() == alias.upper():
-            return ds_var
+            return str(ds_var)
     raise KeyError(f"Could not find {alias} in dataset.")
 
 

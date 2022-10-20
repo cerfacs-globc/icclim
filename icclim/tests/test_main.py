@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import cftime
 import numpy as np
 import pandas as pd
+import pint
 import pytest
 import xarray as xr
 
@@ -42,7 +43,7 @@ HEAT_INDICES = ["SU", "TR", "WSDI", "TG90p", "TN90p", "TX90p", "TXx", "TNx", "CS
 @pytest.mark.slow
 class Test_Integration:
     """
-    Simple integration test.
+    Integration tests.
     We are not testing here the actual indices results, they are already tested in
     `test_ecad_indices.py` as well as in xclim directly.
     The goal it to make sure every the whole app can run smoothly
@@ -829,3 +830,37 @@ class Test_Integration:
         # the index
         np.testing.assert_almost_equal(rr.RR.isel(time=0), 5.3)
         np.testing.assert_almost_equal(rr.RR.isel(time=1), 0)
+
+    def test_mm_to_mmday(self):
+        # GIVEN
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"), dims=["time"]
+        )
+        precip = xr.DataArray(
+            np.ones(365),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "mm", "standard_name": "thickness_of_rainfall_amount"},
+        )
+        precip.loc[{"time": slice("2000-01-01", "2000-01-05")}] = 50
+        # WHEN
+        r10mm = icclim.r10mm(in_files=precip, slice_mode="month")
+        # THEN
+        assert r10mm.isel(time=0) == 5
+
+    def test_mm_to_mmday__error_bas_standard_name(self):
+        # GIVEN
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"), dims=["time"]
+        )
+        precip = xr.DataArray(
+            np.ones(365),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "mm", "standard_name": "HeHoCacao"},
+        )
+        precip.loc[{"time": slice("2000-01-01", "2000-01-05")}] = 50
+        # THEN
+        with pytest.raises(pint.DimensionalityError):
+            # WHEN
+            icclim.r10mm(in_files=precip)
