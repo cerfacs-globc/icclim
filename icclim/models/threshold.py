@@ -85,7 +85,7 @@ def build_threshold(
     thresholds: Sequence[Threshold | str, Threshold | str] | None = None,
     logical_link: str | LogicalLink | None = None,
     **kwargs,
-) -> Threshold:
+) -> BoundedThreshold | PercentileThreshold | BasicThreshold:
     """Factory for thresholds.
 
     Parameters
