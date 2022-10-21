@@ -5,8 +5,8 @@ Release history
 ------------------
 [fix] Add unit getter/setter for BoundedThreshold.
 
-6.0
----
+6.0.0
+-----
 * [enh] Add generic indices
 * [enh] Make in_files.var.threshold and threshold parameters work with string values (a value with a unit or a percentile stamp)
 * [maint] **BREAKING CHANGE** ECAD indices are no longer configurable! Use generic indices instead.
