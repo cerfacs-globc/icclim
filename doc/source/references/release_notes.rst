@@ -1,6 +1,10 @@
 Release history
 ===============
 
+6.0.1 (unreleased)
+------------------
+[fix] Add unit getter/setter for BoundedThreshold.
+
 6.0
 ---
 * [enh] Add generic indices
