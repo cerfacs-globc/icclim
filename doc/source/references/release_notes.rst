@@ -1,8 +1,12 @@
 Release history
 ===============
 
-6.0 (unreleased)
-----------------
+6.0.1 (unreleased)
+------------------
+[fix] Add unit getter/setter for BoundedThreshold.
+
+6.0.0
+-----
 * [enh] Add generic indices
 * [enh] Make in_files.var.threshold and threshold parameters work with string values (a value with a unit or a percentile stamp)
 * [maint] **BREAKING CHANGE** ECAD indices are no longer configurable! Use generic indices instead.
@@ -27,14 +31,14 @@ Release history
 * [enh] Add `min_spell_length` parameter to index API in order to control the minimum duration of spells in `sum_of_spell_lengths`.
 * [enh] Add `rolling_window_width` parameter to index API in order to control the width of the rolling window in `max|min_of_rolling_sum|average`.
 * [enh] Add `doy_window_width` parameter to index API in order to control the width of aggregation windows when computing doy percentiles.
-* [maint] Deprecate `window_width` parameter. When filled, it is mapped to It is still mapped `doy_window_width`.
+* [maint] Deprecate `window_width` parameter. When filled, it is mapped to it is still mapped to `doy_window_width`.
 * [maint] Upgrade to xclim 0.38 and to xarray 2022.6.
 * [maint] Add BlackDoc to C.I (github actions) to keep or doc code example clean.
 * [enh] Add ECAD's RR index. It computes the sum of precipitations over days.
 * [enh] Add icclim logo and auto-update its inner version number.
 * [maint] Enable git lfs (large file storage) for `.svg` files to minimise the impact on storage of logo updates.
 * [enh] Improve icclim.indices to enable multi indices computation based on variable names `icclim.indices(index_group='tasmax',in_files=data)`
-* [fix] **BREAKING CHANGE** ECAD snow indices are now expecting a snow (snd) variable instead of a precipitation one.
+* [fix] **BREAKING CHANGE** ECAD snow indices now expect a snow (snd) variable instead of a precipitation one.
 * [enh] Add `build_threshold` function that acts as a factory to create different kind of Threshold.
 * [enh] Add BoundedThreshold class. It allows to compute multiple threshold for a single variable.
   This feature is necessary for indices such as ECAD's "DDnorth".

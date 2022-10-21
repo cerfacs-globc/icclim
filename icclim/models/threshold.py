@@ -85,7 +85,7 @@ def build_threshold(
     thresholds: Sequence[Threshold | str, Threshold | str] | None = None,
     logical_link: str | LogicalLink | None = None,
     **kwargs,
-) -> Threshold:
+) -> BoundedThreshold | PercentileThreshold | BasicThreshold:
     """Factory for thresholds.
 
     Parameters
@@ -286,6 +286,18 @@ class BoundedThreshold(Threshold):
     left_threshold: Threshold
     right_threshold: Threshold
     logical_link: LogicalLink
+
+    @property
+    def unit(self) -> str | None:
+        if self.left_threshold.unit == self.right_threshold.unit:
+            return self.left_threshold.unit
+        else:
+            return None
+
+    @unit.setter
+    def unit(self, unit):
+        self.left_threshold.unit = unit
+        self.right_threshold.unit = unit
 
     def __init__(
         self,
