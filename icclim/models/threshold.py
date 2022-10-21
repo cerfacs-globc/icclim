@@ -287,6 +287,18 @@ class BoundedThreshold(Threshold):
     right_threshold: Threshold
     logical_link: LogicalLink
 
+    @property
+    def unit(self) -> str | None:
+        if self.left_threshold.unit == self.right_threshold.unit:
+            return self.left_threshold.unit
+        else:
+            return None
+
+    @unit.setter
+    def unit(self, unit):
+        self.left_threshold.unit = unit
+        self.right_threshold.unit = unit
+
     def __init__(
         self,
         thresholds: Sequence[Threshold | str | ThresholdBuilderInput],

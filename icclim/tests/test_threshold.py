@@ -5,6 +5,7 @@ from typing import Callable
 
 import numpy as np
 import pandas as pd
+import pint
 import pytest
 import xarray as xr
 from xclim.core.calendar import percentile_doy
@@ -50,6 +51,24 @@ def test_build_bounded_threshold__from_query():
     assert res.right_threshold.operator == OperatorRegistry.LOWER
     assert res.right_threshold.value == 20
     assert res.right_threshold.unit == "degC"
+
+
+def test_build_bounded_threshold__unit_conversion():
+    res = build_threshold(">10degC and <300 K")
+    res.unit = "degree_Fahrenheit"
+    np.testing.assert_almost_equal(res.left_threshold.value, 50)
+    np.testing.assert_almost_equal(res.right_threshold.value, 80.33)
+    assert res.left_threshold.unit == "degree_Fahrenheit"
+    assert res.right_threshold.unit == "degree_Fahrenheit"
+
+
+def test_build_bounded_threshold__unit_conversion_erorr():
+    # GIVEN
+    res = build_threshold(">10degC and <300 K")
+    # THEN
+    with pytest.raises(pint.DimensionalityError):
+        # WHEN
+        res.unit = "meter"
 
 
 def test_build_bounded_threshold__error():
