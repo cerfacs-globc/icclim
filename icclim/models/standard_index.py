@@ -1,16 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Sequence, Tuple, Union
+from typing import Any, Sequence
 
-from xarray import DataArray
-
-import icclim.models.index_group
+import icclim.models.index_group as index_group
 from icclim.generic_indices.standard_variable import StandardVariable
-
-ComputeIndexFun = Callable[
-    [Any], Union[DataArray, Tuple[DataArray, Optional[DataArray]]]
-]
 
 
 @dataclass
@@ -43,9 +37,9 @@ class StandardIndex:
     """
 
     short_name: str
-    group: icclim.models.index_group.IndexGroup
+    group: index_group.IndexGroup
     input_variables: list[StandardVariable] | None  # None when index is generic
-    indicator: Any  # Any -> Indicator
+    indicator: Any  # Any -> Indicator (circular dep)
     # todo: merge qualifiers with group into a Set of qualifiers ?
     qualifiers: list[str] | None = None
     source: str | None = None
