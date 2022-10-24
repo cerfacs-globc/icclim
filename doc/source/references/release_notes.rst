@@ -1,7 +1,7 @@
 Release history
 ===============
 
-6.0.1 (unreleased)
+6.1.0 (unreleased)
 ------------------
 * [fix] Add unit getter/setter for BoundedThreshold.
 * [enh] Add ECAD wind indices ``{fxx, fg6bft, fgcalm, fg, ddnorth, ddeast, ddsouth, ddwest}``.
