@@ -11,16 +11,16 @@ import xarray as xr
 from xclim.core.calendar import percentile_doy
 from xclim.core.units import units as xc_units
 
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import UNITS_KEY
-from icclim.models.logical_link import LogicalLinkRegistry
-from icclim.models.operator import OperatorRegistry
-from icclim.models.threshold import (
+from icclim.generic_indices.threshold import (
     BasicThreshold,
     BoundedThreshold,
     PercentileThreshold,
     build_threshold,
 )
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.constants import UNITS_KEY
+from icclim.models.logical_link import LogicalLinkRegistry
+from icclim.models.operator import OperatorRegistry
 
 
 def test_value_error():

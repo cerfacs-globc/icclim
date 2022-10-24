@@ -42,7 +42,7 @@ class StandardVariableRegistry(Registry[StandardVariable]):
             "PRECIP",
             "Precip",
         ],
-        default_units="mm/day",
+        default_units="mm day-1",
     )
     TAS = StandardVariable(
         short_name="tg",
@@ -142,15 +142,15 @@ class StandardVariableRegistry(Registry[StandardVariable]):
         short_name="wsgs_max",
         standard_name="wind_speed_of_gust",
         long_name="wind speed of gust",
-        aliases=["wsgsmax", "fx", "FX"],
-        default_units="m/s",
+        aliases=["wsgsmax", "wsgs_max", "fx", "FX"],
+        default_units="m s-1",
     )
     SFC_WIND = StandardVariable(
         short_name="sfcWind",
         standard_name="wind_speed",
         long_name="Near-Surface Wind Speed",
-        aliases=["sfcWind", "sfcwind", "fg", "FG"],
-        default_units="m/s",
+        aliases=["sfcWind", "sfcwind", "sfc_wind", "fg", "FG"],
+        default_units="m s-1",
     )
     SNW = StandardVariable(
         short_name="snw",

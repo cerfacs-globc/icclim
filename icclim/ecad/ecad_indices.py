@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from icclim.generic_indices.cf_var_metadata import StandardVariableRegistry
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
+from icclim.generic_indices.standard_variable import StandardVariableRegistry
+from icclim.generic_indices.threshold import build_threshold
 from icclim.models.constants import ECAD_ATBD, QUANTILE_BASED
 from icclim.models.index_group import IndexGroupRegistry
 from icclim.models.registry import Registry
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import build_threshold
 
 ECAD_REFERENCE = (
     "ATBD of the ECA&D indices calculation"
@@ -33,7 +33,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
 
     TG = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Average,
+        indicator=GenericIndicatorRegistry.Average,
         output_unit="degree_Celsius",
         definition="Mean of daily mean temperature",
         source=ECAD_ATBD,
@@ -43,7 +43,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TN = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Average,
+        indicator=GenericIndicatorRegistry.Average,
         output_unit="degree_Celsius",
         definition="Mean of daily minimum temperature",
         source=ECAD_ATBD,
@@ -53,7 +53,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TX = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Average,
+        indicator=GenericIndicatorRegistry.Average,
         output_unit="degree_Celsius",
         definition="Mean of daily maximum temperature",
         source=ECAD_ATBD,
@@ -63,7 +63,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     DTR = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.MeanOfDifference,
+        indicator=GenericIndicatorRegistry.MeanOfDifference,
         output_unit="degree_Celsius",
         definition="Mean Diurnal Temperature Range",
         source=ECAD_ATBD,
@@ -76,7 +76,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     ETR = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.DifferenceOfExtremes,
+        indicator=GenericIndicatorRegistry.DifferenceOfExtremes,
         output_unit="degree_Celsius",
         definition="Intra-period extreme temperature range",
         source=ECAD_ATBD,
@@ -89,7 +89,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     VDTR = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference,
+        indicator=GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference,
         output_unit="degree_Celsius",
         definition="Mean day-to-day variation in Diurnal Temperature Range",
         source=ECAD_ATBD,
@@ -103,7 +103,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     # Heat
     SU = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         definition="Number of Summer Days (Tmax > 25C)",
         source=ECAD_ATBD,
@@ -115,7 +115,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TR = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         definition="Number of Tropical Nights (Tmin > 20C)",
         source=ECAD_ATBD,
@@ -127,7 +127,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     WSDI = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.SumOfSpellLengths,
+        indicator=GenericIndicatorRegistry.SumOfSpellLengths,
         output_unit="day",
         definition="Warm-spell duration index (days)",
         source=ECAD_ATBD,
@@ -141,7 +141,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TG90P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         definition="Days when Tmean > 90th percentile",
         threshold="> 90 doy_per",
@@ -154,7 +154,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TN90P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         definition="Days when Tmin > 90th percentile",
         threshold="> 90 doy_per",
@@ -167,7 +167,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TX90P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold="> 90 doy_per",
         output_unit="day",
         definition="Days when Tmax > 90th daily percentile",
@@ -180,7 +180,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TXX = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Maximum,
+        indicator=GenericIndicatorRegistry.Maximum,
         output_unit="degree_Celsius",
         definition="Maximum daily maximum temperature",
         source=ECAD_ATBD,
@@ -190,7 +190,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TNX = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Minimum,
+        indicator=GenericIndicatorRegistry.Minimum,
         output_unit="degree_Celsius",
         definition="Maximum daily minimum temperature",
         source=ECAD_ATBD,
@@ -200,7 +200,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     CSU = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
         threshold="> 25 degree_Celsius",
         output_unit="day",
         definition="Maximum number of consecutive summer days (Tmax >25 C)",
@@ -213,7 +213,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     # Cold
     GD4 = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Excess,
+        indicator=GenericIndicatorRegistry.Excess,
         threshold="4 degree_Celsius",
         output_unit="degree_Celsius day",
         definition="Growing degree days (sum of Tmean > 4 C)",
@@ -225,7 +225,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     FD = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold="< 0 degree_Celsius",
         output_unit="day",
         definition="Number of Frost Days (Tmin < 0C)",
@@ -237,7 +237,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     CFD = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
         threshold="< 0 degree_Celsius",
         output_unit="day",
         definition="Maximum number of consecutive frost days (Tmin < 0 C)",
@@ -249,7 +249,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     HD17 = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Deficit,
+        indicator=GenericIndicatorRegistry.Deficit,
         threshold="17 degree_Celsius",
         output_unit="degree_Celsius day",
         definition="Heating degree days (sum of Tmean < 17 C)",
@@ -261,7 +261,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     ID = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold="< 0 degree_Celsius",
         output_unit="day",
         definition="Number of sharp Ice Days (Tmax < 0C)",
@@ -273,7 +273,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TG10P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold="< 10 doy_per",
         output_unit="day",
         definition="Days when Tmean < 10th percentile",
@@ -286,7 +286,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TN10P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold="< 10 doy_per",
         output_unit="day",
         definition="Days when Tmin < 10th percentile",
@@ -299,7 +299,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TX10P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold="< 10 doy_per",
         output_unit="day",
         definition="Days when Tmax < 10th percentile",
@@ -312,7 +312,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TXN = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Minimum,
+        indicator=GenericIndicatorRegistry.Minimum,
         output_unit="degree_Celsius",
         definition="Minimum daily maximum temperature",
         source=ECAD_ATBD,
@@ -322,7 +322,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TNN = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Minimum,
+        indicator=GenericIndicatorRegistry.Minimum,
         output_unit="degree_Celsius",
         definition="Minimum daily minimum temperature",
         source=ECAD_ATBD,
@@ -332,7 +332,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     CSDI = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.SumOfSpellLengths,
+        indicator=GenericIndicatorRegistry.SumOfSpellLengths,
         threshold="< 10 doy_per",
         output_unit="day",
         definition="Cold-spell duration index (days)",
@@ -347,7 +347,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     # Drought
     CDD = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
         threshold="< 1 mm/day",
         output_unit="day",
         definition="Maximum consecutive dry days (Precip < 1mm)",
@@ -359,7 +359,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     # Rain
     PRCPTOT = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Sum,
+        indicator=GenericIndicatorRegistry.Sum,
         threshold=">= 1 mm/day",
         output_unit="mm",
         definition="Total precipitation during Wet Days",
@@ -370,7 +370,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     RR1 = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=">= 1 mm/day",
         output_unit="day",
         definition="Number of Wet Days (precip >= 1 mm)",
@@ -381,7 +381,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     SDII = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Average,
+        indicator=GenericIndicatorRegistry.Average,
         threshold=">= 1 mm/day",
         output_unit="mm/day",
         definition="Average precipitation during Wet Days (SDII)",
@@ -392,7 +392,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     CWD = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
+        indicator=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
         threshold=">= 1 mm/day",
         output_unit="day",
         definition="Maximum consecutive wet days (Precip >= 1mm)",
@@ -403,7 +403,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     RR = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Sum,
+        indicator=GenericIndicatorRegistry.Sum,
         output_unit="mm",
         definition="Precipitation sum (mm)",
         source=ECAD_ATBD,
@@ -413,7 +413,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     R10MM = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=">= 10 mm/day",
         output_unit="day",
         definition="Number of heavy precipitation days (Precip >=10mm)",
@@ -424,7 +424,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     R20MM = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=">= 20 mm/day",
         output_unit="day",
         definition="Number of very heavy precipitation days (Precip >= 20mm)",
@@ -435,7 +435,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     RX1DAY = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Maximum,
+        indicator=GenericIndicatorRegistry.Maximum,
         output_unit="mm/day",
         definition="maximum 1-day total precipitation",  # from xclim
         source=ECAD_ATBD,
@@ -445,7 +445,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     RX5DAY = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.MaxOfRollingSum,
+        indicator=GenericIndicatorRegistry.MaxOfRollingSum,
         output_unit="mm",
         definition="maximum 5-day total precipitation",  # from xclim
         source=ECAD_ATBD,
@@ -457,7 +457,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     R75P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 75th percentile of daily amounts (moderate wet days)"
@@ -470,7 +470,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     R75PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
+        indicator=GenericIndicatorRegistry.FractionOfTotal,
         threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
         definition="Precipitation fraction due to moderate wet days"
@@ -483,7 +483,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     R95P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=build_threshold("> 95 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 95th percentile of daily amounts (very wet days)"
@@ -496,7 +496,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     R95PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
+        indicator=GenericIndicatorRegistry.FractionOfTotal,
         threshold=build_threshold("> 95 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
         definition="Precipitation fraction due to very wet days (> 95th percentile)",
@@ -508,7 +508,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     R99P = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=build_threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 99th percentile of daily amounts"
@@ -521,7 +521,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     R99PTOT = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.FractionOfTotal,
+        indicator=GenericIndicatorRegistry.FractionOfTotal,
         threshold=build_threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
         definition="Precipitation fraction due to extremely wet days"
@@ -535,7 +535,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     # Snow
     SD = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.Average,
+        indicator=GenericIndicatorRegistry.Average,
         output_unit="cm",
         definition="Mean of daily snow depth",
         source=ECAD_ATBD,
@@ -545,7 +545,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     SD1 = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=">= 1 cm",
         output_unit="day",
         definition="Snow days (SD >= 1 cm)",
@@ -556,7 +556,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     SD5CM = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         output_unit="day",
         threshold=">= 5 cm",
         definition="Number of days with snow depth >= 5 cm",
@@ -567,7 +567,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     SD50CM = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=">= 50 cm",
         output_unit="day",
         definition="Number of days with snow depth >= 50 cm",
@@ -579,7 +579,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     # Compound (precipitation and temperature)
     CD = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=[
             "< 25 doy_per",
             build_threshold("< 25 period_per", threshold_min_value="1 mm/day"),
@@ -596,7 +596,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     CW = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=[
             "< 25 doy_per",
             build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
@@ -613,7 +613,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     WD = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=[
             "> 75 doy_per",
             build_threshold("< 25 period_per", threshold_min_value="1 mm/day"),
@@ -630,7 +630,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     WW = StandardIndex(
         reference=ECAD_REFERENCE,
-        generic_indicator=GenericIndicatorRegistry.CountOccurrences,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=[
             "> 75 doy_per",
             build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
@@ -644,4 +644,91 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         input_variables=[StandardVariableRegistry.TAS, StandardVariableRegistry.PR],
         qualifiers=[QUANTILE_BASED],
         doy_window_width=5,
+    )
+    # WIND
+    FXX = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.Maximum,
+        output_unit="m s-1",
+        definition="Maximum value of daily maximum wind gust",
+        source=ECAD_ATBD,
+        short_name="FXx",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WSGS_MAX],
+    )
+    FG6BFT = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold=">= 10.8 m s-1",
+        output_unit="day",
+        definition="Days with daily averaged wind ≥ 6 Bft (10.8 m s-1)",
+        source=ECAD_ATBD,
+        short_name="FG6Bft",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.SFC_WIND],
+    )
+    FGCALM = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="<= 2 m s-1",
+        output_unit="day",
+        definition="Calm days, days with daily averaged wind <= 2 m s-1",
+        source=ECAD_ATBD,
+        short_name="FGcalm",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.SFC_WIND],
+    )
+    FG = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.Average,
+        output_unit="m s-1",
+        definition="Mean of daily mean wind strength",
+        source=ECAD_ATBD,
+        short_name="FG",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.SFC_WIND],
+    )
+    DDNORTH = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="> 315 degree OR <= 45 degree",
+        output_unit="day",
+        definition="Days with northerly winds (DD > 315° or DD ≤ 45°)",
+        source=ECAD_ATBD,
+        short_name="DDnorth",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
+    )
+    DDEAST = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="> 45 degree AND <= 135 degree",
+        output_unit="day",
+        definition="Days with easterly winds (45° < DD <= 135°)",
+        source=ECAD_ATBD,
+        short_name="DDeast",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
+    )
+    DDSOUTH = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="> 135 degree AND <= 225 degree",
+        output_unit="day",
+        definition="Days with southerly winds (135° < DD <= 225°)",
+        source=ECAD_ATBD,
+        short_name="DDsouth",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
+    )
+    DDWEST = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.CountOccurrences,
+        threshold="> 225 degree AND <= 315 degree",
+        output_unit="day",
+        definition="Days with westerly winds (225° < DD <= 315°)",
+        source=ECAD_ATBD,
+        short_name="DDwest",
+        group=IndexGroupRegistry.WIND,
+        input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
     )

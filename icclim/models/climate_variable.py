@@ -7,14 +7,18 @@ import jinja2
 import xarray
 from xarray.core.dataarray import DataArray
 
-from icclim.generic_indices.cf_var_metadata import StandardVariable
+from icclim.generic_indices.standard_variable import StandardVariable
+from icclim.generic_indices.threshold import (
+    PercentileThreshold,
+    Threshold,
+    build_threshold,
+)
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileLike
 from icclim.models.constants import UNITS_KEY
 from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.global_metadata import GlobalMetadata
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import PercentileThreshold, Threshold, build_threshold
 from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.pre_processing.input_parsing import (
     DEFAULT_INPUT_FREQUENCY,
@@ -29,7 +33,8 @@ from icclim.pre_processing.input_parsing import (
 @dataclass
 class ClimateVariable:
     """Internal icclim structure. It groups together the input variable (studied_data),
-    its associated metadata (standard_var) and the threshold it must be compared to.
+    its associated metadata (standard_variable) and the threshold it must be compared
+    to.
 
     Attributes
     ----------

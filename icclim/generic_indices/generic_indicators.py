@@ -27,6 +27,7 @@ from xclim.core.units import units2pint
 from xclim.indices import run_length
 
 from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
+from icclim.generic_indices.threshold import PercentileThreshold, Threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.climate_variable import ClimateVariable
@@ -43,7 +44,6 @@ from icclim.models.index_config import IndexConfig
 from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import OperatorRegistry
 from icclim.models.registry import Registry
-from icclim.models.threshold import PercentileThreshold, Threshold
 
 jinja_env = Environment()
 
@@ -254,7 +254,6 @@ class GenericIndicator(ResamplingIndicator):
         )
 
     def __call__(self, config: IndexConfig) -> DataArray:
-        # icclim  wrapper
         src_freq = config.climate_variables[0].source_frequency
         base_jinja_scope = {
             "np": numpy,
@@ -304,6 +303,14 @@ class GenericIndicator(ResamplingIndicator):
             src_freq=src_freq.pandas_freq,
             indexer=config.frequency.indexer,
             out_unit=config.out_unit,
+        )
+
+    def __eq__(self, other) -> bool:
+        return (
+            isinstance(other, GenericIndicator)
+            and self.long_name == other.long_name
+            and self.standard_name == other.standard_name
+            and self.process == other.process
         )
 
 

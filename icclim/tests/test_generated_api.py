@@ -8,6 +8,7 @@ import pytest
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
+from icclim.generic_indices.threshold import build_threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import VerbosityRegistry
 from icclim.models.constants import QUANTILE_BASED
@@ -15,7 +16,6 @@ from icclim.models.frequency import FrequencyRegistry
 from icclim.models.netcdf_version import NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.models.standard_index import StandardIndex
-from icclim.models.threshold import build_threshold
 from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.calc_operation import CalcOperation, CalcOperationRegistry
 

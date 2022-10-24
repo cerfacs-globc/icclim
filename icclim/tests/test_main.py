@@ -13,6 +13,7 @@ import xarray as xr
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
+from icclim.generic_indices.threshold import build_threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import (
     ICCLIM_VERSION,
@@ -22,7 +23,6 @@ from icclim.models.constants import (
 )
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_group import IndexGroupRegistry
-from icclim.models.threshold import build_threshold
 from icclim.tests.testing_utils import K2C, stub_pr, stub_tas
 
 
@@ -62,6 +62,19 @@ class Test_Integration:
         coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
         attrs={UNITS_KEY: "degC"},
     )
+    full_data = data.to_dataset(name="tas")
+    full_data["tasmax"] = data
+    full_data["tasmin"] = data
+    full_data["pr"] = data.copy(deep=True)
+    full_data["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
+    full_data["snd"] = data.copy(deep=True)
+    full_data["snd"].attrs[UNITS_KEY] = "cm"
+    full_data["DD"] = data.copy(deep=True)
+    full_data["DD"].attrs[UNITS_KEY] = "degree"
+    full_data["wsgs_max"] = data.copy(deep=True)
+    full_data["wsgs_max"].attrs[UNITS_KEY] = "m/s"
+    full_data["sfcWind"] = data.copy(deep=True)
+    full_data["sfcWind"].attrs[UNITS_KEY] = "m/s"
 
     data_cf_time = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
@@ -349,32 +362,16 @@ class Test_Integration:
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset(self):
-        ds = self.data.to_dataset(name="tas")
-        ds["tasmax"] = self.data
-        ds["tasmin"] = self.data
-        ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
-        ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_KEY] = "cm"
-        ds["DD"] = self.data.copy(deep=True)
-        ds["DD"].attrs[UNITS_KEY] = "degree"
-        res = icclim.indices(index_group="all", in_files=ds, out_file=self.OUTPUT_FILE)
+        res = icclim.indices(
+            index_group="all", in_files=self.full_data, out_file=self.OUTPUT_FILE
+        )
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__seasonal(self):
-        ds = self.data.to_dataset(name="tas")
-        ds["tasmax"] = self.data
-        ds["tasmin"] = self.data
-        ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
-        ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_KEY] = "cm"
-        ds["DD"] = self.data.copy(deep=True)
-        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
-            in_files=ds,
+            in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [1, 2, 3]],
         )
@@ -382,18 +379,9 @@ class Test_Integration:
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__between_dates_seasonal(self):
-        ds = self.data.to_dataset(name="tas")
-        ds["tasmax"] = self.data
-        ds["tasmin"] = self.data
-        ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
-        ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_KEY] = "cm"
-        ds["DD"] = self.data.copy(deep=True)
-        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
-            in_files=ds,
+            in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", ["07-19", "08-14"]],
         )
@@ -401,18 +389,9 @@ class Test_Integration:
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__JFM_seasonal(self):
-        ds = self.data.to_dataset(name="tas")
-        ds["tasmax"] = self.data
-        ds["tasmin"] = self.data
-        ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
-        ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_KEY] = "cm"
-        ds["DD"] = self.data.copy(deep=True)
-        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
-            in_files=ds,
+            in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [1, 2, 3]],
         )
@@ -420,18 +399,9 @@ class Test_Integration:
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__between_year_season(self):
-        ds = self.data.to_dataset(name="tas")
-        ds["tasmax"] = self.data
-        ds["tasmin"] = self.data
-        ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
-        ds["snd"] = self.data.copy(deep=True)
-        ds["snd"].attrs[UNITS_KEY] = "cm"
-        ds["DD"] = self.data.copy(deep=True)
-        ds["DD"].attrs[UNITS_KEY] = "degree"
         res = icclim.indices(
             index_group="all",
-            in_files=ds,
+            in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [12, 1, 2, 3]],
         )
@@ -439,16 +409,11 @@ class Test_Integration:
             assert res[i.short_name] is not None
 
     def test_indices_all_ignore_error(self):
-        ds = self.data.to_dataset(name="tas")
-        ds["tasmax"] = self.data
-        ds["tasmin"] = self.data
-        ds["pr"] = self.data.copy(deep=True)
-        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
-        ds["DD"] = self.data.copy(deep=True)
-        ds["DD"].attrs[UNITS_KEY] = "degree"
+        no_snow = self.full_data.copy()
+        del no_snow["snd"]
         res: xr.Dataset = icclim.indices(
             index_group="all",
-            in_files=ds,
+            in_files=no_snow,
             out_file=self.OUTPUT_FILE,
             ignore_error=True,
             slice_mode="DJF",
@@ -668,7 +633,6 @@ class Test_Integration:
             save_thresholds=True,
         ).compute()
         assert res.count_occurrences.attrs[UNITS_KEY] == "d"
-        print(res.count_occurrences)
         assert res.count_occurrences.isel(time=0).sel(threshold=1) == 31
         # The 5 days rolling turn the 1 day unusual value into a 5 day time lapse
         assert res.count_occurrences.isel(time=0).sel(threshold=30) == 1
@@ -864,3 +828,41 @@ class Test_Integration:
         with pytest.raises(pint.DimensionalityError):
             # WHEN
             icclim.r10mm(in_files=precip)
+
+    def test_ddnorth(self):
+        # GIVEN
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"), dims=["time"]
+        )
+        dd = xr.DataArray(
+            np.full(365, 300),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "degree"},
+        )
+        dd.loc[{"time": slice("2000-01-01", "2000-01-05")}] = 20  # north
+        dd.loc[{"time": slice("2000-01-06", "2000-01-10")}] = 320  # north
+        dd.loc[{"time": slice("2000-01-11", "2000-01-31")}] = 60  # east
+        # WHEN
+        ddnorth = icclim.ddnorth(in_files=dd, slice_mode="month").DDnorth.compute()
+        # THEN
+        np.testing.assert_almost_equal(ddnorth.isel(time=0), 10)
+
+    def test_ddeast(self):
+        # GIVEN
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"), dims=["time"]
+        )
+        dd = xr.DataArray(
+            np.full(365, 300),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "degree"},
+        )
+        dd.loc[{"time": slice("2000-01-01", "2000-01-05")}] = 20  # north
+        dd.loc[{"time": slice("2000-01-06", "2000-01-10")}] = 320  # north
+        dd.loc[{"time": slice("2000-01-11", "2000-01-31")}] = 60  # east
+        # WHEN
+        ddeast = icclim.ddeast(in_files=dd, slice_mode="month").DDeast.compute()
+        # THEN
+        np.testing.assert_almost_equal(ddeast.isel(time=0), 21)

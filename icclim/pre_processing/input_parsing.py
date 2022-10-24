@@ -12,7 +12,7 @@ from xarray.core.dataset import Dataset
 from xclim.core.units import convert_units_to
 from xclim.core.utils import PercentileDataArray
 
-from icclim.generic_indices.cf_var_metadata import (
+from icclim.generic_indices.standard_variable import (
     StandardVariable,
     StandardVariableRegistry,
 )
@@ -56,7 +56,7 @@ def read_dataset(
         # we assumes it's a list of netCDF files
         #  join="override" is used for cases some dimension are a tiny bit different
         #  in different files (was the case with eobs).
-        ds = xr.open_mfdataset(in_files, parallel=True, join="override")
+        ds = xr.open_mfdataset(in_files, parallel=True, join="override")  # noqa
     elif is_netcdf_path(in_files):
         ds = xr.open_dataset(in_files)
     elif is_zarr_path(in_files):
