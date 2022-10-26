@@ -36,3 +36,4 @@ dependencies:
  # Extra dependencies
  - matplotlib
  - cartopy
+ - pint<0.20

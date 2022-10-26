@@ -60,7 +60,7 @@ In this case, chunking can still be controlled by limiting the size of each indi
 
 >>> import dask
 >>> dask.config.set({"array.chunk-size": "50 MB"})
->>> icclim.index(in_files="data.nc", ...)
+>>> icclim.su(in_files="data.nc")
 
 By default, the dask chunk-size is around 100MB.
 You can also use ``with`` python keyword if you don't want this configuration to spread globally.
@@ -324,8 +324,7 @@ However, if you must run your computation on limited resources, you can try to:
 * Use only one or two threads on a single worker. This will drastically slow down the computation but very few chunks will be in memory at once letting you use quite large chunks.
 * Use small chunk size, but beware the smaller they are, the more dask creates tasks thus, the more complex the dask graph becomes.
 * Rechunk your dataset into a zarr storage to optimize file reading and reduce the amount of rechunking tasks needed by dask.
-For this, you should consider the Pangeo rechunker library to ease this process: https://rechunker.readthedocs.io/en/latest/
-A shorthand to Pangeo rechunker is available in icclim with `icclim.create_optimized_zarr_store`.
+  For this, you should consider the Pangeo rechunker library to ease this process: https://rechunker.readthedocs.io/en/latest/ A shorthand to Pangeo rechunker is available in icclim with `icclim.create_optimized_zarr_store`.
 * Split your data into smaller netcdf inputs and run the computation multiple times.
 
 The last point is the most frustrating option because chunking is supposed to do exactly that. But, sometimes
@@ -360,7 +359,7 @@ Keep in mind that:
 
 * ``memory_limit`` parameter is a limit set for each individual worker.
 * Some indices, such as percentile based indices (R__p, R__pTOT, T_90p, T_10p families) may use large amount of memory.
-This is especially true on temperature based indices where percentiles are bootstrapped.
+  This is especially true on temperature based indices where percentiles are bootstrapped.
 * You can reduce memory footprint by using smaller chunks.
 * Each thread may load multiple chunks in memory at once.
 

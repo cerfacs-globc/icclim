@@ -6,6 +6,9 @@ Release history
 * [fix] Add unit getter/setter for BoundedThreshold.
 * [enh] Add ECAD wind indices ``{fxx, fg6bft, fgcalm, fg, ddnorth, ddeast, ddsouth, ddwest}``.
   `ddnorth` and `ddsouth` do not follow the ECAD's ATBD v11 requirements as their definition seems to be wrong in the document.
+* [enh] Add generic indicators as stand-alone functions in `icclim` namespace.
+* [doc] Add documentation for generic indicators stand-alone functions.
+
 
 6.0.0
 -----

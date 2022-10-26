@@ -200,14 +200,7 @@ def build_threshold(
 
 class Threshold(metaclass=abc.ABCMeta):
     """
-    - scalar thresh:                               "> 25 °C"
-    - per grid cell thresh:                        "> data.nc"
-    - doy percentile threshold:                    "> 98th doy_per"
-    - period percentile threshold:                 "> 75th period_per"
-    - period percentile threshold with min value:  "> 98th period_per",
-                                                   threshold_min_value= "1mm"
-    - sequence thresholds (or):                    "> 10 °C, > 25 °C"
-                                                     thresholds are a new dimension
+    Abstract super class for all thresholds.
     """
 
     operator: Operator | str
@@ -279,8 +272,9 @@ class Threshold(metaclass=abc.ABCMeta):
 
 class BoundedThreshold(Threshold):
     """
-    Threshold binding class to compute two thresholds for a single variable.
-    The logical link can be either "OR" or "AND".
+    Threshold that binds two other thresholds (e.g. "> 95 doy_per AND >= 30 deg_C").
+
+    The logical link must be either "and" or "or".
     """
 
     left_threshold: Threshold
@@ -400,25 +394,28 @@ class BoundedThreshold(Threshold):
 
 class PercentileThreshold(Threshold):
     """
-    Percentile based threshold.
-    The percentiles to be computed are expected to be either:
-    * "doy percentiles" (unit "doy_per"). They are usually used for temperatures indices
-    such as the ECAD Tx90p.
-    These percentiles are computed per day of year (doy) and by aggregating
-    values on the time axis ranged by `reference_period`, using the
-    `doy_window_width` parameter to control the time axis window of aggregation.
-    The resulting `value` is a DataArray with a "dayofyear" dimension ranging from
-    0 to 365 with one value per day of the year.
-    * "period percentiles" (unit "period_per"). They are usually used for liquide
-    precipitation indices such as the ECAD's R75p or even r75pTOT.
-    These percentiles are computed per grid cell on the period ranged by
-    `reference_period`.
-    The resulting `value` is a DataArray with per grid cell values and no time axis.
+    Percentile based threshold (e.g. "<= 10 doy_per").
 
-    `is_ready` becomes True when `prepare` method has been called, the actual
-    percentiles are then computed and accessible in `value` property.
-    Once `is_ready` is True, `unit` property can be set and will attempt a pint unit
-    conversion similar to what is done on `BasicThreshold`.
+    The percentiles to be computed are expected to be either:
+
+    * "doy percentiles" (unit: "doy_per"). They are usually used for temperatures
+      indices such as the ECAD :ref:`tx90p <ecad_functions_api>`.
+      These percentiles are computed per day of year (doy) and by aggregating
+      values on the time axis ranged by ``reference_period``, using the
+      ``doy_window_width`` parameter to control the time axis window of aggregation.
+      The resulting `value` is a DataArray with a "dayofyear" dimension ranging from
+      0 to 365 with one value per day of the year.
+    * "period percentiles" (unit: "period_per"). They are usually used for liquide
+      precipitation indices such as the ECAD :ref:`r75p <ecad_functions_api>`
+      or even :ref:`r75ptot <ecad_functions_api>`.
+      These percentiles are computed per grid cell on the period ranged by
+      ``reference_period``.
+      The resulting ``value`` is a DataArray with per grid cell values and no time axis.
+
+    ``is_ready`` becomes True when `prepare` method has been called, the actual
+    percentiles are then computed and accessible in ``value`` property.
+    Once ``is_ready`` is True, ``unit`` property can be set and will attempt a pint unit
+    conversion similar to what is done on ``BasicThreshold``.
     Before that, setting unit has no effect.
     """
 
@@ -632,11 +629,13 @@ class PercentileThreshold(Threshold):
 
 class BasicThreshold(Threshold):
     """
-    Pint ready threshold.
-    When built, `value` is always turned into a `xarray.DataArray`.
-    The `unit` property as a setter that will attempt a unit conversion using
+    Pint ready simple threshold (e.g. "> 300 K").
+
+    When built, ``value`` is always turned into a ``xarray.DataArray``.
+    The ``unit`` property as a setter that will attempt a unit conversion using
     units found in xclim's pint registry.
-    The actual unit can be overridden by modify `value.attrs["units"]` directly.
+
+    The actual unit can be overridden by modify ``value.attrs["units"]`` directly.
     """
 
     @property

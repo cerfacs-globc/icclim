@@ -31,11 +31,13 @@ release = icclim.__version__
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.napoleon",
+    "sphinx_codeautolink",
     "sphinx_lfs_content",
+    "sphinx_copybutton",
 ]
 
 # Add any paths that contain templates here, relative to this directory.

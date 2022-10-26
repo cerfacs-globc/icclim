@@ -1,6 +1,9 @@
 """
 Icclim Logo updater.
-This should update the version number within icclim svg logo
+This update the version number within icclim svg logo.
+It should only be used in our CI pipeline (github action).
+For testing purposes if you wish to run it locally you must first enable the git LFS
+feature, otherwise you won't have access to the svg logos.
 """
 
 from __future__ import annotations
