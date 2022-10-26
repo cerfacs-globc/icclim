@@ -96,12 +96,10 @@ def tg(
 ) -> Dataset:
     """
     TG: Mean of daily mean temperature
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -142,6 +140,7 @@ def tg(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -175,12 +174,10 @@ def tn(
 ) -> Dataset:
     """
     TN: Mean of daily minimum temperature
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -221,6 +218,7 @@ def tn(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -254,12 +252,10 @@ def tx(
 ) -> Dataset:
     """
     TX: Mean of daily maximum temperature
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -300,6 +296,7 @@ def tx(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -333,12 +330,10 @@ def dtr(
 ) -> Dataset:
     """
     DTR: Mean Diurnal Temperature Range
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -379,6 +374,7 @@ def dtr(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -412,12 +408,10 @@ def etr(
 ) -> Dataset:
     """
     ETR: Intra-period extreme temperature range
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -458,6 +452,7 @@ def etr(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -491,12 +486,10 @@ def vdtr(
 ) -> Dataset:
     """
     vDTR: Mean day-to-day variation in Diurnal Temperature Range
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -537,6 +530,7 @@ def vdtr(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -570,12 +564,10 @@ def su(
 ) -> Dataset:
     """
     SU: Number of Summer Days (Tmax > 25C)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -616,6 +608,7 @@ def su(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -652,12 +645,10 @@ def tr(
 ) -> Dataset:
     """
     TR: Number of Tropical Nights (Tmin > 20C)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -698,6 +689,7 @@ def tr(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -738,12 +730,10 @@ def wsdi(
 ) -> Dataset:
     """
     WSDI: Warm-spell duration index (days)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -808,6 +798,7 @@ def wsdi(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -856,12 +847,10 @@ def tg90p(
 ) -> Dataset:
     """
     TG90p: Days when Tmean > 90th percentile
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -926,6 +915,7 @@ def tg90p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -974,12 +964,10 @@ def tn90p(
 ) -> Dataset:
     """
     TN90p: Days when Tmin > 90th percentile
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1044,6 +1032,7 @@ def tn90p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1092,12 +1081,10 @@ def tx90p(
 ) -> Dataset:
     """
     TX90p: Days when Tmax > 90th daily percentile
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1162,6 +1149,7 @@ def tx90p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1206,12 +1194,10 @@ def txx(
 ) -> Dataset:
     """
     TXx: Maximum daily maximum temperature
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1252,6 +1238,7 @@ def txx(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1285,12 +1272,10 @@ def tnx(
 ) -> Dataset:
     """
     TNx: Maximum daily minimum temperature
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1331,6 +1316,7 @@ def tnx(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1364,12 +1350,10 @@ def csu(
 ) -> Dataset:
     """
     CSU: Maximum number of consecutive summer days (Tmax >25 C)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1410,6 +1394,7 @@ def csu(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1446,12 +1431,10 @@ def gd4(
 ) -> Dataset:
     """
     GD4: Growing degree days (sum of Tmean > 4 C)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1492,6 +1475,7 @@ def gd4(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1528,12 +1512,10 @@ def fd(
 ) -> Dataset:
     """
     FD: Number of Frost Days (Tmin < 0C)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1574,6 +1556,7 @@ def fd(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1610,12 +1593,10 @@ def cfd(
 ) -> Dataset:
     """
     CFD: Maximum number of consecutive frost days (Tmin < 0 C)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1656,6 +1637,7 @@ def cfd(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1692,12 +1674,10 @@ def hd17(
 ) -> Dataset:
     """
     HD17: Heating degree days (sum of Tmean < 17 C)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1738,6 +1718,7 @@ def hd17(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1774,12 +1755,10 @@ def id(
 ) -> Dataset:
     """
     ID: Number of sharp Ice Days (Tmax < 0C)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1820,6 +1799,7 @@ def id(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1860,12 +1840,10 @@ def tg10p(
 ) -> Dataset:
     """
     TG10p: Days when Tmean < 10th percentile
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1930,6 +1908,7 @@ def tg10p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -1978,12 +1957,10 @@ def tn10p(
 ) -> Dataset:
     """
     TN10p: Days when Tmin < 10th percentile
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2048,6 +2025,7 @@ def tn10p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2096,12 +2074,10 @@ def tx10p(
 ) -> Dataset:
     """
     TX10p: Days when Tmax < 10th percentile
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2166,6 +2142,7 @@ def tx10p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2210,12 +2187,10 @@ def txn(
 ) -> Dataset:
     """
     TXn: Minimum daily maximum temperature
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2256,6 +2231,7 @@ def txn(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2289,12 +2265,10 @@ def tnn(
 ) -> Dataset:
     """
     TNn: Minimum daily minimum temperature
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2335,6 +2309,7 @@ def tnn(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2372,12 +2347,10 @@ def csdi(
 ) -> Dataset:
     """
     CSDI: Cold-spell duration index (days)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2442,6 +2415,7 @@ def csdi(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2486,12 +2460,10 @@ def cdd(
 ) -> Dataset:
     """
     CDD: Maximum consecutive dry days (Precip < 1mm)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2532,6 +2504,7 @@ def cdd(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2568,12 +2541,10 @@ def prcptot(
 ) -> Dataset:
     """
     PRCPTOT: Total precipitation during Wet Days
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2614,6 +2585,7 @@ def prcptot(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2650,12 +2622,10 @@ def rr1(
 ) -> Dataset:
     """
     RR1: Number of Wet Days (precip >= 1 mm)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2696,6 +2666,7 @@ def rr1(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2732,12 +2703,10 @@ def sdii(
 ) -> Dataset:
     """
     SDII: Average precipitation during Wet Days (SDII)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2778,6 +2747,7 @@ def sdii(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2814,12 +2784,10 @@ def cwd(
 ) -> Dataset:
     """
     CWD: Maximum consecutive wet days (Precip >= 1mm)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2860,6 +2828,7 @@ def cwd(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2896,12 +2865,10 @@ def rr(
 ) -> Dataset:
     """
     RR: Precipitation sum (mm)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2942,6 +2909,7 @@ def rr(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -2975,12 +2943,10 @@ def r10mm(
 ) -> Dataset:
     """
     R10mm: Number of heavy precipitation days (Precip >=10mm)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3021,6 +2987,7 @@ def r10mm(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3057,12 +3024,10 @@ def r20mm(
 ) -> Dataset:
     """
     R20mm: Number of very heavy precipitation days (Precip >= 20mm)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3103,6 +3068,7 @@ def r20mm(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3139,12 +3105,10 @@ def rx1day(
 ) -> Dataset:
     """
     RX1day: maximum 1-day total precipitation
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3185,6 +3149,7 @@ def rx1day(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3218,12 +3183,10 @@ def rx5day(
 ) -> Dataset:
     """
     RX5day: maximum 5-day total precipitation
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3264,6 +3227,7 @@ def rx5day(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3301,12 +3265,10 @@ def r75p(
 ) -> Dataset:
     """
     R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (d)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3371,6 +3333,7 @@ def r75p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3420,12 +3383,10 @@ def r75ptot(
 ) -> Dataset:
     """
     R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3490,6 +3451,7 @@ def r75ptot(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3539,12 +3501,10 @@ def r95p(
 ) -> Dataset:
     """
     R95p: Days with RR > 95th percentile of daily amounts (very wet days) (days)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3609,6 +3569,7 @@ def r95p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3658,12 +3619,10 @@ def r95ptot(
 ) -> Dataset:
     """
     R95pTOT: Precipitation fraction due to very wet days (> 95th percentile)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3728,6 +3687,7 @@ def r95ptot(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3777,12 +3737,10 @@ def r99p(
 ) -> Dataset:
     """
     R99p: Days with RR > 99th percentile of daily amounts (extremely wet days)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3847,6 +3805,7 @@ def r99p(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -3896,12 +3855,10 @@ def r99ptot(
 ) -> Dataset:
     """
     R99pTOT: Precipitation fraction due to extremely wet days (> 99th percentile)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3966,6 +3923,7 @@ def r99ptot(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4011,12 +3969,10 @@ def sd(
 ) -> Dataset:
     """
     SD: Mean of daily snow depth
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4057,6 +4013,7 @@ def sd(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4090,12 +4047,10 @@ def sd1(
 ) -> Dataset:
     """
     SD1: Snow days (SD >= 1 cm)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4136,6 +4091,7 @@ def sd1(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4172,12 +4128,10 @@ def sd5cm(
 ) -> Dataset:
     """
     SD5cm: Number of days with snow depth >= 5 cm
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4218,6 +4172,7 @@ def sd5cm(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4254,12 +4209,10 @@ def sd50cm(
 ) -> Dataset:
     """
     SD50cm: Number of days with snow depth >= 50 cm
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4300,6 +4253,7 @@ def sd50cm(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4340,12 +4294,10 @@ def cd(
 ) -> Dataset:
     """
     CD: Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4410,6 +4362,7 @@ def cd(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4468,12 +4421,10 @@ def cw(
 ) -> Dataset:
     """
     CW: Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4538,6 +4489,7 @@ def cw(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4596,12 +4548,10 @@ def wd(
 ) -> Dataset:
     """
     WD: Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4666,6 +4616,7 @@ def wd(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4724,12 +4675,10 @@ def ww(
 ) -> Dataset:
     """
     WW: Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4794,6 +4743,7 @@ def ww(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4848,12 +4798,10 @@ def fxx(
 ) -> Dataset:
     """
     FXx: Maximum value of daily maximum wind gust
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4894,6 +4842,7 @@ def fxx(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -4927,12 +4876,10 @@ def fg6bft(
 ) -> Dataset:
     """
     FG6Bft: Days with daily averaged wind ≥ 6 Bft (10.8 m s-1)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4973,6 +4920,7 @@ def fg6bft(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -5009,12 +4957,10 @@ def fgcalm(
 ) -> Dataset:
     """
     FGcalm: Calm days, days with daily averaged wind <= 2 m s-1
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5055,6 +5001,7 @@ def fgcalm(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -5091,12 +5038,10 @@ def fg(
 ) -> Dataset:
     """
     FG: Mean of daily mean wind strength
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5137,6 +5082,7 @@ def fg(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -5170,12 +5116,10 @@ def ddnorth(
 ) -> Dataset:
     """
     DDnorth: Days with northerly winds (DD > 315° or DD ≤ 45°)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5216,6 +5160,7 @@ def ddnorth(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -5252,12 +5197,10 @@ def ddeast(
 ) -> Dataset:
     """
     DDeast: Days with easterly winds (45° < DD <= 135°)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5298,6 +5241,7 @@ def ddeast(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -5334,12 +5278,10 @@ def ddsouth(
 ) -> Dataset:
     """
     DDsouth: Days with southerly winds (135° < DD <= 225°)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5380,6 +5322,7 @@ def ddsouth(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -5416,12 +5359,10 @@ def ddwest(
 ) -> Dataset:
     """
     DDwest: Days with westerly winds (225° < DD <= 315°)
-
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5462,6 +5403,7 @@ def ddwest(
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
         **warning** This option may significantly slow down computation.
+
     Notes
     -----
     This function has been auto-generated.
@@ -5507,13 +5449,11 @@ def custom_index(
     sampling_method: SamplingMethodLike = "resample",
 ) -> Dataset:
     """
-    This function can be used to create indices using simple operators.
-    Use the `user_index` parameter to describe how the index should be computed.
-    You can find some examples in our documentation at :ref:`custom_indices`.
-
-    Parameters
+        This function can be used to create indices using simple operators.
+        Use the `user_index` parameter to describe how the index should be computed.
+        You can find some examples in icclim documentation at :ref:`custom_indices`
+        Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5592,14 +5532,16 @@ def custom_index(
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`  # noqa
     sampling_method: str
         Choose whether the output sampling configured in `slice_mode` is a
-        `groupby` operation or a `resample` operation (as per xarray definition).
+        `groupby` operation or a `resample` operation (as per xarray definitions).
         Possible values: ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
         (default: "resample")
         `groupby_ref_and_resample_study` may only be used when computing the
         `difference_of_means` (a.k.a the anomaly).
+
     Notes
     -----
     This function has been auto-generated.
+
     """
     return icclim.index(
         user_index=user_index,
