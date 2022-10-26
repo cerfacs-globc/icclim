@@ -87,7 +87,6 @@ def create_optimized_zarr_store(
     Examples
     --------
 
-
     .. code-block:: python
 
         import icclim
@@ -102,6 +101,7 @@ def create_optimized_zarr_store(
 
     Parameters
     ----------
+
     in_files : str | list[str] | Dataset | DataArray
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
