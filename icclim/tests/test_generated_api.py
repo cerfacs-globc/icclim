@@ -8,6 +8,7 @@ import pytest
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
+from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.generic_indices.threshold import build_threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import VerbosityRegistry
@@ -59,14 +60,13 @@ def build_expected_args(index: StandardIndex):
             t = index.threshold
         expected_call_args.update({"threshold": t})
     expected_call_args.update({"out_unit": index.output_unit})
-
     return expected_call_args
 
 
 @patch("icclim.index")
 def test_generated_api(generic_index_fun_mock: MagicMock):
     for i in EcadIndexRegistry.values():
-        print(i)
+        # print(i)
         # GIVEN
         api_index_fun = eval(f"icclim.{i.short_name.lower()}")
         # WHEN
@@ -74,6 +74,13 @@ def test_generated_api(generic_index_fun_mock: MagicMock):
         # THEN
         expected_call_args = build_expected_args(i)
         generic_index_fun_mock.assert_called_with(**expected_call_args)
+    for g in GenericIndicatorRegistry.values():
+        print(g)
+        # GIVEN
+        api_index_fun = eval(f"icclim.{g.name.lower()}")
+        # WHEN
+        api_index_fun(**DEFAULT_ARGS)
+        generic_index_fun_mock.assert_called()
 
 
 @patch("icclim.index")
