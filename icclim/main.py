@@ -193,7 +193,7 @@ def index(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[datetime | str] | None = None,
     out_file: str | None = None,
-    threshold: str | Threshold | Sequence[str] | Sequence[Threshold] = None,
+    threshold: str | Threshold | Sequence[str | Threshold] = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
@@ -324,7 +324,7 @@ def index(
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
     sampling_method: str
         Choose whether the output sampling configured in `slice_mode` is a
-        `groupby` operation or a `resample` operation (as per xarray definition).
+        `groupby` operation or a `resample` operation (as per xarray definitions).
         Possible values: ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
         (default: "resample")
         `groupby_ref_and_resample_study` may only be used when computing the
