@@ -89,12 +89,12 @@ from typing import Sequence
 from xarray.core.dataset import Dataset
 
 import icclim
+from {build_threshold.__module__} import {build_threshold.__name__}
 from {Verbosity.__module__} import {Verbosity.__name__}
 from icclim.icclim_types import InFileLike, SamplingMethodLike
 from {Frequency.__module__} import {Frequency.__name__}, FrequencyLike
 from {NetcdfVersion.__module__} import {NetcdfVersion.__name__}
 from {QuantileInterpolation.__module__} import {QuantileInterpolation.__name__}
-from {build_threshold.__module__} import {build_threshold.__name__}
 from {UserIndexDict.__module__} import {UserIndexDict.__name__}
 
 '''
@@ -142,7 +142,7 @@ def generate_api(path):
         names = generic_index_names + ecad_index_names + ["custom_index"]
         formatted_names = map(lambda x: f'{TAB}"{x.lower()}"', names)
         acc += ",\n".join(formatted_names)
-        acc += "\n]\n\n"
+        acc += ",\n]\n\n"
         standard_indices = [
             get_standard_index_declaration(index) for index in ecad_indices
         ]
@@ -237,7 +237,7 @@ def {index.short_name.lower()}(
     \"\"\"
     return icclim.index(
         index_name="{index.short_name.upper()}",
-        {formatted_args}
+        {formatted_args},
     )
 """
 
