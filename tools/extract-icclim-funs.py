@@ -87,7 +87,6 @@ from typing import Sequence
 from xarray.core.dataset import Dataset
 
 import icclim
-from {build_threshold.__module__} import {build_threshold.__name__}
 from {Threshold.__module__} import {Threshold.__name__}, {build_threshold.__name__}
 from {Verbosity.__module__} import {Verbosity.__name__}
 from icclim.icclim_types import InFileLike, SamplingMethodLike
