@@ -3,6 +3,7 @@
 from setuptools import find_packages, setup
 
 MINIMAL_REQUIREMENTS = [
+    "pint<0.20",  # Temporary pin until xclim 0.39 is released
     "numpy>=1.16",
     "xarray>=2022.6",
     "xclim>=0.38",
