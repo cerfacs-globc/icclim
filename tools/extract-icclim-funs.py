@@ -19,6 +19,7 @@ Then the script can be run with:
 
 from __future__ import annotations
 
+import copy
 import inspect
 import os
 import re
@@ -27,7 +28,10 @@ from pathlib import Path
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.generic_indices.generic_indicators import GenericIndicator
+from icclim.generic_indices.generic_indicators import (
+    GenericIndicator,
+    GenericIndicatorRegistry,
+)
 from icclim.generic_indices.threshold import (
     PercentileThreshold,
     Threshold,
@@ -41,17 +45,6 @@ from icclim.models.quantile_interpolation import QuantileInterpolation
 from icclim.models.standard_index import StandardIndex
 from icclim.models.user_index_dict import UserIndexDict
 
-ICCLIM_MANDATORY_FIELDS = ["in_files", "index_name"]
-# Note: callback args are not included below
-ICCLIM_OPTIONAL_FIELDS = [
-    "slice_mode",
-    "netcdf_version",
-    "out_file",
-    "transfer_limit_Mbytes",
-    "ignore_Feb29th",
-    "var_name",
-    "time_range",
-]
 QUANTILE_INDEX_FIELDS = [
     "base_period_time_range",
     "only_leap_years",
@@ -73,6 +66,11 @@ PATH_TO_ECAD_DOC_FILE = (
     / "../doc/source/references"
     / "ecad_functions_api.rst"
 )
+PATH_TO_GENERIC_DOC_FILE = (
+    Path(os.path.dirname(os.path.abspath(__file__)))
+    / "../doc/source/references"
+    / "generic_functions_api.rst"
+)
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
 DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
 MODULE_HEADER = f'''"""
@@ -90,6 +88,7 @@ from xarray.core.dataset import Dataset
 
 import icclim
 from {build_threshold.__module__} import {build_threshold.__name__}
+from {Threshold.__module__} import {Threshold.__name__}, {build_threshold.__name__}
 from {Verbosity.__module__} import {Verbosity.__name__}
 from icclim.icclim_types import InFileLike, SamplingMethodLike
 from {Frequency.__module__} import {Frequency.__name__}, FrequencyLike
@@ -129,11 +128,22 @@ ECAD_POP_ARGS = (
     ]
 )
 
+GENERIC_POP_ARGS = (
+    DEPRECATED_ARGS
+    + UNNECESSARY_ARGS
+    + [
+        # These are configured at `threshold` level
+        "doy_window_width",
+        "base_period_time_range",
+        "only_leap_years",
+        "interpolation",
+    ]
+)
+
 
 def generate_api(path):
     ecad_indices = EcadIndexRegistry.values()
-    # generic_indices = GenericIndicatorRegistry.values()
-    generic_indices = []
+    generic_indices = GenericIndicatorRegistry.values()
     with open(path, "w") as f:
         acc = MODULE_HEADER
         acc += "__all__ = [\n"
@@ -193,19 +203,38 @@ def build_fun_signature_args(args: dict) -> str:
 
 
 def get_generic_index_declaration(index: GenericIndicator) -> str:
-    return ""
+    pop_args = copy.copy(GENERIC_POP_ARGS)
+    if index is not GenericIndicatorRegistry.SumOfSpellLengths:
+        pop_args += ["min_spell_length"]
+    if index is not GenericIndicatorRegistry.DifferenceOfMeans:
+        pop_args += ["sampling_method"]
+    if index not in [
+        GenericIndicatorRegistry.MaxOfRollingSum,
+        GenericIndicatorRegistry.MinOfRollingSum,
+        GenericIndicatorRegistry.MaxOfRollingAverage,
+        GenericIndicatorRegistry.MinOfRollingAverage,
+    ]:
+        pop_args += ["rolling_window_width"]
+    index_args = _get_arguments(pop_args)
+    fun_signature_args = build_fun_signature_args(index_args)
+    args_docs = get_params_docstring(list(index_args.keys()), icclim.index.__doc__)
+    args = map(lambda arg: f"{arg}={arg}", index_args)
+    formatted_args = f",\n{TAB}{TAB}".join(list(args))
+    return f"""
+def {index.name.lower()}(
+    {fun_signature_args},
+    ) -> Dataset:
+    \"\"\"
+    {index.definition}
 
-
-#     icclim_index_args = dict(inspect.signature(icclim.index).parameters)
-#     fun_signature_args = build_fun_signature_args(icclim_index_args)
-#     spacing = r"\n\s{4}"
-#     arg_name = r"(?P<arg_name>\w+.*)"
-#     arg_type = r"(?P<arg_type>.*/n)"
-#     whole = f"(?P{spacing}{arg_name}: {arg_type})"
-#     regex = re.search(r"\n\s{4}(?P\w+.*): .*)", icclim.index.__doc__)
-#     index_args = {
-#         name: doc for name, doc in map(get_param_docstring, fun_signature_args)
-#     }
+    {args_docs}
+    {END_NOTE}
+    \"\"\"
+    return icclim.index(
+        index_name="{index.name.upper()}",
+        {formatted_args},
+    )
+    """
 
 
 def get_standard_index_declaration(index: StandardIndex) -> str:
@@ -288,7 +317,7 @@ def get_parameter_declaration(param: inspect.Parameter) -> str:
 
 
 def get_params_docstring(args: list[str], index_docstring: str) -> str:
-    result = f"Parameters\n{TAB}----------"
+    result = f"Parameters\n{TAB}----------\n"
     # regex to find `\n   toto: str` or similar declaration of argument
     regex = re.compile(r"\n\s{4}\w+.*: .*")
     args_declaration = list(regex.finditer(index_docstring))
@@ -303,26 +332,6 @@ def get_params_docstring(args: list[str], index_docstring: str) -> str:
             # Add everything after the last argument
             result += index_docstring[args_declaration[-1].start() :]
     return result
-
-
-# def get_param_docstring(
-#     param: str, index_docstring: str, args_declaration: list[str]
-# ) -> tuple[str, str]:
-#     result = ""
-#     # regex to find `\n   toto: str` or similar declaration of argument
-#     regex = re.search(r"((\n\s{4}\w+.*): .*)", index_docstring)
-#
-#     args_declaration = list(regex.finditer(index_docstring))
-#     for i in range(0, len(args_declaration) - 2):
-#         # `-2` because we have specific handler for the last argument
-#         if args_declaration[i].group().strip().startswith(param):
-#             result += index_docstring[
-#                 args_declaration[i].start() : args_declaration[i + 1].start()
-#             ]
-#     if args_declaration[-1].group().strip().startswith(param):
-#         # Add everything after the last argument
-#         result += index_docstring[args_declaration[-1].start() :]
-#     return result
 
 
 def format_thresh(t: str | Threshold) -> str:
@@ -363,7 +372,16 @@ def get_ecad_doc() -> str:
     formatted_names = map(lambda x: f"{TAB}{TAB}{x.lower()}", names)
     replacing_content = ""
     replacing_content += "\n".join(formatted_names)
-    replacing_content += "\n"
+    replacing_content += "\n\n"
+    return replacing_content
+
+
+def get_generic_doc() -> str:
+    names = map(lambda x: x.name, GenericIndicatorRegistry.values())
+    formatted_names = map(lambda x: f"{TAB}{TAB}{x.lower()}", names)
+    replacing_content = ""
+    replacing_content += "\n".join(formatted_names)
+    replacing_content += "\n\n"
     return replacing_content
 
 
@@ -371,3 +389,4 @@ if __name__ == "__main__":
     file_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_PATH
     generate_api(file_path)
     generate_doc(PATH_TO_ECAD_DOC_FILE, get_ecad_doc())
+    generate_doc(PATH_TO_GENERIC_DOC_FILE, get_generic_doc())

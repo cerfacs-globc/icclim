@@ -12,6 +12,7 @@ This is the technical documentation of icclim. You should find here an overview 
 
     icclim_index_api
     ecad_functions_api
+    generic_functions_api
     custom_indices
     frequency
     threshold
