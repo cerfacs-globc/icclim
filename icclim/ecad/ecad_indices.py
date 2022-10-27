@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from ecad.xclim_binding import XCLIM_BINDING
+
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.generic_indices.standard_variable import StandardVariableRegistry
 from icclim.generic_indices.threshold import build_threshold
@@ -731,4 +733,22 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         short_name="DDwest",
         group=IndexGroupRegistry.WIND,
         input_variables=[StandardVariableRegistry.WIND_TO_DIRECTION],
+    )
+    GSL = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=XCLIM_BINDING.growing_season_length(),
+        definition="Growing season length",
+        source=ECAD_ATBD,
+        short_name="GSL",
+        group=IndexGroupRegistry.COLD,
+        input_variables=[StandardVariableRegistry.TAS],
+    )
+    SPI6 = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=XCLIM_BINDING.standardized_precipitation_index_6,
+        definition="6-Month Standardized Precipitation Inde",
+        source=ECAD_ATBD,
+        short_name="SPI6",
+        group=IndexGroupRegistry.RAIN,
+        input_variables=[StandardVariableRegistry.TAS],
     )

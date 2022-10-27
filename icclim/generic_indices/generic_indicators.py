@@ -381,7 +381,7 @@ def excess(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ) -> DataArray:
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     if threshold.operator is not OperatorRegistry.REACH:
         raise InvalidIcclimArgumentError("")
     excesses = threshold.compute(study, override_op=lambda da, th: da - th)
@@ -396,7 +396,7 @@ def deficit(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ) -> DataArray:
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     deficit = threshold.compute(study, override_op=lambda da, th: th - da)
     res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     return to_agg_units(res, study, "delta_prod")
@@ -408,7 +408,7 @@ def fraction_of_total(
     to_percent: bool,
     **kwargs,  # noqa
 ) -> DataArray:
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     if threshold.threshold_min_value is not None:
         total = (
             study.where(threshold.operator(study, threshold.threshold_min_value.m))
@@ -910,7 +910,7 @@ def _run_rolling_reducer(
     date_event: bool,
     source_freq_delta: timedelta,
 ) -> DataArray:
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     if threshold:
         exceedance = _compute_exceedance(
             study=study,
@@ -939,7 +939,7 @@ def _run_simple_reducer(
     date_event: bool,
     must_convert_rate: bool = False,
 ):
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     if threshold is not None:
         exceedance = _compute_exceedance(
             study=study,
@@ -981,7 +981,7 @@ def _compute_exceedances(
     return logical_link(exceedances)
 
 
-def _get_single_var(
+def get_single_var(
     climate_vars: list[ClimateVariable],
 ) -> tuple[DataArray, Threshold | None]:
     if climate_vars[0].threshold:

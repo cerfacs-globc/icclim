@@ -65,7 +65,7 @@ class StandardVariableRegistry(Registry[StandardVariable]):
             "meanT",
             "tasmidpoint",
         ],
-        default_units="degC",
+        default_units="degree_Celsius",
     )
     TAS_MIN = StandardVariable(
         short_name="tn",
@@ -83,7 +83,7 @@ class StandardVariableRegistry(Registry[StandardVariable]):
             "MINT",
             "minT",
         ],
-        default_units="degC",
+        default_units="degree_Celsius",
     )
     TAS_MAX = StandardVariable(
         short_name="tx",
@@ -101,7 +101,7 @@ class StandardVariableRegistry(Registry[StandardVariable]):
             "MAXT",
             "maxT",
         ],
-        default_units="degC",
+        default_units="degree_Celsius",
     )
     HURS = StandardVariable(
         short_name="hurs",
@@ -206,6 +206,20 @@ class StandardVariableRegistry(Registry[StandardVariable]):
         standard_name="surface_downwelling_longwave_flux_in_air",
         long_name="Surface Downwelling Longwave Radiation",
         aliases=["rlds", "surface_downwelling_longwave_flux"],
+        default_units="W m-2",
+    )
+    RSUS = StandardVariable(
+        short_name="rsds",
+        standard_name="surface_upwelling_shortwave_flux_in_air",
+        long_name="Surface Upwelling Shortwave Radiation",
+        aliases=["rsus", "surface_upwelling_shortwave_flux"],
+        default_units="W m-2",
+    )
+    RLUS = StandardVariable(
+        short_name="rlds",
+        standard_name="surface_upwelling_longwave_flux_in_air",
+        long_name="Surface Upwelling Longwave Radiation",
+        aliases=["rlus", "surface_upwelling_longwave_flux"],
         default_units="W m-2",
     )
     OROG = StandardVariable(
