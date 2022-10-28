@@ -3,6 +3,9 @@
 Custom indices recipes
 ----------------------
 
+.. note::
+    Custom indices are deprecated. You should switch to :ref:`generic_indices_recipes` API.
+
 >>> import icclim
 >>> import datetime
 

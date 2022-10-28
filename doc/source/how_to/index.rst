@@ -15,5 +15,6 @@ To find more in depth technical knowledge see :ref:`references`.
     Chunk data and parallelize computation <dask>
     Run our jupyter notebooks <notebooks>
     Compute ECA&D indices <recipes_ecad>
-    Create customized indices <recipes_custom>
+    Compute Generic indices <recipes_generic>
     Use icclim through OCGIS <ocgis>
+    Create customized indices (deprecated) <recipes_custom>

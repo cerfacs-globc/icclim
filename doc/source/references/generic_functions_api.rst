@@ -21,6 +21,8 @@ As an example, you can compute the number of days where a threshold is reached w
     )
 
 For more details on threshold and how to personalize them, see :ref:`threshold` documentation.
+We also prepared a few examples on :ref:`generic_indices_recipes` so that you get an idea of the capabilities of
+these generic indices.
 
 Generated API
 -------------
