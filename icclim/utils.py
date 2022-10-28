@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+import warnings
 from datetime import datetime
 
 import dateparser
@@ -27,6 +29,12 @@ def read_date(in_date: str | datetime) -> datetime:
 
 def get_date_to_iso_format(in_date: str | datetime) -> str:
     if isinstance(in_date, str):
+        if re.match(r"^\d{4}$", in_date):
+            warnings.warn(f"{in_date} is transformed into {in_date}-01-01")
+            in_date += "-01-01"
+        if re.match(r"^\d{4}-\d{2}$", in_date):
+            warnings.warn(f"{in_date} is transformed into {in_date}-01")
+            in_date += "-01"
         in_date = read_date(in_date)
     return in_date.strftime("%Y-%m-%d")
 
