@@ -741,6 +741,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         short_name="GSL",
         group=IndexGroupRegistry.COLD,
         input_variables=[StandardVariableRegistry.TAS],
+        output_unit="day",
     )
     SPI6 = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -751,6 +752,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.TAS],
         qualifiers=[REFERENCE_PERIOD_INDEX],
+        output_unit="",
     )
     SPI3 = StandardIndex(
         reference=ECAD_REFERENCE,
@@ -761,4 +763,5 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         group=IndexGroupRegistry.RAIN,
         input_variables=[StandardVariableRegistry.TAS],
         qualifiers=[REFERENCE_PERIOD_INDEX],
+        output_unit="",
     )

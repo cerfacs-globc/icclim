@@ -15,7 +15,7 @@ from icclim.generic_indices.threshold import (
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_types import InFileBaseType, InFileLike
-from icclim.models.constants import UNITS_KEY
+from icclim.models.constants import REFERENCE_PERIOD_INDEX, UNITS_KEY
 from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.global_metadata import GlobalMetadata
 from icclim.models.standard_index import StandardIndex
@@ -120,7 +120,9 @@ def build_climate_vars(
                 standard_var=standard_var,
             )
         )
-    if is_compared_to_reference:
+    if _standard_index_needs_ref(
+        standard_index, is_compared_to_reference
+    ) or _generic_index_needs_ref(standard_index, is_compared_to_reference):
         standard_var = (
             standard_index.input_variables[0] if standard_index is not None else None
         )
@@ -131,6 +133,19 @@ def build_climate_vars(
         )
         acc.append(added_var)
     return acc
+
+
+def _standard_index_needs_ref(standard_index, is_compared_to_reference):
+    return (
+        standard_index
+        and standard_index.qualifiers
+        and REFERENCE_PERIOD_INDEX in standard_index.qualifiers
+        and is_compared_to_reference
+    )
+
+
+def _generic_index_needs_ref(standard_index, is_compared_to_reference):
+    return standard_index is None and is_compared_to_reference
 
 
 def _build_reference_variable(

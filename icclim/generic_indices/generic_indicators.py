@@ -227,13 +227,6 @@ class GenericIndicator(ResamplingIndicator):
                 f"{self.name} can only be computed with the following"
                 f" sampling_method(s): {self.sampling_methods}"
             )
-        if is_compared_to_reference and sampling_method == RESAMPLE_METHOD:
-            raise InvalidIcclimArgumentError(
-                "It does not make sense to resample the reference variable if it is"
-                " already a subsample of the studied variable. Try setting"
-                f" `sampling_method='{GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}'`"
-                f" instead."
-            )
         if output_unit is not None and _is_amount_unit(output_unit):
             for climate_var in climate_vars:
                 current_unit = climate_var.studied_data.attrs.get(UNITS_KEY, None)
@@ -638,8 +631,16 @@ def difference_of_means(
     to_percent: bool,
     resample_freq: Frequency,
     sampling_method: str,
+    is_compared_to_reference: bool,
     **kwargs,  # noqa
 ):
+    if is_compared_to_reference and sampling_method == RESAMPLE_METHOD:
+        raise InvalidIcclimArgumentError(
+            "It does not make sense to resample the reference variable if it is"
+            " already a subsample of the studied variable. Try setting"
+            f" `sampling_method='{GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}'`"
+            f" instead."
+        )
     study, ref = get_couple_of_var(climate_vars, "difference_of_means")
     if sampling_method == GROUP_BY_METHOD:
         if resample_freq.group_by_key == RUN_INDEXER:
@@ -711,7 +712,7 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
 def _check_single_var(climate_vars: list[ClimateVariable], indicator: GenericIndicator):
     if len(climate_vars) > 1:
         raise InvalidIcclimArgumentError(
-            f"{indicator.name} can only be computed on a" f" single variable."
+            f"{indicator.name} can only be computed on a single variable."
         )
 
 
@@ -893,7 +894,7 @@ def get_couple_of_var(
 ) -> tuple[DataArray, DataArray]:
     if len(climate_vars) != 2:
         raise InvalidIcclimArgumentError(
-            f"{indicator} needs two variable **or** one variable and a "
+            f"{indicator} needs two variables **or** one variable and a "
             f"`base_period_time_range` period to extract a reference variable."
         )
     if climate_vars[0].threshold or climate_vars[1].threshold:

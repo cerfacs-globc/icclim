@@ -94,6 +94,10 @@ class Test_Integration:
         dict(data=data, time_bounds=time_bounds),
     )
 
+    not_spi_indices = list(
+        filter(lambda x: "spi" not in x.short_name.lower(), EcadIndexRegistry.values())
+    )
+
     @pytest.fixture(autouse=True)
     def cleanup(self):
         # setup
@@ -283,6 +287,7 @@ class Test_Integration:
             index_group=["tas", "pr"],
             in_files=ds,
             out_file=self.OUTPUT_FILE,
+            base_period_time_range=("2042-01-01", "2042-12-31"),
         )
         for i in [
             "TG90p",
@@ -363,10 +368,23 @@ class Test_Integration:
 
     def test_indices_all_from_Dataset(self):
         res = icclim.indices(
-            index_group="all", in_files=self.full_data, out_file=self.OUTPUT_FILE
+            index_group="all",
+            in_files=self.full_data,
+            out_file=self.OUTPUT_FILE,
+            base_period_time_range=("2042-01-01", "2042-12-31"),
         )
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
+
+    def test_indices_all_from_Dataset__seasonal_SPI_error(self):
+        with pytest.raises(InvalidIcclimArgumentError):
+            icclim.indices(
+                index_group="SPI3",
+                in_files=self.full_data,
+                out_file=self.OUTPUT_FILE,
+                slice_mode=["season", [1, 2, 3]],
+                base_period_time_range=("2042-01-01", "2042-12-31"),
+            )
 
     def test_indices_all_from_Dataset__seasonal(self):
         res = icclim.indices(
@@ -374,8 +392,9 @@ class Test_Integration:
             in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [1, 2, 3]],
+            ignore_error=True,
         )
-        for i in EcadIndexRegistry.values():
+        for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__between_dates_seasonal(self):
@@ -384,8 +403,9 @@ class Test_Integration:
             in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", ["07-19", "08-14"]],
+            ignore_error=True,
         )
-        for i in EcadIndexRegistry.values():
+        for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__JFM_seasonal(self):
@@ -394,8 +414,9 @@ class Test_Integration:
             in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [1, 2, 3]],
+            ignore_error=True,
         )
-        for i in EcadIndexRegistry.values():
+        for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
     def test_indices_all_from_Dataset__between_year_season(self):
@@ -404,8 +425,9 @@ class Test_Integration:
             in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [12, 1, 2, 3]],
+            ignore_error=True,
         )
-        for i in EcadIndexRegistry.values():
+        for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
     def test_indices_all_ignore_error(self):
@@ -417,10 +439,13 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             ignore_error=True,
             slice_mode="DJF",
+            base_period_time_range=("2042-01-01", "2042-12-31"),
         ).compute()
         for i in EcadIndexRegistry.values():
             # No variable in input to compute snow indices
             if i.group == IndexGroupRegistry.SNOW:
+                assert res.data_vars.get(i.short_name, None) is None
+            elif "spi" in i.short_name.lower():
                 assert res.data_vars.get(i.short_name, None) is None
             else:
                 assert res[i.short_name] is not None

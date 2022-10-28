@@ -7383,6 +7383,7 @@ def gsl(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        out_unit="day",
     )
 
 
@@ -7477,6 +7478,7 @@ def spi6(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        out_unit="",
     )
 
 
@@ -7571,6 +7573,7 @@ def spi3(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        out_unit="",
     )
 
 

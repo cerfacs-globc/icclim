@@ -8,6 +8,8 @@ from icclim.generic_indices.generic_indicators import (
     get_couple_of_var,
     get_single_var,
 )
+from icclim.icclim_exceptions import InvalidIcclimArgumentError
+from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 
 
@@ -52,9 +54,11 @@ class XCLIM_BINDING:
         cell_methods = ""
 
         def __call__(self, config: IndexConfig) -> xarray.DataArray:
+            if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
+                raise InvalidIcclimArgumentError(
+                    "`slice_mode` cannot be configured when computing SPI3"
+                )
             study, ref = get_couple_of_var(config.climate_variables, "SPI")
-            print(study)
-            print(ref)
             return xclim.atmos.standardized_precipitation_index(
                 pr=study, pr_cal=ref, freq="MS", window=3, dist="gamma", method="APP"
             )
@@ -79,6 +83,10 @@ class XCLIM_BINDING:
         cell_methods = ""
 
         def __call__(self, config: IndexConfig) -> xarray.DataArray:
+            if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
+                raise InvalidIcclimArgumentError(
+                    "`slice_mode` cannot be configured when computing SPI6"
+                )
             study, ref = get_couple_of_var(config.climate_variables, "SPI")
             return xclim.atmos.standardized_precipitation_index(
                 pr=study, pr_cal=ref, freq="MS", window=6, dist="gamma", method="APP"
