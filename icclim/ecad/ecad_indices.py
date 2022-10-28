@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from ecad.xclim_binding import XCLIM_BINDING
-
+from icclim.ecad.xclim_binding import XCLIM_BINDING
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.generic_indices.standard_variable import StandardVariableRegistry
 from icclim.generic_indices.threshold import build_threshold
