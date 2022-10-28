@@ -583,7 +583,7 @@ def mean_of_difference(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ):
-    study, ref = _get_couple_of_var(climate_vars, "mean_of_difference")
+    study, ref = get_couple_of_var(climate_vars, "mean_of_difference")
     mean_of_diff = (study - ref).resample(time=resample_freq.pandas_freq).mean()
     mean_of_diff.attrs["units"] = study.attrs["units"]
     return mean_of_diff
@@ -594,7 +594,7 @@ def difference_of_extremes(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ):
-    study, ref = _get_couple_of_var(climate_vars, "difference_of_extremes")
+    study, ref = get_couple_of_var(climate_vars, "difference_of_extremes")
     max_study = study.resample(time=resample_freq.pandas_freq).max()
     min_ref = ref.resample(time=resample_freq.pandas_freq).min()
     diff_of_extremes = max_study - min_ref
@@ -624,7 +624,7 @@ def mean_of_absolute_one_time_step_difference(
     DataArray
     mean_of_absolute_one_time_step_difference as a xarray.DataArray
     """
-    study, ref = _get_couple_of_var(
+    study, ref = get_couple_of_var(
         climate_vars, "mean_of_absolute_one_time_step_difference"
     )
     one_time_step_diff = (study - ref).diff(dim="time")
@@ -640,7 +640,7 @@ def difference_of_means(
     sampling_method: str,
     **kwargs,  # noqa
 ):
-    study, ref = _get_couple_of_var(climate_vars, "difference_of_means")
+    study, ref = get_couple_of_var(climate_vars, "difference_of_means")
     if sampling_method == GROUP_BY_METHOD:
         if resample_freq.group_by_key == RUN_INDEXER:
             mean_study = study.mean(dim="time")
@@ -888,9 +888,14 @@ def _compute_exceedance(
     return exceedances
 
 
-def _get_couple_of_var(
+def get_couple_of_var(
     climate_vars: list[ClimateVariable], indicator: str
 ) -> tuple[DataArray, DataArray]:
+    if len(climate_vars) != 2:
+        raise InvalidIcclimArgumentError(
+            f"{indicator} needs two variable **or** one variable and a "
+            f"`base_period_time_range` period to extract a reference variable."
+        )
     if climate_vars[0].threshold or climate_vars[1].threshold:
         raise InvalidIcclimArgumentError(
             f"{indicator} cannot be computed with thresholds."

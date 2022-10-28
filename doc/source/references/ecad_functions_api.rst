@@ -88,6 +88,7 @@ Generated API
         ddwest
         gsl
         spi6
+        spi3
         custom_index
 
         .. Generated API comment:End
