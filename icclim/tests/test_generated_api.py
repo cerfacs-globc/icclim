@@ -12,7 +12,7 @@ from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.generic_indices.threshold import build_threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import VerbosityRegistry
-from icclim.models.constants import QUANTILE_BASED
+from icclim.models.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.netcdf_version import NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
@@ -44,6 +44,12 @@ def build_expected_args(index: StandardIndex):
                 "only_leap_years": False,
                 "interpolation": QuantileInterpolationRegistry.MEDIAN_UNBIASED.name,
                 "save_thresholds": False,
+            }
+        )
+    elif REFERENCE_PERIOD_INDEX in qualifiers:
+        expected_call_args.update(
+            {
+                "base_period_time_range": None,
             }
         )
     if index.threshold is not None:

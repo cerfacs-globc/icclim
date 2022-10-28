@@ -38,7 +38,7 @@ from icclim.generic_indices.threshold import (
     build_threshold,
 )
 from icclim.icclim_logger import Verbosity
-from icclim.models.constants import QUANTILE_BASED
+from icclim.models.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
 from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
@@ -47,6 +47,12 @@ from icclim.models.user_index_dict import UserIndexDict
 
 QUANTILE_INDEX_FIELDS = [
     "base_period_time_range",
+    "only_leap_years",
+    "interpolation",
+    "save_thresholds",
+]
+
+NON_REFERENCE_FIELDS = [
     "only_leap_years",
     "interpolation",
     "save_thresholds",
@@ -237,10 +243,12 @@ def {index.name.lower()}(
 
 
 def get_standard_index_declaration(index: StandardIndex) -> str:
-    if not _is_quantile_based(index):
-        index_args = _get_arguments(ECAD_POP_ARGS + QUANTILE_INDEX_FIELDS)
-    else:
+    if _is_quantile_based(index):
         index_args = _get_arguments(ECAD_POP_ARGS)
+    elif _can_have_reference_period(index):
+        index_args = _get_arguments(ECAD_POP_ARGS + NON_REFERENCE_FIELDS)
+    else:
+        index_args = _get_arguments(ECAD_POP_ARGS + QUANTILE_INDEX_FIELDS)
     fun_signature_args = build_fun_signature_args(index_args)
     args_docs = get_params_docstring(list(index_args.keys()), icclim.index.__doc__)
     common_args = map(lambda arg: f"{arg}={arg}", index_args)
@@ -272,6 +280,10 @@ def {index.short_name.lower()}(
 
 def _is_quantile_based(index: StandardIndex) -> bool:
     return index.qualifiers is not None and QUANTILE_BASED in index.qualifiers
+
+
+def _can_have_reference_period(index: StandardIndex) -> bool:
+    return index.qualifiers is not None and REFERENCE_PERIOD_INDEX in index.qualifiers
 
 
 def _get_arguments(pop_args: list[str]) -> dict[str, inspect.Parameter]:

@@ -8,6 +8,8 @@ Release history
   `ddnorth` and `ddsouth` do not follow the ECAD's ATBD v11 requirements as their definition seems to be wrong in the document.
 * [enh] Add generic indicators as stand-alone functions in `icclim` namespace.
 * [doc] Add documentation for generic indicators stand-alone functions.
+* [doc] Add a recipe "how to" documentation for generic indicators.
+* [enh] Add ECAD's indices GSL, SPI3, SPI6 by binding them to xclim's indicators.
 
 
 6.0.0

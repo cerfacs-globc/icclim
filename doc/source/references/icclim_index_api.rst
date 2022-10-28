@@ -359,7 +359,7 @@ or as percentage of days (``out_unit`` = "%").
 Custom indices
 --------------
 
-Custom indices are now described in their own chapter: `here <custom_indices>`_
+Custom indices are now described in their own chapter: :ref:`custom_indices`
 
 
 .. _table_index_sourceVar_label:

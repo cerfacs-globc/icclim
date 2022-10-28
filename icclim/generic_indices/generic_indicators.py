@@ -227,13 +227,6 @@ class GenericIndicator(ResamplingIndicator):
                 f"{self.name} can only be computed with the following"
                 f" sampling_method(s): {self.sampling_methods}"
             )
-        if is_compared_to_reference and sampling_method == RESAMPLE_METHOD:
-            raise InvalidIcclimArgumentError(
-                "It does not make sense to resample the reference variable if it is"
-                " already a subsample of the studied variable. Try setting"
-                f" `sampling_method='{GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}'`"
-                f" instead."
-            )
         if output_unit is not None and _is_amount_unit(output_unit):
             for climate_var in climate_vars:
                 current_unit = climate_var.studied_data.attrs.get(UNITS_KEY, None)
@@ -381,7 +374,7 @@ def excess(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ) -> DataArray:
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     if threshold.operator is not OperatorRegistry.REACH:
         raise InvalidIcclimArgumentError("")
     excesses = threshold.compute(study, override_op=lambda da, th: da - th)
@@ -396,7 +389,7 @@ def deficit(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ) -> DataArray:
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     deficit = threshold.compute(study, override_op=lambda da, th: th - da)
     res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     return to_agg_units(res, study, "delta_prod")
@@ -408,7 +401,7 @@ def fraction_of_total(
     to_percent: bool,
     **kwargs,  # noqa
 ) -> DataArray:
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     if threshold.threshold_min_value is not None:
         total = (
             study.where(threshold.operator(study, threshold.threshold_min_value.m))
@@ -583,7 +576,7 @@ def mean_of_difference(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ):
-    study, ref = _get_couple_of_var(climate_vars, "mean_of_difference")
+    study, ref = get_couple_of_var(climate_vars, "mean_of_difference")
     mean_of_diff = (study - ref).resample(time=resample_freq.pandas_freq).mean()
     mean_of_diff.attrs["units"] = study.attrs["units"]
     return mean_of_diff
@@ -594,7 +587,7 @@ def difference_of_extremes(
     resample_freq: Frequency,
     **kwargs,  # noqa
 ):
-    study, ref = _get_couple_of_var(climate_vars, "difference_of_extremes")
+    study, ref = get_couple_of_var(climate_vars, "difference_of_extremes")
     max_study = study.resample(time=resample_freq.pandas_freq).max()
     min_ref = ref.resample(time=resample_freq.pandas_freq).min()
     diff_of_extremes = max_study - min_ref
@@ -624,7 +617,7 @@ def mean_of_absolute_one_time_step_difference(
     DataArray
     mean_of_absolute_one_time_step_difference as a xarray.DataArray
     """
-    study, ref = _get_couple_of_var(
+    study, ref = get_couple_of_var(
         climate_vars, "mean_of_absolute_one_time_step_difference"
     )
     one_time_step_diff = (study - ref).diff(dim="time")
@@ -638,9 +631,17 @@ def difference_of_means(
     to_percent: bool,
     resample_freq: Frequency,
     sampling_method: str,
+    is_compared_to_reference: bool,
     **kwargs,  # noqa
 ):
-    study, ref = _get_couple_of_var(climate_vars, "difference_of_means")
+    if is_compared_to_reference and sampling_method == RESAMPLE_METHOD:
+        raise InvalidIcclimArgumentError(
+            "It does not make sense to resample the reference variable if it is"
+            " already a subsample of the studied variable. Try setting"
+            f" `sampling_method='{GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}'`"
+            f" instead."
+        )
+    study, ref = get_couple_of_var(climate_vars, "difference_of_means")
     if sampling_method == GROUP_BY_METHOD:
         if resample_freq.group_by_key == RUN_INDEXER:
             mean_study = study.mean(dim="time")
@@ -711,7 +712,7 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
 def _check_single_var(climate_vars: list[ClimateVariable], indicator: GenericIndicator):
     if len(climate_vars) > 1:
         raise InvalidIcclimArgumentError(
-            f"{indicator.name} can only be computed on a" f" single variable."
+            f"{indicator.name} can only be computed on a single variable."
         )
 
 
@@ -888,9 +889,14 @@ def _compute_exceedance(
     return exceedances
 
 
-def _get_couple_of_var(
+def get_couple_of_var(
     climate_vars: list[ClimateVariable], indicator: str
 ) -> tuple[DataArray, DataArray]:
+    if len(climate_vars) != 2:
+        raise InvalidIcclimArgumentError(
+            f"{indicator} needs two variables **or** one variable and a "
+            f"`base_period_time_range` period to extract a reference variable."
+        )
     if climate_vars[0].threshold or climate_vars[1].threshold:
         raise InvalidIcclimArgumentError(
             f"{indicator} cannot be computed with thresholds."
@@ -910,7 +916,7 @@ def _run_rolling_reducer(
     date_event: bool,
     source_freq_delta: timedelta,
 ) -> DataArray:
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     if threshold:
         exceedance = _compute_exceedance(
             study=study,
@@ -939,7 +945,7 @@ def _run_simple_reducer(
     date_event: bool,
     must_convert_rate: bool = False,
 ):
-    study, threshold = _get_single_var(climate_vars)
+    study, threshold = get_single_var(climate_vars)
     if threshold is not None:
         exceedance = _compute_exceedance(
             study=study,
@@ -981,7 +987,7 @@ def _compute_exceedances(
     return logical_link(exceedances)
 
 
-def _get_single_var(
+def get_single_var(
     climate_vars: list[ClimateVariable],
 ) -> tuple[DataArray, Threshold | None]:
     if climate_vars[0].threshold:

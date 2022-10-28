@@ -86,6 +86,9 @@ Generated API
         ddeast
         ddsouth
         ddwest
+        gsl
+        spi6
+        spi3
         custom_index
 
         .. Generated API comment:End
