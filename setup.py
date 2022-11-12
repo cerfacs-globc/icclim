@@ -3,10 +3,10 @@
 from setuptools import find_packages, setup
 
 MINIMAL_REQUIREMENTS = [
-    "pint<0.20",  # Temporary pin until xclim 0.39 is released
     "numpy>=1.16",
     "xarray>=2022.6",
-    "xclim>=0.38",
+    "xclim>=0.39",
+    "cf_xarray>=0.7.4",
     "cftime>=1.4.1",
     "dask[array]",
     "netCDF4>=1.5.7",

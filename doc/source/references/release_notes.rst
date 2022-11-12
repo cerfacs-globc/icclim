@@ -1,8 +1,8 @@
 Release history
 ===============
 
-6.1.0 (unreleased)
-------------------
+6.1.0
+-----
 * [fix] Add unit getter/setter for BoundedThreshold.
 * [enh] Add ECAD wind indices ``{fxx, fg6bft, fgcalm, fg, ddnorth, ddeast, ddsouth, ddwest}``.
   `ddnorth` and `ddsouth` do not follow the ECAD's ATBD v11 requirements as their definition seems to be wrong in the document.
@@ -10,6 +10,7 @@ Release history
 * [doc] Add documentation for generic indicators stand-alone functions.
 * [doc] Add a recipe "how to" documentation for generic indicators.
 * [enh] Add ECAD's indices GSL, SPI3, SPI6 by binding them to xclim's indicators.
+* [maint] Upgrade to xclim 0.39.0
 
 
 6.0.0

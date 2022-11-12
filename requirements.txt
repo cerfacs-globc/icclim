@@ -1,3 +1,4 @@
+cf_xarray>=0.7.4
 cftime
 dask[array]
 dateparser
@@ -17,5 +18,5 @@ sphinx_codeautolink
 sphinx_copybutton
 sphinx_lfs_content
 xarray>=2022.6
-xclim~=0.38.0
+xclim~=0.39.0
 zarr
