@@ -1,6 +1,10 @@
 Release history
 ===============
 
+6.1.1
+-----
+* [fix] Add missing file to properly identify user_indices as a package.
+
 6.1.0
 -----
 * [fix] Add unit getter/setter for BoundedThreshold.
