@@ -1,7 +1,7 @@
 Release history
 ===============
 
-6.1.1
+6.1.2
 -----
 * [fix] Add missing file to properly identify user_indices as a package.
 
