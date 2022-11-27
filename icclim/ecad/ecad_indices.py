@@ -191,7 +191,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     TNX = StandardIndex(
         reference=ECAD_REFERENCE,
-        indicator=GenericIndicatorRegistry.Minimum,
+        indicator=GenericIndicatorRegistry.Maximum,
         output_unit="degree_Celsius",
         definition="Maximum daily minimum temperature",
         source=ECAD_ATBD,
