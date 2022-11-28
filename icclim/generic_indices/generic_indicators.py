@@ -785,7 +785,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
     Minimum = GenericIndicator(
         "minimum",
         minimum,
-        definition="Maximum of values that met threshold(s), if threshold(s) are given"
+        definition="Minimum of values that met threshold(s), if threshold(s) are given"
         " (e.g. Txn, Tnn).",
     )
     Average = GenericIndicator(
