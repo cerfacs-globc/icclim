@@ -1,6 +1,10 @@
 Release history
 ===============
 
+6.1.3
+-----
+* [fix] Bug fix for TNx.
+
 6.1.2
 -----
 * [fix] Add missing file to properly identify user_indices as a package.
