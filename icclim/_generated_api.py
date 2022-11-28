@@ -776,7 +776,7 @@ def minimum(
     date_event: bool = False,
 ) -> Dataset:
     """
-    Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
+    Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
     Parameters
     ----------
