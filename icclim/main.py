@@ -605,8 +605,15 @@ def _add_ecad_index_metadata(
             Conventions="CF-1.6",
         )
     )
-    result_ds.lat.encoding["_FillValue"] = None
-    result_ds.lon.encoding["_FillValue"] = None
+    try:
+        result_ds.lat.encoding["_FillValue"] = None
+        result_ds.lon.encoding["_FillValue"] = None
+    except AttributeError:
+        try:
+            result_ds.latitude.encoding["_FillValue"] = None
+            result_ds.longitude.encoding["_FillValue"] = None
+        except AttributeError:
+            pass
     return result_ds
 
 
