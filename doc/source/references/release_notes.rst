@@ -1,6 +1,10 @@
 Release history
 ===============
 
+6.1.4
+-----
+* [fix] Bug fix: not assuming longitude and latitude are lon and lat with respect to output metadata. Fix needed to work on E-OBS and other datasets.
+
 6.1.3
 -----
 * [fix] Bug fix for TNx.
