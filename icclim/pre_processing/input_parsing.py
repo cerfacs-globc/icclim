@@ -56,7 +56,8 @@ class PercentileDataArray(xr.DataArray):
             It must also have a coordinate variable percentiles or quantile.
         climatology_bounds : list[str]
             Optional. A List of size two which contains the period on which the
-            percentiles were computed. See :py:func:`xclim.core.calendar.build_climatology_bounds`
+            percentiles were computed. See
+            `xclim.core.calendar.build_climatology_bounds`
             to build this list from a DataArray.
 
         Returns

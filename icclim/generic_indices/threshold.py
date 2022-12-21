@@ -37,6 +37,7 @@ from icclim.models.quantile_interpolation import (
     QuantileInterpolationRegistry,
 )
 from icclim.pre_processing.input_parsing import (
+    PercentileDataArray,
     build_reference_da,
     find_standard_vars,
     get_name_of_first_var,
@@ -44,7 +45,6 @@ from icclim.pre_processing.input_parsing import (
     read_clim_bounds,
     read_dataset,
     standardize_percentile_dim_name,
-    PercentileDataArray
 )
 from icclim.utils import is_number_sequence
 
