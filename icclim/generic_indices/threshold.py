@@ -14,7 +14,7 @@ from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import build_climatology_bounds, percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, str2pint
 from xclim.core.units import units as xc_units
-from xclim.core.utils import PercentileDataArray, calc_perc
+from xclim.core.utils import calc_perc
 
 from icclim.generic_indices.threshold_templates import (
     EN_THRESHOLD_TEMPLATE,
@@ -44,6 +44,7 @@ from icclim.pre_processing.input_parsing import (
     read_clim_bounds,
     read_dataset,
     standardize_percentile_dim_name,
+    PercentileDataArray
 )
 from icclim.utils import is_number_sequence
 
