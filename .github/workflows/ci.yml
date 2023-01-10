@@ -105,7 +105,6 @@ jobs:
           python ./tools/update_logo_version.py ./doc/source/_static/logo_icclim_colored__base.svg ./doc/source/_static/logo_icclim_colored__displayed.svg
           python ./tools/update_logo_version.py ./doc/source/_static/logo_icclim_grey__base.svg ./doc/source/_static/logo_icclim_grey__displayed.svg
           python ./tools/update_logo_version.py ./doc/source/_static/logo_icclim_white__base.svg ./doc/source/_static/logo_icclim_white__displayed.svg
-      - name: create local ref
       - name: setup git config
         run: |
           # setup the username and email.
