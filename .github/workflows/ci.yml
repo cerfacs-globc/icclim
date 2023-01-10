@@ -27,7 +27,7 @@ jobs:
         run: black icclim/_generated_api.py
       - name: create local ref
         run: |
-          git fetch {{ github.event.pull_request.base.clone_url }} {{ github.event.pull_request.base.ref }}
+          git fetch ${{ github.event.pull_request.base.clone_url }} ${{ github.event.pull_request.base.ref }}
           git checkout ${{ github.head_ref }}
       - name: setup git config
         run: |
@@ -40,7 +40,7 @@ jobs:
           git add icclim/_generated_api.py
           # Ignore error cases
           git commit -m "MAINT: Update generated API" || true
-          git push {{ github.event.pull_request.base.clone_url }}/{{ github.event.pull_request.base.ref }}
+          git push ${{ github.event.pull_request.base.clone_url }} ${{ github.event.pull_request.base.ref }}
 
   test:
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
           junitxml-title: Test results
       - name: create local ref
         run: |
-          git fetch {{ github.event.pull_request.base.clone_url }} {{ github.event.pull_request.base.ref }}
+          git fetch ${{ github.event.pull_request.base.clone_url }} ${{ github.event.pull_request.base.ref }}
           git checkout ${{ github.head_ref }}
       - name: Update Readme with Coverage Html
         run: |
@@ -92,7 +92,7 @@ jobs:
           git add README.rst
           # Ignore error cases with `|| true`
           git commit -m "[skip ci] DOC: Update coverage" || true
-          git push {{ github.event.pull_request.base.clone_url }}/{{ github.event.pull_request.base.ref }}
+          git push ${{ github.event.pull_request.base.clone_url }} ${{ github.event.pull_request.base.ref }}
 
   logo-update:
     runs-on: ubuntu-latest
@@ -117,7 +117,7 @@ jobs:
           python ./tools/update_logo_version.py ./doc/source/_static/logo_icclim_white__base.svg ./doc/source/_static/logo_icclim_white__displayed.svg
       - name: create local ref
         run: |
-          git fetch {{ github.event.pull_request.base.clone_url }} {{ github.event.pull_request.base.ref }}
+          git fetch ${{ github.event.pull_request.base.clone_url }} ${{ github.event.pull_request.base.ref }}
           git checkout ${{ github.head_ref }}
       - name: setup git config
         run: |
@@ -130,4 +130,4 @@ jobs:
           git add doc/source/_static/*__displayed.svg
           # Ignore error cases with `|| true`
           git commit -m "MAINT: Update logos" || true
-          git push {{ github.event.pull_request.base.clone_url }}/{{ github.event.pull_request.base.ref }}
+          git push ${{ github.event.pull_request.base.clone_url }} ${{ github.event.pull_request.base.ref }}
