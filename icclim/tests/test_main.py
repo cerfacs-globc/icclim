@@ -392,7 +392,7 @@ class Test_Integration:
             in_files=self.full_data,
             out_file=self.OUTPUT_FILE,
             slice_mode=["season", [1, 2, 3]],
-            ignore_error=True,
+            # ignore_error=True,
         )
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None

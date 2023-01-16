@@ -20,7 +20,7 @@ from icclim.icclim_types import InFileBaseType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.constants import UNITS_KEY, VALID_PERCENTILE_DIMENSION
 from icclim.models.standard_index import StandardIndex
-from icclim.utils import get_date_to_iso_format, is_precipitation_amount
+from icclim.utils import get_date_to_iso_format
 
 DEFAULT_INPUT_FREQUENCY = "days"
 
@@ -287,8 +287,6 @@ def build_studied_data(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_KEY, None) is None and standard_var is not None:
         da.attrs[UNITS_KEY] = standard_var.default_units
-    if is_precipitation_amount(da):
-        da = xclim.core.units.amount2rate(da)
     da = da.chunk("auto")
     return da
 
@@ -362,7 +360,9 @@ def read_threshold_DataArray(
     else:
         if threshold_min_value:
             if isinstance(threshold_min_value, str):
-                threshold_min_value = convert_units_to(threshold_min_value, thresh_da)
+                threshold_min_value = convert_units_to(
+                    threshold_min_value, thresh_da, context="hydro"
+                )
             # todo in prcptot the replacing value (np.nan) needs to be 0
             built_value = thresh_da.where(thresh_da > threshold_min_value, np.nan)
         else:
@@ -392,6 +392,8 @@ def build_reference_da(
     if only_leap_years:
         reference = reduce_only_leap_years(original_da)
     if percentile_min_value is not None:
-        percentile_min_value = convert_units_to(str(percentile_min_value), reference)
+        percentile_min_value = convert_units_to(
+            str(percentile_min_value), reference, context="hydro"
+        )
         reference = reference.where(reference >= percentile_min_value, np.nan)
     return reference

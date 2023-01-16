@@ -125,7 +125,7 @@ class ResamplingIndicator(Indicator, ABC):
         out_unit: str | None,
     ):
         if out_unit is not None:
-            result = convert_units_to(result, out_unit)
+            result = convert_units_to(result, out_unit, context="hydro")
         if self.missing != "skip" and indexer is not None:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
@@ -231,9 +231,10 @@ class GenericIndicator(ResamplingIndicator):
             for climate_var in climate_vars:
                 current_unit = climate_var.studied_data.attrs.get(UNITS_KEY, None)
                 if current_unit is not None and not _is_amount_unit(current_unit):
-                    climate_var.studied_data = rate2amount(
-                        climate_var.studied_data, out_units=output_unit
-                    )
+                    with xc_units.context("hydro"):
+                        climate_var.studied_data = rate2amount(
+                            climate_var.studied_data, out_units=output_unit
+                        )
         if coef is not None:
             for climate_var in climate_vars:
                 climate_var.studied_data = coef * climate_var.studied_data
@@ -903,7 +904,7 @@ def get_couple_of_var(
         )
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
-    study = convert_units_to(study, ref)
+    study = convert_units_to(study, ref, context="hydro")
     return study, ref
 
 
