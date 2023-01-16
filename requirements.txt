@@ -18,5 +18,5 @@ sphinx_codeautolink
 sphinx_copybutton
 sphinx_lfs_content
 xarray>=2022.6
-xclim~=0.39.0
+xclim~=0.40
 zarr

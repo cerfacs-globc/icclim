@@ -1,6 +1,10 @@
 Release history
 ===============
 
+6.1.6 (unreleased)
+------------------
+* [maint] Upgrade and adapt to xclim 0.40
+
 6.1.5
 -----
 * [fix] Bug fix: not assuming longitude and latitude are lon and lat with respect to output metadata. Fix needed to work on E-OBS and other datasets.
