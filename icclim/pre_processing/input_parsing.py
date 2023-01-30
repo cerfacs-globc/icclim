@@ -20,7 +20,7 @@ from icclim.icclim_types import InFileBaseType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.constants import UNITS_KEY, VALID_PERCENTILE_DIMENSION
 from icclim.models.standard_index import StandardIndex
-from icclim.utils import get_date_to_iso_format
+from icclim.utils import get_date_to_iso_format, is_precipitation_amount
 
 DEFAULT_INPUT_FREQUENCY = "days"
 
@@ -287,6 +287,8 @@ def build_studied_data(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_KEY, None) is None and standard_var is not None:
         da.attrs[UNITS_KEY] = standard_var.default_units
+    if is_precipitation_amount(da):
+        da = xclim.core.units.amount2rate(da)
     da = da.chunk("auto")
     return da
 
