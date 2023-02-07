@@ -14,7 +14,7 @@ from xclim.core.bootstrapping import percentile_bootstrap
 from xclim.core.calendar import build_climatology_bounds, percentile_doy, resample_doy
 from xclim.core.units import convert_units_to, str2pint
 from xclim.core.units import units as xc_units
-from xclim.core.utils import PercentileDataArray, calc_perc
+from xclim.core.utils import calc_perc
 
 from icclim.generic_indices.threshold_templates import (
     EN_THRESHOLD_TEMPLATE,
@@ -37,6 +37,7 @@ from icclim.models.quantile_interpolation import (
     QuantileInterpolationRegistry,
 )
 from icclim.pre_processing.input_parsing import (
+    PercentileDataArray,
     build_reference_da,
     find_standard_vars,
     get_name_of_first_var,
@@ -439,7 +440,9 @@ class PercentileThreshold(Threshold):
     def unit(self, unit: str | xr.DataArray | pint.Quantity | pint.Unit):
         if self.is_ready:
             if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
-                self._prepared_value = convert_units_to(self._prepared_value, unit)
+                self._prepared_value = convert_units_to(
+                    self._prepared_value, unit, context="hydro"
+                )
             self.value.attrs[UNITS_KEY] = unit
 
     @property
@@ -645,7 +648,7 @@ class BasicThreshold(Threshold):
     @unit.setter
     def unit(self, unit):
         if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
-            self.value = convert_units_to(self.value, unit)
+            self.value = convert_units_to(self.value, unit, context="hydro")
         self.value.attrs[UNITS_KEY] = unit
 
     def __init__(
@@ -690,7 +693,7 @@ class BasicThreshold(Threshold):
         else:
             raise NotImplementedError(f"Cannot build threshold from a {type(value)}.")
         if unit is not None:
-            built_value = convert_units_to(built_value, unit)
+            built_value = convert_units_to(built_value, unit, context="hydro")
         self.operator = operator
         self.value = built_value
         self.unit = unit
@@ -1049,9 +1052,10 @@ def _must_build_bounded_threshold(input: ThresholdBuilderInput) -> bool:
 def _apply_min_value(thresh_da: DataArray, min_value: pint.Quantity | None):
     if min_value is not None:
         if min_value.dimensionless:
-            min_value = convert_units_to(min_value.m, thresh_da)
+            # We assume min_value use the same unit as thresh_da if it's dimensionless
+            min_value = min_value.m
         else:
-            min_value = convert_units_to(str(min_value), thresh_da)
+            min_value = convert_units_to(str(min_value), thresh_da, context="hydro")
         built_value = thresh_da.where(thresh_da > min_value, np.nan)
         return built_value
     else:
@@ -1095,6 +1099,6 @@ def _build_per_thresh_from_dataset(
     )
     if unit is not None:
         if built_value.attrs.get(UNITS_KEY, None) is not None:
-            built_value = convert_units_to(built_value, unit)
+            built_value = convert_units_to(built_value, unit, context="hydro")
         built_value.attrs[UNITS_KEY] = unit
     return built_value, DOY_COORDINATE in built_value.coords

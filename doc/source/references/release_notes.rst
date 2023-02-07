@@ -1,6 +1,13 @@
 Release history
 ===============
 
+6.2.0 (unreleased)
+------------------
+* [maint] Upgrade and adapt to xclim 0.40.
+  Moved PercentileDataArray from xclim to icclim.
+  Adapted the unit cenversion to use the hydro context.
+
+
 6.1.5
 -----
 * [fix] Bug fix: not assuming longitude and latitude are lon and lat with respect to output metadata. Fix needed to work on E-OBS and other datasets.

@@ -7,12 +7,12 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from xclim.core.utils import PercentileDataArray
 
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import UNITS_KEY
 from icclim.pre_processing.input_parsing import (
+    PercentileDataArray,
     guess_var_names,
     read_dataset,
     update_to_standard_coords,

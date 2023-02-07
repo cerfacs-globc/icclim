@@ -10,7 +10,6 @@ from pint import Quantity
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.units import convert_units_to
-from xclim.core.utils import PercentileDataArray
 
 from icclim.generic_indices.standard_variable import (
     StandardVariable,
@@ -24,6 +23,69 @@ from icclim.models.standard_index import StandardIndex
 from icclim.utils import get_date_to_iso_format, is_precipitation_amount
 
 DEFAULT_INPUT_FREQUENCY = "days"
+
+
+class PercentileDataArray(xr.DataArray):
+    """Wrap xarray DataArray for percentiles values."""
+
+    __slots__ = ()
+
+    @classmethod
+    def is_compatible(cls, source: xr.DataArray) -> bool:
+        """Evaluate whether PecentileDataArray is conformant with expected fields.
+
+        A PercentileDataArray must have climatology_bounds attributes and either a
+        quantile or percentiles coordinate, the window is not mandatory.
+        """
+        return (
+            isinstance(source, xr.DataArray)
+            and source.attrs.get("climatology_bounds", None) is not None
+            and ("quantile" in source.coords or "percentiles" in source.coords)
+        )
+
+    @classmethod
+    def from_da(
+        cls, source: xr.DataArray, climatology_bounds: list[str] = None
+    ) -> PercentileDataArray:
+        """Create a PercentileDataArray from a xarray.DataArray.
+
+        Parameters
+        ----------
+        source : xr.DataArray
+            A DataArray with its content containing percentiles values.
+            It must also have a coordinate variable percentiles or quantile.
+        climatology_bounds : list[str]
+            Optional. A List of size two which contains the period on which the
+            percentiles were computed. See
+            `xclim.core.calendar.build_climatology_bounds`
+            to build this list from a DataArray.
+
+        Returns
+        -------
+        PercentileDataArray
+            The initial `source` DataArray but wrap by PercentileDataArray class.
+            The data is unchanged and only climatology_bounds attributes is overridden
+            if q new value is given in inputs.
+        """
+        if (
+            climatology_bounds is None
+            and source.attrs.get("climatology_bounds", None) is None
+        ):
+            raise ValueError("PercentileDataArray needs a climatology_bounds.")
+        per = cls(source)
+        # handle case where da was created with `quantile()` method
+        if "quantile" in source.coords:
+            per = per.rename({"quantile": "percentiles"})
+            per.coords["percentiles"] = per.coords["percentiles"] * 100
+        clim_bounds = source.attrs.get("climatology_bounds", climatology_bounds)
+        per.attrs["climatology_bounds"] = clim_bounds
+        if "percentiles" in per.coords:
+            return per
+        raise ValueError(
+            f"DataArray {source.name} could not be turned into"
+            f" PercentileDataArray. The DataArray must have a"
+            f" 'percentiles' coordinate variable."
+        )
 
 
 def guess_var_names(
@@ -300,7 +362,9 @@ def read_threshold_DataArray(
     else:
         if threshold_min_value:
             if isinstance(threshold_min_value, str):
-                threshold_min_value = convert_units_to(threshold_min_value, thresh_da)
+                threshold_min_value = convert_units_to(
+                    threshold_min_value, thresh_da, context="hydro"
+                )
             # todo in prcptot the replacing value (np.nan) needs to be 0
             built_value = thresh_da.where(thresh_da > threshold_min_value, np.nan)
         else:
@@ -330,6 +394,8 @@ def build_reference_da(
     if only_leap_years:
         reference = reduce_only_leap_years(original_da)
     if percentile_min_value is not None:
-        percentile_min_value = convert_units_to(str(percentile_min_value), reference)
+        percentile_min_value = convert_units_to(
+            str(percentile_min_value), reference, context="hydro"
+        )
         reference = reference.where(reference >= percentile_min_value, np.nan)
     return reference

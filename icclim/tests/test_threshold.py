@@ -21,6 +21,7 @@ from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import UNITS_KEY
 from icclim.models.logical_link import LogicalLinkRegistry
 from icclim.models.operator import OperatorRegistry
+from icclim.pre_processing.input_parsing import PercentileDataArray
 
 
 def test_value_error():
@@ -295,6 +296,7 @@ class Test_FileBased:
 
     def test_build_percentile_threshold__from_file(self):
         doys = percentile_doy(self.data)
+        doys = PercentileDataArray.from_da(doys)
         doys.to_netcdf(path=self.IN_FILE_PATH)
         res = build_threshold(operator=">=", value=self.IN_FILE_PATH)
         assert isinstance(res, PercentileThreshold)
