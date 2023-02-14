@@ -1,11 +1,13 @@
 Release history
 ===============
 
-6.2.0 (unreleased)
-------------------
+6.2.0
+-----
 * [maint] Upgrade and adapt to xclim 0.40.
   Moved PercentileDataArray from xclim to icclim.
   Adapted the unit cenversion to use the hydro context.
+
+* [fix] Pin xclim to exact 0.40 to avoid breaking changes.
 
 
 6.1.5
