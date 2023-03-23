@@ -6,7 +6,7 @@ This module exposes each climate index as individual functions for convenience.
 # flake8: noqa E501
 from __future__ import annotations
 
-import datetime
+from datetime import datetime
 from typing import Sequence
 
 from xarray.core.dataset import Dataset
