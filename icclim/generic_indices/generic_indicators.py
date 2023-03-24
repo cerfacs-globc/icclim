@@ -213,7 +213,6 @@ class GenericIndicator(ResamplingIndicator):
         output_unit: str | None,
         coef: float | None,
         sampling_method: str,
-        is_compared_to_reference: bool,
     ) -> list[ClimateVariable]:
         if not _same_freq_for_all(climate_vars):
             raise InvalidIcclimArgumentError(
@@ -227,14 +226,24 @@ class GenericIndicator(ResamplingIndicator):
                 f"{self.name} can only be computed with the following"
                 f" sampling_method(s): {self.sampling_methods}"
             )
-        if output_unit is not None and _is_amount_unit(output_unit):
-            for climate_var in climate_vars:
-                current_unit = climate_var.studied_data.attrs.get(UNITS_KEY, None)
-                if current_unit is not None and not _is_amount_unit(current_unit):
-                    with xc_units.context("hydro"):
-                        climate_var.studied_data = rate2amount(
-                            climate_var.studied_data, out_units=output_unit
-                        )
+        if output_unit is not None:
+            if _is_amount_unit(output_unit):
+                climate_vars = _convert_rates_to_amounts(
+                    climate_vars=climate_vars, output_unit=output_unit
+                )
+            elif _is_a_diff_indicator(self) and output_unit != "%":
+                # [gh:255] Indicators computing the difference between two
+                # variables must first convert the units of input variables
+                # to the expected output unit in order to avoid converting
+                # the output which would be a relative "temperature".
+                # In other words: a 15 Kelvin difference *is* equivalent
+                # to a 15 degC and *is not* to a -258.15 degC.
+                for climate_var in climate_vars:
+                    climate_var.studied_data = convert_units_to(
+                        climate_var.studied_data, target=output_unit
+                    )
+            else:
+                pass  # nothing to do
         if coef is not None:
             for climate_var in climate_vars:
                 climate_var.studied_data = coef * climate_var.studied_data
@@ -277,7 +286,6 @@ class GenericIndicator(ResamplingIndicator):
             output_unit=config.out_unit,
             coef=config.coef,
             sampling_method=config.sampling_method,
-            is_compared_to_reference=config.is_compared_to_reference,
         )
         result = self.process(
             climate_vars=climate_vars,
@@ -723,9 +731,10 @@ def _check_couple_of_vars(
     if len(climate_vars) != 2:
         raise InvalidIcclimArgumentError(
             f"{indicator.name} can only be computed on two variables sharing the same"
-            f" unit (e.g. 2 temperatures). Either provide a `base_period_time_range` to"
-            f" create a reference variable or directly provide a secondary variable"
-            f" with `in_files` or `var_name`."
+            f" unit (e.g. 2 temperatures). You can either provide a secondary variable"
+            f" with `in_files` or `var_name`, or you can let icclim compute this"
+            f" second variable as a subset of the first one using"
+            f" `base_period_time_range`."
         )
 
 
@@ -1162,6 +1171,26 @@ def _is_amount_unit(unit: str) -> bool:
         return xc_units.Quantity(1, u).check("[length]")
     except (UndefinedUnitError, DefinitionSyntaxError):
         return False
+
+
+def _is_a_diff_indicator(indicator: Indicator) -> bool:
+    return (
+        indicator == GenericIndicatorRegistry.DifferenceOfExtremes
+        or indicator == GenericIndicatorRegistry.MeanOfDifference
+        or indicator == GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference
+        or indicator == GenericIndicatorRegistry.DifferenceOfMeans
+    )
+
+
+def _convert_rates_to_amounts(climate_vars: list[ClimateVariable], output_unit: str):
+    for climate_var in climate_vars:
+        current_unit = climate_var.studied_data.attrs.get(UNITS_KEY, None)
+        if current_unit is not None and not _is_amount_unit(current_unit):
+            with xc_units.context("hydro"):
+                climate_var.studied_data = rate2amount(
+                    climate_var.studied_data, out_units=output_unit
+                )
+    return climate_vars
 
 
 def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:

@@ -130,7 +130,7 @@ class Test_Integration:
 
     def test_index_DTR(self):
         ds = self.data.to_dataset(name="toto")
-        ds["tutu"] = self.data
+        ds["tutu"] = self.data + 10
         res = icclim.index(
             index_name="DTR",
             in_files=ds,
@@ -138,7 +138,21 @@ class Test_Integration:
             var_name=["toto", "tutu"],
         )
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
-        np.testing.assert_array_equal(0, res.DTR)
+        np.testing.assert_array_equal(-10, res.DTR)
+
+    def test_index_DTR__with_unit_conversion(self):
+        ds = self.data.to_dataset(name="toto")
+        ds["tutu"] = self.data + 10
+        ds["toto"].attrs["units"] = "K"
+        ds["tutu"].attrs["units"] = "K"
+        res = icclim.dtr(
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+            var_name=["toto", "tutu"],
+        )
+        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        np.testing.assert_array_equal(-10, res.DTR)
+        np.testing.assert_array_equal("°C", res.DTR.attrs["units"])
 
     def test_index_CD(self):
         ds = self.data.to_dataset(name="tas")

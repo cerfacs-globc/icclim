@@ -32,9 +32,10 @@ from icclim.pre_processing.input_parsing import (
 
 @dataclass
 class ClimateVariable:
-    """Internal icclim structure. It groups together the input variable (studied_data),
-    its associated metadata (standard_variable) and the threshold it must be compared
-    to.
+    """Internal icclim structure.
+    It groups together the input variable (studied_data),
+    its associated metadata (standard_var) and, if any,
+    the threshold it must be compared to.
 
     Attributes
     ----------

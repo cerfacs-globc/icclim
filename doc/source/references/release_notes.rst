@@ -1,6 +1,12 @@
 Release history
 ===============
 
+6.3.0 (unreleased)
+------------------
+* [fix] **BREAKING CHANGE** The indicators based on the difference between two variables (ecad: DTR, ETR, vDTR and anomaly) gave wrong values due to a bad unit conversion of the output.
+  This was for example the case when the input variables are in Kelvin, the difference between the two variables is still in Kelvin but it cannot be converted to degree Celsius with the ususal `+273.15`.
+  To workaround this issue, we first convert inputs to the expected output unit and then we compute the index.
+
 6.2.0
 -----
 * [maint] Upgrade and adapt to xclim 0.40.
