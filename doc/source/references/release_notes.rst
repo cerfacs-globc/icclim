@@ -9,6 +9,10 @@ Release history
   This was for example the case when the input variables are in Kelvin, the difference between the two variables is still in Kelvin but it cannot be converted to degree Celsius with the ususal `+273.15`.
   To workaround this issue, we first convert inputs to the expected output unit and then we compute the index.
 
+* [fix] **BREAKING CHANGE** Indices based on both a percentile threshold and a `threshold_min_value` (for ecad: r75p, r75pTOT, r95p, r95pTOT, r99p, r99pTOT)
+  are now computing the exceedance rate on values above `threshold_min_value` as well. Previously this `threshold_min_value` was used to compute the percentile and the total (for rxxpTOT indices)
+  but not the exceedance rate.
+
 6.2.0
 -----
 * [maint] Upgrade and adapt to xclim 0.40.
