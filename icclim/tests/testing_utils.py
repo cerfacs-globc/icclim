@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import xarray
 import xarray as xr
 
 from icclim.models.constants import UNITS_KEY
@@ -19,7 +18,7 @@ CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")
 
 
 def stub_tas(tas_value: float = 1.0, use_dask=False, use_cftime=False):
-    da = xarray.DataArray(
+    da = xr.DataArray(
         data=(np.full(VALUE_COUNT, tas_value).reshape((VALUE_COUNT, 1, 1))),
         dims=["time", "lat", "lon"],
         coords=COORDS,
@@ -33,12 +32,12 @@ def stub_tas(tas_value: float = 1.0, use_dask=False, use_cftime=False):
 
 
 def stub_pr(value: float, use_dask=False):
-    da = xarray.DataArray(
+    da = xr.DataArray(
         data=np.full(VALUE_COUNT, value).reshape((VALUE_COUNT, 1, 1)),
         coords=COORDS,
         dims=["time", "lat", "lon"],
         name="pr",
-        attrs={UNITS_KEY: "kg m-2 d-1"},
+        attrs={UNITS_KEY: "kg m-2 s-1"},
     )
     if use_dask:
         da.chunk()
