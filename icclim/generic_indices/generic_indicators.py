@@ -922,7 +922,7 @@ def _run_rolling_reducer(
     resample_freq: Frequency,
     rolling_window_width: int,
     rolling_op: Callable[[DataArrayRolling], DataArray],  # sum | mean
-    resampled_op: Callable[[...], DataArray],  # max | min
+    resampled_op: Callable[[DataArray], DataArray],  # max | min
     date_event: bool,
     source_freq_delta: timedelta,
 ) -> DataArray:
