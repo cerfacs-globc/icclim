@@ -489,22 +489,39 @@ class Test_Integration:
 
     def test_index_prcptot(self):
         pr = stub_pr(value=2)
+        pr.attrs[UNITS_KEY] = "mm/day"
         pr[:10] = 0
-        res = icclim.index(
-            index_name="prcptot",
+        res = icclim.prcptot(
             in_files=pr,
             out_file=self.OUTPUT_FILE,
-            slice_mode="ms",
-        )
-        assert res.isel(time=0) == 42.0
+            slice_mode="MS",
+        ).load()
+        np.testing.assert_array_almost_equal(res.PRCPTOT.isel(time=0), 42)
+
+    def test_index_r75ptot(self):
+        pr = stub_pr(value=0.00002)
+        pr.attrs["units"] = "kg m-2 s-1"
+        pr[:10] = 100
+        res = icclim.r75ptot(
+            in_files=pr,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="year",
+        ).load()
+        # 100% of precip are due to the precip above the 75th percentile
+        assert res.R75pTOT.isel(time=0) == 100
 
     def test_index_csu(self):
         tas = stub_tas(tas_value=26 + K2C)
-        tas[10:15] = 0
+        tas[10:40] = 0
         res = icclim.index(
             index_name="csu", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
-        )
-        assert res.isel(time=0) == 16
+        ).load()
+        # in January there are only 10 days above 25degC
+        assert res.CSU.isel(time=0) == 10
+        # There are 30 days of temperature to zero, then only values above 25degC
+        assert res.CSU.isel(time=1) == 1786
+        # Nan because they are counted as the first run taken into account for Februar
+        assert np.isnan(res.CSU.isel(time=3))
 
     def test_index_gd4(self):
         tas = stub_tas(tas_value=26 + K2C)
@@ -514,16 +531,17 @@ class Test_Integration:
         )
         expected = (26 - 4) * 21
         assert (
-            res.isel(time=0) == expected
+            res.GD4.isel(time=0) == expected
         )  # 21 days in January above 4 degC (at 26degC)
 
     def test_index_cfd(self):
         tas = stub_tas(tas_value=26 + K2C)
-        tas[5:15] = 0
-        res = icclim.index(
-            index_name="cfd", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
-        )
-        assert res.isel(time=0) == 1
+        tas[5:15] = 270  # ~ -3degC
+        res = icclim.cfd(
+            in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
+        ).load()
+        # 10 days in January that are below or equal to 0degC
+        assert res.CFD.isel(time=0) == 10
 
     def test_index_fd(self):
         tas = stub_tas(tas_value=26 + K2C)
@@ -532,7 +550,7 @@ class Test_Integration:
         res = icclim.index(
             index_name="fd", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
         )
-        assert res.isel(time=0) == 15
+        assert res.FD.isel(time=0) == 15
 
     def test_index_hd17(self):
         tas = stub_tas(tas_value=27 + K2C)
@@ -540,7 +558,7 @@ class Test_Integration:
         res = icclim.index(
             index_name="hd17", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms"
         )
-        assert res.isel(time=0) == 5 * (17 + K2C)
+        assert res.HD17.isel(time=0) == 5 * (17 + K2C)
 
     def test_index_tx90p__no_bootstrap_because_one_single_year_of_ref(self):
         tas = stub_tas(tas_value=27 + K2C)

@@ -623,6 +623,11 @@ class PercentileThreshold(Threshold):
         freq: str,  # noqa used by @percentile_bootstrap
         bootstrap: bool,  # noqa used by @percentile_bootstrap
     ) -> DataArray:
+        if self.threshold_min_value is not None:
+            # there is only a threshold_min_value when we are computing > or >=
+            thresh = self.threshold_min_value
+            thresh = convert_units_to(thresh, per, context="hydro")
+            per = per.where(per > thresh, thresh)
         if is_doy_per_threshold:
             threshold_value = resample_doy(per, comparison_data)
         else:
