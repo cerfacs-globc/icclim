@@ -1,8 +1,8 @@
 Release history
 ===============
 
-6.3.0 (unreleased)
-------------------
+6.3.0
+-----
 * [maint] Upgrade to xclim 0.42 (released on 04/04/2023).
 
 * [fix] **BREAKING CHANGE** The indicators based on the difference between two variables (ecad: DTR, ETR, vDTR and anomaly) gave wrong values due to a bad unit conversion of the output.
