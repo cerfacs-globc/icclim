@@ -4,7 +4,7 @@ Release history
 6.4.0.dev
 ---------
 
-* [maint] Upgrade to xclim 0.43 (released on 04/04/2023).
+* [maint] Upgrade to xclim 0.43 (released on 09/05/2023).
 * [maint] Change how xclim is pinned to allow patch changes.
 
 
