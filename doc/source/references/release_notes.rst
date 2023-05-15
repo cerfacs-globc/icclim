@@ -1,14 +1,19 @@
 Release history
 ===============
 
+6.4.0.dev
+---------
+
+* [maint] Upgrade to xclim 0.43 (released on 04/04/2023).
+* [maint] Change how xclim is pinned to allow patch changes.
+
+
 6.3.0
 -----
 * [maint] Upgrade to xclim 0.42 (released on 04/04/2023).
-
 * [fix] **BREAKING CHANGE** The indicators based on the difference between two variables (ecad: DTR, ETR, vDTR and anomaly) gave wrong values due to a bad unit conversion of the output.
   This was for example the case when the input variables are in Kelvin, the difference between the two variables is still in Kelvin but it cannot be converted to degree Celsius with the ususal `+273.15`.
   To workaround this issue, we first convert inputs to the expected output unit and then we compute the index.
-
 * [fix] **BREAKING CHANGE** Indices based on both a percentile threshold and a `threshold_min_value` (for ecad: r75p, r75pTOT, r95p, r95pTOT, r99p, r99pTOT)
   are now computing the exceedance rate on values above `threshold_min_value` as well. Previously this `threshold_min_value` was used to compute the percentile and the total (for rxxpTOT indices)
   but not the exceedance rate.
@@ -18,7 +23,6 @@ Release history
 * [maint] Upgrade and adapt to xclim 0.40.
   Moved PercentileDataArray from xclim to icclim.
   Adapted the unit cenversion to use the hydro context.
-
 * [fix] Pin xclim to exact 0.40 to avoid breaking changes.
 
 
