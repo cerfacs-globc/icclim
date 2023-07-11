@@ -21,6 +21,7 @@ from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
 from icclim.ecad.ecad_indices import EcadIndexRegistry
+from icclim.ecad.xclim_binding import XCLIM_BINDING
 from icclim.generic_indices.generic_indicators import (
     GenericIndicator,
     GenericIndicatorRegistry,
@@ -569,7 +570,17 @@ def _compute_climate_index(
     else:
         result_da = result_da.rename(climate_index.name)
     result_da.attrs[UNITS_KEY] = _get_unit(config.out_unit, result_da)
-    if config.frequency.post_processing is not None and "time" in result_da.dims:
+    if (
+        config.frequency.post_processing is not None
+        and "time" in result_da.dims
+        and not isinstance(
+            climate_index,
+            (
+                XCLIM_BINDING.StandardizedPrecipitationIndex6,
+                XCLIM_BINDING.StandardizedPrecipitationIndex3,
+            ),
+        )
+    ):
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
         result_ds = resampled_da.to_dataset()
         if time_bounds is not None:
