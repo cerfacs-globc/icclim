@@ -8,12 +8,12 @@ repos:
     -   id: absolufy-imports
         name: absolufy-imports
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.10.1
+    rev: v3.15.0
     hooks:
     -   id: pyupgrade
         language_version: python3
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
     -   id: trailing-whitespace
         language_version: python3
@@ -26,7 +26,7 @@ repos:
     -   id: requirements-txt-fixer
         language_version: python3
 -   repo: https://github.com/psf/black
-    rev: 23.9.1
+    rev: 23.11.0
     hooks:
     -   id: black
         language_version: python3
@@ -55,7 +55,7 @@ repos:
     -   id: check-hooks-apply
     -   id: check-useless-excludes
 -   repo: https://github.com/keewis/blackdoc
-    rev: v0.3.8
+    rev: v0.3.9
     hooks:
       - id: blackdoc
         additional_dependencies: [ 'black==22.3.0' ]
