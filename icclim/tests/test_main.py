@@ -400,6 +400,15 @@ class Test_Integration:
                 base_period_time_range=("2042-01-01", "2042-12-31"),
             )
 
+    def test_spi6__no_time_bounds(self):
+        dataset = icclim.index(
+            index_name="spi6",
+            in_files=self.full_data,
+            var_name="pr",
+            base_period_time_range=["2042-01-01", "2042-06-01"],
+        ).load()
+        assert "time_bounds" not in dataset.coords
+
     def test_indices_all_from_Dataset__seasonal(self):
         res = icclim.indices(
             index_group="all",

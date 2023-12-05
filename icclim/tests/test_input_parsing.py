@@ -108,7 +108,7 @@ class Test_ReadDataset:
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
-    def test_read_dataset_netcdf_success(self):
+    def test_read_dataset__netcdf_success(self):
         # GIVEN
         ds = xr.Dataset({"pouet": self.pr_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
@@ -117,7 +117,7 @@ class Test_ReadDataset:
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
-    def test_read_dataset_multi_netcdf_success(self):
+    def test_read_dataset__multi_netcdf_success(self):
         # GIVEN
         ds = xr.Dataset({"pouet": self.pr_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
@@ -128,7 +128,7 @@ class Test_ReadDataset:
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
         xr.testing.assert_equal(ds_res.patapouet, ds.pouet)
 
-    def test_read_dataset_zarr_store_success(self):
+    def test_read_dataset__zarr_store_success(self):
         # GIVEN
         ds = xr.Dataset({"pouet": self.pr_da})
         ds.to_zarr(self.OUTPUT_ZARR_STORE)
@@ -137,7 +137,7 @@ class Test_ReadDataset:
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
-    def test_read_dataset_not_implemented_error(self):
+    def test_read_dataset__not_implemented_error(self):
         # THEN
         with pytest.raises(NotImplementedError):
             # WHEN
