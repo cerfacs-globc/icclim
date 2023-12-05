@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 MINIMAL_REQUIREMENTS = [
     "numpy>=1.16",
     "xarray>=2022.6",
-    "xclim>=0.43, <0.44",
+    "xclim>=0.43",
     "cf_xarray>=0.7.4",
     "cftime>=1.4.1",
     "dask[array]",
@@ -31,7 +31,7 @@ setup(
     include_package_data=True,
     url="https://github.com/cerfacs-globc/icclim",
     install_requires=MINIMAL_REQUIREMENTS,
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     classifiers=[
         "Programming Language :: Python",
         "Development Status :: 4 - Beta",
@@ -39,7 +39,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: French",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering :: Atmospheric Science",
     ],
 )
