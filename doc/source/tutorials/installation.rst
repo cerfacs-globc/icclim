@@ -9,7 +9,7 @@ The dependencies to run icclim are listed under our
 
 Installation (Linux, OS X)
 --------------------------
-.. note:: Make sure you have **Python 3.8+**.
+.. note:: Make sure you have **Python 3.9+**.
 
 To install from pip
 ~~~~~~~~~~~~~~~~~~~

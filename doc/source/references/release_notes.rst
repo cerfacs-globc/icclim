@@ -1,6 +1,12 @@
 Release history
 ===============
 
+6.5.0
+-----
+
+* [maint] Upgrade minimal python version to 3.9
+* [fix] Avoid resampling SPI* indices.
+
 6.4.0
 -----
 
