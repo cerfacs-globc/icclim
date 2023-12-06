@@ -412,10 +412,12 @@ def fraction_of_total(
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
     if threshold.threshold_min_value is not None:
+        min_val = threshold.threshold_min_value
+        min_val = convert_units_to(min_val, study, context="hydro")
         total = (
-            study.where(threshold.operator(study, threshold.threshold_min_value.m))
-            .resample(time=resample_freq.pandas_freq)
-            .sum(dim="time")
+            study.where(threshold.operator(study, min_val))
+            # study.where(threshold.operator(study, threshold.threshold_min_value.m))
+            .resample(time=resample_freq.pandas_freq).sum(dim="time")
         )
     else:
         total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")
