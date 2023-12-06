@@ -508,16 +508,21 @@ class Test_Integration:
         np.testing.assert_array_almost_equal(res.PRCPTOT.isel(time=0), 42)
 
     def test_index_r75ptot(self):
-        pr = stub_pr(value=2.32e-05)  # about 2 mm/day
+        # 2.32e-06 is about 0.2 mm/day
+        # they will be ignore in computation because < 1 mm/day
+        pr = stub_pr(value=2e-06)
         pr.attrs["units"] = "kg m-2 s-1"
-        pr[:10] = 2e-03
+        pr[:10] = 2e-04  # 10 days of ~20 mm/day
+        pr[10:110] = 2e-05  # 100 days of ~2 mm/day
         res = icclim.r75ptot(
             in_files=pr,
             out_file=self.OUTPUT_FILE,
             slice_mode="year",
+            save_thresholds=True,
         ).load()
-        # 100% of precip are due to the precip above the 75th percentile
-        assert res.R75pTOT.isel(time=0) == 100
+        # 75th per is 2e-05
+        # 50% of precip are due to the precip above the 75th percentile
+        np.testing.assert_array_almost_equal(res.R75pTOT.isel(time=0), 50)
 
     def test_index_csu(self):
         tas = stub_tas(tas_value=26 + K2C)
