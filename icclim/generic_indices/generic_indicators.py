@@ -390,7 +390,8 @@ def excess(
     res = (
         (excesses).clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     )
-    return to_agg_units(res, study, "delta_prod")
+    res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
+    return to_agg_units(res, study, "integral")
 
 
 def deficit(
@@ -401,7 +402,8 @@ def deficit(
     study, threshold = get_single_var(climate_vars)
     deficit = threshold.compute(study, override_op=lambda da, th: th - da)
     res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
-    return to_agg_units(res, study, "delta_prod")
+    res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
+    return to_agg_units(res, study, "integral")
 
 
 def fraction_of_total(
