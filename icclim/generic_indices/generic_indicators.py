@@ -417,8 +417,7 @@ def fraction_of_total(
         total = (
             study.where(threshold.operator(study, min_val))
             # study.where(threshold.operator(study, threshold.threshold_min_value.m))
-            .resample(time=resample_freq.pandas_freq)
-            .sum(dim="time")
+            .resample(time=resample_freq.pandas_freq).sum(dim="time")
         )
     else:
         total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")

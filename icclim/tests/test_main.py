@@ -508,7 +508,7 @@ class Test_Integration:
         np.testing.assert_array_almost_equal(res.PRCPTOT.isel(time=0), 42)
 
     def test_index_r75ptot(self):
-        pr = stub_pr(value=2.32e-05) # about 2 mm/day
+        pr = stub_pr(value=2.32e-05)  # about 2 mm/day
         pr.attrs["units"] = "kg m-2 s-1"
         pr[:10] = 2e-03
         res = icclim.r75ptot(
