@@ -4,7 +4,7 @@ Release history
 6.5.0 (unreleased)
 ------------------
 
-* [maint] Adapt generic indicators "excess" and "deficit" to xclim 0.47.
+* [maint] Adapt generic indicators "excess" and "deficit" to xclim 0.45.
 * [maint] Upgrade minimal python version to 3.9
 * [fix] Avoid resampling SPI* indices.
 

@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 MINIMAL_REQUIREMENTS = [
     "numpy>=1.16",
     "xarray>=2022.6",
-    "xclim>=0.47",
+    "xclim>=0.45, <=0.47",
     "cf_xarray>=0.7.4",
     "cftime>=1.4.1",
     "dask[array]",

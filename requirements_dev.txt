@@ -25,5 +25,5 @@ sphinx_copybutton
 sphinx_lfs_content
 twine
 xarray>=2022.6
-xclim>=0.47
+xclim>=0.45
 zarr
