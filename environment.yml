@@ -6,7 +6,7 @@ channels:
 dependencies:
 # Core dependencies
  - python>=3.9
- - xclim==0.43
+ - xclim==0.47
  - numpy
  - xarray>=2022.6
  - cf_xarray>=0.7.4
