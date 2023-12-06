@@ -1,8 +1,8 @@
 Release history
 ===============
 
-6.5.0 (unreleased)
-------------------
+6.5.0
+-----
 
 * [maint] Adapt generic indicators "excess" and "deficit" to xclim 0.45.
 * [maint] Upgrade minimal python version to 3.9
