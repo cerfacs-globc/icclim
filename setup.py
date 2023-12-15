@@ -10,13 +10,14 @@ MINIMAL_REQUIREMENTS = [
     "cftime>=1.4.1",
     "dask[array]",
     "netCDF4>=1.5.7",
-    "pyyaml",
     "psutil",
     "zarr",
     "rechunker>=0.3, !=0.4",
     "fsspec",
     "pandas>=1.3",
     "dateparser",
+    "pint",
+    "jinja",
 ]
 
 setup(

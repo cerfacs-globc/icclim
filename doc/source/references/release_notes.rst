@@ -259,7 +259,7 @@ Release candidates for 5.0 change logs
 * [maint] Refactored ecad_functions (removed duplicated code, simplified function signatures...)
 * [maint] Refactored IndexConfig to hide some technical knowledge which was leaked to other modules.
 * [enh] Made a basic integration of clix-meta yaml to populate the generated docstring for c3s.
-* [maint] This makes pyyaml an required dependency of icclim.
+* [maint] This makes pyyaml a required dependency of icclim.
 * [fix] Fixed an issue with aliasing of "icclim" module and "icclim" package
 * [maint] Added some metadata to qualify the ecad_indices and recognize the arguments necessary to compute them.
 * [maint] Added readthedocs CI configuration. This is necessary to use python 3.8.
