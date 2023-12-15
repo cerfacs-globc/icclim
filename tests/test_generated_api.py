@@ -17,8 +17,8 @@ from icclim.models.frequency import FrequencyRegistry
 from icclim.models.netcdf_version import NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.models.standard_index import StandardIndex
-from icclim.tests.testing_utils import stub_tas
 from icclim.user_indices.calc_operation import CalcOperation, CalcOperationRegistry
+from tests.testing_utils import stub_tas
 
 DEFAULT_ARGS = dict(
     in_files="pouet.nc",

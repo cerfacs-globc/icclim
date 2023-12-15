@@ -20,11 +20,16 @@ repos:
     -   id: end-of-file-fixer
         language_version: python3
     -   id: check-yaml
+    -   id: check-toml
         language_version: python3
     -   id: debug-statements
         language_version: python3
     -   id: requirements-txt-fixer
         language_version: python3
+-   repo: https://github.com/pappasam/toml-sort
+    rev: v0.23.1
+    hooks:
+     - id: toml-sort-fix
 -   repo: https://github.com/psf/black
     rev: 23.11.0
     hooks:

@@ -1,23 +1,18 @@
 Release process
 ===============
 
+
 #. Make sure all tests pass.
 #. Create and checkout a release branch.
 #. Update version number of ICCLIM_VERSION in ``icclim/models/constants.py`` and in ``setup.py``.
 #. Update release notes in ``doc/source/references/release_notes.rst``.
 #. Merge release branch to master with a PR.
 #. Clean dist directory content.
-#. Create wheel file on master.
+#. Create wheel file on master and source archive.
 
     .. code-block:: sh
 
-        python3 -m setup bdist_wheel
-
-#. Create source archive.
-
-    .. code-block:: sh
-
-        python3 -m setup sdist
+        python3 -m build
 
 #. Try to upload on testpypi first. ``twine`` must be installed in your env beforehand.
 

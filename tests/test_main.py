@@ -23,7 +23,7 @@ from icclim.models.constants import (
 )
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_group import IndexGroupRegistry
-from icclim.tests.testing_utils import K2C, stub_pr, stub_tas
+from tests.testing_utils import K2C, stub_pr, stub_tas
 
 
 @patch("icclim.main.index")

@@ -33,6 +33,8 @@ dependencies:
  - setuptools
  - twine
  - flake8-rst-docstrings
+ - build
+ - flit
  # Extra dependencies
  - matplotlib
  - cartopy

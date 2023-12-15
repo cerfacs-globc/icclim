@@ -9,7 +9,7 @@ from icclim.models.constants import (
     USER_INDEX_TEMPERATURE_STAMP,
 )
 from icclim.models.operator import OperatorRegistry
-from icclim.tests.testing_utils import stub_tas
+from tests.testing_utils import stub_tas
 
 
 class Test_max:
