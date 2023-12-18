@@ -12,15 +12,11 @@ import pytest
 import xarray as xr
 
 import icclim
+from icclim import __version__ as ICCLIM_VERSION
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.generic_indices.threshold import build_threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import (
-    ICCLIM_VERSION,
-    PART_OF_A_WHOLE_UNIT,
-    REFERENCE_PERIOD_ID,
-    UNITS_KEY,
-)
+from icclim.models.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_group import IndexGroupRegistry
 from tests.testing_utils import K2C, stub_pr, stub_tas

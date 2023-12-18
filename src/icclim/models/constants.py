@@ -3,8 +3,6 @@ from __future__ import annotations
 # fmt: off
 # flake8: noqa
 
-ICCLIM_VERSION = "6.5.0"
-
 # placeholders for user_index
 PERCENTILE_THRESHOLD_STAMP = "p"
 WET_DAY_THRESHOLD = 1  # 1mm

@@ -37,7 +37,6 @@ from icclim.models.climate_variable import (
     read_in_files,
 )
 from icclim.models.constants import (
-    ICCLIM_VERSION,
     PERCENTILE_THRESHOLD_STAMP,
     RESAMPLE_METHOD,
     UNITS_KEY,
@@ -634,6 +633,8 @@ def _build_history(
     initial_history: str | None,
     indice_computed: Indicator,
 ) -> str:
+    from icclim import __version__ as ICCLIM_VERSION
+
     if initial_history is None:
         # get xclim history
         initial_history = result_da.attrs[HISTORY_CF_KEY]

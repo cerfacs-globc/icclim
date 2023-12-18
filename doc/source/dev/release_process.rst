@@ -4,7 +4,7 @@ Release process
 
 #. Make sure all tests pass.
 #. Create and checkout a release branch.
-#. Update version number of ICCLIM_VERSION in ``icclim/models/constants.py`` and in ``setup.py``.
+#. Update version number of icclim in ``src/icclim/__init__.py``.
 #. Update release notes in ``doc/source/references/release_notes.rst``.
 #. Merge release branch to master with a PR.
 #. Clean dist directory content.
