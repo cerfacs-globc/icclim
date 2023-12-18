@@ -41,42 +41,32 @@ dependencies = [
   "pandas>=1.3",
   "dateparser",
   "pint",
-  "jinja2"
+  "jinja2",
+  "psutil"
 ]
 
 [project.optional-dependencies]
+test = [
+  "pytest",
+  "pytest-cov"
+]
 dev = [
   "black",
-  "build",
-  "cf_xarray>=0.7.4",
-  "cftime~=1.5.0",
-  "dask",
-  "dateparser",
   "flake8",
   "flake8-rst-docstrings",
   "flit",
   "isort",
-  "netCDF4~=1.5.7",
-  "numpy~=1.22",
-  "pandas>=1.3",
-  "pint<0.20",
   "pip",
   "pre-commit>=2.9",
-  "psutil",
   "pydata-sphinx-theme",
   "pylint",
-  "pytest",
-  "pytest-cov",
-  "rechunker>=0.3.3",
-  "setuptools>=49.6.0",
+  "twine"
+]
+doc = [
   "sphinx",
   "sphinx_codeautolink",
   "sphinx_copybutton",
-  "sphinx_lfs_content",
-  "twine",
-  "xarray>=2022.6",
-  "xclim>=0.45",
-  "zarr"
+  "sphinx_lfs_content"
 ]
 
 [project.urls]
