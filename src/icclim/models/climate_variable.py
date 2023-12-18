@@ -123,7 +123,8 @@ def build_climate_vars(
             ),
         )
     if _standard_index_needs_ref(
-        standard_index, is_compared_to_reference,
+        standard_index,
+        is_compared_to_reference,
     ) or _generic_index_needs_ref(standard_index, is_compared_to_reference):
         standard_var = (
             standard_index.input_variables[0] if standard_index is not None else None
@@ -172,7 +173,9 @@ def _build_reference_variable(
         )
     else:
         study_ds = read_dataset(
-            list(in_files.values())[0], standard_var=standard_var, var_name=var_name,
+            list(in_files.values())[0],
+            standard_var=standard_var,
+            var_name=var_name,
         )
     studied_data = build_reference_da(
         study_ds[var_name],
@@ -235,10 +238,14 @@ def _build_in_file_dict(
         standard_index.input_variables[0] if standard_index is not None else None
     )
     input_dataset = read_dataset(
-        in_files=in_files, standard_var=standard_var, var_name=var_names,
+        in_files=in_files,
+        standard_var=standard_var,
+        var_name=var_names,
     )
     var_names = guess_var_names(
-        ds=input_dataset, standard_index=standard_index, var_names=var_names,
+        ds=input_dataset,
+        standard_index=standard_index,
+        var_names=var_names,
     )
     if threshold is not None:
         if len(var_names) == 1:
@@ -274,7 +281,9 @@ def _build_climate_var(
 ) -> ClimateVariable:
     if isinstance(climate_var_data, dict):
         study_ds = read_dataset(
-            climate_var_data["study"], standard_var, climate_var_name,
+            climate_var_data["study"],
+            standard_var,
+            climate_var_name,
         )
         # TODO: deprecate climate_var_data.get("per_var_name", None)
         #       for threshold_var_name

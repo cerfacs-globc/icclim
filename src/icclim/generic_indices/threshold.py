@@ -50,7 +50,13 @@ from icclim.pre_processing.input_parsing import (
 from icclim.utils import is_number_sequence
 
 ThresholdValueType = Union[
-    str, float, int, Dataset, DataArray, Sequence[Union[float, int, str]], None,
+    str,
+    float,
+    int,
+    Dataset,
+    DataArray,
+    Sequence[Union[float, int, str]],
+    None,
 ]
 
 
@@ -72,7 +78,8 @@ class ThresholdBuilderInput(TypedDict, total=False):
     reference_period: Sequence[datetime | str] | None
     # bounded conf:
     thresholds: tuple[
-        ThresholdBuilderInput | Threshold, ThresholdBuilderInput | Threshold,
+        ThresholdBuilderInput | Threshold,
+        ThresholdBuilderInput | Threshold,
     ] | None
     logical_link: LogicalLink
 
@@ -213,7 +220,11 @@ class Threshold(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def format_metadata(
-        self, *, jinja_scope: dict[str, Any], jinja_env: jinja2.Environment, **kwargs,
+        self,
+        *,
+        jinja_scope: dict[str, Any],
+        jinja_env: jinja2.Environment,
+        **kwargs,
     ) -> ThresholdMetadata:
         """Get a dictionary of standardized threshold metadata."""
         ...
@@ -323,24 +334,36 @@ class BoundedThreshold(Threshold):
         **kwargs,
     ) -> DataArray:
         left_res = self.left_threshold.compute(
-            comparison_data, override_op=override_op, **kwargs,
+            comparison_data,
+            override_op=override_op,
+            **kwargs,
         )
         right_res = self.right_threshold.compute(
-            comparison_data, override_op=override_op, **kwargs,
+            comparison_data,
+            override_op=override_op,
+            **kwargs,
         )
         return self.logical_link.compute([left_res, right_res])
 
     def format_metadata(
-        self, *, jinja_scope: dict[str, Any], jinja_env: jinja2.Environment, **kwargs,
+        self,
+        *,
+        jinja_scope: dict[str, Any],
+        jinja_env: jinja2.Environment,
+        **kwargs,
     ) -> ThresholdMetadata:
         templates = self._get_metadata_templates()
         conf = {
             "left_threshold": self.left_threshold.format_metadata(
-                jinja_scope=jinja_scope, jinja_env=jinja_env, **kwargs,
+                jinja_scope=jinja_scope,
+                jinja_env=jinja_env,
+                **kwargs,
             ),
             "logical_link": self.logical_link,
             "right_threshold": self.right_threshold.format_metadata(
-                jinja_scope=jinja_scope, jinja_env=jinja_env, **kwargs,
+                jinja_scope=jinja_scope,
+                jinja_env=jinja_env,
+                **kwargs,
             ),
         }
         conf.update(jinja_scope)
@@ -380,7 +403,8 @@ class BoundedThreshold(Threshold):
         )
 
     def _build_thresh(
-        self, thresh_input: Threshold | str | ThresholdBuilderInput,
+        self,
+        thresh_input: Threshold | str | ThresholdBuilderInput,
     ) -> Threshold:
         if isinstance(thresh_input, Threshold):
             return thresh_input
@@ -441,7 +465,9 @@ class PercentileThreshold(Threshold):
         if self.is_ready:
             if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
                 self._prepared_value = convert_units_to(
-                    self._prepared_value, unit, context="hydro",
+                    self._prepared_value,
+                    unit,
+                    context="hydro",
                 )
             self.value.attrs[UNITS_KEY] = unit
 
@@ -693,7 +719,9 @@ class BasicThreshold(Threshold):
         elif isinstance(value, (float, int)):
             # e.g. build_threshold(">", [2,3,4], "degC")
             built_value = DataArray(
-                name="threshold", data=value, attrs={UNITS_KEY: unit},
+                name="threshold",
+                data=value,
+                attrs={UNITS_KEY: unit},
             )
         else:
             raise NotImplementedError(f"Cannot build threshold from a {type(value)}.")
@@ -745,10 +773,12 @@ class BasicThreshold(Threshold):
         }
         if self.value.size > 1:
             conf["min_value"] = np.format_float_positional(
-                self.value.min().values[()], 3,
+                self.value.min().values[()],
+                3,
             )
             conf["max_value"] = np.format_float_positional(
-                self.value.max().values[()], 3,
+                self.value.max().values[()],
+                3,
             )
         conf.update(jinja_scope)
         return {
@@ -912,7 +942,8 @@ def _read_input(
 
 
 def _read_bounded_threshold(
-    thresholds: tuple[Threshold, Threshold], logical_link: LogicalLink | str,
+    thresholds: tuple[Threshold, Threshold],
+    logical_link: LogicalLink | str,
 ) -> ThresholdBuilderInput:
     acc = []
     for t in thresholds:
@@ -1042,9 +1073,7 @@ def _must_build_basic_threshold(input: ThresholdBuilderInput) -> bool:
     if is_dataset_path(value) or isinstance(value, Dataset):
         thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
         return not PercentileDataArray.is_compatible(thresh_da)
-    return (
-        isinstance(value, (DataArray, float, int))
-    )
+    return isinstance(value, (DataArray, float, int))
 
 
 def _must_build_bounded_threshold(input: ThresholdBuilderInput) -> bool:
@@ -1066,7 +1095,8 @@ def _apply_min_value(thresh_da: DataArray, min_value: pint.Quantity | None):
 
 
 def _get_dataarray_from_dataset(
-    threshold_var_name: str | None, value: Dataset | str,
+    threshold_var_name: str | None,
+    value: Dataset | str,
 ) -> DataArray:
     if isinstance(value, Dataset):
         ds = value

@@ -14,7 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath("../.."))
-import icclim
+import icclim  # noqa E402 (import need to be after path update)
 
 # -- Project information -----------------------------------------------------
 project = "icclim"

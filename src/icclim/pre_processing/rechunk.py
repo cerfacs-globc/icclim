@@ -129,7 +129,10 @@ def create_optimized_zarr_store(
         if isinstance(filesystem, str):
             filesystem = fsspec.filesystem("file")
         _remove_stores(
-            TMP_STORE_1, TMP_STORE_2, target_zarr_store_name, filesystem=filesystem,
+            TMP_STORE_1,
+            TMP_STORE_2,
+            target_zarr_store_name,
+            filesystem=filesystem,
         )
         yield _unsafe_create_optimized_zarr_store(
             in_files,

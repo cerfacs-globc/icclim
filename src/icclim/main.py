@@ -3,6 +3,7 @@
 #  Apache License, Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
 """
 Main entry point of icclim.
+
 This module expose icclim principal function, notably `index` which is use by the
 generated API.
 A convenience function `indices` is also exposed to compute multiple indices at once.
@@ -13,13 +14,11 @@ import time
 from collections.abc import Sequence
 from datetime import datetime
 from functools import partial, reduce
-from typing import Callable, Literal
+from typing import TYPE_CHECKING, Callable, Literal
 from warnings import warn
 
 import xarray as xr
 import xclim
-from xarray.core.dataarray import DataArray
-from xarray.core.dataset import Dataset
 
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.ecad.xclim_binding import XCLIM_BINDING
@@ -31,7 +30,6 @@ from icclim.generic_indices.generic_indicators import (
 from icclim.generic_indices.threshold import Threshold, build_threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger, Verbosity, VerbosityRegistry
-from icclim.icclim_types import InFileLike, SamplingMethodLike
 from icclim.models.climate_variable import (
     ClimateVariable,
     build_climate_vars,
@@ -54,11 +52,17 @@ from icclim.models.quantile_interpolation import (
     QuantileInterpolation,
     QuantileInterpolationRegistry,
 )
-from icclim.models.standard_index import StandardIndex
-from icclim.models.user_index_dict import UserIndexDict
-from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.user_indices.calc_operation import CalcOperationRegistry
 from icclim.utils import read_date
+
+if TYPE_CHECKING:
+    from xarray.core.dataarray import DataArray
+    from xarray.core.dataset import Dataset
+
+    from icclim.icclim_types import InFileLike, SamplingMethodLike
+    from icclim.models.standard_index import StandardIndex
+    from icclim.models.user_index_dict import UserIndexDict
+    from icclim.pre_processing.in_file_dictionary import InFileDictionary
 
 log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 
@@ -68,14 +72,15 @@ ICCLIM_REFERENCE = "icclim"
 
 
 def indices(
-    index_group: Literal["all"] | str | IndexGroup | Sequence[str],
+    index_group: str | IndexGroup | Sequence[str],
+    *,
     ignore_error: bool = False,
     **kwargs,
 ) -> Dataset:
     """
     Compute multiple indices at the same time.
     The input dataset(s) must include all the necessary variables.
-    It can only be used with keyword arguments (kwargs)
+    It can only be used with keyword arguments (kwargs).
 
     .. notes
         If ``output_file`` is part of kwargs, the result is written in a single netCDF
@@ -104,7 +109,7 @@ def indices(
     """
     indices = _get_indices_of_group(index_group)
     out = None
-    if "out_file" in kwargs.keys():
+    if "out_file" in kwargs:
         out = kwargs["out_file"]
         del kwargs["out_file"]
     acc = []
@@ -119,7 +124,7 @@ def indices(
                 if "thresholds" in res.coords:
                     res = res.rename({"thresholds": i.short_name + "_thresholds"})
                 acc.append(res)
-            except Exception:
+            except Exception:  # noqa BLE001 (catch everything)
                 warn(f"Could not compute {i.short_name}.")
         else:
             res = index(**kwargs)
@@ -160,8 +165,8 @@ def _get_indices_of_group(
     for ecad_index in EcadIndexRegistry.values():
         has_var = True
         for var in ecad_index.input_variables:
-            is_query_in_aliases = map(
-                lambda standard_var: standard_var in var.aliases, query,
+            is_query_in_aliases = (
+                standard_var in var.aliases for standard_var in query
             )
             has_var &= any(is_query_in_aliases)
         if has_var:
@@ -171,11 +176,12 @@ def _get_indices_of_group(
     # -- Look for index group (e.g. index_group='HEAT')
     groups = [IndexGroupRegistry.lookup(i, no_error=True) for i in query]
     groups = list(filter(lambda x: x is not None, groups))
-    indices = map(lambda x: x.get_indices(), groups)
+    indices = (x.get_indices() for x in groups)
     indices = reduce(lambda x, y: x + y, indices, [])  # flatten list[list]
     if len(indices) >= len(query):
         return indices
-    raise InvalidIcclimArgumentError(f"The index group {query} was not recognized.")
+    msg = f"The index group {query} was not recognized."
+    raise InvalidIcclimArgumentError(msg)
 
 
 def indice(*args, **kwargs) -> Dataset:
@@ -201,7 +207,7 @@ def index(
     base_period_time_range: Sequence[datetime] | Sequence[str] | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
-    ignore_Feb29th: bool = False,
+    ignore_Feb29th: bool = False,  # noqa
     interpolation: str | QuantileInterpolation = "median_unbiased",
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -216,9 +222,9 @@ def index(
     # deprecated params are kwargs only
     window_width: int | None = None,
     save_percentile: bool | None = None,
-    indice_name: str = None,
+    indice_name: str | None = None,
     user_indice: UserIndexDict = None,
-    transfer_limit_Mbytes: float = None,
+    transfer_limit_Mbytes: float | None = None,
 ) -> Dataset:
     """
     Main entry point for icclim to compute climate indices.
@@ -234,14 +240,15 @@ def index(
         For user index, it's the name of the output variable.
     var_name: str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
-        If None (default) on ECA&D index, the variable is guessed based on the climate
-        index wanted.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
         Mandatory for a user index.
     slice_mode: SliceMode
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-        (where season and month lists can be customized) or any valid pandas frequency.
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
@@ -291,11 +298,12 @@ def index(
         day of year percentiles (doy_per)
         Default: 5 (5 days).
     min_spell_length: int
-        ``optional`` Minimum spell duration to be taken into account when computing the
-        sum_of_spell_lengths.
+        ``optional`` Minimum spell duration to be taken into account when computing
+        the sum_of_spell_lengths.
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
-        `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`  # noqa
+        `{max_of_rolling_sum, max_of_rolling_average,
+          min_of_rolling_sum, min_of_rolling_average}`
     only_leap_years: bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th: bool
@@ -306,7 +314,8 @@ def index(
         Default is "median_unbiased", a.k.a type 8 or method 8.
         Ignored for non percentile based indices.
     out_unit: str | None
-        ``optional`` Output unit for certain indices: "days" or "%" (default: "days").
+        ``optional`` Output unit for certain indices: "days" or "%"
+        (default: "days").
     netcdf_version: str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     user_index: UserIndexDict
@@ -314,8 +323,8 @@ def index(
         See :ref:`Custom indices`.
         Ignored for ECA&D indices.
     save_thresholds: bool
-        ``optional`` True if the thresholds should be saved within the resulting netcdf
-         file (default: False).
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
     date_event: bool
         When True the date of the event (such as when a maximum is reached) will be
         stored in coordinates variables.
@@ -326,7 +335,8 @@ def index(
     sampling_method: str
         Choose whether the output sampling configured in `slice_mode` is a
         `groupby` operation or a `resample` operation (as per xarray definitions).
-        Possible values: ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
+        Possible values:
+        ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
         (default: "resample")
         `groupby_ref_and_resample_study` may only be used when computing the
         `difference_of_means` (a.k.a the anomaly).
@@ -384,7 +394,8 @@ def index(
         output_unit = out_unit
         rolling_window_width = user_index.get("window_width", rolling_window_width)
         base_period_time_range = user_index.get(
-            "ref_time_range", base_period_time_range,
+            "ref_time_range",
+            base_period_time_range,
         )
     elif index_name is not None:
         # TODO: [BoundedThreshold] read logical_link from threshold instead
@@ -401,9 +412,12 @@ def index(
             rename = standard_index.short_name
             output_unit = out_unit or standard_index.output_unit
     else:
-        raise InvalidIcclimArgumentError(
+        msg = (
             "You must fill either index_name or user_index"
-            "to compute a climate index.",
+            "to compute a climate index."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     if isinstance(threshold, str):
@@ -419,7 +433,8 @@ def index(
     # We use groupby instead of resample when there is a single variable that must be
     # compared to its reference period values.
     is_compared_to_reference = _must_add_reference_var(
-        climate_vars_dict, base_period_time_range,
+        climate_vars_dict,
+        base_period_time_range,
     )
     indicator_name = (
         standard_index.short_name if standard_index is not None else indicator.name
@@ -434,7 +449,7 @@ def index(
     )
     if base_period_time_range is not None:
         reference_period = tuple(
-            map(lambda t: read_date(t).strftime("%m-%d-%Y"), base_period_time_range),
+            (read_date(t).strftime("%m-%d-%Y") for t in base_period_time_range),
         )
     else:
         reference_period = None
@@ -528,7 +543,7 @@ def _handle_deprecated_params(
     return index_name, user_index, save_thresholds, doy_window_width
 
 
-def _setup(callback, callback_start_value, logs_verbosity):
+def _setup(callback, callback_start_value, logs_verbosity) -> None:
     # make xclim input daily check a warning instead of an error
     # TODO: it might be safer to feed a context manager which will setup
     #       and teardown these confs
@@ -592,10 +607,13 @@ def _compute_climate_index(
             [result_ds, _format_thresholds_for_export(config.climate_variables)],
         )
     history = _build_history(result_da, config, initial_history, climate_index)
-    result_ds = _add_ecad_index_metadata(
-        result_ds, climate_index, history, initial_source, reference,
+    return _add_ecad_index_metadata(
+        result_ds,
+        climate_index,
+        history,
+        initial_source,
+        reference,
     )
-    return result_ds
 
 
 def _add_ecad_index_metadata(
@@ -606,14 +624,14 @@ def _add_ecad_index_metadata(
     reference: str,
 ) -> Dataset:
     result_ds.attrs.update(
-        dict(
-            title=computed_index.standard_name,
-            references=reference,
-            institution="Climate impact portal (https://climate4impact.eu)",
-            history=history,
-            source=initial_source if initial_source is not None else "",
-            Conventions="CF-1.6",
-        ),
+        {
+            "title": computed_index.standard_name,
+            "references": reference,
+            "institution": "Climate impact portal (https://climate4impact.eu)",
+            "history": history,
+            "source": initial_source if initial_source is not None else "",
+            "Conventions": "CF-1.6",
+        },
     )
     try:
         result_ds.lat.encoding["_FillValue"] = None
@@ -717,14 +735,16 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
     else:
         indicator = user_index_map.get(calc_op)
     if indicator is None:
+        msg = f"Unknown user_index calc_operation: '{user_index['calc_operation']}'"
         raise InvalidIcclimArgumentError(
-            f"Unknown user_index calc_operation: '{user_index['calc_operation']}'",
+            msg,
         )
     return indicator
 
 
 def read_thresholds(
-    user_index: UserIndexDict, _build_threshold: Callable[[str | Threshold], Threshold],
+    user_index: UserIndexDict,
+    _build_threshold: Callable[[str | Threshold], Threshold],
 ) -> Threshold | None | Sequence[Threshold]:
     thresh = user_index.get("thresh", None)
     if thresh is None or isinstance(thresh, Threshold):
@@ -793,5 +813,5 @@ def _must_add_reference_var(
     is a reference period.
     Example case: the anomaly of tx(1960-2100) by tx(1960-1990).
     """
-    t = list(climate_vars_dict.values())[0].get("thresholds", None)
+    t = next(iter(climate_vars_dict.values())).get("thresholds", None)
     return t is None and len(climate_vars_dict) == 1 and reference_period is not None

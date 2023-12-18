@@ -19,5 +19,11 @@ Indexer = Union[MonthsIndexer, DatesIndexer]
 SamplingMethodLike = Literal["groupby", "resample", "groupby_ref_and_resample_study"]
 
 ThresholdValueType = Union[
-    str, float, int, Dataset, DataArray, Sequence[Union[float, int, str]], None,
+    str,
+    float,
+    int,
+    Dataset,
+    DataArray,
+    Sequence[Union[float, int, str]],
+    None,
 ]

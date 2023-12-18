@@ -24,7 +24,7 @@ jobs:
       - name: Install icclim and dev requirements (dev, test and doc)
         run: flit install --deps develop
       - name: call fun extractor
-        run: python ./tools/extract-icclim-funs.py src/icclim/_generated_api.py
+        run: python ./tools/extract_icclim_funs.py src/icclim/_generated_api.py
       - name: run black on generated module
         run: black src/icclim/_generated_api.py
       - name: create local ref

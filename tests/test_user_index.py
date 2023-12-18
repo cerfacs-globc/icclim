@@ -20,7 +20,10 @@ class Test_max:
         result = icclim.index(
             in_files=da,
             user_index=dict(
-                index_name="data", calc_operation="max", coef=1, logical_operation=None,
+                index_name="data",
+                calc_operation="max",
+                coef=1,
+                logical_operation=None,
             ),
         )
         # THEN

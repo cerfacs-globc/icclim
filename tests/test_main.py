@@ -28,7 +28,8 @@ def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock):
     icclim.main.log = log_mock
     icclim.indice()
     log_mock.deprecation_warning.assert_called_once_with(
-        old="icclim.indice", new="icclim.index",
+        old="icclim.indice",
+        new="icclim.index",
     )
     index_mock.assert_called_once()
 
@@ -109,7 +110,10 @@ class Test_Integration:
         tas = stub_tas(tas_value=26 + K2C)
         tas[:5] = 0
         res = icclim.index(
-            index_name="SU", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms",
+            index_name="SU",
+            in_files=tas,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
         )
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         assert res.SU.isel(time=0) == 26  # January
@@ -188,7 +192,8 @@ class Test_Integration:
         )
         np.testing.assert_array_equal(res_string_dates.SU, res_datetime_dates.SU)
         np.testing.assert_array_equal(
-            res_string_dates.time_bounds, res_datetime_dates.time_bounds,
+            res_string_dates.time_bounds,
+            res_datetime_dates.time_bounds,
         )
 
     def test_index_SU__pandas_time_slice_mode(self):
@@ -221,7 +226,8 @@ class Test_Integration:
         )
         np.testing.assert_array_equal(0, res.SU)
         np.testing.assert_array_equal(
-            len(np.unique(self.TIME_RANGE.year)) * 12, len(res.time),
+            len(np.unique(self.TIME_RANGE.year)) * 12,
+            len(res.time),
         )
 
     def test_index_SU__monthy_sampled_cf_time(self):
@@ -233,13 +239,26 @@ class Test_Integration:
         )
         np.testing.assert_array_equal(0, res.SU)
         np.testing.assert_array_equal(
-            len(np.unique(self.TIME_RANGE.year)) * 12, len(res.time),
+            len(np.unique(self.TIME_RANGE.year)) * 12,
+            len(res.time),
         )
         assert res.time_bounds.sel(time=res.time[0])[0] == cftime.DatetimeGregorian(
-            2042, 1, 1, 0, 0, 0, 0,
+            2042,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0,
         )
         assert res.time_bounds.sel(time=res.time[0])[1] == cftime.DatetimeGregorian(
-            2042, 1, 31, 0, 0, 0, 0,
+            2042,
+            1,
+            31,
+            0,
+            0,
+            0,
+            0,
         )
 
     def test_index_SU__DJF_cf_time(self):
@@ -253,13 +272,26 @@ class Test_Integration:
         np.testing.assert_array_equal(res.SU.isel(time=1), 0)
         # "+ 1" because DJF sampling create a december month with nans before first year
         np.testing.assert_array_equal(
-            len(np.unique(self.TIME_RANGE.year)) + 1, len(res.time),
+            len(np.unique(self.TIME_RANGE.year)) + 1,
+            len(res.time),
         )
         assert res.time_bounds.sel(time=res.time[0])[0] == cftime.DatetimeGregorian(
-            2041, 12, 1, 0, 0, 0, 0,
+            2041,
+            12,
+            1,
+            0,
+            0,
+            0,
+            0,
         )
         assert res.time_bounds.sel(time=res.time[0])[1] == cftime.DatetimeGregorian(
-            2042, 2, 28, 0, 0, 0, 0,
+            2042,
+            2,
+            28,
+            0,
+            0,
+            0,
+            0,
         )
 
     def test_indices__from_DataArray(self):
@@ -369,10 +401,13 @@ class Test_Integration:
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
         res = icclim.indices(
-            index_group=IndexGroupRegistry.SNOW, in_files=ds, out_file=self.OUTPUT_FILE,
+            index_group=IndexGroupRegistry.SNOW,
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
         )
         for i in filter(
-            lambda i: i.group == IndexGroupRegistry.SNOW, EcadIndexRegistry.values(),
+            lambda i: i.group == IndexGroupRegistry.SNOW,
+            EcadIndexRegistry.values(),
         ):
             assert res[i.short_name] is not None
 
@@ -487,7 +522,10 @@ class Test_Integration:
         tas = stub_tas(tas_value=26 + K2C)
         tas[:5] = 0
         res = icclim.index(
-            index_name="TR", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms",
+            index_name="TR",
+            in_files=tas,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
         )
         assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
         assert res.TR.isel(time=0) == 26  # January
@@ -524,7 +562,10 @@ class Test_Integration:
         tas = stub_tas(tas_value=26 + K2C)
         tas[10:40] = 0
         res = icclim.index(
-            index_name="csu", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms",
+            index_name="csu",
+            in_files=tas,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
         ).load()
         # in January there are only 10 days above 25degC
         assert res.CSU.isel(time=0) == 10
@@ -537,7 +578,10 @@ class Test_Integration:
         tas = stub_tas(tas_value=26 + K2C)
         tas[5:15] = 0
         res = icclim.index(
-            index_name="gd4", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms",
+            index_name="gd4",
+            in_files=tas,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
         )
         expected = (26 - 4) * 21
         assert (
@@ -548,7 +592,9 @@ class Test_Integration:
         tas = stub_tas(tas_value=26 + K2C)
         tas[5:15] = 270  # ~ -3degC
         res = icclim.cfd(
-            in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms",
+            in_files=tas,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
         ).load()
         # 10 days in January that are below or equal to 0degC
         assert res.CFD.isel(time=0) == 10
@@ -558,7 +604,10 @@ class Test_Integration:
         tas[5:15] = 0
         tas[20:25] = 0
         res = icclim.index(
-            index_name="fd", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms",
+            index_name="fd",
+            in_files=tas,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
         )
         assert res.FD.isel(time=0) == 15
 
@@ -566,7 +615,10 @@ class Test_Integration:
         tas = stub_tas(tas_value=27 + K2C)
         tas[5:10] = 0
         res = icclim.index(
-            index_name="hd17", in_files=tas, out_file=self.OUTPUT_FILE, slice_mode="ms",
+            index_name="hd17",
+            in_files=tas,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
         )
         assert res.HD17.isel(time=0) == 5 * (17 + K2C)
 
@@ -728,7 +780,9 @@ class Test_Integration:
             var_name=["tmin"],
             index_name="count_occurrences",
             threshold=build_threshold(
-                value=[10, 99.95], operator=">=", unit="period_per",
+                value=[10, 99.95],
+                operator=">=",
+                unit="period_per",
             ),
             slice_mode="month",
             save_thresholds=True,
@@ -812,7 +866,8 @@ class Test_Integration:
 
     def test_slice_mode__between_date(self):
         time_range = xr.DataArray(
-            pd.date_range("2000", periods=365, freq="D"), dims=["time"],
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
         )
         precipitation = xr.DataArray(
             np.ones(365),
@@ -822,7 +877,8 @@ class Test_Integration:
         )
         precipitation[0:5] = [0.1, 0.1, 0.1, 2, 3]
         cdd = icclim.cdd(
-            in_files=precipitation, slice_mode=["season", ["01-02", "01-05"]],
+            in_files=precipitation,
+            slice_mode=["season", ["01-02", "01-05"]],
         ).CDD
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
@@ -830,7 +886,8 @@ class Test_Integration:
 
     def test_rr_with_slice_mode__week(self):
         time_range = xr.DataArray(
-            pd.date_range("2000", periods=365, freq="D"), dims=["time"],
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
         )
         precipitation = xr.DataArray(
             np.zeros(365),
@@ -847,7 +904,8 @@ class Test_Integration:
 
     def test_rr_with_slice_mode__4_weeks(self):
         time_range = xr.DataArray(
-            pd.date_range("2000", periods=365, freq="D"), dims=["time"],
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
         )
         precipitation = xr.DataArray(
             np.zeros(365),
@@ -865,7 +923,8 @@ class Test_Integration:
     def test_mm_to_mmday(self):
         # GIVEN
         time_range = xr.DataArray(
-            pd.date_range("2000", periods=365, freq="D"), dims=["time"],
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
         )
         precip = xr.DataArray(
             np.ones(365),
@@ -882,7 +941,8 @@ class Test_Integration:
     def test_mm_to_mmday__error_bas_standard_name(self):
         # GIVEN
         time_range = xr.DataArray(
-            pd.date_range("2000", periods=365, freq="D"), dims=["time"],
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
         )
         precip = xr.DataArray(
             np.ones(365),
@@ -899,7 +959,8 @@ class Test_Integration:
     def test_ddnorth(self):
         # GIVEN
         time_range = xr.DataArray(
-            pd.date_range("2000", periods=365, freq="D"), dims=["time"],
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
         )
         dd = xr.DataArray(
             np.full(365, 300),
@@ -918,7 +979,8 @@ class Test_Integration:
     def test_ddeast(self):
         # GIVEN
         time_range = xr.DataArray(
-            pd.date_range("2000", periods=365, freq="D"), dims=["time"],
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
         )
         dd = xr.DataArray(
             np.full(365, 300),

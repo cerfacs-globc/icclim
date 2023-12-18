@@ -160,7 +160,8 @@ class Test_ReadDataset:
         per.coords["percentiles"] = 42
         per = per.rename("tontontonthetatilotetatoux").expand_dims("percentiles")
         per = PercentileDataArray.from_da(
-            per, climatology_bounds=["1994-12-02", "1999-01-01"],
+            per,
+            climatology_bounds=["1994-12-02", "1999-01-01"],
         )
         ds["tontontonthetatilotetatoux"] = per
         # WHEN

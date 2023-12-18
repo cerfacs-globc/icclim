@@ -461,8 +461,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
-        definition="Days with RR > 75th percentile of daily amounts (moderate wet days)"
-        " (d)",
+        definition="Days with RR > 75th percentile of daily amounts"
+        "\n (moderate wet days) (d)",
         source=ECAD_ATBD,
         short_name="R75p",
         group=IndexGroupRegistry.RAIN,
@@ -487,8 +487,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=build_threshold("> 95 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
-        definition="Days with RR > 95th percentile of daily amounts (very wet days)"
-        " (days)",
+        definition="Days with RR > 95th percentile of daily amounts"
+        "(very wet days) (days)",
         source=ECAD_ATBD,
         short_name="R95p",
         group=IndexGroupRegistry.RAIN,
@@ -513,7 +513,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         threshold=build_threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
         definition="Days with RR > 99th percentile of daily amounts"
-        " (extremely wet days)",
+        "\n (extremely wet days)",
         source=ECAD_ATBD,
         short_name="R99p",
         group=IndexGroupRegistry.RAIN,
@@ -526,7 +526,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         threshold=build_threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
         definition="Precipitation fraction due to extremely wet days"
-        " (> 99th percentile)",
+        "\n (> 99th percentile)",
         source=ECAD_ATBD,
         short_name="R99pTOT",
         group=IndexGroupRegistry.RAIN,
@@ -587,7 +587,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         ],
         output_unit="day",
         definition="Days with TG < 25th percentile of daily mean temperature and"
-        " RR <25th percentile of daily precipitation sum (cold/dry days)",
+        "\n RR <25th percentile of daily precipitation sum (cold/dry days)",
         source=ECAD_ATBD,
         short_name="CD",
         group=IndexGroupRegistry.TEMPERATURE | IndexGroupRegistry.RAIN,
@@ -604,7 +604,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         ],
         output_unit="day",
         definition="Days with TG < 25th percentile of daily mean temperature and"
-        " RR >75th percentile of daily precipitation sum (cold/wet days)",
+        "\n RR >75th percentile of daily precipitation sum (cold/wet days)",
         source=ECAD_ATBD,
         short_name="CW",
         group=IndexGroupRegistry.TEMPERATURE | IndexGroupRegistry.RAIN,
@@ -621,7 +621,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         ],
         output_unit="day",
         definition="Days with TG > 75th percentile of daily mean temperature and"
-        " RR <25th percentile of daily precipitation sum (warm/dry days)",
+        "\n RR <25th percentile of daily precipitation sum (warm/dry days)",
         source=ECAD_ATBD,
         short_name="WD",
         group=IndexGroupRegistry.TEMPERATURE | IndexGroupRegistry.RAIN,
@@ -638,7 +638,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         ],
         output_unit="day",
         definition="Days with TG > 75th percentile of daily mean temperature and"
-        " RR >75th percentile of daily precipitation sum (warm/wet days)",
+        "\n RR >75th percentile of daily precipitation sum (warm/wet days)",
         source=ECAD_ATBD,
         short_name="WW",
         group=IndexGroupRegistry.TEMPERATURE | IndexGroupRegistry.RAIN,

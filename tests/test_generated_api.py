@@ -168,7 +168,9 @@ def test_txx__months_slice_mode():
     ],
 )
 def test_custom_index__season_slice_mode(
-    operator: CalcOperation, expectation_year_1, expectation_year_2,
+    operator: CalcOperation,
+    expectation_year_1,
+    expectation_year_2,
 ):
     tas = stub_tas(275.0)
     tas.loc[{"time": "2043-01-01"}] = 303.15
@@ -200,7 +202,9 @@ def test_custom_index__season_slice_mode(
     ],
 )
 def test_custom_index_run_algos__season_slice_mode(
-    operator, expectation_year_1, expectation_year_2,
+    operator,
+    expectation_year_1,
+    expectation_year_2,
 ):
     tas = stub_tas(275.0)
     tas.loc[{"time": "2043-12-01"}] = 282.0

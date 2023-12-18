@@ -60,7 +60,12 @@ class XCLIM_BINDING:
                 )
             study, ref = get_couple_of_var(config.climate_variables, "SPI")
             return xclim.atmos.standardized_precipitation_index(
-                pr=study, pr_cal=ref, freq="MS", window=3, dist="gamma", method="APP",
+                pr=study,
+                pr_cal=ref,
+                freq="MS",
+                window=3,
+                dist="gamma",
+                method="APP",
             )
 
         def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
@@ -89,7 +94,12 @@ class XCLIM_BINDING:
                 )
             study, ref = get_couple_of_var(config.climate_variables, "SPI")
             return xclim.atmos.standardized_precipitation_index(
-                pr=study, pr_cal=ref, freq="MS", window=6, dist="gamma", method="APP",
+                pr=study,
+                pr_cal=ref,
+                freq="MS",
+                window=6,
+                dist="gamma",
+                method="APP",
             )
 
         def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:

@@ -1,5 +1,6 @@
 """
 Icclim indices extractor.
+
 It creates a new python module which wraps each icclim index as a function.
 Each generated functions signature is consistent with icclim.index signature but, all
 the unused parameters are trimmed from the signature.
@@ -12,6 +13,7 @@ To install icclim from sources run:
     python -m setup install
 
 Then the script can be run with:
+
 .. code-block:: console
 
      python ./tools/extract-icclim-funs.py
@@ -21,10 +23,10 @@ from __future__ import annotations
 
 import copy
 import inspect
-import os
 import re
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
@@ -42,8 +44,11 @@ from icclim.models.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
 from icclim.models.frequency import Frequency
 from icclim.models.netcdf_version import NetcdfVersion
 from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.standard_index import StandardIndex
 from icclim.models.user_index_dict import UserIndexDict
+
+if TYPE_CHECKING:
+    from icclim.models.standard_index import StandardIndex
+
 
 QUANTILE_INDEX_FIELDS = [
     "base_period_time_range",
@@ -66,16 +71,12 @@ END_NOTE = """
     This function has been auto-generated.
 """
 
-DEFAULT_OUTPUT_PATH = Path(os.path.dirname(os.path.abspath(__file__))) / "pouet.py"
+DEFAULT_OUTPUT_PATH = Path(__file__).parent / "pouet.py"
 PATH_TO_ECAD_DOC_FILE = (
-    Path(os.path.dirname(os.path.abspath(__file__)))
-    / "../doc/source/references"
-    / "ecad_functions_api.rst"
+    Path(__file__).parent / "../doc/source/references" / "ecad_functions_api.rst"
 )
 PATH_TO_GENERIC_DOC_FILE = (
-    Path(os.path.dirname(os.path.abspath(__file__)))
-    / "../doc/source/references"
-    / "generic_functions_api.rst"
+    Path(__file__).parent / "../doc/source/references" / "generic_functions_api.rst"
 )
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
 DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
@@ -146,24 +147,24 @@ GENERIC_POP_ARGS = (
 )
 
 
-def generate_api(path):
+def _generate_api(path: Path) -> None:
     ecad_indices = EcadIndexRegistry.values()
     generic_indices = GenericIndicatorRegistry.values()
-    with open(path, "w") as f:
+    with Path.open(path, "w") as f:
         acc = MODULE_HEADER
         acc += "__all__ = [\n"
-        ecad_index_names = list(map(lambda x: x.short_name, ecad_indices))
-        generic_index_names = list(map(lambda x: x.name, generic_indices))
+        ecad_index_names = [x.short_name for x in ecad_indices]
+        generic_index_names = [x.name for x in generic_indices]
         names = generic_index_names + ecad_index_names + ["custom_index"]
-        formatted_names = map(lambda x: f'{TAB}"{x.lower()}"', names)
+        formatted_names = (f'{TAB}"{x.lower()}"' for x in names)
         acc += ",\n".join(formatted_names)
         acc += ",\n]\n\n"
         standard_indices = [
-            get_standard_index_declaration(index) for index in ecad_indices
+            _get_standard_index_declaration(index) for index in ecad_indices
         ]
-        custom_index = [get_user_index_declaration()]
+        custom_index = [_get_user_index_declaration()]
         generic_indices = [
-            get_generic_index_declaration(generic_index)
+            _get_generic_index_declaration(generic_index)
             for generic_index in generic_indices
         ]
         indices_to_write = generic_indices + standard_indices + custom_index
@@ -171,18 +172,19 @@ def generate_api(path):
         f.write(acc)
 
 
-def get_user_index_declaration() -> str:
+def _get_user_index_declaration() -> str:
     icclim_index_args = dict(inspect.signature(icclim.index).parameters)
     pop_args = DEPRECATED_ARGS + UNNECESSARY_ARGS
     # User indices have their own way of writing thresholds
     pop_args.append("threshold")
     for pop_arg in pop_args:
         icclim_index_args.pop(pop_arg)
-    fun_signature_args = build_fun_signature_args(icclim_index_args)
-    args_docs = get_params_docstring(
-        list(icclim_index_args.keys()), icclim.index.__doc__,
+    fun_signature_args = _build_fun_signature_args(icclim_index_args)
+    args_docs = _get_params_docstring(
+        list(icclim_index_args.keys()),
+        icclim.index.__doc__,
     )
-    common_args = map(lambda arg: f"{arg}={arg}", icclim_index_args)
+    common_args = (f"{arg}={arg}" for arg in icclim_index_args)
     formatted_common_args = f",\n{TAB}{TAB}".join(common_args)
     return f"""
 def custom_index(
@@ -190,7 +192,8 @@ def custom_index(
         {fun_signature_args},
 ) -> Dataset:
         \"\"\"
-        This function can be used to create indices using simple operators.
+        Compute custom indices using simple operators.
+
         Use the `user_index` parameter to describe how the index should be computed.
         You can find some examples in icclim documentation at :ref:`custom_indices`
         {args_docs}
@@ -203,11 +206,11 @@ def custom_index(
     """
 
 
-def build_fun_signature_args(args: dict) -> str:
-    return f",\n{TAB}".join(map(get_parameter_declaration, args.values()))
+def _build_fun_signature_args(args: dict) -> str:
+    return f",\n{TAB}".join(map(_get_parameter_declaration, args.values()))
 
 
-def get_generic_index_declaration(index: GenericIndicator) -> str:
+def _get_generic_index_declaration(index: GenericIndicator) -> str:
     pop_args = copy.copy(GENERIC_POP_ARGS)
     if index is not GenericIndicatorRegistry.SumOfSpellLengths:
         pop_args += ["min_spell_length"]
@@ -221,9 +224,9 @@ def get_generic_index_declaration(index: GenericIndicator) -> str:
     ]:
         pop_args += ["rolling_window_width"]
     index_args = _get_arguments(pop_args)
-    fun_signature_args = build_fun_signature_args(index_args)
-    args_docs = get_params_docstring(list(index_args.keys()), icclim.index.__doc__)
-    args = map(lambda arg: f"{arg}={arg}", index_args)
+    fun_signature_args = _build_fun_signature_args(index_args)
+    args_docs = _get_params_docstring(list(index_args.keys()), icclim.index.__doc__)
+    args = (f"{arg}={arg}" for arg in index_args)
     formatted_args = f",\n{TAB}{TAB}".join(list(args))
     return f"""
 def {index.name.lower()}(
@@ -242,19 +245,19 @@ def {index.name.lower()}(
     """
 
 
-def get_standard_index_declaration(index: StandardIndex) -> str:
+def _get_standard_index_declaration(index: StandardIndex) -> str:
     if _is_quantile_based(index):
         index_args = _get_arguments(ECAD_POP_ARGS)
     elif _can_have_reference_period(index):
         index_args = _get_arguments(ECAD_POP_ARGS + NON_REFERENCE_FIELDS)
     else:
         index_args = _get_arguments(ECAD_POP_ARGS + QUANTILE_INDEX_FIELDS)
-    fun_signature_args = build_fun_signature_args(index_args)
-    args_docs = get_params_docstring(list(index_args.keys()), icclim.index.__doc__)
-    common_args = map(lambda arg: f"{arg}={arg}", index_args)
+    fun_signature_args = _build_fun_signature_args(index_args)
+    args_docs = _get_params_docstring(list(index_args.keys()), icclim.index.__doc__)
+    common_args = (f"{arg}={arg}" for arg in index_args)
     args = list(common_args)
-    thresh_arg = get_threshold_argument(index)
-    output_unit_arg = get_output_unit_argument(index)
+    thresh_arg = _get_threshold_argument(index)
+    output_unit_arg = _get_output_unit_argument(index)
     if thresh_arg:
         args += [thresh_arg]
     if output_unit_arg:
@@ -293,26 +296,25 @@ def _get_arguments(pop_args: list[str]) -> dict[str, inspect.Parameter]:
     return icclim_index_args
 
 
-def get_output_unit_argument(index: StandardIndex) -> str:
+def _get_output_unit_argument(index: StandardIndex) -> str:
     if index.output_unit is not None:
         return f'out_unit="{index.output_unit}"'
     return ""
 
 
-def get_threshold_argument(index: StandardIndex) -> str:
+def _get_threshold_argument(index: StandardIndex) -> str:
     if isinstance(index.threshold, (str, Threshold)):
-        return f"threshold={format_thresh(index.threshold)}"
-    elif isinstance(index.threshold, (list, tuple)):
+        return f"threshold={_format_thresh(index.threshold)}"
+    if isinstance(index.threshold, (list, tuple)):
         result = "threshold=["
         for t in index.threshold:
-            result += format_thresh(t) + ","
+            result += _format_thresh(t) + ","
         result += "]"
         return result
-    else:
-        return ""
+    return ""
 
 
-def get_parameter_declaration(param: inspect.Parameter) -> str:
+def _get_parameter_declaration(param: inspect.Parameter) -> str:
     annotation = param.annotation
     if type(annotation) is type:
         annotation = annotation.__name__
@@ -322,12 +324,12 @@ def get_parameter_declaration(param: inspect.Parameter) -> str:
     if param.default is inspect.Parameter.empty:
         return prefix
     default = param.default
-    if type(default) is str:
+    if isinstance(default, str):
         default = f'"{default.__str__()}"'
     return f"{prefix} = {default}"
 
 
-def get_params_docstring(args: list[str], index_docstring: str) -> str:
+def _get_params_docstring(args: list[str], index_docstring: str) -> str:
     result = f"Parameters\n{TAB}----------\n"
     # regex to find `\n   toto: str` or similar declaration of argument
     regex = re.compile(r"\n\s{4}\w+.*: .*")
@@ -345,7 +347,7 @@ def get_params_docstring(args: list[str], index_docstring: str) -> str:
     return result
 
 
-def format_thresh(t: str | Threshold) -> str:
+def _format_thresh(t: str | Threshold) -> str:
     params = {}
     if isinstance(t, str):
         t = build_threshold(t)
@@ -364,32 +366,32 @@ def format_thresh(t: str | Threshold) -> str:
     return acc
 
 
-def generate_doc(doc_path, replacing_content):
-    with open(doc_path) as f:
+def _generate_doc(doc_path: Path, replacing_content: str) -> None:
+    with Path.open(doc_path) as f:
         content = "".join(f.readlines())
         replace_start_index = (
             content.find(DOC_START_PLACEHOLDER) + len(DOC_START_PLACEHOLDER) + 1
         )
         replace_end_index = content.find(DOC_END_PLACEHOLDER)
-    with open(doc_path, "w") as f:
+    with Path.open(doc_path, "w") as f:
         replaced_content = content[replace_start_index:replace_end_index]
         res = content.replace(replaced_content, replacing_content)
         f.write(res)
 
 
-def get_ecad_doc() -> str:
-    names = map(lambda x: x.short_name, EcadIndexRegistry.values())
-    names = list(names) + ["custom_index"]
-    formatted_names = map(lambda x: f"{TAB}{TAB}{x.lower()}", names)
+def _get_ecad_doc() -> str:
+    names = (x.short_name for x in EcadIndexRegistry.values())
+    names = [*list(names), "custom_index"]
+    formatted_names = (f"{TAB}{TAB}{x.lower()}" for x in names)
     replacing_content = ""
     replacing_content += "\n".join(formatted_names)
     replacing_content += "\n\n"
     return replacing_content
 
 
-def get_generic_doc() -> str:
-    names = map(lambda x: x.name, GenericIndicatorRegistry.values())
-    formatted_names = map(lambda x: f"{TAB}{TAB}{x.lower()}", names)
+def _get_generic_doc() -> str:
+    names = (x.name for x in GenericIndicatorRegistry.values())
+    formatted_names = (f"{TAB}{TAB}{x.lower()}" for x in names)
     replacing_content = ""
     replacing_content += "\n".join(formatted_names)
     replacing_content += "\n\n"
@@ -398,6 +400,6 @@ def get_generic_doc() -> str:
 
 if __name__ == "__main__":
     file_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_PATH
-    generate_api(file_path)
-    generate_doc(PATH_TO_ECAD_DOC_FILE, get_ecad_doc())
-    generate_doc(PATH_TO_GENERIC_DOC_FILE, get_generic_doc())
+    _generate_api(file_path)
+    _generate_doc(PATH_TO_ECAD_DOC_FILE, _get_ecad_doc())
+    _generate_doc(PATH_TO_GENERIC_DOC_FILE, _get_generic_doc())

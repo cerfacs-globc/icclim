@@ -46,7 +46,10 @@ RUN_INDEXER = "run_indexer"
 
 
 def get_seasonal_time_updater(
-    start_month: int, end_month: int, start_day: int = 1, end_day: int = None,
+    start_month: int,
+    end_month: int,
+    start_day: int = 1,
+    end_day: int = None,
 ) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
     """Seasonal time updater and time bounds creator method generator.
     Returns a callable of DataArray which will rewrite the time dimension to
@@ -79,7 +82,10 @@ def get_seasonal_time_updater(
                 year_of_season_end = year
             if isinstance(first_time, cftime.datetime):
                 start = cftime.datetime(
-                    year, start_month, start_day, calendar=first_time.calendar,
+                    year,
+                    start_month,
+                    start_day,
+                    calendar=first_time.calendar,
                 )
                 end = _get_end_date(
                     use_cftime=True,
@@ -325,7 +331,11 @@ class FrequencyRegistry(Registry[Frequency]):
 
 
 def _get_end_date(
-    use_cftime: bool, year: int, month: int, day: int = None, calendar=None,
+    use_cftime: bool,
+    year: int,
+    month: int,
+    day: int = None,
+    calendar=None,
 ):
     delta = timedelta(days=0)
     if day is None:
@@ -346,7 +356,8 @@ def _get_end_date(
 def _get_frequency_from_string(query: str) -> Frequency:
     for key, freq in FrequencyRegistry.catalog().items():
         if key == query.upper() or query.upper() in map(
-            str.upper, freq.accepted_values,
+            str.upper,
+            freq.accepted_values,
         ):
             return freq
     # else assumes it's a pandas frequency (such as "W" or "3MS")
@@ -439,7 +450,10 @@ def _build_seasonal_frequency_between_dates(season: Sequence[str]) -> Frequency:
     return Frequency(
         indexer=indexer,
         post_processing=get_seasonal_time_updater(
-            begin_date.month, end_date.month, begin_date.day, end_date.day,
+            begin_date.month,
+            end_date.month,
+            begin_date.day,
+            end_date.day,
         ),
         pandas_freq=f"AS-{MONTHS_MAP[begin_date.month]}",
         adjective="seasonally",

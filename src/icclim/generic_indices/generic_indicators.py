@@ -50,7 +50,7 @@ from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import OperatorRegistry
 from icclim.models.registry import Registry
 
-jinja_env = Environment()
+jinja_env = Environment(autoescape=False)
 
 
 class MissingMethodLike(metaclass=abc.ABCMeta):
@@ -100,9 +100,10 @@ class ResamplingIndicator(Indicator, ABC):
         self.missing_options = missing_options
         self.missing = missing
         if self.missing == "from_context" and self.missing_options is not None:
-            raise ValueError(
-                "Cannot set `missing_options` with `missing` method being from context.",
+            err = (
+                "Cannot set `missing_options` with `missing` method being from context."
             )
+            raise ValueError(err)
         missing_method: MissingMethodLike = MISSING_METHODS[self.missing]  # typing
         self._missing = missing_method.execute
         if self.missing_options:
@@ -234,7 +235,8 @@ class GenericIndicator(ResamplingIndicator):
         if output_unit is not None:
             if _is_amount_unit(output_unit):
                 climate_vars = _convert_rates_to_amounts(
-                    climate_vars=climate_vars, output_unit=output_unit,
+                    climate_vars=climate_vars,
+                    output_unit=output_unit,
                 )
             elif _is_a_diff_indicator(self) and output_unit != "%":
                 # [gh:255] Indicators computing the difference between two
@@ -245,7 +247,8 @@ class GenericIndicator(ResamplingIndicator):
                 # to a 15 degC and *is not* to a -258.15 degC.
                 for climate_var in climate_vars:
                     climate_var.studied_data = convert_units_to(
-                        climate_var.studied_data, target=output_unit,
+                        climate_var.studied_data,
+                        target=output_unit,
                     )
             else:
                 pass  # nothing to do
@@ -255,7 +258,9 @@ class GenericIndicator(ResamplingIndicator):
         if output_frequency.indexer:
             for climate_var in climate_vars:
                 climate_var.studied_data = select_time(
-                    climate_var.studied_data, **output_frequency.indexer, drop=True,
+                    climate_var.studied_data,
+                    **output_frequency.indexer,
+                    drop=True,
                 )
         return super().preprocess(
             climate_vars=climate_vars,
@@ -273,7 +278,10 @@ class GenericIndicator(ResamplingIndicator):
             "source_freq": src_freq,
         }
         climate_vars_meta = _get_climate_vars_metadata(
-            config.climate_variables, src_freq, base_jinja_scope, jinja_env,
+            config.climate_variables,
+            src_freq,
+            base_jinja_scope,
+            jinja_env,
         )
         jinja_scope: dict[str, Any] = {
             "min_spell_length": config.min_spell_length,
@@ -336,7 +344,9 @@ def count_occurrences(
     else:
         reducer_op = partial(DataArray.sum, dim="time")
     merged_exceedances = _compute_exceedances(
-        climate_vars, resample_freq.pandas_freq, logical_link,
+        climate_vars,
+        resample_freq.pandas_freq,
+        logical_link,
     )
     result = reducer_op(merged_exceedances.resample(time=resample_freq.pandas_freq))
     if to_percent:
@@ -356,7 +366,9 @@ def max_consecutive_occurrence(
     **kwargs,  # noqa
 ) -> DataArray:
     merged_exceedances = _compute_exceedances(
-        climate_vars, resample_freq.pandas_freq, logical_link,
+        climate_vars,
+        resample_freq.pandas_freq,
+        logical_link,
     )
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     resampled = rle.resample(time=resample_freq.pandas_freq)
@@ -375,7 +387,9 @@ def sum_of_spell_lengths(
     **kwargs,  # noqa
 ) -> DataArray:
     merged_exceedances = _compute_exceedances(
-        climate_vars, resample_freq.pandas_freq, logical_link,
+        climate_vars,
+        resample_freq.pandas_freq,
+        logical_link,
     )
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
@@ -510,7 +524,10 @@ def standard_deviation(
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
-        climate_vars, resample_freq, DataArrayResample.std, date_event=False,
+        climate_vars,
+        resample_freq,
+        DataArrayResample.std,
+        date_event=False,
     )
 
 
@@ -637,7 +654,8 @@ def mean_of_absolute_one_time_step_difference(
     mean_of_absolute_one_time_step_difference as a xarray.DataArray
     """
     study, ref = get_couple_of_var(
-        climate_vars, "mean_of_absolute_one_time_step_difference",
+        climate_vars,
+        "mean_of_absolute_one_time_step_difference",
     )
     one_time_step_diff = (study - ref).diff(dim="time")
     res = abs(one_time_step_diff).resample(time=resample_freq.pandas_freq).mean()
@@ -682,7 +700,10 @@ def difference_of_means(
             mean_ref = ref.mean(dim="time")
         else:
             return _diff_of_means_of_resampled_x_by_groupedby_y(
-                resample_freq, to_percent, study, ref,
+                resample_freq,
+                to_percent,
+                study,
+                ref,
             )
     else:
         raise NotImplementedError(f"Unknown sampling_method: '{sampling_method}'.")
@@ -696,7 +717,10 @@ def difference_of_means(
 
 
 def _diff_of_means_of_resampled_x_by_groupedby_y(
-    resample_freq: Frequency, to_percent: bool, study: DataArray, ref: DataArray,
+    resample_freq: Frequency,
+    to_percent: bool,
+    study: DataArray,
+    ref: DataArray,
 ) -> DataArray:
     mean_ref = ref.groupby(resample_freq.group_by_key).mean()
     acc = []
@@ -736,7 +760,8 @@ def _check_single_var(climate_vars: list[ClimateVariable], indicator: GenericInd
 
 
 def _check_couple_of_vars(
-    climate_vars: list[ClimateVariable], indicator: GenericIndicator,
+    climate_vars: list[ClimateVariable],
+    indicator: GenericIndicator,
 ):
     if len(climate_vars) != 2:
         raise InvalidIcclimArgumentError(
@@ -758,80 +783,80 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         "count_occurrences",
         count_occurrences,
         definition="Count occurrences where threshold(s) are met"
-        " (e.g. SU, Tx90p, RR1).",
+        "\n (e.g. SU, Tx90p, RR1).",
     )
     MaxConsecutiveOccurrence = GenericIndicator(
         "max_consecutive_occurrence",
         max_consecutive_occurrence,
         definition="Count the maximum number of consecutive occurrences when"
-        " threshold(s) are met (e.g. CDD, CSU, CWD).",
+        "\n threshold(s) are met (e.g. CDD, CSU, CWD).",
     )
     SumOfSpellLengths = GenericIndicator(
         "sum_of_spell_lengths",
         sum_of_spell_lengths,
         definition="Sum the lengths of each consecutive occurrence spell when"
-        " threshold(s) are met. The minimum spell length is controlled by"
-        " `min_spell_length` (e.g. WSDI, CSDI).",
+        "\n threshold(s) are met. The minimum spell length is controlled by"
+        "\n `min_spell_length` (e.g. WSDI, CSDI).",
     )
     Excess = GenericIndicator(
         "excess",
         excess,
         check_vars=_check_single_var,
         definition="Compute the excess over the given threshold. The excess is"
-        " `sum(x[x>t] - t)` where x is the studied variable and t the threshold"
-        " (e.g. GD4).",
+        "\n `sum(x[x>t] - t)` where x is the studied variable and t the threshold"
+        "\n (e.g. GD4).",
     )
     Deficit = GenericIndicator(
         "deficit",
         deficit,
         check_vars=_check_single_var,
         definition="Compute the deficit below the given threshold. The deficit is"
-        " `sum(t - x[x<t])` where x is the studied variable and t the threshold"
-        " (e.g. HD17).",
+        "\n `sum(t - x[x<t])` where x is the studied variable and t the threshold"
+        "\n (e.g. HD17).",
     )
     FractionOfTotal = GenericIndicator(
         "fraction_of_total",
         fraction_of_total,
         check_vars=_check_single_var,
         definition="Compute the fraction of values meeting threshold(s) over the sum of"
-        " every values (e.g. R75pTOT, R95pTOT).",
+        "\n every values (e.g. R75pTOT, R95pTOT).",
     )
     Maximum = GenericIndicator(
         "maximum",
         maximum,
         definition="Maximum of values that met threshold(s), if threshold(s) are given"
-        " (e.g. Txx, Tnx).",
+        "\n (e.g. Txx, Tnx).",
     )
     Minimum = GenericIndicator(
         "minimum",
         minimum,
         definition="Minimum of values that met threshold(s), if threshold(s) are given"
-        " (e.g. Txn, Tnn).",
+        "\n (e.g. Txn, Tnn).",
     )
     Average = GenericIndicator(
         "average",
         average,
         definition="Average of values that met threshold(s), if threshold(s) are given"
-        " (e.g. Tx, Tn)",
+        "\n (e.g. Tx, Tn)",
     )
     Sum = GenericIndicator(
         "sum",
         sum,
         definition="Sum of values that met threshold(s), if threshold(s) are given"
-        " (e.g. PRCPTOT, RR).",
+        "\n (e.g. PRCPTOT, RR).",
     )
     StandardDeviation = GenericIndicator(
         "standard_deviation",
         standard_deviation,
         definition="Standard deviation of values that met threshold(s),"
-        " if threshold(s) are given.",
+        "\n if threshold(s) are given.",
     )
     MaxOfRollingSum = GenericIndicator(
         "max_of_rolling_sum",
         max_of_rolling_sum,
         check_vars=_check_single_var,
         definition="Maximum of rolling sum over time dimension"
-        " (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).",
+        "\n (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).",
     )
     MinOfRollingSum = GenericIndicator(
         "min_of_rolling_sum",
@@ -856,29 +881,29 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         mean_of_difference,
         check_vars=_check_couple_of_vars,
         definition="Average of the difference between two variables"
-        ", or one variable and it's reference period values"
-        " (e.g. DTR: `mean(tasmax - tasmin)`).",
+        "\n, or one variable and it's reference period values"
+        "\n (e.g. DTR: `mean(tasmax - tasmin)`).",
     )
     DifferenceOfExtremes = GenericIndicator(
         "difference_of_extremes",
         difference_of_extremes,
         check_vars=_check_couple_of_vars,
         definition="Difference of extremes between two variables"
-        ", or one variable and it's reference period values."
-        " The extremes are always `maximum` for the first variable and"
-        " `minimum` for the second variable"
-        " (e.g. ETR: `max(tasmax) - min(tasmin)`).",
+        "\n, or one variable and it's reference period values."
+        "\n The extremes are always `maximum` for the first variable and"
+        "\n `minimum` for the second variable"
+        "\n (e.g. ETR: `max(tasmax) - min(tasmin)`).",
     )
     MeanOfAbsoluteOneTimeStepDifference = GenericIndicator(
         "mean_of_absolute_one_time_step_difference",
         mean_of_absolute_one_time_step_difference,
         check_vars=_check_couple_of_vars,
         definition="Average of the absolute one time step by one time step difference"
-        " between two variables,"
-        " or one variable and it's reference period values"
-        " (e.g. vDTR:"
-        " `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ;"
-        " where i is the day of measure).",
+        "\n between two variables,"
+        "\n or one variable and it's reference period values"
+        "\n (e.g. vDTR:"
+        "\n `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ;"
+        "\n where i is the day of measure).",
     )
     DifferenceOfMeans = GenericIndicator(
         "difference_of_means",
@@ -890,8 +915,8 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
             GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
         ],
         definition="Difference of the average between two variables"
-        ", or one variable and it's reference period values"
-        " (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.",
+        "\n, or one variable and it's reference period values"
+        "\n (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.",
     )
 
 
@@ -910,7 +935,8 @@ def _compute_exceedance(
 
 
 def get_couple_of_var(
-    climate_vars: list[ClimateVariable], indicator: str,
+    climate_vars: list[ClimateVariable],
+    indicator: str,
 ) -> tuple[DataArray, DataArray]:
     if len(climate_vars) != 2:
         raise InvalidIcclimArgumentError(
@@ -986,12 +1012,15 @@ def _run_simple_reducer(
         )
     else:
         return reducer_op(
-            filtered_study.resample(time=resample_freq.pandas_freq), dim="time",
+            filtered_study.resample(time=resample_freq.pandas_freq),
+            dim="time",
         )
 
 
 def _compute_exceedances(
-    climate_vars: list[ClimateVariable], resample_freq: str, logical_link: LogicalLink,
+    climate_vars: list[ClimateVariable],
+    resample_freq: str,
+    logical_link: LogicalLink,
 ) -> DataArray:
     exceedances = [
         _compute_exceedance(
@@ -999,7 +1028,8 @@ def _compute_exceedances(
             threshold=climate_var.threshold,
             freq=resample_freq,
             bootstrap=_must_run_bootstrap(
-                climate_var.studied_data, climate_var.threshold,
+                climate_var.studied_data,
+                climate_var.threshold,
             ),
         ).squeeze()
         for climate_var in climate_vars
@@ -1131,7 +1161,8 @@ def _count_occurrences_with_date(resampled: DataArrayResample):
 
 
 def _consecutive_occurrences_with_dates(
-    resampled: DataArrayResample, source_freq_delta: timedelta,
+    resampled: DataArrayResample,
+    source_freq_delta: timedelta,
 ):
     acc = []
     for label, sample in resampled:
@@ -1198,7 +1229,8 @@ def _convert_rates_to_amounts(climate_vars: list[ClimateVariable], output_unit: 
         if current_unit is not None and not _is_amount_unit(current_unit):
             with xc_units.context("hydro"):
                 climate_var.studied_data = rate2amount(
-                    climate_var.studied_data, out_units=output_unit,
+                    climate_var.studied_data,
+                    out_units=output_unit,
                 )
     return climate_vars
 

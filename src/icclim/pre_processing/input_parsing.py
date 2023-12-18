@@ -45,7 +45,9 @@ class PercentileDataArray(xr.DataArray):
 
     @classmethod
     def from_da(
-        cls, source: xr.DataArray, climatology_bounds: list[str] = None,
+        cls,
+        source: xr.DataArray,
+        climatology_bounds: list[str] = None,
     ) -> PercentileDataArray:
         """Create a PercentileDataArray from a xarray.DataArray.
 
@@ -180,7 +182,8 @@ def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
 
 
 def read_clim_bounds(
-    climatology_bounds: Sequence[str, str] | None, per_da: DataArray,
+    climatology_bounds: Sequence[str, str] | None,
+    per_da: DataArray,
 ) -> list[str]:
     bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
     if len(bds) != 2:
@@ -210,7 +213,8 @@ def _read_dataarray(
 
 
 def _guess_dataset_var_names(
-    standard_index: StandardIndex, ds: Dataset,
+    standard_index: StandardIndex,
+    ds: Dataset,
 ) -> list[Hashable]:
     """Try to guess the variable names using the expected kind of variable for
     the index.
@@ -257,7 +261,8 @@ def guess_input_type(data: DataArray) -> StandardVariable | None:
     cf_input = StandardVariableRegistry.lookup(str(data.name), no_error=True)
     if cf_input is None and data.attrs.get("standard_name", None) is not None:
         cf_input = StandardVariableRegistry.lookup(
-            data.attrs.get("standard_name"), no_error=True,
+            data.attrs.get("standard_name"),
+            no_error=True,
         )
     if cf_input is None:
         return None
@@ -363,7 +368,9 @@ def read_threshold_DataArray(
         if threshold_min_value:
             if isinstance(threshold_min_value, str):
                 threshold_min_value = convert_units_to(
-                    threshold_min_value, thresh_da, context="hydro",
+                    threshold_min_value,
+                    thresh_da,
+                    context="hydro",
                 )
             # TODO in prcptot the replacing value (np.nan) needs to be 0
             built_value = thresh_da.where(thresh_da > threshold_min_value, np.nan)
@@ -389,13 +396,18 @@ def build_reference_da(
             time=slice(base_period_time_range[0], base_period_time_range[1]),
         )
         check_time_range_post_validity(
-            reference, original_da, "base_period_time_range", base_period_time_range,
+            reference,
+            original_da,
+            "base_period_time_range",
+            base_period_time_range,
         )
     if only_leap_years:
         reference = reduce_only_leap_years(original_da)
     if percentile_min_value is not None:
         percentile_min_value = convert_units_to(
-            str(percentile_min_value), reference, context="hydro",
+            str(percentile_min_value),
+            reference,
+            context="hydro",
         )
         reference = reference.where(reference >= percentile_min_value, np.nan)
     return reference
