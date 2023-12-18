@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os
 import shutil
 
@@ -24,11 +25,11 @@ def test_update_to_standard_coords():
         {
             "pouet": xr.DataArray(
                 data=np.full(10, 42).reshape((10, 1, 1)),
-                coords=dict(
-                    latitude=[42],
-                    longitude=[42],
-                    t=pd.date_range("2042-01-01", periods=10, freq="D"),
-                ),
+                coords={
+                    "latitude": [42],
+                    "longitude": [42],
+                    "t": pd.date_range("2042-01-01", periods=10, freq="D"),
+                },
                 dims=["t", "latitude", "longitude"],
                 name="pr",
                 attrs={UNITS_KEY: "kg m-2 d-1"},
@@ -54,22 +55,22 @@ class Test_ReadDataset:
         # -- setup
         self.pr_da = xr.DataArray(
             data=np.full(10, 42).reshape((10, 1, 1)),
-            coords=dict(
-                latitude=[42],
-                longitude=[42],
-                time=pd.date_range("2042-01-01", periods=10, freq="D"),
-            ),
+            coords={
+                "latitude": [42],
+                "longitude": [42],
+                "time": pd.date_range("2042-01-01", periods=10, freq="D"),
+            },
             dims=["time", "latitude", "longitude"],
             name="pr",
             attrs={UNITS_KEY: "kg m-2 d-1"},
         )
         self.tas_da = xr.DataArray(
             data=np.full(10, 42).reshape((10, 1, 1)),
-            coords=dict(
-                latitude=[42],
-                longitude=[42],
-                t=pd.date_range("2042-01-01", periods=10, freq="D"),
-            ),
+            coords={
+                "latitude": [42],
+                "longitude": [42],
+                "t": pd.date_range("2042-01-01", periods=10, freq="D"),
+            },
             dims=["t", "latitude", "longitude"],
             name="tas",
             attrs={UNITS_KEY: "degC"},
@@ -82,10 +83,8 @@ class Test_ReadDataset:
             self.OUTPUT_NC_FILE_2,
             self.OUTPUT_UNKNOWN_FORMAT,
         ]:
-            try:
+            with contextlib.suppress(FileNotFoundError):
                 os.remove(f)
-            except FileNotFoundError:
-                pass
 
     def test_read_dataset_xr_DataArray__simple(self):
         # WHEN

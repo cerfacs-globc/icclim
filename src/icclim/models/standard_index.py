@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from icclim.generic_indices.standard_variable import StandardVariable
-from icclim.models import index_group
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from icclim.generic_indices.standard_variable import StandardVariable
+    from icclim.models import index_group
 
 
 @dataclass

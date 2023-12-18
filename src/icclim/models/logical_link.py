@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import dataclasses
 from functools import reduce
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import numpy as np
-from xarray import DataArray
 
 from icclim.models.registry import Registry
+
+if TYPE_CHECKING:
+    from xarray import DataArray
 
 
 @dataclasses.dataclass

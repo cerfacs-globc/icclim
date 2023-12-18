@@ -7,9 +7,8 @@ from __future__ import annotations
 
 import dataclasses
 import re
-from collections.abc import Sequence
 from datetime import timedelta
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 import cftime
 import numpy as np
@@ -19,7 +18,6 @@ from pandas.tseries.frequencies import to_offset
 from xarray.core.dataarray import DataArray
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.icclim_types import FrequencyLike, Indexer
 from icclim.models.constants import (
     AMJJAS_MONTHS,
     DJF_MONTHS,
@@ -33,6 +31,11 @@ from icclim.models.constants import (
 )
 from icclim.models.registry import Registry
 from icclim.utils import read_date
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from icclim.icclim_types import FrequencyLike, Indexer
 
 SEASON_ERR_MSG = (
     "A season created using `slice_mode` must be made of either"
@@ -49,7 +52,7 @@ def get_seasonal_time_updater(
     start_month: int,
     end_month: int,
     start_day: int = 1,
-    end_day: int = None,
+    end_day: int | None = None,
 ) -> Callable[[DataArray], tuple[DataArray, DataArray]]:
     """Seasonal time updater and time bounds creator method generator.
     Returns a callable of DataArray which will rewrite the time dimension to
@@ -76,10 +79,7 @@ def get_seasonal_time_updater(
         new_time_axis = []
         first_time = da.time.values[0]
         for year in da_years:
-            if start_month > end_month:
-                year_of_season_end = year + 1
-            else:
-                year_of_season_end = year
+            year_of_season_end = year + 1 if start_month > end_month else year
             if isinstance(first_time, cftime.datetime):
                 start = cftime.datetime(
                     year,
@@ -171,7 +171,7 @@ class Frequency:
 
     def build_frequency_kwargs(self) -> dict[str, Any]:
         """Build kwargs with possible keys in {"freq", "month", "date_bounds"}"""
-        kwargs = dict(freq=self.pandas_freq)
+        kwargs = {"freq": self.pandas_freq}
         if self.indexer is not None:
             kwargs.update(self.indexer)
         return kwargs
@@ -236,7 +236,7 @@ class FrequencyRegistry(Registry[Frequency]):
         pandas_freq="AS-APR",
         accepted_values=["AMJJAS"],
         adjective="AMJJAS summery",
-        indexer=dict(month=AMJJAS_MONTHS),
+        indexer={"month": AMJJAS_MONTHS},
         post_processing=get_seasonal_time_updater(AMJJAS_MONTHS[0], AMJJAS_MONTHS[-1]),
         units="half_year_summers",
         long_name="AMJJAS season",
@@ -249,7 +249,7 @@ class FrequencyRegistry(Registry[Frequency]):
         pandas_freq="AS-OCT",
         accepted_values=["ONDJFM"],
         adjective="ONDJFM wintry",
-        indexer=dict(month=ONDJFM_MONTHS),
+        indexer={"month": ONDJFM_MONTHS},
         post_processing=get_seasonal_time_updater(ONDJFM_MONTHS[0], ONDJFM_MONTHS[-1]),
         units="half_year_winters",
         long_name="ONDJFM season",
@@ -262,7 +262,7 @@ class FrequencyRegistry(Registry[Frequency]):
         pandas_freq="AS-DEC",
         accepted_values=["DJF"],
         adjective="DJF wintry",
-        indexer=dict(month=DJF_MONTHS),
+        indexer={"month": DJF_MONTHS},
         post_processing=get_seasonal_time_updater(DJF_MONTHS[0], DJF_MONTHS[-1]),
         units="winters",
         long_name="DJF winter",
@@ -275,7 +275,7 @@ class FrequencyRegistry(Registry[Frequency]):
         pandas_freq="AS-MAR",
         accepted_values=["MAM"],
         adjective="MAM springlong",
-        indexer=dict(month=MAM_MONTHS),
+        indexer={"month": MAM_MONTHS},
         post_processing=get_seasonal_time_updater(MAM_MONTHS[0], MAM_MONTHS[-1]),
         units="springs",
         long_name="MAM season",
@@ -288,7 +288,7 @@ class FrequencyRegistry(Registry[Frequency]):
         pandas_freq="AS-JUN",
         accepted_values=["JJA"],
         adjective="JJA summery",
-        indexer=dict(month=JJA_MONTHS),
+        indexer={"month": JJA_MONTHS},
         post_processing=get_seasonal_time_updater(JJA_MONTHS[0], JJA_MONTHS[-1]),
         units="summers",
         long_name="JJA season",
@@ -301,7 +301,7 @@ class FrequencyRegistry(Registry[Frequency]):
         pandas_freq="AS-SEP",
         accepted_values=["SON"],
         adjective="SON autumnal",
-        indexer=dict(month=SON_MONTHS),
+        indexer={"month": SON_MONTHS},
         post_processing=get_seasonal_time_updater(SON_MONTHS[0], SON_MONTHS[-1]),
         units="autumns",
         long_name="SON season",
@@ -320,9 +320,12 @@ class FrequencyRegistry(Registry[Frequency]):
             return _get_frequency_from_iterable(item)
         if no_error:
             return None
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"Unknown frequency {item}."
-            f" Use a Frequency from {FrequencyRegistry.every_aliases()}",
+            f" Use a Frequency from {FrequencyRegistry.every_aliases()}"
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
 
     @staticmethod
@@ -334,7 +337,7 @@ def _get_end_date(
     use_cftime: bool,
     year: int,
     month: int,
-    day: int = None,
+    day: int | None = None,
     calendar=None,
 ):
     delta = timedelta(days=0)
@@ -364,10 +367,13 @@ def _get_frequency_from_string(query: str) -> Frequency:
     try:
         to_offset(query)  # no-op, used to check if it's a valid pandas freq
     except ValueError as e:
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"Unknown frequency {query}. Use either a"
             " valid icclim frequency or a valid pandas"
-            " frequency",
+            " frequency"
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
             e,
         )
     return Frequency(
@@ -398,10 +404,13 @@ def _get_frequency_from_iterable(
     slice_mode_list: list | tuple[str, Sequence],
 ) -> Frequency:
     if len(slice_mode_list) < 2:
-        raise InvalidIcclimArgumentError(
+        msg = (
             "Invalid slice_mode format."
             " When slice_mode is a list, its first element must be a keyword and"
-            " its second a list (e.g `slice_mode=['season', [1,2,3]]` ).",
+            " its second a list (e.g `slice_mode=['season', [1,2,3]]` )."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
     freq_keyword = slice_mode_list[0]
     if freq_keyword in ["month", "months"]:
@@ -410,15 +419,18 @@ def _get_frequency_from_iterable(
         season = slice_mode_list[1]
         return _build_seasonal_freq(season)
     else:
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"Unknown frequency {slice_mode_list}."
-            " The sampling frequency must be one of {'season', 'month'}",
+            " The sampling frequency must be one of {'season', 'month'}"
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
 
 
 def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
     return Frequency(
-        indexer=dict(month=months),
+        indexer={"month": months},
         post_processing=get_time_bounds_updater("MS"),
         pandas_freq="MS",
         adjective="monthly",
@@ -446,7 +458,7 @@ def _build_seasonal_frequency_between_dates(season: Sequence[str]) -> Frequency:
     end_date = read_date(season[1])
     begin_formatted = begin_date.strftime("%m-%d")
     end_formatted = end_date.strftime("%m-%d")
-    indexer = dict(date_bounds=(begin_formatted, end_formatted))
+    indexer = {"date_bounds": (begin_formatted, end_formatted)}
     return Frequency(
         indexer=indexer,
         post_processing=get_seasonal_time_updater(
@@ -472,7 +484,7 @@ def _build_seasonal_frequency_for_months(season: tuple | list):
         season = season[0] + season[1]
     if not _is_season_valid(season):
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
-    indexer = dict(month=season)
+    indexer = {"month": season}
     return Frequency(
         indexer=indexer,
         post_processing=get_seasonal_time_updater(season[0], season[-1]),

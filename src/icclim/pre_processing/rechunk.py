@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import copy
+from typing import TYPE_CHECKING
 
 import dask
 import fsspec
@@ -11,12 +12,14 @@ import zarr
 from fsspec import AbstractFileSystem
 from fsspec.implementations.local import LocalFileSystem
 from rechunker import rechunk
-from xarray.core.dataarray import DataArray
-from xarray.core.dataset import Dataset
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.icclim_logger import IcclimLogger
 from icclim.pre_processing.input_parsing import is_zarr_path, read_dataset
+
+if TYPE_CHECKING:
+    from xarray.core.dataarray import DataArray
+    from xarray.core.dataset import Dataset
 
 TMP_STORE_1 = "icclim-tmp-store-1.zarr"
 TMP_STORE_2 = "icclim-tmp-store-2.zarr"
@@ -35,7 +38,8 @@ def _get_mem_limit(factor: float = 0.9) -> int:
     # https://github.com/pangeo-data/rechunker/issues/54#issuecomment-700748875
     # we should limit rechunk mem usage to around 0.9 and avoid spilling to disk
     if factor > 1 or factor < 0:
-        raise ValueError(f"factor was {factor} but, it must be between 0 and 1.")
+        msg = f"factor was {factor} but, it must be between 0 and 1."
+        raise ValueError(msg)
     try:
         import distributed
 
@@ -151,10 +155,8 @@ def create_optimized_zarr_store(
 
 def _remove_stores(*stores, filesystem: AbstractFileSystem):
     for s in stores:
-        try:
+        with contextlib.suppress(FileNotFoundError):
             filesystem.rm(s, recursive=True, maxdepth=100)
-        except FileNotFoundError:
-            pass
 
 
 def _unsafe_create_optimized_zarr_store(
@@ -172,14 +174,18 @@ def _unsafe_create_optimized_zarr_store(
         # drop all non essential data variables
         ds = ds.drop_vars(filter(lambda v: v not in var_name, ds.data_vars.keys()))
         if len(ds.data_vars.keys()) == 0:
+            msg = f"The variable(s) {var_name} were not found in the dataset."
             raise InvalidIcclimArgumentError(
-                f"The variable(s) {var_name} were not found in the dataset.",
+                msg,
             )
         if _is_rechunking_unnecessary(ds, chunking):
-            raise InvalidIcclimArgumentError(
+            msg = (
                 f"The given input is already chunked following {chunking}."
                 f" It's unnecessary to rechunk data with"
-                f" `create_optimized_zarr_store` here.",
+                f" `create_optimized_zarr_store` here."
+            )
+            raise InvalidIcclimArgumentError(
+                msg,
             )
         elif chunking is None:
             chunking = _build_default_chunking(ds)

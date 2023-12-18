@@ -2,9 +2,8 @@ from __future__ import annotations
 
 import abc
 from abc import ABC
-from datetime import timedelta
 from functools import partial, reduce
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 from warnings import warn
 
 import jinja2
@@ -19,7 +18,6 @@ from xarray.core.rolling import DataArrayRolling
 from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.datachecks import check_freq
-from xclim.core.missing import MissingBase
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
 from xclim.core.units import (
     convert_units_to,
@@ -35,7 +33,6 @@ from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim.generic_indices.threshold import PercentileThreshold, Threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.cf_calendar import CfCalendarRegistry
-from icclim.models.climate_variable import ClimateVariable
 from icclim.models.constants import (
     GROUP_BY_METHOD,
     GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
@@ -45,10 +42,17 @@ from icclim.models.constants import (
     UNITS_KEY,
 )
 from icclim.models.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
-from icclim.models.index_config import IndexConfig
-from icclim.models.logical_link import LogicalLink
 from icclim.models.operator import OperatorRegistry
 from icclim.models.registry import Registry
+
+if TYPE_CHECKING:
+    from datetime import timedelta
+
+    from xclim.core.missing import MissingBase
+
+    from icclim.models.climate_variable import ClimateVariable
+    from icclim.models.index_config import IndexConfig
+    from icclim.models.logical_link import LogicalLink
 
 jinja_env = Environment(autoescape=False)
 
@@ -136,7 +140,7 @@ class ResamplingIndicator(Indicator, ABC):
             # reference variable is a subset of the studied variable,
             # so no need to check it.
             das = filter(lambda cv: not cv.is_reference, climate_vars)
-            das = map(lambda cv: cv.studied_data, das)
+            das = (cv.studied_data for cv in das)
             das = list(das)
             if "time" in result.dims:
                 result = self._handle_missing_values(
@@ -194,7 +198,7 @@ class GenericIndicator(ResamplingIndicator):
         check_vars: (
             Callable[[list[ClimateVariable], GenericIndicator], None] | None
         ) = None,
-        sampling_methods: list[str] = None,
+        sampling_methods: list[str] | None = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -221,16 +225,22 @@ class GenericIndicator(ResamplingIndicator):
         sampling_method: str,
     ) -> list[ClimateVariable]:
         if not _same_freq_for_all(climate_vars):
-            raise InvalidIcclimArgumentError(
+            msg = (
                 "All variables must have the same time frequency (for example daily) to"
-                " be compared with each others, but this was not the case.",
+                " be compared with each others, but this was not the case."
+            )
+            raise InvalidIcclimArgumentError(
+                msg,
             )
         if self.check_vars is not None:
             self.check_vars(climate_vars, self)
         if sampling_method not in self.sampling_methods:
-            raise InvalidIcclimArgumentError(
+            msg = (
                 f"{self.name} can only be computed with the following"
-                f" sampling_method(s): {self.sampling_methods}",
+                f" sampling_method(s): {self.sampling_methods}"
+            )
+            raise InvalidIcclimArgumentError(
+                msg,
             )
         if output_unit is not None:
             if _is_amount_unit(output_unit):
@@ -404,7 +414,8 @@ def excess(
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
     if threshold.operator is not OperatorRegistry.REACH:
-        raise InvalidIcclimArgumentError("")
+        msg = ""
+        raise InvalidIcclimArgumentError(msg)
     excesses = threshold.compute(study, override_op=lambda da, th: da - th)
     res = (
         (excesses).clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
@@ -672,11 +683,14 @@ def difference_of_means(
     **kwargs,  # noqa
 ):
     if is_compared_to_reference and sampling_method == RESAMPLE_METHOD:
-        raise InvalidIcclimArgumentError(
+        msg = (
             "It does not make sense to resample the reference variable if it is"
             " already a subsample of the studied variable. Try setting"
             f" `sampling_method='{GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}'`"
-            f" instead.",
+            f" instead."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
     study, ref = get_couple_of_var(climate_vars, "difference_of_means")
     if sampling_method == GROUP_BY_METHOD:
@@ -706,7 +720,8 @@ def difference_of_means(
                 ref,
             )
     else:
-        raise NotImplementedError(f"Unknown sampling_method: '{sampling_method}'.")
+        msg = f"Unknown sampling_method: '{sampling_method}'."
+        raise NotImplementedError(msg)
     diff_of_means = mean_study - mean_ref
     if to_percent:
         diff_of_means = diff_of_means / mean_ref * 100
@@ -731,9 +746,12 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
         key = "dayofyear"
         dt_selector = lambda x: x.time.dt.dayofyear  # noqa lamdab assigned
     else:
-        raise NotImplementedError(
+        msg = (
             f"Can't use {GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}"
-            f" with the frequency {resample_freq.long_name}.",
+            f" with the frequency {resample_freq.long_name}."
+        )
+        raise NotImplementedError(
+            msg,
         )
     for label, sample in study.resample(time=resample_freq.pandas_freq):
         sample_mean = sample.mean(dim="time")
@@ -754,8 +772,9 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
 
 def _check_single_var(climate_vars: list[ClimateVariable], indicator: GenericIndicator):
     if len(climate_vars) > 1:
+        msg = f"{indicator.name} can only be computed on a single variable."
         raise InvalidIcclimArgumentError(
-            f"{indicator.name} can only be computed on a single variable.",
+            msg,
         )
 
 
@@ -764,12 +783,15 @@ def _check_couple_of_vars(
     indicator: GenericIndicator,
 ):
     if len(climate_vars) != 2:
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"{indicator.name} can only be computed on two variables sharing the same"
             f" unit (e.g. 2 temperatures). You can either provide a secondary variable"
             f" with `in_files` or `var_name`, or you can let icclim compute this"
             f" second variable as a subset of the first one using"
-            f" `base_period_time_range`.",
+            f" `base_period_time_range`."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
 
 
@@ -924,7 +946,7 @@ def _compute_exceedance(
     study: DataArray,
     threshold: Threshold,
     freq: str,  # used by @percentile_bootstrap (don't rename, it breaks bootstrap)
-    bootstrap: bool,  # noqa used by @percentile_bootstrap
+    bootstrap: bool,  # used by @percentile_bootstrap
 ) -> DataArray:
     exceedances = threshold.compute(study, freq=freq, bootstrap=bootstrap)
     if bootstrap:
@@ -939,13 +961,17 @@ def get_couple_of_var(
     indicator: str,
 ) -> tuple[DataArray, DataArray]:
     if len(climate_vars) != 2:
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"{indicator} needs two variables **or** one variable and a "
-            f"`base_period_time_range` period to extract a reference variable.",
+            f"`base_period_time_range` period to extract a reference variable."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
     if climate_vars[0].threshold or climate_vars[1].threshold:
+        msg = f"{indicator} cannot be computed with thresholds."
         raise InvalidIcclimArgumentError(
-            f"{indicator} cannot be computed with thresholds.",
+            msg,
         )
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
@@ -1002,9 +1028,8 @@ def _run_simple_reducer(
         filtered_study = study.where(exceedance)
     else:
         filtered_study = study
-    if must_convert_rate:
-        if _is_rate(filtered_study):
-            filtered_study = rate2amount(filtered_study)
+    if must_convert_rate and _is_rate(filtered_study):
+        filtered_study = rate2amount(filtered_study)
     if date_event:
         return _reduce_with_date_event(
             resampled=filtered_study.resample(time=resample_freq.pandas_freq),
@@ -1082,8 +1107,8 @@ def _get_ref_period_slice(da: DataArray) -> slice:
 def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
     if len(climate_vars) == 1:
         return True
-    freqs = list(map(lambda a: xr.infer_freq(a.studied_data.time), climate_vars))
-    return all(map(lambda x: x == freqs[0], freqs[1:]))
+    freqs = [xr.infer_freq(a.studied_data.time) for a in climate_vars]
+    return all(x == freqs[0] for x in freqs[1:])
 
 
 def _get_climate_vars_metadata(
@@ -1115,8 +1140,9 @@ def _reduce_with_date_event(
     elif reducer == DataArrayResample.min:
         group_reducer = DataArray.argmin
     else:
+        msg = f"Can't compute `date_event` due to unknown reducer: '{reducer}'"
         raise NotImplementedError(
-            f"Can't compute `date_event` due to unknown reducer: '{reducer}'",
+            msg,
         )
     for label, sample in resampled:
         reduced_result = sample.isel(time=group_reducer(sample, dim="time"))
@@ -1184,8 +1210,7 @@ def _consecutive_occurrences_with_dates(
             label=label,
         )
         acc.append(dated_longest_run)
-    result = xr.concat(acc, "time")
-    return result
+    return xr.concat(acc, "time")
 
 
 def _add_date_coords(
@@ -1215,11 +1240,11 @@ def _is_amount_unit(unit: str) -> bool:
 
 
 def _is_a_diff_indicator(indicator: Indicator) -> bool:
-    return (
-        indicator == GenericIndicatorRegistry.DifferenceOfExtremes
-        or indicator == GenericIndicatorRegistry.MeanOfDifference
-        or indicator == GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference
-        or indicator == GenericIndicatorRegistry.DifferenceOfMeans
+    return indicator in (
+        GenericIndicatorRegistry.DifferenceOfExtremes,
+        GenericIndicatorRegistry.MeanOfDifference,
+        GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference,
+        GenericIndicatorRegistry.DifferenceOfMeans,
     )
 
 

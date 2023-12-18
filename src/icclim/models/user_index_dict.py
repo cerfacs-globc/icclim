@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-import datetime
-from collections.abc import Sequence
-from typing import Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
 
-from icclim.models.logical_link import LogicalLink
-from icclim.user_indices.calc_operation import CalcOperation, CalcOperationLike
+if TYPE_CHECKING:
+    import datetime
+    from collections.abc import Sequence
+
+    from icclim.models.logical_link import LogicalLink
+    from icclim.user_indices.calc_operation import CalcOperation, CalcOperationLike
 
 
 class UserIndexDict(TypedDict, total=False):

@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import Hashable, Sequence
-from datetime import datetime
+from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
 import xclim
-from pint import Quantity
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 from xclim.core.units import convert_units_to
@@ -16,11 +14,18 @@ from icclim.generic_indices.standard_variable import (
     StandardVariableRegistry,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.icclim_types import InFileBaseType
 from icclim.models.cf_calendar import CfCalendarRegistry
 from icclim.models.constants import UNITS_KEY, VALID_PERCENTILE_DIMENSION
-from icclim.models.standard_index import StandardIndex
 from icclim.utils import get_date_to_iso_format, is_precipitation_amount
+
+if TYPE_CHECKING:
+    from collections.abc import Hashable, Sequence
+    from datetime import datetime
+
+    from pint import Quantity
+
+    from icclim.icclim_types import InFileBaseType
+    from icclim.models.standard_index import StandardIndex
 
 DEFAULT_INPUT_FREQUENCY = "days"
 
@@ -47,7 +52,7 @@ class PercentileDataArray(xr.DataArray):
     def from_da(
         cls,
         source: xr.DataArray,
-        climatology_bounds: list[str] = None,
+        climatology_bounds: list[str] | None = None,
     ) -> PercentileDataArray:
         """Create a PercentileDataArray from a xarray.DataArray.
 
@@ -73,7 +78,8 @@ class PercentileDataArray(xr.DataArray):
             climatology_bounds is None
             and source.attrs.get("climatology_bounds", None) is None
         ):
-            raise ValueError("PercentileDataArray needs a climatology_bounds.")
+            msg = "PercentileDataArray needs a climatology_bounds."
+            raise ValueError(msg)
         per = cls(source)
         # handle case where da was created with `quantile()` method
         if "quantile" in source.coords:
@@ -83,10 +89,13 @@ class PercentileDataArray(xr.DataArray):
         per.attrs["climatology_bounds"] = clim_bounds
         if "percentiles" in per.coords:
             return per
-        raise ValueError(
+        msg = (
             f"DataArray {source.name} could not be turned into"
             f" PercentileDataArray. The DataArray must have a"
-            f" 'percentiles' coordinate variable.",
+            f" 'percentiles' coordinate variable."
+        )
+        raise ValueError(
+            msg,
         )
 
 
@@ -102,13 +111,14 @@ def guess_var_names(
     elif isinstance(var_names, (list, tuple)):
         return var_names
     else:
-        raise NotImplementedError("`var_name` must be a string a list or None.")
+        msg = "`var_name` must be a string a list or None."
+        raise NotImplementedError(msg)
 
 
 def read_dataset(
     in_files: InFileBaseType,
     standard_var: StandardVariable | None = None,
-    var_name: str | Sequence[str] = None,
+    var_name: str | Sequence[str] | None = None,
 ) -> Dataset:
     if isinstance(in_files, Dataset):
         ds = in_files
@@ -133,8 +143,9 @@ def read_dataset(
             ],
         )
     else:
+        msg = f"`in_files` format {type(in_files)} was not recognized."
         raise NotImplementedError(
-            f"`in_files` format {type(in_files)} was not recognized.",
+            msg,
         )
     return update_to_standard_coords(ds)
 
@@ -171,9 +182,12 @@ def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
             # plural handling
             per_dim_name = f"{d}s"
     if per_dim_name is None:
-        raise InvalidIcclimArgumentError(
+        msg = (
             "Percentile data must contain a recognizable percentiles dimension such as"
-            " 'percentiles', 'quantile', 'per' or 'centile'.",
+            " 'percentiles', 'quantile', 'per' or 'centile'."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
     per_da = per_da.rename({per_dim_name: "percentiles"})
     if "quantile" in per_dim_name:
@@ -187,22 +201,26 @@ def read_clim_bounds(
 ) -> list[str]:
     bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
     if len(bds) != 2:
+        msg = "climatology_bounds must be a iterable of length 2."
         raise InvalidIcclimArgumentError(
-            "climatology_bounds must be a iterable of length 2.",
+            msg,
         )
-    return [d for d in map(lambda bd: get_date_to_iso_format(bd), bds)]
+    return [get_date_to_iso_format(bd) for bd in bds]
 
 
 def _read_dataarray(
     data: DataArray,
     standard_var: StandardVariable | None = None,
-    var_name: str | Sequence[str] = None,
+    var_name: str | Sequence[str] | None = None,
 ) -> Dataset:
     if isinstance(var_name, (tuple, list)):
         if len(var_name) > 1:
-            raise InvalidIcclimArgumentError(
+            msg = (
                 "When the `in_file` is a DataArray, there"
-                f" can only be one value in `var_name` but var_name was: {var_name} ",
+                f" can only be one value in `var_name` but var_name was: {var_name} "
+            )
+            raise InvalidIcclimArgumentError(
+                msg,
             )
         else:
             var_name = var_name[0]
@@ -221,7 +239,7 @@ def _guess_dataset_var_names(
     """
     if standard_index is not None:
         main_aliases = ", ".join(
-            map(lambda v: v.short_name, standard_index.input_variables),
+            (v.short_name for v in standard_index.input_variables),
         )
         error_msg = (
             f"Index {standard_index.short_name} needs the following variable(s)"
@@ -281,10 +299,13 @@ def build_studied_data(
         da = original_da.sel(time=slice(time_range[0], time_range[1]))
         check_time_range_post_validity(da, original_da, "time_range", time_range)
         if len(da.time) == 0:
-            raise InvalidIcclimArgumentError(
+            msg = (
                 f"The given `time_range` {time_range} is out of the dataset time"
                 f" period: {original_da.time.min().dt.floor('D').values}"
-                f" - {original_da.time.max().dt.floor('D').values}.",
+                f" - {original_da.time.max().dt.floor('D').values}."
+            )
+            raise InvalidIcclimArgumentError(
+                msg,
             )
     else:
         da = original_da
@@ -294,49 +315,52 @@ def build_studied_data(
         da.attrs[UNITS_KEY] = standard_var.default_units
     if is_precipitation_amount(da):
         da = xclim.core.units.amount2rate(da)
-    da = da.chunk("auto")
-    return da
+    return da.chunk("auto")
 
 
 def check_time_range_pre_validity(key: str, tr: Sequence[datetime | str]) -> None:
     if len(tr) != 2:
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"The given `{key}` {tr}"
             f" has {len(tr)} elements."
-            f" It must have exactly 2 dates.",
+            f" It must have exactly 2 dates."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
 
 
 def check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
     if len(da.time) == 0:
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"The given `{key}` {tr} is out of the sample time bounds:"
             f" {original_da.time.min().dt.floor('D').values}"
-            f" - {original_da.time.max().dt.floor('D').values}.",
+            f" - {original_da.time.max().dt.floor('D').values}."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
 
 
 def _is_alias_valid(ds, alias) -> bool:
-    for ds_var in ds.data_vars:
-        if str(ds_var).upper() == alias.upper():
-            return True
-    return False
+    return any(str(ds_var).upper() == alias.upper() for ds_var in ds.data_vars)
 
 
 def _get_actual_name(ds, alias) -> str:
     for ds_var in ds.data_vars:
         if str(ds_var).upper() == alias.upper():
             return str(ds_var)
-    raise KeyError(f"Could not find {alias} in dataset.")
+    msg = f"Could not find {alias} in dataset."
+    raise KeyError(msg)
 
 
 def get_name_of_first_var(ds: Dataset) -> str:
-    return str(ds.data_vars[list(ds.data_vars.keys())[0]].name)
+    return str(ds.data_vars[next(iter(ds.data_vars.keys()))].name)
 
 
 def is_dataset_path(query: Sequence | str) -> bool:
     if isinstance(query, (tuple, list)):
-        return all(map(lambda q: is_netcdf_path(q), query))
+        return all(is_netcdf_path(q) for q in query)
     return is_zarr_path(query) or is_glob_path(query) or is_netcdf_path(query)
 
 
@@ -346,8 +370,9 @@ def reduce_only_leap_years(da: DataArray) -> DataArray:
         if val.time.dt.dayofyear.max() == 366:
             reduced_list.append(val)
     if not reduced_list:
+        msg = "No leap year in current dataset. Do not use `only_leap_years` parameter."
         raise InvalidIcclimArgumentError(
-            "No leap year in current dataset. Do not use `only_leap_years` parameter.",
+            msg,
         )
     return xr.concat(reduced_list, "time")
 

@@ -6,19 +6,23 @@ This module exposes each climate index as individual functions for convenience.
 # flake8: noqa E501
 from __future__ import annotations
 
-from collections.abc import Sequence
-from datetime import datetime
-
-from xarray.core.dataset import Dataset
+from typing import TYPE_CHECKING
 
 import icclim
 from icclim.generic_indices.threshold import Threshold, build_threshold
-from icclim.icclim_logger import Verbosity
-from icclim.icclim_types import InFileLike, SamplingMethodLike
-from icclim.models.frequency import Frequency, FrequencyLike
-from icclim.models.netcdf_version import NetcdfVersion
-from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.user_index_dict import UserIndexDict
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from datetime import datetime
+
+    from xarray.core.dataset import Dataset
+
+    from icclim.icclim_logger import Verbosity
+    from icclim.icclim_types import InFileLike, SamplingMethodLike
+    from icclim.models.frequency import Frequency, FrequencyLike
+    from icclim.models.netcdf_version import NetcdfVersion
+    from icclim.models.quantile_interpolation import QuantileInterpolation
+    from icclim.models.user_index_dict import UserIndexDict
 
 __all__ = [
     "count_occurrences",

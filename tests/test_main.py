@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os
 from datetime import datetime
 from unittest.mock import MagicMock, patch
@@ -56,7 +57,7 @@ class Test_Integration:
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
+        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
         attrs={UNITS_KEY: "degC"},
     )
     full_data = data.to_dataset(name="tas")
@@ -76,7 +77,7 @@ class Test_Integration:
     data_cf_time = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords=dict(lat=[42], lon=[42], time=CF_TIME_RANGE),
+        coords={"lat": [42], "lon": [42], "time": CF_TIME_RANGE},
         attrs={UNITS_KEY: "degC"},
     )
 
@@ -84,11 +85,11 @@ class Test_Integration:
     time_bounds = xr.DataArray(
         data=[[t, t + np.timedelta64(1, "h")] for t in data.time.values],
         dims=["time", "bounds"],
-        coords=dict(bounds=[0, 1], time=TIME_RANGE),
+        coords={"bounds": [0, 1], "time": TIME_RANGE},
     ).astype("object")
 
     dataset_with_time_bounds = xr.Dataset(
-        dict(data=data, time_bounds=time_bounds),
+        {"data": data, "time_bounds": time_bounds},
     )
 
     not_spi_indices = list(
@@ -101,10 +102,8 @@ class Test_Integration:
         # ...
         yield
         # teardown
-        try:
+        with contextlib.suppress(FileNotFoundError):
             os.remove(self.OUTPUT_FILE)
-        except FileNotFoundError:
-            pass
 
     def test_index_SU(self):
         tas = stub_tas(tas_value=26 + K2C)

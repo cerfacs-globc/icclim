@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
-from icclim.models.climate_variable import ClimateVariable
-from icclim.models.frequency import Frequency
-from icclim.models.logical_link import LogicalLink
-from icclim.models.netcdf_version import NetcdfVersion
-from icclim.models.quantile_interpolation import QuantileInterpolation
+if TYPE_CHECKING:
+    from icclim.models.climate_variable import ClimateVariable
+    from icclim.models.frequency import Frequency
+    from icclim.models.logical_link import LogicalLink
+    from icclim.models.netcdf_version import NetcdfVersion
+    from icclim.models.quantile_interpolation import QuantileInterpolation
 
 
 @dataclasses.dataclass

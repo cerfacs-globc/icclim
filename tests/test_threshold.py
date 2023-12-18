@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import os
 from typing import Callable
 
@@ -210,7 +211,7 @@ def test_build_basic_threshold__from_dataarray():
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
+        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
         attrs={UNITS_KEY: "degC"},
         name="toto",
     )
@@ -227,7 +228,7 @@ def test_build_basic_threshold__from_dataset():
     ds = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
+        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
         attrs={UNITS_KEY: "degC"},
         name="tas",
     ).to_dataset()
@@ -245,7 +246,7 @@ def test_build_basic_threshold__from_dataset__error():
     ds = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
+        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
         attrs={UNITS_KEY: "degC"},
         name="toto",
     ).to_dataset()
@@ -262,7 +263,7 @@ class Test_FileBased:
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords=dict(lat=[42], lon=[42], time=TIME_RANGE),
+        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
         attrs={UNITS_KEY: "degC"},
         name="toto",
     )
@@ -273,10 +274,8 @@ class Test_FileBased:
         # ...
         yield
         # teardown
-        try:
+        with contextlib.suppress(FileNotFoundError):
             os.remove(self.IN_FILE_PATH)
-        except FileNotFoundError:
-            pass
 
     def test_build_basic_threshold__from_file(self):
         self.data.to_netcdf(path=self.IN_FILE_PATH)

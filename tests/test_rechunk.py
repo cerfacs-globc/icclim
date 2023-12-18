@@ -16,11 +16,11 @@ def test_create_optimized_zarr_store_success():
         {
             "tas": xr.DataArray(
                 data=np.full(10, 42).reshape((10, 1, 1)),
-                coords=dict(
-                    lat=[42],
-                    lon=[42],
-                    time=pd.date_range("2042-01-01", periods=10, freq="D"),
-                ),
+                coords={
+                    "lat": [42],
+                    "lon": [42],
+                    "time": pd.date_range("2042-01-01", periods=10, freq="D"),
+                },
                 dims=["time", "lat", "lon"],
                 name="pr",
                 attrs={UNITS_KEY: "kg m-2 d-1"},
@@ -42,11 +42,11 @@ def test_create_optimized_zarr_store_error():
         {
             "tas": xr.DataArray(
                 data=np.full(10, 42).reshape((10, 1, 1)),
-                coords=dict(
-                    lat=[42],
-                    lon=[42],
-                    time=pd.date_range("2042-01-01", periods=10, freq="D"),
-                ),
+                coords={
+                    "lat": [42],
+                    "lon": [42],
+                    "time": pd.date_range("2042-01-01", periods=10, freq="D"),
+                },
                 dims=["time", "lat", "lon"],
                 name="pr",
                 attrs={UNITS_KEY: "kg m-2 d-1"},
@@ -70,11 +70,11 @@ def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock):
         {
             "tas": xr.DataArray(
                 data=np.full(10, 42).reshape((10, 1, 1)),
-                coords=dict(
-                    lat=[42],
-                    lon=[42],
-                    time=pd.date_range("2042-01-01", periods=10, freq="D"),
-                ),
+                coords={
+                    "lat": [42],
+                    "lon": [42],
+                    "time": pd.date_range("2042-01-01", periods=10, freq="D"),
+                },
                 dims=["time", "lat", "lon"],
                 name="pr",
                 attrs={UNITS_KEY: "kg m-2 d-1"},
@@ -82,12 +82,11 @@ def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock):
         },
     ).chunk({"time": 2})
     # When
-    with pytest.raises(InvalidIcclimArgumentError):
-        with create_optimized_zarr_store(
-            in_files=ds,
-            var_names="tas",
-            target_zarr_store_name="n/a",
-            chunking={"time": 2},
-        ):
-            pass
+    with pytest.raises(InvalidIcclimArgumentError), create_optimized_zarr_store(
+        in_files=ds,
+        var_names="tas",
+        target_zarr_store_name="n/a",
+        chunking={"time": 2},
+    ):
+        pass
     rechunk_mock.assert_not_called()

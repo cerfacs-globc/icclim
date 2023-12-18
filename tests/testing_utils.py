@@ -6,11 +6,11 @@ import xarray as xr
 from icclim.models.constants import UNITS_KEY
 
 VALUE_COUNT = 365 * 5 + 1  # 5 years of data (with 1 leap year)
-COORDS = dict(
-    lat=[42],
-    lon=[42],
-    time=pd.date_range("2042-01-01", periods=VALUE_COUNT, freq="D"),
-)
+COORDS = {
+    "lat": [42],
+    "lon": [42],
+    "time": pd.date_range("2042-01-01", periods=VALUE_COUNT, freq="D"),
+}
 K2C = 273.15
 
 CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")

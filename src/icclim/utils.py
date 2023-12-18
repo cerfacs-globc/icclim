@@ -3,13 +3,16 @@ from __future__ import annotations
 import re
 import warnings
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import dateparser
-import pint
-import xarray as xr
 import xclim
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
+
+if TYPE_CHECKING:
+    import pint
+    import xarray as xr
 
 PR_AMOUNT_STANDARD_NAME = "thickness_of_rainfall_amount"
 
@@ -19,10 +22,13 @@ def read_date(in_date: str | datetime) -> datetime:
         return in_date
     date = dateparser.parse(in_date)
     if date is None:
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"The date {in_date} does not have a valid format."
             " You can use various formats such as '2 december', '02-12',"
-            " '1994-12-02'...",
+            " '1994-12-02'..."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
     return date
 
@@ -41,7 +47,7 @@ def get_date_to_iso_format(in_date: str | datetime) -> str:
 
 def is_number_sequence(values) -> bool:
     return isinstance(values, (tuple, list)) and all(
-        map(lambda x: isinstance(x, (float, int)), values),
+        (isinstance(x, (float, int)) for x in values),
     )
 
 

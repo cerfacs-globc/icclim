@@ -11,7 +11,7 @@ class IndexGroup:
     name: str
     values: list[IndexGroup]
 
-    def __init__(self, name: str, values: list[IndexGroup] = None):
+    def __init__(self, name: str, values: list[IndexGroup] | None = None):
         self.name = name
         if values is None:
             self.values = [self]
@@ -30,9 +30,12 @@ class IndexGroup:
         """Used to compose IndexGroup, e.g., IndexGroup1 | IndexGroup2."""
         if isinstance(right, IndexGroup):
             return IndexGroup(f"{self.name}_{right.name}", [self, right])
-        raise NotImplementedError(
+        msg = (
             f"Unexpected type for {right}: {type(right)}."
-            f" An IndexGroup was expected.",
+            f" An IndexGroup was expected."
+        )
+        raise NotImplementedError(
+            msg,
         )
 
     def __eq__(self, other):

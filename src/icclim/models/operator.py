@@ -1,19 +1,23 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Callable
-
-from xarray import DataArray
+from typing import TYPE_CHECKING, Callable
 
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.registry import Registry
 
+if TYPE_CHECKING:
+    from xarray import DataArray
+
 
 def _reach_err(_, __):
     # can't raise error in lambda
-    raise InvalidIcclimArgumentError(
+    msg = (
         "Reach operator can't be called. Try to fill threshold with an operand"
-        " (e.g. '>=' in '>= 22 degC').",
+        " (e.g. '>=' in '>= 22 degC')."
+    )
+    raise InvalidIcclimArgumentError(
+        msg,
     )
 
 

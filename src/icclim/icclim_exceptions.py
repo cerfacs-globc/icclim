@@ -12,7 +12,7 @@ class InvalidIcclimArgumentError(ValueError):
             The source of the error if any.
     """
 
-    def __init__(self, msg: str, source_err: Exception = None):
+    def __init__(self, msg: str, source_err: Exception | None = None):
         self.msg = msg
         self.source = source_err
 

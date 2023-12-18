@@ -207,7 +207,7 @@ def index(
     base_period_time_range: Sequence[datetime] | Sequence[str] | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
-    ignore_Feb29th: bool = False,  # noqa
+    ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",

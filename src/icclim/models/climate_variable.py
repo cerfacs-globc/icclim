@@ -2,25 +2,18 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-import jinja2
 import xarray
-from xarray.core.dataarray import DataArray
 
-from icclim.generic_indices.standard_variable import StandardVariable
 from icclim.generic_indices.threshold import (
     PercentileThreshold,
     Threshold,
     build_threshold,
 )
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.icclim_types import InFileBaseType, InFileLike
 from icclim.models.constants import REFERENCE_PERIOD_INDEX, UNITS_KEY
 from icclim.models.frequency import Frequency, FrequencyRegistry
-from icclim.models.global_metadata import GlobalMetadata
-from icclim.models.standard_index import StandardIndex
-from icclim.pre_processing.in_file_dictionary import InFileDictionary
 from icclim.pre_processing.input_parsing import (
     DEFAULT_INPUT_FREQUENCY,
     build_reference_da,
@@ -29,6 +22,16 @@ from icclim.pre_processing.input_parsing import (
     guess_var_names,
     read_dataset,
 )
+
+if TYPE_CHECKING:
+    import jinja2
+    from xarray.core.dataarray import DataArray
+
+    from icclim.generic_indices.standard_variable import StandardVariable
+    from icclim.icclim_types import InFileBaseType, InFileLike
+    from icclim.models.global_metadata import GlobalMetadata
+    from icclim.models.standard_index import StandardIndex
+    from icclim.pre_processing.in_file_dictionary import InFileDictionary
 
 
 @dataclass
@@ -68,11 +71,11 @@ class ClimateVariable:
         metadata: dict[str, str | dict] = {"threshold": {}}
         if self.standard_var is None:
             metadata.update(
-                dict(
-                    standard_name="unknown_variable",
-                    long_name="unknown variable",
-                    short_name="input",
-                ),
+                {
+                    "standard_name": "unknown_variable",
+                    "long_name": "unknown variable",
+                    "short_name": "input",
+                },
             )
         else:
             metadata.update(self.standard_var.get_metadata())
@@ -101,11 +104,14 @@ def build_climate_vars(
     if standard_index is not None and len(standard_index.input_variables) > len(
         climate_vars_dict,
     ):
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"Index {standard_index.short_name} needs"
             f" {len(standard_index.input_variables)} variables."
             f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
-            f" zarr store.",
+            f" zarr store."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
     acc = []
     for i, raw_climate_var in enumerate(climate_vars_dict.items()):
@@ -161,19 +167,20 @@ def _build_reference_variable(
     first one.
     """
     if reference_period is None:
+        msg = "Can't build a reference variable without a `base_period_time_range`"
         raise InvalidIcclimArgumentError(
-            "Can't build a reference variable without a `base_period_time_range`",
+            msg,
         )
-    var_name = list(in_files.keys())[0]
+    var_name = next(iter(in_files.keys()))
     if isinstance(in_files, dict):
         study_ds = read_dataset(
-            list(in_files.values())[0]["study"],
+            next(iter(in_files.values()))["study"],
             standard_var=standard_var,
             var_name=var_name,
         )
     else:
         study_ds = read_dataset(
-            list(in_files.values())[0],
+            next(iter(in_files.values())),
             standard_var=standard_var,
             var_name=var_name,
         )
@@ -208,11 +215,14 @@ def read_in_files(
 ) -> dict[str, InFileDictionary]:
     if isinstance(in_files, dict):
         if var_names is not None:
-            raise InvalidIcclimArgumentError(
+            msg = (
                 "`var_name` must be None when `in_files` is a dictionary."
-                " The dictionary keys are used in place of `var_name`.",
+                " The dictionary keys are used in place of `var_name`."
             )
-        if isinstance(list(in_files.values())[0], dict):
+            raise InvalidIcclimArgumentError(
+                msg,
+            )
+        if isinstance(next(iter(in_files.values())), dict):
             # case of in_files={tasmax: {"study": "tasmax.nc"}}
             return in_files
         else:
@@ -260,9 +270,12 @@ def _build_in_file_dict(
         if len(threshold) != len(var_names):
             # Allow 1 var with multiple thresholds or 1 threshold per var
             # but no other case
-            raise InvalidIcclimArgumentError(
+            msg = (
                 "There must be as many thresholds as there are variables. There was"
-                f" {len(threshold)} thresholds and {len(var_names)} variables.",
+                f" {len(threshold)} thresholds and {len(var_names)} variables."
+            )
+            raise InvalidIcclimArgumentError(
+                msg,
             )
         return {
             var_name: {"study": input_dataset[var_name], "thresholds": threshold[i]}

@@ -19,11 +19,11 @@ class StandardVariable(Hashable):
         return hash(self.short_name + self.standard_name)
 
     def get_metadata(self):
-        return dict(
-            standard_name=self.standard_name,
-            long_name=self.long_name,
-            short_name=self.short_name,
-        )
+        return {
+            "standard_name": self.standard_name,
+            "long_name": self.long_name,
+            "short_name": self.short_name,
+        }
 
 
 class StandardVariableRegistry(Registry[StandardVariable]):

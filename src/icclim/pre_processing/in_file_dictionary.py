@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
-from icclim.generic_indices.threshold import Threshold
-from icclim.icclim_types import InFileBaseType
+if TYPE_CHECKING:
+    from icclim.generic_indices.threshold import Threshold
+    from icclim.icclim_types import InFileBaseType
 
 
 class InFileDictionary(TypedDict, total=False):

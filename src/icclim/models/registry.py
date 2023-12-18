@@ -34,9 +34,12 @@ class Registry(Generic[T], ABC):
                     return deepcopy(item)
         if no_error:
             return None
-        raise InvalidIcclimArgumentError(
+        msg = (
             f"Unknown {cls._item_class.__qualname__}: '{query}'. "
-            f"Use one of {cls.every_aliases()}.",
+            f"Use one of {cls.every_aliases()}."
+        )
+        raise InvalidIcclimArgumentError(
+            msg,
         )
 
     @classmethod
