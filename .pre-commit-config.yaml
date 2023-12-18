@@ -32,11 +32,6 @@ repos:
     hooks:
     -   id: check-hooks-apply
     -   id: check-useless-excludes
--   repo: https://github.com/keewis/blackdoc
-    rev: v0.3.9
-    hooks:
-      - id: blackdoc
-        additional_dependencies: [ 'black==22.3.0' ]
 
 ci:
     autofix_commit_msg: |

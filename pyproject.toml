@@ -51,15 +51,10 @@ test = [
   "pytest-cov"
 ]
 dev = [
-  "black",
-  "flake8",
-  "flake8-rst-docstrings",
   "flit",
-  "isort",
+  "ruff",
   "pip",
-  "pre-commit>=2.9",
-  "pylint",
-  "twine"
+  "pre-commit>=2.9"
 ]
 doc = [
   "sphinx",
@@ -72,6 +67,9 @@ doc = [
 [project.urls]
 Documentation = "https://icclim.readthedocs.io/en/latest/how_to/index.html"
 Source = "https://github.com/cerfacs-globc/icclim/"
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.ruff.lint]
 select = [
@@ -119,7 +117,6 @@ select = [
   "ARG", # flake8-unused-arguments
   "PTH", # flake8-use-pathlib
   "TD", # flake8-todos
-  "FIX", # flake8-fixme
   "ERA", # eradicate
   "PD", # pandas-vet
   "PGH", # pygrep-hooks

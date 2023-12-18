@@ -1,7 +1,7 @@
 |logo|
 ======
 
-|build| |pypi| |black| |docs| |conda| |coverage| |doi|
+|build| |pypi| |ruff| |docs| |conda| |coverage| |doi|
 
 icclim is a Python library to compute climate indices.
 icclim name stands for index, calculation, climate.
@@ -80,10 +80,6 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
         :target: https://icclim.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-        :target: https://github.com/python/black
-        :alt: Python Black
-
 .. |pypi| image:: https://img.shields.io/pypi/v/icclim.svg
         :target: https://pypi.python.org/pypi/icclim
         :alt: Python Package Index Build
@@ -104,3 +100,7 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
         :target: https://github.com/cerfacs-globc/icclim
         :alt: icclim
         :width: 200px
+
+.. |ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+        :target: https://github.com/astral-sh/ruff
+        :alt: Ruff

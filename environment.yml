@@ -23,16 +23,11 @@ dependencies:
  - pre-commit
  - pydata-sphinx-theme
  - sphinx
- - black
- - flake8
- - isort
+ - ruff
  - pip
- - pylint
  - pytest
  - pytest-cov
  - setuptools
- - twine
- - flake8-rst-docstrings
  - flit
  # Extra dependencies
  - matplotlib
