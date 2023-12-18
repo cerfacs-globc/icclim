@@ -58,7 +58,6 @@ dev = [
   "isort",
   "pip",
   "pre-commit>=2.9",
-  "pydata-sphinx-theme",
   "pylint",
   "twine"
 ]
@@ -66,7 +65,8 @@ doc = [
   "sphinx",
   "sphinx_codeautolink",
   "sphinx_copybutton",
-  "sphinx_lfs_content"
+  "sphinx_lfs_content",
+  "pydata-sphinx-theme"
 ]
 
 [project.urls]
