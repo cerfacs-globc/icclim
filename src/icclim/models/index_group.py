@@ -23,7 +23,7 @@ class IndexGroup:
         from icclim.ecad.ecad_indices import EcadIndexRegistry
 
         return list(
-            filter(lambda i: i.group in self.values, EcadIndexRegistry.values())
+            filter(lambda i: i.group in self.values, EcadIndexRegistry.values()),
         )
 
     def __or__(self, right):
@@ -32,7 +32,7 @@ class IndexGroup:
             return IndexGroup(f"{self.name}_{right.name}", [self, right])
         raise NotImplementedError(
             f"Unexpected type for {right}: {type(right)}."
-            f" An IndexGroup was expected."
+            f" An IndexGroup was expected.",
         )
 
     def __eq__(self, other):

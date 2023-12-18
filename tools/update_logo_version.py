@@ -28,6 +28,6 @@ if __name__ == "__main__":
         raise NotImplementedError(
             "This script needs 2 arguments,"
             " the input file path where a placeholder exists"
-            " and the output file path"
+            " and the output file path",
         )
     run(sys.argv[1], sys.argv[2])

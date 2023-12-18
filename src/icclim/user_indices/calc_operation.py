@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Hashable, Literal
+from collections.abc import Hashable
+from typing import Literal
 
 from icclim.models.registry import Registry
 
@@ -27,7 +28,7 @@ class CalcOperation(Hashable):
 
 
 class CalcOperationRegistry(Registry[CalcOperation]):
-    # todo remove class once deprecation is finished (v6.1 ?)
+    # TODO remove class once deprecation is finished (v6.1 ?)
     _item_class = CalcOperation
     MAX = CalcOperation("max")
     MIN = CalcOperation("min")

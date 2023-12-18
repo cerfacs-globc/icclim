@@ -180,7 +180,7 @@ def get_user_index_declaration() -> str:
         icclim_index_args.pop(pop_arg)
     fun_signature_args = build_fun_signature_args(icclim_index_args)
     args_docs = get_params_docstring(
-        list(icclim_index_args.keys()), icclim.index.__doc__
+        list(icclim_index_args.keys()), icclim.index.__doc__,
     )
     common_args = map(lambda arg: f"{arg}={arg}", icclim_index_args)
     formatted_common_args = f",\n{TAB}{TAB}".join(common_args)
@@ -303,7 +303,7 @@ def get_threshold_argument(index: StandardIndex) -> str:
     if isinstance(index.threshold, (str, Threshold)):
         return f"threshold={format_thresh(index.threshold)}"
     elif isinstance(index.threshold, (list, tuple)):
-        result = f"threshold=["
+        result = "threshold=["
         for t in index.threshold:
             result += format_thresh(t) + ","
         result += "]"
@@ -333,7 +333,7 @@ def get_params_docstring(args: list[str], index_docstring: str) -> str:
     regex = re.compile(r"\n\s{4}\w+.*: .*")
     args_declaration = list(regex.finditer(index_docstring))
     for arg in args:
-        for i in range(0, len(args_declaration) - 2):
+        for i in range(len(args_declaration) - 2):
             # `-2` because we have specific handler for the last argument
             if args_declaration[i].group().strip().startswith(arg):
                 result += index_docstring[

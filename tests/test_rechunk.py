@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-
 from icclim import create_optimized_zarr_store
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import UNITS_KEY
@@ -25,8 +24,8 @@ def test_create_optimized_zarr_store_success():
                 dims=["time", "lat", "lon"],
                 name="pr",
                 attrs={UNITS_KEY: "kg m-2 d-1"},
-            )
-        }
+            ),
+        },
     ).chunk({"time": 2})
     with create_optimized_zarr_store(
         in_files=ds,
@@ -51,8 +50,8 @@ def test_create_optimized_zarr_store_error():
                 dims=["time", "lat", "lon"],
                 name="pr",
                 attrs={UNITS_KEY: "kg m-2 d-1"},
-            )
-        }
+            ),
+        },
     ).chunk({"time": 2})
     # Then
     with pytest.raises(InvalidIcclimArgumentError):
@@ -79,8 +78,8 @@ def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock):
                 dims=["time", "lat", "lon"],
                 name="pr",
                 attrs={UNITS_KEY: "kg m-2 d-1"},
-            )
-        }
+            ),
+        },
     ).chunk({"time": 2})
     # When
     with pytest.raises(InvalidIcclimArgumentError):

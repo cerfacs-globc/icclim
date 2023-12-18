@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import datetime
-from typing import Literal, Sequence, TypedDict
+from collections.abc import Sequence
+from typing import Literal, TypedDict
 
 from icclim.models.logical_link import LogicalLink
 from icclim.user_indices.calc_operation import CalcOperation, CalcOperationLike

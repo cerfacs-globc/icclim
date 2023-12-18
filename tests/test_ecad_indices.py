@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.standard_index import StandardIndex

@@ -86,7 +86,6 @@ def create_optimized_zarr_store(
 
     Examples
     --------
-
     .. code-block:: python
 
         import icclim
@@ -101,7 +100,6 @@ def create_optimized_zarr_store(
 
     Parameters
     ----------
-
     in_files : str | list[str] | Dataset | DataArray
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -131,7 +129,7 @@ def create_optimized_zarr_store(
         if isinstance(filesystem, str):
             filesystem = fsspec.filesystem("file")
         _remove_stores(
-            TMP_STORE_1, TMP_STORE_2, target_zarr_store_name, filesystem=filesystem
+            TMP_STORE_1, TMP_STORE_2, target_zarr_store_name, filesystem=filesystem,
         )
         yield _unsafe_create_optimized_zarr_store(
             in_files,
@@ -172,13 +170,13 @@ def _unsafe_create_optimized_zarr_store(
         ds = ds.drop_vars(filter(lambda v: v not in var_name, ds.data_vars.keys()))
         if len(ds.data_vars.keys()) == 0:
             raise InvalidIcclimArgumentError(
-                f"The variable(s) {var_name} were not found in the dataset."
+                f"The variable(s) {var_name} were not found in the dataset.",
             )
         if _is_rechunking_unnecessary(ds, chunking):
             raise InvalidIcclimArgumentError(
                 f"The given input is already chunked following {chunking}."
                 f" It's unnecessary to rechunk data with"
-                f" `create_optimized_zarr_store` here."
+                f" `create_optimized_zarr_store` here.",
             )
         elif chunking is None:
             chunking = _build_default_chunking(ds)

@@ -10,9 +10,10 @@ A convenience function `indices` is also exposed to compute multiple indices at 
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 from datetime import datetime
 from functools import partial, reduce
-from typing import Callable, Literal, Sequence
+from typing import Callable, Literal
 from warnings import warn
 
 import xarray as xr
@@ -160,7 +161,7 @@ def _get_indices_of_group(
         has_var = True
         for var in ecad_index.input_variables:
             is_query_in_aliases = map(
-                lambda standard_var: standard_var in var.aliases, query
+                lambda standard_var: standard_var in var.aliases, query,
             )
             has_var &= any(is_query_in_aliases)
         if has_var:
@@ -224,7 +225,6 @@ def index(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -384,7 +384,7 @@ def index(
         output_unit = out_unit
         rolling_window_width = user_index.get("window_width", rolling_window_width)
         base_period_time_range = user_index.get(
-            "ref_time_range", base_period_time_range
+            "ref_time_range", base_period_time_range,
         )
     elif index_name is not None:
         # TODO: [BoundedThreshold] read logical_link from threshold instead
@@ -403,7 +403,7 @@ def index(
     else:
         raise InvalidIcclimArgumentError(
             "You must fill either index_name or user_index"
-            "to compute a climate index."
+            "to compute a climate index.",
         )
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     if isinstance(threshold, str):
@@ -419,7 +419,7 @@ def index(
     # We use groupby instead of resample when there is a single variable that must be
     # compared to its reference period values.
     is_compared_to_reference = _must_add_reference_var(
-        climate_vars_dict, base_period_time_range
+        climate_vars_dict, base_period_time_range,
     )
     indicator_name = (
         standard_index.short_name if standard_index is not None else indicator.name
@@ -434,7 +434,7 @@ def index(
     )
     if base_period_time_range is not None:
         reference_period = tuple(
-            map(lambda t: read_date(t).strftime("%m-%d-%Y"), base_period_time_range)
+            map(lambda t: read_date(t).strftime("%m-%d-%Y"), base_period_time_range),
         )
     else:
         reference_period = None
@@ -546,7 +546,7 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
         if output_unit is None:
             warn(
                 "No unit computed or provided for the index was found."
-                " Use out_unit parameter to add one."
+                " Use out_unit parameter to add one.",
             )
             return ""
         else:
@@ -589,11 +589,11 @@ def _compute_climate_index(
         result_ds = result_da.to_dataset()
     if config.save_thresholds:
         result_ds = xr.merge(
-            [result_ds, _format_thresholds_for_export(config.climate_variables)]
+            [result_ds, _format_thresholds_for_export(config.climate_variables)],
         )
     history = _build_history(result_da, config, initial_history, climate_index)
     result_ds = _add_ecad_index_metadata(
-        result_ds, climate_index, history, initial_source, reference
+        result_ds, climate_index, history, initial_source, reference,
     )
     return result_ds
 
@@ -613,7 +613,7 @@ def _add_ecad_index_metadata(
             history=history,
             source=initial_source if initial_source is not None else "",
             Conventions="CF-1.6",
-        )
+        ),
     )
     try:
         result_ds.lat.encoding["_FillValue"] = None
@@ -691,13 +691,13 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         CalcOperationRegistry.SUM: GenericIndicatorRegistry.lookup("Sum"),
         CalcOperationRegistry.MEAN: GenericIndicatorRegistry.lookup("Average"),
         CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.lookup(
-            "CountOccurrences"
+            "CountOccurrences",
         ),
         CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.lookup(  # noqa
-            "MaxConsecutiveOccurrence"
+            "MaxConsecutiveOccurrence",
         ),
         CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.lookup(
-            "DifferenceOfMeans"
+            "DifferenceOfMeans",
         ),
     }
     if calc_op == CalcOperationRegistry.RUN_SUM:
@@ -706,30 +706,30 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         elif user_index["extreme_mode"] == "min":
             indicator = GenericIndicatorRegistry.lookup("MinOfRollingSum")
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
     elif calc_op == CalcOperationRegistry.RUN_MEAN:
         if user_index["extreme_mode"] == "max":
             indicator = GenericIndicatorRegistry.lookup("MaxOfRollingAverage")
         elif user_index["extreme_mode"] == "min":
             indicator = GenericIndicatorRegistry.lookup("MinOfRollingAverage")
         else:
-            raise NotImplementedError()
+            raise NotImplementedError
     else:
         indicator = user_index_map.get(calc_op)
     if indicator is None:
         raise InvalidIcclimArgumentError(
-            f"Unknown user_index calc_operation:" f" '{user_index['calc_operation']}'"
+            f"Unknown user_index calc_operation: '{user_index['calc_operation']}'",
         )
     return indicator
 
 
 def read_thresholds(
-    user_index: UserIndexDict, _build_threshold: Callable[[str | Threshold], Threshold]
+    user_index: UserIndexDict, _build_threshold: Callable[[str | Threshold], Threshold],
 ) -> Threshold | None | Sequence[Threshold]:
     thresh = user_index.get("thresh", None)
     if thresh is None or isinstance(thresh, Threshold):
         return thresh
-    # todo [BoundedThreshold] re-add below code and bind to LogicalLink
+    # TODO [BoundedThreshold] re-add below code and bind to LogicalLink
     # or (
     #     isinstance(thresh, (tuple, list))
     #     and all(map(lambda th: isinstance(th, Threshold), thresh))
@@ -767,7 +767,7 @@ def read_threshold(
 
 
 def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
-    # todo add unit test using it
+    # TODO add unit test using it
     logical_link = user_index.get("link_logical_operations", None)
     if logical_link is None:
         return LogicalLinkRegistry.LOGICAL_AND
@@ -776,12 +776,12 @@ def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
 
 
 def read_coef(user_index: UserIndexDict) -> float | None:
-    # todo add unit test using it
+    # TODO add unit test using it
     return user_index.get("coef", None)
 
 
 def read_date_event(user_index: UserIndexDict) -> float | None:
-    # todo add unit test using it
+    # TODO add unit test using it
     return user_index.get("date_event", False)
 
 

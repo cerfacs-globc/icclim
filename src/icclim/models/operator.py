@@ -13,7 +13,7 @@ def _reach_err(_, __):
     # can't raise error in lambda
     raise InvalidIcclimArgumentError(
         "Reach operator can't be called. Try to fill threshold with an operand"
-        " (e.g. '>=' in '>= 22 degC')."
+        " (e.g. '>=' in '>= 22 degC').",
     )
 
 
@@ -43,7 +43,7 @@ class OperatorRegistry(Registry[Operator]):
         standard_name="greater_than",
         aliases=["gt", ">"],
         operand=">",
-        compute=lambda da, th: da > th,  # noqa
+        compute=lambda da, th: da > th,
     )
     LOWER = Operator(
         short_name="lt",
@@ -51,7 +51,7 @@ class OperatorRegistry(Registry[Operator]):
         standard_name="lower_than",
         aliases=["lt", "<"],
         operand="<",
-        compute=lambda da, th: da < th,  # noqa
+        compute=lambda da, th: da < th,
     )
     GREATER_OR_EQUAL = Operator(
         short_name="get",
@@ -59,7 +59,7 @@ class OperatorRegistry(Registry[Operator]):
         standard_name="greater_or_equal_to",
         aliases=["get", "ge", ">=", "=>"],
         operand=">=",
-        compute=lambda da, th: da >= th,  # noqa
+        compute=lambda da, th: da >= th,
     )
     LOWER_OR_EQUAL = Operator(
         short_name="let",
@@ -67,7 +67,7 @@ class OperatorRegistry(Registry[Operator]):
         standard_name="lower_or_equal_to",
         aliases=["let", "le", "<=", "=<"],
         operand="<=",
-        compute=lambda da, th: da <= th,  # noqa
+        compute=lambda da, th: da <= th,
     )
     EQUAL = Operator(
         short_name="e",
@@ -75,7 +75,7 @@ class OperatorRegistry(Registry[Operator]):
         standard_name="equal_to",
         aliases=["e", "equal", "eq", "=", "=="],
         operand="==",
-        compute=lambda da, th: da == th,  # noqa
+        compute=lambda da, th: da == th,
     )
     # A None operand means the threshold is reached and a reducer specific computation
     # is done. Case of excess and deficit (a.k.a gd4, hd17)

@@ -20,7 +20,7 @@ class CfCalendar:
         return self.aliases[0]
 
 
-# todo: the whole class might be useless with the latest cftime
+# TODO: the whole class might be useless with the latest cftime
 #      (we don't need our own CfCalendar if we can do `da.time.dt.is_leap_year`)
 class CfCalendarRegistry(Registry[CfCalendar]):
     """
@@ -56,7 +56,7 @@ class CfCalendarRegistry(Registry[CfCalendar]):
     )
     JULIAN = CfCalendar(["julian"], lambda da: _julian_leap(da).values)
     STANDARD = CfCalendar(
-        ["standard", "gregorian"], lambda da: _standard_leap(da).values
+        ["standard", "gregorian"], lambda da: _standard_leap(da).values,
     )
     # Not sure what to do with none calendar
     NONE = CfCalendar(["none"], lambda da: _standard_leap(da).values)
@@ -68,7 +68,7 @@ class CfCalendarRegistry(Registry[CfCalendar]):
 
 def _proleptic_gregorian_leap(years: DataArray) -> DataArray:
     return np.logical_or(
-        years % 400 == 0, np.logical_and(years % 100 != 0, years % 4 == 0)
+        years % 400 == 0, np.logical_and(years % 100 != 0, years % 4 == 0),
     )
 
 

@@ -6,8 +6,8 @@ This module exposes each climate index as individual functions for convenience.
 # flake8: noqa E501
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Sequence
 
 from xarray.core.dataset import Dataset
 
@@ -124,7 +124,6 @@ def count_occurrences(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -217,7 +216,6 @@ def max_consecutive_occurrence(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -311,7 +309,6 @@ def sum_of_spell_lengths(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -408,7 +405,6 @@ def excess(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -501,7 +497,6 @@ def deficit(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -594,7 +589,6 @@ def fraction_of_total(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -687,7 +681,6 @@ def maximum(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -780,7 +773,6 @@ def minimum(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -873,7 +865,6 @@ def average(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -966,7 +957,6 @@ def sum(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1059,7 +1049,6 @@ def standard_deviation(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1153,7 +1142,6 @@ def max_of_rolling_sum(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1251,7 +1239,6 @@ def min_of_rolling_sum(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1349,7 +1336,6 @@ def max_of_rolling_average(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1447,7 +1433,6 @@ def min_of_rolling_average(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1544,7 +1529,6 @@ def mean_of_difference(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1637,7 +1621,6 @@ def difference_of_extremes(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1730,7 +1713,6 @@ def mean_of_absolute_one_time_step_difference(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1824,7 +1806,6 @@ def difference_of_means(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1923,7 +1904,6 @@ def tg(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2002,7 +1982,6 @@ def tn(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2081,7 +2060,6 @@ def tx(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2160,7 +2138,6 @@ def dtr(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2239,7 +2216,6 @@ def etr(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2318,7 +2294,6 @@ def vdtr(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2397,7 +2372,6 @@ def su(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2479,7 +2453,6 @@ def tr(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2565,7 +2538,6 @@ def wsdi(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2683,7 +2655,6 @@ def tg90p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2801,7 +2772,6 @@ def tn90p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2919,7 +2889,6 @@ def tx90p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3033,7 +3002,6 @@ def txx(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3112,7 +3080,6 @@ def tnx(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3191,7 +3158,6 @@ def csu(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3273,7 +3239,6 @@ def gd4(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3355,7 +3320,6 @@ def fd(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3437,7 +3401,6 @@ def cfd(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3519,7 +3482,6 @@ def hd17(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3601,7 +3563,6 @@ def id(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3687,7 +3648,6 @@ def tg10p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3805,7 +3765,6 @@ def tn10p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3923,7 +3882,6 @@ def tx10p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4037,7 +3995,6 @@ def txn(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4116,7 +4073,6 @@ def tnn(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4199,7 +4155,6 @@ def csdi(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4313,7 +4268,6 @@ def cdd(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4395,7 +4349,6 @@ def prcptot(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4477,7 +4430,6 @@ def rr1(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4559,7 +4511,6 @@ def sdii(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4641,7 +4592,6 @@ def cwd(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4723,7 +4673,6 @@ def rr(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4802,7 +4751,6 @@ def r10mm(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4884,7 +4832,6 @@ def r20mm(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4966,7 +4913,6 @@ def rx1day(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5045,7 +4991,6 @@ def rx5day(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5128,7 +5073,6 @@ def r75p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5247,7 +5191,6 @@ def r75ptot(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5366,7 +5309,6 @@ def r95p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5485,7 +5427,6 @@ def r95ptot(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5604,7 +5545,6 @@ def r99p(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5723,7 +5663,6 @@ def r99ptot(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5838,7 +5777,6 @@ def sd(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5917,7 +5855,6 @@ def sd1(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5999,7 +5936,6 @@ def sd5cm(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6081,7 +6017,6 @@ def sd50cm(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6167,7 +6102,6 @@ def cd(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6295,7 +6229,6 @@ def cw(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6423,7 +6356,6 @@ def wd(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6551,7 +6483,6 @@ def ww(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6675,7 +6606,6 @@ def fxx(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6754,7 +6684,6 @@ def fg6bft(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6836,7 +6765,6 @@ def fgcalm(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6918,7 +6846,6 @@ def fg(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6997,7 +6924,6 @@ def ddnorth(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7079,7 +7005,6 @@ def ddeast(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7161,7 +7086,6 @@ def ddsouth(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7243,7 +7167,6 @@ def ddwest(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7325,7 +7248,6 @@ def gsl(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7405,7 +7327,6 @@ def spi6(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7500,7 +7421,6 @@ def spi3(
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7602,9 +7522,9 @@ def custom_index(
         This function can be used to create indices using simple operators.
         Use the `user_index` parameter to describe how the index should be computed.
         You can find some examples in icclim documentation at :ref:`custom_indices`
-        Parameters
-    ----------
 
+    Parameters
+    ----------
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.

@@ -22,7 +22,7 @@ def read_date(in_date: str | datetime) -> datetime:
         raise InvalidIcclimArgumentError(
             f"The date {in_date} does not have a valid format."
             " You can use various formats such as '2 december', '02-12',"
-            " '1994-12-02'..."
+            " '1994-12-02'...",
         )
     return date
 
@@ -41,7 +41,7 @@ def get_date_to_iso_format(in_date: str | datetime) -> str:
 
 def is_number_sequence(values) -> bool:
     return isinstance(values, (tuple, list)) and all(
-        map(lambda x: isinstance(x, (float, int)), values)
+        map(lambda x: isinstance(x, (float, int)), values),
     )
 
 

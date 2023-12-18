@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Hashable, Sequence
 from datetime import datetime
-from typing import Hashable, Sequence
 
 import numpy as np
 import xarray as xr
@@ -45,7 +45,7 @@ class PercentileDataArray(xr.DataArray):
 
     @classmethod
     def from_da(
-        cls, source: xr.DataArray, climatology_bounds: list[str] = None
+        cls, source: xr.DataArray, climatology_bounds: list[str] = None,
     ) -> PercentileDataArray:
         """Create a PercentileDataArray from a xarray.DataArray.
 
@@ -84,7 +84,7 @@ class PercentileDataArray(xr.DataArray):
         raise ValueError(
             f"DataArray {source.name} could not be turned into"
             f" PercentileDataArray. The DataArray must have a"
-            f" 'percentiles' coordinate variable."
+            f" 'percentiles' coordinate variable.",
         )
 
 
@@ -118,7 +118,7 @@ def read_dataset(
         # we assumes it's a list of netCDF files
         #  join="override" is used for cases some dimension are a tiny bit different
         #  in different files (was the case with eobs).
-        ds = xr.open_mfdataset(in_files, parallel=True, join="override")  # noqa
+        ds = xr.open_mfdataset(in_files, parallel=True, join="override")
     elif is_netcdf_path(in_files):
         ds = xr.open_dataset(in_files)
     elif is_zarr_path(in_files):
@@ -128,11 +128,11 @@ def read_dataset(
             [
                 read_dataset(in_file, standard_var, var_name[i])
                 for i, in_file in enumerate(in_files)
-            ]
+            ],
         )
     else:
         raise NotImplementedError(
-            f"`in_files` format {type(in_files)} was not" f" recognized."
+            f"`in_files` format {type(in_files)} was not recognized.",
         )
     return update_to_standard_coords(ds)
 
@@ -160,7 +160,7 @@ def is_glob_path(path: InFileBaseType) -> bool:
 
 
 def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
-    # todo [xclim backport] This function could probably be in PercentileDataArray
+    # TODO [xclim backport] This function could probably be in PercentileDataArray
     per_dim_name = None
     for d in VALID_PERCENTILE_DIMENSION:
         if d in per_da.dims:
@@ -171,7 +171,7 @@ def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
     if per_dim_name is None:
         raise InvalidIcclimArgumentError(
             "Percentile data must contain a recognizable percentiles dimension such as"
-            " 'percentiles', 'quantile', 'per' or 'centile'."
+            " 'percentiles', 'quantile', 'per' or 'centile'.",
         )
     per_da = per_da.rename({per_dim_name: "percentiles"})
     if "quantile" in per_dim_name:
@@ -180,12 +180,12 @@ def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
 
 
 def read_clim_bounds(
-    climatology_bounds: Sequence[str, str] | None, per_da: DataArray
+    climatology_bounds: Sequence[str, str] | None, per_da: DataArray,
 ) -> list[str]:
     bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
     if len(bds) != 2:
         raise InvalidIcclimArgumentError(
-            "climatology_bounds must be a iterable of length 2."
+            "climatology_bounds must be a iterable of length 2.",
         )
     return [d for d in map(lambda bd: get_date_to_iso_format(bd), bds)]
 
@@ -199,7 +199,7 @@ def _read_dataarray(
         if len(var_name) > 1:
             raise InvalidIcclimArgumentError(
                 "When the `in_file` is a DataArray, there"
-                f" can only be one value in `var_name` but var_name was: {var_name} "
+                f" can only be one value in `var_name` but var_name was: {var_name} ",
             )
         else:
             var_name = var_name[0]
@@ -210,14 +210,14 @@ def _read_dataarray(
 
 
 def _guess_dataset_var_names(
-    standard_index: StandardIndex, ds: Dataset
+    standard_index: StandardIndex, ds: Dataset,
 ) -> list[Hashable]:
     """Try to guess the variable names using the expected kind of variable for
     the index.
     """
     if standard_index is not None:
         main_aliases = ", ".join(
-            map(lambda v: v.short_name, standard_index.input_variables)
+            map(lambda v: v.short_name, standard_index.input_variables),
         )
         error_msg = (
             f"Index {standard_index.short_name} needs the following variable(s)"
@@ -257,7 +257,7 @@ def guess_input_type(data: DataArray) -> StandardVariable | None:
     cf_input = StandardVariableRegistry.lookup(str(data.name), no_error=True)
     if cf_input is None and data.attrs.get("standard_name", None) is not None:
         cf_input = StandardVariableRegistry.lookup(
-            data.attrs.get("standard_name"), no_error=True
+            data.attrs.get("standard_name"), no_error=True,
         )
     if cf_input is None:
         return None
@@ -279,7 +279,7 @@ def build_studied_data(
             raise InvalidIcclimArgumentError(
                 f"The given `time_range` {time_range} is out of the dataset time"
                 f" period: {original_da.time.min().dt.floor('D').values}"
-                f" - {original_da.time.max().dt.floor('D').values}."
+                f" - {original_da.time.max().dt.floor('D').values}.",
             )
     else:
         da = original_da
@@ -298,7 +298,7 @@ def check_time_range_pre_validity(key: str, tr: Sequence[datetime | str]) -> Non
         raise InvalidIcclimArgumentError(
             f"The given `{key}` {tr}"
             f" has {len(tr)} elements."
-            f" It must have exactly 2 dates."
+            f" It must have exactly 2 dates.",
         )
 
 
@@ -307,7 +307,7 @@ def check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
         raise InvalidIcclimArgumentError(
             f"The given `{key}` {tr} is out of the sample time bounds:"
             f" {original_da.time.min().dt.floor('D').values}"
-            f" - {original_da.time.max().dt.floor('D').values}."
+            f" - {original_da.time.max().dt.floor('D').values}.",
         )
 
 
@@ -342,7 +342,7 @@ def reduce_only_leap_years(da: DataArray) -> DataArray:
             reduced_list.append(val)
     if not reduced_list:
         raise InvalidIcclimArgumentError(
-            "No leap year in current dataset. Do not use `only_leap_years` parameter."
+            "No leap year in current dataset. Do not use `only_leap_years` parameter.",
         )
     return xr.concat(reduced_list, "time")
 
@@ -363,9 +363,9 @@ def read_threshold_DataArray(
         if threshold_min_value:
             if isinstance(threshold_min_value, str):
                 threshold_min_value = convert_units_to(
-                    threshold_min_value, thresh_da, context="hydro"
+                    threshold_min_value, thresh_da, context="hydro",
                 )
-            # todo in prcptot the replacing value (np.nan) needs to be 0
+            # TODO in prcptot the replacing value (np.nan) needs to be 0
             built_value = thresh_da.where(thresh_da > threshold_min_value, np.nan)
         else:
             built_value = thresh_da
@@ -386,16 +386,16 @@ def build_reference_da(
             get_date_to_iso_format(x) for x in base_period_time_range
         ]
         reference = original_da.sel(
-            time=slice(base_period_time_range[0], base_period_time_range[1])
+            time=slice(base_period_time_range[0], base_period_time_range[1]),
         )
         check_time_range_post_validity(
-            reference, original_da, "base_period_time_range", base_period_time_range
+            reference, original_da, "base_period_time_range", base_period_time_range,
         )
     if only_leap_years:
         reference = reduce_only_leap_years(original_da)
     if percentile_min_value is not None:
         percentile_min_value = convert_units_to(
-            str(percentile_min_value), reference, context="hydro"
+            str(percentile_min_value), reference, context="hydro",
         )
         reference = reference.where(reference >= percentile_min_value, np.nan)
     return reference

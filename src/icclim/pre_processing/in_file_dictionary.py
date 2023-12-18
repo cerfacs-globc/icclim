@@ -12,7 +12,6 @@ class InFileDictionary(TypedDict, total=False):
 
     Examples
     --------
-
     .. code-block:: python
 
         in_files = {

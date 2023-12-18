@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Hashable
+from collections.abc import Hashable
 
 from icclim.models.constants import PART_OF_A_WHOLE_UNIT
 from icclim.models.registry import Registry

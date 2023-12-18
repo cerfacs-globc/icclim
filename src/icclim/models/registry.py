@@ -36,7 +36,7 @@ class Registry(Generic[T], ABC):
             return None
         raise InvalidIcclimArgumentError(
             f"Unknown {cls._item_class.__qualname__}: '{query}'. "
-            f"Use one of {cls.every_aliases()}."
+            f"Use one of {cls.every_aliases()}.",
         )
 
     @classmethod

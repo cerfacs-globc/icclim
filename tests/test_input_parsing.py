@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import UNITS_KEY
@@ -33,8 +32,8 @@ def test_update_to_standard_coords():
                 dims=["t", "latitude", "longitude"],
                 name="pr",
                 attrs={UNITS_KEY: "kg m-2 d-1"},
-            )
-        }
+            ),
+        },
     )
     # WHEN
     res = update_to_standard_coords(ds)
@@ -141,7 +140,7 @@ class Test_ReadDataset:
         # THEN
         with pytest.raises(NotImplementedError):
             # WHEN
-            read_dataset(42)  # noqa
+            read_dataset(42)
 
     def test_read_dataset(self):
         # GIVEN
@@ -161,7 +160,7 @@ class Test_ReadDataset:
         per.coords["percentiles"] = 42
         per = per.rename("tontontonthetatilotetatoux").expand_dims("percentiles")
         per = PercentileDataArray.from_da(
-            per, climatology_bounds=["1994-12-02", "1999-01-01"]
+            per, climatology_bounds=["1994-12-02", "1999-01-01"],
         )
         ds["tontontonthetatilotetatoux"] = per
         # WHEN

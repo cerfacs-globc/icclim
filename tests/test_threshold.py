@@ -8,9 +8,6 @@ import pandas as pd
 import pint
 import pytest
 import xarray as xr
-from xclim.core.calendar import percentile_doy
-from xclim.core.units import units as xc_units
-
 from icclim.generic_indices.threshold import (
     BasicThreshold,
     BoundedThreshold,
@@ -22,6 +19,8 @@ from icclim.models.constants import UNITS_KEY
 from icclim.models.logical_link import LogicalLinkRegistry
 from icclim.models.operator import OperatorRegistry
 from icclim.pre_processing.input_parsing import PercentileDataArray
+from xclim.core.calendar import percentile_doy
+from xclim.core.units import units as xc_units
 
 
 def test_value_error():
@@ -115,7 +114,7 @@ def test_build_bounded_threshold__from_args():
     t1 = build_threshold(">10degC")
     t2 = build_threshold(">12 doy_per")
     t3 = build_threshold(
-        thresholds=(t1, t2), logical_link=LogicalLinkRegistry.LOGICAL_OR
+        thresholds=(t1, t2), logical_link=LogicalLinkRegistry.LOGICAL_OR,
     )
     assert isinstance(t3, BoundedThreshold)
     assert isinstance(t3.left_threshold, BasicThreshold)
@@ -290,7 +289,7 @@ class Test_FileBased:
     def test_threshold_min_value__number_from_file(self):
         self.data.to_netcdf(path=self.IN_FILE_PATH)
         res = build_threshold(
-            operator=">=", value=self.IN_FILE_PATH, threshold_min_value=5
+            operator=">=", value=self.IN_FILE_PATH, threshold_min_value=5,
         )
         assert res.threshold_min_value == xc_units.Quantity(5, "degC")
 

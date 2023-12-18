@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from xclim.core.calendar import build_climatology_bounds
-
 import icclim
 from icclim.models.constants import (
     UNITS_KEY,
@@ -9,6 +7,8 @@ from icclim.models.constants import (
     USER_INDEX_TEMPERATURE_STAMP,
 )
 from icclim.models.operator import OperatorRegistry
+from xclim.core.calendar import build_climatology_bounds
+
 from tests.testing_utils import stub_tas
 
 
@@ -20,7 +20,7 @@ class Test_max:
         result = icclim.index(
             in_files=da,
             user_index=dict(
-                index_name="data", calc_operation="max", coef=1, logical_operation=None
+                index_name="data", calc_operation="max", coef=1, logical_operation=None,
             ),
         )
         # THEN

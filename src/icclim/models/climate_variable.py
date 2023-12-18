@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any
 
 import jinja2
 import xarray
@@ -71,7 +72,7 @@ class ClimateVariable:
                     standard_name="unknown_variable",
                     long_name="unknown variable",
                     short_name="input",
-                )
+                ),
             )
         else:
             metadata.update(self.standard_var.get_metadata())
@@ -83,8 +84,8 @@ class ClimateVariable:
                         must_run_bootstrap=must_run_bootstrap,
                         jinja_scope=jinja_scope,
                         jinja_env=jinja_env,
-                    )
-                }
+                    ),
+                },
             )
         return metadata
 
@@ -98,13 +99,13 @@ def build_climate_vars(
     is_compared_to_reference: bool,
 ) -> list[ClimateVariable]:
     if standard_index is not None and len(standard_index.input_variables) > len(
-        climate_vars_dict
+        climate_vars_dict,
     ):
         raise InvalidIcclimArgumentError(
             f"Index {standard_index.short_name} needs"
             f" {len(standard_index.input_variables)} variables."
             f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
-            f" zarr store."
+            f" zarr store.",
         )
     acc = []
     for i, raw_climate_var in enumerate(climate_vars_dict.items()):
@@ -119,10 +120,10 @@ def build_climate_vars(
                 ignore_Feb29th,
                 time_range,
                 standard_var=standard_var,
-            )
+            ),
         )
     if _standard_index_needs_ref(
-        standard_index, is_compared_to_reference
+        standard_index, is_compared_to_reference,
     ) or _generic_index_needs_ref(standard_index, is_compared_to_reference):
         standard_var = (
             standard_index.input_variables[0] if standard_index is not None else None
@@ -160,7 +161,7 @@ def _build_reference_variable(
     """
     if reference_period is None:
         raise InvalidIcclimArgumentError(
-            "Can't build a reference variable without a `base_period_time_range`"
+            "Can't build a reference variable without a `base_period_time_range`",
         )
     var_name = list(in_files.keys())[0]
     if isinstance(in_files, dict):
@@ -171,7 +172,7 @@ def _build_reference_variable(
         )
     else:
         study_ds = read_dataset(
-            list(in_files.values())[0], standard_var=standard_var, var_name=var_name
+            list(in_files.values())[0], standard_var=standard_var, var_name=var_name,
         )
     studied_data = build_reference_da(
         study_ds[var_name],
@@ -190,7 +191,7 @@ def _build_reference_variable(
             "time_encoding": study_ds.time.encoding,
         },
         source_frequency=FrequencyRegistry.lookup(
-            xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY
+            xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY,
         ),
         is_reference=True,
     )
@@ -206,7 +207,7 @@ def read_in_files(
         if var_names is not None:
             raise InvalidIcclimArgumentError(
                 "`var_name` must be None when `in_files` is a dictionary."
-                " The dictionary keys are used in place of `var_name`."
+                " The dictionary keys are used in place of `var_name`.",
             )
         if isinstance(list(in_files.values())[0], dict):
             # case of in_files={tasmax: {"study": "tasmax.nc"}}
@@ -234,10 +235,10 @@ def _build_in_file_dict(
         standard_index.input_variables[0] if standard_index is not None else None
     )
     input_dataset = read_dataset(
-        in_files=in_files, standard_var=standard_var, var_name=var_names
+        in_files=in_files, standard_var=standard_var, var_name=var_names,
     )
     var_names = guess_var_names(
-        ds=input_dataset, standard_index=standard_index, var_names=var_names
+        ds=input_dataset, standard_index=standard_index, var_names=var_names,
     )
     if threshold is not None:
         if len(var_names) == 1:
@@ -245,7 +246,7 @@ def _build_in_file_dict(
                 var_names[0]: {
                     "study": input_dataset[var_names[0]],
                     "thresholds": threshold,
-                }
+                },
             }
         if not isinstance(threshold, Sequence):
             threshold = [threshold]
@@ -254,7 +255,7 @@ def _build_in_file_dict(
             # but no other case
             raise InvalidIcclimArgumentError(
                 "There must be as many thresholds as there are variables. There was"
-                f" {len(threshold)} thresholds and {len(var_names)} variables."
+                f" {len(threshold)} thresholds and {len(var_names)} variables.",
             )
         return {
             var_name: {"study": input_dataset[var_name], "thresholds": threshold[i]}
@@ -273,9 +274,9 @@ def _build_climate_var(
 ) -> ClimateVariable:
     if isinstance(climate_var_data, dict):
         study_ds = read_dataset(
-            climate_var_data["study"], standard_var, climate_var_name
+            climate_var_data["study"], standard_var, climate_var_name,
         )
-        # todo: deprecate climate_var_data.get("per_var_name", None)
+        # TODO: deprecate climate_var_data.get("per_var_name", None)
         #       for threshold_var_name
         climate_var_thresh = climate_var_data.get("thresholds", None)
     else:
@@ -307,7 +308,7 @@ def _build_climate_var(
             "time_encoding": study_ds.time.encoding,
         },
         source_frequency=FrequencyRegistry.lookup(
-            xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY
+            xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY,
         ),
     )
 

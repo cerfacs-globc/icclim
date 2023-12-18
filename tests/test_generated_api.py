@@ -3,10 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
+import icclim
 import numpy as np
 import pytest
-
-import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.generic_indices.threshold import build_threshold
@@ -18,6 +17,7 @@ from icclim.models.netcdf_version import NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.models.standard_index import StandardIndex
 from icclim.user_indices.calc_operation import CalcOperation, CalcOperationRegistry
+
 from tests.testing_utils import stub_tas
 
 DEFAULT_ARGS = dict(
@@ -44,13 +44,13 @@ def build_expected_args(index: StandardIndex):
                 "only_leap_years": False,
                 "interpolation": QuantileInterpolationRegistry.MEDIAN_UNBIASED.name,
                 "save_thresholds": False,
-            }
+            },
         )
     elif REFERENCE_PERIOD_INDEX in qualifiers:
         expected_call_args.update(
             {
                 "base_period_time_range": None,
-            }
+            },
         )
     if index.threshold is not None:
         if isinstance(index.threshold, str):
@@ -168,7 +168,7 @@ def test_txx__months_slice_mode():
     ],
 )
 def test_custom_index__season_slice_mode(
-    operator: CalcOperation, expectation_year_1, expectation_year_2
+    operator: CalcOperation, expectation_year_1, expectation_year_2,
 ):
     tas = stub_tas(275.0)
     tas.loc[{"time": "2043-01-01"}] = 303.15
@@ -200,7 +200,7 @@ def test_custom_index__season_slice_mode(
     ],
 )
 def test_custom_index_run_algos__season_slice_mode(
-    operator, expectation_year_1, expectation_year_2
+    operator, expectation_year_1, expectation_year_2,
 ):
     tas = stub_tas(275.0)
     tas.loc[{"time": "2043-12-01"}] = 282.0

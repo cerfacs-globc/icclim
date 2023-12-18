@@ -21,9 +21,14 @@ from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.datachecks import check_freq
 from xclim.core.missing import MissingBase
 from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
-from xclim.core.units import convert_units_to, rate2amount, str2pint, to_agg_units
+from xclim.core.units import (
+    convert_units_to,
+    rate2amount,
+    str2pint,
+    to_agg_units,
+    units2pint,
+)
 from xclim.core.units import units as xc_units
-from xclim.core.units import units2pint
 from xclim.indices import run_length
 
 from icclim.generic_indices.generic_templates import INDICATORS_TEMPLATES_EN
@@ -51,7 +56,7 @@ jinja_env = Environment()
 class MissingMethodLike(metaclass=abc.ABCMeta):
     """workaround xclim missing type"""
 
-    # todo: PR that to xclim
+    # TODO: PR that to xclim
 
     def execute(self, *args, **kwargs) -> MissingBase:
         ...
@@ -96,9 +101,9 @@ class ResamplingIndicator(Indicator, ABC):
         self.missing = missing
         if self.missing == "from_context" and self.missing_options is not None:
             raise ValueError(
-                "Cannot set `missing_options` with `missing` method being from context."
+                "Cannot set `missing_options` with `missing` method being from context.",
             )
-        missing_method: MissingMethodLike = MISSING_METHODS[self.missing]  # noqa typing
+        missing_method: MissingMethodLike = MISSING_METHODS[self.missing]  # typing
         self._missing = missing_method.execute
         if self.missing_options:
             missing_method.validate(**self.missing_options)
@@ -164,7 +169,7 @@ class ResamplingIndicator(Indicator, ABC):
         options = self.missing_options or OPTIONS[MISSING_OPTIONS].get(self.missing, {})
         # We flag periods according to the missing method. skip variables without a time
         # coordinate.
-        missing_method: MissingMethodLike = MISSING_METHODS[self.missing]  # noqa typing
+        missing_method: MissingMethodLike = MISSING_METHODS[self.missing]  # typing
         miss = (
             missing_method.execute(da, resample_freq, src_freq, options, indexer)
             for da in in_data
@@ -173,7 +178,7 @@ class ResamplingIndicator(Indicator, ABC):
         # Reduce by or and broadcast to ensure the same length in time
         # When indexing is used and there are no valid points in the last period,
         # mask will not include it
-        mask = reduce(np.logical_or, miss)  # noqa typing
+        mask = reduce(np.logical_or, miss)  # typing
         if isinstance(mask, DataArray) and mask.time.size < out_data.time.size:
             mask = mask.reindex(time=out_data.time, fill_value=True)
         return out_data.where(~mask)
@@ -217,19 +222,19 @@ class GenericIndicator(ResamplingIndicator):
         if not _same_freq_for_all(climate_vars):
             raise InvalidIcclimArgumentError(
                 "All variables must have the same time frequency (for example daily) to"
-                " be compared with each others, but this was not the case."
+                " be compared with each others, but this was not the case.",
             )
         if self.check_vars is not None:
             self.check_vars(climate_vars, self)
         if sampling_method not in self.sampling_methods:
             raise InvalidIcclimArgumentError(
                 f"{self.name} can only be computed with the following"
-                f" sampling_method(s): {self.sampling_methods}"
+                f" sampling_method(s): {self.sampling_methods}",
             )
         if output_unit is not None:
             if _is_amount_unit(output_unit):
                 climate_vars = _convert_rates_to_amounts(
-                    climate_vars=climate_vars, output_unit=output_unit
+                    climate_vars=climate_vars, output_unit=output_unit,
                 )
             elif _is_a_diff_indicator(self) and output_unit != "%":
                 # [gh:255] Indicators computing the difference between two
@@ -240,7 +245,7 @@ class GenericIndicator(ResamplingIndicator):
                 # to a 15 degC and *is not* to a -258.15 degC.
                 for climate_var in climate_vars:
                     climate_var.studied_data = convert_units_to(
-                        climate_var.studied_data, target=output_unit
+                        climate_var.studied_data, target=output_unit,
                     )
             else:
                 pass  # nothing to do
@@ -250,7 +255,7 @@ class GenericIndicator(ResamplingIndicator):
         if output_frequency.indexer:
             for climate_var in climate_vars:
                 climate_var.studied_data = select_time(
-                    climate_var.studied_data, **output_frequency.indexer, drop=True
+                    climate_var.studied_data, **output_frequency.indexer, drop=True,
                 )
         return super().preprocess(
             climate_vars=climate_vars,
@@ -268,7 +273,7 @@ class GenericIndicator(ResamplingIndicator):
             "source_freq": src_freq,
         }
         climate_vars_meta = _get_climate_vars_metadata(
-            config.climate_variables, src_freq, base_jinja_scope, jinja_env
+            config.climate_variables, src_freq, base_jinja_scope, jinja_env,
         )
         jinja_scope: dict[str, Any] = {
             "min_spell_length": config.min_spell_length,
@@ -331,7 +336,7 @@ def count_occurrences(
     else:
         reducer_op = partial(DataArray.sum, dim="time")
     merged_exceedances = _compute_exceedances(
-        climate_vars, resample_freq.pandas_freq, logical_link
+        climate_vars, resample_freq.pandas_freq, logical_link,
     )
     result = reducer_op(merged_exceedances.resample(time=resample_freq.pandas_freq))
     if to_percent:
@@ -351,7 +356,7 @@ def max_consecutive_occurrence(
     **kwargs,  # noqa
 ) -> DataArray:
     merged_exceedances = _compute_exceedances(
-        climate_vars, resample_freq.pandas_freq, logical_link
+        climate_vars, resample_freq.pandas_freq, logical_link,
     )
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     resampled = rle.resample(time=resample_freq.pandas_freq)
@@ -370,7 +375,7 @@ def sum_of_spell_lengths(
     **kwargs,  # noqa
 ) -> DataArray:
     merged_exceedances = _compute_exceedances(
-        climate_vars, resample_freq.pandas_freq, logical_link
+        climate_vars, resample_freq.pandas_freq, logical_link,
     )
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
@@ -505,7 +510,7 @@ def standard_deviation(
     **kwargs,  # noqa
 ) -> DataArray:
     return _run_simple_reducer(
-        climate_vars, resample_freq, DataArrayResample.std, date_event=False
+        climate_vars, resample_freq, DataArrayResample.std, date_event=False,
     )
 
 
@@ -632,7 +637,7 @@ def mean_of_absolute_one_time_step_difference(
     mean_of_absolute_one_time_step_difference as a xarray.DataArray
     """
     study, ref = get_couple_of_var(
-        climate_vars, "mean_of_absolute_one_time_step_difference"
+        climate_vars, "mean_of_absolute_one_time_step_difference",
     )
     one_time_step_diff = (study - ref).diff(dim="time")
     res = abs(one_time_step_diff).resample(time=resample_freq.pandas_freq).mean()
@@ -653,7 +658,7 @@ def difference_of_means(
             "It does not make sense to resample the reference variable if it is"
             " already a subsample of the studied variable. Try setting"
             f" `sampling_method='{GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}'`"
-            f" instead."
+            f" instead.",
         )
     study, ref = get_couple_of_var(climate_vars, "difference_of_means")
     if sampling_method == GROUP_BY_METHOD:
@@ -677,7 +682,7 @@ def difference_of_means(
             mean_ref = ref.mean(dim="time")
         else:
             return _diff_of_means_of_resampled_x_by_groupedby_y(
-                resample_freq, to_percent, study, ref
+                resample_freq, to_percent, study, ref,
             )
     else:
         raise NotImplementedError(f"Unknown sampling_method: '{sampling_method}'.")
@@ -691,7 +696,7 @@ def difference_of_means(
 
 
 def _diff_of_means_of_resampled_x_by_groupedby_y(
-    resample_freq: Frequency, to_percent: bool, study: DataArray, ref: DataArray
+    resample_freq: Frequency, to_percent: bool, study: DataArray, ref: DataArray,
 ) -> DataArray:
     mean_ref = ref.groupby(resample_freq.group_by_key).mean()
     acc = []
@@ -704,7 +709,7 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
     else:
         raise NotImplementedError(
             f"Can't use {GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}"
-            f" with the frequency {resample_freq.long_name}."
+            f" with the frequency {resample_freq.long_name}.",
         )
     for label, sample in study.resample(time=resample_freq.pandas_freq):
         sample_mean = sample.mean(dim="time")
@@ -726,12 +731,12 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
 def _check_single_var(climate_vars: list[ClimateVariable], indicator: GenericIndicator):
     if len(climate_vars) > 1:
         raise InvalidIcclimArgumentError(
-            f"{indicator.name} can only be computed on a single variable."
+            f"{indicator.name} can only be computed on a single variable.",
         )
 
 
 def _check_couple_of_vars(
-    climate_vars: list[ClimateVariable], indicator: GenericIndicator
+    climate_vars: list[ClimateVariable], indicator: GenericIndicator,
 ):
     if len(climate_vars) != 2:
         raise InvalidIcclimArgumentError(
@@ -739,7 +744,7 @@ def _check_couple_of_vars(
             f" unit (e.g. 2 temperatures). You can either provide a secondary variable"
             f" with `in_files` or `var_name`, or you can let icclim compute this"
             f" second variable as a subset of the first one using"
-            f" `base_period_time_range`."
+            f" `base_period_time_range`.",
         )
 
 
@@ -893,7 +898,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
 def _compute_exceedance(
     study: DataArray,
     threshold: Threshold,
-    freq: str,  # noqa used by @percentile_bootstrap (don't rename, it breaks bootstrap)
+    freq: str,  # used by @percentile_bootstrap (don't rename, it breaks bootstrap)
     bootstrap: bool,  # noqa used by @percentile_bootstrap
 ) -> DataArray:
     exceedances = threshold.compute(study, freq=freq, bootstrap=bootstrap)
@@ -905,16 +910,16 @@ def _compute_exceedance(
 
 
 def get_couple_of_var(
-    climate_vars: list[ClimateVariable], indicator: str
+    climate_vars: list[ClimateVariable], indicator: str,
 ) -> tuple[DataArray, DataArray]:
     if len(climate_vars) != 2:
         raise InvalidIcclimArgumentError(
             f"{indicator} needs two variables **or** one variable and a "
-            f"`base_period_time_range` period to extract a reference variable."
+            f"`base_period_time_range` period to extract a reference variable.",
         )
     if climate_vars[0].threshold or climate_vars[1].threshold:
         raise InvalidIcclimArgumentError(
-            f"{indicator} cannot be computed with thresholds."
+            f"{indicator} cannot be computed with thresholds.",
         )
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
@@ -981,12 +986,12 @@ def _run_simple_reducer(
         )
     else:
         return reducer_op(
-            filtered_study.resample(time=resample_freq.pandas_freq), dim="time"
+            filtered_study.resample(time=resample_freq.pandas_freq), dim="time",
         )
 
 
 def _compute_exceedances(
-    climate_vars: list[ClimateVariable], resample_freq: str, logical_link: LogicalLink
+    climate_vars: list[ClimateVariable], resample_freq: str, logical_link: LogicalLink,
 ) -> DataArray:
     exceedances = [
         _compute_exceedance(
@@ -994,7 +999,7 @@ def _compute_exceedances(
             threshold=climate_var.threshold,
             freq=resample_freq,
             bootstrap=_must_run_bootstrap(
-                climate_var.studied_data, climate_var.threshold
+                climate_var.studied_data, climate_var.threshold,
             ),
         ).squeeze()
         for climate_var in climate_vars
@@ -1032,7 +1037,7 @@ def _must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
     reference = threshold.value
     study_years = np.unique(da.indexes.get("time").year)
     overlapping_years = np.unique(
-        da.sel(time=_get_ref_period_slice(reference)).indexes.get("time").year
+        da.sel(time=_get_ref_period_slice(reference)).indexes.get("time").year,
     )
     return 1 < len(overlapping_years) < len(study_years)
 
@@ -1081,7 +1086,7 @@ def _reduce_with_date_event(
         group_reducer = DataArray.argmin
     else:
         raise NotImplementedError(
-            f"Can't compute `date_event` due to unknown reducer:" f" '{reducer}'"
+            f"Can't compute `date_event` due to unknown reducer: '{reducer}'",
         )
     for label, sample in resampled:
         reduced_result = sample.isel(time=group_reducer(sample, dim="time"))
@@ -1126,7 +1131,7 @@ def _count_occurrences_with_date(resampled: DataArrayResample):
 
 
 def _consecutive_occurrences_with_dates(
-    resampled: DataArrayResample, source_freq_delta: timedelta
+    resampled: DataArrayResample, source_freq_delta: timedelta,
 ):
     acc = []
     for label, sample in resampled:
@@ -1137,7 +1142,7 @@ def _consecutive_occurrences_with_dates(
         time_index_of_max_rle = time_index_of_max_rle.compute()
         dated_longest_run = sample[{"time": time_index_of_max_rle}]
         start_time = sample.isel(
-            time=time_index_of_max_rle.where(time_index_of_max_rle > 0, 0)
+            time=time_index_of_max_rle.where(time_index_of_max_rle > 0, 0),
         ).time
         end_time = start_time + (dated_longest_run * source_freq_delta)
         dated_longest_run = _add_date_coords(
@@ -1193,7 +1198,7 @@ def _convert_rates_to_amounts(climate_vars: list[ClimateVariable], output_unit: 
         if current_unit is not None and not _is_amount_unit(current_unit):
             with xc_units.context("hydro"):
                 climate_var.studied_data = rate2amount(
-                    climate_var.studied_data, out_units=output_unit
+                    climate_var.studied_data, out_units=output_unit,
                 )
     return climate_vars
 
@@ -1229,7 +1234,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
         # TODO improve this for custom resampling
         warn(
             "For now, '%' unit can only be used when `slice_mode` is one of: "
-            "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}."
+            "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}.",
         )
         return da
     da.attrs[UNITS_KEY] = PART_OF_A_WHOLE_UNIT

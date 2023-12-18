@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any
 
-import icclim.models.index_group as index_group
 from icclim.generic_indices.standard_variable import StandardVariable
+from icclim.models import index_group
 
 
 @dataclass
@@ -16,7 +17,6 @@ class StandardIndex:
 
     Attributes
     ----------
-
     short_name: str
         The index name used in the output.
     compute: Callable
@@ -40,7 +40,7 @@ class StandardIndex:
     group: index_group.IndexGroup
     input_variables: list[StandardVariable] | None  # None when index is generic
     indicator: Any  # Any -> Indicator (circular dep)
-    # todo: merge qualifiers with group into a Set of qualifiers ?
+    # TODO: merge qualifiers with group into a Set of qualifiers ?
     qualifiers: list[str] | None = None
     source: str | None = None
     reference: str | None = None
@@ -58,7 +58,7 @@ class StandardIndex:
     def __call__(self, *args, **kwargs):
         self.indicator(*args, **kwargs)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, StandardIndex):
             return False
         return (

@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import abc
 import re
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Any, Callable, Sequence, TypedDict, Union
+from typing import Any, Callable, TypedDict, Union
 
 import jinja2
 import numpy as np
@@ -49,7 +50,7 @@ from icclim.pre_processing.input_parsing import (
 from icclim.utils import is_number_sequence
 
 ThresholdValueType = Union[
-    str, float, int, Dataset, DataArray, Sequence[Union[float, int, str]], None
+    str, float, int, Dataset, DataArray, Sequence[Union[float, int, str]], None,
 ]
 
 
@@ -71,7 +72,7 @@ class ThresholdBuilderInput(TypedDict, total=False):
     reference_period: Sequence[datetime | str] | None
     # bounded conf:
     thresholds: tuple[
-        ThresholdBuilderInput | Threshold, ThresholdBuilderInput | Threshold
+        ThresholdBuilderInput | Threshold, ThresholdBuilderInput | Threshold,
     ] | None
     logical_link: LogicalLink
 
@@ -91,7 +92,6 @@ def build_threshold(
 
     Parameters
     ----------
-
     query: str | None = None
         string query describing a threshold.
         It must include: an operator, a threshold value and optionally a unit
@@ -213,7 +213,7 @@ class Threshold(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def format_metadata(
-        self, *, jinja_scope: dict[str, Any], jinja_env: jinja2.Environment, **kwargs
+        self, *, jinja_scope: dict[str, Any], jinja_env: jinja2.Environment, **kwargs,
     ) -> ThresholdMetadata:
         """Get a dictionary of standardized threshold metadata."""
         ...
@@ -304,14 +304,14 @@ class BoundedThreshold(Threshold):
         if len(thresholds) != 2:
             raise InvalidIcclimArgumentError(
                 f"BoundedThreshold can only be built on 2 thresholds, {len(thresholds)}"
-                f" were found."
+                f" were found.",
             )
         self.left_threshold = self._build_thresh(thresholds[0])
         self.right_threshold = self._build_thresh(thresholds[1])
         if self.left_threshold == self.right_threshold:
             raise InvalidIcclimArgumentError(
                 f"BoundedThreshold must be built on 2 **different** thresholds, here"
-                f" both were {self.left_threshold.initial_query}"
+                f" both were {self.left_threshold.initial_query}",
             )
         self.logical_link = logical_link
         self.initial_query = initial_query
@@ -323,24 +323,24 @@ class BoundedThreshold(Threshold):
         **kwargs,
     ) -> DataArray:
         left_res = self.left_threshold.compute(
-            comparison_data, override_op=override_op, **kwargs
+            comparison_data, override_op=override_op, **kwargs,
         )
         right_res = self.right_threshold.compute(
-            comparison_data, override_op=override_op, **kwargs
+            comparison_data, override_op=override_op, **kwargs,
         )
         return self.logical_link.compute([left_res, right_res])
 
     def format_metadata(
-        self, *, jinja_scope: dict[str, Any], jinja_env: jinja2.Environment, **kwargs
+        self, *, jinja_scope: dict[str, Any], jinja_env: jinja2.Environment, **kwargs,
     ) -> ThresholdMetadata:
         templates = self._get_metadata_templates()
         conf = {
             "left_threshold": self.left_threshold.format_metadata(
-                jinja_scope=jinja_scope, jinja_env=jinja_env, **kwargs
+                jinja_scope=jinja_scope, jinja_env=jinja_env, **kwargs,
             ),
             "logical_link": self.logical_link,
             "right_threshold": self.right_threshold.format_metadata(
-                jinja_scope=jinja_scope, jinja_env=jinja_env, **kwargs
+                jinja_scope=jinja_scope, jinja_env=jinja_env, **kwargs,
             ),
         }
         conf.update(jinja_scope)
@@ -380,7 +380,7 @@ class BoundedThreshold(Threshold):
         )
 
     def _build_thresh(
-        self, thresh_input: Threshold | str | ThresholdBuilderInput
+        self, thresh_input: Threshold | str | ThresholdBuilderInput,
     ) -> Threshold:
         if isinstance(thresh_input, Threshold):
             return thresh_input
@@ -441,7 +441,7 @@ class PercentileThreshold(Threshold):
         if self.is_ready:
             if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
                 self._prepared_value = convert_units_to(
-                    self._prepared_value, unit, context="hydro"
+                    self._prepared_value, unit, context="hydro",
                 )
             self.value.attrs[UNITS_KEY] = unit
 
@@ -453,7 +453,7 @@ class PercentileThreshold(Threshold):
             raise RuntimeError(
                 "Property `value` is not ready. For PercentileDataArray,"
                 " you must call `.prepare` first and fill `studied_data`"
-                " parameter in order to prepare `value`."
+                " parameter in order to prepare `value`.",
             )
 
     def __init__(
@@ -527,12 +527,12 @@ class PercentileThreshold(Threshold):
             )
         else:
             raise NotImplementedError(
-                f"Unknown percentile unit" f" '{self._initial_unit}'."
+                f"Unknown percentile unit '{self._initial_unit}'.",
             )
         self._prepared_value = prepared_data.chunk("auto")
         self.is_ready = True
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         return (
             isinstance(other, PercentileThreshold)
             and self.initial_query == other.initial_query
@@ -598,7 +598,7 @@ class PercentileThreshold(Threshold):
             raise RuntimeError(
                 "This PercentileThreshold is not ready. You must first call `.prepare`"
                 " with a `studied_data` parameter in order to prepare the threshold"
-                " for computation."
+                " for computation.",
             )
 
     def _get_metadata_templates(self, per_coord: DataArray) -> ThresholdMetadata:
@@ -670,7 +670,7 @@ class BasicThreshold(Threshold):
             is_number_sequence(value) or isinstance(value, (float, int))
         ) and threshold_min_value is not None:
             raise InvalidIcclimArgumentError(
-                "Cannot use threshold_min_value with scalars"
+                "Cannot use threshold_min_value with scalars",
             )
         if is_dataset_path(value) or isinstance(value, Dataset):
             # e.g. build_threshold(">", "thresh*.nc" , "degC")
@@ -693,7 +693,7 @@ class BasicThreshold(Threshold):
         elif isinstance(value, (float, int)):
             # e.g. build_threshold(">", [2,3,4], "degC")
             built_value = DataArray(
-                name="threshold", data=value, attrs={UNITS_KEY: unit}
+                name="threshold", data=value, attrs={UNITS_KEY: unit},
             )
         else:
             raise NotImplementedError(f"Cannot build threshold from a {type(value)}.")
@@ -745,10 +745,10 @@ class BasicThreshold(Threshold):
         }
         if self.value.size > 1:
             conf["min_value"] = np.format_float_positional(
-                self.value.min().values[()], 3
+                self.value.min().values[()], 3,
             )
             conf["max_value"] = np.format_float_positional(
-                self.value.max().values[()], 3
+                self.value.max().values[()], 3,
             )
         conf.update(jinja_scope)
         return {
@@ -798,7 +798,7 @@ def _build_period_per(
         dask_gufunc_kwargs=dict(output_sizes={"percentiles": 1}, allow_rechunk=True),
     )
     computed_per = computed_per.assign_coords(
-        percentiles=xr.DataArray(per_val, dims=("percentiles",))
+        percentiles=xr.DataArray(per_val, dims=("percentiles",)),
     )
     res = PercentileDataArray.from_da(
         source=computed_per,
@@ -871,12 +871,12 @@ def _build_min_value(
             raise InvalidIcclimArgumentError(
                 f"cannot compute threshold_min_value with"
                 f" {operator}. You don't need to fill an"
-                f" operator for this parameter."
+                f" operator for this parameter.",
             )
         return xc_units.Quantity(value=value, units=unit)
     else:
         raise NotImplementedError(
-            f"Unknown type '{type(threshold_min_value)}' for `threshold_min_value`."
+            f"Unknown type '{type(threshold_min_value)}' for `threshold_min_value`.",
         )
 
 
@@ -912,7 +912,7 @@ def _read_input(
 
 
 def _read_bounded_threshold(
-    thresholds: tuple[Threshold, Threshold], logical_link: LogicalLink | str
+    thresholds: tuple[Threshold, Threshold], logical_link: LogicalLink | str,
 ) -> ThresholdBuilderInput:
     acc = []
     for t in thresholds:
@@ -924,11 +924,11 @@ def _read_bounded_threshold(
             raise NotImplementedError(f"Unknown type '{type(t)}'")
     if len(acc) > 2:
         raise NotImplementedError(
-            "Can't build BoundedThreshold on more than 2 thresholds."
+            "Can't build BoundedThreshold on more than 2 thresholds.",
         )
     if isinstance(logical_link, str):
         logical_link = LogicalLinkRegistry.lookup(logical_link)
-    return {  # noqa
+    return {
         "initial_query": None,
         "thresholds": tuple(acc),
         "logical_link": logical_link,
@@ -986,7 +986,7 @@ def _must_read_from_args(operator: Operator | str, value: ThresholdValueType) ->
 
 def _is_bounded_threshold_query(query: str) -> bool:
     return any(
-        [l_l.name.upper() in query.upper() for l_l in LogicalLinkRegistry.values()]
+        [l_l.name.upper() in query.upper() for l_l in LogicalLinkRegistry.values()],
     )
 
 
@@ -1006,7 +1006,7 @@ def _read_bounded_threshold_query(query: str) -> ThresholdBuilderInput:
     if len(threshs) != 2:
         raise InvalidIcclimArgumentError(
             "BoundedThreshold can only be built on 2"
-            f" thresholds. We found {len(threshs)} here."
+            f" thresholds. We found {len(threshs)} here.",
         )
     return {
         "initial_query": query,
@@ -1043,9 +1043,7 @@ def _must_build_basic_threshold(input: ThresholdBuilderInput) -> bool:
         thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
         return not PercentileDataArray.is_compatible(thresh_da)
     return (
-        is_number_sequence(value)
-        or isinstance(value, (float, int))
-        or isinstance(value, DataArray)
+        isinstance(value, (DataArray, float, int))
     )
 
 
@@ -1068,7 +1066,7 @@ def _apply_min_value(thresh_da: DataArray, min_value: pint.Quantity | None):
 
 
 def _get_dataarray_from_dataset(
-    threshold_var_name: str | None, value: Dataset | str
+    threshold_var_name: str | None, value: Dataset | str,
 ) -> DataArray:
     if isinstance(value, Dataset):
         ds = value
@@ -1085,7 +1083,7 @@ def _get_dataarray_from_dataset(
                 raise InvalidIcclimArgumentError(
                     f"Could not guess the variable to use as a threshold in {ds}."
                     f" Use `threshold_var_name` to specify which variable should be"
-                    f" used."
+                    f" used.",
                 )
     thresh_da = ds[threshold_var_name]
     return thresh_da

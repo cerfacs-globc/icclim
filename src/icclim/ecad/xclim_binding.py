@@ -36,11 +36,11 @@ class XCLIM_BINDING:
 
         def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
             """Not implemented as xclim indicator already handle pre/post processing"""
-            raise NotImplementedError()
+            raise NotImplementedError
 
         def postprocess(self, *args, **kwargs) -> xarray.DataArray:
             """Not implemented as xclim indicator already handle pre/post processing"""
-            raise NotImplementedError()
+            raise NotImplementedError
 
     class StandardizedPrecipitationIndex3(Indicator):
         """
@@ -56,20 +56,20 @@ class XCLIM_BINDING:
         def __call__(self, config: IndexConfig) -> xarray.DataArray:
             if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
                 raise InvalidIcclimArgumentError(
-                    "`slice_mode` cannot be configured when computing SPI3"
+                    "`slice_mode` cannot be configured when computing SPI3",
                 )
             study, ref = get_couple_of_var(config.climate_variables, "SPI")
             return xclim.atmos.standardized_precipitation_index(
-                pr=study, pr_cal=ref, freq="MS", window=3, dist="gamma", method="APP"
+                pr=study, pr_cal=ref, freq="MS", window=3, dist="gamma", method="APP",
             )
 
         def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
             """Not implemented as xclim indicator already handle pre/post processing"""
-            raise NotImplementedError()
+            raise NotImplementedError
 
         def postprocess(self, *args, **kwargs) -> xarray.DataArray:
             """Not implemented as xclim indicator already handle pre/post processing"""
-            raise NotImplementedError()
+            raise NotImplementedError
 
     class StandardizedPrecipitationIndex6(Indicator):
         """
@@ -85,17 +85,17 @@ class XCLIM_BINDING:
         def __call__(self, config: IndexConfig) -> xarray.DataArray:
             if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
                 raise InvalidIcclimArgumentError(
-                    "`slice_mode` cannot be configured when computing SPI6"
+                    "`slice_mode` cannot be configured when computing SPI6",
                 )
             study, ref = get_couple_of_var(config.climate_variables, "SPI")
             return xclim.atmos.standardized_precipitation_index(
-                pr=study, pr_cal=ref, freq="MS", window=6, dist="gamma", method="APP"
+                pr=study, pr_cal=ref, freq="MS", window=6, dist="gamma", method="APP",
             )
 
         def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
             """Not implemented as xclim indicator already handle pre/post processing"""
-            raise NotImplementedError()
+            raise NotImplementedError
 
         def postprocess(self, *args, **kwargs) -> xarray.DataArray:
             """Not implemented as xclim indicator already handle pre/post processing"""
-            raise NotImplementedError()
+            raise NotImplementedError
