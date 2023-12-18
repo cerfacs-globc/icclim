@@ -383,7 +383,7 @@ def _is_season_valid(months: list[int]) -> bool:
 
 
 def _get_frequency_from_iterable(
-    slice_mode_list: list | tuple[str, Sequence]
+    slice_mode_list: list | tuple[str, Sequence],
 ) -> Frequency:
     if len(slice_mode_list) < 2:
         raise InvalidIcclimArgumentError(
