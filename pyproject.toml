@@ -72,3 +72,11 @@ doc = [
 [project.urls]
 Documentation = "https://icclim.readthedocs.io/en/latest/how_to/index.html"
 Source = "https://github.com/cerfacs-globc/icclim/"
+
+[tool.ruff.lint]
+extend-select = [
+  "ALL" # pyupgrade
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
