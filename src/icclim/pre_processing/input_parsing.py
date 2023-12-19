@@ -129,7 +129,9 @@ def read_dataset(
         # we assumes it's a list of netCDF files
         #  join="override" is used for cases some dimension are a tiny bit different
         #  in different files (was the case with eobs).
-        ds = xr.open_mfdataset(in_files, parallel=True, join="override")
+        # TODO @bzah: change parallel to True when issue is fixed on netcdf4 (py and C)
+        # https://github.com/Unidata/netcdf4-python/issues/1192
+        ds = xr.open_mfdataset(in_files, parallel=False, join="override")
     elif is_netcdf_path(in_files):
         ds = xr.open_dataset(in_files)
     elif is_zarr_path(in_files):
