@@ -298,8 +298,9 @@ def _build_climate_var(
             standard_var,
             climate_var_name,
         )
-        # TODO: deprecate climate_var_data.get("per_var_name", None)
-        #       for threshold_var_name
+        # TODO @bzah: deprecate climate_var_data.get("per_var_name", None)
+        #             in favor of threshold_var_name
+        # https://github.com/cerfacs-globc/icclim/issues/289
         climate_var_thresh = climate_var_data.get("thresholds", None)
     else:
         climate_var_data: InFileBaseType

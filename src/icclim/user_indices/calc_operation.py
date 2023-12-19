@@ -28,7 +28,8 @@ class CalcOperation(Hashable):
 
 
 class CalcOperationRegistry(Registry[CalcOperation]):
-    # TODO remove class once deprecation is finished (v6.1 ?)
+    # TODO @bzah: remove class once deprecation is finished (v6.1 ?)
+    # https://github.com/cerfacs-globc/icclim/issues/289
     _item_class = CalcOperation
     MAX = CalcOperation("max")
     MIN = CalcOperation("min")

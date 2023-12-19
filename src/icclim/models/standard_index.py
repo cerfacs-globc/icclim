@@ -42,7 +42,8 @@ class StandardIndex:
     group: index_group.IndexGroup
     input_variables: list[StandardVariable] | None  # None when index is generic
     indicator: Any  # Any -> Indicator (circular dep)
-    # TODO: merge qualifiers with group into a Set of qualifiers ?
+    # TODO @bzah: merge qualifiers with group into a Set of qualifiers ?
+    # https://github.com/cerfacs-globc/icclim/issues/289
     qualifiers: list[str] | None = None
     source: str | None = None
     reference: str | None = None

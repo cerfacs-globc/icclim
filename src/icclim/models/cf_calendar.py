@@ -20,8 +20,9 @@ class CfCalendar:
         return self.aliases[0]
 
 
-# TODO: the whole class might be useless with the latest cftime
+# TODO @bzah: the whole class might be useless with the latest cftime
 #      (we don't need our own CfCalendar if we can do `da.time.dt.is_leap_year`)
+# https://github.com/cerfacs-globc/icclim/issues/289
 class CfCalendarRegistry(Registry[CfCalendar]):
     """
     Calendars known in CF plus some additional custom aliases for convenience.

@@ -154,7 +154,8 @@ def update_to_standard_coords(ds: Dataset) -> Dataset:
     """
     Mutate input ds to use more icclim friendly coordinate names.
     """
-    # TODO see if cf-xarray could replace this
+    # TODO @bzah: see if cf-xarray could replace this
+    # https://github.com/cerfacs-globc/icclim/issues/289
     if ds.coords.get("t") is not None:
         ds = ds.rename({"t": "time"})
     return ds
@@ -173,7 +174,9 @@ def is_glob_path(path: InFileBaseType) -> bool:
 
 
 def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
-    # TODO [xclim backport] This function could probably be in PercentileDataArray
+    # TODO @bzah: [xclim backport] This function could probably be in
+    #             PercentileDataArray
+    # https://github.com/cerfacs-globc/icclim/issues/289
     per_dim_name = None
     for d in VALID_PERCENTILE_DIMENSION:
         if d in per_da.dims:
@@ -397,7 +400,8 @@ def read_threshold_DataArray(
                     thresh_da,
                     context="hydro",
                 )
-            # TODO in prcptot the replacing value (np.nan) needs to be 0
+            # TODO @bzah: in prcptot the replacing value (np.nan) needs to be 0
+            # https://github.com/cerfacs-globc/icclim/issues/289
             built_value = thresh_da.where(thresh_da > threshold_min_value, np.nan)
         else:
             built_value = thresh_da

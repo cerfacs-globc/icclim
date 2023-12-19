@@ -250,7 +250,9 @@ class StandardVariableRegistry(Registry[StandardVariable]):
     #     aliases=["x"],
     #     default_units="w",
     # )
-    # todo add tier1 and tier2 aliases from cmip6/cordex https://docs.google.com/spreadsheets/d/1qUauozwXkq7r1g-L4ALMIkCNINIhhCPx/edit?rtpof=true&sd=true#gid=1672965248 # noqa
+    # TODO @bzah: add tier1 and tier2 aliases from cmip6/cordex
+    # https://docs.google.com/spreadsheets/d/1qUauozwXkq7r1g-L4ALMIkCNINIhhCPx/edit?rtpof=true&sd=true#gid=1672965248 # noqa
+    # https://github.com/cerfacs-globc/icclim/issues/289
 
     @staticmethod
     def get_item_aliases(item: StandardVariable) -> list[str]:

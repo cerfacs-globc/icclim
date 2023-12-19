@@ -398,7 +398,8 @@ def index(
             base_period_time_range,
         )
     elif index_name is not None:
-        # TODO: [BoundedThreshold] read logical_link from threshold instead
+        # TODO @bzah: [BoundedThreshold] read logical_link from threshold instead
+        # https://github.com/cerfacs-globc/icclim/issues/289
         logical_link = LogicalLinkRegistry.LOGICAL_AND
         coef = None
         standard_index = EcadIndexRegistry.lookup(index_name, no_error=True)
@@ -545,8 +546,9 @@ def _handle_deprecated_params(
 
 def _setup(callback, callback_start_value, logs_verbosity) -> None:
     # make xclim input daily check a warning instead of an error
-    # TODO: it might be safer to feed a context manager which will setup
-    #       and teardown these confs
+    # TODO @bzah: it might be safer to feed a context manager which will setup
+    #             and teardown these confs
+    # https://github.com/cerfacs-globc/icclim/issues/289
     xclim.set_options(data_validation="warn")
     # keep attributes through xarray operations
     xr.set_options(keep_attrs=True)
@@ -697,8 +699,9 @@ def _format_threshold(cf_var: ClimateVariable) -> DataArray:
     return cf_var.threshold.value.rename(cf_var.name + "_thresholds").reindex()
 
 
-# TODO move `read_indicator`, `read_threshold`, `read_logical_link`, `read_coef`,
-#      `read_date_event` to a user_index_parsing module
+# TODO @bzah: move `read_indicator`, `read_threshold`, `read_logical_link`, `read_coef`,
+#             `read_date_event` to a user_index_parsing module
+# https://github.com/cerfacs-globc/icclim/issues/289
 
 
 def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
@@ -749,11 +752,12 @@ def read_thresholds(
     thresh = user_index.get("thresh", None)
     if thresh is None or isinstance(thresh, Threshold):
         return thresh
-    # TODO [BoundedThreshold] re-add below code and bind to LogicalLink
-    # or (
-    #     isinstance(thresh, (tuple, list))
-    #     and all(map(lambda th: isinstance(th, Threshold), thresh))
-    # )
+    # TODO @bzah: [BoundedThreshold] re-add below code and bind to LogicalLink
+    #             or (
+    #                 isinstance(thresh, (tuple, list))
+    #                 and all(map(lambda th: isinstance(th, Threshold), thresh))
+    #             )
+    # https://github.com/cerfacs-globc/icclim/issues/289
     logical_operation = user_index["logical_operation"]
     if not isinstance(logical_operation, (tuple, list)):
         logical_operation = [logical_operation]
@@ -787,7 +791,8 @@ def read_threshold(
 
 
 def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
-    # TODO add unit test using it
+    # TODO @bzah: add unit test using it
+    # https://github.com/cerfacs-globc/icclim/issues/289
     logical_link = user_index.get("link_logical_operations", None)
     if logical_link is None:
         return LogicalLinkRegistry.LOGICAL_AND
@@ -796,12 +801,14 @@ def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
 
 
 def read_coef(user_index: UserIndexDict) -> float | None:
-    # TODO add unit test using it
+    # TODO @bzah: add unit test using it
+    # https://github.com/cerfacs-globc/icclim/issues/289
     return user_index.get("coef", None)
 
 
 def read_date_event(user_index: UserIndexDict) -> float | None:
-    # TODO add unit test using it
+    # TODO @bzah: add unit test using it
+    # https://github.com/cerfacs-globc/icclim/issues/289
     return user_index.get("date_event", False)
 
 

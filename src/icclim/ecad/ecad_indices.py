@@ -17,10 +17,9 @@ ECAD_REFERENCE = (
 
 class EcadIndexRegistry(Registry[StandardIndex]):
     _item_class = StandardIndex
-    # TODO Add indices of wind gust, wind direction,
-    #                     radiation, pressure,
-    #                     cloud cover, sunshine,
-    #                     humidity
+    # TODO @bzah: Add indices of wind gust, wind direction,
+    #             radiation, pressure, cloud cover, sunshine, humidity
+    # https://github.com/cerfacs-globc/icclim/issues/289
 
     @staticmethod
     def get_item_aliases(item: StandardIndex) -> list[str]:

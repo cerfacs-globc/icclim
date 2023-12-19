@@ -60,7 +60,8 @@ jinja_env = Environment(autoescape=False)
 class MissingMethodLike(metaclass=abc.ABCMeta):
     """workaround xclim missing type"""
 
-    # TODO: PR that to xclim
+    # TODO @bzah: PR that to xclim
+    # https://github.com/cerfacs-globc/icclim/issues/289
 
     def execute(self, *args, **kwargs) -> MissingBase:
         ...
@@ -1078,8 +1079,9 @@ def _must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
     """Avoid bootstrapping if there is one single year overlapping
     or no year overlapping or all year overlapping.
     """
-    # TODO: Don't run bootstrap when not on extreme percentile
+    # TODO @bzah: Don't run bootstrap when not on extreme percentile
     #       (run only below 20? 10? and above 80? 90?)
+    # https://github.com/cerfacs-globc/icclim/issues/289
     if (
         threshold is None
         or not isinstance(threshold, PercentileThreshold)
@@ -1168,8 +1170,8 @@ def _reduce_with_date_event(
 def _count_occurrences_with_date(resampled: DataArrayResample):
     acc: list[DataArray] = []
     for label, sample in resampled:
-        # Fixme probably not safe to compute on huge dataset,
-        #  it should be fixed with
+        # TODO @bzah: probably not safe to compute on huge dataset,
+        #              it should be fixed with
         #  https://github.com/pydata/xarray/issues/2511
         sample = sample.compute()
         first = sample.isel(time=sample.argmax("time")).time
@@ -1194,8 +1196,8 @@ def _consecutive_occurrences_with_dates(
     for label, sample in resampled:
         sample = sample.where(~sample.isnull(), 0)
         time_index_of_max_rle = sample.argmax(dim="time")
-        # fixme: `.compute` is needed until xarray merges this pr:
-        #        https://github.com/pydata/xarray/pull/5873
+        # TODO @bzah: `.compute` is needed until xarray merges this pr:
+        # https://github.com/pydata/xarray/pull/5873
         time_index_of_max_rle = time_index_of_max_rle.compute()
         dated_longest_run = sample[{"time": time_index_of_max_rle}]
         start_time = sample.isel(
@@ -1288,7 +1290,8 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
     elif sampling_freq == FrequencyRegistry.SON:
         da = da / 91
     else:
-        # TODO improve this for custom resampling
+        # TODO @bzah: improve this for custom resampling
+        # https://github.com/cerfacs-globc/icclim/issues/289
         warn(
             "For now, '%' unit can only be used when `slice_mode` is one of: "
             "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}.",
