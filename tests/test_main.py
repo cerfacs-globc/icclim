@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import contextlib
-import os
 from datetime import datetime
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import cftime
@@ -51,7 +51,7 @@ class Test_Integration:
 
     """
 
-    OUTPUT_FILE = "out.nc"
+    OUTPUT_FILE = Path("out.nc")
     TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     CF_TIME_RANGE = xr.cftime_range("2042-01-01", end="2045-12-31", freq="D")
     data = xr.DataArray(
@@ -103,7 +103,7 @@ class Test_Integration:
         yield
         # teardown
         with contextlib.suppress(FileNotFoundError):
-            os.remove(self.OUTPUT_FILE)
+            self.OUTPUT_FILE.unlink()
 
     def test_index_SU(self):
         tas = stub_tas(tas_value=26 + K2C)

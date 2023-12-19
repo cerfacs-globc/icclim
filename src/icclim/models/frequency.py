@@ -415,17 +415,14 @@ def _get_frequency_from_iterable(
     freq_keyword = slice_mode_list[0]
     if freq_keyword in ["month", "months"]:
         return _build_frequency_filtered_by_month(slice_mode_list[1])
-    elif freq_keyword in ["season", "seasons"]:
+    if freq_keyword in ["season", "seasons"]:
         season = slice_mode_list[1]
         return _build_seasonal_freq(season)
-    else:
-        msg = (
-            f"Unknown frequency {slice_mode_list}."
-            " The sampling frequency must be one of {'season', 'month'}"
-        )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+    msg = (
+        f"Unknown frequency {slice_mode_list}."
+        " The sampling frequency must be one of {'season', 'month'}"
+    )
+    raise InvalidIcclimArgumentError(msg)
 
 
 def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
@@ -445,10 +442,9 @@ def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
 def _build_seasonal_freq(season: Sequence):
     if isinstance(season[0], str):
         return _build_seasonal_frequency_between_dates(season)
-    elif isinstance(season, tuple) or isinstance(season[0], int):
+    if isinstance(season, tuple) or isinstance(season[0], int):
         return _build_seasonal_frequency_for_months(season)
-    else:
-        raise NotImplementedError
+    raise NotImplementedError
 
 
 def _build_seasonal_frequency_between_dates(season: Sequence[str]) -> Frequency:
@@ -506,8 +502,7 @@ def _get_long_name(pandas_freq: str) -> str:
     freqs = " ".join(freqs)
     if multiplier:
         return f"{multiplier[0]} {freqs}"
-    else:
-        return freqs
+    return freqs
 
 
 def _get_delta(pandas_freq: str) -> np.timedelta64:
@@ -534,5 +529,4 @@ def _get_delta(pandas_freq: str) -> np.timedelta64:
     if multiplier:
         multiplier = int(multiplier[0])
         return np.timedelta64(base * multiplier, freq)
-    else:
-        return np.timedelta64(base, freq)
+    return np.timedelta64(base, freq)

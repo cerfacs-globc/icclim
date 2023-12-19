@@ -106,13 +106,12 @@ def guess_var_names(
 ) -> list[Hashable]:
     if var_names is None:
         return _guess_dataset_var_names(ds=ds, standard_index=standard_index)
-    elif isinstance(var_names, str):
+    if isinstance(var_names, str):
         return [var_names]
-    elif isinstance(var_names, (list, tuple)):
+    if isinstance(var_names, (list, tuple)):
         return var_names
-    else:
-        msg = "`var_name` must be a string a list or None."
-        raise NotImplementedError(msg)
+    msg = "`var_name` must be a string a list or None."
+    raise NotImplementedError(msg)
 
 
 def read_dataset(
@@ -205,9 +204,7 @@ def read_clim_bounds(
     bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
     if len(bds) != 2:
         msg = "climatology_bounds must be a iterable of length 2."
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     return [get_date_to_iso_format(bd) for bd in bds]
 
 
@@ -219,14 +216,11 @@ def _read_dataarray(
     if isinstance(var_name, (tuple, list)):
         if len(var_name) > 1:
             msg = (
-                "When the `in_file` is a DataArray, there"
+                "When `in_file` is a DataArray, there"
                 f" can only be one value in `var_name` but var_name was: {var_name} "
             )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
-        else:
-            var_name = var_name[0]
+            raise InvalidIcclimArgumentError(msg)
+        var_name = var_name[0]
         data_name = var_name or standard_var.short_name or None
     else:
         data_name = var_name or data.name or "unnamed_var"
@@ -263,11 +257,9 @@ def _guess_dataset_var_names(
         if len(climate_var_names) < len(standard_index.input_variables):
             raise InvalidIcclimArgumentError(error_msg)
         return climate_var_names
-    else:
-        if len(ds.data_vars) == 1:
-            return [get_name_of_first_var(ds)]
-        else:
-            return find_standard_vars(ds)
+    if len(ds.data_vars) == 1:
+        return [get_name_of_first_var(ds)]
+    return find_standard_vars(ds)
 
 
 def find_standard_vars(ds: Dataset) -> list[Hashable]:

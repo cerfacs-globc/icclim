@@ -79,15 +79,15 @@ select = [
   "W", # pycodestyle warn
   "C90", # mccabe
   "I", # isort
-  # "N", # pep8-naming
-  # "D", # pydocstyle
+  # "N", # pep8-naming, to add
+  # "D", # pydocstyle, to add
   "UP", # pyupgrade
   "YTT", # flake8-2020
-  # "ANN", # flake8-annotations
+  # "ANN", # flake8-annotations, to add
   "ASYNC", # flake8-async
   # "S", # flake8-bandit
   "BLE", # flake8-blind-except
-  # "FBT", # flake8-boolean-trap
+  # "FBT", # flake8-boolean-trap, to add
   "B", # flake8-bugbear
   "A", # flake8-builtins
   "COM", # flake8-commas
@@ -119,7 +119,7 @@ select = [
   "PTH", # flake8-use-pathlib
   "TD", # flake8-todos
   "ERA", # eradicate
-  "PD", # pandas-vet
+  # "PD", # pandas-vet, not really compatible with xarray
   "PGH", # pygrep-hooks
   "PL", # Pylint
   "TRY", # tryceratops
@@ -130,6 +130,11 @@ select = [
   # "FURB", # refurb, preview
   # "LOG", # flake8-logging, preview
   "RUF" # Ruff-specific rules
+]
+ignore = [
+  "PLR0913", # too many arguments in function, to add
+  "PLR2004", # Magic values, to add
+  "SLF001" # private member accessed, to add
 ]
 
 [tool.ruff.lint.pydocstyle]

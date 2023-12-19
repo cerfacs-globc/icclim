@@ -7,7 +7,7 @@ from icclim.models.standard_index import StandardIndex
 
 
 def test_listing():
-    res = EcadIndexRegistry.list()
+    res = EcadIndexRegistry.to_list()
     indices = [
         k for k, v in EcadIndexRegistry.__dict__.items() if isinstance(v, StandardIndex)
     ]

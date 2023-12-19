@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, Callable
 from warnings import warn
 
 import jinja2
-import numpy
 import numpy as np
 import xarray as xr
 from jinja2 import Environment
@@ -282,7 +281,7 @@ class GenericIndicator(ResamplingIndicator):
     def __call__(self, config: IndexConfig) -> DataArray:
         src_freq = config.climate_variables[0].source_frequency
         base_jinja_scope = {
-            "np": numpy,
+            "np": np,
             "enumerate": enumerate,
             "len": len,
             "output_freq": config.frequency,
@@ -364,8 +363,7 @@ def count_occurrences(
         result = _to_percent(result, resample_freq)
         result.attrs[UNITS_KEY] = "%"
         return result
-    else:
-        return to_agg_units(result, climate_vars[0].studied_data, "count")
+    return to_agg_units(result, climate_vars[0].studied_data, "count")
 
 
 def max_consecutive_occurrence(
@@ -756,7 +754,7 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
         )
     for label, sample in study.resample(time=resample_freq.pandas_freq):
         sample_mean = sample.mean(dim="time")
-        ref_group_mean = mean_ref.sel({key: dt_selector(sample).values[0]})
+        ref_group_mean = mean_ref.sel({key: dt_selector(sample).to_numpy()[0]})
         sample_diff_of_means = sample_mean - ref_group_mean
         if to_percent:
             sample_diff_of_means = sample_diff_of_means / ref_group_mean * 100
@@ -1007,8 +1005,7 @@ def _run_rolling_reducer(
             window=rolling_window_width,
             source_delta=source_freq_delta,
         )
-    else:
-        return resampled_op(study, dim="time")  # type:ignore
+    return resampled_op(study, dim="time")  # type:ignore
 
 
 def _run_simple_reducer(
@@ -1036,11 +1033,10 @@ def _run_simple_reducer(
             resampled=filtered_study.resample(time=resample_freq.pandas_freq),
             reducer=reducer_op,
         )
-    else:
-        return reducer_op(
-            filtered_study.resample(time=resample_freq.pandas_freq),
-            dim="time",
-        )
+    return reducer_op(
+        filtered_study.resample(time=resample_freq.pandas_freq),
+        dim="time",
+    )
 
 
 def _compute_exceedances(
@@ -1071,8 +1067,7 @@ def get_single_var(
             climate_vars[0].studied_data,
             climate_vars[0].threshold,
         )
-    else:
-        return climate_vars[0].studied_data, None
+    return climate_vars[0].studied_data, None
 
 
 def _must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
@@ -1103,7 +1098,7 @@ def _get_ref_period_slice(da: DataArray) -> slice:
     if (bds := da.attrs.get("climatology_bounds", None)) is not None:
         return slice(*bds)
     time_length = len(da.time)
-    return slice(*da.time[0 :: time_length - 1].dt.strftime("%Y-%m-%d").values)
+    return slice(*da.time[0 :: time_length - 1].dt.strftime("%Y-%m-%d").to_numpy())
 
 
 def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
@@ -1175,7 +1170,7 @@ def _count_occurrences_with_date(resampled: DataArrayResample):
         #  https://github.com/pydata/xarray/issues/2511
         sample = sample.compute()
         first = sample.isel(time=sample.argmax("time")).time
-        reversed_time = sample.reindex(time=list(reversed(sample.time.values)))
+        reversed_time = sample.reindex(time=list(reversed(sample.time.to_numpy())))
         last = reversed_time.isel(time=reversed_time.argmax("time")).time
         dated_occurrences = _add_date_coords(
             original_sample=sample,
@@ -1305,8 +1300,7 @@ def _is_leap_year(da: DataArray) -> np.ndarray:
     time_index = da.indexes.get("time")
     if isinstance(time_index, xr.CFTimeIndex):
         return CfCalendarRegistry.lookup(time_index.calendar).is_leap(da.time.dt.year)
-    else:
-        return da.time.dt.is_leap_year
+    return da.time.dt.is_leap_year
 
 
 def _check_cf(climate_vars: list[ClimateVariable]):

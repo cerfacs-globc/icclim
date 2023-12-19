@@ -26,7 +26,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         return [item.short_name]
 
     @classmethod
-    def list(cls: EcadIndexRegistry) -> list[str]:
+    def to_list(cls: EcadIndexRegistry) -> list[str]:
         return [
             f"{i.group.name} | {i.short_name} | {i.definition}" for i in cls.values()
         ]

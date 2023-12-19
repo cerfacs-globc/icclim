@@ -219,23 +219,19 @@ def read_in_files(
                 "`var_name` must be None when `in_files` is a dictionary."
                 " The dictionary keys are used in place of `var_name`."
             )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
         if isinstance(next(iter(in_files.values())), dict):
             # case of in_files={tasmax: {"study": "tasmax.nc"}}
             return in_files
-        else:
-            # case of in_files={tasmax: "tasmax.nc"}
-            return _build_in_file_dict(
-                in_files=list(in_files.values()),
-                standard_index=standard_index,
-                threshold=threshold,
-                var_names=list(in_files.keys()),
-            )
-    else:
-        # case of in_files="tasmax.nc" and var_names="tasmax"
-        return _build_in_file_dict(in_files, var_names, threshold, standard_index)
+        # case of in_files={tasmax: "tasmax.nc"}
+        return _build_in_file_dict(
+            in_files=list(in_files.values()),
+            standard_index=standard_index,
+            threshold=threshold,
+            var_names=list(in_files.keys()),
+        )
+    # case of in_files="tasmax.nc" and var_names="tasmax"
+    return _build_in_file_dict(in_files, var_names, threshold, standard_index)
 
 
 def _build_in_file_dict(
@@ -274,15 +270,12 @@ def _build_in_file_dict(
                 "There must be as many thresholds as there are variables. There was"
                 f" {len(threshold)} thresholds and {len(var_names)} variables."
             )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
         return {
             var_name: {"study": input_dataset[var_name], "thresholds": threshold[i]}
             for i, var_name in enumerate(var_names)
         }
-    else:
-        return {var_name: {"study": input_dataset[var_name]} for var_name in var_names}
+    return {var_name: {"study": input_dataset[var_name]} for var_name in var_names}
 
 
 def _build_climate_var(

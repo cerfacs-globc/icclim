@@ -10,10 +10,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, Path("../..").resolve())
 import icclim  # noqa E402 (import need to be after path update)
 
 # -- Project information -----------------------------------------------------

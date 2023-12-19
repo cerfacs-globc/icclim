@@ -42,7 +42,7 @@ from icclim.models.constants import (
     USER_INDEX_PRECIPITATION_STAMP,
     USER_INDEX_TEMPERATURE_STAMP,
 )
-from icclim.models.frequency import Frequency, FrequencyLike, FrequencyRegistry
+from icclim.models.frequency import Frequency, FrequencyRegistry
 from icclim.models.index_config import IndexConfig
 from icclim.models.index_group import IndexGroup, IndexGroupRegistry
 from icclim.models.logical_link import LogicalLink, LogicalLinkRegistry
@@ -59,7 +59,7 @@ if TYPE_CHECKING:
     from xarray.core.dataarray import DataArray
     from xarray.core.dataset import Dataset
 
-    from icclim.icclim_types import InFileLike, SamplingMethodLike
+    from icclim.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
     from icclim.models.standard_index import StandardIndex
     from icclim.models.user_index_dict import UserIndexDict
     from icclim.pre_processing.in_file_dictionary import InFileDictionary
@@ -566,10 +566,8 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
                 " Use out_unit parameter to add one.",
             )
             return ""
-        else:
-            return output_unit
-    else:
-        return da_unit
+        return output_unit
+    return da_unit
 
 
 def _compute_climate_index(
@@ -681,14 +679,13 @@ def _build_threshold(
 ) -> Threshold:
     if isinstance(threshold, Threshold):
         return threshold
-    else:
-        return build_threshold(
-            threshold,
-            doy_window_width=doy_window_width,
-            reference_period=base_period_time_range,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-        )
+    return build_threshold(
+        threshold,
+        doy_window_width=doy_window_width,
+        reference_period=base_period_time_range,
+        only_leap_years=only_leap_years,
+        interpolation=interpolation,
+    )
 
 
 def _format_thresholds_for_export(climate_vars: list[ClimateVariable]) -> Dataset:
@@ -796,8 +793,7 @@ def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
     logical_link = user_index.get("link_logical_operations", None)
     if logical_link is None:
         return LogicalLinkRegistry.LOGICAL_AND
-    else:
-        return LogicalLinkRegistry.lookup(logical_link)
+    return LogicalLinkRegistry.lookup(logical_link)
 
 
 def read_coef(user_index: UserIndexDict) -> float | None:

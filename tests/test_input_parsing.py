@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import contextlib
-import os
 import shutil
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -43,10 +43,10 @@ def test_update_to_standard_coords():
 
 
 class Test_ReadDataset:
-    OUTPUT_NC_FILE = "tmp.nc"
-    OUTPUT_NC_FILE_2 = "tmp-2.nc"
-    OUTPUT_ZARR_STORE = "tmp.zarr"
-    OUTPUT_UNKNOWN_FORMAT = "tmp.cacahuete"
+    OUTPUT_NC_FILE = Path("tmp.nc")
+    OUTPUT_NC_FILE_2 = Path("tmp-2.nc")
+    OUTPUT_ZARR_STORE = Path("tmp.zarr")
+    OUTPUT_UNKNOWN_FORMAT = Path("tmp.cacahuete")
     pr_da = None
     tas_da = None
 
@@ -84,7 +84,7 @@ class Test_ReadDataset:
             self.OUTPUT_UNKNOWN_FORMAT,
         ]:
             with contextlib.suppress(FileNotFoundError):
-                os.remove(f)
+                f.unlink()
 
     def test_read_dataset_xr_DataArray__simple(self):
         # WHEN
@@ -111,7 +111,7 @@ class Test_ReadDataset:
         ds = xr.Dataset({"pouet": self.pr_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
         # WHEN
-        ds_res = read_dataset(self.OUTPUT_NC_FILE)
+        ds_res = read_dataset(str(self.OUTPUT_NC_FILE))
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
@@ -121,7 +121,7 @@ class Test_ReadDataset:
         ds.to_netcdf(self.OUTPUT_NC_FILE)
         ds.rename({"pouet": "patapouet"}).to_netcdf(self.OUTPUT_NC_FILE_2)
         # WHEN
-        ds_res = read_dataset([self.OUTPUT_NC_FILE, self.OUTPUT_NC_FILE_2])
+        ds_res = read_dataset([str(self.OUTPUT_NC_FILE), str(self.OUTPUT_NC_FILE_2)])
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
         xr.testing.assert_equal(ds_res.patapouet, ds.pouet)
@@ -131,7 +131,7 @@ class Test_ReadDataset:
         ds = xr.Dataset({"pouet": self.pr_da})
         ds.to_zarr(self.OUTPUT_ZARR_STORE)
         # WHEN
-        ds_res = read_dataset(self.OUTPUT_ZARR_STORE)
+        ds_res = read_dataset(str(self.OUTPUT_ZARR_STORE))
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
@@ -146,7 +146,7 @@ class Test_ReadDataset:
         ds = xr.Dataset({"tas": self.tas_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
         # WHEN
-        res_ds = read_dataset(self.OUTPUT_NC_FILE)
+        res_ds = read_dataset(str(self.OUTPUT_NC_FILE))
         # THEN
         # asserts variable names are the ones in the actual DataArray/Datasets
         assert "tas" in res_ds.data_vars

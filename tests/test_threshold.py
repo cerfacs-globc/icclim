@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-import os
+from pathlib import Path
 from typing import Callable
 
 import numpy as np
@@ -257,7 +257,7 @@ def test_build_basic_threshold__from_dataset__error():
 
 
 class Test_FileBased:
-    IN_FILE_PATH = "in.nc"
+    IN_FILE_PATH = Path("in.nc")
     TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
 
     data = xr.DataArray(
@@ -275,11 +275,11 @@ class Test_FileBased:
         yield
         # teardown
         with contextlib.suppress(FileNotFoundError):
-            os.remove(self.IN_FILE_PATH)
+            self.IN_FILE_PATH.unlink()
 
     def test_build_basic_threshold__from_file(self):
         self.data.to_netcdf(path=self.IN_FILE_PATH)
-        res = build_threshold(operator=">=", value=self.IN_FILE_PATH)
+        res = build_threshold(operator=">=", value=str(self.IN_FILE_PATH))
         assert isinstance(res, BasicThreshold)
         assert res.operator == OperatorRegistry.GREATER_OR_EQUAL
         xr.testing.assert_equal(res.value, self.data)
@@ -290,7 +290,7 @@ class Test_FileBased:
         self.data.to_netcdf(path=self.IN_FILE_PATH)
         res = build_threshold(
             operator=">=",
-            value=self.IN_FILE_PATH,
+            value=str(self.IN_FILE_PATH),
             threshold_min_value=5,
         )
         assert res.threshold_min_value == xc_units.Quantity(5, "degC")
@@ -299,7 +299,7 @@ class Test_FileBased:
         doys = percentile_doy(self.data)
         doys = PercentileDataArray.from_da(doys)
         doys.to_netcdf(path=self.IN_FILE_PATH)
-        res = build_threshold(operator=">=", value=self.IN_FILE_PATH)
+        res = build_threshold(operator=">=", value=str(self.IN_FILE_PATH))
         assert isinstance(res, PercentileThreshold)
         assert res.operator == OperatorRegistry.GREATER_OR_EQUAL
         xr.testing.assert_equal(res.value, doys)

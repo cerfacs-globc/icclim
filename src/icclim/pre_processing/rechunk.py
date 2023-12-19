@@ -30,6 +30,8 @@ DEFAULT_DASK_CONF = {
     "distributed.worker.memory.terminate": "0.98",
 }
 
+LOCAL_FILE_SYSTEM = LocalFileSystem()
+
 logger = IcclimLogger.get_instance()
 
 
@@ -61,7 +63,7 @@ def create_optimized_zarr_store(
     target_zarr_store_name: str = "icclim-target-store.zarr",
     keep_target_store: bool = False,
     chunking: dict[str, int] | None = None,
-    filesystem: str | AbstractFileSystem = LocalFileSystem(),
+    filesystem: str | AbstractFileSystem = LOCAL_FILE_SYSTEM,
 ) -> Dataset:
     """
     -- EXPERIMENTAL FEATURE --
@@ -187,8 +189,7 @@ def _unsafe_create_optimized_zarr_store(
             raise InvalidIcclimArgumentError(
                 msg,
             )
-        elif chunking is None:
-            chunking = _build_default_chunking(ds)
+        chunking = _build_default_chunking(ds)
         # It seems rechunker performs better when the dataset is first converted
         # to a zarr store, without rechunking anything.
         if not is_ds_zarr:
@@ -230,5 +231,4 @@ def _is_rechunking_unnecessary(ds: Dataset, chunking: dict[str, int] | None) -> 
     cp = copy.deepcopy(ds.chunks)
     if chunking is None:
         return len(ds.chunks["time"]) == 1
-    else:
-        return ds.chunk(chunking).chunks == cp
+    return ds.chunk(chunking).chunks == cp

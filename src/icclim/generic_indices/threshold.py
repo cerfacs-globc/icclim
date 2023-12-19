@@ -202,13 +202,12 @@ def build_threshold(
     )
     if _must_build_per_threshold(input_thresh):
         return PercentileThreshold(**input_thresh)
-    elif _must_build_basic_threshold(input_thresh):
+    if _must_build_basic_threshold(input_thresh):
         return BasicThreshold(**input_thresh)
-    elif _must_build_bounded_threshold(input_thresh):
+    if _must_build_bounded_threshold(input_thresh):
         return BoundedThreshold(**input_thresh)
-    else:
-        msg = f"Threshold cannot be built from a {type(value)}"
-        raise NotImplementedError(msg)
+    msg = f"Threshold cannot be built from a {type(value)}"
+    raise NotImplementedError(msg)
 
 
 class Threshold(metaclass=abc.ABCMeta):
@@ -302,8 +301,7 @@ class BoundedThreshold(Threshold):
     def unit(self) -> str | None:
         if self.left_threshold.unit == self.right_threshold.unit:
             return self.left_threshold.unit
-        else:
-            return None
+        return None
 
     @unit.setter
     def unit(self, unit):
@@ -413,10 +411,9 @@ class BoundedThreshold(Threshold):
     ) -> Threshold:
         if isinstance(thresh_input, Threshold):
             return thresh_input
-        elif isinstance(thresh_input, str):
+        if isinstance(thresh_input, str):
             return build_threshold(thresh_input)
-        else:
-            return build_threshold(**thresh_input)
+        return build_threshold(**thresh_input)
 
     def _get_metadata_templates(self) -> ThresholdMetadata:
         return EN_THRESHOLD_TEMPLATE["bounded_threshold"]
@@ -480,15 +477,12 @@ class PercentileThreshold(Threshold):
     def value(self) -> PercentileDataArray:
         if self.is_ready:
             return self._prepared_value
-        else:
-            msg = (
-                "Property `value` is not ready. For PercentileDataArray,"
-                " you must call `.prepare` first and fill `studied_data`"
-                " parameter in order to prepare `value`."
-            )
-            raise RuntimeError(
-                msg,
-            )
+        msg = (
+            "Property `value` is not ready. For PercentileDataArray,"
+            " you must call `.prepare` first and fill `studied_data`"
+            " parameter in order to prepare `value`."
+        )
+        raise RuntimeError(msg)
 
     def __init__(
         self,
@@ -626,27 +620,21 @@ class PercentileThreshold(Threshold):
                 kwargs.get("freq", None),
                 kwargs.get("bootstrap", False),
             )
-        else:
-            msg = (
-                "This PercentileThreshold is not ready. You must first call `.prepare`"
-                " with a `studied_data` parameter in order to prepare the threshold"
-                " for computation."
-            )
-            raise RuntimeError(
-                msg,
-            )
+        msg = (
+            "This PercentileThreshold is not ready. You must first call `.prepare`"
+            " with a `studied_data` parameter in order to prepare the threshold"
+            " for computation."
+        )
+        raise RuntimeError(msg)
 
     def _get_metadata_templates(self, per_coord: DataArray) -> ThresholdMetadata:
         if self.is_doy_per_threshold:
             if per_coord.size == 1:
                 return EN_THRESHOLD_TEMPLATE["single_doy_percentile"]
-            else:
-                return EN_THRESHOLD_TEMPLATE["multiple_doy_percentiles"]
-        else:
-            if per_coord.size == 1:
-                return EN_THRESHOLD_TEMPLATE["single_period_percentile"]
-            else:
-                return EN_THRESHOLD_TEMPLATE["multiple_period_percentiles"]
+            return EN_THRESHOLD_TEMPLATE["multiple_doy_percentiles"]
+        if per_coord.size == 1:
+            return EN_THRESHOLD_TEMPLATE["single_period_percentile"]
+        return EN_THRESHOLD_TEMPLATE["multiple_period_percentiles"]
 
     @percentile_bootstrap
     def _per_compute(
@@ -765,8 +753,7 @@ class BasicThreshold(Threshold):
     def _get_metadata_templates(self) -> ThresholdMetadata:
         if self.value.size == 1:
             return EN_THRESHOLD_TEMPLATE["single_value"]
-        else:
-            return EN_THRESHOLD_TEMPLATE["multiple_values"]
+        return EN_THRESHOLD_TEMPLATE["multiple_values"]
 
     def format_metadata(
         self,
@@ -891,15 +878,15 @@ def _build_min_value(
 ) -> pint.Quantity | None:
     if threshold_min_value is None:
         return None
-    elif isinstance(threshold_min_value, xc_units.Quantity):
+    if isinstance(threshold_min_value, xc_units.Quantity):
         return threshold_min_value
-    elif isinstance(threshold_min_value, (float, int)):
+    if isinstance(threshold_min_value, (float, int)):
         if default_unit in (PERIOD_PERCENTILE_UNIT, DOY_PERCENTILE_UNIT):
             unit = None
         else:
             unit = default_unit
         return xc_units.Quantity(value=threshold_min_value, units=unit)
-    elif isinstance(threshold_min_value, str):
+    if isinstance(threshold_min_value, str):
         operator, unit, value = _read_string_threshold(threshold_min_value)
         if operator is not None and operator != "" and operator != ">=":
             msg = (
@@ -911,11 +898,8 @@ def _build_min_value(
                 msg,
             )
         return xc_units.Quantity(value=value, units=unit)
-    else:
-        msg = f"Unknown type '{type(threshold_min_value)}' for `threshold_min_value`."
-        raise NotImplementedError(
-            msg,
-        )
+    msg = f"Unknown type '{type(threshold_min_value)}' for `threshold_min_value`."
+    raise NotImplementedError(msg)
 
 
 def _read_input(
@@ -931,11 +915,10 @@ def _read_input(
     if _must_read_query(query, operator, value, unit):
         if _is_bounded_threshold_query(query):
             return _read_bounded_threshold_query(query)
-        else:
-            return _read_threshold_from_query(query, threshold_min_value, kwargs)
-    elif _must_read_bounded(operator, value, unit, thresholds, logical_link):
+        return _read_threshold_from_query(query, threshold_min_value, kwargs)
+    if _must_read_bounded(operator, value, unit, thresholds, logical_link):
         return _read_bounded_threshold(thresholds, logical_link)
-    elif _must_read_from_args(operator, value):
+    if _must_read_from_args(operator, value):
         if (operator := OperatorRegistry.lookup(operator, no_error=True)) is None:
             operator = OperatorRegistry.REACH
         return {
@@ -945,9 +928,8 @@ def _read_input(
             "threshold_min_value": _build_min_value(threshold_min_value, unit),
             **kwargs,
         }
-    else:
-        msg = "Could not read threshold"
-        raise NotImplementedError(msg)
+    msg = "Could not read threshold"
+    raise NotImplementedError(msg)
 
 
 def _read_bounded_threshold(
@@ -1088,7 +1070,7 @@ def _must_build_basic_threshold(input: ThresholdBuilderInput) -> bool:
     if is_dataset_path(value) or isinstance(value, Dataset):
         thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
         return not PercentileDataArray.is_compatible(thresh_da)
-    return isinstance(value, (DataArray, float, int))
+    return is_number_sequence(value) or isinstance(value, (DataArray, float, int))
 
 
 def _must_build_bounded_threshold(input: ThresholdBuilderInput) -> bool:
@@ -1104,8 +1086,7 @@ def _apply_min_value(thresh_da: DataArray, min_value: pint.Quantity | None):
         else:
             min_value = convert_units_to(str(min_value), thresh_da, context="hydro")
         return thresh_da.where(thresh_da > min_value, np.nan)
-    else:
-        return thresh_da
+    return thresh_da
 
 
 def _get_dataarray_from_dataset(
