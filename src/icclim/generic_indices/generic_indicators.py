@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import abc
-from abc import ABC
+import contextlib
+from abc import ABC, abstractmethod
 from functools import partial, reduce
 from typing import TYPE_CHECKING, Any, Callable
 from warnings import warn
@@ -62,9 +63,11 @@ class MissingMethodLike(metaclass=abc.ABCMeta):
     # TODO @bzah: PR that to xclim
     # https://github.com/cerfacs-globc/icclim/issues/289
 
+    @abstractmethod
     def execute(self, *args, **kwargs) -> MissingBase:
         ...
 
+    @abstractmethod
     def validate(self, *args, **kwargs) -> bool:
         ...
 
@@ -75,11 +78,11 @@ class Indicator(ABC):
     long_name: str
     cell_methods: str
 
-    templated_properties = [
+    templated_properties = (
         "standard_name",
         "long_name",
         "cell_methods",
-    ]
+    )
 
     @abc.abstractmethod
     def __call__(self, *args, **kwargs) -> DataArray:
@@ -122,7 +125,7 @@ class ResamplingIndicator(Indicator, ABC):
     ) -> list[ClimateVariable]:
         _check_data(climate_vars, src_freq.pandas_freq)
         _check_cf(climate_vars)
-        self.format(jinja_scope=jinja_scope)
+        self.format_template(jinja_scope=jinja_scope)
         return climate_vars
 
     def postprocess(
@@ -155,7 +158,7 @@ class ResamplingIndicator(Indicator, ABC):
         result.attrs["history"] = ""
         return result
 
-    def format(self, jinja_scope: dict):
+    def format_template(self, jinja_scope: dict):
         for templated_property in self.templated_properties:
             template = jinja_env.from_string(
                 getattr(self, templated_property),
@@ -214,7 +217,7 @@ class GenericIndicator(ResamplingIndicator):
             sampling_methods if sampling_methods is not None else [RESAMPLE_METHOD]
         )
 
-    def preprocess(  # noqa signature != from super
+    def preprocess(
         self,
         climate_vars: list[ClimateVariable],
         jinja_scope: dict[str, Any],
@@ -347,7 +350,7 @@ def count_occurrences(
     logical_link: LogicalLink,
     date_event: bool,
     to_percent: bool,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     if date_event:
         reducer_op = _count_occurrences_with_date
@@ -372,7 +375,7 @@ def max_consecutive_occurrence(
     logical_link: LogicalLink,
     date_event: bool,
     source_freq_delta: timedelta,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     merged_exceedances = _compute_exceedances(
         climate_vars,
@@ -393,7 +396,7 @@ def sum_of_spell_lengths(
     resample_freq: Frequency,
     logical_link: LogicalLink,
     min_spell_length: int,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     merged_exceedances = _compute_exceedances(
         climate_vars,
@@ -409,7 +412,7 @@ def sum_of_spell_lengths(
 def excess(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
     if threshold.operator is not OperatorRegistry.REACH:
@@ -426,7 +429,7 @@ def excess(
 def deficit(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
     deficit = threshold.compute(study, override_op=lambda da, th: th - da)
@@ -439,7 +442,7 @@ def fraction_of_total(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     to_percent: bool,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
     if threshold.threshold_min_value is not None:
@@ -447,7 +450,6 @@ def fraction_of_total(
         min_val = convert_units_to(min_val, study, context="hydro")
         total = (
             study.where(threshold.operator(study, min_val))
-            # study.where(threshold.operator(study, threshold.threshold_min_value.m))
             .resample(time=resample_freq.pandas_freq)
             .sum(dim="time")
         )
@@ -477,7 +479,7 @@ def maximum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     date_event: bool,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars=climate_vars,
@@ -491,7 +493,7 @@ def minimum(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     date_event: bool,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars=climate_vars,
@@ -504,7 +506,7 @@ def minimum(
 def average(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars=climate_vars,
@@ -514,10 +516,10 @@ def average(
     )
 
 
-def sum(
+def sum(  # noqa: A001
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars=climate_vars,
@@ -531,7 +533,7 @@ def sum(
 def standard_deviation(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     return _run_simple_reducer(
         climate_vars,
@@ -547,7 +549,7 @@ def max_of_rolling_sum(
     rolling_window_width: int,
     date_event: bool,
     source_freq_delta: timedelta,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ):
     return _run_rolling_reducer(
         climate_vars=climate_vars,
@@ -566,7 +568,7 @@ def min_of_rolling_sum(
     rolling_window_width: int,
     date_event: bool,
     source_freq_delta: timedelta,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ):
     return _run_rolling_reducer(
         climate_vars=climate_vars,
@@ -585,7 +587,7 @@ def min_of_rolling_average(
     rolling_window_width: int,
     date_event: bool,
     source_freq_delta: timedelta,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ):
     return _run_rolling_reducer(
         climate_vars=climate_vars,
@@ -604,7 +606,7 @@ def max_of_rolling_average(
     rolling_window_width: int,
     date_event: bool,
     source_freq_delta: timedelta,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ):
     return _run_rolling_reducer(
         climate_vars=climate_vars,
@@ -620,7 +622,7 @@ def max_of_rolling_average(
 def mean_of_difference(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ):
     study, ref = get_couple_of_var(climate_vars, "mean_of_difference")
     mean_of_diff = (study - ref).resample(time=resample_freq.pandas_freq).mean()
@@ -631,7 +633,7 @@ def mean_of_difference(
 def difference_of_extremes(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ):
     study, ref = get_couple_of_var(climate_vars, "difference_of_extremes")
     max_study = study.resample(time=resample_freq.pandas_freq).max()
@@ -644,7 +646,7 @@ def difference_of_extremes(
 def mean_of_absolute_one_time_step_difference(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ) -> DataArray:
     """
     Generification of ECAD's vDTR index.
@@ -679,7 +681,7 @@ def difference_of_means(
     resample_freq: Frequency,
     sampling_method: str,
     is_compared_to_reference: bool,
-    **kwargs,  # noqa
+    **kwargs,  # noqa: ARG001
 ):
     if is_compared_to_reference and sampling_method == RESAMPLE_METHOD:
         msg = (
@@ -740,10 +742,10 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
     acc = []
     if resample_freq == FrequencyRegistry.MONTH:
         key = "month"
-        dt_selector = lambda x: x.time.dt.month  # noqa lamdab assigned
+        dt_selector = lambda x: x.time.dt.month  # noqa: E731
     elif resample_freq == FrequencyRegistry.DAY:
         key = "dayofyear"
-        dt_selector = lambda x: x.time.dt.dayofyear  # noqa lamdab assigned
+        dt_selector = lambda x: x.time.dt.dayofyear  # noqa: E731
     else:
         msg = (
             f"Can't use {GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}"
@@ -1005,7 +1007,7 @@ def _run_rolling_reducer(
             window=rolling_window_width,
             source_delta=source_freq_delta,
         )
-    return resampled_op(study, dim="time")  # type:ignore
+    return resampled_op(study, dim="time")
 
 
 def _run_simple_reducer(
@@ -1164,11 +1166,11 @@ def _reduce_with_date_event(
 
 def _count_occurrences_with_date(resampled: DataArrayResample):
     acc: list[DataArray] = []
-    for label, sample in resampled:
+    for label, _sample in resampled:
         # TODO @bzah: probably not safe to compute on huge dataset,
         #              it should be fixed with
         #  https://github.com/pydata/xarray/issues/2511
-        sample = sample.compute()
+        sample = _sample.compute()
         first = sample.isel(time=sample.argmax("time")).time
         reversed_time = sample.reindex(time=list(reversed(sample.time.to_numpy())))
         last = reversed_time.isel(time=reversed_time.argmax("time")).time
@@ -1188,8 +1190,8 @@ def _consecutive_occurrences_with_dates(
     source_freq_delta: timedelta,
 ):
     acc = []
-    for label, sample in resampled:
-        sample = sample.where(~sample.isnull(), 0)
+    for label, _sample in resampled:
+        sample = _sample.where(~_sample.isnull(), 0)
         time_index_of_max_rle = sample.argmax(dim="time")
         # TODO @bzah: `.compute` is needed until xarray merges this pr:
         # https://github.com/pydata/xarray/pull/5873
@@ -1290,6 +1292,7 @@ def _to_percent(da: DataArray, sampling_freq: Frequency) -> DataArray:
         warn(
             "For now, '%' unit can only be used when `slice_mode` is one of: "
             "{MONTH, YEAR, AMJJAS, ONDJFM, DJF, MAM, JJA, SON}.",
+            stacklevel=2,
         )
         return da
     da.attrs[UNITS_KEY] = PART_OF_A_WHOLE_UNIT
@@ -1315,11 +1318,9 @@ def _check_cf(climate_vars: list[ClimateVariable]):
     `xclim.core.options.cfcheck`.
     """
     for da in climate_vars:
-        try:
-            cfcheck_from_name(str(da.name), da)
-        except KeyError:
+        with contextlib.supress(KeyError):
             # Silently ignore unknown variables.
-            pass
+            cfcheck_from_name(str(da.name), da)
 
 
 def _check_data(climate_vars: list[ClimateVariable], src_freq: str):

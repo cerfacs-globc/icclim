@@ -576,7 +576,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         group=IndexGroupRegistry.SNOW,
         input_variables=[StandardVariableRegistry.SND],
     )
-    # Compound (precipitation and temperature)
+    # Compound (precipitation and temperature) # noqa: ERA001 (false positive)
     CD = StandardIndex(
         reference=ECAD_REFERENCE,
         indicator=GenericIndicatorRegistry.CountOccurrences,

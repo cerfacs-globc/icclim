@@ -660,7 +660,7 @@ def _build_history(
         # append xclim history
         initial_history = f"{initial_history}\n{result_da.attrs[HISTORY_CF_KEY]}"
     del result_da.attrs[HISTORY_CF_KEY]
-    current_time = dt.datetime.now(tz=dt.datetime.timezone).strftime(
+    current_time = dt.datetime.now(tz=dt.timezone.utc).strftime(
         "%Y-%m-%d %H:%M:%S",
     )
     return (
