@@ -81,27 +81,32 @@ PATH_TO_GENERIC_DOC_FILE = (
 )
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
 DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
-MODULE_HEADER = f'''"""
+MODULE_HEADER = f'''
+# ruff: noqa: A001
+"""
 This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
 """
-# flake8: noqa E501
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Sequence
-
-from xarray.core.dataset import Dataset
+from typing import TYPE_CHECKING
 
 import icclim
 from {Threshold.__module__} import {Threshold.__name__}, {build_threshold.__name__}
-from {Verbosity.__module__} import {Verbosity.__name__}
-from icclim.icclim_types import InFileLike, SamplingMethodLike, FrequencyLike
-from {Frequency.__module__} import {Frequency.__name__}
-from {NetcdfVersion.__module__} import {NetcdfVersion.__name__}
-from {QuantileInterpolation.__module__} import {QuantileInterpolation.__name__}
-from {UserIndexDict.__module__} import {UserIndexDict.__name__}
+
+if TYPE_CHECKING:
+    import datetime as dt
+    from collections.abc import Sequence
+
+    from xarray.core.dataset import Dataset
+
+    from {Verbosity.__module__} import {Verbosity.__name__}
+    from icclim.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
+    from {Frequency.__module__} import {Frequency.__name__}
+    from {NetcdfVersion.__module__} import {NetcdfVersion.__name__}
+    from {QuantileInterpolation.__module__} import {QuantileInterpolation.__name__}
+    from {UserIndexDict.__module__} import {UserIndexDict.__name__}
 
 '''
 
