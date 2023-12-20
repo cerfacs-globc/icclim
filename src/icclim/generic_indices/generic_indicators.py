@@ -1318,7 +1318,7 @@ def _check_cf(climate_vars: list[ClimateVariable]):
     `xclim.core.options.cfcheck`.
     """
     for da in climate_vars:
-        with contextlib.supress(KeyError):
+        with contextlib.suppress(KeyError):
             # Silently ignore unknown variables.
             cfcheck_from_name(str(da.name), da)
 

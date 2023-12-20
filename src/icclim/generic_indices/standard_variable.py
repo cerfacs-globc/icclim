@@ -243,15 +243,8 @@ class StandardVariableRegistry(Registry[StandardVariable]):
         aliases=["dd"],
         default_units="degree",
     )
-    # X = StandardVariable(
-    #     short_name="x",
-    #     standard_name="y",
-    #     long_name="z",
-    #     aliases=["x"],
-    #     default_units="w",
-    # )
     # TODO @bzah: add tier1 and tier2 aliases from cmip6/cordex
-    # https://docs.google.com/spreadsheets/d/1qUauozwXkq7r1g-L4ALMIkCNINIhhCPx/edit?rtpof=true&sd=true#gid=1672965248 # noqa
+    # https://docs.google.com/spreadsheets/d/1qUauozwXkq7r1g-L4ALMIkCNINIhhCPx/edit?rtpof=true&sd=true#gid=1672965248
     # https://github.com/cerfacs-globc/icclim/issues/289
 
     @staticmethod

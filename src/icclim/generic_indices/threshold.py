@@ -313,7 +313,7 @@ class BoundedThreshold(Threshold):
         thresholds: Sequence[Threshold | str | ThresholdBuilderInput],
         logical_link: LogicalLink,
         initial_query: str | None,
-        **kwargs,  # noqa
+        **kwargs,  # noqa: ARG002
     ):
         if len(thresholds) != 2:
             msg = (
@@ -487,7 +487,7 @@ class PercentileThreshold(Threshold):
     def __init__(
         self,
         operator: str | Operator,
-        value: DataArray | float | int | Sequence[float],
+        value: DataArray | float | Sequence[float],
         unit: str | None = None,
         doy_window_width: int = DEFAULT_DOY_WINDOW,
         only_leap_years: bool = False,
@@ -497,7 +497,7 @@ class PercentileThreshold(Threshold):
         threshold_min_value: pint.Quantity | None = None,
         initial_query: str | None = None,
         threshold_var_name: str | None = None,
-        **kwargs,  # noqa
+        **kwargs,  # noqa: ARG002
     ):
         if is_dataset_path(value) or isinstance(value, Dataset):
             value, is_doy_per_threshold = _build_per_thresh_from_dataset(
@@ -583,7 +583,7 @@ class PercentileThreshold(Threshold):
         jinja_env: jinja2.Environment,
         src_freq: Frequency,
         must_run_bootstrap: bool = False,
-        **kwargs,
+        **kwargs,  # noqa: ARG002
     ) -> ThresholdMetadata:
         per_coord = self.value.coords["percentiles"]
         templates = self._get_metadata_templates(per_coord)
@@ -643,8 +643,8 @@ class PercentileThreshold(Threshold):
         per: xr.DataArray,
         op: Callable[[DataArray, DataArray], DataArray],
         is_doy_per_threshold: bool,
-        freq: str,  # noqa used by @percentile_bootstrap
-        bootstrap: bool,  # noqa used by @percentile_bootstrap
+        freq: str,  # noqa: ARG002 used by @percentile_bootstrap
+        bootstrap: bool,  # noqa: ARG002 used by @percentile_bootstrap
     ) -> DataArray:
         if self.threshold_min_value is not None:
             # there is only a threshold_min_value when we are computing > or >=
@@ -687,7 +687,7 @@ class BasicThreshold(Threshold):
         initial_query: str | None = None,
         threshold_min_value: pint.Quantity | None = None,
         threshold_var_name: str | None = None,
-        **kwargs,  # noqa
+        **kwargs,  # noqa: ARG002
     ):
         if (
             is_number_sequence(value) or isinstance(value, (float, int))
@@ -697,7 +697,7 @@ class BasicThreshold(Threshold):
                 msg,
             )
         if is_dataset_path(value) or isinstance(value, Dataset):
-            # e.g. build_threshold(">", "thresh*.nc" , "degC")
+            # e.g. build_threshold(">", "thresh*.nc" , "degC") noqa: ERA001
             thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
             built_value = _apply_min_value(thresh_da, threshold_min_value)
             if unit is None:
@@ -715,7 +715,7 @@ class BasicThreshold(Threshold):
                 coords={"threshold": value},
             )
         elif isinstance(value, (float, int)):
-            # e.g. build_threshold(">", [2,3,4], "degC")
+            # e.g. build_threshold(">", [2,3,4], "degC") noqa: ERA001
             built_value = DataArray(
                 name="threshold",
                 data=value,
@@ -759,7 +759,7 @@ class BasicThreshold(Threshold):
         self,
         jinja_scope: dict[str, Any],
         jinja_env: jinja2.Environment,
-        **kwargs,
+        **kwargs,  # noqa: ARG002
     ) -> ThresholdMetadata:
         templates = self._get_metadata_templates()
         conf = {
@@ -788,7 +788,7 @@ class BasicThreshold(Threshold):
         self,
         comparison_data: xr.DataArray,
         override_op: Callable[[DataArray, DataArray], DataArray] | None = None,
-        **kwargs,
+        **kwargs,  # noqa: ARG002
     ) -> DataArray:
         if override_op is not None:
             return override_op(comparison_data, self.value)
@@ -1043,10 +1043,10 @@ def _read_bounded_threshold_query(query: str) -> ThresholdBuilderInput:
     }
 
 
-def _must_build_per_threshold(input: ThresholdBuilderInput) -> bool:
-    value = input.get("value")
-    unit = input.get("unit", None)
-    var_name = input.get("threshold_var_name", None)
+def _must_build_per_threshold(builder_input: ThresholdBuilderInput) -> bool:
+    value = builder_input.get("value")
+    unit = builder_input.get("unit", None)
+    var_name = builder_input.get("threshold_var_name", None)
     return _has_per_unit(unit, value) or _is_per_dataset(var_name, value)
 
 
@@ -1064,17 +1064,17 @@ def _has_per_unit(unit: str | None | Sequence[float], value: float) -> bool:
     )
 
 
-def _must_build_basic_threshold(input: ThresholdBuilderInput) -> bool:
-    value = input.get("value")
-    threshold_var_name = input.get("threshold_var_name", None)
+def _must_build_basic_threshold(builder_input: ThresholdBuilderInput) -> bool:
+    value = builder_input.get("value")
+    threshold_var_name = builder_input.get("threshold_var_name", None)
     if is_dataset_path(value) or isinstance(value, Dataset):
         thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
         return not PercentileDataArray.is_compatible(thresh_da)
     return is_number_sequence(value) or isinstance(value, (DataArray, float, int))
 
 
-def _must_build_bounded_threshold(input: ThresholdBuilderInput) -> bool:
-    logical_link = input.get("logical_link")
+def _must_build_bounded_threshold(builder_input: ThresholdBuilderInput) -> bool:
+    logical_link = builder_input.get("logical_link")
     return logical_link is not None
 
 

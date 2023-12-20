@@ -366,16 +366,13 @@ def _get_frequency_from_string(query: str) -> Frequency:
     # else assumes it's a pandas frequency (such as "W" or "3MS")
     try:
         to_offset(query)  # no-op, used to check if it's a valid pandas freq
-    except ValueError as e:
+    except ValueError as exc:
         msg = (
             f"Unknown frequency {query}. Use either a"
             " valid icclim frequency or a valid pandas"
             " frequency"
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-            e,
-        )
+        raise InvalidIcclimArgumentError(msg, exc) from exc
     return Frequency(
         post_processing=get_time_bounds_updater(query),
         pandas_freq=query,

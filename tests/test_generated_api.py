@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+import datetime as dt
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
@@ -75,18 +75,16 @@ def build_expected_args(index: StandardIndex):
 @patch("icclim.index")
 def test_generated_api(generic_index_fun_mock: MagicMock):
     for i in EcadIndexRegistry.values():
-        # print(i)
         # GIVEN
-        api_index_fun = eval(f"icclim.{i.short_name.lower()}")
+        api_index_fun = eval(f"icclim.{i.short_name.lower()}")  # noqa: PGH001
         # WHEN
         api_index_fun(**DEFAULT_ARGS)
         # THEN
         expected_call_args = build_expected_args(i)
         generic_index_fun_mock.assert_called_with(**expected_call_args)
     for g in GenericIndicatorRegistry.values():
-        print(g)
         # GIVEN
-        api_index_fun = eval(f"icclim.{g.name.lower()}")
+        api_index_fun = eval(f"icclim.{g.name.lower()}")  # noqa: PGH001
         # WHEN
         api_index_fun(**DEFAULT_ARGS)
         generic_index_fun_mock.assert_called()
@@ -250,7 +248,10 @@ def test_custom_index_anomaly__error_():
         icclim.custom_index(
             in_files=tas,
             slice_mode=["season", [12, 1]],
-            base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+            base_period_time_range=[
+                dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
+                dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+            ],
             user_index={
                 "index_name": "anomaly",
                 "calc_operation": CalcOperationRegistry.ANOMALY,
@@ -264,7 +265,10 @@ def test_custom_index_anomaly__datetime_ref_period():
     res = icclim.custom_index(
         in_files=tas,
         slice_mode=["season", [12, 1]],
-        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        base_period_time_range=[
+            dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
+            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+        ],
         sampling_method="groupby_ref_and_resample_study",
         user_index={
             "index_name": "anomaly",
@@ -286,7 +290,10 @@ def test_custom_index_anomaly__groupby_and_resample_month():
     res = icclim.custom_index(
         in_files=tas,
         slice_mode="month",
-        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        base_period_time_range=[
+            dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
+            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+        ],
         sampling_method="groupby_ref_and_resample_study",
         user_index={
             "index_name": "anomaly",
@@ -302,7 +309,10 @@ def test_custom_index_anomaly__groupby_and_resample_year():
     res = icclim.custom_index(
         in_files=tas,
         slice_mode="year",
-        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        base_period_time_range=[
+            dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
+            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+        ],
         sampling_method="groupby_ref_and_resample_study",
         user_index={
             "index_name": "anomaly",
@@ -318,7 +328,10 @@ def test_custom_index_anomaly__groupby_and_resample_day():
     res = icclim.custom_index(
         in_files=tas,
         slice_mode="day",
-        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        base_period_time_range=[
+            dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
+            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+        ],
         sampling_method="groupby_ref_and_resample_study",
         user_index={
             "index_name": "anomaly",
@@ -335,7 +348,10 @@ def test_custom_index_anomaly__groupby_and_resample_hour():
         icclim.custom_index(
             in_files=tas,
             slice_mode="hour",
-            base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+            base_period_time_range=[
+                dt.datetime(2014, 1, 1, tzinfo=dt.timezone.utc),
+                dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+            ],
             sampling_method="groupby_ref_and_resample_study",
             user_index={
                 "index_name": "anomaly",
@@ -350,7 +366,10 @@ def test_custom_index_anomaly__grouby_season():
     res = icclim.custom_index(
         in_files=tas,
         slice_mode=["season", [12, 1]],
-        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        base_period_time_range=[
+            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc),
+            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+        ],
         sampling_method="groupby",
         user_index={
             "index_name": "anomaly",
@@ -367,7 +386,10 @@ def test_custom_index_anomaly__grouby_month():
     res = icclim.custom_index(
         in_files=tas,
         slice_mode="month",
-        base_period_time_range=[datetime(2042, 1, 1), datetime(2044, 12, 31)],
+        base_period_time_range=[
+            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc),
+            dt.datetime(2044, 12, 31, tzinfo=dt.timezone.utc),
+        ],
         sampling_method="groupby",
         user_index={
             "index_name": "anomaly",

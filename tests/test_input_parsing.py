@@ -51,7 +51,7 @@ class Test_ReadDataset:
     tas_da = None
 
     @pytest.fixture(autouse=True)
-    def cleanup(self):
+    def _cleanup(self):
         # -- setup
         self.pr_da = xr.DataArray(
             data=np.full(10, 42).reshape((10, 1, 1)),

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import contextlib
-from datetime import datetime
+import datetime as dt
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -92,12 +92,12 @@ class Test_Integration:
         {"data": data, "time_bounds": time_bounds},
     )
 
-    not_spi_indices = list(
+    not_spi_indices = tuple(
         filter(lambda x: "spi" not in x.short_name.lower(), EcadIndexRegistry.values()),
     )
 
     @pytest.fixture(autouse=True)
-    def cleanup(self):
+    def _cleanup(self):
         # setup
         # ...
         yield
@@ -182,12 +182,17 @@ class Test_Integration:
             index_name="SU",
             in_files=self.data,
             out_file=self.OUTPUT_FILE,
-            time_range=[datetime(2042, 7, 19), datetime(2044, 8, 14)],
+            time_range=[
+                dt.datetime(2042, 7, 19, tzinfo=dt.timezone.utc),
+                dt.datetime(2044, 8, 14, tzinfo=dt.timezone.utc),
+            ],
         )
         # THEN
-        assert res_string_dates.time_bounds[0, 0] == np.datetime64(datetime(2042, 1, 1))
+        assert res_string_dates.time_bounds[0, 0] == np.datetime64(
+            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc),
+        )
         assert res_string_dates.time_bounds[0, 1] == np.datetime64(
-            datetime(2042, 12, 31),
+            dt.datetime(2042, 12, 31, tzinfo=dt.timezone.utc),
         )
         np.testing.assert_array_equal(res_string_dates.SU, res_datetime_dates.SU)
         np.testing.assert_array_equal(
@@ -204,8 +209,12 @@ class Test_Integration:
             slice_mode="2W-WED",
         )
         # THEN
-        assert res.time_bounds[0, 0] == np.datetime64(datetime(2042, 1, 1))
-        assert res.time_bounds[0, 1] == np.datetime64(datetime(2042, 1, 14))
+        assert res.time_bounds[0, 0] == np.datetime64(
+            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc),
+        )
+        assert res.time_bounds[0, 1] == np.datetime64(
+            dt.datetime(2042, 1, 14, tzinfo=dt.timezone.utc),
+        )
         assert (
             res.SU.attrs["standard_name"]
             == "number_of_days_when_maximum_air_temperature_is_greater_than_threshold"

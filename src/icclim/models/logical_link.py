@@ -32,12 +32,12 @@ class LogicalLinkRegistry(Registry[LogicalLink]):
         standard_name="OR",
         long_name="OR",
         short_name="OR",
-        compute=lambda data_list: reduce(np.logical_or, data_list),  # type:ignore
+        compute=lambda data_list: reduce(np.logical_or, data_list),
     )
     LOGICAL_AND = LogicalLink(
         name="and",
         standard_name="AND",
         long_name="AND",
         short_name="AND",
-        compute=lambda data_list: reduce(np.logical_and, data_list),  # type:ignore
+        compute=lambda data_list: reduce(np.logical_and, data_list),
     )
