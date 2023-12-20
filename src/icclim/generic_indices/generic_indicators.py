@@ -804,80 +804,80 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         "count_occurrences",
         count_occurrences,
         definition="Count occurrences where threshold(s) are met"
-        "\n (e.g. SU, Tx90p, RR1).",
+        "\n\t (e.g. SU, Tx90p, RR1).",
     )
     MaxConsecutiveOccurrence = GenericIndicator(
         "max_consecutive_occurrence",
         max_consecutive_occurrence,
         definition="Count the maximum number of consecutive occurrences when"
-        "\n threshold(s) are met (e.g. CDD, CSU, CWD).",
+        "\n\t threshold(s) are met (e.g. CDD, CSU, CWD).",
     )
     SumOfSpellLengths = GenericIndicator(
         "sum_of_spell_lengths",
         sum_of_spell_lengths,
         definition="Sum the lengths of each consecutive occurrence spell when"
-        "\n threshold(s) are met. The minimum spell length is controlled by"
-        "\n `min_spell_length` (e.g. WSDI, CSDI).",
+        "\n\t threshold(s) are met. The minimum spell length is controlled by"
+        "\n\t `min_spell_length` (e.g. WSDI, CSDI).",
     )
     Excess = GenericIndicator(
         "excess",
         excess,
         check_vars=_check_single_var,
         definition="Compute the excess over the given threshold. The excess is"
-        "\n `sum(x[x>t] - t)` where x is the studied variable and t the threshold"
-        "\n (e.g. GD4).",
+        "\n\t `sum(x[x>t] - t)` where x is the studied variable and t the threshold"
+        "\n\t (e.g. GD4).",
     )
     Deficit = GenericIndicator(
         "deficit",
         deficit,
         check_vars=_check_single_var,
         definition="Compute the deficit below the given threshold. The deficit is"
-        "\n `sum(t - x[x<t])` where x is the studied variable and t the threshold"
-        "\n (e.g. HD17).",
+        "\n\t `sum(t - x[x<t])` where x is the studied variable and t the threshold"
+        "\n\t (e.g. HD17).",
     )
     FractionOfTotal = GenericIndicator(
         "fraction_of_total",
         fraction_of_total,
         check_vars=_check_single_var,
         definition="Compute the fraction of values meeting threshold(s) over the sum of"
-        "\n every values (e.g. R75pTOT, R95pTOT).",
+        "\n\t every values (e.g. R75pTOT, R95pTOT).",
     )
     Maximum = GenericIndicator(
         "maximum",
         maximum,
         definition="Maximum of values that met threshold(s), if threshold(s) are given"
-        "\n (e.g. Txx, Tnx).",
+        "\n\t (e.g. Txx, Tnx).",
     )
     Minimum = GenericIndicator(
         "minimum",
         minimum,
         definition="Minimum of values that met threshold(s), if threshold(s) are given"
-        "\n (e.g. Txn, Tnn).",
+        "\n\t (e.g. Txn, Tnn).",
     )
     Average = GenericIndicator(
         "average",
         average,
         definition="Average of values that met threshold(s), if threshold(s) are given"
-        "\n (e.g. Tx, Tn)",
+        "\n\t (e.g. Tx, Tn)",
     )
     Sum = GenericIndicator(
         "sum",
         sum,
         definition="Sum of values that met threshold(s), if threshold(s) are given"
-        "\n (e.g. PRCPTOT, RR).",
+        "\n\t (e.g. PRCPTOT, RR).",
     )
     StandardDeviation = GenericIndicator(
         "standard_deviation",
         standard_deviation,
         definition="Standard deviation of values that met threshold(s),"
-        "\n if threshold(s) are given.",
+        "\n\t if threshold(s) are given.",
     )
     MaxOfRollingSum = GenericIndicator(
         "max_of_rolling_sum",
         max_of_rolling_sum,
         check_vars=_check_single_var,
         definition="Maximum of rolling sum over time dimension"
-        "\n (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).",
+        "\n\t (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).",
     )
     MinOfRollingSum = GenericIndicator(
         "min_of_rolling_sum",
@@ -903,7 +903,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         check_vars=_check_couple_of_vars,
         definition="Average of the difference between two variables"
         "\n, or one variable and it's reference period values"
-        "\n (e.g. DTR: `mean(tasmax - tasmin)`).",
+        "\n\t (e.g. DTR: `mean(tasmax - tasmin)`).",
     )
     DifferenceOfExtremes = GenericIndicator(
         "difference_of_extremes",
@@ -911,20 +911,20 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         check_vars=_check_couple_of_vars,
         definition="Difference of extremes between two variables"
         "\n, or one variable and it's reference period values."
-        "\n The extremes are always `maximum` for the first variable and"
-        "\n `minimum` for the second variable"
-        "\n (e.g. ETR: `max(tasmax) - min(tasmin)`).",
+        "\n\t The extremes are always `maximum` for the first variable and"
+        "\n\t `minimum` for the second variable"
+        "\n\t (e.g. ETR: `max(tasmax) - min(tasmin)`).",
     )
     MeanOfAbsoluteOneTimeStepDifference = GenericIndicator(
         "mean_of_absolute_one_time_step_difference",
         mean_of_absolute_one_time_step_difference,
         check_vars=_check_couple_of_vars,
         definition="Average of the absolute one time step by one time step difference"
-        "\n between two variables,"
-        "\n or one variable and it's reference period values"
-        "\n (e.g. vDTR:"
-        "\n `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ;"
-        "\n where i is the day of measure).",
+        "\n\t between two variables,"
+        "\n\t or one variable and it's reference period values"
+        "\n\t (e.g. vDTR:"
+        "\n\t `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ;"
+        "\n\t where i is the day of measure).",
     )
     DifferenceOfMeans = GenericIndicator(
         "difference_of_means",
@@ -937,7 +937,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         ],
         definition="Difference of the average between two variables"
         "\n, or one variable and it's reference period values"
-        "\n (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.",
+        "\n\t (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.",
     )
 
 

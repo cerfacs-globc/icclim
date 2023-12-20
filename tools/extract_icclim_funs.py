@@ -68,6 +68,7 @@ TAB = "    "
 END_NOTE = """
     Notes
     -----
+
     This function has been auto-generated.
 """
 
@@ -96,8 +97,8 @@ from xarray.core.dataset import Dataset
 import icclim
 from {Threshold.__module__} import {Threshold.__name__}, {build_threshold.__name__}
 from {Verbosity.__module__} import {Verbosity.__name__}
-from icclim.icclim_types import InFileLike, SamplingMethodLike
-from {Frequency.__module__} import {Frequency.__name__}, FrequencyLike
+from icclim.icclim_types import InFileLike, SamplingMethodLike, FrequencyLike
+from {Frequency.__module__} import {Frequency.__name__}
 from {NetcdfVersion.__module__} import {NetcdfVersion.__name__}
 from {QuantileInterpolation.__module__} import {QuantileInterpolation.__name__}
 from {UserIndexDict.__module__} import {UserIndexDict.__name__}
