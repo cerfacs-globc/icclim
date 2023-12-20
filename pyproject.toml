@@ -134,7 +134,8 @@ select = [
 ignore = [
   "PLR0913", # too many arguments in function, to add
   "PLR2004", # Magic values, to add
-  "SLF001" # private member accessed, to add
+  "SLF001", # private member accessed, to add
+  "PLR0915" # Too many statement, to add
 ]
 
 [tool.ruff.lint.pydocstyle]

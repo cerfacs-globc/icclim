@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, TypedDict
 
 if TYPE_CHECKING:
-    import datetime
+    import datetime as dt
     from collections.abc import Sequence
 
     from icclim.models.logical_link import LogicalLink
@@ -22,7 +22,7 @@ class UserIndexDict(TypedDict, total=False):
     date_event: bool
     var_type: Literal["t", "p"] | None
     window_width: int | None
-    ref_time_range: list[datetime] | list[str] | tuple[str, str] | None
+    ref_time_range: list[dt.datetime] | list[str] | tuple[str, str] | None
 
     # -- deprecated
     indice_name: str | None

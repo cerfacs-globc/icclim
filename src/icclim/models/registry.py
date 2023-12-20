@@ -38,9 +38,7 @@ class Registry(Generic[T], ABC):
             f"Unknown {cls._item_class.__qualname__}: '{query}'. "
             f"Use one of {cls.every_aliases()}."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
 
     @classmethod
     def every_aliases(cls) -> list[T]:

@@ -10,9 +10,9 @@ A convenience function `indices` is also exposed to compute multiple indices at 
 """
 from __future__ import annotations
 
+import datetime as dt
 import time
 from collections.abc import Sequence
-from datetime import datetime
 from functools import partial, reduce
 from typing import TYPE_CHECKING, Callable, Literal
 from warnings import warn
@@ -114,7 +114,7 @@ def indices(
         del kwargs["out_file"]
     acc = []
     for i in indices:
-        log.info(f"Computing index '{i.short_name}'")
+        log.info("Computing index %s", i.short_name)
         kwargs["index_name"] = i.short_name
         if ignore_error:
             try:
@@ -124,8 +124,8 @@ def indices(
                 if "thresholds" in res.coords:
                     res = res.rename({"thresholds": i.short_name + "_thresholds"})
                 acc.append(res)
-            except Exception:  # noqa BLE001 (catch everything)
-                warn(f"Could not compute {i.short_name}.")
+            except Exception:  # noqa: BLE001 (catch everything)
+                warn(f"Could not compute {i.short_name}.", stacklevel=2)
         else:
             res = index(**kwargs)
             if "percentiles" in res.coords:
@@ -198,13 +198,13 @@ def index(
     index_name: str | None = None,  # optional when computing user_indices
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
-    time_range: Sequence[datetime | str] | None = None,
+    time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] = None,
     callback: Callable[[int], None] = log.callback,
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
-    base_period_time_range: Sequence[datetime] | Sequence[str] | None = None,
+    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -253,7 +253,7 @@ def index(
         ``("season", ("19 july", "14 august"))``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range: list[datetime ] | list[str]  | tuple[str, str] | None
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
@@ -279,7 +279,8 @@ def index(
         ``optional`` Initial value of percentage of the progress bar (default: 0).
     callback_percentage_total: int
         ``optional`` Total percentage value (default: 100).
-    base_period_time_range: list[datetime ] | list[str]  | tuple[str, str] | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
+                            | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -417,9 +418,7 @@ def index(
             "You must fill either index_name or user_index"
             "to compute a climate index."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     if isinstance(threshold, str):
         threshold = build_configured_threshold(threshold)
@@ -564,6 +563,7 @@ def _get_unit(output_unit: str | None, da: DataArray) -> str | None:
             warn(
                 "No unit computed or provided for the index was found."
                 " Use out_unit parameter to add one.",
+                stacklevel=2,
             )
             return ""
         return output_unit
@@ -660,7 +660,9 @@ def _build_history(
         # append xclim history
         initial_history = f"{initial_history}\n{result_da.attrs[HISTORY_CF_KEY]}"
     del result_da.attrs[HISTORY_CF_KEY]
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    current_time = dt.datetime.now(tz=dt.datetime.timezone).strftime(
+        "%Y-%m-%d %H:%M:%S",
+    )
     return (
         f"{initial_history}\n"
         f" [{current_time}]"
@@ -673,7 +675,7 @@ def _build_history(
 def _build_threshold(
     threshold: str | Threshold,
     doy_window_width: int,
-    base_period_time_range: Sequence[datetime | str] | None,
+    base_period_time_range: Sequence[dt.datetime | str] | None,
     only_leap_years: bool,
     interpolation: QuantileInterpolation,
 ) -> Threshold:
@@ -711,7 +713,7 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.lookup(
             "CountOccurrences",
         ),
-        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.lookup(  # noqa
+        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.lookup(  # noqa: E501
             "MaxConsecutiveOccurrence",
         ),
         CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.lookup(
@@ -749,11 +751,7 @@ def read_thresholds(
     thresh = user_index.get("thresh", None)
     if thresh is None or isinstance(thresh, Threshold):
         return thresh
-    # TODO @bzah: [BoundedThreshold] re-add below code and bind to LogicalLink
-    #             or (
-    #                 isinstance(thresh, (tuple, list))
-    #                 and all(map(lambda th: isinstance(th, Threshold), thresh))
-    #             )
+    # TODO @bzah: [BoundedThreshold] read bounded threshold if thresh is a Sequence
     # https://github.com/cerfacs-globc/icclim/issues/289
     logical_operation = user_index["logical_operation"]
     if not isinstance(logical_operation, (tuple, list)):
