@@ -110,9 +110,7 @@ def build_climate_vars(
             f" Please provide them with an xarray.Dataset, netCDF file(s) or a"
             f" zarr store."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     acc = []
     for i, raw_climate_var in enumerate(climate_vars_dict.items()):
         if standard_index is not None:
@@ -168,9 +166,7 @@ def _build_reference_variable(
     """
     if reference_period is None:
         msg = "Can't build a reference variable without a `base_period_time_range`"
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     var_name = next(iter(in_files.keys()))
     if isinstance(in_files, dict):
         study_ds = read_dataset(

@@ -16,9 +16,7 @@ def _reach_err(_, __):
         "Reach operator can't be called. Try to fill threshold with an operand"
         " (e.g. '>=' in '>= 22 degC')."
     )
-    raise InvalidIcclimArgumentError(
-        msg,
-    )
+    raise InvalidIcclimArgumentError(msg)
 
 
 @dataclasses.dataclass

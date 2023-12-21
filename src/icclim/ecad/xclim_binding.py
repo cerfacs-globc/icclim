@@ -61,9 +61,7 @@ class XCLIM_BINDING:
         def __call__(self, config: IndexConfig) -> xarray.DataArray:
             if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
                 msg = "`slice_mode` cannot be configured when computing SPI3"
-                raise InvalidIcclimArgumentError(
-                    msg,
-                )
+                raise InvalidIcclimArgumentError(msg)
             study, ref = get_couple_of_var(config.climate_variables, "SPI")
             return xclim.atmos.standardized_precipitation_index(
                 pr=study,
@@ -96,9 +94,7 @@ class XCLIM_BINDING:
         def __call__(self, config: IndexConfig) -> xarray.DataArray:
             if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
                 msg = "`slice_mode` cannot be configured when computing SPI6"
-                raise InvalidIcclimArgumentError(
-                    msg,
-                )
+                raise InvalidIcclimArgumentError(msg)
             study, ref = get_couple_of_var(config.climate_variables, "SPI")
             return xclim.atmos.standardized_precipitation_index(
                 pr=study,

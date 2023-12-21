@@ -27,9 +27,7 @@ def read_date(in_date: str | datetime) -> datetime:
             " You can use various formats such as '2 december', '02-12',"
             " '1994-12-02'..."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     return date
 
 

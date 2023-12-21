@@ -324,9 +324,7 @@ class FrequencyRegistry(Registry[Frequency]):
             f"Unknown frequency {item}."
             f" Use a Frequency from {FrequencyRegistry.every_aliases()}"
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
 
     @staticmethod
     def get_item_aliases(item: Frequency) -> list[str]:
@@ -406,9 +404,7 @@ def _get_frequency_from_iterable(
             " When slice_mode is a list, its first element must be a keyword and"
             " its second a list (e.g `slice_mode=['season', [1,2,3]]` )."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     freq_keyword = slice_mode_list[0]
     if freq_keyword in ["month", "months"]:
         return _build_frequency_filtered_by_month(slice_mode_list[1])

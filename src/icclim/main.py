@@ -736,9 +736,7 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         indicator = user_index_map.get(calc_op)
     if indicator is None:
         msg = f"Unknown user_index calc_operation: '{user_index['calc_operation']}'"
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     return indicator
 
 

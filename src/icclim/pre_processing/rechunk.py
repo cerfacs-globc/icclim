@@ -177,18 +177,14 @@ def _unsafe_create_optimized_zarr_store(
         ds = ds.drop_vars(filter(lambda v: v not in var_name, ds.data_vars.keys()))
         if len(ds.data_vars.keys()) == 0:
             msg = f"The variable(s) {var_name} were not found in the dataset."
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
         if _is_rechunking_unnecessary(ds, chunking):
             msg = (
                 f"The given input is already chunked following {chunking}."
                 f" It's unnecessary to rechunk data with"
                 f" `create_optimized_zarr_store` here."
             )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
         chunking = _build_default_chunking(ds)
         # It seems rechunker performs better when the dataset is first converted
         # to a zarr store, without rechunking anything.

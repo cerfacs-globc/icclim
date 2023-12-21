@@ -691,9 +691,7 @@ def difference_of_means(
             f" `sampling_method='{GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}'`"
             f" instead."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     study, ref = get_couple_of_var(climate_vars, "difference_of_means")
     if sampling_method == GROUP_BY_METHOD:
         if resample_freq.group_by_key == RUN_INDEXER:
@@ -752,9 +750,7 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
             f"Can't use {GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}"
             f" with the frequency {resample_freq.long_name}."
         )
-        raise NotImplementedError(
-            msg,
-        )
+        raise NotImplementedError(msg)
     for label, sample in study.resample(time=resample_freq.pandas_freq):
         sample_mean = sample.mean(dim="time")
         ref_group_mean = mean_ref.sel({key: dt_selector(sample).to_numpy()[0]})
@@ -775,9 +771,7 @@ def _diff_of_means_of_resampled_x_by_groupedby_y(
 def _check_single_var(climate_vars: list[ClimateVariable], indicator: GenericIndicator):
     if len(climate_vars) > 1:
         msg = f"{indicator.name} can only be computed on a single variable."
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
 
 
 def _check_couple_of_vars(
@@ -792,9 +786,7 @@ def _check_couple_of_vars(
             f" second variable as a subset of the first one using"
             f" `base_period_time_range`."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
 
 
 class GenericIndicatorRegistry(Registry[GenericIndicator]):
@@ -967,14 +959,10 @@ def get_couple_of_var(
             f"{indicator} needs two variables **or** one variable and a "
             f"`base_period_time_range` period to extract a reference variable."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     if climate_vars[0].threshold or climate_vars[1].threshold:
         msg = f"{indicator} cannot be computed with thresholds."
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
     study = convert_units_to(study, ref, context="hydro")
@@ -1141,9 +1129,7 @@ def _reduce_with_date_event(
         group_reducer = DataArray.argmin
     else:
         msg = f"Can't compute `date_event` due to unknown reducer: '{reducer}'"
-        raise NotImplementedError(
-            msg,
-        )
+        raise NotImplementedError(msg)
     for label, sample in resampled:
         reduced_result = sample.isel(time=group_reducer(sample, dim="time"))
         if window is not None:

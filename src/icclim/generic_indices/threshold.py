@@ -320,9 +320,7 @@ class BoundedThreshold(Threshold):
                 f"BoundedThreshold can only be built on 2 thresholds, {len(thresholds)}"
                 f" were found."
             )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
         self.left_threshold = self._build_thresh(thresholds[0])
         self.right_threshold = self._build_thresh(thresholds[1])
         if self.left_threshold == self.right_threshold:
@@ -330,9 +328,7 @@ class BoundedThreshold(Threshold):
                 f"BoundedThreshold must be built on 2 **different** thresholds, here"
                 f" both were {self.left_threshold.initial_query}"
             )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
         self.logical_link = logical_link
         self.initial_query = initial_query
 
@@ -555,9 +551,7 @@ class PercentileThreshold(Threshold):
             )
         else:
             msg = f"Unknown percentile unit '{self._initial_unit}'."
-            raise NotImplementedError(
-                msg,
-            )
+            raise NotImplementedError(msg)
         self._prepared_value = prepared_data.chunk("auto")
         self.is_ready = True
 
@@ -693,9 +687,7 @@ class BasicThreshold(Threshold):
             is_number_sequence(value) or isinstance(value, (float, int))
         ) and threshold_min_value is not None:
             msg = "Cannot use threshold_min_value with scalars"
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
         if is_dataset_path(value) or isinstance(value, Dataset):
             # e.g. build_threshold(">", "thresh*.nc" , "degC") noqa: ERA001
             thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
@@ -894,9 +886,7 @@ def _build_min_value(
                 f" {operator}. You don't need to fill an"
                 f" operator for this parameter."
             )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
         return xc_units.Quantity(value=value, units=unit)
     msg = f"Unknown type '{type(threshold_min_value)}' for `threshold_min_value`."
     raise NotImplementedError(msg)
@@ -947,9 +937,7 @@ def _read_bounded_threshold(
             raise NotImplementedError(msg)
     if len(acc) > 2:
         msg = "Can't build BoundedThreshold on more than 2 thresholds."
-        raise NotImplementedError(
-            msg,
-        )
+        raise NotImplementedError(msg)
     if isinstance(logical_link, str):
         logical_link = LogicalLinkRegistry.lookup(logical_link)
     return {
@@ -1033,9 +1021,7 @@ def _read_bounded_threshold_query(query: str) -> ThresholdBuilderInput:
             "BoundedThreshold can only be built on 2"
             f" thresholds. We found {len(threshs)} here."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     return {
         "initial_query": query,
         "thresholds": (_read_input(threshs[0]), _read_input(threshs[1])),
@@ -1107,9 +1093,7 @@ def _get_dataarray_from_dataset(
                     f" Use `threshold_var_name` to specify which variable should be"
                     f" used."
                 )
-                raise InvalidIcclimArgumentError(
-                    msg,
-                )
+                raise InvalidIcclimArgumentError(msg)
     return ds[threshold_var_name]
 
 

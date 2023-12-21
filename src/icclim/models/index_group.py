@@ -34,9 +34,7 @@ class IndexGroup:
             f"Unexpected type for {right}: {type(right)}."
             f" An IndexGroup was expected."
         )
-        raise NotImplementedError(
-            msg,
-        )
+        raise NotImplementedError(msg)
 
     def __eq__(self, other):
         if not isinstance(other, IndexGroup):

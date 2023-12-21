@@ -94,9 +94,7 @@ class PercentileDataArray(xr.DataArray):
             f" PercentileDataArray. The DataArray must have a"
             f" 'percentiles' coordinate variable."
         )
-        raise ValueError(
-            msg,
-        )
+        raise ValueError(msg)
 
 
 def guess_var_names(
@@ -145,9 +143,7 @@ def read_dataset(
         )
     else:
         msg = f"`in_files` format {type(in_files)} was not recognized."
-        raise NotImplementedError(
-            msg,
-        )
+        raise NotImplementedError(msg)
     return update_to_standard_coords(ds)
 
 
@@ -190,9 +186,7 @@ def standardize_percentile_dim_name(per_da: DataArray) -> DataArray:
             "Percentile data must contain a recognizable percentiles dimension such as"
             " 'percentiles', 'quantile', 'per' or 'centile'."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     per_da = per_da.rename({per_dim_name: "percentiles"})
     if "quantile" in per_dim_name:
         per_da.coords["percentiles"] = per_da.coords["percentiles"] * 100
@@ -301,9 +295,7 @@ def build_studied_data(
                 f" period: {original_da.time.min().dt.floor('D').values}"
                 f" - {original_da.time.max().dt.floor('D').values}."
             )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+            raise InvalidIcclimArgumentError(msg)
     else:
         da = original_da
     if ignore_Feb29th:
@@ -322,9 +314,7 @@ def check_time_range_pre_validity(key: str, tr: Sequence[datetime | str]) -> Non
             f" has {len(tr)} elements."
             f" It must have exactly 2 dates."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
 
 
 def check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
@@ -334,9 +324,7 @@ def check_time_range_post_validity(da, original_da, key: str, tr: list) -> None:
             f" {original_da.time.min().dt.floor('D').values}"
             f" - {original_da.time.max().dt.floor('D').values}."
         )
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
 
 
 def _is_alias_valid(ds, alias) -> bool:
@@ -368,9 +356,7 @@ def reduce_only_leap_years(da: DataArray) -> DataArray:
             reduced_list.append(val)
     if not reduced_list:
         msg = "No leap year in current dataset. Do not use `only_leap_years` parameter."
-        raise InvalidIcclimArgumentError(
-            msg,
-        )
+        raise InvalidIcclimArgumentError(msg)
     return xr.concat(reduced_list, "time")
 
 
