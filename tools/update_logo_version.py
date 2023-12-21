@@ -38,4 +38,6 @@ if __name__ == "__main__":
             " and the output file path"
         )
         raise NotImplementedError(error_msg)
-    _run(sys.argv[1], sys.argv[2])
+    in_path = Path(sys.argv[1])
+    out_path = Path(sys.argv[1])
+    _run(in_path, out_path)
