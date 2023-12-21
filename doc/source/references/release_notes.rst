@@ -1,6 +1,21 @@
 Release history
 ===============
 
+6.6.0 (unreleased)
+------------------
+
+* [maint] Migrate from [black, blackdoc, flake8, isort, pyupgrade, pydocstyle] to ruff
+* [maint] Migrate from setup.py to pyproject.toml
+* [maint] Make readthedocs build fail when there are warnings
+* [maint] Fix warnings in doc build
+* [maint] Update architecture to have a `src/` and a `tests/` directory at root level
+* [maint] Migrate build toolchain from setuptools to flit
+* [maint] Remove version number from `constants` module as it was causing the build process to import icclim.
+          The version number is now statically set in src/icclim/__init__.py
+* [maint] Lint code using the more restrictive rules from ruff
+* [fix]   Force xarray to read dataset sequentially to avoid a netcdf-c threading issue causing seg faults.
+
+
 6.5.0
 -----
 
