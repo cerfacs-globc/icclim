@@ -17,10 +17,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Install flit
+      - name: Install build tools
         run: pip install --upgrade pip flit
-      - name: Install build tool
-        run: pip install flit
       - name: Install icclim and dev requirements (dev, test and doc)
         run: flit install --deps develop
       - name: call fun extractor
@@ -55,13 +53,12 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Install flit
+      - name: Install build tools
         run: pip install --upgrade pip flit
       - name: Install icclim and dev requirements (dev, test and doc)
         run: flit install --deps develop
       - name: Build coverage file
-        run: |
-            pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=icclim tests/ | tee pytest-coverage.txt; ( exit ${PIPESTATUS[0]} )
+        run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=icclim tests/ | tee pytest-coverage.txt; ( exit ${PIPESTATUS[0]} )
       - name: Pytest coverage comment
         id: coverageComment
         uses: MishaKav/pytest-coverage-comment@main
@@ -108,7 +105,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Install flit
+      - name: Install build tools
         run: pip install --upgrade pip flit
       - name: Install icclim and dev requirements (dev, test and doc)
         run: flit install --deps develop
