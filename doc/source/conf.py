@@ -1,3 +1,4 @@
+# noqa: INP001
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -10,15 +11,15 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.abspath("../.."))
-import icclim
+sys.path.insert(0, Path("../..").resolve())
+import icclim  # noqa: E402 (import need to be after path update)
 
 # -- Project information -----------------------------------------------------
 project = "icclim"
-copyright = "2021, CERFACS"
+copyright = "2021, CERFACS"  # noqa: A001
 author = "Christian P."
 version = icclim.__version__
 release = icclim.__version__

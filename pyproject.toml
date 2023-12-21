@@ -1,0 +1,144 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "icclim"
+authors = [
+  {name = "Christian Page", email = "christian.page@cerfacs.fr"}
+]
+maintainers = [
+  {name = "Christian Page", email = "christian.page@cerfacs.fr"},
+  {name = "Abel Aoun", email = "aoun.abel@gmail.com"}
+]
+readme = "README.rst"
+license = {file = "LICENSE"}
+classifiers = [
+  "Programming Language :: Python",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.9",
+  "Topic :: Scientific/Engineering :: Atmospheric Science"
+]
+dynamic = ["version", "description"]
+requires-python = ">=3.9"
+keywords = ["netcdf", "climate", "climate-indices", "climate-indicators", "xarray"]
+dependencies = [
+  "numpy>=1.16",
+  "xarray>=2022.6",
+  "xclim>=0.45, <=0.47",
+  "cf_xarray>=0.7.4",
+  "cftime>=1.4.1",
+  "dask[array]",
+  "netCDF4>=1.5.7",
+  "psutil",
+  "zarr",
+  "rechunker>=0.3, !=0.4",
+  "fsspec",
+  "pandas>=1.3",
+  "dateparser",
+  "pint",
+  "jinja2",
+  "psutil"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "pytest-cov"
+]
+dev = [
+  "flit",
+  "ruff",
+  "pip",
+  "pre-commit>=2.9"
+]
+doc = [
+  "sphinx",
+  "sphinx_codeautolink",
+  "sphinx_copybutton",
+  "sphinx_lfs_content",
+  "pydata-sphinx-theme"
+]
+
+[project.urls]
+Documentation = "https://icclim.readthedocs.io/en/latest/how_to/index.html"
+Source = "https://github.com/cerfacs-globc/icclim/"
+
+[tool.ruff.format]
+# Enable reformatting of code snippets in docstrings.
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+  "F", # Pyflakes
+  "E", # pycodestyle error
+  "W", # pycodestyle warn
+  "C90", # mccabe
+  "I", # isort
+  # "N", # pep8-naming, to add
+  # "D", # pydocstyle, to add
+  "UP", # pyupgrade
+  "YTT", # flake8-2020
+  # "ANN", # flake8-annotations, to add
+  "ASYNC", # flake8-async
+  # "S", # flake8-bandit
+  "BLE", # flake8-blind-except
+  # "FBT", # flake8-boolean-trap, to add
+  "B", # flake8-bugbear
+  "A", # flake8-builtins
+  "COM", # flake8-commas
+  "C4", # flake8-comprehensions
+  "DTZ", # flake8-datetimez
+  "T10", # flake8-debugger
+  "DJ", # flake8-django
+  "EM", # flake8-errmsg
+  "EXE", # flake8-executable
+  "FA", # flake8-future-annotations
+  "ISC", # flake8-implicit-str-concat
+  "ICN", # flake8-import-conventions
+  "G", # flake8-logging-format
+  "INP", # flake8-no-pep420
+  "PIE", # flake8-pie
+  "T20", # flake8-print
+  "PYI", # flake8-pyi
+  "PT", # flake8-pytest-style
+  "Q", # flake8-quotes
+  "RSE", # flake8-raise
+  "RET", # flake8-return
+  "SLF", # flake8-self
+  "SLOT", # flake8-slots
+  "SIM", # flake8-simplify
+  "TID", # flake8-tidy-imports
+  "TCH", # flake8-type-checking
+  "INT", # flake8-gettext
+  "ARG", # flake8-unused-arguments
+  "PTH", # flake8-use-pathlib
+  "TD", # flake8-todos
+  "ERA", # eradicate
+  # "PD", # pandas-vet, not really compatible with xarray
+  "PGH", # pygrep-hooks
+  "PL", # Pylint
+  "TRY", # tryceratops
+  "FLY", # flynt
+  "NPY", # NumPy-specific rules
+  "AIR", # Airflow
+  "PERF", # Perflint
+  # "FURB", # refurb, preview
+  # "LOG", # flake8-logging, preview
+  "RUF" # Ruff-specific rules
+]
+ignore = [
+  "PLR0913", # too many arguments in function, to add
+  "PLR2004", # Magic values, to add
+  "SLF001", # private member accessed, to add
+  "PLR0915", # Too many statement, to add
+  "ISC001", # String concat on same line, Managed by ruff format
+  "COM812" # No comma at the end, Managed by ruff format
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"

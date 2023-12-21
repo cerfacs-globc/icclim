@@ -13,7 +13,6 @@ dependencies:
  - dask[array]
  - netCDF4>=1.5.7
  - cftime>=1.5.0
- - pyyaml>=6.0
  - rechunker>=0.3.3
  - psutil
  - zarr
@@ -24,16 +23,12 @@ dependencies:
  - pre-commit
  - pydata-sphinx-theme
  - sphinx
- - black
- - flake8
- - isort
+ - ruff
  - pip
- - pylint
  - pytest
  - pytest-cov
  - setuptools
- - twine
- - flake8-rst-docstrings
+ - flit
  # Extra dependencies
  - matplotlib
  - cartopy

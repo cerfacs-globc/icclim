@@ -1,7 +1,7 @@
 |logo|
 ======
 
-|build| |pypi| |black| |docs| |conda| |coverage| |doi|
+|build| |pypi| |ruff| |docs| |conda| |coverage| |doi|
 
 icclim is a Python library to compute climate indices.
 icclim name stands for index, calculation, climate.
@@ -15,7 +15,7 @@ From conda-forge: ``conda install -c conda-forge icclim``.
 
 From sources:
     - Clone the repository ``git clone https://github.com/cerfacs-globc/icclim.git``
-    - Install icclim ``python -m setup install``
+    - Install icclim ``pip install .``
 
 How to use icclim
 -----------------
@@ -68,7 +68,7 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
 ..
   Pytest Coverage Comment:Begin
 
-.. |coverage| image:: https://img.shields.io/badge/Coverage-91%25-brightgreen.svg
+.. |coverage| image:: https://img.shields.io/badge/Coverage-86%25-green.svg
         :target: https://github.com/cerfacs-globc/icclim/blob/master/README.rst#code-coverage
         :alt: Code coverage
 
@@ -79,10 +79,6 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
 .. |docs| image:: https://readthedocs.org/projects/icclim/badge/?version=latest
         :target: https://icclim.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
-
-.. |black| image:: https://img.shields.io/badge/code%20style-black-000000.svg
-        :target: https://github.com/python/black
-        :alt: Python Black
 
 .. |pypi| image:: https://img.shields.io/pypi/v/icclim.svg
         :target: https://pypi.python.org/pypi/icclim
@@ -104,3 +100,7 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
         :target: https://github.com/cerfacs-globc/icclim
         :alt: icclim
         :width: 200px
+
+.. |ruff| image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+        :target: https://github.com/astral-sh/ruff
+        :alt: Ruff
