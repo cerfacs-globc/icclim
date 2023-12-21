@@ -505,9 +505,7 @@ class Test_Integration:
         ).compute()
         for i in EcadIndexRegistry.values():
             # No variable in input to compute snow indices
-            if i.group == IndexGroupRegistry.SNOW:
-                assert res.data_vars.get(i.short_name, None) is None
-            elif "spi" in i.short_name.lower():
+            if i.group == IndexGroupRegistry.SNOW or "spi" in i.short_name.lower():
                 assert res.data_vars.get(i.short_name, None) is None
             else:
                 assert res[i.short_name] is not None
@@ -518,7 +516,10 @@ class Test_Integration:
         ds["tasmin"] = self.data
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
-        with pytest.raises(Exception):
+        with pytest.raises(
+            InvalidIcclimArgumentError,
+            match=r"Index .* needs the following .*",
+        ):
             icclim.indices(
                 index_group="all",
                 in_files=ds,

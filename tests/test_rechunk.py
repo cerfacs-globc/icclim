@@ -54,14 +54,12 @@ def test_create_optimized_zarr_store_error():
         },
     ).chunk({"time": 2})
     # Then
-    with pytest.raises(InvalidIcclimArgumentError):
-        # When
-        with create_optimized_zarr_store(
-            in_files=ds,
-            var_names="TATAYOYO!",
-            target_zarr_store_name="yolo.zarr",
-        ):
-            pass
+    with pytest.raises(InvalidIcclimArgumentError), create_optimized_zarr_store(
+        in_files=ds,
+        var_names="TATAYOYO!",
+        target_zarr_store_name="yolo.zarr",
+    ):
+        pass
 
 
 @patch("rechunker.rechunk")

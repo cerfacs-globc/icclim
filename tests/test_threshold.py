@@ -164,7 +164,7 @@ def test_per_threshold_min_value__operand_error():
 
 def test_per_threshold_min_value__type_error():
     with pytest.raises(NotImplementedError):
-        build_threshold(">10doy_per", threshold_min_value=dict(random="stuff"))  # noqa
+        build_threshold(">10doy_per", threshold_min_value={"random": "stuff"})
 
 
 def test_per_threshold_min_value__string():
@@ -203,7 +203,7 @@ def test_build_per_threshold__from_query():
     assert res.is_ready is False
     assert isinstance(res.prepare, Callable)
     with pytest.raises(RuntimeError):  # not computed yet
-        res.value  # noqa
+        _ = res.value
 
 
 def test_build_basic_threshold__from_dataarray():
@@ -269,7 +269,7 @@ class Test_FileBased:
     )
 
     @pytest.fixture(autouse=True)
-    def cleanup(self):
+    def _cleanup(self):
         # setup
         # ...
         yield

@@ -227,24 +227,7 @@ class GenericIndicator(ResamplingIndicator):
         coef: float | None,
         sampling_method: str,
     ) -> list[ClimateVariable]:
-        if not _same_freq_for_all(climate_vars):
-            msg = (
-                "All variables must have the same time frequency (for example daily) to"
-                " be compared with each others, but this was not the case."
-            )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
-        if self.check_vars is not None:
-            self.check_vars(climate_vars, self)
-        if sampling_method not in self.sampling_methods:
-            msg = (
-                f"{self.name} can only be computed with the following"
-                f" sampling_method(s): {self.sampling_methods}"
-            )
-            raise InvalidIcclimArgumentError(
-                msg,
-            )
+        self._check_for_invalid_setup(climate_vars, sampling_method)
         if output_unit is not None:
             if _is_amount_unit(output_unit):
                 climate_vars = _convert_rates_to_amounts(
@@ -263,8 +246,6 @@ class GenericIndicator(ResamplingIndicator):
                         climate_var.studied_data,
                         target=output_unit,
                     )
-            else:
-                pass  # nothing to do
         if coef is not None:
             for climate_var in climate_vars:
                 climate_var.studied_data = coef * climate_var.studied_data
@@ -342,6 +323,26 @@ class GenericIndicator(ResamplingIndicator):
             and self.standard_name == other.standard_name
             and self.process == other.process
         )
+
+    def _check_for_invalid_setup(
+        self,
+        climate_vars: list[ClimateVariable],
+        sampling_method: str,
+    ):
+        if not _same_freq_for_all(climate_vars):
+            msg = (
+                "All variables must have the same time frequency (for example daily) to"
+                " be compared with each others, but this was not the case."
+            )
+            raise InvalidIcclimArgumentError(msg)
+        if sampling_method not in self.sampling_methods:
+            msg = (
+                f"{self.name} can only be computed with the following"
+                f" sampling_method(s): {self.sampling_methods}"
+            )
+            raise InvalidIcclimArgumentError(msg)
+        if self.check_vars is not None:
+            self.check_vars(climate_vars, self)
 
 
 def count_occurrences(
