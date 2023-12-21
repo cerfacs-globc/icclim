@@ -135,7 +135,9 @@ ignore = [
   "PLR0913", # too many arguments in function, to add
   "PLR2004", # Magic values, to add
   "SLF001", # private member accessed, to add
-  "PLR0915" # Too many statement, to add
+  "PLR0915", # Too many statement, to add
+  "ISC001", # String concat on same line, Managed by ruff format
+  "COM812" # No comma at the end, Managed by ruff format
 ]
 
 [tool.ruff.lint.pydocstyle]
