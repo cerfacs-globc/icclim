@@ -11,10 +11,12 @@ Release history
 * [maint] Update architecture to have a `src/` and a `tests/` directory at root level
 * [maint] Migrate build toolchain from setuptools to flit
 * [maint] Remove version number from `constants` module as it was causing the build process to import icclim.
-          The version number is now statically set in src/icclim/__init__.py
+  The version number is now statically set in src/icclim/__init__.py
 * [maint] Lint code using the more restrictive rules from ruff
-* [fix]   Force xarray to read dataset sequentially to avoid a netcdf-c threading issue causing seg faults.
-
+* [fix] Force xarray to read dataset sequentially to avoid a netcdf-c threading issue causing seg faults.
+* [enh] Add `publish-to-pypi.yml` github action to automatically build and publish icclim to pypi.
+  This action is triggered by a github release being published.
+  This action requires a manual approval on github.
 
 6.5.0
 -----
