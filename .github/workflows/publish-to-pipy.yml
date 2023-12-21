@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: 3.9
       - name: Install tools
-        uses: python -m pip install --upgrade pip flit
+        run: python -m pip install --upgrade pip flit
       - name: Install icclim for prod
         run: python -m flit install --deps production
       - name: build package
