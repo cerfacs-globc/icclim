@@ -68,7 +68,6 @@ TAB = "    "
 END_NOTE = """
     Notes
     -----
-
     This function has been auto-generated.
 """
 
@@ -82,8 +81,10 @@ PATH_TO_GENERIC_DOC_FILE = (
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
 DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
 MODULE_HEADER = f'''
-# ruff: noqa: A001
+# ruff: noqa: A001, E501
 """
+icclim's API for ECAD indices and generic indices.
+
 This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
@@ -197,12 +198,12 @@ def custom_index(
         user_index: UserIndexDict,
         {fun_signature_args},
 ) -> Dataset:
-        \"\"\"
-        Compute custom indices using simple operators.
+        \"\"\"Compute custom indices using simple operators.
 
-        Use the `user_index` parameter to describe how the index should be computed.
-        You can find some examples in icclim documentation at :ref:`custom_indices`
-        {args_docs}
+    Use the `user_index` parameter to describe how the index should be computed.
+    You can find some examples in icclim documentation at :ref:`custom_indices`
+
+    {args_docs}
         {END_NOTE}
         \"\"\"
         return icclim.index(
@@ -238,7 +239,8 @@ def _get_generic_index_declaration(index: GenericIndicator) -> str:
 def {index.name.lower()}(
     {fun_signature_args},
     ) -> Dataset:
-    \"\"\"
+    \"\"\"{index.name}
+
     {index.definition}
 
     {args_docs}
@@ -273,8 +275,9 @@ def _get_standard_index_declaration(index: StandardIndex) -> str:
 def {index.short_name.lower()}(
     {fun_signature_args},
 ) -> Dataset:
-    \"\"\"
-    {index.short_name}: {index.definition}
+    \"\"\"{index.short_name}
+
+    {index.definition}
     Source: {index.source}.
 
     {args_docs}
@@ -336,7 +339,7 @@ def _get_parameter_declaration(param: inspect.Parameter) -> str:
 
 
 def _get_params_docstring(args: list[str], index_docstring: str) -> str:
-    result = f"Parameters\n{TAB}----------\n"
+    result = f"Parameters\n{TAB}----------"
     # regex to find `\n   toto: str` or similar declaration of argument
     regex = re.compile(r"\n\s{4}\w+.*: .*")
     args_declaration = list(regex.finditer(index_docstring))

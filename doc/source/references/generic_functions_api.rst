@@ -4,7 +4,7 @@ Generic indices/indicators
 ==========================
 
 icclim 6.0 introduced the concept of generic indices.
-This document present the auto-generated functions that were built base on :ref:`GenericIndicatorRegistry`.
+This document present the auto-generated functions that were built base on :py:class:`icclim.generic_indices.GenericIndicatorRegistry`.
 The are accessible directly from `icclim` namespace.
 
 As an example, you can compute the number of days where a threshold is reached with:

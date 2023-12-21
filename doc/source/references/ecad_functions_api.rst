@@ -16,11 +16,12 @@ For example to use this new API with the index `su` you can do:
 
     summer_days = icclim.su(in_files=glob.glob("netcdf_files/tasmax*.nc"))
 
-Generated API
--------------
+ECAD Generated Functions
+------------------------
 
 .. automodule:: icclim._generated_api
     :members:
+    :no-index:
 
     .. rubric:: Functions
 

@@ -279,8 +279,7 @@ def index(
         ``optional`` Initial value of percentage of the progress bar (default: 0).
     callback_percentage_total: int
         ``optional`` Total percentage value (default: 100).
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -303,8 +302,7 @@ def index(
         the sum_of_spell_lengths.
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
-        `{max_of_rolling_sum, max_of_rolling_average,
-          min_of_rolling_sum, min_of_rolling_average}`
+        `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
     only_leap_years: bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th: bool
@@ -351,7 +349,7 @@ def index(
     save_percentile: bool
         DEPRECATED, use save_thresholds instead.
 
-    """
+    """  # noqa: E501
     _setup(callback, callback_percentage_start_value, logs_verbosity)
     (
         index_name,

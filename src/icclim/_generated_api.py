@@ -1,5 +1,7 @@
-# ruff: noqa: A001
+# ruff: noqa: A001, E501
 """
+icclim's API for ECAD indices and generic indices.
+
 This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
@@ -123,13 +125,12 @@ def count_occurrences(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Count occurrences where threshold(s) are met
-         (e.g. SU, Tx90p, RR1).
+    """count_occurrences
+
+    Count occurrences where threshold(s) are met (e.g. SU, Tx90p, RR1).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -185,7 +186,6 @@ def count_occurrences(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -220,13 +220,12 @@ def max_consecutive_occurrence(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Count the maximum number of consecutive occurrences when
-         threshold(s) are met (e.g. CDD, CSU, CWD).
+    """max_consecutive_occurrence
+
+    Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -282,7 +281,6 @@ def max_consecutive_occurrence(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -318,14 +316,12 @@ def sum_of_spell_lengths(
     date_event: bool = False,
     min_spell_length: int | None = 6,
 ) -> Dataset:
-    """
-    Sum the lengths of each consecutive occurrence spell when
-         threshold(s) are met. The minimum spell length is controlled by
-         `min_spell_length` (e.g. WSDI, CSDI).
+    """sum_of_spell_lengths
+
+    Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -384,7 +380,6 @@ def sum_of_spell_lengths(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -420,14 +415,12 @@ def excess(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Compute the excess over the given threshold. The excess is
-         `sum(x[x>t] - t)` where x is the studied variable and t the threshold
-         (e.g. GD4).
+    """excess
+
+    Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -483,7 +476,6 @@ def excess(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -518,14 +510,12 @@ def deficit(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Compute the deficit below the given threshold. The deficit is
-         `sum(t - x[x<t])` where x is the studied variable and t the threshold
-         (e.g. HD17).
+    """deficit
+
+    Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -581,7 +571,6 @@ def deficit(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -616,13 +605,12 @@ def fraction_of_total(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Compute the fraction of values meeting threshold(s) over the sum of
-         every values (e.g. R75pTOT, R95pTOT).
+    """fraction_of_total
+
+    Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -678,7 +666,6 @@ def fraction_of_total(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -713,13 +700,12 @@ def maximum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Maximum of values that met threshold(s), if threshold(s) are given
-         (e.g. Txx, Tnx).
+    """maximum
+
+    Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -775,7 +761,6 @@ def maximum(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -810,13 +795,12 @@ def minimum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Minimum of values that met threshold(s), if threshold(s) are given
-         (e.g. Txn, Tnn).
+    """minimum
+
+    Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -872,7 +856,6 @@ def minimum(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -907,13 +890,12 @@ def average(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Average of values that met threshold(s), if threshold(s) are given
-         (e.g. Tx, Tn)
+    """average
+
+    Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn)
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -969,7 +951,6 @@ def average(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -1004,13 +985,12 @@ def sum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Sum of values that met threshold(s), if threshold(s) are given
-         (e.g. PRCPTOT, RR).
+    """sum
+
+    Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1066,7 +1046,6 @@ def sum(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -1101,13 +1080,12 @@ def standard_deviation(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    Standard deviation of values that met threshold(s),
-         if threshold(s) are given.
+    """standard_deviation
+
+    Standard deviation of values that met threshold(s), if threshold(s) are given.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1163,7 +1141,6 @@ def standard_deviation(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -1199,13 +1176,12 @@ def max_of_rolling_sum(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """
-    Maximum of rolling sum over time dimension
-         (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
+    """max_of_rolling_sum
+
+    Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1260,12 +1236,10 @@ def max_of_rolling_sum(
         **warning** This option may significantly slow down computation.
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
-        `{max_of_rolling_sum, max_of_rolling_average,
-          min_of_rolling_sum, min_of_rolling_average}`
+        `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -1302,12 +1276,12 @@ def min_of_rolling_sum(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """
+    """min_of_rolling_sum
+
     Minimum of rolling sum over time dimension.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1362,12 +1336,10 @@ def min_of_rolling_sum(
         **warning** This option may significantly slow down computation.
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
-        `{max_of_rolling_sum, max_of_rolling_average,
-          min_of_rolling_sum, min_of_rolling_average}`
+        `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -1404,12 +1376,12 @@ def max_of_rolling_average(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """
+    """max_of_rolling_average
+
     Maximum of rolling average over time dimension.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1464,12 +1436,10 @@ def max_of_rolling_average(
         **warning** This option may significantly slow down computation.
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
-        `{max_of_rolling_sum, max_of_rolling_average,
-          min_of_rolling_sum, min_of_rolling_average}`
+        `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -1506,12 +1476,12 @@ def min_of_rolling_average(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """
+    """min_of_rolling_average
+
     Minimum of rolling average over time dimension.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1566,12 +1536,10 @@ def min_of_rolling_average(
         **warning** This option may significantly slow down computation.
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
-        `{max_of_rolling_sum, max_of_rolling_average,
-          min_of_rolling_sum, min_of_rolling_average}`
+        `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -1607,215 +1575,12 @@ def mean_of_difference(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-        Average of the difference between two variables
-    , or one variable and it's reference period values
-             (e.g. DTR: `mean(tasmax - tasmin)`).
+    """mean_of_difference
 
-        Parameters
-        ----------
-
-        in_files: str | list[str] | Dataset | DataArray | InputDictionary
-            Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-            or path to zarr store, or xarray.Dataset or xarray.DataArray.
-        var_name: str | list[str] | None
-            ``optional`` Target variable name to process corresponding to ``in_files``.
-            If None (default) on ECA&D index, the variable is guessed based on the
-            climate index wanted.
-            Mandatory for a user index.
-        slice_mode: SliceMode
-            Type of temporal aggregation:
-            The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-            "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-            (where season and month lists can be customized) or any valid pandas
-            frequency.
-            A season can also be defined between two exact dates:
-            ``("season", ("19 july", "14 august"))``.
-            Default is "year".
-            See :ref:`slice_mode` for details.
-        time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-            ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-            If ``None``, whole period of input files will be processed.
-            The dates can either be given as instance of datetime.datetime or as string
-            values. For strings, many format are accepted.
-            Default is ``None``.
-        out_file: str | None
-            Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-            Default is "icclim_out.nc".
-            If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-            Use the function returned value instead to retrieve the computed value.
-            If ``out_file`` already exists, icclim will overwrite it!
-        threshold: float | list[float] | None
-            ``optional`` User defined threshold for certain indices.
-            Default depend on the index, see their individual definition.
-            When a list of threshold is provided, the index will be computed for each
-            thresholds.
-        ignore_Feb29th: bool
-            ``optional`` Ignoring or not February 29th (default: False).
-        out_unit: str | None
-            ``optional`` Output unit for certain indices: "days" or "%"
-            (default: "days").
-        netcdf_version: str | NetcdfVersion
-            ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-        save_thresholds: bool
-            ``optional`` True if the thresholds should be saved within the resulting
-            netcdf file (default: False).
-        logs_verbosity: str | Verbosity
-            ``optional`` Configure how verbose icclim is.
-            Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-        date_event: bool
-            When True the date of the event (such as when a maximum is reached) will be
-            stored in coordinates variables.
-            **warning** This option may significantly slow down computation.
-
-        Notes
-        -----
-
-        This function has been auto-generated.
-
-    """
-    return icclim.index(
-        index_name="MEAN_OF_DIFFERENCE",
-        in_files=in_files,
-        var_name=var_name,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        out_file=out_file,
-        threshold=threshold,
-        ignore_Feb29th=ignore_Feb29th,
-        out_unit=out_unit,
-        netcdf_version=netcdf_version,
-        save_thresholds=save_thresholds,
-        logs_verbosity=logs_verbosity,
-        date_event=date_event,
-    )
-
-
-def difference_of_extremes(
-    in_files: InFileLike,
-    var_name: str | Sequence[str] | None = None,
-    slice_mode: FrequencyLike | Frequency = "year",
-    time_range: Sequence[dt.datetime | str] | None = None,
-    out_file: str | None = None,
-    threshold: str | Threshold | Sequence[str | Threshold] = None,
-    ignore_Feb29th: bool = False,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_thresholds: bool = False,
-    logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,
-) -> Dataset:
-    """
-        Difference of extremes between two variables
-    , or one variable and it's reference period values.
-             The extremes are always `maximum` for the first variable and
-             `minimum` for the second variable
-             (e.g. ETR: `max(tasmax) - min(tasmin)`).
-
-        Parameters
-        ----------
-
-        in_files: str | list[str] | Dataset | DataArray | InputDictionary
-            Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-            or path to zarr store, or xarray.Dataset or xarray.DataArray.
-        var_name: str | list[str] | None
-            ``optional`` Target variable name to process corresponding to ``in_files``.
-            If None (default) on ECA&D index, the variable is guessed based on the
-            climate index wanted.
-            Mandatory for a user index.
-        slice_mode: SliceMode
-            Type of temporal aggregation:
-            The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-            "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-            (where season and month lists can be customized) or any valid pandas
-            frequency.
-            A season can also be defined between two exact dates:
-            ``("season", ("19 july", "14 august"))``.
-            Default is "year".
-            See :ref:`slice_mode` for details.
-        time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-            ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-            If ``None``, whole period of input files will be processed.
-            The dates can either be given as instance of datetime.datetime or as string
-            values. For strings, many format are accepted.
-            Default is ``None``.
-        out_file: str | None
-            Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-            Default is "icclim_out.nc".
-            If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-            Use the function returned value instead to retrieve the computed value.
-            If ``out_file`` already exists, icclim will overwrite it!
-        threshold: float | list[float] | None
-            ``optional`` User defined threshold for certain indices.
-            Default depend on the index, see their individual definition.
-            When a list of threshold is provided, the index will be computed for each
-            thresholds.
-        ignore_Feb29th: bool
-            ``optional`` Ignoring or not February 29th (default: False).
-        out_unit: str | None
-            ``optional`` Output unit for certain indices: "days" or "%"
-            (default: "days").
-        netcdf_version: str | NetcdfVersion
-            ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-        save_thresholds: bool
-            ``optional`` True if the thresholds should be saved within the resulting
-            netcdf file (default: False).
-        logs_verbosity: str | Verbosity
-            ``optional`` Configure how verbose icclim is.
-            Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-        date_event: bool
-            When True the date of the event (such as when a maximum is reached) will be
-            stored in coordinates variables.
-            **warning** This option may significantly slow down computation.
-
-        Notes
-        -----
-
-        This function has been auto-generated.
-
-    """
-    return icclim.index(
-        index_name="DIFFERENCE_OF_EXTREMES",
-        in_files=in_files,
-        var_name=var_name,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        out_file=out_file,
-        threshold=threshold,
-        ignore_Feb29th=ignore_Feb29th,
-        out_unit=out_unit,
-        netcdf_version=netcdf_version,
-        save_thresholds=save_thresholds,
-        logs_verbosity=logs_verbosity,
-        date_event=date_event,
-    )
-
-
-def mean_of_absolute_one_time_step_difference(
-    in_files: InFileLike,
-    var_name: str | Sequence[str] | None = None,
-    slice_mode: FrequencyLike | Frequency = "year",
-    time_range: Sequence[dt.datetime | str] | None = None,
-    out_file: str | None = None,
-    threshold: str | Threshold | Sequence[str | Threshold] = None,
-    ignore_Feb29th: bool = False,
-    out_unit: str | None = None,
-    netcdf_version: str | NetcdfVersion = "NETCDF4",
-    save_thresholds: bool = False,
-    logs_verbosity: Verbosity | str = "LOW",
-    date_event: bool = False,
-) -> Dataset:
-    """
-    Average of the absolute one time step by one time step difference
-         between two variables,
-         or one variable and it's reference period values
-         (e.g. vDTR:
-         `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ;
-         where i is the day of measure).
+    Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -1871,7 +1636,196 @@ def mean_of_absolute_one_time_step_difference(
 
     Notes
     -----
+    This function has been auto-generated.
 
+    """
+    return icclim.index(
+        index_name="MEAN_OF_DIFFERENCE",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        threshold=threshold,
+        ignore_Feb29th=ignore_Feb29th,
+        out_unit=out_unit,
+        netcdf_version=netcdf_version,
+        save_thresholds=save_thresholds,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+    )
+
+
+def difference_of_extremes(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[dt.datetime | str] | None = None,
+    out_file: str | None = None,
+    threshold: str | Threshold | Sequence[str | Threshold] = None,
+    ignore_Feb29th: bool = False,
+    out_unit: str | None = None,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """difference_of_extremes
+
+    Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
+
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    threshold: float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    out_unit: str | None
+        ``optional`` Output unit for certain indices: "days" or "%"
+        (default: "days").
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="DIFFERENCE_OF_EXTREMES",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        threshold=threshold,
+        ignore_Feb29th=ignore_Feb29th,
+        out_unit=out_unit,
+        netcdf_version=netcdf_version,
+        save_thresholds=save_thresholds,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+    )
+
+
+def mean_of_absolute_one_time_step_difference(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[dt.datetime | str] | None = None,
+    out_file: str | None = None,
+    threshold: str | Threshold | Sequence[str | Threshold] = None,
+    ignore_Feb29th: bool = False,
+    out_unit: str | None = None,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    save_thresholds: bool = False,
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """mean_of_absolute_one_time_step_difference
+
+    Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
+
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    threshold: float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    out_unit: str | None
+        ``optional`` Output unit for certain indices: "days" or "%"
+        (default: "days").
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+
+    Notes
+    -----
     This function has been auto-generated.
 
     """
@@ -1907,79 +1861,76 @@ def difference_of_means(
     date_event: bool = False,
     sampling_method: SamplingMethodLike = "resample",
 ) -> Dataset:
-    """
-        Difference of the average between two variables
-    , or one variable and it's reference period values
-             (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
+    """difference_of_means
 
-        Parameters
-        ----------
+    Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
-        in_files: str | list[str] | Dataset | DataArray | InputDictionary
-            Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-            or path to zarr store, or xarray.Dataset or xarray.DataArray.
-        var_name: str | list[str] | None
-            ``optional`` Target variable name to process corresponding to ``in_files``.
-            If None (default) on ECA&D index, the variable is guessed based on the
-            climate index wanted.
-            Mandatory for a user index.
-        slice_mode: SliceMode
-            Type of temporal aggregation:
-            The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-            "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-            (where season and month lists can be customized) or any valid pandas
-            frequency.
-            A season can also be defined between two exact dates:
-            ``("season", ("19 july", "14 august"))``.
-            Default is "year".
-            See :ref:`slice_mode` for details.
-        time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-            ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-            If ``None``, whole period of input files will be processed.
-            The dates can either be given as instance of datetime.datetime or as string
-            values. For strings, many format are accepted.
-            Default is ``None``.
-        out_file: str | None
-            Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-            Default is "icclim_out.nc".
-            If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-            Use the function returned value instead to retrieve the computed value.
-            If ``out_file`` already exists, icclim will overwrite it!
-        threshold: float | list[float] | None
-            ``optional`` User defined threshold for certain indices.
-            Default depend on the index, see their individual definition.
-            When a list of threshold is provided, the index will be computed for each
-            thresholds.
-        ignore_Feb29th: bool
-            ``optional`` Ignoring or not February 29th (default: False).
-        out_unit: str | None
-            ``optional`` Output unit for certain indices: "days" or "%"
-            (default: "days").
-        netcdf_version: str | NetcdfVersion
-            ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-        save_thresholds: bool
-            ``optional`` True if the thresholds should be saved within the resulting
-            netcdf file (default: False).
-        logs_verbosity: str | Verbosity
-            ``optional`` Configure how verbose icclim is.
-            Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-        date_event: bool
-            When True the date of the event (such as when a maximum is reached) will be
-            stored in coordinates variables.
-            **warning** This option may significantly slow down computation.
-        sampling_method: str
-            Choose whether the output sampling configured in `slice_mode` is a
-            `groupby` operation or a `resample` operation (as per xarray definitions).
-            Possible values:
-            ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
-            (default: "resample")
-            `groupby_ref_and_resample_study` may only be used when computing the
-            `difference_of_means` (a.k.a the anomaly).
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    threshold: float | list[float] | None
+        ``optional`` User defined threshold for certain indices.
+        Default depend on the index, see their individual definition.
+        When a list of threshold is provided, the index will be computed for each
+        thresholds.
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    out_unit: str | None
+        ``optional`` Output unit for certain indices: "days" or "%"
+        (default: "days").
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+    sampling_method: str
+        Choose whether the output sampling configured in `slice_mode` is a
+        `groupby` operation or a `resample` operation (as per xarray definitions).
+        Possible values:
+        ``{"groupby", "resample", "groupby_ref_and_resample_study"}``
+        (default: "resample")
+        `groupby_ref_and_resample_study` may only be used when computing the
+        `difference_of_means` (a.k.a the anomaly).
 
-        Notes
-        -----
-
-        This function has been auto-generated.
+    Notes
+    -----
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2011,13 +1962,13 @@ def tg(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TG: Mean of daily mean temperature
+    """TG
+
+    Mean of daily mean temperature
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2062,7 +2013,6 @@ def tg(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2092,13 +2042,13 @@ def tn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TN: Mean of daily minimum temperature
+    """TN
+
+    Mean of daily minimum temperature
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2143,7 +2093,6 @@ def tn(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2173,13 +2122,13 @@ def tx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TX: Mean of daily maximum temperature
+    """TX
+
+    Mean of daily maximum temperature
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2224,7 +2173,6 @@ def tx(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2254,13 +2202,13 @@ def dtr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    DTR: Mean Diurnal Temperature Range
+    """DTR
+
+    Mean Diurnal Temperature Range
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2305,7 +2253,6 @@ def dtr(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2335,13 +2282,13 @@ def etr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    ETR: Intra-period extreme temperature range
+    """ETR
+
+    Intra-period extreme temperature range
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2386,7 +2333,6 @@ def etr(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2416,13 +2362,13 @@ def vdtr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    vDTR: Mean day-to-day variation in Diurnal Temperature Range
+    """vDTR
+
+    Mean day-to-day variation in Diurnal Temperature Range
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2467,7 +2413,6 @@ def vdtr(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2497,13 +2442,13 @@ def su(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    SU: Number of Summer Days (Tmax > 25C)
+    """SU
+
+    Number of Summer Days (Tmax > 25C)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2548,7 +2493,6 @@ def su(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2581,13 +2525,13 @@ def tr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TR: Number of Tropical Nights (Tmin > 20C)
+    """TR
+
+    Number of Tropical Nights (Tmin > 20C)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2632,7 +2576,6 @@ def tr(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2669,13 +2612,13 @@ def wsdi(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    WSDI: Warm-spell duration index (days)
+    """WSDI
+
+    Warm-spell duration index (days)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2706,8 +2649,7 @@ def wsdi(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -2745,7 +2687,6 @@ def wsdi(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2790,13 +2731,13 @@ def tg90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TG90p: Days when Tmean > 90th percentile
+    """TG90p
+
+    Days when Tmean > 90th percentile
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2827,8 +2768,7 @@ def tg90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -2866,7 +2806,6 @@ def tg90p(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -2911,13 +2850,13 @@ def tn90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TN90p: Days when Tmin > 90th percentile
+    """TN90p
+
+    Days when Tmin > 90th percentile
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -2948,8 +2887,7 @@ def tn90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -2987,7 +2925,6 @@ def tn90p(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3032,13 +2969,13 @@ def tx90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TX90p: Days when Tmax > 90th daily percentile
+    """TX90p
+
+    Days when Tmax > 90th daily percentile
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3069,8 +3006,7 @@ def tx90p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -3108,7 +3044,6 @@ def tx90p(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3149,13 +3084,13 @@ def txx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TXx: Maximum daily maximum temperature
+    """TXx
+
+    Maximum daily maximum temperature
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3200,7 +3135,6 @@ def txx(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3230,13 +3164,13 @@ def tnx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TNx: Maximum daily minimum temperature
+    """TNx
+
+    Maximum daily minimum temperature
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3281,7 +3215,6 @@ def tnx(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3311,13 +3244,13 @@ def csu(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    CSU: Maximum number of consecutive summer days (Tmax >25 C)
+    """CSU
+
+    Maximum number of consecutive summer days (Tmax >25 C)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3362,7 +3295,6 @@ def csu(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3395,13 +3327,13 @@ def gd4(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    GD4: Growing degree days (sum of Tmean > 4 C)
+    """GD4
+
+    Growing degree days (sum of Tmean > 4 C)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3446,7 +3378,6 @@ def gd4(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3479,13 +3410,13 @@ def fd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    FD: Number of Frost Days (Tmin < 0C)
+    """FD
+
+    Number of Frost Days (Tmin < 0C)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3530,7 +3461,6 @@ def fd(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3563,13 +3493,13 @@ def cfd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    CFD: Maximum number of consecutive frost days (Tmin < 0 C)
+    """CFD
+
+    Maximum number of consecutive frost days (Tmin < 0 C)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3614,7 +3544,6 @@ def cfd(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3647,13 +3576,13 @@ def hd17(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    HD17: Heating degree days (sum of Tmean < 17 C)
+    """HD17
+
+    Heating degree days (sum of Tmean < 17 C)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3698,7 +3627,6 @@ def hd17(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3731,13 +3659,13 @@ def id(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    ID: Number of sharp Ice Days (Tmax < 0C)
+    """ID
+
+    Number of sharp Ice Days (Tmax < 0C)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3782,7 +3710,6 @@ def id(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3819,13 +3746,13 @@ def tg10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TG10p: Days when Tmean < 10th percentile
+    """TG10p
+
+    Days when Tmean < 10th percentile
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3856,8 +3783,7 @@ def tg10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -3895,7 +3821,6 @@ def tg10p(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -3940,13 +3865,13 @@ def tn10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TN10p: Days when Tmin < 10th percentile
+    """TN10p
+
+    Days when Tmin < 10th percentile
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -3977,8 +3902,7 @@ def tn10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -4016,7 +3940,6 @@ def tn10p(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4061,13 +3984,13 @@ def tx10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TX10p: Days when Tmax < 10th percentile
+    """TX10p
+
+    Days when Tmax < 10th percentile
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4098,8 +4021,7 @@ def tx10p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -4137,7 +4059,6 @@ def tx10p(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4178,13 +4099,13 @@ def txn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TXn: Minimum daily maximum temperature
+    """TXn
+
+    Minimum daily maximum temperature
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4229,7 +4150,6 @@ def txn(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4259,13 +4179,13 @@ def tnn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    TNn: Minimum daily minimum temperature
+    """TNn
+
+    Minimum daily minimum temperature
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4310,7 +4230,6 @@ def tnn(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4344,13 +4263,13 @@ def csdi(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    CSDI: Cold-spell duration index (days)
+    """CSDI
+
+    Cold-spell duration index (days)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4381,8 +4300,7 @@ def csdi(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -4420,7 +4338,6 @@ def csdi(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4461,13 +4378,13 @@ def cdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    CDD: Maximum consecutive dry days (Precip < 1mm)
+    """CDD
+
+    Maximum consecutive dry days (Precip < 1mm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4512,7 +4429,6 @@ def cdd(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4545,13 +4461,13 @@ def prcptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    PRCPTOT: Total precipitation during Wet Days
+    """PRCPTOT
+
+    Total precipitation during Wet Days
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4596,7 +4512,6 @@ def prcptot(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4629,13 +4544,13 @@ def rr1(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    RR1: Number of Wet Days (precip >= 1 mm)
+    """RR1
+
+    Number of Wet Days (precip >= 1 mm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4680,7 +4595,6 @@ def rr1(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4713,13 +4627,13 @@ def sdii(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    SDII: Average precipitation during Wet Days (SDII)
+    """SDII
+
+    Average precipitation during Wet Days (SDII)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4764,7 +4678,6 @@ def sdii(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4797,13 +4710,13 @@ def cwd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    CWD: Maximum consecutive wet days (Precip >= 1mm)
+    """CWD
+
+    Maximum consecutive wet days (Precip >= 1mm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4848,7 +4761,6 @@ def cwd(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4881,13 +4793,13 @@ def rr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    RR: Precipitation sum (mm)
+    """RR
+
+    Precipitation sum (mm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -4932,7 +4844,6 @@ def rr(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -4962,13 +4873,13 @@ def r10mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    R10mm: Number of heavy precipitation days (Precip >=10mm)
+    """R10mm
+
+    Number of heavy precipitation days (Precip >=10mm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5013,7 +4924,6 @@ def r10mm(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -5046,13 +4956,13 @@ def r20mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    R20mm: Number of very heavy precipitation days (Precip >= 20mm)
+    """R20mm
+
+    Number of very heavy precipitation days (Precip >= 20mm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5097,7 +5007,6 @@ def r20mm(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -5130,13 +5039,13 @@ def rx1day(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    RX1day: maximum 1-day total precipitation
+    """RX1day
+
+    maximum 1-day total precipitation
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5181,7 +5090,6 @@ def rx1day(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -5211,13 +5119,13 @@ def rx5day(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    RX5day: maximum 5-day total precipitation
+    """RX5day
+
+    maximum 5-day total precipitation
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5262,7 +5170,6 @@ def rx5day(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -5296,85 +5203,82 @@ def r75p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-       R75p: Days with RR > 75th percentile of daily amounts
-    (moderate wet days) (d)
-       Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    """R75p
 
-       Parameters
-       ----------
+    Days with RR > 75th percentile of daily amounts (moderate wet days) (d)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-       in_files: str | list[str] | Dataset | DataArray | InputDictionary
-           Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-           or path to zarr store, or xarray.Dataset or xarray.DataArray.
-       var_name: str | list[str] | None
-           ``optional`` Target variable name to process corresponding to ``in_files``.
-           If None (default) on ECA&D index, the variable is guessed based on the
-           climate index wanted.
-           Mandatory for a user index.
-       slice_mode: SliceMode
-           Type of temporal aggregation:
-           The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-           "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-           (where season and month lists can be customized) or any valid pandas
-           frequency.
-           A season can also be defined between two exact dates:
-           ``("season", ("19 july", "14 august"))``.
-           Default is "year".
-           See :ref:`slice_mode` for details.
-       time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-           ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-           If ``None``, whole period of input files will be processed.
-           The dates can either be given as instance of datetime.datetime or as string
-           values. For strings, many format are accepted.
-           Default is ``None``.
-       out_file: str | None
-           Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-           Default is "icclim_out.nc".
-           If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-           Use the function returned value instead to retrieve the computed value.
-           If ``out_file`` already exists, icclim will overwrite it!
-       base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                               | None
-           ``optional`` Temporal range of the reference period.
-           The dates can either be given as instance of datetime.datetime or as string
-           values.
-           It is used either:
-           #. to compute percentiles if threshold is filled.
-           When missing, the studied period is used to compute percentiles.
-           The study period is either the dataset filtered by `time_range` or the whole
-           dataset if `time_range` is missing.
-           For day of year percentiles (doy_per), on extreme percentiles the
-           overlapping period between `base_period_time_range` and the study period is
-           bootstrapped.
-           #. to compute a reference period for indices such as difference_of_mean
-           (a.k.a anomaly) if a single variable is given in input.
-       only_leap_years: bool
-           ``optional`` Option for February 29th (default: False).
-       ignore_Feb29th: bool
-           ``optional`` Ignoring or not February 29th (default: False).
-       interpolation: str | QuantileInterpolation | None
-           ``optional`` Interpolation method to compute percentile values:
-           ``{"linear", "median_unbiased"}``
-           Default is "median_unbiased", a.k.a type 8 or method 8.
-           Ignored for non percentile based indices.
-       netcdf_version: str | NetcdfVersion
-           ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-       save_thresholds: bool
-           ``optional`` True if the thresholds should be saved within the resulting
-           netcdf file (default: False).
-       logs_verbosity: str | Verbosity
-           ``optional`` Configure how verbose icclim is.
-           Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-       date_event: bool
-           When True the date of the event (such as when a maximum is reached) will be
-           stored in coordinates variables.
-           **warning** This option may significantly slow down computation.
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
+        ``optional`` Temporal range of the reference period.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
+    only_leap_years: bool
+        ``optional`` Option for February 29th (default: False).
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    interpolation: str | QuantileInterpolation | None
+        ``optional`` Interpolation method to compute percentile values:
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
+        Ignored for non percentile based indices.
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
 
-       Notes
-       -----
-
-       This function has been auto-generated.
+    Notes
+    -----
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5419,13 +5323,13 @@ def r75ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile)
+    """R75pTOT
+
+    Precipitation fraction due to moderate wet days (> 75th percentile)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5456,8 +5360,7 @@ def r75ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -5495,7 +5398,6 @@ def r75ptot(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -5541,13 +5443,13 @@ def r95p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    R95p: Days with RR > 95th percentile of daily amounts(very wet days) (days)
+    """R95p
+
+    Days with RR > 95th percentile of daily amounts (very wet days) (days)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5578,8 +5480,7 @@ def r95p(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -5617,7 +5518,6 @@ def r95p(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -5663,13 +5563,13 @@ def r95ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    R95pTOT: Precipitation fraction due to very wet days (> 95th percentile)
+    """R95pTOT
+
+    Precipitation fraction due to very wet days (> 95th percentile)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -5700,8 +5600,7 @@ def r95ptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -5739,7 +5638,6 @@ def r95ptot(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -5785,85 +5683,82 @@ def r99p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-       R99p: Days with RR > 99th percentile of daily amounts
-    (extremely wet days)
-       Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    """R99p
 
-       Parameters
-       ----------
+    Days with RR > 99th percentile of daily amounts (extremely wet days)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-       in_files: str | list[str] | Dataset | DataArray | InputDictionary
-           Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-           or path to zarr store, or xarray.Dataset or xarray.DataArray.
-       var_name: str | list[str] | None
-           ``optional`` Target variable name to process corresponding to ``in_files``.
-           If None (default) on ECA&D index, the variable is guessed based on the
-           climate index wanted.
-           Mandatory for a user index.
-       slice_mode: SliceMode
-           Type of temporal aggregation:
-           The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-           "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-           (where season and month lists can be customized) or any valid pandas
-           frequency.
-           A season can also be defined between two exact dates:
-           ``("season", ("19 july", "14 august"))``.
-           Default is "year".
-           See :ref:`slice_mode` for details.
-       time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-           ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-           If ``None``, whole period of input files will be processed.
-           The dates can either be given as instance of datetime.datetime or as string
-           values. For strings, many format are accepted.
-           Default is ``None``.
-       out_file: str | None
-           Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-           Default is "icclim_out.nc".
-           If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-           Use the function returned value instead to retrieve the computed value.
-           If ``out_file`` already exists, icclim will overwrite it!
-       base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                               | None
-           ``optional`` Temporal range of the reference period.
-           The dates can either be given as instance of datetime.datetime or as string
-           values.
-           It is used either:
-           #. to compute percentiles if threshold is filled.
-           When missing, the studied period is used to compute percentiles.
-           The study period is either the dataset filtered by `time_range` or the whole
-           dataset if `time_range` is missing.
-           For day of year percentiles (doy_per), on extreme percentiles the
-           overlapping period between `base_period_time_range` and the study period is
-           bootstrapped.
-           #. to compute a reference period for indices such as difference_of_mean
-           (a.k.a anomaly) if a single variable is given in input.
-       only_leap_years: bool
-           ``optional`` Option for February 29th (default: False).
-       ignore_Feb29th: bool
-           ``optional`` Ignoring or not February 29th (default: False).
-       interpolation: str | QuantileInterpolation | None
-           ``optional`` Interpolation method to compute percentile values:
-           ``{"linear", "median_unbiased"}``
-           Default is "median_unbiased", a.k.a type 8 or method 8.
-           Ignored for non percentile based indices.
-       netcdf_version: str | NetcdfVersion
-           ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-       save_thresholds: bool
-           ``optional`` True if the thresholds should be saved within the resulting
-           netcdf file (default: False).
-       logs_verbosity: str | Verbosity
-           ``optional`` Configure how verbose icclim is.
-           Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-       date_event: bool
-           When True the date of the event (such as when a maximum is reached) will be
-           stored in coordinates variables.
-           **warning** This option may significantly slow down computation.
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
+        ``optional`` Temporal range of the reference period.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
+    only_leap_years: bool
+        ``optional`` Option for February 29th (default: False).
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    interpolation: str | QuantileInterpolation | None
+        ``optional`` Interpolation method to compute percentile values:
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
+        Ignored for non percentile based indices.
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
 
-       Notes
-       -----
-
-       This function has been auto-generated.
+    Notes
+    -----
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5908,85 +5803,82 @@ def r99ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-       R99pTOT: Precipitation fraction due to extremely wet days
-    (> 99th percentile)
-       Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    """R99pTOT
 
-       Parameters
-       ----------
+    Precipitation fraction due to extremely wet days (> 99th percentile)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-       in_files: str | list[str] | Dataset | DataArray | InputDictionary
-           Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-           or path to zarr store, or xarray.Dataset or xarray.DataArray.
-       var_name: str | list[str] | None
-           ``optional`` Target variable name to process corresponding to ``in_files``.
-           If None (default) on ECA&D index, the variable is guessed based on the
-           climate index wanted.
-           Mandatory for a user index.
-       slice_mode: SliceMode
-           Type of temporal aggregation:
-           The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-           "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-           (where season and month lists can be customized) or any valid pandas
-           frequency.
-           A season can also be defined between two exact dates:
-           ``("season", ("19 july", "14 august"))``.
-           Default is "year".
-           See :ref:`slice_mode` for details.
-       time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-           ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-           If ``None``, whole period of input files will be processed.
-           The dates can either be given as instance of datetime.datetime or as string
-           values. For strings, many format are accepted.
-           Default is ``None``.
-       out_file: str | None
-           Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-           Default is "icclim_out.nc".
-           If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-           Use the function returned value instead to retrieve the computed value.
-           If ``out_file`` already exists, icclim will overwrite it!
-       base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                               | None
-           ``optional`` Temporal range of the reference period.
-           The dates can either be given as instance of datetime.datetime or as string
-           values.
-           It is used either:
-           #. to compute percentiles if threshold is filled.
-           When missing, the studied period is used to compute percentiles.
-           The study period is either the dataset filtered by `time_range` or the whole
-           dataset if `time_range` is missing.
-           For day of year percentiles (doy_per), on extreme percentiles the
-           overlapping period between `base_period_time_range` and the study period is
-           bootstrapped.
-           #. to compute a reference period for indices such as difference_of_mean
-           (a.k.a anomaly) if a single variable is given in input.
-       only_leap_years: bool
-           ``optional`` Option for February 29th (default: False).
-       ignore_Feb29th: bool
-           ``optional`` Ignoring or not February 29th (default: False).
-       interpolation: str | QuantileInterpolation | None
-           ``optional`` Interpolation method to compute percentile values:
-           ``{"linear", "median_unbiased"}``
-           Default is "median_unbiased", a.k.a type 8 or method 8.
-           Ignored for non percentile based indices.
-       netcdf_version: str | NetcdfVersion
-           ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-       save_thresholds: bool
-           ``optional`` True if the thresholds should be saved within the resulting
-           netcdf file (default: False).
-       logs_verbosity: str | Verbosity
-           ``optional`` Configure how verbose icclim is.
-           Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-       date_event: bool
-           When True the date of the event (such as when a maximum is reached) will be
-           stored in coordinates variables.
-           **warning** This option may significantly slow down computation.
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
+        ``optional`` Temporal range of the reference period.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
+    only_leap_years: bool
+        ``optional`` Option for February 29th (default: False).
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    interpolation: str | QuantileInterpolation | None
+        ``optional`` Interpolation method to compute percentile values:
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
+        Ignored for non percentile based indices.
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
 
-       Notes
-       -----
-
-       This function has been auto-generated.
+    Notes
+    -----
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -6027,13 +5919,13 @@ def sd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    SD: Mean of daily snow depth
+    """SD
+
+    Mean of daily snow depth
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6078,7 +5970,6 @@ def sd(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -6108,13 +5999,13 @@ def sd1(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    SD1: Snow days (SD >= 1 cm)
+    """SD1
+
+    Snow days (SD >= 1 cm)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6159,7 +6050,6 @@ def sd1(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -6192,13 +6082,13 @@ def sd5cm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    SD5cm: Number of days with snow depth >= 5 cm
+    """SD5cm
+
+    Number of days with snow depth >= 5 cm
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6243,7 +6133,6 @@ def sd5cm(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -6276,13 +6165,13 @@ def sd50cm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    SD50cm: Number of days with snow depth >= 50 cm
+    """SD50cm
+
+    Number of days with snow depth >= 50 cm
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6327,7 +6216,6 @@ def sd50cm(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -6364,85 +6252,82 @@ def cd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-       CD: Days with TG < 25th percentile of daily mean temperature and
-    RR <25th percentile of daily precipitation sum (cold/dry days)
-       Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    """CD
 
-       Parameters
-       ----------
+    Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-       in_files: str | list[str] | Dataset | DataArray | InputDictionary
-           Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-           or path to zarr store, or xarray.Dataset or xarray.DataArray.
-       var_name: str | list[str] | None
-           ``optional`` Target variable name to process corresponding to ``in_files``.
-           If None (default) on ECA&D index, the variable is guessed based on the
-           climate index wanted.
-           Mandatory for a user index.
-       slice_mode: SliceMode
-           Type of temporal aggregation:
-           The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-           "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-           (where season and month lists can be customized) or any valid pandas
-           frequency.
-           A season can also be defined between two exact dates:
-           ``("season", ("19 july", "14 august"))``.
-           Default is "year".
-           See :ref:`slice_mode` for details.
-       time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-           ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-           If ``None``, whole period of input files will be processed.
-           The dates can either be given as instance of datetime.datetime or as string
-           values. For strings, many format are accepted.
-           Default is ``None``.
-       out_file: str | None
-           Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-           Default is "icclim_out.nc".
-           If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-           Use the function returned value instead to retrieve the computed value.
-           If ``out_file`` already exists, icclim will overwrite it!
-       base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                               | None
-           ``optional`` Temporal range of the reference period.
-           The dates can either be given as instance of datetime.datetime or as string
-           values.
-           It is used either:
-           #. to compute percentiles if threshold is filled.
-           When missing, the studied period is used to compute percentiles.
-           The study period is either the dataset filtered by `time_range` or the whole
-           dataset if `time_range` is missing.
-           For day of year percentiles (doy_per), on extreme percentiles the
-           overlapping period between `base_period_time_range` and the study period is
-           bootstrapped.
-           #. to compute a reference period for indices such as difference_of_mean
-           (a.k.a anomaly) if a single variable is given in input.
-       only_leap_years: bool
-           ``optional`` Option for February 29th (default: False).
-       ignore_Feb29th: bool
-           ``optional`` Ignoring or not February 29th (default: False).
-       interpolation: str | QuantileInterpolation | None
-           ``optional`` Interpolation method to compute percentile values:
-           ``{"linear", "median_unbiased"}``
-           Default is "median_unbiased", a.k.a type 8 or method 8.
-           Ignored for non percentile based indices.
-       netcdf_version: str | NetcdfVersion
-           ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-       save_thresholds: bool
-           ``optional`` True if the thresholds should be saved within the resulting
-           netcdf file (default: False).
-       logs_verbosity: str | Verbosity
-           ``optional`` Configure how verbose icclim is.
-           Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-       date_event: bool
-           When True the date of the event (such as when a maximum is reached) will be
-           stored in coordinates variables.
-           **warning** This option may significantly slow down computation.
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
+        ``optional`` Temporal range of the reference period.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
+    only_leap_years: bool
+        ``optional`` Option for February 29th (default: False).
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    interpolation: str | QuantileInterpolation | None
+        ``optional`` Interpolation method to compute percentile values:
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
+        Ignored for non percentile based indices.
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
 
-       Notes
-       -----
-
-       This function has been auto-generated.
+    Notes
+    -----
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -6496,85 +6381,82 @@ def cw(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-       CW: Days with TG < 25th percentile of daily mean temperature and
-    RR >75th percentile of daily precipitation sum (cold/wet days)
-       Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    """CW
 
-       Parameters
-       ----------
+    Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-       in_files: str | list[str] | Dataset | DataArray | InputDictionary
-           Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-           or path to zarr store, or xarray.Dataset or xarray.DataArray.
-       var_name: str | list[str] | None
-           ``optional`` Target variable name to process corresponding to ``in_files``.
-           If None (default) on ECA&D index, the variable is guessed based on the
-           climate index wanted.
-           Mandatory for a user index.
-       slice_mode: SliceMode
-           Type of temporal aggregation:
-           The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-           "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-           (where season and month lists can be customized) or any valid pandas
-           frequency.
-           A season can also be defined between two exact dates:
-           ``("season", ("19 july", "14 august"))``.
-           Default is "year".
-           See :ref:`slice_mode` for details.
-       time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-           ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-           If ``None``, whole period of input files will be processed.
-           The dates can either be given as instance of datetime.datetime or as string
-           values. For strings, many format are accepted.
-           Default is ``None``.
-       out_file: str | None
-           Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-           Default is "icclim_out.nc".
-           If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-           Use the function returned value instead to retrieve the computed value.
-           If ``out_file`` already exists, icclim will overwrite it!
-       base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                               | None
-           ``optional`` Temporal range of the reference period.
-           The dates can either be given as instance of datetime.datetime or as string
-           values.
-           It is used either:
-           #. to compute percentiles if threshold is filled.
-           When missing, the studied period is used to compute percentiles.
-           The study period is either the dataset filtered by `time_range` or the whole
-           dataset if `time_range` is missing.
-           For day of year percentiles (doy_per), on extreme percentiles the
-           overlapping period between `base_period_time_range` and the study period is
-           bootstrapped.
-           #. to compute a reference period for indices such as difference_of_mean
-           (a.k.a anomaly) if a single variable is given in input.
-       only_leap_years: bool
-           ``optional`` Option for February 29th (default: False).
-       ignore_Feb29th: bool
-           ``optional`` Ignoring or not February 29th (default: False).
-       interpolation: str | QuantileInterpolation | None
-           ``optional`` Interpolation method to compute percentile values:
-           ``{"linear", "median_unbiased"}``
-           Default is "median_unbiased", a.k.a type 8 or method 8.
-           Ignored for non percentile based indices.
-       netcdf_version: str | NetcdfVersion
-           ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-       save_thresholds: bool
-           ``optional`` True if the thresholds should be saved within the resulting
-           netcdf file (default: False).
-       logs_verbosity: str | Verbosity
-           ``optional`` Configure how verbose icclim is.
-           Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-       date_event: bool
-           When True the date of the event (such as when a maximum is reached) will be
-           stored in coordinates variables.
-           **warning** This option may significantly slow down computation.
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
+        ``optional`` Temporal range of the reference period.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
+    only_leap_years: bool
+        ``optional`` Option for February 29th (default: False).
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    interpolation: str | QuantileInterpolation | None
+        ``optional`` Interpolation method to compute percentile values:
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
+        Ignored for non percentile based indices.
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
 
-       Notes
-       -----
-
-       This function has been auto-generated.
+    Notes
+    -----
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -6628,85 +6510,82 @@ def wd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-       WD: Days with TG > 75th percentile of daily mean temperature and
-    RR <25th percentile of daily precipitation sum (warm/dry days)
-       Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    """WD
 
-       Parameters
-       ----------
+    Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-       in_files: str | list[str] | Dataset | DataArray | InputDictionary
-           Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-           or path to zarr store, or xarray.Dataset or xarray.DataArray.
-       var_name: str | list[str] | None
-           ``optional`` Target variable name to process corresponding to ``in_files``.
-           If None (default) on ECA&D index, the variable is guessed based on the
-           climate index wanted.
-           Mandatory for a user index.
-       slice_mode: SliceMode
-           Type of temporal aggregation:
-           The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-           "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-           (where season and month lists can be customized) or any valid pandas
-           frequency.
-           A season can also be defined between two exact dates:
-           ``("season", ("19 july", "14 august"))``.
-           Default is "year".
-           See :ref:`slice_mode` for details.
-       time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-           ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-           If ``None``, whole period of input files will be processed.
-           The dates can either be given as instance of datetime.datetime or as string
-           values. For strings, many format are accepted.
-           Default is ``None``.
-       out_file: str | None
-           Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-           Default is "icclim_out.nc".
-           If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-           Use the function returned value instead to retrieve the computed value.
-           If ``out_file`` already exists, icclim will overwrite it!
-       base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                               | None
-           ``optional`` Temporal range of the reference period.
-           The dates can either be given as instance of datetime.datetime or as string
-           values.
-           It is used either:
-           #. to compute percentiles if threshold is filled.
-           When missing, the studied period is used to compute percentiles.
-           The study period is either the dataset filtered by `time_range` or the whole
-           dataset if `time_range` is missing.
-           For day of year percentiles (doy_per), on extreme percentiles the
-           overlapping period between `base_period_time_range` and the study period is
-           bootstrapped.
-           #. to compute a reference period for indices such as difference_of_mean
-           (a.k.a anomaly) if a single variable is given in input.
-       only_leap_years: bool
-           ``optional`` Option for February 29th (default: False).
-       ignore_Feb29th: bool
-           ``optional`` Ignoring or not February 29th (default: False).
-       interpolation: str | QuantileInterpolation | None
-           ``optional`` Interpolation method to compute percentile values:
-           ``{"linear", "median_unbiased"}``
-           Default is "median_unbiased", a.k.a type 8 or method 8.
-           Ignored for non percentile based indices.
-       netcdf_version: str | NetcdfVersion
-           ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-       save_thresholds: bool
-           ``optional`` True if the thresholds should be saved within the resulting
-           netcdf file (default: False).
-       logs_verbosity: str | Verbosity
-           ``optional`` Configure how verbose icclim is.
-           Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-       date_event: bool
-           When True the date of the event (such as when a maximum is reached) will be
-           stored in coordinates variables.
-           **warning** This option may significantly slow down computation.
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
+        ``optional`` Temporal range of the reference period.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
+    only_leap_years: bool
+        ``optional`` Option for February 29th (default: False).
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    interpolation: str | QuantileInterpolation | None
+        ``optional`` Interpolation method to compute percentile values:
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
+        Ignored for non percentile based indices.
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
 
-       Notes
-       -----
-
-       This function has been auto-generated.
+    Notes
+    -----
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -6760,85 +6639,82 @@ def ww(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-       WW: Days with TG > 75th percentile of daily mean temperature and
-    RR >75th percentile of daily precipitation sum (warm/wet days)
-       Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    """WW
 
-       Parameters
-       ----------
+    Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-       in_files: str | list[str] | Dataset | DataArray | InputDictionary
-           Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
-           or path to zarr store, or xarray.Dataset or xarray.DataArray.
-       var_name: str | list[str] | None
-           ``optional`` Target variable name to process corresponding to ``in_files``.
-           If None (default) on ECA&D index, the variable is guessed based on the
-           climate index wanted.
-           Mandatory for a user index.
-       slice_mode: SliceMode
-           Type of temporal aggregation:
-           The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
-           "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
-           (where season and month lists can be customized) or any valid pandas
-           frequency.
-           A season can also be defined between two exact dates:
-           ``("season", ("19 july", "14 august"))``.
-           Default is "year".
-           See :ref:`slice_mode` for details.
-       time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
-           ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
-           If ``None``, whole period of input files will be processed.
-           The dates can either be given as instance of datetime.datetime or as string
-           values. For strings, many format are accepted.
-           Default is ``None``.
-       out_file: str | None
-           Output NetCDF file name (default: "icclim_out.nc" in the current directory).
-           Default is "icclim_out.nc".
-           If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
-           Use the function returned value instead to retrieve the computed value.
-           If ``out_file`` already exists, icclim will overwrite it!
-       base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                               | None
-           ``optional`` Temporal range of the reference period.
-           The dates can either be given as instance of datetime.datetime or as string
-           values.
-           It is used either:
-           #. to compute percentiles if threshold is filled.
-           When missing, the studied period is used to compute percentiles.
-           The study period is either the dataset filtered by `time_range` or the whole
-           dataset if `time_range` is missing.
-           For day of year percentiles (doy_per), on extreme percentiles the
-           overlapping period between `base_period_time_range` and the study period is
-           bootstrapped.
-           #. to compute a reference period for indices such as difference_of_mean
-           (a.k.a anomaly) if a single variable is given in input.
-       only_leap_years: bool
-           ``optional`` Option for February 29th (default: False).
-       ignore_Feb29th: bool
-           ``optional`` Ignoring or not February 29th (default: False).
-       interpolation: str | QuantileInterpolation | None
-           ``optional`` Interpolation method to compute percentile values:
-           ``{"linear", "median_unbiased"}``
-           Default is "median_unbiased", a.k.a type 8 or method 8.
-           Ignored for non percentile based indices.
-       netcdf_version: str | NetcdfVersion
-           ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
-       save_thresholds: bool
-           ``optional`` True if the thresholds should be saved within the resulting
-           netcdf file (default: False).
-       logs_verbosity: str | Verbosity
-           ``optional`` Configure how verbose icclim is.
-           Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-       date_event: bool
-           When True the date of the event (such as when a maximum is reached) will be
-           stored in coordinates variables.
-           **warning** This option may significantly slow down computation.
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
+        ``optional`` Temporal range of the reference period.
+        The dates can either be given as instance of datetime.datetime or as string
+        values.
+        It is used either:
+        #. to compute percentiles if threshold is filled.
+        When missing, the studied period is used to compute percentiles.
+        The study period is either the dataset filtered by `time_range` or the whole
+        dataset if `time_range` is missing.
+        For day of year percentiles (doy_per), on extreme percentiles the
+        overlapping period between `base_period_time_range` and the study period is
+        bootstrapped.
+        #. to compute a reference period for indices such as difference_of_mean
+        (a.k.a anomaly) if a single variable is given in input.
+    only_leap_years: bool
+        ``optional`` Option for February 29th (default: False).
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    interpolation: str | QuantileInterpolation | None
+        ``optional`` Interpolation method to compute percentile values:
+        ``{"linear", "median_unbiased"}``
+        Default is "median_unbiased", a.k.a type 8 or method 8.
+        Ignored for non percentile based indices.
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    save_thresholds: bool
+        ``optional`` True if the thresholds should be saved within the resulting
+        netcdf file (default: False).
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
 
-       Notes
-       -----
-
-       This function has been auto-generated.
+    Notes
+    -----
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -6888,13 +6764,13 @@ def fxx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    FXx: Maximum value of daily maximum wind gust
+    """FXx
+
+    Maximum value of daily maximum wind gust
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -6939,7 +6815,6 @@ def fxx(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -6969,13 +6844,13 @@ def fg6bft(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    FG6Bft: Days with daily averaged wind ≥ 6 Bft (10.8 m s-1)
+    """FG6Bft
+
+    Days with daily averaged wind ≥ 6 Bft (10.8 m s-1)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7020,7 +6895,6 @@ def fg6bft(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7053,13 +6927,13 @@ def fgcalm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    FGcalm: Calm days, days with daily averaged wind <= 2 m s-1
+    """FGcalm
+
+    Calm days, days with daily averaged wind <= 2 m s-1
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7104,7 +6978,6 @@ def fgcalm(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7137,13 +7010,13 @@ def fg(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    FG: Mean of daily mean wind strength
+    """FG
+
+    Mean of daily mean wind strength
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7188,7 +7061,6 @@ def fg(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7218,13 +7090,13 @@ def ddnorth(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    DDnorth: Days with northerly winds (DD > 315° or DD ≤ 45°)
+    """DDnorth
+
+    Days with northerly winds (DD > 315° or DD ≤ 45°)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7269,7 +7141,6 @@ def ddnorth(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7302,13 +7173,13 @@ def ddeast(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    DDeast: Days with easterly winds (45° < DD <= 135°)
+    """DDeast
+
+    Days with easterly winds (45° < DD <= 135°)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7353,7 +7224,6 @@ def ddeast(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7386,13 +7256,13 @@ def ddsouth(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    DDsouth: Days with southerly winds (135° < DD <= 225°)
+    """DDsouth
+
+    Days with southerly winds (135° < DD <= 225°)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7437,7 +7307,6 @@ def ddsouth(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7470,13 +7339,13 @@ def ddwest(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    DDwest: Days with westerly winds (225° < DD <= 315°)
+    """DDwest
+
+    Days with westerly winds (225° < DD <= 315°)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7521,7 +7390,6 @@ def ddwest(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7554,13 +7422,13 @@ def gsl(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    GSL: Growing season length
+    """GSL
+
+    Growing season length
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7605,7 +7473,6 @@ def gsl(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7636,13 +7503,13 @@ def spi6(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    SPI6: 6-Month Standardized Precipitation Index
+    """SPI6
+
+    6-Month Standardized Precipitation Index
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7673,8 +7540,7 @@ def spi6(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -7702,7 +7568,6 @@ def spi6(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7734,13 +7599,13 @@ def spi3(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """
-    SPI3: 3-Month Standardized Precipitation Index
+    """SPI3
+
+    3-Month Standardized Precipitation Index
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7771,8 +7636,7 @@ def spi3(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -7800,7 +7664,6 @@ def spi3(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
@@ -7841,14 +7704,13 @@ def custom_index(
     rolling_window_width: int | None = 5,
     sampling_method: SamplingMethodLike = "resample",
 ) -> Dataset:
-    """
-        Compute custom indices using simple operators.
+    """Compute custom indices using simple operators.
 
-        Use the `user_index` parameter to describe how the index should be computed.
-        You can find some examples in icclim documentation at :ref:`custom_indices`
-        Parameters
+    Use the `user_index` parameter to describe how the index should be computed.
+    You can find some examples in icclim documentation at :ref:`custom_indices`
+
+    Parameters
     ----------
-
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
         Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
         or path to zarr store, or xarray.Dataset or xarray.DataArray.
@@ -7879,8 +7741,7 @@ def custom_index(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str]
-                            | None
+    base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
         ``optional`` Temporal range of the reference period.
         The dates can either be given as instance of datetime.datetime or as string
         values.
@@ -7927,8 +7788,7 @@ def custom_index(
         the sum_of_spell_lengths.
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
-        `{max_of_rolling_sum, max_of_rolling_average,
-          min_of_rolling_sum, min_of_rolling_average}`
+        `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
     sampling_method: str
         Choose whether the output sampling configured in `slice_mode` is a
         `groupby` operation or a `resample` operation (as per xarray definitions).
@@ -7940,7 +7800,6 @@ def custom_index(
 
     Notes
     -----
-
     This function has been auto-generated.
 
     """
