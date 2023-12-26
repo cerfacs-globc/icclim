@@ -81,7 +81,7 @@ PATH_TO_GENERIC_DOC_FILE = (
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
 DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
 MODULE_HEADER = f'''
-# ruff: noqa: A001, E501
+# ruff: noqa: A001, E501, N803
 """
 icclim's API for ECAD indices and generic indices.
 

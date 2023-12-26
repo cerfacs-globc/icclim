@@ -281,7 +281,7 @@ def guess_input_type(data: DataArray) -> StandardVariable | None:
 def build_studied_data(
     original_da: DataArray,
     time_range: Sequence[str] | None,
-    ignore_Feb29th: bool,
+    ignore_Feb29th: bool,  # noqa: N803
     standard_var: StandardVariable | None,
 ) -> DataArray:
     if time_range is not None:
@@ -360,12 +360,14 @@ def reduce_only_leap_years(da: DataArray) -> DataArray:
     return xr.concat(reduced_list, "time")
 
 
-def read_threshold_DataArray(
+def read_threshold_dataarray(
     thresh_da: DataArray,
     threshold_min_value: str | float,
     climatology_bounds: Sequence[str],
     unit: str,
 ):
+    # TODO @bzah: Make sure it is part of the public API or remove it if unused
+    # https://github.com/cerfacs-globc/icclim/issues/289
     if PercentileDataArray.is_compatible(thresh_da):
         built_value = PercentileDataArray.from_da(
             standardize_percentile_dim_name(thresh_da),
@@ -395,6 +397,20 @@ def build_reference_da(
     only_leap_years: bool,
     percentile_min_value: Quantity | None,
 ) -> DataArray:
+    """Build a reference DataArray to be used for percentile doy computation.
+
+    Parameters
+    ----------
+    original_da: DataArray
+        The DataArray used as a base.
+    base_period_time_range: Sequence[datetime | str] | None
+        The period to slice in the base DataArray.
+    only_leap_years: bool
+        Flag to only use leap years (years with 366 days).
+    percentile_min_value: Quantity | None
+        Optional, if set will replace every value from the base DataArray that are below
+        the `percentile_min_value` with np.nan.
+    """
     reference = original_da
     if base_period_time_range:
         check_time_range_pre_validity("base_period_time_range", base_period_time_range)

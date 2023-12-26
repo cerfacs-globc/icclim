@@ -1,4 +1,4 @@
-# ruff: noqa: A001, E501
+# ruff: noqa: A001, E501, N803
 """
 icclim's API for ECAD indices and generic indices.
 

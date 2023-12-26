@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from icclim.ecad.xclim_binding import XCLIM_BINDING
+from icclim.ecad.xclim_binding import XclimBinding
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.generic_indices.standard_variable import StandardVariableRegistry
 from icclim.generic_indices.threshold import build_threshold
@@ -734,7 +734,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     GSL = StandardIndex(
         reference=ECAD_REFERENCE,
-        indicator=XCLIM_BINDING.GrowingSeasonLength(),
+        indicator=XclimBinding.GrowingSeasonLength(),
         definition="Growing season length",
         source=ECAD_ATBD,
         short_name="GSL",
@@ -744,7 +744,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     SPI6 = StandardIndex(
         reference=ECAD_REFERENCE,
-        indicator=XCLIM_BINDING.StandardizedPrecipitationIndex6(),
+        indicator=XclimBinding.StandardizedPrecipitationIndex6(),
         definition="6-Month Standardized Precipitation Index",
         source=ECAD_ATBD,
         short_name="SPI6",
@@ -755,7 +755,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     )
     SPI3 = StandardIndex(
         reference=ECAD_REFERENCE,
-        indicator=XCLIM_BINDING.StandardizedPrecipitationIndex3(),
+        indicator=XclimBinding.StandardizedPrecipitationIndex3(),
         definition="3-Month Standardized Precipitation Index",
         source=ECAD_ATBD,
         short_name="SPI3",

@@ -6,20 +6,20 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import cftime
+import icclim
 import numpy as np
 import pandas as pd
 import pint
 import pytest
 import xarray as xr
-
-import icclim
-from icclim import __version__ as ICCLIM_VERSION
+from icclim import __version__ as icclim_version
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.generic_indices.threshold import build_threshold
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
 from icclim.models.frequency import FrequencyRegistry
 from icclim.models.index_group import IndexGroupRegistry
+
 from tests.testing_utils import K2C, stub_pr, stub_tas
 
 
@@ -39,7 +39,7 @@ HEAT_INDICES = ["SU", "TR", "WSDI", "TG90p", "TN90p", "TX90p", "TXx", "TNx", "CS
 
 
 @pytest.mark.slow()
-class Test_Integration:
+class TestIntegration:
     """
     Integration tests.
     We are not testing here the actual indices results, they are already tested in
@@ -105,7 +105,7 @@ class Test_Integration:
         with contextlib.suppress(FileNotFoundError):
             self.OUTPUT_FILE.unlink()
 
-    def test_index_SU(self):
+    def test_index_su(self):
         tas = stub_tas(tas_value=26 + K2C)
         tas[:5] = 0
         res = icclim.index(
@@ -114,20 +114,20 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             slice_mode="ms",
         )
-        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert f"icclim version: {icclim_version}" in res.attrs["history"]
         assert res.SU.isel(time=0) == 26  # January
 
-    def test_index_SU__on_dataset(self):
+    def test_index_su__on_dataset(self):
         res = icclim.index(
             index_name="SU",
             var_name="data",
             in_files=self.dataset_with_time_bounds,
             out_file=self.OUTPUT_FILE,
         )
-        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.SU)
 
-    def test_index_DTR(self):
+    def test_index_dtr(self):
         ds = self.data.to_dataset(name="toto")
         ds["tutu"] = self.data + 10
         res = icclim.index(
@@ -136,10 +136,10 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             var_name=["toto", "tutu"],
         )
-        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(-10, res.DTR)
 
-    def test_index_DTR__with_unit_conversion(self):
+    def test_index_dtr__with_unit_conversion(self):
         ds = self.data.to_dataset(name="toto")
         ds["tutu"] = self.data + 10
         ds["toto"].attrs["units"] = "K"
@@ -149,11 +149,11 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             var_name=["toto", "tutu"],
         )
-        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(-10, res.DTR)
         np.testing.assert_array_equal("°C", res.DTR.attrs["units"])
 
-    def test_index_CD(self):
+    def test_index_cd(self):
         ds = self.data.to_dataset(name="tas")
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
@@ -162,7 +162,7 @@ class Test_Integration:
             in_files=ds,
             out_file=self.OUTPUT_FILE,
         )
-        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.CD)
 
     def test__preserve_initial_history(self):
@@ -170,7 +170,7 @@ class Test_Integration:
         res = icclim.su(in_files=self.data)
         assert "pouet pouet cacahuête" in res.attrs["history"]
 
-    def test_index_SU__time_selection(self):
+    def test_index_su__time_selection(self):
         # WHEN
         res_string_dates = icclim.index(
             index_name="SU",
@@ -200,7 +200,7 @@ class Test_Integration:
             res_datetime_dates.time_bounds,
         )
 
-    def test_index_SU__pandas_time_slice_mode(self):
+    def test_index_su__pandas_time_slice_mode(self):
         # WHEN
         res = icclim.index(
             index_name="SU",
@@ -225,7 +225,7 @@ class Test_Integration:
             " degC for each 2 wednesday starting week(s)."
         )
 
-    def test_index_SU__monthy_sampled(self):
+    def test_index_su__monthy_sampled(self):
         res = icclim.index(
             index_name="SU",
             in_files=self.data,
@@ -238,7 +238,7 @@ class Test_Integration:
             len(res.time),
         )
 
-    def test_index_SU__monthy_sampled_cf_time(self):
+    def test_index_su__monthy_sampled_cf_time(self):
         res = icclim.index(
             index_name="SU",
             in_files=self.data_cf_time,
@@ -269,7 +269,7 @@ class Test_Integration:
             0,
         )
 
-    def test_index_SU__DJF_cf_time(self):
+    def test_index_su__djf_cf_time(self):
         res = icclim.index(
             index_name="SU",
             in_files=self.data_cf_time,
@@ -302,7 +302,7 @@ class Test_Integration:
             0,
         )
 
-    def test_indices__from_DataArray(self):
+    def test_indices__from_dataarray(self):
         res = icclim.indices(
             index_group=IndexGroupRegistry.HEAT,
             in_files=self.data,
@@ -419,7 +419,7 @@ class Test_Integration:
         ):
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset(self):
+    def test_indices_all_from_dataset(self):
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -429,7 +429,7 @@ class Test_Integration:
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset__seasonal_SPI_error(self):
+    def test_indices_all_from_dataset__seasonal_spi_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
             icclim.indices(
                 index_group="SPI3",
@@ -448,7 +448,7 @@ class Test_Integration:
         ).load()
         assert "time_bounds" not in dataset.coords
 
-    def test_indices_all_from_Dataset__seasonal(self):
+    def test_indices_all_from_dataset__seasonal(self):
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -459,7 +459,7 @@ class Test_Integration:
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset__between_dates_seasonal(self):
+    def test_indices_all_from_dataset__between_dates_seasonal(self):
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -470,7 +470,7 @@ class Test_Integration:
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset__JFM_seasonal(self):
+    def test_indices_all_from_dataset__jfm_seasonal(self):
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -481,7 +481,7 @@ class Test_Integration:
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_Dataset__between_year_season(self):
+    def test_indices_all_from_dataset__between_year_season(self):
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -527,7 +527,7 @@ class Test_Integration:
                 ignore_error=False,
             )
 
-    def test_index_TR(self):
+    def test_index_tr(self):
         tas = stub_tas(tas_value=26 + K2C)
         tas[:5] = 0
         res = icclim.index(
@@ -536,7 +536,7 @@ class Test_Integration:
             out_file=self.OUTPUT_FILE,
             slice_mode="ms",
         )
-        assert f"icclim version: {ICCLIM_VERSION}" in res.attrs["history"]
+        assert f"icclim version: {icclim_version}" in res.attrs["history"]
         assert res.TR.isel(time=0) == 26  # January
 
     def test_index_prcptot(self):

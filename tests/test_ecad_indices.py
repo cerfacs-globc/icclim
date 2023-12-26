@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.standard_index import StandardIndex
@@ -15,7 +14,7 @@ def test_listing():
     assert len(res) == len(indices)
 
 
-class Test_index_from_string:
+class TestIndexFromString:
     def test_simple(self):
         res = EcadIndexRegistry.lookup("SU")
         assert res == EcadIndexRegistry.SU

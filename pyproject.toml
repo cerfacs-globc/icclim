@@ -79,7 +79,7 @@ select = [
   "W", # pycodestyle warn
   "C90", # mccabe
   "I", # isort
-  # "N", # pep8-naming, to add
+  "N", # pep8-naming, to add
   # "D", # pydocstyle, to add
   "UP", # pyupgrade
   "YTT", # flake8-2020

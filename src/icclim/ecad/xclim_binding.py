@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from icclim.models.index_config import IndexConfig
 
 
-class XCLIM_BINDING:
+class XclimBinding:
     class GrowingSeasonLength(Indicator):
         """
         Fake icclim indicator that redirect to xclim `growing_season_length` indicator.
