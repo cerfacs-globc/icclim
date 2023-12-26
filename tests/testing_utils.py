@@ -3,7 +3,6 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import xarray as xr
-
 from icclim.models.constants import UNITS_KEY
 
 VALUE_COUNT = 365 * 5 + 1  # 5 years of data (with 1 leap year)

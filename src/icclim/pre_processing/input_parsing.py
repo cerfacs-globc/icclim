@@ -148,9 +148,7 @@ def read_dataset(
 
 
 def update_to_standard_coords(ds: Dataset) -> Dataset:
-    """
-    Mutate input ds to use more icclim friendly coordinate names.
-    """
+    """Mutate input ds to use more icclim friendly coordinate names."""
     # TODO @bzah: see if cf-xarray could replace this
     # https://github.com/cerfacs-globc/icclim/issues/289
     if ds.coords.get("t") is not None:

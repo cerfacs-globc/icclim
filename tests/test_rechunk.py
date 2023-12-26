@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-
 from icclim import create_optimized_zarr_store
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.constants import UNITS_KEY

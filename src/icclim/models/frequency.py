@@ -170,7 +170,7 @@ class Frequency:
     delta: timedelta | np.timedelta64
 
     def build_frequency_kwargs(self) -> dict[str, Any]:
-        """Build kwargs with possible keys in {"freq", "month", "date_bounds"}"""
+        """Build kwargs with possible keys in {"freq", "month", "date_bounds"}."""
         kwargs = {"freq": self.pandas_freq}
         if self.indexer is not None:
             kwargs.update(self.indexer)

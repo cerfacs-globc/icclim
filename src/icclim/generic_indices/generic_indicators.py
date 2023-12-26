@@ -58,7 +58,7 @@ jinja_env = Environment(autoescape=False)
 
 
 class MissingMethodLike(metaclass=abc.ABCMeta):
-    """workaround xclim missing type"""
+    """workaround xclim missing type."""
 
     # TODO @bzah: PR that to xclim
     # https://github.com/cerfacs-globc/icclim/issues/289

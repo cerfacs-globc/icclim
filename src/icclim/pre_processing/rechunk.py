@@ -66,11 +66,12 @@ def create_optimized_zarr_store(
     filesystem: str | AbstractFileSystem = LOCAL_FILE_SYSTEM,
 ) -> Dataset:
     """
+    Context manager to create an zarr store given an input netcdf or xarray structure.
+
     -- EXPERIMENTAL FEATURE --
     API may changes without deprecation warning!
 
-    Context manager to create an zarr store given an input netcdf or xarray structure.
-    The execution may take a long time
+    The execution may take a long time.
 
     The result is rechunked according to `chunking` schema provided.
     By default, when leaving `chunking` to None, the resulting zarr store is NOT chunked

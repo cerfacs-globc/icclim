@@ -44,7 +44,7 @@ class TestIntegration:
     Integration tests.
     We are not testing here the actual indices results, they are already tested in
     `test_ecad_indices.py` as well as in xclim directly.
-    The goal it to make sure every the whole app can run smoothly
+    The goal is to make sure the whole app can run smoothly.
 
     These tests have side effect:
     - writing and removing of "out.nc" file

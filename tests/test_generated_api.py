@@ -4,10 +4,9 @@ import datetime as dt
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
+import icclim
 import numpy as np
 import pytest
-
-import icclim
 from icclim.ecad.ecad_indices import EcadIndexRegistry
 from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
 from icclim.generic_indices.threshold import build_threshold
@@ -18,6 +17,7 @@ from icclim.models.frequency import FrequencyRegistry
 from icclim.models.netcdf_version import NetcdfVersionRegistry
 from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.user_indices.calc_operation import CalcOperation, CalcOperationRegistry
+
 from tests.testing_utils import stub_tas
 
 if TYPE_CHECKING:
