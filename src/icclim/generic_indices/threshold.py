@@ -65,7 +65,8 @@ ThresholdValueType = Union[
 
 
 class ThresholdBuilderInput(TypedDict, total=False):
-    """
+    """Threshold building configuration.
+
     Data transfert object mapping all possible configuration to build any threshold.
     """
 
@@ -211,9 +212,7 @@ def build_threshold(
 
 
 class Threshold(metaclass=abc.ABCMeta):
-    """
-    Abstract super class for all thresholds.
-    """
+    """Abstract super class for all thresholds."""
 
     operator: Operator | str
     value: ThresholdValueType

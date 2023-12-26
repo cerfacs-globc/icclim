@@ -207,11 +207,11 @@ def test_build_per_threshold__from_query():
 
 
 def test_build_basic_threshold__from_dataarray():
-    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    time_range = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     data = xr.DataArray(
-        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        data=(np.full(len(time_range), 20).reshape((len(time_range), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
+        coords={"lat": [42], "lon": [42], "time": time_range},
         attrs={UNITS_KEY: "degC"},
         name="toto",
     )
@@ -224,11 +224,11 @@ def test_build_basic_threshold__from_dataarray():
 
 
 def test_build_basic_threshold__from_dataset():
-    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    time_range = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     ds = xr.DataArray(
-        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        data=(np.full(len(time_range), 20).reshape((len(time_range), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
+        coords={"lat": [42], "lon": [42], "time": time_range},
         attrs={UNITS_KEY: "degC"},
         name="tas",
     ).to_dataset()
@@ -242,11 +242,11 @@ def test_build_basic_threshold__from_dataset():
 
 
 def test_build_basic_threshold__from_dataset__error():
-    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    time_range = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     ds = xr.DataArray(
-        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        data=(np.full(len(time_range), 20).reshape((len(time_range), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
+        coords={"lat": [42], "lon": [42], "time": time_range},
         attrs={UNITS_KEY: "degC"},
         name="toto",
     ).to_dataset()
@@ -256,14 +256,14 @@ def test_build_basic_threshold__from_dataset__error():
         build_threshold(operator=">=", value=ds, threshold_min_value="280K")
 
 
-class Test_FileBased:
+class TestFileBased:
     IN_FILE_PATH = Path("in.nc")
-    TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
+    time_range = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
 
     data = xr.DataArray(
-        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        data=(np.full(len(time_range), 20).reshape((len(time_range), 1, 1))),
         dims=["time", "lat", "lon"],
-        coords={"lat": [42], "lon": [42], "time": TIME_RANGE},
+        coords={"lat": [42], "lon": [42], "time": time_range},
         attrs={UNITS_KEY: "degC"},
         name="toto",
     )

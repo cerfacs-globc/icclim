@@ -12,7 +12,7 @@ from xclim.core.calendar import build_climatology_bounds
 from tests.testing_utils import stub_tas
 
 
-class Test_max:
+class TestMax:
     def test_simple(self):
         da = stub_tas(use_dask=False)
         da.data[1] = 20
@@ -30,7 +30,7 @@ class Test_max:
         assert result.data[0] == 20
 
 
-class Test_min:
+class TestMin:
     def test_simple(self):
         da = stub_tas(use_dask=False)
         da.data[1] = -20
@@ -43,7 +43,7 @@ class Test_min:
         assert result.data[0] == -20
 
 
-class Test_mean:
+class TestMean:
     def test_simple(self):
         da = stub_tas(use_dask=False)
         da[2] = 366
@@ -56,7 +56,7 @@ class Test_mean:
         assert result.data[0] == 2
 
 
-class Test_sum:
+class TestSum:
     def test_simple(self):
         da = stub_tas(use_dask=False)
         # WHEN
@@ -69,7 +69,7 @@ class Test_sum:
         assert result.data[0] == 365
 
 
-class Test_count_events:
+class TestCountEvents:
     def test_simple(self):
         # GIVEN
         da = stub_tas(10, False)
@@ -195,7 +195,7 @@ class Test_count_events:
         assert result.data[0] == 1
 
 
-class Test_run_mean:
+class TestRunMean:
     def test_run_mean_min(self):
         # GIVEN
         tmax = stub_tas(10, False)
@@ -241,7 +241,7 @@ class Test_run_mean:
         assert result.data[2] == 10
 
 
-class Test_run_sum:
+class TestRunSum:
     def test_run_sum_min(self):
         # GIVEN
         tmax = stub_tas(10, False)
@@ -287,7 +287,7 @@ class Test_run_sum:
         assert result.data[2] == 20
 
 
-class Test_max_consecutive_event_count:
+class TestMaxConsecutiveEventCount:
     def test_simple(self):
         # GIVEN
         tmax = stub_tas(10, False)
@@ -308,7 +308,7 @@ class Test_max_consecutive_event_count:
         assert result.data[1].isnull()
 
 
-class Test_anomaly:
+class TestAnomaly:
     def test_simple(self):
         # GIVEN
         tmax = stub_tas(10, False)

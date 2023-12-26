@@ -1,4 +1,4 @@
-# ruff: noqa: A001, E501
+# ruff: noqa: A001, E501, N803
 """
 icclim's API for ECAD indices and generic indices.
 
@@ -125,7 +125,7 @@ def count_occurrences(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """count_occurrences
+    """count_occurrences.
 
     Count occurrences where threshold(s) are met (e.g. SU, Tx90p, RR1).
 
@@ -220,7 +220,7 @@ def max_consecutive_occurrence(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """max_consecutive_occurrence
+    """max_consecutive_occurrence.
 
     Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
@@ -316,7 +316,7 @@ def sum_of_spell_lengths(
     date_event: bool = False,
     min_spell_length: int | None = 6,
 ) -> Dataset:
-    """sum_of_spell_lengths
+    """sum_of_spell_lengths.
 
     Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
@@ -415,7 +415,7 @@ def excess(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """excess
+    """excess.
 
     Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
@@ -510,7 +510,7 @@ def deficit(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """deficit
+    """deficit.
 
     Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
@@ -605,7 +605,7 @@ def fraction_of_total(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """fraction_of_total
+    """fraction_of_total.
 
     Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
@@ -700,7 +700,7 @@ def maximum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """maximum
+    """maximum.
 
     Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
@@ -795,7 +795,7 @@ def minimum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """minimum
+    """minimum.
 
     Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
@@ -890,7 +890,7 @@ def average(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """average
+    """average.
 
     Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn)
 
@@ -985,7 +985,7 @@ def sum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """sum
+    """sum.
 
     Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
@@ -1080,7 +1080,7 @@ def standard_deviation(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """standard_deviation
+    """standard_deviation.
 
     Standard deviation of values that met threshold(s), if threshold(s) are given.
 
@@ -1176,7 +1176,7 @@ def max_of_rolling_sum(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """max_of_rolling_sum
+    """max_of_rolling_sum.
 
     Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
@@ -1276,7 +1276,7 @@ def min_of_rolling_sum(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """min_of_rolling_sum
+    """min_of_rolling_sum.
 
     Minimum of rolling sum over time dimension.
 
@@ -1376,7 +1376,7 @@ def max_of_rolling_average(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """max_of_rolling_average
+    """max_of_rolling_average.
 
     Maximum of rolling average over time dimension.
 
@@ -1476,7 +1476,7 @@ def min_of_rolling_average(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """min_of_rolling_average
+    """min_of_rolling_average.
 
     Minimum of rolling average over time dimension.
 
@@ -1575,7 +1575,7 @@ def mean_of_difference(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """mean_of_difference
+    """mean_of_difference.
 
     Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
@@ -1670,7 +1670,7 @@ def difference_of_extremes(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """difference_of_extremes
+    """difference_of_extremes.
 
     Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
@@ -1765,7 +1765,7 @@ def mean_of_absolute_one_time_step_difference(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """mean_of_absolute_one_time_step_difference
+    """mean_of_absolute_one_time_step_difference.
 
     Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
@@ -1861,7 +1861,7 @@ def difference_of_means(
     date_event: bool = False,
     sampling_method: SamplingMethodLike = "resample",
 ) -> Dataset:
-    """difference_of_means
+    """difference_of_means.
 
     Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
@@ -1962,9 +1962,9 @@ def tg(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TG
+    """TG.
 
-    Mean of daily mean temperature
+    Mean of daily mean temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2042,9 +2042,9 @@ def tn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TN
+    """TN.
 
-    Mean of daily minimum temperature
+    Mean of daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2122,9 +2122,9 @@ def tx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX
+    """TX.
 
-    Mean of daily maximum temperature
+    Mean of daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2202,9 +2202,9 @@ def dtr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DTR
+    """DTR.
 
-    Mean Diurnal Temperature Range
+    Mean Diurnal Temperature Range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2282,9 +2282,9 @@ def etr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """ETR
+    """ETR.
 
-    Intra-period extreme temperature range
+    Intra-period extreme temperature range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2362,9 +2362,9 @@ def vdtr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """vDTR
+    """vDTR.
 
-    Mean day-to-day variation in Diurnal Temperature Range
+    Mean day-to-day variation in Diurnal Temperature Range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2442,9 +2442,9 @@ def su(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SU
+    """SU.
 
-    Number of Summer Days (Tmax > 25C)
+    Number of Summer Days (Tmax > 25C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2525,9 +2525,9 @@ def tr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TR
+    """TR.
 
-    Number of Tropical Nights (Tmin > 20C)
+    Number of Tropical Nights (Tmin > 20C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2612,9 +2612,9 @@ def wsdi(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """WSDI
+    """WSDI.
 
-    Warm-spell duration index (days)
+    Warm-spell duration index (days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2731,9 +2731,9 @@ def tg90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TG90p
+    """TG90p.
 
-    Days when Tmean > 90th percentile
+    Days when Tmean > 90th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2850,9 +2850,9 @@ def tn90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TN90p
+    """TN90p.
 
-    Days when Tmin > 90th percentile
+    Days when Tmin > 90th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -2969,9 +2969,9 @@ def tx90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX90p
+    """TX90p.
 
-    Days when Tmax > 90th daily percentile
+    Days when Tmax > 90th daily percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3084,9 +3084,9 @@ def txx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TXx
+    """TXx.
 
-    Maximum daily maximum temperature
+    Maximum daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3164,9 +3164,9 @@ def tnx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TNx
+    """TNx.
 
-    Maximum daily minimum temperature
+    Maximum daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3244,9 +3244,9 @@ def csu(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CSU
+    """CSU.
 
-    Maximum number of consecutive summer days (Tmax >25 C)
+    Maximum number of consecutive summer days (Tmax >25 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3327,9 +3327,9 @@ def gd4(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """GD4
+    """GD4.
 
-    Growing degree days (sum of Tmean > 4 C)
+    Growing degree days (sum of Tmean > 4 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3410,9 +3410,9 @@ def fd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FD
+    """FD.
 
-    Number of Frost Days (Tmin < 0C)
+    Number of Frost Days (Tmin < 0C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3493,9 +3493,9 @@ def cfd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CFD
+    """CFD.
 
-    Maximum number of consecutive frost days (Tmin < 0 C)
+    Maximum number of consecutive frost days (Tmin < 0 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3576,9 +3576,9 @@ def hd17(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """HD17
+    """HD17.
 
-    Heating degree days (sum of Tmean < 17 C)
+    Heating degree days (sum of Tmean < 17 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3659,9 +3659,9 @@ def id(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """ID
+    """ID.
 
-    Number of sharp Ice Days (Tmax < 0C)
+    Number of sharp Ice Days (Tmax < 0C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3746,9 +3746,9 @@ def tg10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TG10p
+    """TG10p.
 
-    Days when Tmean < 10th percentile
+    Days when Tmean < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3865,9 +3865,9 @@ def tn10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TN10p
+    """TN10p.
 
-    Days when Tmin < 10th percentile
+    Days when Tmin < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -3984,9 +3984,9 @@ def tx10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX10p
+    """TX10p.
 
-    Days when Tmax < 10th percentile
+    Days when Tmax < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4099,9 +4099,9 @@ def txn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TXn
+    """TXn.
 
-    Minimum daily maximum temperature
+    Minimum daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4179,9 +4179,9 @@ def tnn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TNn
+    """TNn.
 
-    Minimum daily minimum temperature
+    Minimum daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4263,9 +4263,9 @@ def csdi(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CSDI
+    """CSDI.
 
-    Cold-spell duration index (days)
+    Cold-spell duration index (days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4378,9 +4378,9 @@ def cdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CDD
+    """CDD.
 
-    Maximum consecutive dry days (Precip < 1mm)
+    Maximum consecutive dry days (Precip < 1mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4461,9 +4461,9 @@ def prcptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PRCPTOT
+    """PRCPTOT.
 
-    Total precipitation during Wet Days
+    Total precipitation during Wet Days.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4544,9 +4544,9 @@ def rr1(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RR1
+    """RR1.
 
-    Number of Wet Days (precip >= 1 mm)
+    Number of Wet Days (precip >= 1 mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4627,9 +4627,9 @@ def sdii(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SDII
+    """SDII.
 
-    Average precipitation during Wet Days (SDII)
+    Average precipitation during Wet Days (SDII).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4710,9 +4710,9 @@ def cwd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CWD
+    """CWD.
 
-    Maximum consecutive wet days (Precip >= 1mm)
+    Maximum consecutive wet days (Precip >= 1mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4793,9 +4793,9 @@ def rr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RR
+    """RR.
 
-    Precipitation sum (mm)
+    Precipitation sum (mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4873,9 +4873,9 @@ def r10mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R10mm
+    """R10mm.
 
-    Number of heavy precipitation days (Precip >=10mm)
+    Number of heavy precipitation days (Precip >=10mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -4956,9 +4956,9 @@ def r20mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R20mm
+    """R20mm.
 
-    Number of very heavy precipitation days (Precip >= 20mm)
+    Number of very heavy precipitation days (Precip >= 20mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5039,9 +5039,9 @@ def rx1day(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RX1day
+    """RX1day.
 
-    maximum 1-day total precipitation
+    maximum 1-day total precipitation.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5119,9 +5119,9 @@ def rx5day(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RX5day
+    """RX5day.
 
-    maximum 5-day total precipitation
+    maximum 5-day total precipitation.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5203,9 +5203,9 @@ def r75p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R75p
+    """R75p.
 
-    Days with RR > 75th percentile of daily amounts (moderate wet days) (d)
+    Days with RR > 75th percentile of daily amounts. (moderate wet days) (d)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5323,9 +5323,9 @@ def r75ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R75pTOT
+    """R75pTOT.
 
-    Precipitation fraction due to moderate wet days (> 75th percentile)
+    Precipitation fraction due to moderate wet days. (> 75th percentile)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5443,9 +5443,9 @@ def r95p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R95p
+    """R95p.
 
-    Days with RR > 95th percentile of daily amounts (very wet days) (days)
+    Days with RR > 95th percentile of daily amounts. (very wet days) (days)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5563,9 +5563,9 @@ def r95ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R95pTOT
+    """R95pTOT.
 
-    Precipitation fraction due to very wet days (> 95th percentile)
+    Precipitation fraction due to very wet days (> 95th percentile).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5683,9 +5683,9 @@ def r99p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R99p
+    """R99p.
 
-    Days with RR > 99th percentile of daily amounts (extremely wet days)
+    Days with RR > 99th percentile of daily amounts. (extremely wet days)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5803,9 +5803,9 @@ def r99ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R99pTOT
+    """R99pTOT.
 
-    Precipitation fraction due to extremely wet days (> 99th percentile)
+    Precipitation fraction due to extremely wet days. (> 99th percentile)
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5919,9 +5919,9 @@ def sd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD
+    """SD.
 
-    Mean of daily snow depth
+    Mean of daily snow depth.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -5999,9 +5999,9 @@ def sd1(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD1
+    """SD1.
 
-    Snow days (SD >= 1 cm)
+    Snow days (SD >= 1 cm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6082,9 +6082,9 @@ def sd5cm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD5cm
+    """SD5cm.
 
-    Number of days with snow depth >= 5 cm
+    Number of days with snow depth >= 5 cm.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6165,9 +6165,9 @@ def sd50cm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD50cm
+    """SD50cm.
 
-    Number of days with snow depth >= 50 cm
+    Number of days with snow depth >= 50 cm.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6252,9 +6252,9 @@ def cd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CD
+    """CD.
 
-    Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days)
+    Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6381,9 +6381,9 @@ def cw(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CW
+    """CW.
 
-    Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days)
+    Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6510,9 +6510,9 @@ def wd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """WD
+    """WD.
 
-    Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days)
+    Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6639,9 +6639,9 @@ def ww(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """WW
+    """WW.
 
-    Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days)
+    Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6764,9 +6764,9 @@ def fxx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FXx
+    """FXx.
 
-    Maximum value of daily maximum wind gust
+    Maximum value of daily maximum wind gust.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6844,9 +6844,9 @@ def fg6bft(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FG6Bft
+    """FG6Bft.
 
-    Days with daily averaged wind ≥ 6 Bft (10.8 m s-1)
+    Days with daily averaged wind ≥ 6 Bft (10.8 m s-1).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -6927,9 +6927,9 @@ def fgcalm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FGcalm
+    """FGcalm.
 
-    Calm days, days with daily averaged wind <= 2 m s-1
+    Calm days, days with daily averaged wind <= 2 m s-1.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -7010,9 +7010,9 @@ def fg(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FG
+    """FG.
 
-    Mean of daily mean wind strength
+    Mean of daily mean wind strength.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -7090,9 +7090,9 @@ def ddnorth(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DDnorth
+    """DDnorth.
 
-    Days with northerly winds (DD > 315° or DD ≤ 45°)
+    Days with northerly winds (DD > 315° or DD ≤ 45°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -7173,9 +7173,9 @@ def ddeast(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DDeast
+    """DDeast.
 
-    Days with easterly winds (45° < DD <= 135°)
+    Days with easterly winds (45° < DD <= 135°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -7256,9 +7256,9 @@ def ddsouth(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DDsouth
+    """DDsouth.
 
-    Days with southerly winds (135° < DD <= 225°)
+    Days with southerly winds (135° < DD <= 225°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -7339,9 +7339,9 @@ def ddwest(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DDwest
+    """DDwest.
 
-    Days with westerly winds (225° < DD <= 315°)
+    Days with westerly winds (225° < DD <= 315°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -7422,9 +7422,9 @@ def gsl(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """GSL
+    """GSL.
 
-    Growing season length
+    Growing season length.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -7503,9 +7503,9 @@ def spi6(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SPI6
+    """SPI6.
 
-    6-Month Standardized Precipitation Index
+    6-Month Standardized Precipitation Index.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters
@@ -7599,9 +7599,9 @@ def spi3(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SPI3
+    """SPI3.
 
-    3-Month Standardized Precipitation Index
+    3-Month Standardized Precipitation Index.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
     Parameters

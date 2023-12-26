@@ -10,13 +10,13 @@ from icclim.models.frequency import FrequencyRegistry, get_seasonal_time_updater
 from tests.testing_utils import stub_tas
 
 
-class Test_build_frequency_over_frequency:
+class TestBuildFrequencyOverFrequency:
     def test_simple(self):
         freq = FrequencyRegistry.lookup(FrequencyRegistry.YEAR)
         assert freq == FrequencyRegistry.YEAR
 
 
-class Test_build_frequency_over_string:
+class TestBuildFrequencyOverString:
     def test_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
             FrequencyRegistry.lookup("yolo")
@@ -26,7 +26,7 @@ class Test_build_frequency_over_string:
         assert freq == FrequencyRegistry.YEAR
 
 
-class Test_build_frequency_over_list:
+class TestBuildFrequencyOverList:
     def test_lookup_list__keyword_error(self):
         with pytest.raises(InvalidIcclimArgumentError):
             FrequencyRegistry.lookup(["cacahuêtes"])
@@ -86,7 +86,7 @@ class Test_build_frequency_over_list:
         assert freq.post_processing is not None
 
 
-class Test_seasons_resampler:
+class TestSeasonsResampler:
     def test_simple(self):
         # WHEN
         test_da = filter_months(stub_tas(), [4, 5, 6]).resample(time="YS").mean()

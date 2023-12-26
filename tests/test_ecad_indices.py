@@ -14,7 +14,7 @@ def test_listing():
     assert len(res) == len(indices)
 
 
-class Test_index_from_string:
+class TestIndexFromString:
     def test_simple(self):
         res = EcadIndexRegistry.lookup("SU")
         assert res == EcadIndexRegistry.SU

@@ -95,7 +95,7 @@ class ClimateVariable:
 
 def build_climate_vars(
     climate_vars_dict: dict[str, InFileDictionary],
-    ignore_Feb29th: bool,
+    ignore_Feb29th: bool,  # noqa: N803
     time_range: Sequence[str],
     base_period: Sequence[str] | None,
     standard_index: StandardIndex | None,
@@ -277,7 +277,7 @@ def _build_in_file_dict(
 def _build_climate_var(
     climate_var_name: str,
     climate_var_data: InFileDictionary | InFileBaseType,
-    ignore_Feb29th: bool,
+    ignore_Feb29th: bool,  # noqa: N803
     time_range: Sequence[str],
     standard_var: StandardVariable | None,
 ) -> ClimateVariable:

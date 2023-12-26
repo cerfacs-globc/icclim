@@ -81,7 +81,7 @@ PATH_TO_GENERIC_DOC_FILE = (
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
 DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
 MODULE_HEADER = f'''
-# ruff: noqa: A001, E501
+# ruff: noqa: A001, E501, N803
 """
 icclim's API for ECAD indices and generic indices.
 
@@ -239,7 +239,7 @@ def _get_generic_index_declaration(index: GenericIndicator) -> str:
 def {index.name.lower()}(
     {fun_signature_args},
     ) -> Dataset:
-    \"\"\"{index.name}
+    \"\"\"{index.name}.
 
     {index.definition}
 
@@ -275,7 +275,7 @@ def _get_standard_index_declaration(index: StandardIndex) -> str:
 def {index.short_name.lower()}(
     {fun_signature_args},
 ) -> Dataset:
-    \"\"\"{index.short_name}
+    \"\"\"{index.short_name}.
 
     {index.definition}
     Source: {index.source}.

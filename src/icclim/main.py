@@ -21,7 +21,7 @@ import xarray as xr
 import xclim
 
 from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.ecad.xclim_binding import XCLIM_BINDING
+from icclim.ecad.xclim_binding import XclimBinding
 from icclim.generic_indices.generic_indicators import (
     GenericIndicator,
     GenericIndicatorRegistry,
@@ -207,7 +207,7 @@ def index(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
-    ignore_Feb29th: bool = False,
+    ignore_Feb29th: bool = False,  # noqa: N803
     interpolation: str | QuantileInterpolation = "median_unbiased",
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -224,7 +224,7 @@ def index(
     save_percentile: bool | None = None,
     indice_name: str | None = None,
     user_indice: UserIndexDict = None,
-    transfer_limit_Mbytes: float | None = None,
+    transfer_limit_Mbytes: float | None = None,  # noqa: N803
 ) -> Dataset:
     """
     Main entry point for icclim to compute climate indices.
@@ -519,7 +519,7 @@ def _handle_deprecated_params(
     save_thresholds,
     doy_window_width,
     indice_name,
-    transfer_limit_Mbytes,
+    transfer_limit_Mbytes,  # noqa: N803
     user_indice,
     save_percentile,
     window_width,
@@ -588,8 +588,8 @@ def _compute_climate_index(
         and not isinstance(
             climate_index,
             (
-                XCLIM_BINDING.StandardizedPrecipitationIndex6,
-                XCLIM_BINDING.StandardizedPrecipitationIndex3,
+                XclimBinding.StandardizedPrecipitationIndex6,
+                XclimBinding.StandardizedPrecipitationIndex3,
             ),
         )
     ):
@@ -649,7 +649,7 @@ def _build_history(
     initial_history: str | None,
     indice_computed: Indicator,
 ) -> str:
-    from icclim import __version__ as ICCLIM_VERSION
+    from icclim import __version__ as icclim_version
 
     if initial_history is None:
         # get xclim history
@@ -666,7 +666,7 @@ def _build_history(
         f" [{current_time}]"
         f" Calculation of {indice_computed.name}"
         f" index ({config.frequency.adjective})"
-        f" - icclim version: {ICCLIM_VERSION}"
+        f" - icclim version: {icclim_version}"
     )
 
 

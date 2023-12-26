@@ -42,7 +42,7 @@ def test_update_to_standard_coords():
     assert "time" in res.coords
 
 
-class Test_ReadDataset:
+class TestReadDataset:
     OUTPUT_NC_FILE = Path("tmp.nc")
     OUTPUT_NC_FILE_2 = Path("tmp-2.nc")
     OUTPUT_ZARR_STORE = Path("tmp.zarr")
@@ -86,7 +86,7 @@ class Test_ReadDataset:
             with contextlib.suppress(FileNotFoundError):
                 f.unlink()
 
-    def test_read_dataset_xr_DataArray__simple(self):
+    def test_read_dataset_xr_dataarray__simple(self):
         # WHEN
         res = read_dataset(self.pr_da)
         # THEN

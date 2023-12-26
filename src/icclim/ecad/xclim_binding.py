@@ -18,9 +18,10 @@ if TYPE_CHECKING:
     from icclim.models.index_config import IndexConfig
 
 
-class XCLIM_BINDING:
+class XclimBinding:
     class GrowingSeasonLength(Indicator):
-        """
+        """xclim.growing_season_length.
+
         Fake icclim indicator that redirect to xclim `growing_season_length` indicator.
         """
 
@@ -40,11 +41,11 @@ class XCLIM_BINDING:
             )
 
         def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
-            """Not implemented as xclim indicator already handle pre/post processing"""
+            """Not implemented as xclim indicator already handle pre/post processing."""
             raise NotImplementedError
 
         def postprocess(self, *args, **kwargs) -> xarray.DataArray:
-            """Not implemented as xclim indicator already handle pre/post processing"""
+            """Not implemented as xclim indicator already handle pre/post processing."""
             raise NotImplementedError
 
     class StandardizedPrecipitationIndex3(Indicator):
@@ -73,11 +74,11 @@ class XCLIM_BINDING:
             )
 
         def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
-            """Not implemented as xclim indicator already handle pre/post processing"""
+            """Not implemented as xclim indicator already handle pre/post processing."""
             raise NotImplementedError
 
         def postprocess(self, *args, **kwargs) -> xarray.DataArray:
-            """Not implemented as xclim indicator already handle pre/post processing"""
+            """Not implemented as xclim indicator already handle pre/post processing."""
             raise NotImplementedError
 
     class StandardizedPrecipitationIndex6(Indicator):
@@ -106,9 +107,9 @@ class XCLIM_BINDING:
             )
 
         def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
-            """Not implemented as xclim indicator already handle pre/post processing"""
+            """Not implemented as xclim indicator already handle pre/post processing."""
             raise NotImplementedError
 
         def postprocess(self, *args, **kwargs) -> xarray.DataArray:
-            """Not implemented as xclim indicator already handle pre/post processing"""
+            """Not implemented as xclim indicator already handle pre/post processing."""
             raise NotImplementedError

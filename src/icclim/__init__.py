@@ -1,4 +1,4 @@
-"""Python library for climate indices calculation"""
+"""Python library for climate indices calculation."""
 
 from icclim._generated_api import *  # noqa: F403 (add api to be in icclim module)
 from icclim.generic_indices.threshold import build_threshold
