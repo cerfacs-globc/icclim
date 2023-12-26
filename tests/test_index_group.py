@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+
 from icclim.icclim_exceptions import InvalidIcclimArgumentError
 from icclim.models.index_group import IndexGroupRegistry
 
