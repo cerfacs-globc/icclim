@@ -1,5 +1,6 @@
-Frequency
-=========
+###########
+ Frequency
+###########
 
 .. automodule:: icclim.models.frequency
-    :members: Frequency
+   :members: Frequency
