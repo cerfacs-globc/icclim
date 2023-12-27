@@ -1,12 +1,14 @@
-Development
-===========
+#############
+ Development
+#############
 
-Here are some guidelines for those who which to contribute to icclim development.
+Here are some guidelines for those who which to contribute to icclim
+development.
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Contents:
+   :maxdepth: 2
+   :caption: Contents:
 
-    release_process
-    ci
-    contributing
+   release_process
+   ci
+   contributing

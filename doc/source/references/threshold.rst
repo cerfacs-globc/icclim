@@ -1,5 +1,6 @@
+#########
 Threshold
-=========
+#########
 
 .. automodule:: icclim.generic_indices.threshold
     :members:

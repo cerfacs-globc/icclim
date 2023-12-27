@@ -54,7 +54,8 @@ dev = [
   "flit",
   "ruff",
   "pip",
-  "pre-commit>=2.9"
+  "pre-commit>=2.9",
+  "sphinx-autobuild"
 ]
 doc = [
   "sphinx",
