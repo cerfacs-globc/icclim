@@ -94,6 +94,7 @@ For example to use this new API with the index `su` you can do:
      gsl
      spi6
      spi3
+     pp
      custom_index
 
-   .. Generated API comment:End
+.. Generated API comment:End

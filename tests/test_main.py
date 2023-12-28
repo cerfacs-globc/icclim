@@ -1004,3 +1004,22 @@ class TestIntegration:
         ddeast = icclim.ddeast(in_files=dd, slice_mode="month").DDeast.compute()
         # THEN
         np.testing.assert_almost_equal(ddeast.isel(time=0), 21)
+
+    def test_pp(self):
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
+        )
+        pressure = xr.DataArray(
+            np.full(365, 1),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "hPa"},
+        )
+        pressure.loc[{"time": slice("2000-01-01", "2000-01-30")}] = 9
+        pressure.loc[{"time": "2000-01-31"}] = 40
+
+        # WHEN
+        pp = icclim.pp(in_files=pressure, slice_mode="month").PP.compute()
+        # THEN
+        np.testing.assert_almost_equal(pp.isel(time=0), 10)

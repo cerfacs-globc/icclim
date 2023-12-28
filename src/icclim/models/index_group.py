@@ -52,5 +52,6 @@ class IndexGroupRegistry(Registry[IndexGroup]):
     RAIN = IndexGroup("rain")
     SNOW = IndexGroup("snow")
     WIND = IndexGroup("wind")
+    PRESSURE = IndexGroup("pressure")
     # no climate index should be bounded to "all"
     WILD_CARD_GROUP = IndexGroup("all")

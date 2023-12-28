@@ -764,3 +764,14 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         qualifiers=[REFERENCE_PERIOD_INDEX],
         output_unit="",
     )
+    PP = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.Average,
+        definition="Mean of daily sea level pressure (hPa)",
+        source=ECAD_ATBD,
+        short_name="PP",
+        group=IndexGroupRegistry.PRESSURE,
+        input_variables=[StandardVariableRegistry.PSL],
+        qualifiers=[],
+        output_unit="hPa",
+    )

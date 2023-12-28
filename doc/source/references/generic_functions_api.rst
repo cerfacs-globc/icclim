@@ -62,4 +62,4 @@ capabilities of these generic indices.
     mean_of_absolute_one_time_step_difference
     difference_of_means
 
-   .. Generated API comment:End
+.. Generated API comment:End
