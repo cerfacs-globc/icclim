@@ -786,3 +786,14 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         qualifiers=[],
         output_unit="hours",
     )
+    RH = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.Average,
+        definition="Mean of daily relative humidity (%)",
+        source=ECAD_ATBD,
+        short_name="RH",
+        group=IndexGroupRegistry.HUMIDITY,
+        input_variables=[StandardVariableRegistry.HURS],
+        qualifiers=[],
+        output_unit="%",
+    )
