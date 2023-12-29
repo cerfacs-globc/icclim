@@ -764,3 +764,36 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         qualifiers=[REFERENCE_PERIOD_INDEX],
         output_unit="",
     )
+    PP = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.Average,
+        definition="Mean of daily sea level pressure (hPa)",
+        source=ECAD_ATBD,
+        short_name="PP",
+        group=IndexGroupRegistry.PRESSURE,
+        input_variables=[StandardVariableRegistry.PSL],
+        qualifiers=[],
+        output_unit="hPa",
+    )
+    SS = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.Sum,
+        definition="Sunshine duration (hours)",
+        source=ECAD_ATBD,
+        short_name="SS",
+        group=IndexGroupRegistry.SUNSHINE,
+        input_variables=[StandardVariableRegistry.SUND],
+        qualifiers=[],
+        output_unit="hours",
+    )
+    RH = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.Average,
+        definition="Mean of daily relative humidity (%)",
+        source=ECAD_ATBD,
+        short_name="RH",
+        group=IndexGroupRegistry.HUMIDITY,
+        input_variables=[StandardVariableRegistry.HURS],
+        qualifiers=[],
+        output_unit="%",
+    )

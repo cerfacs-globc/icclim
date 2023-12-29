@@ -73,6 +73,12 @@ class TestIntegration:
     full_data["wsgs_max"].attrs[UNITS_KEY] = "m/s"
     full_data["sfcWind"] = data.copy(deep=True)
     full_data["sfcWind"].attrs[UNITS_KEY] = "m/s"
+    full_data["psl"] = data.copy(deep=True)
+    full_data["psl"].attrs[UNITS_KEY] = "Pa"
+    full_data["sund"] = data.copy(deep=True)
+    full_data["sund"].attrs[UNITS_KEY] = "hours"
+    full_data["hurs"] = data.copy(deep=True)
+    full_data["hurs"].attrs[UNITS_KEY] = "%"
 
     data_cf_time = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
@@ -1004,3 +1010,56 @@ class TestIntegration:
         ddeast = icclim.ddeast(in_files=dd, slice_mode="month").DDeast.compute()
         # THEN
         np.testing.assert_almost_equal(ddeast.isel(time=0), 21)
+
+    def test_pp(self):
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
+        )
+        pressure = xr.DataArray(
+            np.full(365, 1),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "hPa"},
+        )
+        pressure.loc[{"time": slice("2000-01-01", "2000-01-30")}] = 9
+        pressure.loc[{"time": "2000-01-31"}] = 40
+
+        # WHEN
+        pp = icclim.pp(in_files=pressure, slice_mode="month").PP.compute()
+        # THEN
+        np.testing.assert_almost_equal(pp.isel(time=0), 10)
+
+    def test_ss(self):
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
+        )
+        sunshine = xr.DataArray(
+            np.full(365, 1),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "hours"},
+        )
+        # WHEN
+        ss = icclim.ss(in_files=sunshine, slice_mode="month").SS.compute()
+        # THEN
+        np.testing.assert_almost_equal(ss.isel(time=0), 31)
+
+    def test_rh(self):
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
+        )
+        humidity = xr.DataArray(
+            np.full(365, 1),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "%"},
+        )
+        humidity.loc[{"time": slice("2000-01-01", "2000-01-30")}] = 9
+        humidity.loc[{"time": "2000-01-31"}] = 40
+        # WHEN
+        rh = icclim.rh(in_files=humidity, slice_mode="month").RH.compute()
+        # THEN
+        np.testing.assert_almost_equal(rh.isel(time=0), 10)

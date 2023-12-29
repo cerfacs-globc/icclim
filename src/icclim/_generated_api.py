@@ -107,6 +107,9 @@ __all__ = [
     "gsl",
     "spi6",
     "spi3",
+    "pp",
+    "ss",
+    "rh",
     "custom_index",
 ]
 
@@ -7680,6 +7683,246 @@ def spi3(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         out_unit="",
+    )
+
+
+def pp(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[dt.datetime | str] | None = None,
+    out_file: str | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """PP.
+
+    Mean of daily sea level pressure (hPa)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="PP",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        out_unit="hPa",
+    )
+
+
+def ss(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[dt.datetime | str] | None = None,
+    out_file: str | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """SS.
+
+    Sunshine duration (hours)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="SS",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        out_unit="hours",
+    )
+
+
+def rh(
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None = None,
+    slice_mode: FrequencyLike | Frequency = "year",
+    time_range: Sequence[dt.datetime | str] | None = None,
+    out_file: str | None = None,
+    ignore_Feb29th: bool = False,
+    netcdf_version: str | NetcdfVersion = "NETCDF4",
+    logs_verbosity: Verbosity | str = "LOW",
+    date_event: bool = False,
+) -> Dataset:
+    """RH.
+
+    Mean of daily relative humidity (%)
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+
+    Parameters
+    ----------
+    in_files: str | list[str] | Dataset | DataArray | InputDictionary
+        Absolute path(s) to NetCDF dataset(s), including OPeNDAP URLs,
+        or path to zarr store, or xarray.Dataset or xarray.DataArray.
+    var_name: str | list[str] | None
+        ``optional`` Target variable name to process corresponding to ``in_files``.
+        If None (default) on ECA&D index, the variable is guessed based on the
+        climate index wanted.
+        Mandatory for a user index.
+    slice_mode: SliceMode
+        Type of temporal aggregation:
+        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
+        (where season and month lists can be customized) or any valid pandas
+        frequency.
+        A season can also be defined between two exact dates:
+        ``("season", ("19 july", "14 august"))``.
+        Default is "year".
+        See :ref:`slice_mode` for details.
+    time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
+        ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
+        If ``None``, whole period of input files will be processed.
+        The dates can either be given as instance of datetime.datetime or as string
+        values. For strings, many format are accepted.
+        Default is ``None``.
+    out_file: str | None
+        Output NetCDF file name (default: "icclim_out.nc" in the current directory).
+        Default is "icclim_out.nc".
+        If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
+        Use the function returned value instead to retrieve the computed value.
+        If ``out_file`` already exists, icclim will overwrite it!
+    ignore_Feb29th: bool
+        ``optional`` Ignoring or not February 29th (default: False).
+    netcdf_version: str | NetcdfVersion
+        ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
+    logs_verbosity: str | Verbosity
+        ``optional`` Configure how verbose icclim is.
+        Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    date_event: bool
+        When True the date of the event (such as when a maximum is reached) will be
+        stored in coordinates variables.
+        **warning** This option may significantly slow down computation.
+
+    Notes
+    -----
+    This function has been auto-generated.
+
+    """
+    return icclim.index(
+        index_name="RH",
+        in_files=in_files,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        out_file=out_file,
+        ignore_Feb29th=ignore_Feb29th,
+        netcdf_version=netcdf_version,
+        logs_verbosity=logs_verbosity,
+        date_event=date_event,
+        out_unit="%",
     )
 
 

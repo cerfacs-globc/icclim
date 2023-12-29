@@ -34,6 +34,12 @@
    release being published. This action requires a manual approval on
    github.
 
+- [enh] Add the following ECAD indices: PP (average of pressure),
+  SS (sum of sunshine) and RH (average of humidity).
+
+- [fix] the default unit of clt standard variable is now % as expected
+  (was a wind strenght unit).
+
 *******
  6.5.0
 *******

@@ -79,7 +79,7 @@ PATH_TO_GENERIC_DOC_FILE = (
     Path(__file__).parent / "../doc/source/references" / "generic_functions_api.rst"
 )
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
-DOC_END_PLACEHOLDER = f"{TAB}{TAB}.. Generated API comment:End"
+DOC_END_PLACEHOLDER = ".. Generated API comment:End"
 MODULE_HEADER = f'''
 # ruff: noqa: A001, E501, N803
 """
@@ -391,7 +391,7 @@ def _generate_doc(doc_path: Path, replacing_content: str) -> None:
 def _get_ecad_doc() -> str:
     names = (x.short_name for x in EcadIndexRegistry.values())
     names = [*list(names), "custom_index"]
-    formatted_names = (f"{TAB}{TAB}{x.lower()}" for x in names)
+    formatted_names = (f"{TAB} {x.lower()}" for x in names)
     replacing_content = ""
     replacing_content += "\n".join(formatted_names)
     replacing_content += "\n\n"
@@ -400,7 +400,7 @@ def _get_ecad_doc() -> str:
 
 def _get_generic_doc() -> str:
     names = (x.name for x in GenericIndicatorRegistry.values())
-    formatted_names = (f"{TAB}{TAB}{x.lower()}" for x in names)
+    formatted_names = (f"{TAB}{x.lower()}" for x in names)
     replacing_content = ""
     replacing_content += "\n".join(formatted_names)
     replacing_content += "\n\n"
