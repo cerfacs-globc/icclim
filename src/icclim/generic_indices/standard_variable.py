@@ -192,7 +192,7 @@ class StandardVariableRegistry(Registry[StandardVariable]):
         standard_name="cloud_area_fraction",
         long_name="Total Cloud Cover Percentage",
         aliases=["clt"],
-        default_units="m s-1",
+        default_units="%",
     )
     RSDS = StandardVariable(
         short_name="rsds",
