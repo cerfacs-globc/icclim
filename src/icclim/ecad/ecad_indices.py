@@ -775,3 +775,14 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         qualifiers=[],
         output_unit="hPa",
     )
+    SS = StandardIndex(
+        reference=ECAD_REFERENCE,
+        indicator=GenericIndicatorRegistry.Sum,
+        definition="Sunshine duration (hours)",
+        source=ECAD_ATBD,
+        short_name="SS",
+        group=IndexGroupRegistry.SUNSHINE,
+        input_variables=[StandardVariableRegistry.SUND],
+        qualifiers=[],
+        output_unit="hours",
+    )

@@ -1023,3 +1023,19 @@ class TestIntegration:
         pp = icclim.pp(in_files=pressure, slice_mode="month").PP.compute()
         # THEN
         np.testing.assert_almost_equal(pp.isel(time=0), 10)
+
+    def test_ss(self):
+        time_range = xr.DataArray(
+            pd.date_range("2000", periods=365, freq="D"),
+            dims=["time"],
+        )
+        pressure = xr.DataArray(
+            np.full(365, 1),
+            coords={"time": time_range, "lat": 1, "lon": 1},
+            dims="time",
+            attrs={"units": "hours"},
+        )
+        # WHEN
+        ss = icclim.ss(in_files=pressure, slice_mode="month").SS.compute()
+        # THEN
+        np.testing.assert_almost_equal(ss.isel(time=0), 31)
