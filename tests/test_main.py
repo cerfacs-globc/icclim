@@ -73,6 +73,12 @@ class TestIntegration:
     full_data["wsgs_max"].attrs[UNITS_KEY] = "m/s"
     full_data["sfcWind"] = data.copy(deep=True)
     full_data["sfcWind"].attrs[UNITS_KEY] = "m/s"
+    full_data["psl"] = data.copy(deep=True)
+    full_data["psl"].attrs[UNITS_KEY] = "Pa"
+    full_data["sund"] = data.copy(deep=True)
+    full_data["sund"].attrs[UNITS_KEY] = "hours"
+    full_data["hurs"] = data.copy(deep=True)
+    full_data["hurs"].attrs[UNITS_KEY] = "%"
 
     data_cf_time = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
