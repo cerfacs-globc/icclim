@@ -3,14 +3,14 @@
 ################
 
 icclim exposes a main entry point with :func:`icclim.index`. It is used
-to compute both ECA&D indices and user defined indices. There are quite
-a lot of options, but only a few of them are needed to compute simple
+to compute both ECA&D indices and user defined indices. There are
+numerous arguments, but only a few are needed to compute simple
 indices. Our :ref:`how_to` recipes are also a good start to have an idea
 on how to use `icclim.index`.
 
 .. note::
 
-   With version 5.2.0, icclim API now includes each individual index as
+   Since version 5.2.0, icclim API now includes each individual index as
    a standalone function. Check :ref:`ecad_functions_api` to see how to
    call them.
 
@@ -35,27 +35,36 @@ The ``in_files`` parameter can be
    -  A *list of strings* to represent multiple netCDF files to combine
    -  A *xarray.Dataset*
    -  A *xarray.DataArray*
-   -  A python dictionary (new in 5.3)
+   -  A python dictionary
 
-+---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-|                                 | single input file per variable                           | several input files per variable                                                                        |
-+=================================+==========================================================+=========================================================================================================+
-| simple index (based on a single | ``var_name`` = 'tasmax'                                  | ``var_name`` = 'tasmax'                                                                                 |
-| variable)                       |                                                          |                                                                                                         |
-+---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-| ``in_files`` =                  | ``in_files`` = ['tasmax_1990-2000.nc',                   |                                                                                                         |
-| 'tasmax_1990-2010.nc'           | 'tasmax_2000-2010.nc']                                   |                                                                                                         |
-+---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-| multivariable index (based on   | ``var_name`` = ['tas', 'pr']                             | ``var_name`` = ['tas', 'pr']                                                                            |
-| several variables)              |                                                          |                                                                                                         |
-+---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
-| ``in_files`` =                  | ``in_files`` = ['tas_1990-2000.nc', 'tas_2000-2010.nc',  |                                                                                                         |
-| ['tas_1990-2010.nc',            | 'pr_1990-2000.nc', 'pr_2000-2010.nc']                    |                                                                                                         |
-| 'pr_1990-2010.nc']              |                                                          |                                                                                                         |
-+---------------------------------+----------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
+``var_name`` is an optional string, or a list of string, to clarify wich variables
+must be used from the input ``in_files``.
+``var_name`` can be omitted if the variables' name can be guessed for standard indices.
 
-New in 5.3
-----------
+For example Cold and Wet (:py:func:`CW`) index needs a daily mean temperature variable named 'tas' (or any of its aliases)
+and a precipitation variable 'pr' (or any of its aliases).
+See :py:class:`StandardVariable` for a list of all the aliases of each standardized variable.
+So, if a 'mean_temperatures.nc' contains a tas variable and 'precipitations.nc' a pr variable,
+the following is sufficient to compute CW.
+
+```py
+icclim.cw(in_files=["mean_temperatures.nc", "precipitations.nc"]).compute.CW
+```
+
+In case variables' name cannot be guessed, you can explicitly name the variable
+you wish to read from the input file:
+
+```py
+
+icclim.cw(in_files={"customTas": mean_temperatures.nc, "pr": "precipitations.nc"})
+
+# equivalent to
+icclim.cw(in_files=["mean_temperatures.nc, "precipitations.nc"], var_name=["custom_tas", "pr"])
+```
+
+The order in which variables are passed matters and must follow the ``input_variables`` property defined in the
+respective index of :py:class:`EcadIndexRegistry`.
+
 
 Starting with icclim 5.3, ``in_files`` can describe variable names,
 formerly set in ``var_name``, as dictionary format. The dictionary keys
@@ -74,17 +83,12 @@ set of files for percentiles.
    in_files = {"tasmax": "tasmax.nc", "thresholds": "tasmax-90p.zarr"}
 
 The ``thresholds`` input should contain percentile thresholds that will
-be used will be used in place of computing them. It allow to reuse
-percentiles computed and stored elsewhere easily. For the record, you
-can generate percentiles with ``save_percentile`` parameter of
-icclim.index.
+be used in place of computing them. It allows to reuse pre-computed percentiles stored in a file.
+But the percentiles will not be bootstrapped.
 
 .. note::
 
-   Be aware that percentiles will **not** be bootstrapped. Thus, the
-   result could be biased if the period on which percentiles were
-   computed partially overlap the index studied period. See
-   Computingpercentilethresholds for more information on this topic.
+  Percentiles can be saved with ``save_percentile`` parameter of icclim.index.
 
 .. _slice_mode:
 
