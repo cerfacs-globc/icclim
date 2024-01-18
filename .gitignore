@@ -81,3 +81,6 @@ target/
 dask-worker-space/
 
 *.zarr
+
+# notebooks checkpoints
+.ipynb_checkpoints
