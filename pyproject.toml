@@ -69,6 +69,9 @@ doc = [
 Documentation = "https://icclim.readthedocs.io/en/latest/how_to/index.html"
 Source = "https://github.com/cerfacs-globc/icclim/"
 
+[tool.ruff]
+extend-include = ["*.ipynb"]
+
 [tool.ruff.format]
 # Enable reformatting of code snippets in docstrings.
 docstring-code-format = true
