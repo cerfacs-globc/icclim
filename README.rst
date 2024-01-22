@@ -33,7 +33,7 @@ Let's count the number of days above 25°C for each year, which corresponds to t
     )
 
 For more examples on how to use icclim, see icclim's `How to ... <https://icclim.readthedocs.io/en/latest/how_to/index.html>`_ documentation or
-`our notebooks <https://gitlab.com/is-enes-cdi-c4i/notebooks/-/tree/master/>`_.
+`our notebooks <https://icclim.readthedocs.io/en/latest/tutorials/index.html>`_.
 
 
 Who use icclim
