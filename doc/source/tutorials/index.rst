@@ -7,13 +7,12 @@ capabilities. To see how icclim can solve specific issues see
 :ref:`how_to`.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    installation
    notebooks/averaged_tas_anomaly
-   notebooks/averaged_temperature_anomaly
-   notebooks/deltat_deltap_anomaly
+   notebooks/deltaT_deltaP_anomaly
    notebooks/tg90p_calculate__subset_and_plot
-   notebooks/userindex_maxtemp_freezing
+   notebooks/custom_freezing_tas
    notebooks/cold_spell_duration

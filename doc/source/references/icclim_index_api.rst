@@ -47,20 +47,19 @@ See :py:class:`StandardVariable` for a list of all the aliases of each standardi
 So, if a 'mean_temperatures.nc' contains a tas variable and 'precipitations.nc' a pr variable,
 the following is sufficient to compute CW.
 
-```py
-icclim.cw(in_files=["mean_temperatures.nc", "precipitations.nc"]).compute.CW
-```
+.. code-block:: python
+
+        icclim.cw(in_files=["mean_temperatures.nc", "precipitations.nc"]).compute.CW
 
 In case variables' name cannot be guessed, you can explicitly name the variable
 you wish to read from the input file:
 
-```py
+.. code-block:: python
 
-icclim.cw(in_files={"customTas": mean_temperatures.nc, "pr": "precipitations.nc"})
+        icclim.cw(in_files={"customTas": mean_temperatures.nc, "pr": "precipitations.nc"})
 
-# equivalent to
-icclim.cw(in_files=["mean_temperatures.nc, "precipitations.nc"], var_name=["custom_tas", "pr"])
-```
+        # equivalent to
+        icclim.cw(in_files=["mean_temperatures.nc", "precipitations.nc"], var_name=["custom_tas", "pr"])
 
 The order in which variables are passed matters and must follow the ``input_variables`` property defined in the
 respective index of :py:class:`EcadIndexRegistry`.
