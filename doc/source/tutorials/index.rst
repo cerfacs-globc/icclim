@@ -11,7 +11,9 @@ capabilities. To see how icclim can solve specific issues see
    :caption: Contents:
 
    installation
-   C4I_Averaged_Temperature_Anomaly_2081-2100_vs_1971-2000_SSP5
-   C4I_deltaT_deltaP_Anomaly_2081-2100_vs_1971-2000
-   C4I_TG90p_Calculate__subset_and_plot
-   C4I_userindex_maxtemp_freezing
+   notebooks/averaged_tas_anomaly
+   notebooks/averaged_temperature_anomaly
+   notebooks/deltat_deltap_anomaly
+   notebooks/tg90p_calculate__subset_and_plot
+   notebooks/userindex_maxtemp_freezing
+   notebooks/cold_spell_duration

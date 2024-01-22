@@ -1,0 +1,153 @@
+<metalink xmlns="urn:ietf:params:xml:ns:metalink">
+	<file name="tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20150101-20391231.nc">
+		<size>1147761901</size>
+		<hash type="SHA256">1842d1e9d4d880f431f1a08cff252501ea32aac39e85dd02426f1616b7cc34d9</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/CMCC/CMCC-ESM2/ssp585/r1i1p1f1/day/tas/gn/v20210126/tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20150101-20391231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20400101-20641231.nc">
+		<size>1145071534</size>
+		<hash type="SHA256">749ca55115708a81b59e0430fc2dca9674fe16ec7328b639f1232bfeb2531720</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/CMCC/CMCC-ESM2/ssp585/r1i1p1f1/day/tas/gn/v20210126/tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20400101-20641231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20650101-20891231.nc">
+		<size>1141932140</size>
+		<hash type="SHA256">823c0ddcd5d607508f6d2c1cf262ae8345c9f5e7b90b83dff459c9768c01b874</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/CMCC/CMCC-ESM2/ssp585/r1i1p1f1/day/tas/gn/v20210126/tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20650101-20891231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20900101-21001231.nc">
+		<size>501759828</size>
+		<hash type="SHA256">009c5804afeeac37e5337e1f9a0defcded19e1418ec604fe3c9ec921e80e7122</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/CMCC/CMCC-ESM2/ssp585/r1i1p1f1/day/tas/gn/v20210126/tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20900101-21001231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_18500101-18741231.nc">
+		<size>1150891671</size>
+		<hash type="SHA256">e04ed7e8cd9d826534e62d9f1f3f475d82c598c4afe4c895f6a09f611a3b2b55</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_18500101-18741231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_18750101-18991231.nc">
+		<size>1151025700</size>
+		<hash type="SHA256">6c4b4daf593a7f4f367422cd3809cc1903b150416768082f6f23ff7d0d423c2e</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_18750101-18991231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19000101-19241231.nc">
+		<size>1150811941</size>
+		<hash type="SHA256">41ce66cfc99260dcc3f444c4d331af1bd0e31a584ce58efcf99e4fd6e1018315</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19000101-19241231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19250101-19491231.nc">
+		<size>1150101826</size>
+		<hash type="SHA256">9d98438740d5df41f8c32134ee1517bbdc1ff8fc44edae4ee7ef0f1b77cca6db</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19250101-19491231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19500101-19741231.nc">
+		<size>1149723510</size>
+		<hash type="SHA256">934178eea0dc6b0d34631f4b0a897308da91b0525217302b1cddf79a491d0eef</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19500101-19741231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19750101-19991231.nc">
+		<size>1149098090</size>
+		<hash type="SHA256">20087e4531105f3d3aec33b39c33b1ebfd9f4bf266cb58e2e40dc70a98ee2eb8</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19750101-19991231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_20000101-20141231.nc">
+		<size>688921916</size>
+		<hash type="SHA256">2a085848340fcd18a92885461075e7573f30739322c60d9008a04c9206bf4e04</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_20000101-20141231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_18500101-18691231.nc">
+		<size>869344669</size>
+		<hash type="SHA256">09daf328f41bafee272ab1caf4b638cfde5140806eba9d48841e2f16125c4aac</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_18500101-18691231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_18700101-18891231.nc">
+		<size>869221823</size>
+		<hash type="SHA256">827bccd76d56f9eade880f4393c39b9ae373af37864f5229cd751353ed65a936</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_18700101-18891231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_18900101-19091231.nc">
+		<size>868781080</size>
+		<hash type="SHA256">afd5a3b30407bb238c20a98a2148d922e5c79ed33981ae42affa975fc11bf7fa</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_18900101-19091231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19100101-19291231.nc">
+		<size>868772105</size>
+		<hash type="SHA256">68e7420534128c8ce30951e32f96e2e70a1a06e41afcfb6ae44f2253ded58ee0</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19100101-19291231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19300101-19491231.nc">
+		<size>869081937</size>
+		<hash type="SHA256">c9c3876e103b5d4c52b16f94caf8968412725038aa48cbe955655ff08cecc91a</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19300101-19491231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19500101-19691231.nc">
+		<size>868969211</size>
+		<hash type="SHA256">8ec30f38f360b8967399a994611a815c687686005affa499e5e22b22e41eb10f</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19500101-19691231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19700101-19891231.nc">
+		<size>868804370</size>
+		<hash type="SHA256">b8e45d51f84915e5f06723f81c78de4cb5ac7f8ab9891764bced8682348fc908</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19700101-19891231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19900101-20091231.nc">
+		<size>868083593</size>
+		<hash type="SHA256">21319b76de8745787399b707790945b2e0e1703cb859e95ba24df637b33f0e6e</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_19900101-20091231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_20100101-20141231.nc">
+		<size>216984460</size>
+		<hash type="SHA256">cb28432dd1d5c22ba8dc261ebb9279e69f25deab4c5c3d7860410f17fefd9b43</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/CMIP/NOAA-GFDL/GFDL-ESM4/historical/r1i1p1f1/day/tas/gr1/v20190726/tas_day_GFDL-ESM4_historical_r1i1p1f1_gr1_20100101-20141231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20150101-20341231.nc">
+		<size>867093833</size>
+		<hash type="SHA256">70c0c4fa91357311eaf53e9140ac0ed2ab6dfb06e48631b895b584f78e286aae</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/ScenarioMIP/NOAA-GFDL/GFDL-ESM4/ssp585/r1i1p1f1/day/tas/gr1/v20180701/tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20150101-20341231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20350101-20541231.nc">
+		<size>866220779</size>
+		<hash type="SHA256">2f5036ec5d8480e07d0447bbcebe710bc615b367f9d048393750bcd34a669c5e</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/ScenarioMIP/NOAA-GFDL/GFDL-ESM4/ssp585/r1i1p1f1/day/tas/gr1/v20180701/tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20350101-20541231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20550101-20741231.nc">
+		<size>864691418</size>
+		<hash type="SHA256">99d1d4ab9d7d3b356a89f429be8bab90527f67dbf7e7190653c0b26df8b2084c</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/ScenarioMIP/NOAA-GFDL/GFDL-ESM4/ssp585/r1i1p1f1/day/tas/gr1/v20180701/tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20550101-20741231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20750101-20941231.nc">
+		<size>862813097</size>
+		<hash type="SHA256">59bb830b97b794ad7a2dcffbde62b2eec325327236056dbf90948c1600ec0420</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/ScenarioMIP/NOAA-GFDL/GFDL-ESM4/ssp585/r1i1p1f1/day/tas/gr1/v20180701/tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20750101-20941231.nc</url>
+	</file>
+
+	<file name="tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20950101-21001231.nc">
+		<size>258706543</size>
+		<hash type="SHA256">720bcd041a8911dd4ef072c6576b503b24fd0d981ba6d64133e393a657056904</hash>
+		<url priority="1">http://esgf-data1.llnl.gov/thredds/fileServer/css03_data/CMIP6/ScenarioMIP/NOAA-GFDL/GFDL-ESM4/ssp585/r1i1p1f1/day/tas/gr1/v20180701/tas_day_GFDL-ESM4_ssp585_r1i1p1f1_gr1_20950101-21001231.nc</url>
+	</file>
+
+
+</metalink>
