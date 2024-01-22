@@ -39,6 +39,8 @@ extensions = [
     "sphinx_codeautolink",
     "sphinx_lfs_content",
     "sphinx_copybutton",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.sphinxext.ipython_directive",
     "nbsphinx",
 ]
 

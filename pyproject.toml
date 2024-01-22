@@ -63,7 +63,8 @@ doc = [
   "sphinx_copybutton",
   "sphinx_lfs_content",
   "pydata-sphinx-theme",
-  "nbsphinx"
+  "nbsphinx",
+  "ipython"
 ]
 
 [project.urls]
