@@ -61,7 +61,7 @@ doc = [
   "sphinx",
   "sphinx_codeautolink",
   "sphinx_copybutton",
-  "sphinx_lfs_content==1.1.4",
+  "sphinx_lfs_content",
   "pydata-sphinx-theme",
   "nbsphinx"
 ]
