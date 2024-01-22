@@ -29,6 +29,7 @@ dependencies:
  - pytest-cov
  - setuptools
  - flit
+ - nbsphinx
  # Extra dependencies
  - matplotlib
  - cartopy

@@ -12,6 +12,8 @@ __pycache__/
 *.so
 
 # generated files
+*.zarr
+*.zip
 *.nc*
 out_icclim/
 
@@ -80,4 +82,6 @@ target/
 
 dask-worker-space/
 
-*.zarr
+
+# notebooks checkpoints
+.ipynb_checkpoints

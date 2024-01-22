@@ -6,7 +6,7 @@ from typing import Literal, Union
 from xarray import DataArray, Dataset
 
 InFileBaseType = Union[str, Sequence[str], Dataset, DataArray]
-ThresholdedDict = dict[str, Union[dict]]  # Dict === InFileDictionary
+ThresholdedDict = dict[str, dict]  # Dict === InFileDictionary
 InFileLike = Union[ThresholdedDict, InFileBaseType, dict[str, InFileBaseType]]
 
 FrequencyLike = Union[str, list[Union[str, tuple, int]], tuple[str, Union[list, tuple]]]

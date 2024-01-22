@@ -39,7 +39,12 @@ extensions = [
     "sphinx_codeautolink",
     "sphinx_lfs_content",
     "sphinx_copybutton",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.sphinxext.ipython_directive",
+    "nbsphinx",
 ]
+
+autosectionlabel_maxdepth = 2
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

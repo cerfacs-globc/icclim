@@ -117,7 +117,7 @@ Create an optimized chunking on disk
 ====================================
 
 Sometimes, you have to work with data that were originally chunked and
-stored in a way that is suboptimal. Often climat data are stored in a
+stored in a way that is suboptimal. Often climate data are stored in a
 one year per file format thus the natural chunking of the dataset will
 be one year per chunk. The most efficient way to read data on disk would
 be to chunk data in memory the same way it is distributed on disk. Here
@@ -138,11 +138,11 @@ rewrite the data on disk before starting any computation. We rely on the
 possible. The feature is ``icclim.create_optimized_zarr_store``. It is a
 context manager which allow you to rewrite an input data into a zarr
 store. Zarr stores are a modern way to store files on disk with
-optimized reading and writting in mind. In our case, it allows to
-rewrite files with a specific chunking schema, optimized for climat
+optimized reading and writing in mind. In our case, it allows to
+rewrite files with a specific chunking schema, optimized for climate
 indices computation.
 
-Now, depending on the climat index you want to compute, the optimal
+Now, depending on the climate index you want to compute, the optimal
 chunking schema might differ.
 
 For most indices, if you consider chunking on time dimension, you should
@@ -152,7 +152,7 @@ and never chunk in the middle of a month. But month being of variable
 lengths, it might actually be much easier to have one chunk per year.
 Leap years would add another difficulty to this.
 
-However, on indice where a bootstrapping of percentile is necessary (e.g
+However, on indices where a bootstrapping of percentile is necessary (e.g
 Tg90p), it is actually optimal to have no chunk at all on time
 dimension. This is true only because the bootstrapping algorithm rely on
 `map_block
@@ -180,9 +180,9 @@ first create a zarr store not chunked at all on time dimension:
            out_file="netcdf_files/output/tg90p.nc",
        )
 
-Actually this `chunking={"time": -1, "lat":"auto", "lon":"auto" }`,
-which avoid chunking on time is the default behavior of the function.
-`chunking` parameter could be omitted in the above example.
+Actually `chunking={"time": -1, "lat":"auto", "lon":"auto" }`,
+which avoid chunking on time, is the default behavior of the function.
+`chunking` parameter could thus be omitted in the above example.
 
 You can also control if you want to keep the optimized zarr store on
 disk by turning ``keep_target_store`` to True. This can be useful if you
@@ -210,7 +210,7 @@ overhead is.
 |  Dask creates a graph of all the actions (tasks) it must accomplish to
    compute the calculation.
 |  This graph, created before the computation, shows for each chunk the
-   route to follow in order to compute the climat index.
+   route to follow in order to compute the climate index.
 |  This allows some nice optimizations, for example if some spatial or
    time selections are done within icclim/xclim, it will only read and
    load in-memory the necessary data.
@@ -286,7 +286,7 @@ https://docs.dask.org/en/stable/scheduling.html#local-threads
 |  However some percentiles based temperature indices (T_90p and T_10p
    families) may use a lot of memory even on medium datasets.
 |  This memory footprint is caused by the bootstrapping of percentiles,
-   an algorithm used to correct statistical biais.
+   an algorithm used to correct statistical biases.
 |  This bootstrapping use a Monte Carlo simulation, which inherently use
    a lot of resources.
 |  The longer the bootstrap period is, the more resources are necessary.
@@ -323,7 +323,7 @@ See the documentation for more details:
 http://distributed.dask.org/en/stable/
 
 Once installed, you can delegate the ``LocalCluster`` instantiation
-using `distributed.Client` class. This ``Client`` object creates both a
+to the `distributed.Client` class. This ``Client`` object creates both a
 ``LocalCluster`` and a web application to investigate how your
 computation is going. This web dashboard is very powerful and helps to
 understand where are the computation bottlenecks as well as to visualize

@@ -6,6 +6,12 @@
  6.6.0 (unreleased)
 ********************
 
+-  [doc] Adapt Christian's notebooks from ISENES and add them as
+   tutorials in our documentation.
+
+-  [doc] Add nbshpinx extension to render jupyter notebooks in
+   the online documentation.
+
 -  [maint] Migrate from [black, blackdoc, flake8, isort, pyupgrade,
    pydocstyle] to ruff
 

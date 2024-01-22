@@ -102,7 +102,7 @@ def build_climate_vars(
     is_compared_to_reference: bool,
 ) -> list[ClimateVariable]:
     if standard_index is not None and len(standard_index.input_variables) > len(
-        climate_vars_dict,
+        climate_vars_dict
     ):
         msg = (
             f"Index {standard_index.short_name} needs"
@@ -124,7 +124,7 @@ def build_climate_vars(
                 ignore_Feb29th,
                 time_range,
                 standard_var=standard_var,
-            ),
+            )
         )
     if _standard_index_needs_ref(
         standard_index,
