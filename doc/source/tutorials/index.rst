@@ -16,3 +16,4 @@ capabilities. To see how icclim can solve specific issues see
    notebooks/tg90p_calculate__subset_and_plot
    notebooks/custom_freezing_tas
    notebooks/cold_spell_duration
+   notebooks/su_summer_days__subset_and_plot
