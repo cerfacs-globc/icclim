@@ -1,0 +1,68 @@
+<metalink xmlns="urn:ietf:params:xml:ns:metalink">
+	<file name="tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20150101-20391231.nc">
+		<size>1147761901</size>
+		<hash type="SHA256">1842d1e9d4d880f431f1a08cff252501ea32aac39e85dd02426f1616b7cc34d9</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/CMCC/CMCC-ESM2/ssp585/r1i1p1f1/day/tas/gn/v20210126/tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20150101-20391231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20400101-20641231.nc">
+		<size>1145071534</size>
+		<hash type="SHA256">749ca55115708a81b59e0430fc2dca9674fe16ec7328b639f1232bfeb2531720</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/CMCC/CMCC-ESM2/ssp585/r1i1p1f1/day/tas/gn/v20210126/tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20400101-20641231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20650101-20891231.nc">
+		<size>1141932140</size>
+		<hash type="SHA256">823c0ddcd5d607508f6d2c1cf262ae8345c9f5e7b90b83dff459c9768c01b874</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/CMCC/CMCC-ESM2/ssp585/r1i1p1f1/day/tas/gn/v20210126/tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20650101-20891231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20900101-21001231.nc">
+		<size>501759828</size>
+		<hash type="SHA256">009c5804afeeac37e5337e1f9a0defcded19e1418ec604fe3c9ec921e80e7122</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/ScenarioMIP/CMCC/CMCC-ESM2/ssp585/r1i1p1f1/day/tas/gn/v20210126/tas_day_CMCC-ESM2_ssp585_r1i1p1f1_gn_20900101-21001231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_18500101-18741231.nc">
+		<size>1150891671</size>
+		<hash type="SHA256">e04ed7e8cd9d826534e62d9f1f3f475d82c598c4afe4c895f6a09f611a3b2b55</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_18500101-18741231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_18750101-18991231.nc">
+		<size>1151025700</size>
+		<hash type="SHA256">6c4b4daf593a7f4f367422cd3809cc1903b150416768082f6f23ff7d0d423c2e</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_18750101-18991231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19000101-19241231.nc">
+		<size>1150811941</size>
+		<hash type="SHA256">41ce66cfc99260dcc3f444c4d331af1bd0e31a584ce58efcf99e4fd6e1018315</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19000101-19241231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19250101-19491231.nc">
+		<size>1150101826</size>
+		<hash type="SHA256">9d98438740d5df41f8c32134ee1517bbdc1ff8fc44edae4ee7ef0f1b77cca6db</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19250101-19491231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19500101-19741231.nc">
+		<size>1149723510</size>
+		<hash type="SHA256">934178eea0dc6b0d34631f4b0a897308da91b0525217302b1cddf79a491d0eef</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19500101-19741231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19750101-19991231.nc">
+		<size>1149098090</size>
+		<hash type="SHA256">20087e4531105f3d3aec33b39c33b1ebfd9f4bf266cb58e2e40dc70a98ee2eb8</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_19750101-19991231.nc</url>
+	</file>
+
+	<file name="tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_20000101-20141231.nc">
+		<size>688921916</size>
+		<hash type="SHA256">2a085848340fcd18a92885461075e7573f30739322c60d9008a04c9206bf4e04</hash>
+		<url priority="1">http://esgf-node2.cmcc.it/thredds/fileServer/esg_dataroot/CMIP6/CMIP/CMCC/CMCC-ESM2/historical/r1i1p1f1/day/tas/gn/v20210114/tas_day_CMCC-ESM2_historical_r1i1p1f1_gn_20000101-20141231.nc</url>
+	</file>
+
+</metalink>
