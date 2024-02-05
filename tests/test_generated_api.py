@@ -76,7 +76,7 @@ def build_expected_args(index: StandardIndex):
 def test_generated_api(generic_index_fun_mock: MagicMock):
     for i in EcadIndexRegistry.values():
         # GIVEN
-        api_index_fun = eval(f"icclim.{i.short_name.lower()}")  # noqa: PGH001
+        api_index_fun = eval(f"icclim.{i.short_name.lower()}")
         # WHEN
         api_index_fun(**DEFAULT_ARGS)
         # THEN
@@ -84,7 +84,7 @@ def test_generated_api(generic_index_fun_mock: MagicMock):
         generic_index_fun_mock.assert_called_with(**expected_call_args)
     for g in GenericIndicatorRegistry.values():
         # GIVEN
-        api_index_fun = eval(f"icclim.{g.name.lower()}")  # noqa: PGH001
+        api_index_fun = eval(f"icclim.{g.name.lower()}")
         # WHEN
         api_index_fun(**DEFAULT_ARGS)
         generic_index_fun_mock.assert_called()
