@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, Path("../..").resolve())
-import icclim  # noqa: E402 (import need to be after path update)
+import icclim  # (import need to be after path update)
 
 # -- Project information -----------------------------------------------------
 project = "icclim"
