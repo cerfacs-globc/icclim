@@ -82,10 +82,13 @@ class ThresholdBuilderInput(TypedDict, total=False):
     interpolation: str | QuantileInterpolation | None
     reference_period: Sequence[datetime | str] | None
     # bounded conf:
-    thresholds: tuple[
-        ThresholdBuilderInput | Threshold,
-        ThresholdBuilderInput | Threshold,
-    ] | None
+    thresholds: (
+        tuple[
+            ThresholdBuilderInput | Threshold,
+            ThresholdBuilderInput | Threshold,
+        ]
+        | None
+    )
     logical_link: LogicalLink
 
 
@@ -233,8 +236,7 @@ class Threshold(metaclass=abc.ABCMeta):
         ...
 
     @abc.abstractmethod
-    def __eq__(self, other: Threshold) -> bool:
-        ...
+    def __eq__(self, other: Threshold) -> bool: ...
 
     def __and__(self, other: Threshold) -> BoundedThreshold:
         """

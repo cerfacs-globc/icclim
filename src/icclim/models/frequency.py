@@ -3,6 +3,7 @@
 time series. `slice_mode` parameter of `icclim.index` is always converted to a
 `Frequency`.
 """
+
 from __future__ import annotations
 
 import dataclasses
