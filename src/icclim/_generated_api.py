@@ -6,6 +6,7 @@ This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

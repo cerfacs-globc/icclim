@@ -8,6 +8,7 @@ This module expose icclim principal function, notably `index` which is use by th
 generated API.
 A convenience function `indices` is also exposed to compute multiple indices at once.
 """
+
 from __future__ import annotations
 
 import datetime as dt

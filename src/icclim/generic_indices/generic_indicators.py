@@ -64,12 +64,10 @@ class MissingMethodLike(metaclass=abc.ABCMeta):
     # https://github.com/cerfacs-globc/icclim/issues/289
 
     @abstractmethod
-    def execute(self, *args, **kwargs) -> MissingBase:
-        ...
+    def execute(self, *args, **kwargs) -> MissingBase: ...
 
     @abstractmethod
-    def validate(self, *args, **kwargs) -> bool:
-        ...
+    def validate(self, *args, **kwargs) -> bool: ...
 
 
 class Indicator(ABC):
@@ -85,16 +83,13 @@ class Indicator(ABC):
     )
 
     @abc.abstractmethod
-    def __call__(self, *args, **kwargs) -> DataArray:
-        ...
+    def __call__(self, *args, **kwargs) -> DataArray: ...
 
     @abc.abstractmethod
-    def preprocess(self, *args, **kwargs) -> list[DataArray]:
-        ...
+    def preprocess(self, *args, **kwargs) -> list[DataArray]: ...
 
     @abc.abstractmethod
-    def postprocess(self, *args, **kwargs) -> DataArray:
-        ...
+    def postprocess(self, *args, **kwargs) -> DataArray: ...
 
 
 class ResamplingIndicator(Indicator, ABC):

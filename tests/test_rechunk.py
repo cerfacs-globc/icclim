@@ -54,10 +54,13 @@ def test_create_optimized_zarr_store_error():
         },
     ).chunk({"time": 2})
     # Then
-    with pytest.raises(InvalidIcclimArgumentError), create_optimized_zarr_store(
-        in_files=ds,
-        var_names="TATAYOYO!",
-        target_zarr_store_name="yolo.zarr",
+    with (
+        pytest.raises(InvalidIcclimArgumentError),
+        create_optimized_zarr_store(
+            in_files=ds,
+            var_names="TATAYOYO!",
+            target_zarr_store_name="yolo.zarr",
+        ),
     ):
         pass
 
@@ -80,11 +83,14 @@ def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock):
         },
     ).chunk({"time": 2})
     # When
-    with pytest.raises(InvalidIcclimArgumentError), create_optimized_zarr_store(
-        in_files=ds,
-        var_names="tas",
-        target_zarr_store_name="n/a",
-        chunking={"time": 2},
+    with (
+        pytest.raises(InvalidIcclimArgumentError),
+        create_optimized_zarr_store(
+            in_files=ds,
+            var_names="tas",
+            target_zarr_store_name="n/a",
+            chunking={"time": 2},
+        ),
     ):
         pass
     rechunk_mock.assert_not_called()
