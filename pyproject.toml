@@ -29,7 +29,7 @@ keywords = ["netcdf", "climate", "climate-indices", "climate-indicators", "xarra
 dependencies = [
   "numpy>=1.16",
   "xarray>=2022.6",
-  "xclim>=0.45, <=0.47",
+  "xclim>=0.45, <=0.48",
   "cf_xarray>=0.7.4",
   "cftime>=1.4.1",
   "dask[array]",
@@ -55,13 +55,15 @@ dev = [
   "ruff",
   "pip",
   "pre-commit>=2.9",
-  "sphinx-autobuild"
+  "sphinx-autobuild",
+  "docstring_parser"
 ]
 doc = [
   "sphinx",
   "sphinx_codeautolink",
   "sphinx_copybutton",
   "sphinx_lfs_content",
+  "sphinx-autoapi",
   "pydata-sphinx-theme",
   "nbsphinx",
   "ipython"
@@ -72,7 +74,6 @@ Documentation = "https://icclim.readthedocs.io/en/latest/how_to/index.html"
 Source = "https://github.com/cerfacs-globc/icclim/"
 
 [tool.ruff]
-extend-include = ["*.ipynb"]
 
 [tool.ruff.format]
 # Enable reformatting of code snippets in docstrings.
@@ -85,13 +86,13 @@ select = [
   "W", # pycodestyle warn
   "C90", # mccabe
   "I", # isort
-  "N", # pep8-naming, to add
-  # "D", # pydocstyle, to add
+  "N", # pep8-naming
+  "D", # pydocstyle
   "UP", # pyupgrade
   "YTT", # flake8-2020
-  # "ANN", # flake8-annotations, to add
+  "ANN", # flake8-annotations
   "ASYNC", # flake8-async
-  # "S", # flake8-bandit
+  "S", # flake8-bandit
   "BLE", # flake8-blind-except
   # "FBT", # flake8-boolean-trap, to add
   "B", # flake8-bugbear
@@ -125,7 +126,6 @@ select = [
   "PTH", # flake8-use-pathlib
   "TD", # flake8-todos
   "ERA", # eradicate
-  # "PD", # pandas-vet, not really compatible with xarray
   "PGH", # pygrep-hooks
   "PL", # Pylint
   "TRY", # tryceratops
@@ -134,24 +134,33 @@ select = [
   "AIR", # Airflow
   "PERF", # Perflint
   # "FURB", # refurb, preview
-  # "LOG", # flake8-logging, preview
+  "LOG", # flake8-logging
   "RUF" # Ruff-specific rules
 ]
 ignore = [
+  # -- Rules to add
   "PLR0913", # too many arguments in function, to add
   "PLR2004", # Magic values, to add
-  "SLF001", # private member accessed, to add
   "PLR0915", # Too many statement, to add
+  # -- True ignore
   "ISC001", # String concat on same line, Managed by ruff format
-  "COM812" # No comma at the end, Managed by ruff format
+  "COM812", # No comma at the end, Managed by ruff format
+  "ANN101", # useless typing for `self`, will be removed from ruff
+  "ANN102", # useless typing for `cls`, will be removed from ruff
+  "ANN002", # Allow no typing for `*args`
+  "ANN003" # Allow no typing for `**kwargs`
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+  "S101", # Allow asserts allowed in tests.
+  "S307", # Allow eval in tests.
+  "ARG", # Allow unused function args for tests fixtures.
+  "FBT", # Allow booleans as positional arguments in tests.
+  "D", # Disable docstring check for tests.
+  "ANN", # Disable type check for tests.
+  "SLF001" # Allow access to private values from tests.
 ]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
-
-[tool.ruff.per-file-ignores]
-"tests/**/*.py" = [
-  "S101", # Allow asserts allowed in tests.
-  "ARG", # Allow unused function args for tests fixtures.
-  "FBT" # Allow booleans as positional arguments in tests.
-]
