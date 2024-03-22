@@ -22,9 +22,11 @@ jobs:
       - name: Install icclim and dev requirements (dev, test and doc)
         run: flit install --deps develop
       - name: call fun extractor
-        run: python ./tools/extract_icclim_funs.py src/icclim/_generated_api.py
+        run: python ./tools/extract_icclim_funs.py
       - name: run ruff format on generated module
-        run: ruff format src/icclim/_generated_api.py
+        run: |
+          ruff format src/icclim/_generated/
+          ruff check src/icclim/_generated/ --fix
       - name: create local ref
         run: |
           git fetch origin ${{ github.head_ref }}
@@ -37,7 +39,7 @@ jobs:
       - name: commit
         run: |
           # Stage the file, commit and push
-          git add src/icclim/_generated_api.py
+          git add src/icclim/_generated
           # Ignore error cases
           git commit -m "MAINT: Update generated API" || true
           git push origin ${{ github.head_ref }}

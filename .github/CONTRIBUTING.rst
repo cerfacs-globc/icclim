@@ -1,5 +1,5 @@
-Welcome to icclim contribution guide
-------------------------------------
+icclim contribution guide
+-------------------------
 
 This document aim to guide you on how to contribute to icclim.
 Everyone is welcomed and contribution are appreciated!
@@ -10,7 +10,9 @@ Contents:
     #. :ref:`Add new standard indices`
     #. :ref:`Add new operators for user indices`
     #. :ref:`Improve icclim API`
+    #. :ref:`Other contributions`
 
+.. _Getting started:
 
 Getting started
 ===============
@@ -44,12 +46,14 @@ You can now:
 
 .. note::
     git commits should start with one of the keywords from:
-        - `ENH:` for enhancements and new features.
-        - `MAINT:` for maintenance, and refactoring.
-        - `DOC:` for documentation update.
-        - `FIX:` for bug fixes.
+        - ``ENH`` for enhancements and new features.
+        - ``MAINT`` for maintenance, and refactoring.
+        - ``DOC`` for documentation update.
+        - ``FIX`` for bug fixes.
 
     See `numpy's guide <https://numpy.org/doc/stable/dev/development_workflow.html#writing-the-commit-message>`_ for additional keywords.
+
+.. _Documentation contribution:
 
 Documentation contribution
 ==========================
@@ -83,12 +87,14 @@ First install it with pip. Then, in a separate terminal, cd into doc directory a
 By default it will serve the documentation on ``localhost://8000``.
 
 Additionally, icclim now has a logo that is displayed on github and readthedocs.
-Logos are stored in `/doc/source/_static/` directory.
+Logos are stored in ``/doc/source/_static/`` directory.
 The logos are svg images and the icclim version number is embed in them. Thus, they must be updated for each new icclim version.
-The `xyz__base.svg` files contains the placeholder `{{icclim.__version__}}` which is replaced in the `xyz__display.svg` files.
+The ``xyz__base.svg`` files contains the placeholder ``{{icclim.__version__}}`` which is replaced in the ``xyz__display.svg`` files.
 Fortunately, this version number update process is automated in our C.I. as github actions (see :ref:`Continuous integration`).
 However, if one wish to edit the logo manually, he/she will need to initialize git LFS on his/her local repository.
 Refer to `this guide <https://git-lfs.github.com/>` for what is git lfs and how to init it locally.
+
+.. _Add new standard indices:
 
 Add new standard indices
 ========================
@@ -148,6 +154,7 @@ This should not be an issue as icclim try to always enforce the latest xclim ver
 Then you have to bind the new index into icclim.
 This process is described in section `Existing index in xclim`_ above.
 
+.. _Add new operators for user indices:
 
 Add new operators for user indices
 ==================================
@@ -175,6 +182,8 @@ Once the binding is done, don't forget to add unit tests and to update the docum
 For the unit tests, you can add them in ``tests/unit_tests/test_user_indices.py``.
 For the documentation, you should add an explanation of the operator behavior in section ``user_index`` of ``doc/references/icclim_index_api.rst``.
 
+.. _Improve icclim API:
+
 Improve icclim API
 ==================
 
@@ -200,6 +209,7 @@ For post-processing steps:
     - At DataArray level, the changes should be done either in ``icclim/ecad_functions.py`` module or directly in xclim.
     - At Dataset level, you should probably edit ``icclim/main.py`` module.
 
+.. _Other contributions:
 
 Other contributions
 ===================

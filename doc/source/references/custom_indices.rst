@@ -1,4 +1,4 @@
-.. _custom_indices:
+.. _custom indices:
 
 ###########################################
  Create your own index with ``user_index``

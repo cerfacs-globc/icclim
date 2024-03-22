@@ -24,13 +24,13 @@ precipitation are above 3 mm/day.
 
 .. code:: python
 
-   # Equivalent to using `reasonable_temp = "<= 30 deg_C AND >= 20 deg_C"`
-   reasonable_temp = build_threshold("<= 30 deg_C") & build_threshold(">= 20 deg_C")
+   # Equivalent to using `okay_temp = "<= 30 deg_C AND >= 20 deg_C"`
+   okay_temp = build_threshold("<= 30 deg_C") & build_threshold(">= 20 deg_C")
    some_rain = icclim.build_threshold("> 3 mm/day")
 
    dataset = icclim.count_occurrences(
        in_files={
-           "tmax": {"study": data, "thresholds": reasonable_temp},
+           "tmax": {"study": data, "thresholds": okay_temp},
            "precip": {"study": data, "thresholds": some_rain},
        }
    )

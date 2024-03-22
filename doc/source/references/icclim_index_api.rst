@@ -2,8 +2,8 @@
  icclim.index()
 ################
 
-icclim exposes a main entry point with :func:`icclim.index`. It is used
-to compute both ECA&D indices and user defined indices. There are
+icclim exposes a main entry point with :func:`icclim.index`. It can be used
+to compute ECA&D indices, DCSC indices or generic indices. There are
 numerous arguments, but only a few are needed to compute simple
 indices. Our :ref:`how_to` recipes are also a good start to have an idea
 on how to use `icclim.index`.
@@ -19,6 +19,7 @@ on how to use `icclim.index`.
 ************************
 
 .. autofunction:: icclim.index(**kwargs)
+   :noindex:
 
 .. note::
 
@@ -394,7 +395,7 @@ percentage of days (``out_unit`` = "%").
 ****************
 
 Custom indices are now described in their own chapter:
-:ref:`custom_indices`
+:ref:`custom indices`
 
 .. _table_index_sourcevar_label:
 

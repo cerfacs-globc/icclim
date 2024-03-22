@@ -1,4 +1,4 @@
-# noqa: INP001
+"""Sphinx configuration file for icclim documentation."""  # noqa: INP001
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -30,18 +30,39 @@ release = icclim.__version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx.ext.autodoc",
+    # Finds sources from object description and generated highlighted standalone pages
     "sphinx.ext.viewcode",
+    # Enables parsing of numpy's style docstring
     "sphinx.ext.napoleon",
-    "sphinx.ext.autosectionlabel",
-    "sphinx.ext.autosummary",
+    # Allows to link to external ressources
     "sphinx.ext.intersphinx",
+    # Makes code example clickable
     "sphinx_codeautolink",
+    # make sphinx extension fetch LFS content
     "sphinx_lfs_content",
+    # Add copy button to code snippets
     "sphinx_copybutton",
+    # Add ipython directive
     "IPython.sphinxext.ipython_console_highlighting",
     "IPython.sphinxext.ipython_directive",
+    # Add notebook parsing
     "nbsphinx",
+    # Enable autoapi directives
+    "sphinx.ext.autodoc",
+    "autoapi.extension",
+]
+autoapi_generate_api_docs = False
+autoapi_dirs = ["../../src"]
+autoapi_root = "references/api"
+# autoapi_keep_files = True   # noqa: ERA001 , E501 (uncomment to generate the API and recomment after)
+autoapi_options = [
+    # "members",
+    # "undoc-members",
+    "private-members",
+    # "show-inheritance",
+    # "show-module-summary",
+    # "special-members",
+    "imported-members",
 ]
 
 autosectionlabel_maxdepth = 2
