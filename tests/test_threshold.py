@@ -9,52 +9,50 @@ import pandas as pd
 import pint
 import pytest
 import xarray as xr
-from icclim.generic_indices.threshold import (
-    BasicThreshold,
-    BoundedThreshold,
-    PercentileThreshold,
-    build_threshold,
-)
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import UNITS_KEY
-from icclim.models.logical_link import LogicalLinkRegistry
-from icclim.models.operator import OperatorRegistry
-from icclim.pre_processing.input_parsing import PercentileDataArray
+from icclim._core.constants import UNITS_KEY
+from icclim._core.generic.threshold.basic import BasicThreshold
+from icclim._core.generic.threshold.bounded import BoundedThreshold
+from icclim._core.generic.threshold.percentile import PercentileThreshold
+from icclim._core.input_parsing import PercentileDataArray
+from icclim._core.model.logical_link import LogicalLinkRegistry
+from icclim._core.model.operator import OperatorRegistry
+from icclim.exception import InvalidIcclimArgumentError
+from icclim.threshold.factory import build_threshold
 from xclim.core.calendar import percentile_doy
 from xclim.core.units import units as xc_units
 
 
-def test_value_error():
+def test_value_error() -> None:
     with pytest.raises(NotImplementedError):
         build_threshold(value={"random": "stuff"})
 
 
-def test_query_error():
+def test_query_error() -> None:
     with pytest.raises(InvalidIcclimArgumentError):
         build_threshold("Coco l'asticot")
 
 
-def test_build_threshold__from_query():
+def test_build_threshold__from_query() -> None:
     res = build_threshold(">10degC")
     assert isinstance(res, BasicThreshold)
     assert res.operator == OperatorRegistry.GREATER
     assert res.value == 10
-    assert res.unit == "degC"
+    assert res.unit == "°C"
 
 
-def test_build_bounded_threshold__from_query():
+def test_build_bounded_threshold__from_query() -> None:
     res = build_threshold(">10degC and <20degC")
     assert isinstance(res, BoundedThreshold)
     assert res.left_threshold.operator == OperatorRegistry.GREATER
     assert res.left_threshold.value == 10
-    assert res.left_threshold.unit == "degC"
+    assert res.left_threshold.unit == "°C"
     assert res.logical_link == LogicalLinkRegistry.LOGICAL_AND
     assert res.right_threshold.operator == OperatorRegistry.LOWER
     assert res.right_threshold.value == 20
-    assert res.right_threshold.unit == "degC"
+    assert res.right_threshold.unit == "°C"
 
 
-def test_build_bounded_threshold__unit_conversion():
+def test_build_bounded_threshold__unit_conversion() -> None:
     res = build_threshold(">10degC and <300 K")
     res.unit = "degree_Fahrenheit"
     np.testing.assert_almost_equal(res.left_threshold.value, 50)
@@ -63,7 +61,7 @@ def test_build_bounded_threshold__unit_conversion():
     assert res.right_threshold.unit == "degree_Fahrenheit"
 
 
-def test_build_bounded_threshold__unit_conversion_erorr():
+def test_build_bounded_threshold__unit_conversion_erorr() -> None:
     # GIVEN
     res = build_threshold(">10degC and <300 K")
     # THEN
@@ -72,12 +70,12 @@ def test_build_bounded_threshold__unit_conversion_erorr():
         res.unit = "meter"
 
 
-def test_build_bounded_threshold__error():
+def test_build_bounded_threshold__error() -> None:
     with pytest.raises(NotImplementedError):
         build_threshold(thresholds=[">10degC", ">11degC", ">12degC"], logical_link="or")
 
 
-def test_build_bounded_threshold__from_and():
+def test_build_bounded_threshold__from_and() -> None:
     t1 = build_threshold(">10degC")
     t2 = build_threshold(">12 doy_per")
     t3 = t1 & t2
@@ -85,16 +83,16 @@ def test_build_bounded_threshold__from_and():
     assert isinstance(t3.left_threshold, BasicThreshold)
     assert t3.left_threshold.operator == OperatorRegistry.GREATER
     assert t3.left_threshold.value == 10
-    assert t3.left_threshold.unit == "degC"
+    assert t3.left_threshold.unit == "°C"
     assert t3.logical_link == LogicalLinkRegistry.LOGICAL_AND
     assert isinstance(t3.right_threshold, PercentileThreshold)
     assert t3.right_threshold.is_ready is False
     assert t3.right_threshold.operator == OperatorRegistry.GREATER
     assert t3.right_threshold._initial_unit == "doy_per"
-    assert t3.right_threshold._initial_value == [12]
+    assert t3.right_threshold.initial_value == [12]
 
 
-def test_build_bounded_threshold__from_or():
+def test_build_bounded_threshold__from_or() -> None:
     t1 = build_threshold(">10degC")
     t2 = build_threshold(">12 doy_per")
     t3 = t1 | t2
@@ -102,16 +100,16 @@ def test_build_bounded_threshold__from_or():
     assert isinstance(t3.left_threshold, BasicThreshold)
     assert t3.left_threshold.operator == OperatorRegistry.GREATER
     assert t3.left_threshold.value == 10
-    assert t3.left_threshold.unit == "degC"
+    assert t3.left_threshold.unit == "°C"
     assert t3.logical_link == LogicalLinkRegistry.LOGICAL_OR
     assert isinstance(t3.right_threshold, PercentileThreshold)
     assert t3.right_threshold.is_ready is False
     assert t3.right_threshold.operator == OperatorRegistry.GREATER
     assert t3.right_threshold._initial_unit == "doy_per"
-    assert t3.right_threshold._initial_value == [12]
+    assert t3.right_threshold.initial_value == [12]
 
 
-def test_build_bounded_threshold__from_args():
+def test_build_bounded_threshold__from_args() -> None:
     t1 = build_threshold(">10degC")
     t2 = build_threshold(">12 doy_per")
     t3 = build_threshold(
@@ -122,16 +120,16 @@ def test_build_bounded_threshold__from_args():
     assert isinstance(t3.left_threshold, BasicThreshold)
     assert t3.left_threshold.operator == OperatorRegistry.GREATER
     assert t3.left_threshold.value == 10
-    assert t3.left_threshold.unit == "degC"
+    assert t3.left_threshold.unit == "°C"
     assert t3.logical_link == LogicalLinkRegistry.LOGICAL_OR
     assert isinstance(t3.right_threshold, PercentileThreshold)
     assert t3.right_threshold.is_ready is False
     assert t3.right_threshold.operator == OperatorRegistry.GREATER
     assert t3.right_threshold._initial_unit == "doy_per"
-    assert t3.right_threshold._initial_value == [12]
+    assert t3.right_threshold.initial_value == [12]
 
 
-def test_basic_threshold_eq():
+def test_basic_threshold_eq() -> None:
     a = build_threshold(">10degC")
     b = build_threshold(">10degC")
     c = build_threshold(">10mm")
@@ -139,7 +137,7 @@ def test_basic_threshold_eq():
     assert a != c
 
 
-def test_percentile_threshold_eq():
+def test_percentile_threshold_eq() -> None:
     a = build_threshold(">10doy_per")
     b = build_threshold(">10doy_per")
     c = build_threshold(">20doy_per")
@@ -147,7 +145,7 @@ def test_percentile_threshold_eq():
     assert a != c
 
 
-def test_bounded_threshold_eq():
+def test_bounded_threshold_eq() -> None:
     a = build_threshold(">10doy_per")
     a_bis = build_threshold(">10doy_per")
     b = build_threshold(">15doy_per")
@@ -157,47 +155,47 @@ def test_bounded_threshold_eq():
     assert a & b != a & c
 
 
-def test_per_threshold_min_value__operand_error():
+def test_per_threshold_min_value__operand_error() -> None:
     with pytest.raises(InvalidIcclimArgumentError):
         build_threshold(">10doy_per", threshold_min_value="< 10 degC")
 
 
-def test_per_threshold_min_value__type_error():
+def test_per_threshold_min_value__type_error() -> None:
     with pytest.raises(NotImplementedError):
         build_threshold(">10doy_per", threshold_min_value={"random": "stuff"})
 
 
-def test_per_threshold_min_value__string():
+def test_per_threshold_min_value__string() -> None:
     a = build_threshold(">10doy_per", threshold_min_value="10 degC")
     assert a.threshold_min_value == xc_units.Quantity(10, "degC")
 
 
-def test_per_threshold_min_value__quantity():
+def test_per_threshold_min_value__quantity() -> None:
     a = build_threshold(">10doy_per", threshold_min_value=xc_units.Quantity(10, "degC"))
     assert a.threshold_min_value == xc_units.Quantity(10, "degC")
 
 
-def test_per_threshold_min_value__number():
+def test_per_threshold_min_value__number() -> None:
     a = build_threshold(">10doy_per", threshold_min_value=10)
     assert a.threshold_min_value.dimensionless
     assert a.threshold_min_value.magnitude == 10
 
 
-def test_threshold_min_value__number():
+def test_threshold_min_value__number() -> None:
     with pytest.raises(InvalidIcclimArgumentError):
         build_threshold(">10degC", threshold_min_value=5)
 
 
-def test_threshold_min_value__error():
+def test_threshold_min_value__error() -> None:
     with pytest.raises(NotImplementedError):
         build_threshold(None)
 
 
-def test_build_per_threshold__from_query():
+def test_build_per_threshold__from_query() -> None:
     res = build_threshold("<= 99 doy_per")
     assert isinstance(res, PercentileThreshold)
     assert res.operator == OperatorRegistry.LOWER_OR_EQUAL
-    assert res._initial_value == [99]
+    assert res.initial_value == [99]
     assert res.unit == "doy_per"  # not computed yet
     assert res._initial_unit == "doy_per"
     assert res.is_ready is False
@@ -206,7 +204,7 @@ def test_build_per_threshold__from_query():
         _ = res.value
 
 
-def test_build_basic_threshold__from_dataarray():
+def test_build_basic_threshold__from_dataarray() -> None:
     time_range = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     data = xr.DataArray(
         data=(np.full(len(time_range), 20).reshape((len(time_range), 1, 1))),
@@ -223,7 +221,7 @@ def test_build_basic_threshold__from_dataarray():
     assert res.is_ready is True
 
 
-def test_build_basic_threshold__from_dataset():
+def test_build_basic_threshold__from_dataset() -> None:
     time_range = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     ds = xr.DataArray(
         data=(np.full(len(time_range), 20).reshape((len(time_range), 1, 1))),
@@ -241,7 +239,7 @@ def test_build_basic_threshold__from_dataset():
     assert res.is_ready is True
 
 
-def test_build_basic_threshold__from_dataset__error():
+def test_build_basic_threshold__from_dataset__error() -> None:
     time_range = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     ds = xr.DataArray(
         data=(np.full(len(time_range), 20).reshape((len(time_range), 1, 1))),
@@ -254,6 +252,13 @@ def test_build_basic_threshold__from_dataset__error():
     with pytest.raises(InvalidIcclimArgumentError):
         # multiple variable without any recognizable one
         build_threshold(operator=">=", value=ds, threshold_min_value="280K")
+
+
+def test_build_basic_threshold__special_char_in_unit() -> None:
+    t = build_threshold("< 1 mm/day")
+    assert t.operator == OperatorRegistry.LOWER
+    assert t.value == 1
+    assert t.unit == "mm d-1"
 
 
 class TestFileBased:
@@ -277,7 +282,7 @@ class TestFileBased:
         with contextlib.suppress(FileNotFoundError):
             self.IN_FILE_PATH.unlink()
 
-    def test_build_basic_threshold__from_file(self):
+    def test_build_basic_threshold__from_file(self) -> None:
         self.data.to_netcdf(path=self.IN_FILE_PATH)
         res = build_threshold(operator=">=", value=str(self.IN_FILE_PATH))
         assert isinstance(res, BasicThreshold)
@@ -286,7 +291,7 @@ class TestFileBased:
         assert res.unit == "degC"
         assert res.is_ready is True
 
-    def test_threshold_min_value__number_from_file(self):
+    def test_threshold_min_value__number_from_file(self) -> None:
         self.data.to_netcdf(path=self.IN_FILE_PATH)
         res = build_threshold(
             operator=">=",
@@ -295,7 +300,7 @@ class TestFileBased:
         )
         assert res.threshold_min_value == xc_units.Quantity(5, "degC")
 
-    def test_build_percentile_threshold__from_file(self):
+    def test_build_percentile_threshold__from_file(self) -> None:
         doys = percentile_doy(self.data)
         doys = PercentileDataArray.from_da(doys)
         doys.to_netcdf(path=self.IN_FILE_PATH)
@@ -306,5 +311,5 @@ class TestFileBased:
         assert res._initial_unit is None
         assert res.unit is None
         assert res.is_ready is True
-        assert res._initial_value is None
+        assert res.initial_value is None
         assert res.prepare is None

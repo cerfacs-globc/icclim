@@ -3,24 +3,39 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import xarray as xr
-from icclim.models.constants import UNITS_KEY
+from icclim._core.constants import UNITS_KEY
 
 VALUE_COUNT = 365 * 5 + 1  # 5 years of data (with 1 leap year)
-COORDS = {
-    "lat": [42],
-    "lon": [42],
-    "time": pd.date_range("2042-01-01", periods=VALUE_COUNT, freq="D"),
-}
 K2C = 273.15
 
 CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")
 
 
-def stub_tas(tas_value: float = 1.0, use_dask=False, use_cftime=False):
+def _get_coords(lat_lengh: int, lon_length: int, time_length: int):
+    return {
+        "lat": np.arange(lat_lengh),
+        "lon": np.arange(lon_length),
+        "time": pd.date_range("2042-01-01", periods=time_length, freq="D"),
+    }
+
+
+def stub_tas(
+    tas_value: float = 1.0,
+    use_dask=False,
+    use_cftime=False,
+    lat_length: int = 1,
+    lon_longth: int = 1,
+):
     da = xr.DataArray(
-        data=(np.full(VALUE_COUNT, tas_value).reshape((VALUE_COUNT, 1, 1))),
+        data=(
+            np.full((VALUE_COUNT, lat_length, lon_longth), tas_value).reshape(
+                (VALUE_COUNT, lat_length, lon_longth)
+            )
+        ),
         dims=["time", "lat", "lon"],
-        coords=COORDS,
+        coords=_get_coords(
+            lat_lengh=lat_length, lon_length=lon_longth, time_length=VALUE_COUNT
+        ),
         attrs={UNITS_KEY: "K"},
     )
     if use_cftime:
@@ -30,10 +45,10 @@ def stub_tas(tas_value: float = 1.0, use_dask=False, use_cftime=False):
     return da
 
 
-def stub_pr(value: float, use_dask=False):
+def stub_pr(value: float, use_dask=False, lat=1, lon=1):
     da = xr.DataArray(
         data=np.full(VALUE_COUNT, value).reshape((VALUE_COUNT, 1, 1)),
-        coords=COORDS,
+        coords=_get_coords(lat_lengh=lat, lon_length=lon, time_length=VALUE_COUNT),
         dims=["time", "lat", "lon"],
         name="pr",
         attrs={UNITS_KEY: "kg m-2 s-1"},
