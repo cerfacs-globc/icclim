@@ -78,10 +78,10 @@ def tav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TAV.
+    """Moyenne de la température moyenne.
 
-        Moyenne de la température moyenne
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TAV: Moyenne de la température moyenne.
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -130,7 +130,7 @@ def tav(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -159,10 +159,10 @@ def txav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TXAV.
+    """Moyenne de la température maximale.
 
-        Moyenne de la température maximale
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TXAV: Moyenne de la température maximale.
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -211,7 +211,7 @@ def txav(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -240,10 +240,10 @@ def trav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TRAV.
+    """Moyenne de l'amplitude thermique.
 
-        Moyenne de l'amplitude thermique
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TRAV: Moyenne de l'amplitude thermique.
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -292,7 +292,7 @@ def trav(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -325,10 +325,10 @@ def tx10(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX10.
+    """Extrême froid de la température maximale journalière (10e centile de la température maximale).
 
-        Extrême froid de la température maximale journalière (10e centile de la température maximale)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TX10: Extrême froid de la température maximale journalière (10e centile de la température maximale).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -401,7 +401,7 @@ def tx10(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -445,10 +445,10 @@ def tx90(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX90.
+    """Extrême chaud de la température maximale journalière (90e centile de la température maximale).
 
-        Extrême chaud de la température maximale journalière (90e centile de la température maximale)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TX90: Extrême chaud de la température maximale journalière (90e centile de la température maximale).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -521,7 +521,7 @@ def tx90(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -565,10 +565,10 @@ def tn10(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TN10.
+    """Extrême froid de la température minimale  journalière (10e centile de la température minimale).
 
-        Extrême froid de la température minimale  journalière (10e centile de la température minimale)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TN10: Extrême froid de la température minimale  journalière (10e centile de la température minimale).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -641,7 +641,7 @@ def tn10(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -685,10 +685,10 @@ def tn90(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TN90.
+    """Extrême chaud de la température minimale journalière (90e centile de la température minimale).
 
-        Extrême chaud de la température minimale journalière (90e centile de la température minimale)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TN90: Extrême chaud de la température minimale journalière (90e centile de la température minimale).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -761,7 +761,7 @@ def tn90(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -801,10 +801,10 @@ def tnfd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TNFD.
+    """Nombre de jours de gel (température minimale <= 0°C).
 
-        Nombre de jours de gel (température minimale <= 0°C)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TNFD: Nombre de jours de gel (température minimale <= 0°C).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -853,7 +853,7 @@ def tnfd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -885,10 +885,10 @@ def txfd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TXFD.
+    """Nombre de jours sans dégel (température maximale <= 0°C).
 
-        Nombre de jours sans dégel (température maximale <= 0°C)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TXFD: Nombre de jours sans dégel (température maximale <= 0°C).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -937,7 +937,7 @@ def txfd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -969,10 +969,10 @@ def sd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD.
+    """Nombre de journées d'été (température maximale > 25°C).
 
-        Nombre de journées d'été (température maximale > 25°C)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    SD: Nombre de journées d'été (température maximale > 25°C).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1021,7 +1021,7 @@ def sd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1053,10 +1053,10 @@ def tx35(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX35.
+    """Nombre de jours de forte chaleur (température maximale > 35°C).
 
-        Nombre de jours de forte chaleur (température maximale > 35°C)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TX35: Nombre de jours de forte chaleur (température maximale > 35°C).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1105,7 +1105,7 @@ def tx35(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1137,10 +1137,10 @@ def tr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TR.
+    """Nombre de nuits tropicales (température minimale > 20°C).
 
-        Nombre de nuits tropicales (température minimale > 20°C)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TR: Nombre de nuits tropicales (température minimale > 20°C).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1189,7 +1189,7 @@ def tr(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1224,10 +1224,10 @@ def txnd(
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """TXND.
+    """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale)..
 
-        Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TXND: Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1296,7 +1296,7 @@ def txnd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     standard_index = DcscIndexRegistry.TXND
@@ -1335,10 +1335,10 @@ def tnht(
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """TNHT.
+    """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale)..
 
-        Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TNHT: Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1407,7 +1407,7 @@ def tnht(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     standard_index = DcscIndexRegistry.TNHT
@@ -1446,10 +1446,10 @@ def tnnd(
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """TNND.
+    """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale)..
 
-        Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TNND: Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1518,7 +1518,7 @@ def tnnd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     standard_index = DcscIndexRegistry.TNND
@@ -1557,10 +1557,10 @@ def tncwd(
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """TNCWD.
+    """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs)..
 
-        Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TNCWD: Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1629,7 +1629,7 @@ def tncwd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     standard_index = DcscIndexRegistry.TNCWD
@@ -1668,10 +1668,10 @@ def txhwd(
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """TXHWD.
+    """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs)..
 
-        Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    TXHWD: Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1740,7 +1740,7 @@ def txhwd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     standard_index = DcscIndexRegistry.TXHWD
@@ -1776,10 +1776,10 @@ def hdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """HDD.
+    """Degrés-jours de chauffage (Cumul sur la période des écarts négatifs au seuil de < 17°C par la température qt moyenne).
 
-        Degrés-jours de chauffage (Cumul sur la période des écarts négatifs au seuil de < 17°C par la température qt moyenne)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    HDD: Degrés-jours de chauffage (Cumul sur la période des écarts négatifs au seuil de < 17°C par la température qt moyenne).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1828,7 +1828,7 @@ def hdd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1860,10 +1860,10 @@ def cdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CDD.
+    """Degrés-jours de climatisation(Cumul sur la période des dépassements du seuil de > 18°C par la température qt moyenne).
 
-        Degrés-jours de climatisation(Cumul sur la période des dépassements du seuil de > 18°C par la température qt moyenne)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    CDD: Degrés-jours de climatisation(Cumul sur la période des dépassements du seuil de > 18°C par la température qt moyenne).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1912,7 +1912,7 @@ def cdd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1944,10 +1944,10 @@ def pav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PAV.
+    """Précipitations quotidiennes moyennes.
 
-        Précipitations quotidiennes moyennes
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    PAV: Précipitations quotidiennes moyennes.
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -1996,7 +1996,7 @@ def pav(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2025,10 +2025,10 @@ def pint(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PINT.
+    """Précipitation moyenne des jours pluvieux (RR > 1 mm).
 
-        Précipitation moyenne des jours pluvieux (RR > 1 mm)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    PINT: Précipitation moyenne des jours pluvieux (RR > 1 mm).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2077,7 +2077,7 @@ def pint(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2109,10 +2109,10 @@ def rr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RR.
+    """Cumul de précipitation.
 
-        Cumul de précipitation
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    RR: Cumul de précipitation.
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2161,7 +2161,7 @@ def rr(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2190,10 +2190,10 @@ def rr1mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RR1MM.
+    """Nombre de jours de pluie (précipitations >= 1 mm).
 
-        Nombre de jours de pluie (précipitations >= 1 mm)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    RR1MM: Nombre de jours de pluie (précipitations >= 1 mm).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2242,7 +2242,7 @@ def rr1mm(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2274,10 +2274,10 @@ def pn20mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PN20MM.
+    """Nombre de jours de fortes précipitations (précipitations >= 20 mm).
 
-        Nombre de jours de fortes précipitations (précipitations >= 20 mm)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    PN20MM: Nombre de jours de fortes précipitations (précipitations >= 20 mm).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2326,7 +2326,7 @@ def pn20mm(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2358,10 +2358,10 @@ def pxcdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PXCDD.
+    """Période de sécheresse (Max [Nbj consécutifs RR < 1 mm]).
 
-        Période de sécheresse (Max [Nbj consécutifs RR < 1 mm])
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    PXCDD: Période de sécheresse (Max [Nbj consécutifs RR < 1 mm]).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2410,7 +2410,7 @@ def pxcdd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2442,10 +2442,10 @@ def pxcwd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PXCWD.
+    """Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm]).
 
-        Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm])
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    PXCWD: Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm]).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2494,7 +2494,7 @@ def pxcwd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2530,10 +2530,10 @@ def r99(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R99.
+    """Nombre de jours de précipitations extrêmes.
 
-        Nombre de jours de précipitations extrêmes
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    R99: Nombre de jours de précipitations extrêmes.
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2606,7 +2606,7 @@ def r99(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2651,10 +2651,10 @@ def pfl90(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PFL90.
+    """Fraction des précipitations journalières intenses.
 
-        Fraction des précipitations journalières intenses
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    PFL90: Fraction des précipitations journalières intenses.
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2727,7 +2727,7 @@ def pfl90(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2772,10 +2772,10 @@ def pq90(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PQ90.
+    """Précipitation quotidienne intense (90e centile des précipitations).
 
-        Précipitation quotidienne intense (90e centile des précipitations)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    PQ90: Précipitation quotidienne intense (90e centile des précipitations).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2848,7 +2848,7 @@ def pq90(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2893,10 +2893,10 @@ def pq99(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PQ99.
+    """Précipitation quotidienne extrême (99e centile des précipitations).
 
-        Précipitation quotidienne extrême (99e centile des précipitations)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    PQ99: Précipitation quotidienne extrême (99e centile des précipitations).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -2969,7 +2969,7 @@ def pq99(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3011,10 +3011,10 @@ def ffav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FFAV.
+    """Écart de la vitesse du vent moyenne journalière (par rapport à une periode de référence).
 
-        Écart de la vitesse du vent moyenne journalière (par rapport à une periode de référence)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    FFAV: Écart de la vitesse du vent moyenne journalière (par rapport à une periode de référence).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -3077,7 +3077,7 @@ def ffav(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3111,10 +3111,10 @@ def ff98(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FF98.
+    """Nombre de jours de vent fort (vent ≥ 98e centile de la période de référence).
 
-        Nombre de jours de vent fort (vent ≥ 98e centile de la période de référence)
-        Source: Portail DRIAS, DCSC, MeteoFrance.
+    FF98: Nombre de jours de vent fort (vent ≥ 98e centile de la période de référence).
+    Source: Portail DRIAS, DCSC, MeteoFrance.
 
 
     Parameters
@@ -3187,7 +3187,7 @@ def ff98(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(

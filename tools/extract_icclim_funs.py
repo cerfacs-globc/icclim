@@ -74,6 +74,15 @@ END_NOTE = """
 
 RELATIVE_ROOT = Path(__file__).parent.parent
 DEFAULT_OUTPUT_PATH = RELATIVE_ROOT / "src/icclim/_generated"
+PATH_TO_DCSC_DOC_FILE = (
+    RELATIVE_ROOT / "doc/source/references/api/icclim/dcsc" / "index.rst"
+)
+PATH_TO_ECAD_DOC_FILE = (
+    RELATIVE_ROOT / "doc/source/references/api/icclim/ecad" / "index.rst"
+)
+PATH_TO_GENERIC_DOC_FILE = (
+    RELATIVE_ROOT / "doc/source/references/api/icclim/generic" / "index.rst"
+)
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
 DOC_END_PLACEHOLDER = ".. Generated API comment:End"
 DEPRECATED_ARGS = [
@@ -136,6 +145,9 @@ def main() -> None:
     _generate_ecad_api(dir_path / "_ecad.py")
     _generate_dcsc_api(dir_path / "_dcsc.py")
     _generate_generic_api(dir_path / "_generic.py")
+    _generate_doc(PATH_TO_ECAD_DOC_FILE, _get_ecad_doc())
+    _generate_doc(PATH_TO_DCSC_DOC_FILE, _get_dcsc_doc())
+    _generate_doc(PATH_TO_GENERIC_DOC_FILE, _get_generic_doc())
 
 
 def _generate_dcsc_api(file_path: Path) -> None:
@@ -248,13 +260,13 @@ def _get_generic_index_declaration(index: GenericIndicator) -> str:
 def {index.name.lower()}(
     {fun_signature_args},
     ) -> Dataset:
-    \"\"\"{index.name}.
+    \"\"\"{index.definition}
 
-    {index.definition}
+    {index.name}: {index.definition}
 
     {args_docs}
     {END_NOTE}
-    \"\"\"
+    \"\"\"  # noqa: D401
     return icclim.index(
         index_name={GenericIndicatorRegistry.__name__}.{index_name_arg},
         {formatted_args},
@@ -304,9 +316,9 @@ def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> s
 def {index.short_name.lower()}(
     {fun_signature_args},
 ) -> Dataset:
-    \"\"\"{index.short_name}.
+    \"\"\"{index.definition}.
 
-    {index.definition}
+    {index.short_name}: {index.definition}
     Source: {index.source}.
 
     {args_docs}
@@ -354,14 +366,14 @@ def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> 
 def {index.short_name.lower()}(
     {fun_signature_args},
 ) -> Dataset:
-    \"\"\"{index.short_name}.
+    \"\"\"{index.definition}
 
-    {index.definition}
+    {index.short_name}: {index.definition}
     Source: {index.source}.
 
     {args_docs}
     {END_NOTE}
-    \"\"\"
+    \"\"\"  # noqa: D401
     return icclim.index(
         index_name={registry.__name__}.{index_name_arg },
         {formatted_args},
@@ -437,9 +449,10 @@ def _get_params_docstring(
     if params_to_add is not None:
         filtered += params_to_add
     parsed.long_description = ""
-    res = Docstring(style=DocstringStyle.NUMPYDOC)
-    res.meta = filtered
-    return compose(res)
+    param_str = Docstring(style=DocstringStyle.NUMPYDOC)
+    param_str.meta = filtered
+    param_str = compose(param_str)
+    return f"\n{TAB}".join(param_str.splitlines())
 
 
 def _format_thresh(t: str | Threshold) -> str:
@@ -459,6 +472,47 @@ def _format_thresh(t: str | Threshold) -> str:
         acc += f"{TAB}{TAB}{TAB}{k}={v},\n"
     acc += f"{TAB}{TAB})"
     return acc
+
+
+def _generate_doc(doc_path: Path, replacing_content: str) -> None:
+    with Path.open(doc_path) as f:
+        content = "".join(f.readlines())
+        replace_start_index = (
+            content.find(DOC_START_PLACEHOLDER) + len(DOC_START_PLACEHOLDER) + 1
+        )
+        replace_end_index = content.find(DOC_END_PLACEHOLDER)
+    replaced_content = content[replace_start_index:replace_end_index]
+    res = content.replace(replaced_content, replacing_content)
+    with Path.open(doc_path, "w") as f:
+        f.write(res)
+
+
+def _get_ecad_doc() -> str:
+    names = [x.short_name for x in EcadIndexRegistry.values()]
+    formatted_names = (f"{TAB} {x.lower()}" for x in names)
+    replacing_content = ""
+    replacing_content += "\n".join(formatted_names)
+    replacing_content += "\n\n"
+    return replacing_content
+
+
+def _get_dcsc_doc() -> str:
+    names = (x.short_name for x in DcscIndexRegistry.values())
+    formatted_names = (f"{TAB} {x.lower()}" for x in names)
+    replacing_content = ""
+    replacing_content += "\n".join(formatted_names)
+    replacing_content += "\n\n"
+    return replacing_content
+
+
+def _get_generic_doc() -> str:
+    names = (x.name for x in GenericIndicatorRegistry.values())
+    names = [*list(names), "custom_index"]
+    formatted_names = (f"{TAB}{x.lower()}" for x in names)
+    replacing_content = ""
+    replacing_content += "\n".join(formatted_names)
+    replacing_content += "\n\n"
+    return replacing_content
 
 
 def _build_module_header(kind: str) -> str:

@@ -16,7 +16,6 @@ Subpackages
    :maxdepth: 3
 
    _core/index.rst
-   _generated/index.rst
    dcsc/index.rst
    ecad/index.rst
    generic/index.rst

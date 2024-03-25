@@ -23,3 +23,5 @@ Usage
             offset=" 5 delta_degree_Celsius",
         ),
    summer_days = icclim.count_occurrences(tas, threshold=threshold)
+
+See :ref:`dcsc api` for the full API.

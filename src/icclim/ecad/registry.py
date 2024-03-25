@@ -452,7 +452,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         reference=ECAD_REFERENCE,
         indicator=GenericIndicatorRegistry.Maximum,
         output_unit="mm/day",
-        definition="maximum 1-day total precipitation.",  # from xclim
+        definition="Maximum 1-day total precipitation.",  # from xclim
         source=ECAD_ATBD,
         short_name="RX1day",
         group=IndexGroupRegistry.RAIN,
@@ -462,7 +462,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         reference=ECAD_REFERENCE,
         indicator=GenericIndicatorRegistry.MaxOfRollingSum,
         output_unit="mm",
-        definition="maximum 5-day total precipitation.",  # from xclim
+        definition="Maximum 5-day total precipitation.",  # from xclim
         source=ECAD_ATBD,
         short_name="RX5day",
         group=IndexGroupRegistry.RAIN,
@@ -475,8 +475,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
-        definition="Days with RR > 75th percentile of daily amounts."
-        " (moderate wet days) (d)",
+        definition="Days with RR > 75th percentile of daily amounts"
+        " (moderate wet days) (d).",
         source=ECAD_ATBD,
         short_name="R75p",
         group=IndexGroupRegistry.RAIN,
@@ -488,8 +488,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.FractionOfTotal,
         threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
-        definition="Precipitation fraction due to moderate wet days."
-        " (> 75th percentile)",
+        definition="Precipitation fraction due to moderate wet days"
+        " (> 75th percentile).",
         source=ECAD_ATBD,
         short_name="R75pTOT",
         group=IndexGroupRegistry.RAIN,
@@ -501,8 +501,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=build_threshold("> 95 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
-        definition="Days with RR > 95th percentile of daily amounts."
-        " (very wet days) (days)",
+        definition="Days with RR > 95th percentile of daily amounts"
+        " (very wet days) (days).",
         source=ECAD_ATBD,
         short_name="R95p",
         group=IndexGroupRegistry.RAIN,
@@ -526,8 +526,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.CountOccurrences,
         threshold=build_threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="day",
-        definition="Days with RR > 99th percentile of daily amounts."
-        " (extremely wet days)",
+        definition="Days with RR > 99th percentile of daily amounts"
+        " (extremely wet days).",
         source=ECAD_ATBD,
         short_name="R99p",
         group=IndexGroupRegistry.RAIN,
@@ -539,8 +539,8 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         indicator=GenericIndicatorRegistry.FractionOfTotal,
         threshold=build_threshold("> 99 period_per", threshold_min_value="1 mm/day"),
         output_unit="%",
-        definition="Precipitation fraction due to extremely wet days."
-        " (> 99th percentile)",
+        definition="Precipitation fraction due to extremely wet days"
+        " (> 99th percentile).",
         source=ECAD_ATBD,
         short_name="R99pTOT",
         group=IndexGroupRegistry.RAIN,
@@ -782,7 +782,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     PP = StandardIndex(
         reference=ECAD_REFERENCE,
         indicator=GenericIndicatorRegistry.Average,
-        definition="Mean of daily sea level pressure (hPa)",
+        definition="Mean of daily sea level pressure (hPa).",
         source=ECAD_ATBD,
         short_name="PP",
         group=IndexGroupRegistry.PRESSURE,
@@ -793,7 +793,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     SS = StandardIndex(
         reference=ECAD_REFERENCE,
         indicator=GenericIndicatorRegistry.Sum,
-        definition="Sunshine duration (hours)",
+        definition="Sunshine duration (hours).",
         source=ECAD_ATBD,
         short_name="SS",
         group=IndexGroupRegistry.SUNSHINE,
@@ -804,7 +804,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
     RH = StandardIndex(
         reference=ECAD_REFERENCE,
         indicator=GenericIndicatorRegistry.Average,
-        definition="Mean of daily relative humidity (%)",
+        definition="Mean of daily relative humidity (%).",
         source=ECAD_ATBD,
         short_name="RH",
         group=IndexGroupRegistry.HUMIDITY,

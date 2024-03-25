@@ -109,10 +109,10 @@ def tg(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TG.
+    """Mean of daily mean temperature.
 
-        Mean of daily mean temperature.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TG: Mean of daily mean temperature.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -161,7 +161,7 @@ def tg(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -190,10 +190,10 @@ def tn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TN.
+    """Mean of daily minimum temperature.
 
-        Mean of daily minimum temperature.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TN: Mean of daily minimum temperature.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -242,7 +242,7 @@ def tn(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -271,10 +271,10 @@ def tx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX.
+    """Mean of daily maximum temperature.
 
-        Mean of daily maximum temperature.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TX: Mean of daily maximum temperature.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -323,7 +323,7 @@ def tx(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -352,10 +352,10 @@ def dtr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DTR.
+    """Mean Diurnal Temperature Range.
 
-        Mean Diurnal Temperature Range.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    DTR: Mean Diurnal Temperature Range.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -404,7 +404,7 @@ def dtr(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -433,10 +433,10 @@ def etr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """ETR.
+    """Intra-period extreme temperature range.
 
-        Intra-period extreme temperature range.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    ETR: Intra-period extreme temperature range.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -485,7 +485,7 @@ def etr(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -514,10 +514,10 @@ def vdtr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """vDTR.
+    """Mean day-to-day variation in Diurnal Temperature Range.
 
-        Mean day-to-day variation in Diurnal Temperature Range.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    vDTR: Mean day-to-day variation in Diurnal Temperature Range.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -566,7 +566,7 @@ def vdtr(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -595,10 +595,10 @@ def su(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SU.
+    """Number of Summer Days (Tmax > 25C).
 
-        Number of Summer Days (Tmax > 25C).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SU: Number of Summer Days (Tmax > 25C).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -647,9 +647,9 @@ def su(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.SU,
         in_files=in_files,
@@ -679,10 +679,10 @@ def tr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TR.
+    """Number of Tropical Nights (Tmin > 20C).
 
-        Number of Tropical Nights (Tmin > 20C).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TR: Number of Tropical Nights (Tmin > 20C).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -731,9 +731,9 @@ def tr(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.TR,
         in_files=in_files,
@@ -767,10 +767,10 @@ def wsdi(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """WSDI.
+    """Warm-spell duration index (days).
 
-        Warm-spell duration index (days).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    WSDI: Warm-spell duration index (days).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -843,7 +843,7 @@ def wsdi(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -887,10 +887,10 @@ def tg90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TG90p.
+    """Days when Tmean > 90th percentile.
 
-        Days when Tmean > 90th percentile.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TG90p: Days when Tmean > 90th percentile.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -963,7 +963,7 @@ def tg90p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1007,10 +1007,10 @@ def tn90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TN90p.
+    """Days when Tmin > 90th percentile.
 
-        Days when Tmin > 90th percentile.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TN90p: Days when Tmin > 90th percentile.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1083,7 +1083,7 @@ def tn90p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1127,10 +1127,10 @@ def tx90p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX90p.
+    """Days when Tmax > 90th daily percentile.
 
-        Days when Tmax > 90th daily percentile.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TX90p: Days when Tmax > 90th daily percentile.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1203,7 +1203,7 @@ def tx90p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1243,10 +1243,10 @@ def txx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TXx.
+    """Maximum daily maximum temperature.
 
-        Maximum daily maximum temperature.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TXx: Maximum daily maximum temperature.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1295,7 +1295,7 @@ def txx(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1324,10 +1324,10 @@ def tnx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TNx.
+    """Maximum daily minimum temperature.
 
-        Maximum daily minimum temperature.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TNx: Maximum daily minimum temperature.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1376,7 +1376,7 @@ def tnx(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1405,10 +1405,10 @@ def csu(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CSU.
+    """Maximum number of consecutive summer days (Tmax >25 C).
 
-        Maximum number of consecutive summer days (Tmax >25 C).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    CSU: Maximum number of consecutive summer days (Tmax >25 C).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1457,7 +1457,7 @@ def csu(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1489,10 +1489,10 @@ def gd4(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """GD4.
+    """Growing degree days (sum of Tmean > 4 C).
 
-        Growing degree days (sum of Tmean > 4 C).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    GD4: Growing degree days (sum of Tmean > 4 C).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1541,7 +1541,7 @@ def gd4(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1573,10 +1573,10 @@ def fd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FD.
+    """Number of Frost Days (Tmin < 0C).
 
-        Number of Frost Days (Tmin < 0C).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    FD: Number of Frost Days (Tmin < 0C).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1625,9 +1625,9 @@ def fd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.FD,
         in_files=in_files,
@@ -1657,10 +1657,10 @@ def cfd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CFD.
+    """Maximum number of consecutive frost days (Tmin < 0 C).
 
-        Maximum number of consecutive frost days (Tmin < 0 C).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    CFD: Maximum number of consecutive frost days (Tmin < 0 C).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1709,7 +1709,7 @@ def cfd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1741,10 +1741,10 @@ def hd17(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """HD17.
+    """Heating degree days (sum of Tmean < 17 C).
 
-        Heating degree days (sum of Tmean < 17 C).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    HD17: Heating degree days (sum of Tmean < 17 C).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1793,7 +1793,7 @@ def hd17(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1825,10 +1825,10 @@ def id(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """ID.
+    """Number of sharp Ice Days (Tmax < 0C).
 
-        Number of sharp Ice Days (Tmax < 0C).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    ID: Number of sharp Ice Days (Tmax < 0C).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1877,9 +1877,9 @@ def id(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.ID,
         in_files=in_files,
@@ -1913,10 +1913,10 @@ def tg10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TG10p.
+    """Days when Tmean < 10th percentile.
 
-        Days when Tmean < 10th percentile.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TG10p: Days when Tmean < 10th percentile.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -1989,7 +1989,7 @@ def tg10p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2033,10 +2033,10 @@ def tn10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TN10p.
+    """Days when Tmin < 10th percentile.
 
-        Days when Tmin < 10th percentile.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TN10p: Days when Tmin < 10th percentile.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2109,7 +2109,7 @@ def tn10p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2153,10 +2153,10 @@ def tx10p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TX10p.
+    """Days when Tmax < 10th percentile.
 
-        Days when Tmax < 10th percentile.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TX10p: Days when Tmax < 10th percentile.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2229,7 +2229,7 @@ def tx10p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2269,10 +2269,10 @@ def txn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TXn.
+    """Minimum daily maximum temperature.
 
-        Minimum daily maximum temperature.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TXn: Minimum daily maximum temperature.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2321,7 +2321,7 @@ def txn(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2350,10 +2350,10 @@ def tnn(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """TNn.
+    """Minimum daily minimum temperature.
 
-        Minimum daily minimum temperature.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    TNn: Minimum daily minimum temperature.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2402,7 +2402,7 @@ def tnn(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2435,10 +2435,10 @@ def csdi(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CSDI.
+    """Cold-spell duration index (days).
 
-        Cold-spell duration index (days).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    CSDI: Cold-spell duration index (days).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2511,7 +2511,7 @@ def csdi(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2551,10 +2551,10 @@ def cdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CDD.
+    """Maximum consecutive dry days (Precip < 1mm).
 
-        Maximum consecutive dry days (Precip < 1mm).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    CDD: Maximum consecutive dry days (Precip < 1mm).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2603,7 +2603,7 @@ def cdd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2635,10 +2635,10 @@ def prcptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PRCPTOT.
+    """Total precipitation during Wet Days.
 
-        Total precipitation during Wet Days.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    PRCPTOT: Total precipitation during Wet Days.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2687,7 +2687,7 @@ def prcptot(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2719,10 +2719,10 @@ def rr1(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RR1.
+    """Number of Wet Days (precip >= 1 mm).
 
-        Number of Wet Days (precip >= 1 mm).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    RR1: Number of Wet Days (precip >= 1 mm).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2771,9 +2771,9 @@ def rr1(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.RR1,
         in_files=in_files,
@@ -2803,10 +2803,10 @@ def sdii(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SDII.
+    """Average precipitation during Wet Days (SDII).
 
-        Average precipitation during Wet Days (SDII).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SDII: Average precipitation during Wet Days (SDII).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2855,7 +2855,7 @@ def sdii(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2887,10 +2887,10 @@ def cwd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CWD.
+    """Maximum consecutive wet days (Precip >= 1mm).
 
-        Maximum consecutive wet days (Precip >= 1mm).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    CWD: Maximum consecutive wet days (Precip >= 1mm).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -2939,7 +2939,7 @@ def cwd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2971,10 +2971,10 @@ def rr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RR.
+    """Precipitation sum (mm).
 
-        Precipitation sum (mm).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    RR: Precipitation sum (mm).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3023,7 +3023,7 @@ def rr(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3052,10 +3052,10 @@ def r10mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R10mm.
+    """Number of heavy precipitation days (Precip >=10mm).
 
-        Number of heavy precipitation days (Precip >=10mm).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    R10mm: Number of heavy precipitation days (Precip >=10mm).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3104,9 +3104,9 @@ def r10mm(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.R10MM,
         in_files=in_files,
@@ -3136,10 +3136,10 @@ def r20mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R20mm.
+    """Number of very heavy precipitation days (Precip >= 20mm).
 
-        Number of very heavy precipitation days (Precip >= 20mm).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    R20mm: Number of very heavy precipitation days (Precip >= 20mm).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3188,9 +3188,9 @@ def r20mm(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.R20MM,
         in_files=in_files,
@@ -3220,10 +3220,10 @@ def rx1day(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RX1day.
+    """Maximum 1-day total precipitation.
 
-        maximum 1-day total precipitation.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    RX1day: Maximum 1-day total precipitation.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3272,7 +3272,7 @@ def rx1day(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3301,10 +3301,10 @@ def rx5day(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RX5day.
+    """Maximum 5-day total precipitation.
 
-        maximum 5-day total precipitation.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    RX5day: Maximum 5-day total precipitation.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3353,7 +3353,7 @@ def rx5day(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3386,10 +3386,10 @@ def r75p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R75p.
+    """Days with RR > 75th percentile of daily amounts (moderate wet days) (d).
 
-        Days with RR > 75th percentile of daily amounts. (moderate wet days) (d)
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (d).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3462,7 +3462,7 @@ def r75p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3507,10 +3507,10 @@ def r75ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R75pTOT.
+    """Precipitation fraction due to moderate wet days (> 75th percentile).
 
-        Precipitation fraction due to moderate wet days. (> 75th percentile)
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3583,7 +3583,7 @@ def r75ptot(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3628,10 +3628,10 @@ def r95p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R95p.
+    """Days with RR > 95th percentile of daily amounts (very wet days) (days).
 
-        Days with RR > 95th percentile of daily amounts. (very wet days) (days)
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    R95p: Days with RR > 95th percentile of daily amounts (very wet days) (days).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3704,7 +3704,7 @@ def r95p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3749,10 +3749,10 @@ def r95ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R95pTOT.
+    """Precipitation fraction due to very wet days (> 95th percentile).
 
-        Precipitation fraction due to very wet days (> 95th percentile).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    R95pTOT: Precipitation fraction due to very wet days (> 95th percentile).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3825,7 +3825,7 @@ def r95ptot(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3870,10 +3870,10 @@ def r99p(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R99p.
+    """Days with RR > 99th percentile of daily amounts (extremely wet days).
 
-        Days with RR > 99th percentile of daily amounts. (extremely wet days)
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    R99p: Days with RR > 99th percentile of daily amounts (extremely wet days).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -3946,7 +3946,7 @@ def r99p(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -3991,10 +3991,10 @@ def r99ptot(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """R99pTOT.
+    """Precipitation fraction due to extremely wet days (> 99th percentile).
 
-        Precipitation fraction due to extremely wet days. (> 99th percentile)
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    R99pTOT: Precipitation fraction due to extremely wet days (> 99th percentile).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4067,7 +4067,7 @@ def r99ptot(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -4108,10 +4108,10 @@ def sd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD.
+    """Mean of daily snow depth.
 
-        Mean of daily snow depth.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SD: Mean of daily snow depth.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4160,7 +4160,7 @@ def sd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -4189,10 +4189,10 @@ def sd1(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD1.
+    """Snow days (SD >= 1 cm).
 
-        Snow days (SD >= 1 cm).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SD1: Snow days (SD >= 1 cm).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4241,7 +4241,7 @@ def sd1(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -4273,10 +4273,10 @@ def sd5cm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD5cm.
+    """Number of days with snow depth >= 5 cm.
 
-        Number of days with snow depth >= 5 cm.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SD5cm: Number of days with snow depth >= 5 cm.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4325,9 +4325,9 @@ def sd5cm(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.SD5CM,
         in_files=in_files,
@@ -4357,10 +4357,10 @@ def sd50cm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SD50cm.
+    """Number of days with snow depth >= 50 cm.
 
-        Number of days with snow depth >= 50 cm.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SD50cm: Number of days with snow depth >= 50 cm.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4409,9 +4409,9 @@ def sd50cm(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=EcadIndexRegistry.SD50CM,
         in_files=in_files,
@@ -4445,10 +4445,10 @@ def cd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CD.
+    """Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days).
 
-        Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    CD: Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4521,7 +4521,7 @@ def cd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -4575,10 +4575,10 @@ def cw(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """CW.
+    """Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days).
 
-        Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    CW: Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4651,7 +4651,7 @@ def cw(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -4705,10 +4705,10 @@ def wd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """WD.
+    """Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days).
 
-        Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    WD: Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4781,7 +4781,7 @@ def wd(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -4835,10 +4835,10 @@ def ww(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """WW.
+    """Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days).
 
-        Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    WW: Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -4911,7 +4911,7 @@ def ww(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -4961,10 +4961,10 @@ def fxx(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FXx.
+    """Maximum value of daily maximum wind gust.
 
-        Maximum value of daily maximum wind gust.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    FXx: Maximum value of daily maximum wind gust.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5013,7 +5013,7 @@ def fxx(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5042,10 +5042,10 @@ def fg6bft(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FG6Bft.
+    """Days with daily averaged wind ≥ 6 Bft (10.8 m s-1).
 
-        Days with daily averaged wind ≥ 6 Bft (10.8 m s-1).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    FG6Bft: Days with daily averaged wind ≥ 6 Bft (10.8 m s-1).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5094,7 +5094,7 @@ def fg6bft(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5126,10 +5126,10 @@ def fgcalm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FGcalm.
+    """Calm days, days with daily averaged wind <= 2 m s-1.
 
-        Calm days, days with daily averaged wind <= 2 m s-1.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    FGcalm: Calm days, days with daily averaged wind <= 2 m s-1.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5178,7 +5178,7 @@ def fgcalm(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5210,10 +5210,10 @@ def fg(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """FG.
+    """Mean of daily mean wind strength.
 
-        Mean of daily mean wind strength.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    FG: Mean of daily mean wind strength.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5262,7 +5262,7 @@ def fg(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5291,10 +5291,10 @@ def ddnorth(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DDnorth.
+    """Days with northerly winds (DD > 315° or DD ≤ 45°).
 
-        Days with northerly winds (DD > 315° or DD ≤ 45°).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    DDnorth: Days with northerly winds (DD > 315° or DD ≤ 45°).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5343,7 +5343,7 @@ def ddnorth(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5375,10 +5375,10 @@ def ddeast(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DDeast.
+    """Days with easterly winds (45° < DD <= 135°).
 
-        Days with easterly winds (45° < DD <= 135°).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    DDeast: Days with easterly winds (45° < DD <= 135°).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5427,7 +5427,7 @@ def ddeast(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5459,10 +5459,10 @@ def ddsouth(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DDsouth.
+    """Days with southerly winds (135° < DD <= 225°).
 
-        Days with southerly winds (135° < DD <= 225°).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    DDsouth: Days with southerly winds (135° < DD <= 225°).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5511,7 +5511,7 @@ def ddsouth(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5543,10 +5543,10 @@ def ddwest(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """DDwest.
+    """Days with westerly winds (225° < DD <= 315°).
 
-        Days with westerly winds (225° < DD <= 315°).
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    DDwest: Days with westerly winds (225° < DD <= 315°).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5595,7 +5595,7 @@ def ddwest(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5627,10 +5627,10 @@ def gsl(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """GSL.
+    """Growing season length.
 
-        Growing season length.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    GSL: Growing season length.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5679,7 +5679,7 @@ def gsl(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5709,10 +5709,10 @@ def spi6(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SPI6.
+    """6-Month Standardized Precipitation Index.
 
-        6-Month Standardized Precipitation Index.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SPI6: 6-Month Standardized Precipitation Index.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5775,7 +5775,7 @@ def spi6(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5806,10 +5806,10 @@ def spi3(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SPI3.
+    """3-Month Standardized Precipitation Index.
 
-        3-Month Standardized Precipitation Index.
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SPI3: 3-Month Standardized Precipitation Index.
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5872,7 +5872,7 @@ def spi3(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5902,10 +5902,10 @@ def pp(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """PP.
+    """Mean of daily sea level pressure (hPa).
 
-        Mean of daily sea level pressure (hPa)
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    PP: Mean of daily sea level pressure (hPa).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -5954,7 +5954,7 @@ def pp(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -5983,10 +5983,10 @@ def ss(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """SS.
+    """Sunshine duration (hours).
 
-        Sunshine duration (hours)
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    SS: Sunshine duration (hours).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -6035,7 +6035,7 @@ def ss(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -6064,10 +6064,10 @@ def rh(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """RH.
+    """Mean of daily relative humidity (%).
 
-        Mean of daily relative humidity (%)
-        Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
+    RH: Mean of daily relative humidity (%).
+    Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
 
     Parameters
@@ -6116,7 +6116,7 @@ def rh(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(

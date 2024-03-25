@@ -33,3 +33,5 @@ For example to use this new API with the index `su` you can do:
    summer_days = icclim.ecad.su(in_files=tasmax)
    ## via generic indices (output metadata will be different)
    summer_days = icclim.count_occurrences(tasmax, threshold="> 25 °C")
+
+The full API is now here :ref:`ecad api`.

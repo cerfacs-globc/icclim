@@ -71,9 +71,9 @@ def count_occurrences(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """count_occurrences.
+    """Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).
 
-        Count occurrences where threshold(s) are met (e.g. SU, Tx90p, RR1).
+    count_occurrences: Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).
 
 
     Parameters
@@ -133,7 +133,7 @@ def count_occurrences(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -167,9 +167,9 @@ def max_consecutive_occurrence(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """max_consecutive_occurrence.
+    """Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
-        Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
+    max_consecutive_occurrence: Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
 
     Parameters
@@ -229,7 +229,7 @@ def max_consecutive_occurrence(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -264,9 +264,9 @@ def sum_of_spell_lengths(
     date_event: bool = False,
     min_spell_length: int | None = 6,
 ) -> Dataset:
-    """sum_of_spell_lengths.
+    """Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
-        Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
+    sum_of_spell_lengths: Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
 
     Parameters
@@ -329,7 +329,7 @@ def sum_of_spell_lengths(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -364,9 +364,9 @@ def excess(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """excess.
+    """Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
-        Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
+    excess: Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
 
     Parameters
@@ -426,7 +426,7 @@ def excess(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -460,9 +460,9 @@ def deficit(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """deficit.
+    """Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
-        Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
+    deficit: Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
 
     Parameters
@@ -522,7 +522,7 @@ def deficit(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -556,9 +556,9 @@ def fraction_of_total(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """fraction_of_total.
+    """Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
-        Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
+    fraction_of_total: Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
 
     Parameters
@@ -618,7 +618,7 @@ def fraction_of_total(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -652,9 +652,9 @@ def maximum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """maximum.
+    """Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
-        Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
+    maximum: Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
 
     Parameters
@@ -714,7 +714,7 @@ def maximum(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -748,9 +748,9 @@ def minimum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """minimum.
+    """Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
-        Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
+    minimum: Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
 
     Parameters
@@ -810,7 +810,7 @@ def minimum(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -844,9 +844,9 @@ def average(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """average.
+    """Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn).
 
-        Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn)
+    average: Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn).
 
 
     Parameters
@@ -906,7 +906,7 @@ def average(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -940,9 +940,9 @@ def sum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """sum.
+    """Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
-        Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
+    sum: Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
 
     Parameters
@@ -1002,7 +1002,7 @@ def sum(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1036,9 +1036,9 @@ def standard_deviation(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """standard_deviation.
+    """Standard deviation of values that met threshold(s), if threshold(s) are given.
 
-        Standard deviation of values that met threshold(s), if threshold(s) are given.
+    standard_deviation: Standard deviation of values that met threshold(s), if threshold(s) are given.
 
 
     Parameters
@@ -1098,9 +1098,9 @@ def standard_deviation(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
-    """
+    """  # noqa: D401
     return icclim.index(
         index_name=GenericIndicatorRegistry.StandardDeviation,
         in_files=in_files,
@@ -1133,9 +1133,9 @@ def max_of_rolling_sum(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """max_of_rolling_sum.
+    """Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
-        Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
+    max_of_rolling_sum: Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
 
     Parameters
@@ -1198,7 +1198,7 @@ def max_of_rolling_sum(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1234,9 +1234,9 @@ def min_of_rolling_sum(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """min_of_rolling_sum.
+    """Minimum of rolling sum over time dimension.
 
-        Minimum of rolling sum over time dimension.
+    min_of_rolling_sum: Minimum of rolling sum over time dimension.
 
 
     Parameters
@@ -1299,7 +1299,7 @@ def min_of_rolling_sum(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1335,9 +1335,9 @@ def max_of_rolling_average(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """max_of_rolling_average.
+    """Maximum of rolling average over time dimension.
 
-        Maximum of rolling average over time dimension.
+    max_of_rolling_average: Maximum of rolling average over time dimension.
 
 
     Parameters
@@ -1400,7 +1400,7 @@ def max_of_rolling_average(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1436,9 +1436,9 @@ def min_of_rolling_average(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
 ) -> Dataset:
-    """min_of_rolling_average.
+    """Minimum of rolling average over time dimension.
 
-        Minimum of rolling average over time dimension.
+    min_of_rolling_average: Minimum of rolling average over time dimension.
 
 
     Parameters
@@ -1501,7 +1501,7 @@ def min_of_rolling_average(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1536,9 +1536,9 @@ def mean_of_difference(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """mean_of_difference.
+    """Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
-        Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
+    mean_of_difference: Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
 
     Parameters
@@ -1598,7 +1598,7 @@ def mean_of_difference(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1632,9 +1632,9 @@ def difference_of_extremes(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """difference_of_extremes.
+    """Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
-        Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
+    difference_of_extremes: Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
 
     Parameters
@@ -1694,7 +1694,7 @@ def difference_of_extremes(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1728,9 +1728,9 @@ def mean_of_absolute_one_time_step_difference(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """mean_of_absolute_one_time_step_difference.
+    """Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
-        Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
+    mean_of_absolute_one_time_step_difference: Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
 
     Parameters
@@ -1790,7 +1790,7 @@ def mean_of_absolute_one_time_step_difference(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1825,9 +1825,9 @@ def difference_of_means(
     date_event: bool = False,
     sampling_method: SamplingMethodLike = "resample",
 ) -> Dataset:
-    """difference_of_means.
+    """Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
-        Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
+    difference_of_means: Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
 
     Parameters
@@ -1895,7 +1895,7 @@ def difference_of_means(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -1930,9 +1930,9 @@ def percentile(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
 ) -> Dataset:
-    """percentile.
+    """Percentile of a variable.
 
-        Percentile of a variable.
+    percentile: Percentile of a variable.
 
 
     Parameters
@@ -1992,7 +1992,7 @@ def percentile(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(
@@ -2035,8 +2035,8 @@ def custom_index(
 ) -> Dataset:
     """Compute custom indices using simple operators.
 
-        Use the `user_index` parameter to describe how the index should be computed.
-        You can find some examples in icclim documentation at :ref:`custom indices`
+    Use the `user_index` parameter to describe how the index should be computed.
+    You can find some examples in icclim documentation at :ref:`custom indices`
 
 
     Parameters
@@ -2130,7 +2130,7 @@ def custom_index(
 
     Notes
     -----
-        This function has been auto-generated.
+    This function has been auto-generated.
 
     """
     return icclim.index(

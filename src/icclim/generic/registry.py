@@ -73,7 +73,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
     CountOccurrences = GenericIndicator(
         "count_occurrences",
         count_occurrences,
-        definition="Count occurrences where threshold(s) are met"
+        definition="Count occurrences when threshold(s) are met"
         " (e.g. SU, Tx90p, RR1).",
     )
     MaxConsecutiveOccurrence = GenericIndicator(
@@ -128,7 +128,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         "average",
         average,
         definition="Average of values that met threshold(s), if threshold(s) are given"
-        " (e.g. Tx, Tn)",
+        " (e.g. Tx, Tn).",
     )
     Sum = GenericIndicator(
         "sum",

@@ -28,4 +28,4 @@ For more details on threshold and how to personalize them, see
 :ref:`generic_indices_recipes` so that you get an idea of the
 capabilities of these generic indices.
 
-# TODO: Merge with generated autoapi
+The full API is now here :ref:`generic api`.
