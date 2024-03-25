@@ -1,19 +1,24 @@
 """Python library for climate indices calculation."""
 
-from icclim._generated_api import *  # noqa: F403 (add api to be in icclim module)
-from icclim.generic_indices.threshold import build_threshold
+from icclim import dcsc, ecad, generic
+from icclim._generated._ecad import *  # noqa: F403 (add ECAD api to icclim namespace)
+from icclim._generated._generic import *  # noqa: F403 (add generic api to icclim namespace)
 from icclim.main import index, indice, indices
-from icclim.pre_processing.rechunk import create_optimized_zarr_store
+from icclim.rechunk import create_optimized_zarr_store
+from icclim.threshold.factory import build_threshold
 
 __all__ = [
-    # -- Base functions:
+    # -- Threshold factory function
+    "build_threshold",
+    # -- Rechunk function
+    "create_optimized_zarr_store",
+    # -- Base functions
+    "dcsc",
+    "ecad",
+    "generic",
     "index",
     "indice",  # deprecated
     "indices",
-    # -- Rechunk function:
-    "create_optimized_zarr_store",
-    # -- Threshold factory function
-    "build_threshold",
 ]
 
-__version__ = "6.6.0"
+__version__ = "7.0.0"

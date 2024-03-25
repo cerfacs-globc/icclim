@@ -3,8 +3,21 @@
 #################
 
 ********************
- 6.6.0 (unreleased)
+ 7.0.0 (unreleased)
 ********************
+
+date: 2024-03
+
+Breaking changes summary
+========================
+
+- New package architecture.
+- New toolchain with flit and ruff.
+- ``clt`` standard variable uint changed.
+- ``clone`` method added to Indicators.
+
+Details
+=======
 
 -  [doc] Adapt Christian's notebooks from ISENES and add them as
    tutorials in our documentation.
@@ -21,16 +34,15 @@
 
 -  [maint] Fix warnings in doc build
 
--  [maint] Update architecture to have a `src/` and a `tests/` directory
-   at root level
+-  [maint] **BREAKING CHANGE**
+   Update architecture to have a `src/` and a `tests/` directory at root level
 
--  [maint] Migrate build toolchain from setuptools to flit
+-  [maint] **BREAKING CHANGE**
+   Migrate build toolchain from setuptools to flit
 
 -  [maint] Remove version number from `constants` module as it was
    causing the build process to import icclim. The version number is now
    statically set in src/icclim/__init__.py
-
--  [maint] Lint code using the more restrictive rules from ruff
 
 -  [fix] Force xarray to read dataset sequentially to avoid a netcdf-c
    threading issue causing seg faults.
@@ -43,12 +55,36 @@
 - [enh] Add the following ECAD indices: PP (average of pressure),
   SS (sum of sunshine) and RH (average of humidity).
 
-- [fix] the default unit of clt standard variable is now % as expected
+- [fix] **BREAKING CHANGE**
+  the default unit of ``clt`` standard variable is now % as expected
   (was a wind strenght unit).
+
+- [maint] **BREAKING CHANGE**
+  Rework architecture to have a ``_core`` **private** package
+  containing the core logic of icclim. Idea taken from numpy 2.0.
+
+- [doc] Add docstring to almost all functions, classes and modules.
+  This has been done to improve the generated documentation.
+  co-authored: Github's copilot.
+
+- [maint] Add missing type hints.
+
+- [doc] Make use of readthedocs' autoapi library to generate the API
+  documentation.
+
+- [maint] Improve maintainability of ``tools/extract-icclim-funs.py`` to
+  ease adding new registries (still not perfect).
+
+- [fix] **BREAKING CHANGE**
+  Add ``clone`` method to Indicators to avoid modifying the original instance
+  when setting templating metadata.
+
 
 *******
  6.5.0
 *******
+
+date: 2023-12
 
 -  [maint] Adapt generic indicators "excess" and "deficit" to xclim
    0.45.
@@ -59,6 +95,8 @@
  6.4.0
 *******
 
+date: 2023-05
+
 -  [maint] Upgrade to xclim 0.43 (released on 09/05/2023).
 -  [maint] Change how xclim is pinned to allow patch changes.
 
@@ -66,9 +104,13 @@
  6.3.0
 *******
 
+
+date: 2023-04
+
 -  [maint] Upgrade to xclim 0.42 (released on 04/04/2023).
 
--  [fix] **BREAKING CHANGE** The indicators based on the difference
+-  [fix] **BREAKING CHANGE**
+   The indicators based on the difference
    between two variables (ecad: DTR, ETR, vDTR and anomaly) gave wrong
    values due to a bad unit conversion of the output. This was for
    example the case when the input variables are in Kelvin, the
@@ -77,7 +119,8 @@
    workaround this issue, we first convert inputs to the expected output
    unit and then we compute the index.
 
--  [fix] **BREAKING CHANGE** Indices based on both a percentile
+-  [fix] **BREAKING CHANGE**
+   Indices based on both a percentile
    threshold and a `threshold_min_value` (for ecad: r75p, r75pTOT, r95p,
    r95pTOT, r99p, r99pTOT) are now computing the exceedance rate on
    values above `threshold_min_value` as well. Previously this
@@ -87,6 +130,8 @@
 *******
  6.2.0
 *******
+
+date: 2023-02
 
 -  [maint] Upgrade and adapt to xclim 0.40. Moved PercentileDataArray
    from xclim to icclim. Adapted the unit cenversion to use the hydro
@@ -98,6 +143,8 @@
  6.1.5
 *******
 
+date: 2022-11
+
 -  [fix] Bug fix: not assuming longitude and latitude are lon and lat
    with respect to output metadata. Fix needed to work on E-OBS and
    other datasets.
@@ -106,11 +153,15 @@
  6.1.3
 *******
 
+date: 2022-11
+
 -  [fix] Bug fix for TNx.
 
 *******
  6.1.2
 *******
+
+date: 2022-11
 
 -  [fix] Add missing file to properly identify user_indices as a
    package.
@@ -118,6 +169,8 @@
 *******
  6.1.0
 *******
+
+date: ?
 
 -  [fix] Add unit getter/setter for BoundedThreshold.
 
@@ -142,15 +195,20 @@
  6.0.0
 *******
 
+
+date: 2022-10
+
 -  [enh] Add generic indices
 
 -  [enh] Make in_files.var.threshold and threshold parameters work with
    string values (a value with a unit or a percentile stamp)
 
--  [maint] **BREAKING CHANGE** ECAD indices are no longer configurable!
+-  [maint] **BREAKING CHANGE**
+   ECAD indices are no longer configurable!
    Use generic indices instead.
 
--  [fix] **BREAKING CHANGE** ECAD indices CW, CD, WW, WD were computing
+-  [fix] **BREAKING CHANGE**
+   ECAD indices CW, CD, WW, WD were computing
    the precipitation percentiles on day of year values where it should
    have been percentiles of the whole period (excluding dry days). This
    has been fixed.
@@ -160,7 +218,8 @@
    of ECAD indices. It's no longer needed as we have put these metadata
    within StandardIndex declaration.
 
--  [maint] **BREAKING CHANGE** Removed the `clipped_season` option from
+-  [maint] **BREAKING CHANGE**
+   Removed the `clipped_season` option from
    `slice_mode`. With generic indices, `season` can be used with every
    indices. In particular, spell based indices (e.g. wsdi, cdd) are
    mapped to `max_consecutive_occurrence` or `sum_of_spell_lengths`
@@ -176,7 +235,8 @@
    index. Thus, events of spells that are before the season bound will
    be ignored in the results.
 
--  [maint] **BREAKING CHANGE** User index `max_nb_consecutive_events` is
+-  [maint] **BREAKING CHANGE**
+   User index `max_nb_consecutive_events` is
    also mapped to `max_consecutive_occurrence`, consequently spells are
    also counted for their whole duration.
 
@@ -215,7 +275,8 @@
    based on variable names
    `icclim.indices(index_group='tasmax',in_files=data)`
 
--  [fix] **BREAKING CHANGE** ECAD snow indices now expect a snow (snd)
+-  [fix] **BREAKING CHANGE**
+   ECAD snow indices now expect a snow (snd)
    variable instead of a precipitation one.
 
 -  [enh] Add `build_threshold` function that acts as a factory to create
@@ -256,7 +317,8 @@
 
 -  [enh] Add icclim version to history in outputted metadata.
 
--  [maint] **breaking change** Pin minimal pandas version to 1.3 to have
+-  [maint] **BREAKING CHANGE**
+   Pin minimal pandas version to 1.3 to have
    the fix for https://github.com/pandas-dev/pandas/issues/24539
 
 -  [enh] ``slice_mode``: seasons can now be defined to be between two
@@ -376,7 +438,8 @@ np 1.22.
  5.1.0
 *******
 
--  [maint] **BREAKING CHANGE** Parameter ``out_file`` of icclim.index
+-  [maint] **BREAKING CHANGE**
+   Parameter ``out_file`` of icclim.index
    default value is now ``None``. When None, ``icclim.index`` only
    returns a xarray.Dataset and does not write to a default netcdf file.
 

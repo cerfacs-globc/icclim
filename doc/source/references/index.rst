@@ -1,3 +1,5 @@
+.. _references:
+
 ############
  References
 ############
@@ -10,14 +12,14 @@ mechanisms of icclim.
 |  For more abstract discussion about icclim, see :ref:`explanation`.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: References
 
    icclim_index_api
    ecad_functions_api
+   dcsc_functions_api
    generic_functions_api
    custom_indices
-   frequency
-   threshold
    output_metadata
    release_notes
+   api/index

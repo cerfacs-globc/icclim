@@ -23,31 +23,32 @@ from __future__ import annotations
 
 import copy
 import inspect
-import re
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import icclim
-from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.generic_indices.generic_indicators import (
-    GenericIndicator,
-    GenericIndicatorRegistry,
-)
-from icclim.generic_indices.threshold import (
-    PercentileThreshold,
-    Threshold,
-    build_threshold,
-)
-from icclim.icclim_logger import Verbosity
-from icclim.models.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
-from icclim.models.frequency import Frequency
-from icclim.models.netcdf_version import NetcdfVersion
-from icclim.models.quantile_interpolation import QuantileInterpolation
-from icclim.models.user_index_dict import UserIndexDict
+from docstring_parser import Docstring, DocstringParam, DocstringStyle, compose, parse
+from icclim._core.constants import NEEDS_NORMAL, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
+from icclim._core.frequency import Frequency
+from icclim._core.generic.threshold.percentile import PercentileThreshold
+from icclim._core.legacy.user_index.model import UserIndexDict
+from icclim._core.model.netcdf_version import NetcdfVersion
+from icclim._core.model.quantile_interpolation import QuantileInterpolation
+from icclim._core.model.threshold import Threshold
+from icclim.dcsc.registry import DcscIndexRegistry
+from icclim.ecad.registry import EcadIndexRegistry
+from icclim.generic.registry import GenericIndicatorRegistry
+from icclim.logger import Verbosity
+from icclim.threshold.factory import build_threshold
 
 if TYPE_CHECKING:
-    from icclim.models.standard_index import StandardIndex
+    from collections.abc import Sequence
+
+    from icclim._core.generic.indicator import GenericIndicator
+    from icclim._core.model.registry import Registry
+    from icclim._core.model.standard_index import StandardIndex
+    from xarray import DataArray, Dataset
 
 
 QUANTILE_INDEX_FIELDS = [
@@ -71,46 +72,19 @@ END_NOTE = """
     This function has been auto-generated.
 """
 
-DEFAULT_OUTPUT_PATH = Path(__file__).parent / "pouet.py"
+RELATIVE_ROOT = Path(__file__).parent.parent
+DEFAULT_OUTPUT_PATH = RELATIVE_ROOT / "src/icclim/_generated"
+PATH_TO_DCSC_DOC_FILE = (
+    RELATIVE_ROOT / "doc/source/references/api/icclim/dcsc" / "index.rst"
+)
 PATH_TO_ECAD_DOC_FILE = (
-    Path(__file__).parent / "../doc/source/references" / "ecad_functions_api.rst"
+    RELATIVE_ROOT / "doc/source/references/api/icclim/ecad" / "index.rst"
 )
 PATH_TO_GENERIC_DOC_FILE = (
-    Path(__file__).parent / "../doc/source/references" / "generic_functions_api.rst"
+    RELATIVE_ROOT / "doc/source/references/api/icclim/generic" / "index.rst"
 )
 DOC_START_PLACEHOLDER = ".. Generated API comment:Begin\n"
 DOC_END_PLACEHOLDER = ".. Generated API comment:End"
-MODULE_HEADER = f'''
-# ruff: noqa: A001, E501, N803
-"""
-icclim's API for ECAD indices and generic indices.
-
-This module has been auto-generated.
-To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
-This module exposes each climate index as individual functions for convenience.
-"""
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-import icclim
-from {Threshold.__module__} import {Threshold.__name__}, {build_threshold.__name__}
-
-if TYPE_CHECKING:
-    import datetime as dt
-    from collections.abc import Sequence
-
-    from xarray.core.dataset import Dataset
-
-    from {Verbosity.__module__} import {Verbosity.__name__}
-    from icclim.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
-    from {Frequency.__module__} import {Frequency.__name__}
-    from {NetcdfVersion.__module__} import {NetcdfVersion.__name__}
-    from {QuantileInterpolation.__module__} import {QuantileInterpolation.__name__}
-    from {UserIndexDict.__module__} import {UserIndexDict.__name__}
-
-'''
-
 DEPRECATED_ARGS = [
     "indice_name",
     "user_indice",
@@ -126,7 +100,7 @@ UNNECESSARY_ARGS = [
     "user_index",
 ]
 
-ECAD_POP_ARGS = (
+STANDARD_INDEX_POP_ARGS = (
     DEPRECATED_ARGS
     + UNNECESSARY_ARGS
     + [
@@ -154,28 +128,70 @@ GENERIC_POP_ARGS = (
 )
 
 
-def _generate_api(path: Path) -> None:
-    ecad_indices = EcadIndexRegistry.values()
+def main() -> None:
+    """
+    Generate icclim's API functions from the Indicators registries.
+
+    Notes
+    -----
+    The generated functions are written in the `_generated` directory.
+    Each registry produce its own module.
+    For now the following registries are supported: ECAD, DCSC and Generic.
+    Additionally, the user can define custom indices using the `custom_index` function
+    exposed in the generic module.
+    """
+    dir_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_PATH
+    dir_path = Path(dir_path)
+    _generate_ecad_api(dir_path / "_ecad.py")
+    _generate_dcsc_api(dir_path / "_dcsc.py")
+    _generate_generic_api(dir_path / "_generic.py")
+    _generate_doc(PATH_TO_ECAD_DOC_FILE, _get_ecad_doc())
+    _generate_doc(PATH_TO_DCSC_DOC_FILE, _get_dcsc_doc())
+    _generate_doc(PATH_TO_GENERIC_DOC_FILE, _get_generic_doc())
+
+
+def _generate_dcsc_api(file_path: Path) -> None:
+    dcsc_indices = DcscIndexRegistry.values()
+    dcsc_index_names = [x.short_name for x in dcsc_indices]
+    dcsc_indices = [
+        _get_standard_index_declaration(index, DcscIndexRegistry)
+        for index in dcsc_indices
+    ]
+    acc = _build_module_header("dcsc")
+    acc += _build__all__(dcsc_index_names)
+    acc += "\n".join(dcsc_indices)
+    with Path.open(file_path, "w") as f:
+        f.write(acc)
+
+
+def _generate_generic_api(file_path: Path) -> None:
     generic_indices = GenericIndicatorRegistry.values()
-    with Path.open(path, "w") as f:
-        acc = MODULE_HEADER
-        acc += "__all__ = [\n"
-        ecad_index_names = [x.short_name for x in ecad_indices]
-        generic_index_names = [x.name for x in generic_indices]
-        names = generic_index_names + ecad_index_names + ["custom_index"]
-        formatted_names = (f'{TAB}"{x.lower()}"' for x in names)
-        acc += ",\n".join(formatted_names)
-        acc += ",\n]\n\n"
-        standard_indices = [
-            _get_standard_index_declaration(index) for index in ecad_indices
-        ]
-        custom_index = [_get_user_index_declaration()]
-        generic_indices = [
-            _get_generic_index_declaration(generic_index)
-            for generic_index in generic_indices
-        ]
-        indices_to_write = generic_indices + standard_indices + custom_index
-        acc += "\n".join(indices_to_write)
+    generic_index_names = [x.name for x in generic_indices]
+    names = [*generic_index_names, "custom_index"]
+    custom_index = [_get_user_index_declaration()]
+    generic_indices = [
+        _get_generic_index_declaration(generic_index)
+        for generic_index in generic_indices
+    ]
+    indices_to_write = generic_indices + custom_index
+    acc = _build_module_header("generic")
+    acc += _build__all__(names)
+    acc += "\n".join(indices_to_write)
+    with Path.open(file_path, "w") as f:
+        f.write(acc)
+
+
+def _generate_ecad_api(file_path: Path) -> None:
+    ecad_indices = EcadIndexRegistry.values()
+    ecad_index_names = [x.short_name for x in ecad_indices]
+    ecad_indices = [
+        _get_standard_index_declaration(index, EcadIndexRegistry)
+        for index in ecad_indices
+    ]
+    acc = _build_module_header("ECAD")
+    acc += _build__all__(ecad_index_names)
+    acc += "\n".join(ecad_indices)
+    with Path.open(file_path, "w") as f:
         f.write(acc)
 
 
@@ -198,23 +214,26 @@ def custom_index(
         user_index: UserIndexDict,
         {fun_signature_args},
 ) -> Dataset:
-        \"\"\"Compute custom indices using simple operators.
+    \"\"\"Compute custom indices using simple operators.
 
     Use the `user_index` parameter to describe how the index should be computed.
-    You can find some examples in icclim documentation at :ref:`custom_indices`
+    You can find some examples in icclim documentation at :ref:`custom indices`
 
     {args_docs}
-        {END_NOTE}
-        \"\"\"
-        return icclim.index(
-            user_index=user_index,
-            {formatted_common_args}
-        )
+    {END_NOTE}
+    \"\"\"
+    return icclim.index(
+        user_index=user_index,
+        {formatted_common_args}
+    )
     """
 
 
-def _build_fun_signature_args(args: dict) -> str:
-    return f",\n{TAB}".join(map(_get_parameter_declaration, args.values()))
+def _build_fun_signature_args(args: dict[str, inspect.Parameter]) -> str:
+    sorted_params = sorted(
+        args.values(), key=lambda y: y.default is not inspect.Parameter.empty
+    )
+    return f",\n{TAB}".join(map(_get_parameter_declaration, sorted_params))
 
 
 def _get_generic_index_declaration(index: GenericIndicator) -> str:
@@ -235,35 +254,103 @@ def _get_generic_index_declaration(index: GenericIndicator) -> str:
     args_docs = _get_params_docstring(list(index_args.keys()), icclim.index.__doc__)
     args = (f"{arg}={arg}" for arg in index_args)
     formatted_args = f",\n{TAB}{TAB}".join(list(args))
+    catalog = GenericIndicatorRegistry.catalog()
+    index_name_arg = next(k for k in catalog if catalog[k].name == index.name)
     return f"""
 def {index.name.lower()}(
     {fun_signature_args},
     ) -> Dataset:
-    \"\"\"{index.name}.
+    \"\"\"{index.definition}
 
-    {index.definition}
+    {index.name}: {index.definition}
 
     {args_docs}
     {END_NOTE}
-    \"\"\"
+    \"\"\"  # noqa: D401
     return icclim.index(
-        index_name="{index.name.upper()}",
+        index_name={GenericIndicatorRegistry.__name__}.{index_name_arg},
         {formatted_args},
     )
     """
 
 
-def _get_standard_index_declaration(index: StandardIndex) -> str:
-    if _is_quantile_based(index):
-        index_args = _get_arguments(ECAD_POP_ARGS)
-    elif _can_have_reference_period(index):
-        index_args = _get_arguments(ECAD_POP_ARGS + NON_REFERENCE_FIELDS)
-    else:
-        index_args = _get_arguments(ECAD_POP_ARGS + QUANTILE_INDEX_FIELDS)
+def _normal_index_placeholder(  # noqa: ANN202
+    normal: str | Sequence[str] | Dataset | DataArray,  # noqa: ARG001
+    normal_var_name: str | None = None,  # noqa: ARG001
+):
+    """
+    Parameters
+    ----------
+    normal: Union[str, Sequence[str], Dataset, DataArray]
+        The normal to be compared to
+    normal_var_name: str | None, optional
+        The name of the normal's variable.
+        If missing, icclim will try to guess which variable must beused in the
+        `normal` dataset.
+    """  # noqa: D205 (placeholder function used for generating docstrings)
+    raise NotImplementedError
+
+
+def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> str:
+    index_args = _get_arguments(STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS)
+    normal_sig = inspect.signature(_normal_index_placeholder)
+    passed_to_index_args = [f"{arg}={arg}" for arg in index_args]
+    index_args["normal"] = normal_sig.parameters["normal"]
+    index_args["normal_var_name"] = normal_sig.parameters["normal_var_name"]
+    normal_doc = _normal_index_placeholder.__doc__ or ""
+    params_to_add = parse(normal_doc).params
     fun_signature_args = _build_fun_signature_args(index_args)
-    args_docs = _get_params_docstring(list(index_args.keys()), icclim.index.__doc__)
-    common_args = (f"{arg}={arg}" for arg in index_args)
-    args = list(common_args)
+    base_doc_string = icclim.index.__doc__ or ""
+    args_docs = _get_params_docstring(
+        list(index_args.keys()), base_doc_string, params_to_add
+    )
+    output_unit_arg = _get_output_unit_argument(index)
+    if output_unit_arg:
+        passed_to_index_args += [output_unit_arg]
+    formatted_args = f",\n{TAB}{TAB}".join(passed_to_index_args)
+    catalog = registry.catalog()
+    index_name_arg = next(
+        k for k in catalog if catalog[k].short_name == index.short_name
+    )
+    return f"""
+def {index.short_name.lower()}(
+    {fun_signature_args},
+) -> Dataset:
+    \"\"\"{index.definition}.
+
+    {index.short_name}: {index.definition}
+    Source: {index.source}.
+
+    {args_docs}
+    {END_NOTE}
+    \"\"\"
+    standard_index = DcscIndexRegistry.{index.short_name}
+    normal_da = get_dataarray_from_dataset(
+        normal_var_name, normal, standard_index.input_variables[0]
+    )
+    threshold = standard_index.threshold
+    threshold.prepare(normal_da)
+    return icclim.index(
+        index_name={registry.__name__}.{index_name_arg },
+        {formatted_args},
+    )
+"""
+
+
+def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> str:
+    if _is_quantile_based(index):
+        index_args = _get_arguments(STANDARD_INDEX_POP_ARGS)
+    elif _can_have_reference_period(index):
+        index_args = _get_arguments(STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS)
+    else:
+        index_args = _get_arguments(STANDARD_INDEX_POP_ARGS + QUANTILE_INDEX_FIELDS)
+    fun_signature_args = _build_fun_signature_args(index_args)
+    doc_string = icclim.index.__doc__
+    if doc_string is None:
+        msg = "icclim::index doc string does not exist."
+        raise ValueError(msg)
+    args_docs = _get_params_docstring(list(index_args.keys()), doc_string)
+    args = [f"{arg}={arg}" for arg in index_args]
     thresh_arg = _get_threshold_argument(index)
     output_unit_arg = _get_output_unit_argument(index)
     if thresh_arg:
@@ -271,23 +358,37 @@ def _get_standard_index_declaration(index: StandardIndex) -> str:
     if output_unit_arg:
         args += [output_unit_arg]
     formatted_args = f",\n{TAB}{TAB}".join(args)
+    catalog = registry.catalog()
+    index_name_arg = next(
+        k for k in catalog if catalog[k].short_name == index.short_name
+    )
     return f"""
 def {index.short_name.lower()}(
     {fun_signature_args},
 ) -> Dataset:
-    \"\"\"{index.short_name}.
+    \"\"\"{index.definition}
 
-    {index.definition}
+    {index.short_name}: {index.definition}
     Source: {index.source}.
 
     {args_docs}
     {END_NOTE}
-    \"\"\"
+    \"\"\"  # noqa: D401
     return icclim.index(
-        index_name="{index.short_name.upper()}",
+        index_name={registry.__name__}.{index_name_arg },
         {formatted_args},
     )
 """
+
+
+def _get_standard_index_declaration(index: StandardIndex, registry: Registry) -> str:
+    if _is_compared_to_normal(index):
+        return _get_normal_based_declaration(index, registry)
+    return _get_typical_index_declaration(index, registry)
+
+
+def _is_compared_to_normal(index: StandardIndex) -> bool:
+    return index.qualifiers is not None and NEEDS_NORMAL in index.qualifiers
 
 
 def _is_quantile_based(index: StandardIndex) -> bool:
@@ -338,22 +439,20 @@ def _get_parameter_declaration(param: inspect.Parameter) -> str:
     return f"{prefix} = {default}"
 
 
-def _get_params_docstring(args: list[str], index_docstring: str) -> str:
-    result = f"Parameters\n{TAB}----------"
-    # regex to find `\n   toto: str` or similar declaration of argument
-    regex = re.compile(r"\n\s{4}\w+.*: .*")
-    args_declaration = list(regex.finditer(index_docstring))
-    for arg in args:
-        for i in range(len(args_declaration) - 2):
-            # `-2` because we have specific handler for the last argument
-            if args_declaration[i].group().strip().startswith(arg):
-                result += index_docstring[
-                    args_declaration[i].start() : args_declaration[i + 1].start()
-                ]
-        if args_declaration[-1].group().strip().startswith(arg):
-            # Add everything after the last argument
-            result += index_docstring[args_declaration[-1].start() :]
-    return result
+def _get_params_docstring(
+    args: list[str],
+    index_docstring: str,
+    params_to_add: list[DocstringParam] | None = None,
+) -> str:
+    parsed = parse(index_docstring)
+    filtered = [p for p in parsed.params if p.arg_name in args]
+    if params_to_add is not None:
+        filtered += params_to_add
+    parsed.long_description = ""
+    param_str = Docstring(style=DocstringStyle.NUMPYDOC)
+    param_str.meta = filtered
+    param_str = compose(param_str)
+    return f"\n{TAB}".join(param_str.splitlines())
 
 
 def _format_thresh(t: str | Threshold) -> str:
@@ -382,15 +481,23 @@ def _generate_doc(doc_path: Path, replacing_content: str) -> None:
             content.find(DOC_START_PLACEHOLDER) + len(DOC_START_PLACEHOLDER) + 1
         )
         replace_end_index = content.find(DOC_END_PLACEHOLDER)
+    replaced_content = content[replace_start_index:replace_end_index]
+    res = content.replace(replaced_content, replacing_content)
     with Path.open(doc_path, "w") as f:
-        replaced_content = content[replace_start_index:replace_end_index]
-        res = content.replace(replaced_content, replacing_content)
         f.write(res)
 
 
 def _get_ecad_doc() -> str:
-    names = (x.short_name for x in EcadIndexRegistry.values())
-    names = [*list(names), "custom_index"]
+    names = [x.short_name for x in EcadIndexRegistry.values()]
+    formatted_names = (f"{TAB} {x.lower()}" for x in names)
+    replacing_content = ""
+    replacing_content += "\n".join(formatted_names)
+    replacing_content += "\n\n"
+    return replacing_content
+
+
+def _get_dcsc_doc() -> str:
+    names = (x.short_name for x in DcscIndexRegistry.values())
     formatted_names = (f"{TAB} {x.lower()}" for x in names)
     replacing_content = ""
     replacing_content += "\n".join(formatted_names)
@@ -400,6 +507,7 @@ def _get_ecad_doc() -> str:
 
 def _get_generic_doc() -> str:
     names = (x.name for x in GenericIndicatorRegistry.values())
+    names = [*list(names), "custom_index"]
     formatted_names = (f"{TAB}{x.lower()}" for x in names)
     replacing_content = ""
     replacing_content += "\n".join(formatted_names)
@@ -407,9 +515,56 @@ def _get_generic_doc() -> str:
     return replacing_content
 
 
+def _build_module_header(kind: str) -> str:
+    return f'''
+# ruff: noqa: A001, E501, N803
+"""
+icclim's API for {kind} indices.
+
+This module has been auto-generated.
+To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
+This module exposes each climate index as individual functions for convenience.
+"""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import icclim
+from icclim.ecad.registry import EcadIndexRegistry
+from icclim.dcsc.registry import DcscIndexRegistry
+from icclim.generic.registry import GenericIndicatorRegistry
+from icclim.threshold.factory import build_threshold
+
+from icclim._core.input_parsing import get_dataarray_from_dataset
+
+if TYPE_CHECKING:
+    import datetime as dt
+    from collections.abc import Sequence
+
+    from xarray import Dataset
+    from xarray import DataArray
+
+    from {Verbosity.__module__} import {Verbosity.__name__}
+    from icclim._core.model.icclim_types import (
+        FrequencyLike, InFileLike, SamplingMethodLike
+        )
+
+    from {Frequency.__module__} import {Frequency.__name__}
+    from {NetcdfVersion.__module__} import {NetcdfVersion.__name__}
+    from {QuantileInterpolation.__module__} import {QuantileInterpolation.__name__}
+    from {UserIndexDict.__module__} import {UserIndexDict.__name__}
+    from {Threshold.__module__} import {Threshold.__name__}
+
+'''
+
+
+def _build__all__(index_names: Sequence[str]) -> str:
+    formatted_names = (f'{TAB}"{x.lower()}"' for x in index_names)
+    prefix = "__all__ = [\n"
+    names = ",\n".join(formatted_names)
+    suffix = ",\n]\n\n"
+    return f"{prefix}{names}{suffix}"
+
+
 if __name__ == "__main__":
-    file_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_PATH
-    file_path = Path(file_path)
-    _generate_api(file_path)
-    _generate_doc(PATH_TO_ECAD_DOC_FILE, _get_ecad_doc())
-    _generate_doc(PATH_TO_GENERIC_DOC_FILE, _get_generic_doc())
+    main()

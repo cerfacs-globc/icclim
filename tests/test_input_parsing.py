@@ -8,18 +8,18 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
-from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import UNITS_KEY
-from icclim.pre_processing.input_parsing import (
+from icclim._core.constants import UNITS_KEY
+from icclim._core.input_parsing import (
     PercentileDataArray,
     guess_var_names,
     read_dataset,
     update_to_standard_coords,
 )
+from icclim.ecad.registry import EcadIndexRegistry
+from icclim.exception import InvalidIcclimArgumentError
 
 
-def test_update_to_standard_coords():
+def test_update_to_standard_coords() -> None:
     # GIVEN
     ds = xr.Dataset(
         {
@@ -86,19 +86,19 @@ class TestReadDataset:
             with contextlib.suppress(FileNotFoundError):
                 f.unlink()
 
-    def test_read_dataset_xr_dataarray__simple(self):
+    def test_read_dataset_xr_dataarray__simple(self) -> None:
         # WHEN
         res = read_dataset(self.pr_da)
         # THEN
         assert "pr" in res.data_vars
 
-    def test_read_dataset_xr_da_user_index_success(self):
+    def test_read_dataset_xr_da_user_index_success(self) -> None:
         # WHEN
         ds_res = read_dataset(self.pr_da, None)
         # THEN
         xr.testing.assert_equal(ds_res.pr, self.pr_da)
 
-    def test_read_dataset_xr_ds__simple(self):
+    def test_read_dataset_xr_ds__simple(self) -> None:
         # GIVEN
         ds = xr.Dataset({"pouet": self.pr_da})
         # WHEN
@@ -106,7 +106,7 @@ class TestReadDataset:
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
-    def test_read_dataset__netcdf_success(self):
+    def test_read_dataset__netcdf_success(self) -> None:
         # GIVEN
         ds = xr.Dataset({"pouet": self.pr_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
@@ -115,7 +115,7 @@ class TestReadDataset:
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
-    def test_read_dataset__multi_netcdf_success(self):
+    def test_read_dataset__multi_netcdf_success(self) -> None:
         # GIVEN
         ds = xr.Dataset({"pouet": self.pr_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
@@ -126,7 +126,7 @@ class TestReadDataset:
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
         xr.testing.assert_equal(ds_res.patapouet, ds.pouet)
 
-    def test_read_dataset__zarr_store_success(self):
+    def test_read_dataset__zarr_store_success(self) -> None:
         # GIVEN
         ds = xr.Dataset({"pouet": self.pr_da})
         ds.to_zarr(self.OUTPUT_ZARR_STORE)
@@ -135,13 +135,13 @@ class TestReadDataset:
         # THEN
         xr.testing.assert_equal(ds_res.pouet, ds.pouet)
 
-    def test_read_dataset__not_implemented_error(self):
+    def test_read_dataset__not_implemented_error(self) -> None:
         # THEN
         with pytest.raises(NotImplementedError):
             # WHEN
             read_dataset(42)
 
-    def test_read_dataset(self):
+    def test_read_dataset(self) -> None:
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
@@ -151,7 +151,7 @@ class TestReadDataset:
         # asserts variable names are the ones in the actual DataArray/Datasets
         assert "tas" in res_ds.data_vars
 
-    def test_read_dataset__with_percentiles(self):
+    def test_read_dataset__with_percentiles(self) -> None:
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         ds.to_netcdf(self.OUTPUT_NC_FILE)
@@ -169,7 +169,7 @@ class TestReadDataset:
         assert "tas" in res_ds.data_vars
         assert "tontontonthetatilotetatoux" in res_ds.data_vars
 
-    def test_guess_variables__cant_guess_var_name(self):
+    def test_guess_variables__cant_guess_var_name(self) -> None:
         # GIVEN
         ds = xr.Dataset({"canard": self.tas_da, "bergeronnette": self.tas_da})
         # THEN
@@ -177,7 +177,7 @@ class TestReadDataset:
             # WHEN
             guess_var_names(ds, standard_index=EcadIndexRegistry.SU, var_names=None)
 
-    def test_guess_variables__simple(self):
+    def test_guess_variables__simple(self) -> None:
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         # WHEN
@@ -185,7 +185,7 @@ class TestReadDataset:
         # THEN
         assert res == ["tas"]
 
-    def test_guess_variables__from_string(self):
+    def test_guess_variables__from_string(self) -> None:
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         # WHEN
@@ -193,7 +193,7 @@ class TestReadDataset:
         # THEN
         assert res == ["cocoLasticot"]
 
-    def test_guess_variables__from_list(self):
+    def test_guess_variables__from_list(self) -> None:
         # GIVEN
         ds = xr.Dataset({"tas": self.tas_da})
         # WHEN
@@ -201,7 +201,7 @@ class TestReadDataset:
         # THEN
         assert res == ["pinçon"]
 
-    def test_guess_variables__from_alias(self):
+    def test_guess_variables__from_alias(self) -> None:
         # GIVEN
         ds = xr.Dataset({"tasmaxAdjust": self.tas_da, "turlututut": self.tas_da})
         # WHEN

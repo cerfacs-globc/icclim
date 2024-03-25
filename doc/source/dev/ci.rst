@@ -1,3 +1,5 @@
+.. _Continuous integration:
+
 ########################
  Continuous integration
 ########################
@@ -10,13 +12,14 @@ icclim continuous integration (CI) aims to assist development by:
    -  Making sure the documentation generation is functioning well.
 
 These goals are reached using multiple tools:
-   -  pre-commit CI enforce the code style (Black + flake8 + isort) is
-      followed by committing changes directly on new pull request and
-      blocking merge if necessary. The relevant file is
-      `.pre-commit-config.yaml`.
+   -  pre-commit CI enforces the code style rules. It is run on new pull requests
+      and may commit automatically to fix the source code.
+      If it fails to fix the code base, it woill block the PR from being merged.
+      The relevant configuration file is ``.pre-commit-config.yaml``.
 
-   -  readthedocs, which serve our documentation is also configured to
-      run the documentation generation on each new pull request.
+   -  readthedocs, it serves our documentation on https://icclim.readthedocs.io/en/stable/.
+      It is configured with ``.readthedocs.yml`` and runs the generation of the
+      documentation on each new pull request.
 
    -  github actions are used to run unit tests and report the results
-      in each pull request.
+      in each pull request. They are configured in ``../.github/workflows/ci.yml``

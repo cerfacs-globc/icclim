@@ -4,82 +4,82 @@ import cftime
 import numpy as np
 import pandas as pd
 import pytest
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.frequency import FrequencyRegistry, get_seasonal_time_updater
+from icclim._core.frequency import FrequencyRegistry, get_seasonal_time_updater
+from icclim.exception import InvalidIcclimArgumentError
 
 from tests.testing_utils import stub_tas
 
 
 class TestBuildFrequencyOverFrequency:
-    def test_simple(self):
+    def test_simple(self) -> None:
         freq = FrequencyRegistry.lookup(FrequencyRegistry.YEAR)
         assert freq == FrequencyRegistry.YEAR
 
 
 class TestBuildFrequencyOverString:
-    def test_error(self):
+    def test_error(self) -> None:
         with pytest.raises(InvalidIcclimArgumentError):
             FrequencyRegistry.lookup("yolo")
 
-    def test_simple(self):
+    def test_simple(self) -> None:
         freq = FrequencyRegistry.lookup("year")
         assert freq == FrequencyRegistry.YEAR
 
 
 class TestBuildFrequencyOverList:
-    def test_lookup_list__keyword_error(self):
+    def test_lookup_list__keyword_error(self) -> None:
         with pytest.raises(InvalidIcclimArgumentError):
             FrequencyRegistry.lookup(["cacahuêtes"])
 
-    def test_lookup_string_error(self):
+    def test_lookup_string_error(self) -> None:
         with pytest.raises(InvalidIcclimArgumentError):
             FrequencyRegistry.lookup("cacahuêtes")
 
-    def test_lookup_month(self):
+    def test_lookup_month(self) -> None:
         freq = FrequencyRegistry.lookup(["month", [1, 4, 3]])
         assert freq.pandas_freq == "MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_lookup_season(self):
+    def test_lookup_season(self) -> None:
         freq = FrequencyRegistry.lookup(["season", [1, 2, 3, 4]])
         assert freq.pandas_freq == "AS-JAN"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_lookup_season_tuple(self):
+    def test_lookup_season_tuple(self) -> None:
         freq = FrequencyRegistry.lookup(("season", [1, 2, 3, 4]))
         assert freq.pandas_freq == "AS-JAN"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_lookup_pandas_freq(self):
+    def test_lookup_pandas_freq(self) -> None:
         freq = FrequencyRegistry.lookup("3MS")
         assert freq.pandas_freq == "3MS"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_lookup_winter__deprecated_tuple(self):
+    def test_lookup_winter__deprecated_tuple(self) -> None:
         freq = FrequencyRegistry.lookup(["season", ([11, 12], [1, 2, 3, 4])])
         assert freq.pandas_freq == "AS-NOV"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_lookup_error__non_consecutive_season(self):
+    def test_lookup_error__non_consecutive_season(self) -> None:
         with pytest.raises(InvalidIcclimArgumentError):
             FrequencyRegistry.lookup(["season", ([12, 3])])
 
-    def test_lookup_error__weird_months(self):
+    def test_lookup_error__weird_months(self) -> None:
         with pytest.raises(InvalidIcclimArgumentError):
             FrequencyRegistry.lookup(["season", ([42, 0])])
 
-    def test_lookup__winter(self):
+    def test_lookup__winter(self) -> None:
         freq = FrequencyRegistry.lookup(["season", [11, 12, 1, 2]])
         assert freq.pandas_freq == "AS-NOV"
         assert freq.accepted_values == []
         assert freq.post_processing is not None
 
-    def test_lookup_season__between_dates(self):
+    def test_lookup_season__between_dates(self) -> None:
         freq = FrequencyRegistry.lookup(["season", ["07-19", "08-14"]])
         assert freq.pandas_freq == "AS-JUL"
         assert freq.accepted_values == []
@@ -87,7 +87,7 @@ class TestBuildFrequencyOverList:
 
 
 class TestSeasonsResampler:
-    def test_simple(self):
+    def test_simple(self) -> None:
         # WHEN
         test_da = filter_months(stub_tas(), [4, 5, 6]).resample(time="YS").mean()
         da_res, time_bds_res = get_seasonal_time_updater(4, 6)(test_da)
@@ -99,7 +99,7 @@ class TestSeasonsResampler:
             == pd.to_datetime("2042-07") - pd.tseries.offsets.Day()
         )
 
-    def test_winter(self):
+    def test_winter(self) -> None:
         # WHEN
         test_da = filter_months(stub_tas(), [11, 12, 1]).resample(time="AS-NOV").mean()
         da_res, time_bds_res = get_seasonal_time_updater(11, 1)(test_da)
@@ -117,7 +117,7 @@ class TestSeasonsResampler:
         )
 
     @pytest.mark.parametrize("use_cf", [True, False])
-    def test_between_dates(self, use_cf):
+    def test_between_dates(self, use_cf) -> None:
         # WHEN
         test_da = (
             filter_months(stub_tas(use_cftime=use_cf), [11, 12, 1])
@@ -131,7 +131,7 @@ class TestSeasonsResampler:
         assert time_bds_res[0].data[1] == pd.to_datetime("2042-01-30")
 
     @pytest.mark.parametrize("use_cf", [True, False])
-    def test_between_dates__december_ending(self, use_cf):
+    def test_between_dates__december_ending(self, use_cf) -> None:
         # WHEN
         test_da = (
             filter_months(stub_tas(use_cftime=use_cf), [11, 12])

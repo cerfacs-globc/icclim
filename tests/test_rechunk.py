@@ -7,11 +7,11 @@ import pandas as pd
 import pytest
 import xarray as xr
 from icclim import create_optimized_zarr_store
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import UNITS_KEY
+from icclim._core.constants import UNITS_KEY
+from icclim.exception import InvalidIcclimArgumentError
 
 
-def test_create_optimized_zarr_store_success():
+def test_create_optimized_zarr_store_success() -> None:
     ds = xr.Dataset(
         {
             "tas": xr.DataArray(
@@ -37,7 +37,7 @@ def test_create_optimized_zarr_store_success():
         np.testing.assert_array_equal(result.data_vars.keys(), ds.data_vars.keys())
 
 
-def test_create_optimized_zarr_store_error():
+def test_create_optimized_zarr_store_error() -> None:
     ds = xr.Dataset(
         {
             "tas": xr.DataArray(
@@ -66,7 +66,7 @@ def test_create_optimized_zarr_store_error():
 
 
 @patch("rechunker.rechunk")
-def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock):
+def test_create_optimized_zarr_store_no_rechunk(rechunk_mock: MagicMock) -> None:
     ds = xr.Dataset(
         {
             "tas": xr.DataArray(

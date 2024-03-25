@@ -1,19 +1,19 @@
 from __future__ import annotations
 
 import icclim
-from icclim.models.constants import (
+from icclim._core.constants import (
     UNITS_KEY,
     USER_INDEX_PRECIPITATION_STAMP,
     USER_INDEX_TEMPERATURE_STAMP,
 )
-from icclim.models.operator import OperatorRegistry
+from icclim._core.model.operator import OperatorRegistry
 from xclim.core.calendar import build_climatology_bounds
 
 from tests.testing_utils import stub_tas
 
 
 class TestMax:
-    def test_simple(self):
+    def test_simple(self) -> None:
         da = stub_tas(use_dask=False)
         da.data[1] = 20
         # WHEN
@@ -31,7 +31,7 @@ class TestMax:
 
 
 class TestMin:
-    def test_simple(self):
+    def test_simple(self) -> None:
         da = stub_tas(use_dask=False)
         da.data[1] = -20
         # WHEN
@@ -44,7 +44,7 @@ class TestMin:
 
 
 class TestMean:
-    def test_simple(self):
+    def test_simple(self) -> None:
         da = stub_tas(use_dask=False)
         da[2] = 366
         # WHEN
@@ -57,7 +57,7 @@ class TestMean:
 
 
 class TestSum:
-    def test_simple(self):
+    def test_simple(self) -> None:
         da = stub_tas(use_dask=False)
         # WHEN
         result = icclim.index(
@@ -70,7 +70,7 @@ class TestSum:
 
 
 class TestCountEvents:
-    def test_simple(self):
+    def test_simple(self) -> None:
         # GIVEN
         da = stub_tas(10, False)
         da[1] = 15
@@ -89,7 +89,7 @@ class TestCountEvents:
         # THEN
         assert result.data[0] == 1
 
-    def test_simple_default_percentile(self):
+    def test_simple_default_percentile(self) -> None:
         # GIVEN
         da = stub_tas(10, False)
         da[1] = 15
@@ -109,7 +109,7 @@ class TestCountEvents:
         # THEN
         assert result.data.isel(time=0) == 2
 
-    def test_simple_period_percentile(self):
+    def test_simple_period_percentile(self) -> None:
         # GIVEN
         da = stub_tas(10, False)
         da[1] = 15
@@ -130,7 +130,7 @@ class TestCountEvents:
         # THEN
         assert result.data.isel(time=0) == 2
 
-    def test_simple_doy_percentile(self):
+    def test_simple_doy_percentile(self) -> None:
         # GIVEN
         da = stub_tas(10, False)
         da[1] = 15
@@ -151,7 +151,7 @@ class TestCountEvents:
         # THEN
         assert result.data.isel(time=0) == 2
 
-    def test_multi_threshold_or(self):
+    def test_multi_threshold_or(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[1] = 15
@@ -172,7 +172,7 @@ class TestCountEvents:
         # THEN
         assert result.data[0] == 1
 
-    def test_multi_threshold_and(self):
+    def test_multi_threshold_and(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[1] = 15
@@ -196,7 +196,7 @@ class TestCountEvents:
 
 
 class TestRunMean:
-    def test_run_mean_min(self):
+    def test_run_mean_min(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 0
@@ -220,7 +220,7 @@ class TestRunMean:
         assert result.data[1] == 2
         assert result.data[2] == 10
 
-    def test_run_mean_max(self):
+    def test_run_mean_max(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 20
@@ -242,7 +242,7 @@ class TestRunMean:
 
 
 class TestRunSum:
-    def test_run_sum_min(self):
+    def test_run_sum_min(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 0
@@ -266,7 +266,7 @@ class TestRunSum:
         assert result.data[1] == 10
         assert result.data[2] == 50
 
-    def test_run_sum_max(self):
+    def test_run_sum_max(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 20
@@ -288,7 +288,7 @@ class TestRunSum:
 
 
 class TestMaxConsecutiveEventCount:
-    def test_simple(self):
+    def test_simple(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax[30] = 15  # On 31th january
@@ -309,7 +309,7 @@ class TestMaxConsecutiveEventCount:
 
 
 class TestAnomaly:
-    def test_simple(self):
+    def test_simple(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax2 = stub_tas(11, False)
@@ -326,11 +326,11 @@ class TestAnomaly:
         assert (result.data == 1).all()
         assert result.data.attrs[UNITS_KEY] == tmax.attrs[UNITS_KEY]
 
-    def test_single_var(self):
+    def test_single_var(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         first_year = tmax.time.dt.year.min().values[()]
-        tmax = tmax.where(tmax.time.dt.year <= first_year + 1, 11)  #
+        tmax = tmax.where(tmax.time.dt.year <= first_year + 1, 11)
         ref = tmax.sel(time=slice(str(first_year), str(first_year + 1)))
         ref_bds = build_climatology_bounds(ref)
         study = tmax.where(~tmax.time.dt.year.isin(ref.time.dt.year), drop=True)
@@ -352,7 +352,7 @@ class TestAnomaly:
         assert len(result.data.month) == 12
         assert result.data.attrs[UNITS_KEY] == tmax.attrs[UNITS_KEY]
 
-    def test_simple_percent(self):
+    def test_simple_percent(self) -> None:
         # GIVEN
         tmax = stub_tas(10, False)
         tmax2 = stub_tas(11, False)

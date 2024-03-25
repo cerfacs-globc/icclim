@@ -13,19 +13,19 @@ import pint
 import pytest
 import xarray as xr
 from icclim import __version__ as icclim_version
-from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.generic_indices.threshold import build_threshold
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
-from icclim.models.frequency import FrequencyRegistry
-from icclim.models.index_group import IndexGroupRegistry
+from icclim._core.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
+from icclim._core.frequency import FrequencyRegistry
+from icclim._core.model.index_group import IndexGroupRegistry
+from icclim.ecad.registry import EcadIndexRegistry
+from icclim.exception import InvalidIcclimArgumentError
+from icclim.threshold.factory import build_threshold
 
 from tests.testing_utils import K2C, stub_pr, stub_tas
 
 
 @patch("icclim.main.index")
-@patch("icclim.icclim_logger.IcclimLogger")
-def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock):
+@patch("icclim.logger.IcclimLogger")
+def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock) -> None:
     icclim.main.log = log_mock
     icclim.indice()
     log_mock.deprecation_warning.assert_called_once_with(
@@ -111,7 +111,7 @@ class TestIntegration:
         with contextlib.suppress(FileNotFoundError):
             self.OUTPUT_FILE.unlink()
 
-    def test_index_su(self):
+    def test_index_su(self) -> None:
         tas = stub_tas(tas_value=26 + K2C)
         tas[:5] = 0
         res = icclim.index(
@@ -123,7 +123,7 @@ class TestIntegration:
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         assert res.SU.isel(time=0) == 26  # January
 
-    def test_index_su__on_dataset(self):
+    def test_index_su__on_dataset(self) -> None:
         res = icclim.index(
             index_name="SU",
             var_name="data",
@@ -133,7 +133,7 @@ class TestIntegration:
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.SU)
 
-    def test_index_dtr(self):
+    def test_index_dtr(self) -> None:
         ds = self.data.to_dataset(name="toto")
         ds["tutu"] = self.data + 10
         res = icclim.index(
@@ -145,7 +145,7 @@ class TestIntegration:
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(-10, res.DTR)
 
-    def test_index_dtr__with_unit_conversion(self):
+    def test_index_dtr__with_unit_conversion(self) -> None:
         ds = self.data.to_dataset(name="toto")
         ds["tutu"] = self.data + 10
         ds["toto"].attrs["units"] = "K"
@@ -159,7 +159,7 @@ class TestIntegration:
         np.testing.assert_array_equal(-10, res.DTR)
         np.testing.assert_array_equal("°C", res.DTR.attrs["units"])
 
-    def test_index_cd(self):
+    def test_index_cd(self) -> None:
         ds = self.data.to_dataset(name="tas")
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
@@ -171,12 +171,12 @@ class TestIntegration:
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.CD)
 
-    def test__preserve_initial_history(self):
+    def test__preserve_initial_history(self) -> None:
         self.data.attrs["history"] = "pouet pouet cacahuête"
         res = icclim.su(in_files=self.data)
         assert "pouet pouet cacahuête" in res.attrs["history"]
 
-    def test_index_su__time_selection(self):
+    def test_index_su__time_selection(self) -> None:
         # WHEN
         res_string_dates = icclim.index(
             index_name="SU",
@@ -206,7 +206,7 @@ class TestIntegration:
             res_datetime_dates.time_bounds,
         )
 
-    def test_index_su__pandas_time_slice_mode(self):
+    def test_index_su__pandas_time_slice_mode(self) -> None:
         # WHEN
         res = icclim.index(
             index_name="SU",
@@ -227,11 +227,11 @@ class TestIntegration:
         )
         assert (
             res.SU.attrs["long_name"]
-            == "Number of days when maximum air temperature is greater than 25.0"
+            == "Number of days when maximum air temperature is greater than 25"
             " degC for each 2 wednesday starting week(s)."
         )
 
-    def test_index_su__monthy_sampled(self):
+    def test_index_su__monthy_sampled(self) -> None:
         res = icclim.index(
             index_name="SU",
             in_files=self.data,
@@ -244,7 +244,7 @@ class TestIntegration:
             len(res.time),
         )
 
-    def test_index_su__monthy_sampled_cf_time(self):
+    def test_index_su__monthy_sampled_cf_time(self) -> None:
         res = icclim.index(
             index_name="SU",
             in_files=self.data_cf_time,
@@ -275,7 +275,7 @@ class TestIntegration:
             0,
         )
 
-    def test_index_su__djf_cf_time(self):
+    def test_index_su__djf_cf_time(self) -> None:
         res = icclim.index(
             index_name="SU",
             in_files=self.data_cf_time,
@@ -308,7 +308,7 @@ class TestIntegration:
             0,
         )
 
-    def test_indices__from_dataarray(self):
+    def test_indices__from_dataarray(self) -> None:
         res = icclim.indices(
             index_group=IndexGroupRegistry.HEAT,
             in_files=self.data,
@@ -317,7 +317,7 @@ class TestIntegration:
         for i in HEAT_INDICES:
             assert res[i] is not None
 
-    def test_indices__on_var_name(self):
+    def test_indices__on_var_name(self) -> None:
         res = icclim.indices(
             index_group="tasmax",
             in_files=self.data,
@@ -326,7 +326,7 @@ class TestIntegration:
         for i in ["SU", "WSDI", "TX90p", "TXx", "CSU", "ID", "TX10p", "TXn"]:
             assert res[i] is not None
 
-    def test_indices__on_index_name(self):
+    def test_indices__on_index_name(self) -> None:
         res = icclim.indices(
             index_group="tx90p",
             in_files=self.data,
@@ -335,7 +335,7 @@ class TestIntegration:
         for i in ["TX90p"]:
             assert res[i] is not None
 
-    def test_indices__on_var_names(self):
+    def test_indices__on_var_names(self) -> None:
         ds = self.data.to_dataset(name="tas")
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
@@ -373,7 +373,7 @@ class TestIntegration:
         ]:
             assert res[i] is not None
 
-    def test_indices__on_group_union(self):
+    def test_indices__on_group_union(self) -> None:
         ds = self.data.to_dataset(name="tx")
         ds["tn"] = self.data.copy(deep=True)
         ds["tg"] = self.data.copy(deep=True)
@@ -401,7 +401,7 @@ class TestIntegration:
         ]:
             assert res[i] is not None
 
-    def test_indices__error(self):
+    def test_indices__error(self) -> None:
         ds = self.data.to_dataset(name="tx")
         with pytest.raises(InvalidIcclimArgumentError):
             icclim.indices(
@@ -410,7 +410,7 @@ class TestIntegration:
                 out_file=self.OUTPUT_FILE,
             )
 
-    def test_indices__snow_indices(self):
+    def test_indices__snow_indices(self) -> None:
         ds = self.data.to_dataset(name="tas")
         ds["snd"] = self.data.copy(deep=True)
         ds["snd"].attrs[UNITS_KEY] = "cm"
@@ -425,7 +425,7 @@ class TestIntegration:
         ):
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_dataset(self):
+    def test_indices_all_from_dataset(self) -> None:
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -435,7 +435,7 @@ class TestIntegration:
         for i in EcadIndexRegistry.values():
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_dataset__seasonal_spi_error(self):
+    def test_indices_all_from_dataset__seasonal_spi_error(self) -> None:
         with pytest.raises(InvalidIcclimArgumentError):
             icclim.indices(
                 index_group="SPI3",
@@ -445,7 +445,7 @@ class TestIntegration:
                 base_period_time_range=("2042-01-01", "2042-12-31"),
             )
 
-    def test_spi6__no_time_bounds(self):
+    def test_spi6__no_time_bounds(self) -> None:
         dataset = icclim.index(
             index_name="spi6",
             in_files=self.full_data,
@@ -454,7 +454,7 @@ class TestIntegration:
         ).load()
         assert "time_bounds" not in dataset.coords
 
-    def test_indices_all_from_dataset__seasonal(self):
+    def test_indices_all_from_dataset__seasonal(self) -> None:
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -465,7 +465,7 @@ class TestIntegration:
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_dataset__between_dates_seasonal(self):
+    def test_indices_all_from_dataset__between_dates_seasonal(self) -> None:
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -476,7 +476,7 @@ class TestIntegration:
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_dataset__jfm_seasonal(self):
+    def test_indices_all_from_dataset__jfm_seasonal(self) -> None:
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -487,7 +487,7 @@ class TestIntegration:
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
-    def test_indices_all_from_dataset__between_year_season(self):
+    def test_indices_all_from_dataset__between_year_season(self) -> None:
         res = icclim.indices(
             index_group="all",
             in_files=self.full_data,
@@ -498,7 +498,7 @@ class TestIntegration:
         for i in self.not_spi_indices:
             assert res[i.short_name] is not None
 
-    def test_indices_all_ignore_error(self):
+    def test_indices_all_ignore_error(self) -> None:
         no_snow = self.full_data.copy()
         del no_snow["snd"]
         res: xr.Dataset = icclim.indices(
@@ -516,7 +516,7 @@ class TestIntegration:
             else:
                 assert res[i.short_name] is not None
 
-    def test_indices_all__error(self):
+    def test_indices_all__error(self) -> None:
         ds = self.data.to_dataset(name="tas")
         ds["tasmax"] = self.data
         ds["tasmin"] = self.data
@@ -533,7 +533,7 @@ class TestIntegration:
                 ignore_error=False,
             )
 
-    def test_index_tr(self):
+    def test_index_tr(self) -> None:
         tas = stub_tas(tas_value=26 + K2C)
         tas[:5] = 0
         res = icclim.index(
@@ -545,7 +545,7 @@ class TestIntegration:
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         assert res.TR.isel(time=0) == 26  # January
 
-    def test_index_prcptot(self):
+    def test_index_prcptot(self) -> None:
         pr = stub_pr(value=2)
         pr.attrs[UNITS_KEY] = "mm/day"
         pr[:10] = 0
@@ -556,7 +556,7 @@ class TestIntegration:
         ).load()
         np.testing.assert_array_almost_equal(res.PRCPTOT.isel(time=0), 42)
 
-    def test_index_r75ptot(self):
+    def test_index_r75ptot(self) -> None:
         # 2.32e-06 is about 0.2 mm/day
         # they will be ignore in computation because < 1 mm/day
         pr = stub_pr(value=2e-06)
@@ -573,7 +573,7 @@ class TestIntegration:
         # 50% of precip are due to the precip above the 75th percentile
         np.testing.assert_array_almost_equal(res.R75pTOT.isel(time=0), 50)
 
-    def test_index_csu(self):
+    def test_index_csu(self) -> None:
         tas = stub_tas(tas_value=26 + K2C)
         tas[10:40] = 0
         res = icclim.index(
@@ -589,7 +589,7 @@ class TestIntegration:
         # Nan because they are counted as the first run taken into account for Februar
         assert np.isnan(res.CSU.isel(time=3))
 
-    def test_index_gd4(self):
+    def test_index_gd4(self) -> None:
         tas = stub_tas(tas_value=26 + K2C)
         tas[5:15] = 0
         res = icclim.index(
@@ -603,7 +603,7 @@ class TestIntegration:
             res.GD4.isel(time=0) == expected
         )  # 21 days in January above 4 degC (at 26degC)
 
-    def test_index_cfd(self):
+    def test_index_cfd(self) -> None:
         tas = stub_tas(tas_value=26 + K2C)
         tas[5:15] = 270  # ~ -3degC
         res = icclim.cfd(
@@ -614,7 +614,7 @@ class TestIntegration:
         # 10 days in January that are below or equal to 0degC
         assert res.CFD.isel(time=0) == 10
 
-    def test_index_fd(self):
+    def test_index_fd(self) -> None:
         tas = stub_tas(tas_value=26 + K2C)
         tas[5:15] = 0
         tas[20:25] = 0
@@ -626,7 +626,7 @@ class TestIntegration:
         )
         assert res.FD.isel(time=0) == 15
 
-    def test_index_hd17(self):
+    def test_index_hd17(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[5:10] = 0
         res = icclim.index(
@@ -637,7 +637,7 @@ class TestIntegration:
         )
         assert res.HD17.isel(time=0) == 5 * (17 + K2C)
 
-    def test_index_tx90p__no_bootstrap_because_one_single_year_of_ref(self):
+    def test_index_tx90p__no_bootstrap_because_one_single_year_of_ref(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[5:15] = 0
         res = icclim.index(
@@ -655,7 +655,7 @@ class TestIntegration:
         # Thus no value are strictly above it.
         assert res.TX90p.isel(time=0) == 0
 
-    def test_index_tx90p__no_bootstrap_because_no_overlap(self):
+    def test_index_tx90p__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[5:10] = 0
         res = icclim.index(
@@ -671,7 +671,7 @@ class TestIntegration:
         # resample_doy add a day where 90th per is below tas
         assert res.TX90p.isel(time=0) == 6
 
-    def test_index_tx90p__bootstrap_2_years(self):
+    def test_index_tx90p__bootstrap_2_years(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[5:10] = 0
         res = icclim.index(
@@ -689,7 +689,7 @@ class TestIntegration:
         # 2043 values are compared to 2042's 90th percentile due to bootstrap
         assert res.TX90p.sel(time="2043-01") == 5
 
-    def test_index_wsdi__no_bootstrap_because_no_overlap(self):
+    def test_index_wsdi__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[0:10] = 0
         res = icclim.index(
@@ -705,7 +705,7 @@ class TestIntegration:
         # 1 more day than in tas because of resample_doy that interpolate values
         assert res.WSDI.isel(time=0) == 11
 
-    def test_index_csdi__no_bootstrap_because_no_overlap(self):
+    def test_index_csdi__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)
         tas[0:10] = 35 + K2C
         res = icclim.index(
@@ -721,7 +721,7 @@ class TestIntegration:
         # 1 more day than in tas because of resample_doy that interpolate values
         assert res.CSDI.isel(time=0) == 11
 
-    def test_count_occurrences__date_event(self):
+    def test_count_occurrences__date_event(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)
         tas[10] = 35 + K2C
         res = icclim.index(
@@ -741,7 +741,7 @@ class TestIntegration:
             "2042-01-11",
         )
 
-    def test_count_occurrences__to_percent(self):
+    def test_count_occurrences__to_percent(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)
         tas[10] = 35 + K2C
         res = icclim.index(
@@ -755,7 +755,7 @@ class TestIntegration:
         assert res.count_occurrences.attrs[UNITS_KEY] == "%"
         assert res.count_occurrences.isel(time=0) == 1 / 31 * 100
 
-    def test_count_occurrences__multiple_simple_thresholds(self):
+    def test_count_occurrences__multiple_simple_thresholds(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)
         tas[10] = 35 + K2C
         res = icclim.index(
@@ -771,7 +771,7 @@ class TestIntegration:
         # The 5 days rolling turn the 1 day unusual value into a 5 day time lapse
         assert res.count_occurrences.isel(time=0).sel(threshold=30) == 1
 
-    def test_count_occurrences__multiple_doy_per_thresholds(self):
+    def test_count_occurrences__multiple_doy_per_thresholds(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)
         tas[10] = 35 + K2C
         res = icclim.index(
@@ -787,7 +787,7 @@ class TestIntegration:
         # The 5 days rolling turn the 1 day unusual value into a 5 day time lapse
         assert res.count_occurrences.isel(time=0).sel(percentiles=99) == 26
 
-    def test_count_occurrences__multiple_period_per_thresholds(self):
+    def test_count_occurrences__multiple_period_per_thresholds(self) -> None:
         tas = stub_tas(tas_value=-20 + K2C)
         tas[10] = 35 + K2C
         res = icclim.index(
@@ -806,7 +806,7 @@ class TestIntegration:
         assert res.count_occurrences.isel(time=0).sel(percentiles=10) == 31
         assert res.count_occurrences.isel(time=0).sel(percentiles=99.95) == 1
 
-    def test_excess__on_doy_percentile(self):
+    def test_excess__on_doy_percentile(self) -> None:
         tas = stub_tas(tas_value=10 + K2C).rename("tas")
         tas[10] = 5 + K2C
         res = icclim.index(
@@ -825,7 +825,7 @@ class TestIntegration:
         np.testing.assert_almost_equal(res.excess.isel(time=0), 5.01369863)
         assert "tas_thresholds" in res.data_vars
 
-    def test_deficit__on_doy_percentile(self):
+    def test_deficit__on_doy_percentile(self) -> None:
         tas = stub_tas(tas_value=5 + K2C).rename("tas")
         tas[10] = 10 + K2C
         res = icclim.index(
@@ -844,7 +844,12 @@ class TestIntegration:
         np.testing.assert_almost_equal(res.deficit.isel(time=0), 5.01369863)
         assert "tas_thresholds" in res.data_vars
 
-    def test_fraction_of_total(self):
+    def test_txnd(self) -> None:
+        tas = stub_tas(tas_value=2, lat_length=10, lon_longth=10)
+        normal_tas = stub_tas(tas_value=1, lat_length=10, lon_longth=10)
+        icclim.dcsc.txnd(in_files=tas, normal=normal_tas)
+
+    def test_fraction_of_total(self) -> None:
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
         tas[tas.time.dt.date == np.datetime64("2042-06-10")] = 10 + K2C
         res = icclim.index(
@@ -857,7 +862,7 @@ class TestIntegration:
         assert res.fraction_of_total.isel(time=1) == 1
         assert res.fraction_of_total.attrs[UNITS_KEY] == PART_OF_A_WHOLE_UNIT
 
-    def test_fraction_of_total_percent(self):
+    def test_fraction_of_total_percent(self) -> None:
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
         tas[tas.time.dt.date == np.datetime64("2042-06-10")] = 10 + K2C
         res = icclim.index(
@@ -871,7 +876,7 @@ class TestIntegration:
         assert res.fraction_of_total.isel(time=1) == 100
         assert res.fraction_of_total.attrs[UNITS_KEY] == "%"
 
-    def test_std(self):
+    def test_std(self) -> None:
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
         res = icclim.index(
             tas,
@@ -879,7 +884,7 @@ class TestIntegration:
         ).compute()
         np.testing.assert_almost_equal(res.standard_deviation.isel(time=0), 0)
 
-    def test_slice_mode__between_date(self):
+    def test_slice_mode__between_date(self) -> None:
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
             dims=["time"],
@@ -899,7 +904,7 @@ class TestIntegration:
         # the index
         np.testing.assert_almost_equal(cdd.isel(time=0), 2)
 
-    def test_rr_with_slice_mode__week(self):
+    def test_rr_with_slice_mode__week(self) -> None:
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
             dims=["time"],
@@ -917,7 +922,7 @@ class TestIntegration:
         np.testing.assert_almost_equal(rr.isel(time=0), 0.2)
         np.testing.assert_almost_equal(rr.isel(time=1), 5.1)
 
-    def test_rr_with_slice_mode__4_weeks(self):
+    def test_rr_with_slice_mode__4_weeks(self) -> None:
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
             dims=["time"],
@@ -935,7 +940,7 @@ class TestIntegration:
         np.testing.assert_almost_equal(rr.RR.isel(time=0), 5.3)
         np.testing.assert_almost_equal(rr.RR.isel(time=1), 0)
 
-    def test_mm_to_mmday(self):
+    def test_mm_to_mmday(self) -> None:
         # GIVEN
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
@@ -953,7 +958,7 @@ class TestIntegration:
         # THEN
         assert r10mm.isel(time=0) == 5
 
-    def test_mm_to_mmday__error_bas_standard_name(self):
+    def test_mm_to_mmday__error_bas_standard_name(self) -> None:
         # GIVEN
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
@@ -971,7 +976,7 @@ class TestIntegration:
             # WHEN
             icclim.r10mm(in_files=precip)
 
-    def test_ddnorth(self):
+    def test_ddnorth(self) -> None:
         # GIVEN
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
@@ -991,7 +996,7 @@ class TestIntegration:
         # THEN
         np.testing.assert_almost_equal(ddnorth.isel(time=0), 10)
 
-    def test_ddeast(self):
+    def test_ddeast(self) -> None:
         # GIVEN
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
@@ -1011,7 +1016,7 @@ class TestIntegration:
         # THEN
         np.testing.assert_almost_equal(ddeast.isel(time=0), 21)
 
-    def test_pp(self):
+    def test_pp(self) -> None:
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
             dims=["time"],
@@ -1030,7 +1035,7 @@ class TestIntegration:
         # THEN
         np.testing.assert_almost_equal(pp.isel(time=0), 10)
 
-    def test_ss(self):
+    def test_ss(self) -> None:
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
             dims=["time"],
@@ -1046,7 +1051,7 @@ class TestIntegration:
         # THEN
         np.testing.assert_almost_equal(ss.isel(time=0), 31)
 
-    def test_rh(self):
+    def test_rh(self) -> None:
         time_range = xr.DataArray(
             pd.date_range("2000", periods=365, freq="D"),
             dims=["time"],

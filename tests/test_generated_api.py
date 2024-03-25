@@ -7,21 +7,24 @@ from unittest.mock import MagicMock, patch
 import icclim
 import numpy as np
 import pytest
-from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.generic_indices.generic_indicators import GenericIndicatorRegistry
-from icclim.generic_indices.threshold import build_threshold
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.icclim_logger import VerbosityRegistry
-from icclim.models.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
-from icclim.models.frequency import FrequencyRegistry
-from icclim.models.netcdf_version import NetcdfVersionRegistry
-from icclim.models.quantile_interpolation import QuantileInterpolationRegistry
-from icclim.user_indices.calc_operation import CalcOperation, CalcOperationRegistry
+from icclim._core.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
+from icclim._core.frequency import FrequencyRegistry
+from icclim._core.legacy.user_index.calc_operation import (
+    CalcOperation,
+    CalcOperationRegistry,
+)
+from icclim._core.model.netcdf_version import NetcdfVersionRegistry
+from icclim._core.model.quantile_interpolation import QuantileInterpolationRegistry
+from icclim.ecad.registry import EcadIndexRegistry
+from icclim.exception import InvalidIcclimArgumentError
+from icclim.generic.registry import GenericIndicatorRegistry
+from icclim.logger import VerbosityRegistry
+from icclim.threshold.factory import build_threshold
 
 from tests.testing_utils import stub_tas
 
 if TYPE_CHECKING:
-    from icclim.models.standard_index import StandardIndex
+    from icclim._core.model.standard_index import StandardIndex
 
 DEFAULT_ARGS = {
     "in_files": "pouet.nc",
@@ -37,7 +40,8 @@ DEFAULT_ARGS = {
 
 
 def build_expected_args(index: StandardIndex):
-    expected_call_args = {"index_name": index.short_name.upper()}
+    index_name = EcadIndexRegistry.lookup(index)
+    expected_call_args = {"index_name": index_name}
     expected_call_args.update(DEFAULT_ARGS)
     qualifiers = [] if index.qualifiers is None else index.qualifiers
     if QUANTILE_BASED in qualifiers:
@@ -73,7 +77,7 @@ def build_expected_args(index: StandardIndex):
 
 
 @patch("icclim.index")
-def test_generated_api(generic_index_fun_mock: MagicMock):
+def test_generated_api(generic_index_fun_mock: MagicMock) -> None:
     for i in EcadIndexRegistry.values():
         # GIVEN
         api_index_fun = eval(f"icclim.{i.short_name.lower()}")
@@ -91,7 +95,7 @@ def test_generated_api(generic_index_fun_mock: MagicMock):
 
 
 @patch("icclim.index")
-def test_custom_index(index_fun_mock: MagicMock):
+def test_custom_index(index_fun_mock: MagicMock) -> None:
     user_index_args = {
         "in_files": "pouet_file.nc",
         "var_name": None,
@@ -124,7 +128,7 @@ def test_custom_index(index_fun_mock: MagicMock):
 
 
 # integration test
-def test_txx__season_slice_mode():
+def test_txx__season_slice_mode() -> None:
     # GIVEN
     tas = stub_tas()
     tas.loc[{"time": "2043-02-02"}] = 295
@@ -141,7 +145,7 @@ def test_txx__season_slice_mode():
     )
 
 
-def test_txx__months_slice_mode():
+def test_txx__months_slice_mode() -> None:
     tas = stub_tas()
     tas.loc[{"time": "2042-11-02"}] = 295
     tas.loc[{"time": "2042-01-01"}] = 303.15  # 30°C 273.15
@@ -172,7 +176,7 @@ def test_custom_index__season_slice_mode(
     operator: CalcOperation,
     expectation_year_1,
     expectation_year_2,
-):
+) -> None:
     tas = stub_tas(275.0)
     tas.loc[{"time": "2043-01-01"}] = 303.15
     tas.loc[{"time": "2043-12-01"}] = 280.15
@@ -206,7 +210,7 @@ def test_custom_index_run_algos__season_slice_mode(
     operator,
     expectation_year_1,
     expectation_year_2,
-):
+) -> None:
     tas = stub_tas(275.0)
     tas.loc[{"time": "2043-12-01"}] = 282.0
     res = icclim.custom_index(
@@ -227,7 +231,7 @@ def test_custom_index_run_algos__season_slice_mode(
     np.testing.assert_almost_equal(res.pouet.isel(time=2), expectation_year_2)
 
 
-def test_custom_index_anomaly__error_single_var():
+def test_custom_index_anomaly__error_single_var() -> None:
     tas = stub_tas(2.0)
     with pytest.raises(InvalidIcclimArgumentError):
         # error: it needs 2 vars or 1 var and a ref period
@@ -240,7 +244,7 @@ def test_custom_index_anomaly__error_single_var():
         )
 
 
-def test_custom_index_anomaly__error_():
+def test_custom_index_anomaly__error_() -> None:
     tas = stub_tas(2.0)
     with pytest.raises(InvalidIcclimArgumentError):
         # error: Can't resample the reference variable if it is already a
@@ -259,7 +263,7 @@ def test_custom_index_anomaly__error_():
         )
 
 
-def test_custom_index_anomaly__datetime_ref_period():
+def test_custom_index_anomaly__datetime_ref_period() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
     res = icclim.custom_index(
@@ -284,7 +288,7 @@ def test_custom_index_anomaly__datetime_ref_period():
     np.testing.assert_almost_equal(res.anomaly.sel(time="2046"), np.NAN)
 
 
-def test_custom_index_anomaly__groupby_and_resample_month():
+def test_custom_index_anomaly__groupby_and_resample_month() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
     res = icclim.custom_index(
@@ -303,7 +307,7 @@ def test_custom_index_anomaly__groupby_and_resample_month():
     np.testing.assert_almost_equal(res.anomaly.sel(time="2045-01"), 9.61290323)
 
 
-def test_custom_index_anomaly__groupby_and_resample_year():
+def test_custom_index_anomaly__groupby_and_resample_year() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
     res = icclim.custom_index(
@@ -322,7 +326,7 @@ def test_custom_index_anomaly__groupby_and_resample_year():
     np.testing.assert_almost_equal(res.anomaly.sel(time="2045"), 0.81643836)
 
 
-def test_custom_index_anomaly__groupby_and_resample_day():
+def test_custom_index_anomaly__groupby_and_resample_day() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
     res = icclim.custom_index(
@@ -341,7 +345,7 @@ def test_custom_index_anomaly__groupby_and_resample_day():
     np.testing.assert_almost_equal(res.anomaly.sel(time="2045-01-01"), 298)
 
 
-def test_custom_index_anomaly__groupby_and_resample_hour():
+def test_custom_index_anomaly__groupby_and_resample_hour() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
     with pytest.raises(NotImplementedError):
@@ -360,7 +364,7 @@ def test_custom_index_anomaly__groupby_and_resample_hour():
         )
 
 
-def test_custom_index_anomaly__grouby_season():
+def test_custom_index_anomaly__grouby_season() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
     res = icclim.custom_index(
@@ -380,7 +384,7 @@ def test_custom_index_anomaly__grouby_season():
     np.testing.assert_almost_equal(res.anomaly, 0.96129032)
 
 
-def test_custom_index_anomaly__grouby_month():
+def test_custom_index_anomaly__grouby_month() -> None:
     tas = stub_tas(2.0)
     tas.loc[{"time": "2045-01-01"}] = 300
     res = icclim.custom_index(

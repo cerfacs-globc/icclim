@@ -1,12 +1,12 @@
 .. _custom_indices_recipes:
 
 ########################
- Custom indices recipes
+ User indices recipes
 ########################
 
 .. note::
 
-   Custom indices are deprecated. You should switch to
+   User indices are deprecated. You should switch to
    :ref:`generic_indices_recipes` API.
 
 .. code:: python
@@ -156,7 +156,7 @@ Get minimum temperature which is above zero Celsius and find its date.
 
    my_index_params = {
        "index_name": "my_index",
-       "calc_operation": "nb_events",  ### 'calc_operation': 'max_nb_consecutive_events'
+       "calc_operation": "nb_events",
        "logical_operation": "gt",
        "thresh": "p80",
        "var_type": "t",

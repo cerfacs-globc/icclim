@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import pytest
-from icclim.ecad.ecad_indices import EcadIndexRegistry
-from icclim.icclim_exceptions import InvalidIcclimArgumentError
-from icclim.models.standard_index import StandardIndex
+from icclim._core.model.standard_index import StandardIndex
+from icclim.ecad.registry import EcadIndexRegistry
+from icclim.exception import InvalidIcclimArgumentError
 
 
-def test_listing():
+def test_listing() -> None:
     res = EcadIndexRegistry.to_list()
     indices = [
         k for k, v in EcadIndexRegistry.__dict__.items() if isinstance(v, StandardIndex)
@@ -15,14 +15,14 @@ def test_listing():
 
 
 class TestIndexFromString:
-    def test_simple(self):
+    def test_simple(self) -> None:
         res = EcadIndexRegistry.lookup("SU")
         assert res == EcadIndexRegistry.SU
 
-    def test_lowercase(self):
+    def test_lowercase(self) -> None:
         res = EcadIndexRegistry.lookup("tx90p")
         assert res == EcadIndexRegistry.TX90P
 
-    def test_error(self):
+    def test_error(self) -> None:
         with pytest.raises(InvalidIcclimArgumentError):
             EcadIndexRegistry.lookup("cacahuête")
