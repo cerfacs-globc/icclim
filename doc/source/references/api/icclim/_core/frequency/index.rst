@@ -215,12 +215,12 @@ Module Contents
 
    Build timedelta from a "pandas frequency" string.
 
-   A "pandas frequency" string may look like ["2AS-DEC", "3W-TUE", "M", ... ]
-   The anchor, such as "DEC" in "AS-DEC", does not modify the delta.
+   A "pandas frequency" string may look like ["2YS-DEC", "3W-TUE", "M", ... ]
+   The anchor, such as "DEC" in "YS-DEC", does not modify the delta.
 
    :param pandas_freq:
    :type pandas_freq: str
    :param The frequency query.:
 
    :returns: * *The timedelta corresponding to this frequency.*
-             * *For example, "2AS-DEC" would return a 2 years delta.*
+             * *For example, "2YS-DEC" would return a 2 years delta.*

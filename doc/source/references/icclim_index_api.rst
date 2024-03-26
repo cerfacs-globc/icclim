@@ -178,8 +178,8 @@ Additionally, you can define a season between two exact dates:
 
    With 5.3.0 icclim now accepts pandas string frequency for slice_mode
    to resample the output data to a given frequency There are multiple
-   combinations possible such as: "2AS-FEB" to resample data on two (2)
-   years (A) starting (S) in February (FEB). For further information,
+   combinations possible such as: "2YS-FEB" to resample data on two (2)
+   years (Y) starting (S) in February (FEB). For further information,
    refer to pandas `offset aliases
    <https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases>`_.
 

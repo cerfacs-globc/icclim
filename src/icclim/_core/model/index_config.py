@@ -11,11 +11,11 @@ from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from icclim._core.climate_variable import ClimateVariable
-    from icclim._core.frequency import Frequency
     from icclim._core.model.indicator import Indicator
     from icclim._core.model.logical_link import LogicalLink
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
+    from icclim.frequency import Frequency
 
 
 @dataclasses.dataclass

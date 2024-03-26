@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING
 
 import xclim
 
-from icclim._core.frequency import FrequencyRegistry
 from icclim._core.generic.functions import get_couple_of_var, get_single_var
 from icclim._core.generic.indicator import Indicator
 from icclim.exception import InvalidIcclimArgumentError
+from icclim.frequency import FrequencyRegistry
 
 if TYPE_CHECKING:
     import xarray

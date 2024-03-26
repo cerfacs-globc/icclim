@@ -24,17 +24,17 @@ def stub_tas(
     use_dask=False,
     use_cftime=False,
     lat_length: int = 1,
-    lon_longth: int = 1,
+    lon_length: int = 1,
 ):
     da = xr.DataArray(
         data=(
-            np.full((VALUE_COUNT, lat_length, lon_longth), tas_value).reshape(
-                (VALUE_COUNT, lat_length, lon_longth)
+            np.full((VALUE_COUNT, lat_length, lon_length), tas_value).reshape(
+                (VALUE_COUNT, lat_length, lon_length)
             )
         ),
         dims=["time", "lat", "lon"],
         coords=_get_coords(
-            lat_lengh=lat_length, lon_length=lon_longth, time_length=VALUE_COUNT
+            lat_lengh=lat_length, lon_length=lon_length, time_length=VALUE_COUNT
         ),
         attrs={UNITS_KEY: "K"},
     )

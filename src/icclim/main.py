@@ -30,7 +30,6 @@ from icclim._core.constants import (
     RESAMPLE_METHOD,
     UNITS_KEY,
 )
-from icclim._core.frequency import Frequency, FrequencyRegistry
 from icclim._core.generic.indicator import GenericIndicator
 from icclim._core.input_parsing import build_input_dict
 from icclim._core.legacy.user_index import parse
@@ -52,6 +51,7 @@ from icclim.ecad.binding import (
 )
 from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
+from icclim.frequency import Frequency, FrequencyRegistry
 from icclim.generic.registry import GenericIndicatorRegistry
 from icclim.logger import IcclimLogger, Verbosity, VerbosityRegistry
 from icclim.threshold.factory import build_threshold

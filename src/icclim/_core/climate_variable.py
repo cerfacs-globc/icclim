@@ -15,7 +15,6 @@ import numpy as np
 import xarray
 
 from icclim._core.constants import REFERENCE_PERIOD_INDEX, UNITS_KEY
-from icclim._core.frequency import Frequency, FrequencyRegistry
 from icclim._core.generic.threshold.percentile import PercentileThreshold
 from icclim._core.input_parsing import (
     DEFAULT_INPUT_FREQUENCY,
@@ -25,6 +24,7 @@ from icclim._core.input_parsing import (
     read_dataset,
 )
 from icclim.exception import InvalidIcclimArgumentError
+from icclim.frequency import Frequency, FrequencyRegistry
 from icclim.threshold.factory import build_threshold
 
 if TYPE_CHECKING:
