@@ -30,14 +30,16 @@ from typing import TYPE_CHECKING
 import icclim
 from docstring_parser import Docstring, DocstringParam, DocstringStyle, compose, parse
 from icclim._core.constants import NEEDS_NORMAL, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
-from icclim._core.frequency import Frequency
 from icclim._core.generic.threshold.percentile import PercentileThreshold
+from icclim._core.input_parsing import get_dataarray_from_dataset
 from icclim._core.legacy.user_index.model import UserIndexDict
+from icclim._core.model.icclim_types import FrequencyLike
 from icclim._core.model.netcdf_version import NetcdfVersion
 from icclim._core.model.quantile_interpolation import QuantileInterpolation
 from icclim._core.model.threshold import Threshold
 from icclim.dcsc.registry import DcscIndexRegistry
 from icclim.ecad.registry import EcadIndexRegistry
+from icclim.frequency import Frequency
 from icclim.generic.registry import GenericIndicatorRegistry
 from icclim.logger import Verbosity
 from icclim.threshold.factory import build_threshold
@@ -125,6 +127,10 @@ GENERIC_POP_ARGS = (
         "only_leap_years",
         "interpolation",
     ]
+)
+
+NORMAL_INDEX_POP_ARGS = (
+    STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS + ["base_period_time_range"]
 )
 
 
@@ -281,18 +287,23 @@ def _normal_index_placeholder(  # noqa: ANN202
     """
     Parameters
     ----------
-    normal: Union[str, Sequence[str], Dataset, DataArray]
-        The normal to be compared to
+    normal: Union[str, Sequence[str], Dataset, DataArray, None]
+        The normal to be compared to.
+        Typically, the expected normal dataset should have one value per `lat, lon`
+        couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
+        DataArray.
     normal_var_name: str | None, optional
-        The name of the normal's variable.
-        If missing, icclim will try to guess which variable must beused in the
+        The name of the normal variable.
+        If missing, icclim will try to guess which variable must be used in the
         `normal` dataset.
+        Ignored if ``normal`` is a
     """  # noqa: D205 (placeholder function used for generating docstrings)
     raise NotImplementedError
 
 
 def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> str:
-    index_args = _get_arguments(STANDARD_INDEX_POP_ARGS + NON_REFERENCE_FIELDS)
+    index_args = _get_arguments(NORMAL_INDEX_POP_ARGS)
     normal_sig = inspect.signature(_normal_index_placeholder)
     passed_to_index_args = [f"{arg}={arg}" for arg in index_args]
     index_args["normal"] = normal_sig.parameters["normal"]
@@ -316,7 +327,7 @@ def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> s
 def {index.short_name.lower()}(
     {fun_signature_args},
 ) -> Dataset:
-    \"\"\"{index.definition}.
+    \"\"\"{index.definition}
 
     {index.short_name}: {index.definition}
     Source: {index.source}.
@@ -530,12 +541,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import icclim
-from icclim.ecad.registry import EcadIndexRegistry
-from icclim.dcsc.registry import DcscIndexRegistry
-from icclim.generic.registry import GenericIndicatorRegistry
-from icclim.threshold.factory import build_threshold
+from {EcadIndexRegistry.__module__} import {EcadIndexRegistry.__name__}
+from {DcscIndexRegistry.__module__} import {DcscIndexRegistry.__name__}
+from {GenericIndicatorRegistry.__module__} import {GenericIndicatorRegistry.__name__}
+from {build_threshold.__module__} import {build_threshold.__name__}
 
-from icclim._core.input_parsing import get_dataarray_from_dataset
+from {get_dataarray_from_dataset.__module__} import (
+     {get_dataarray_from_dataset.__name__}
+     )
 
 if TYPE_CHECKING:
     import datetime as dt
@@ -545,8 +558,8 @@ if TYPE_CHECKING:
     from xarray import DataArray
 
     from {Verbosity.__module__} import {Verbosity.__name__}
-    from icclim._core.model.icclim_types import (
-        FrequencyLike, InFileLike, SamplingMethodLike
+    from {FrequencyLike.__module__} import (
+         FrequencyLike, InFileLike, SamplingMethodLike
         )
 
     from {Frequency.__module__} import {Frequency.__name__}
