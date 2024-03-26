@@ -8,7 +8,6 @@ import icclim
 import numpy as np
 import pytest
 from icclim._core.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
-from icclim._core.frequency import FrequencyRegistry
 from icclim._core.legacy.user_index.calc_operation import (
     CalcOperation,
     CalcOperationRegistry,
@@ -17,6 +16,7 @@ from icclim._core.model.netcdf_version import NetcdfVersionRegistry
 from icclim._core.model.quantile_interpolation import QuantileInterpolationRegistry
 from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
+from icclim.frequency import FrequencyRegistry
 from icclim.generic.registry import GenericIndicatorRegistry
 from icclim.logger import VerbosityRegistry
 from icclim.threshold.factory import build_threshold

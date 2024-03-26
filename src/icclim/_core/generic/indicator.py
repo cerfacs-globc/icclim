@@ -36,9 +36,9 @@ if TYPE_CHECKING:
     import jinja2
 
     from icclim._core.climate_variable import ClimateVariable
-    from icclim._core.frequency import Frequency
     from icclim._core.model.index_config import IndexConfig
     from icclim._core.model.indicator import MissingMethodLike
+    from icclim.frequency import Frequency
 
 jinja_env = Environment(autoescape=True)
 

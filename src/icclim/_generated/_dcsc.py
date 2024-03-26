@@ -19,16 +19,13 @@ from icclim.threshold.factory import build_threshold
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Sequence
+    from typing import FrequencyLike, InFileLike
 
     from xarray import DataArray, Dataset
 
-    from icclim._core.frequency import Frequency
-    from icclim._core.model.icclim_types import (
-        FrequencyLike,
-        InFileLike,
-    )
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
+    from icclim.frequency import Frequency
     from icclim.logger import Verbosity
 
 __all__ = [
@@ -1217,14 +1214,13 @@ def txnd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale)..
+    """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
 
     TXND: Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
@@ -1262,20 +1258,6 @@ def txnd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime ] | list[str] | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period.
-        The dates can either be given as instance of datetime.datetime or as string
-        values.
-        It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
-        For day of year percentiles (doy_per), on extreme percentiles the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1287,12 +1269,17 @@ def txnd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray]
-        The normal to be compared to
+    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+        The normal to be compared to.
+        Typically, the expected normal dataset should have one value per `lat, lon`
+        couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
+        DataArray.
     normal_var_name : str | None, optional
-        The name of the normal's variable.
-        If missing, icclim will try to guess which variable must beused in the
+        The name of the normal variable.
+        If missing, icclim will try to guess which variable must be used in the
         `normal` dataset.
+        Ignored if ``normal`` is a
 
     Notes
     -----
@@ -1312,7 +1299,6 @@ def txnd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        base_period_time_range=base_period_time_range,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -1328,14 +1314,13 @@ def tnht(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale)..
+    """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
 
     TNHT: Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
@@ -1373,20 +1358,6 @@ def tnht(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime ] | list[str] | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period.
-        The dates can either be given as instance of datetime.datetime or as string
-        values.
-        It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
-        For day of year percentiles (doy_per), on extreme percentiles the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1398,12 +1369,17 @@ def tnht(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray]
-        The normal to be compared to
+    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+        The normal to be compared to.
+        Typically, the expected normal dataset should have one value per `lat, lon`
+        couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
+        DataArray.
     normal_var_name : str | None, optional
-        The name of the normal's variable.
-        If missing, icclim will try to guess which variable must beused in the
+        The name of the normal variable.
+        If missing, icclim will try to guess which variable must be used in the
         `normal` dataset.
+        Ignored if ``normal`` is a
 
     Notes
     -----
@@ -1423,7 +1399,6 @@ def tnht(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        base_period_time_range=base_period_time_range,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -1439,14 +1414,13 @@ def tnnd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale)..
+    """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
 
     TNND: Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
@@ -1484,20 +1458,6 @@ def tnnd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime ] | list[str] | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period.
-        The dates can either be given as instance of datetime.datetime or as string
-        values.
-        It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
-        For day of year percentiles (doy_per), on extreme percentiles the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1509,12 +1469,17 @@ def tnnd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray]
-        The normal to be compared to
+    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+        The normal to be compared to.
+        Typically, the expected normal dataset should have one value per `lat, lon`
+        couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
+        DataArray.
     normal_var_name : str | None, optional
-        The name of the normal's variable.
-        If missing, icclim will try to guess which variable must beused in the
+        The name of the normal variable.
+        If missing, icclim will try to guess which variable must be used in the
         `normal` dataset.
+        Ignored if ``normal`` is a
 
     Notes
     -----
@@ -1534,7 +1499,6 @@ def tnnd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        base_period_time_range=base_period_time_range,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -1550,14 +1514,13 @@ def tncwd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs)..
+    """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
 
     TNCWD: Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
     Source: Portail DRIAS, DCSC, MeteoFrance.
@@ -1595,20 +1558,6 @@ def tncwd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime ] | list[str] | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period.
-        The dates can either be given as instance of datetime.datetime or as string
-        values.
-        It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
-        For day of year percentiles (doy_per), on extreme percentiles the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1620,12 +1569,17 @@ def tncwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray]
-        The normal to be compared to
+    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+        The normal to be compared to.
+        Typically, the expected normal dataset should have one value per `lat, lon`
+        couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
+        DataArray.
     normal_var_name : str | None, optional
-        The name of the normal's variable.
-        If missing, icclim will try to guess which variable must beused in the
+        The name of the normal variable.
+        If missing, icclim will try to guess which variable must be used in the
         `normal` dataset.
+        Ignored if ``normal`` is a
 
     Notes
     -----
@@ -1645,7 +1599,6 @@ def tncwd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        base_period_time_range=base_period_time_range,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -1661,14 +1614,13 @@ def txhwd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
-    """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs)..
+    """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
 
     TXHWD: Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
     Source: Portail DRIAS, DCSC, MeteoFrance.
@@ -1706,20 +1658,6 @@ def txhwd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    base_period_time_range : list[datetime.datetime ] | list[str] | tuple[str, str] | None
-        ``optional`` Temporal range of the reference period.
-        The dates can either be given as instance of datetime.datetime or as string
-        values.
-        It is used either:
-        #. to compute percentiles if threshold is filled.
-        When missing, the studied period is used to compute percentiles.
-        The study period is either the dataset filtered by `time_range` or the whole
-        dataset if `time_range` is missing.
-        For day of year percentiles (doy_per), on extreme percentiles the
-        overlapping period between `base_period_time_range` and the study period is
-        bootstrapped.
-        #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1731,12 +1669,17 @@ def txhwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray]
-        The normal to be compared to
+    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+        The normal to be compared to.
+        Typically, the expected normal dataset should have one value per `lat, lon`
+        couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
+        DataArray.
     normal_var_name : str | None, optional
-        The name of the normal's variable.
-        If missing, icclim will try to guess which variable must beused in the
+        The name of the normal variable.
+        If missing, icclim will try to guess which variable must be used in the
         `normal` dataset.
+        Ignored if ``normal`` is a
 
     Notes
     -----
@@ -1756,7 +1699,6 @@ def txhwd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
-        base_period_time_range=base_period_time_range,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,

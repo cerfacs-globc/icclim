@@ -43,8 +43,8 @@ if TYPE_CHECKING:
     import jinja2
     import pint
 
-    from icclim._core.frequency import Frequency
     from icclim._core.model.operator import Operator
+    from icclim.frequency import Frequency
 
 from typing import TYPE_CHECKING
 

@@ -44,11 +44,11 @@ from icclim._core.constants import (
     RESAMPLE_METHOD,
     UNITS_KEY,
 )
-from icclim._core.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
 from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
+from icclim.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
 
 if TYPE_CHECKING:
     from datetime import timedelta

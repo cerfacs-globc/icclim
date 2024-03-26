@@ -18,16 +18,13 @@ from icclim.threshold.factory import build_threshold
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Sequence
+    from typing import FrequencyLike, InFileLike
 
     from xarray import Dataset
 
-    from icclim._core.frequency import Frequency
-    from icclim._core.model.icclim_types import (
-        FrequencyLike,
-        InFileLike,
-    )
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
+    from icclim.frequency import Frequency
     from icclim.logger import Verbosity
 
 __all__ = [

@@ -325,7 +325,7 @@ class FrequencyRegistry(Registry[Frequency]):
     """Resample to yearly values."""
 
     AMJJAS = Frequency(
-        pandas_freq="AS-APR",
+        pandas_freq="YS-APR",
         accepted_values=["AMJJAS"],
         adjective="AMJJAS summery",
         indexer={"month": AMJJAS_MONTHS},
@@ -338,7 +338,7 @@ class FrequencyRegistry(Registry[Frequency]):
     """Resample to summer half-year, from April to September included."""
 
     ONDJFM = Frequency(
-        pandas_freq="AS-OCT",
+        pandas_freq="YS-OCT",
         accepted_values=["ONDJFM"],
         adjective="ONDJFM wintry",
         indexer={"month": ONDJFM_MONTHS},
@@ -351,7 +351,7 @@ class FrequencyRegistry(Registry[Frequency]):
     """Resample to winter half-year, from October to March included."""
 
     DJF = Frequency(
-        pandas_freq="AS-DEC",
+        pandas_freq="YS-DEC",
         accepted_values=["DJF"],
         adjective="DJF wintry",
         indexer={"month": DJF_MONTHS},
@@ -364,7 +364,7 @@ class FrequencyRegistry(Registry[Frequency]):
     """Resample to winter season, from December to February included."""
 
     MAM = Frequency(
-        pandas_freq="AS-MAR",
+        pandas_freq="YS-MAR",
         accepted_values=["MAM"],
         adjective="MAM springlong",
         indexer={"month": MAM_MONTHS},
@@ -377,7 +377,7 @@ class FrequencyRegistry(Registry[Frequency]):
     """Resample to spring season, from March to May included."""
 
     JJA = Frequency(
-        pandas_freq="AS-JUN",
+        pandas_freq="YS-JUN",
         accepted_values=["JJA"],
         adjective="JJA summery",
         indexer={"month": JJA_MONTHS},
@@ -390,7 +390,7 @@ class FrequencyRegistry(Registry[Frequency]):
     """Resample to summer season, from June to Agust included."""
 
     SON = Frequency(
-        pandas_freq="AS-SEP",
+        pandas_freq="YS-SEP",
         accepted_values=["SON"],
         adjective="SON autumnal",
         indexer={"month": SON_MONTHS},
@@ -595,7 +595,7 @@ def _build_seasonal_frequency_between_dates(season: Sequence[str]) -> Frequency:
             begin_date.day,
             end_date.day,
         ),
-        pandas_freq=f"AS-{MONTHS_MAP[begin_date.month]}",
+        pandas_freq=f"YS-{MONTHS_MAP[begin_date.month]}",
         adjective="seasonally",
         accepted_values=[],
         units=f"{MONTHS_MAP[begin_date.month]}_{MONTHS_MAP[end_date.month]}_seasons",
@@ -616,7 +616,7 @@ def _build_seasonal_frequency_for_months(season: tuple | list) -> Frequency:
     return Frequency(
         indexer=indexer,
         post_processing=get_seasonal_time_updater(season[0], season[-1]),
-        pandas_freq=f"AS-{MONTHS_MAP[season[0]]}",
+        pandas_freq=f"YS-{MONTHS_MAP[season[0]]}",
         adjective="seasonally",
         accepted_values=[],
         units=f"{MONTHS_MAP[season[0]]}_{MONTHS_MAP[season[-1]]}_seasons",
@@ -641,8 +641,8 @@ def _get_delta(pandas_freq: str) -> np.timedelta64:
     """
     Build timedelta from a "pandas frequency" string.
 
-    A "pandas frequency" string may look like ["2AS-DEC", "3W-TUE", "M", ... ]
-    The anchor, such as "DEC" in "AS-DEC", does not modify the delta.
+    A "pandas frequency" string may look like ["2YS-DEC", "3W-TUE", "M", ... ]
+    The anchor, such as "DEC" in "YS-DEC", does not modify the delta.
 
     Parameters
     ----------
@@ -652,7 +652,7 @@ def _get_delta(pandas_freq: str) -> np.timedelta64:
     Returns
     -------
     The timedelta corresponding to this frequency.
-    For example, "2AS-DEC" would return a 2 years delta.
+    For example, "2YS-DEC" would return a 2 years delta.
     """
     # [0] to ignore the anchor
     non_digit = re.findall(r"\D+", pandas_freq)[0].split("-")[0]

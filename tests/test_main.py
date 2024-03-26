@@ -14,10 +14,10 @@ import pytest
 import xarray as xr
 from icclim import __version__ as icclim_version
 from icclim._core.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
-from icclim._core.frequency import FrequencyRegistry
 from icclim._core.model.index_group import IndexGroupRegistry
 from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
+from icclim.frequency import FrequencyRegistry
 from icclim.threshold.factory import build_threshold
 
 from tests.testing_utils import K2C, stub_pr, stub_tas
@@ -845,8 +845,8 @@ class TestIntegration:
         assert "tas_thresholds" in res.data_vars
 
     def test_txnd(self) -> None:
-        tas = stub_tas(tas_value=2, lat_length=10, lon_longth=10)
-        normal_tas = stub_tas(tas_value=1, lat_length=10, lon_longth=10)
+        tas = stub_tas(tas_value=2, lat_length=10, lon_length=10)
+        normal_tas = stub_tas(tas_value=1, lat_length=10, lon_length=10)
         icclim.dcsc.txnd(in_files=tas, normal=normal_tas)
 
     def test_fraction_of_total(self) -> None:
