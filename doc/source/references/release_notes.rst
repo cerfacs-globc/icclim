@@ -2,9 +2,9 @@
  Release history
 #################
 
-*******
+******
  7.0.0
-*******
+******
 
 date: 2024-04-30
 
@@ -18,6 +18,12 @@ Breaking changes summary
 
 Details
 =======
+
+-  [maint] **BREAKING CHANGE**
+   Created a `_core` package which should not be used outside icclim source.
+   Its content may change without deprecation warnings.
+
+-  [enh] Added DCSC indices under `icclim.dcsc` namespace.
 
 -  [doc] Adapt Christian's notebooks from ISENES and add them as
    tutorials in our documentation.

@@ -483,4 +483,3 @@ class DcscIndexRegistry(Registry[StandardIndex]):
         input_variables=[StandardVariableRegistry.SFC_WIND],
         qualifiers=[REFERENCE_PERIOD_INDEX, QUANTILE_BASED],
     )
-    # HUMIDITÉ
