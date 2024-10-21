@@ -27,8 +27,9 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import icclim
 from docstring_parser import Docstring, DocstringParam, DocstringStyle, compose, parse
+
+import icclim
 from icclim._core.constants import NEEDS_NORMAL, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
 from icclim._core.generic.threshold.percentile import PercentileThreshold
 from icclim._core.input_parsing import get_dataarray_from_dataset
@@ -47,10 +48,11 @@ from icclim.threshold.factory import build_threshold
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from xarray import DataArray, Dataset
+
     from icclim._core.generic.indicator import GenericIndicator
     from icclim._core.model.registry import Registry
     from icclim._core.model.standard_index import StandardIndex
-    from xarray import DataArray, Dataset
 
 
 QUANTILE_INDEX_FIELDS = [
@@ -281,8 +283,8 @@ def {index.name.lower()}(
 
 
 def _normal_index_placeholder(  # noqa: ANN202
-    normal: str | Sequence[str] | Dataset | DataArray,  # noqa: ARG001
-    normal_var_name: str | None = None,  # noqa: ARG001
+    normal: str | Sequence[str] | Dataset | DataArray,
+    normal_var_name: str | None = None,
 ):
     """
     Parameters
