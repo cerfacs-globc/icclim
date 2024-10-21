@@ -9,6 +9,9 @@ import pandas as pd
 import pint
 import pytest
 import xarray as xr
+from xclim.core.calendar import percentile_doy
+from xclim.core.units import units as xc_units
+
 from icclim._core.constants import UNITS_KEY
 from icclim._core.generic.threshold.basic import BasicThreshold
 from icclim._core.generic.threshold.bounded import BoundedThreshold
@@ -18,8 +21,6 @@ from icclim._core.model.logical_link import LogicalLinkRegistry
 from icclim._core.model.operator import OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.threshold.factory import build_threshold
-from xclim.core.calendar import percentile_doy
-from xclim.core.units import units as xc_units
 
 
 def test_value_error() -> None:
