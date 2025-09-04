@@ -24,4 +24,4 @@ jobs:
       - name: build package
         run: python -m flit build
       - name: Publish to pypi
-        uses: pypa/gh-action-pypi-publish@v1.8.11
+        uses: pypa/gh-action-pypi-publish@v1.13.0
