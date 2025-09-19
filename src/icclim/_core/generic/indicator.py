@@ -10,19 +10,19 @@ from typing import TYPE_CHECKING, Any, Callable
 import numpy as np
 import xarray as xr
 from jinja2 import Environment
-from pint import DefinitionSyntaxError, UndefinedUnitError
 from xarray import DataArray
 from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
-from xclim.core.datachecks import check_freq
-from xclim.core.options import MISSING_METHODS, MISSING_OPTIONS, OPTIONS
+from xclim.core.missing import MISSING_METHODS
 from xclim.core.units import (
     convert_units_to,
     rate2amount,
     units2pint,
 )
-from xclim.core.units import units as xc_units
+from pint import DefinitionSyntaxError, UndefinedUnitError, UnitRegistry, DimensionalityError
+from pint.errors import UndefinedUnitError as PintUndefinedUnitError #fallback
 
+from icclim._core.generic.functions import check_freq
 from icclim._core.climate_variable import must_run_bootstrap
 from icclim._core.constants import (
     RESAMPLE_METHOD,
@@ -65,7 +65,7 @@ class GenericIndicator(Indicator):
         A list of sampling methods that can be used with the indicator.
         Defaults to None.
     missing: str, optional
-        The method for handling missing values. Defaults to "from_context".
+        The method for handling missing values. Defaults to "any".
     missing_options: dict, optional
         Additional options for handling missing values. Defaults to None.
     qualifiers: tuple, optional
@@ -92,7 +92,7 @@ class GenericIndicator(Indicator):
             Callable[[list[ClimateVariable], GenericIndicator], None] | None
         ) = None,
         sampling_methods: list[str] | None = None,
-        missing: str = "from_context",
+        missing: str = "any",
         missing_options: dict | None = None,
         qualifiers: tuple = (),
     ) -> None:
@@ -112,7 +112,7 @@ class GenericIndicator(Indicator):
         sampling_methods : list[str] | None, optional
             The sampling methods used by the indicator, by default None.
         missing : str, optional
-            The method for handling missing values, by default "from_context".
+            The method for handling missing values, by default "any".
         missing_options : Any, optional
             The options for handling missing values, by default None.
         qualifiers : tuple, optional
@@ -153,14 +153,12 @@ class GenericIndicator(Indicator):
         """  # noqa: E501
         super().__init__()
         self.missing_options = missing_options
-        self.missing = missing
-        if self.missing == "from_context" and self.missing_options is not None:
-            err = (
-                "Cannot set `missing_options` with `missing` method being from context."
-            )
-            raise ValueError(err)
-        missing_method: MissingMethodLike = MISSING_METHODS[self.missing]
-        self._missing = missing_method.execute
+        
+        # assign missing method name; default is "any"
+        self.missing = missing  # <-- make sure to assign this first
+        
+        # Assign the missing method (callable) directly
+        self._missing = MISSING_METHODS[self.missing]
         if self.missing_options:
             missing_method.validate(**self.missing_options)
         en_indicator_templates = deepcopy(INDICATORS_TEMPLATES_EN[name])
@@ -295,13 +293,22 @@ class GenericIndicator(Indicator):
             das = (cv.studied_data for cv in das)
             das = list(das)
             if "time" in result.dims:
+                # If src_freq cannot be inferred by xclim, fall back to universal check_freq
+                if src_freq is None:
+                    try:
+                        from icclim._core.generic.functions import check_freq
+                        src_freq = check_freq(result, dim="time")
+                    except Exception:
+                        src_freq = "D"  # safe fallback: daily
+                        
                 result = self._handle_missing_values(
-                    resample_freq=output_freq,
-                    src_freq=src_freq,
-                    indexer=indexer,
                     in_data=das,
                     out_data=result,
+                    resample_freq=output_freq,
+                    src_freq=src_freq,
+                    indexer=indexer
                 )
+
         for prop in self.templated_properties:
             result.attrs[prop] = getattr(self, prop)
         result.attrs["history"] = ""
@@ -436,31 +443,47 @@ class GenericIndicator(Indicator):
             )
             setattr(self, templated_property, template.render())
 
-    def _handle_missing_values(
-        self,
-        in_data: list[DataArray],
-        resample_freq: str,
-        src_freq: str,
-        indexer: dict | None,
-        out_data: DataArray,
-    ) -> DataArray:
-        options = self.missing_options or OPTIONS[MISSING_OPTIONS].get(self.missing, {})
-        # We flag periods according to the missing method. skip variables without a time
-        # coordinate.
-        missing_method: MissingMethodLike = MISSING_METHODS[self.missing]  # typing
+    def _handle_missing_values(self, in_data, out_data, resample_freq=None, src_freq=None, indexer=None):
+        """
+        Handle missing values in climate index computations.
+
+        Parameters
+        ----------
+        in_data : list[xr.DataArray]
+            Input DataArrays with time coordinates.
+        out_data : xr.DataArray
+            Output DataArray from the index computation.
+        resample_freq : str, optional
+            Target resampling frequency (e.g. "M", "Y").
+        src_freq : str, optional
+            Source timestep frequency (e.g. "D").
+        indexer : dict, optional
+            Extra arguments used by some missing value methods.
+        """
+        from functools import reduce
+        import numpy as np
+        from xarray import DataArray
+        from xclim.core.missing import MISSING_METHODS
+
+        missing_class = MISSING_METHODS[self.missing]  # Get the class
+        missing_obj = missing_class()                  # Instantiate with no args
+
+        # We flag periods according to the missing method. Skip variables without a time coordinate.
         miss = (
-            missing_method.execute(da, resample_freq, src_freq, options, indexer)
+            missing_obj(da, freq=resample_freq, src_timestep=src_freq, **(indexer or {}))
             for da in in_data
             if "time" in da.coords
         )
-        # Reduce by or and broadcast to ensure the same length in time
-        # When indexing is used and there are no valid points in the last period,
-        # mask will not include it
-        mask = reduce(np.logical_or, miss)  # typing
+
+        # Reduce by logical OR across all input masks
+        mask = reduce(np.logical_or, miss)
+
+        # Reindex mask to match output if needed
         if isinstance(mask, DataArray) and mask.time.size < out_data.time.size:
             mask = mask.reindex(time=out_data.time, fill_value=True)
-        return out_data.where(~mask)
 
+        return out_data.where(~mask)
+        
 
 def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
     if len(climate_vars) == 1:
@@ -492,19 +515,28 @@ def _convert_rates_to_amounts(
     for climate_var in climate_vars:
         current_unit = climate_var.studied_data.attrs.get(UNITS_KEY, None)
         if current_unit is not None and not _is_amount_unit(current_unit):
-            with xc_units.context("hydro"):
-                climate_var.studied_data = rate2amount(
-                    climate_var.studied_data,
-                    out_units=output_unit,
-                )
+            # Convert rates (e.g. mm s-1) to amounts (e.g. mm) using xclim's rate2amount.
+            # rate2amount accepts a DataArray and returns a DataArray.
+            climate_var.studied_data = rate2amount(
+                climate_var.studied_data,
+                out_units=output_unit,
+            )
     return climate_vars
 
 
 def _is_amount_unit(unit: str) -> bool:
+    """
+    Return True if `unit` is an amount unit (i.e. a length-like unit such as m, mm).
+    Uses pint.UnitRegistry to test whether the unit can be converted to meters.
+    """
     try:
-        u = units2pint(unit)  # turn a cf u
-        return xc_units.Quantity(1, u).check("[length]")
-    except (UndefinedUnitError, DefinitionSyntaxError):
+        # Try to create a pint quantity and convert to a length unit (meter).
+        ureg = UnitRegistry()
+        q = 1 * ureg(unit)  # can raise UndefinedUnitError
+        # Try converting to metre; if it fails with DimensionalityError it is not length-like.
+        q.to("meter")
+        return True
+    except (PintUndefinedUnitError, UndefinedUnitError, DimensionalityError, DefinitionSyntaxError):
         return False
 
 
@@ -525,13 +557,18 @@ def _check_cf(climate_vars: list[ClimateVariable]) -> None:
             cfcheck_from_name(str(da.name), da)
 
 
-def _check_data(climate_vars: list[ClimateVariable], src_freq: str) -> None:
+def _check_data(climate_vars: list, src_freq: str) -> None:
     if src_freq is None:
         return
     for climate_var in climate_vars:
         da = climate_var.studied_data
         if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
-            check_freq(da, src_freq, strict=True)
+            inferred_freq = check_freq(da, dim="time", strict=True)
+            if inferred_freq != src_freq:
+                raise InvalidIcclimArgumentError(
+                    f"[icclim] Frequency mismatch for variable '{climate_var.name}': "
+                    f"expected '{src_freq}', inferred '{inferred_freq}'"
+                )
 
 
 def _is_a_diff_indicator(indicator: Indicator) -> bool:

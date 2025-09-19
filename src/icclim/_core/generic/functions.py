@@ -25,7 +25,9 @@ from warnings import warn
 import xarray as xr
 from xarray import DataArray
 from xarray.core.resample import DataArrayResample
-from xarray.core.rolling import DataArrayRolling
+from xarray.computation.rolling import DataArrayRolling
+from pandas import Timedelta, to_timedelta, infer_freq, date_range
+from numpy import diff as np_diff, median as np_median, array as np_array, all as np_all, abs as np_abs
 from xclim.core.calendar import build_climatology_bounds
 from xclim.core.units import (
     convert_units_to,
@@ -109,7 +111,8 @@ def count_occurrences(
         result = _to_percent(result, resample_freq)
         result.attrs[UNITS_KEY] = "%"
         return result
-    return to_agg_units(result, climate_vars[0].studied_data, "count")
+    freq = check_freq(climate_vars[0].studied_data, dim="time")
+    return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
 
 
 def max_consecutive_occurrence(
@@ -154,7 +157,8 @@ def max_consecutive_occurrence(
         result = _consecutive_occurrences_with_dates(resampled, source_freq_delta)
     else:
         result = resampled.max(dim="time")
-    return to_agg_units(result, climate_vars[0].studied_data, "count")
+    freq = check_freq(climate_vars[0].studied_data, dim="time")
+    return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
 
 
 def sum_of_spell_lengths(
@@ -196,7 +200,8 @@ def sum_of_spell_lengths(
     rle = run_length.rle(merged_exceedances, dim="time", index="first")
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).max(dim="time")
-    return to_agg_units(result, climate_vars[0].studied_data, "count")
+    freq = check_freq(climate_vars[0].studied_data, dim="time")
+    return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
 
 
 def excess(
@@ -242,7 +247,8 @@ def excess(
         (excesses).clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     )
     res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
-    return to_agg_units(res, study, "integral")
+    freq = check_freq(study, dim="time")
+    return to_agg_units(res, study, "integral", deffreq=freq)
 
 
 def deficit(
@@ -278,7 +284,8 @@ def deficit(
     deficit = threshold.compute(study, override_op=lambda da, th: th - da)
     res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
-    return to_agg_units(res, study, "integral")
+    freq = check_freq(study, dim="time")
+    return to_agg_units(res, study, "integral", deffreq=freq)
 
 
 def fraction_of_total(
@@ -1387,3 +1394,38 @@ def _is_rate(query: Quantity | DataArray) -> bool:
     if isinstance(query, DataArray):
         query = str2pint(query.attrs[UNITS_KEY])
     return query.dimensionality.get("[time]", None) == -1
+
+
+def check_freq(da, dim: str = "time", strict: bool = True):
+    """
+    Infer the sampling frequency of a DataArray along a given dimension.
+
+    For daily climate data, always returns "D", even after seasonal slicing
+    (which can break pandas' infer_freq). Falls back to pandas.infer_freq
+    if not daily.
+    """
+    times = da[dim].values
+    if len(times) < 2:
+        return None
+
+    # Compute deltas
+    try:
+        deltas = to_timedelta(np_diff(times))
+    except Exception as e:
+        if strict:
+            raise ValueError(f"[icclim] Cannot compute time deltas: {e}")
+        return None
+
+    median_delta = Timedelta(np_median(deltas))
+
+    # If ~daily, force "D"
+    if np_abs(median_delta / Timedelta("1D") - 1) < 1e-6:
+        return "D"
+
+    # Otherwise, try pandas inference
+    try:
+        return infer_freq(date_range(start=times[0], periods=len(times), freq=median_delta))
+    except Exception as e:
+        if strict:
+            raise ValueError(f"[icclim] Unable to infer frequency: {e}")
+        return None
