@@ -10,6 +10,13 @@ from typing import TYPE_CHECKING, Any, Callable
 import numpy as np
 import xarray as xr
 from jinja2 import Environment
+from pint import (
+    DefinitionSyntaxError,
+    DimensionalityError,
+    UndefinedUnitError,
+    UnitRegistry,
+)
+from pint.errors import UndefinedUnitError as PintUndefinedUnitError  # fallback
 from xarray import DataArray
 from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
@@ -17,17 +24,14 @@ from xclim.core.missing import MISSING_METHODS
 from xclim.core.units import (
     convert_units_to,
     rate2amount,
-    units2pint,
 )
-from pint import DefinitionSyntaxError, UndefinedUnitError, UnitRegistry, DimensionalityError
-from pint.errors import UndefinedUnitError as PintUndefinedUnitError #fallback
 
-from icclim._core.generic.functions import check_freq
 from icclim._core.climate_variable import must_run_bootstrap
 from icclim._core.constants import (
     RESAMPLE_METHOD,
     UNITS_KEY,
 )
+from icclim._core.generic.functions import check_freq
 from icclim._core.generic.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim._core.model.indicator import Indicator
 from icclim.exception import InvalidIcclimArgumentError
@@ -37,7 +41,6 @@ if TYPE_CHECKING:
 
     from icclim._core.climate_variable import ClimateVariable
     from icclim._core.model.index_config import IndexConfig
-    from icclim._core.model.indicator import MissingMethodLike
     from icclim.frequency import Frequency
 
 jinja_env = Environment(autoescape=True)
@@ -153,10 +156,10 @@ class GenericIndicator(Indicator):
         """  # noqa: E501
         super().__init__()
         self.missing_options = missing_options
-        
+
         # assign missing method name; default is "any"
         self.missing = missing  # <-- make sure to assign this first
-        
+
         # Assign the missing method (callable) directly
         self._missing = MISSING_METHODS[self.missing]
         if self.missing_options:
@@ -297,16 +300,17 @@ class GenericIndicator(Indicator):
                 if src_freq is None:
                     try:
                         from icclim._core.generic.functions import check_freq
+
                         src_freq = check_freq(result, dim="time")
                     except Exception:
                         src_freq = "D"  # safe fallback: daily
-                        
+
                 result = self._handle_missing_values(
                     in_data=das,
                     out_data=result,
                     resample_freq=output_freq,
                     src_freq=src_freq,
-                    indexer=indexer
+                    indexer=indexer,
                 )
 
         for prop in self.templated_properties:
@@ -443,7 +447,9 @@ class GenericIndicator(Indicator):
             )
             setattr(self, templated_property, template.render())
 
-    def _handle_missing_values(self, in_data, out_data, resample_freq=None, src_freq=None, indexer=None):
+    def _handle_missing_values(
+        self, in_data, out_data, resample_freq=None, src_freq=None, indexer=None
+    ):
         """
         Handle missing values in climate index computations.
 
@@ -460,17 +466,18 @@ class GenericIndicator(Indicator):
         indexer : dict, optional
             Extra arguments used by some missing value methods.
         """
-        from functools import reduce
         import numpy as np
         from xarray import DataArray
         from xclim.core.missing import MISSING_METHODS
 
         missing_class = MISSING_METHODS[self.missing]  # Get the class
-        missing_obj = missing_class()                  # Instantiate with no args
+        missing_obj = missing_class()  # Instantiate with no args
 
         # We flag periods according to the missing method. Skip variables without a time coordinate.
         miss = (
-            missing_obj(da, freq=resample_freq, src_timestep=src_freq, **(indexer or {}))
+            missing_obj(
+                da, freq=resample_freq, src_timestep=src_freq, **(indexer or {})
+            )
             for da in in_data
             if "time" in da.coords
         )
@@ -483,7 +490,7 @@ class GenericIndicator(Indicator):
             mask = mask.reindex(time=out_data.time, fill_value=True)
 
         return out_data.where(~mask)
-        
+
 
 def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
     if len(climate_vars) == 1:
@@ -536,7 +543,12 @@ def _is_amount_unit(unit: str) -> bool:
         # Try converting to metre; if it fails with DimensionalityError it is not length-like.
         q.to("meter")
         return True
-    except (PintUndefinedUnitError, UndefinedUnitError, DimensionalityError, DefinitionSyntaxError):
+    except (
+        PintUndefinedUnitError,
+        UndefinedUnitError,
+        DimensionalityError,
+        DefinitionSyntaxError,
+    ):
         return False
 
 

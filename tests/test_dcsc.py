@@ -1,5 +1,4 @@
 from icclim.dcsc import txnd
-
 from tests.testing_utils import stub_tas
 
 

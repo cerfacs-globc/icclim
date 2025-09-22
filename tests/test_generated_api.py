@@ -4,9 +4,10 @@ import datetime as dt
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
-import icclim
 import numpy as np
 import pytest
+
+import icclim
 from icclim._core.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
 from icclim._core.legacy.user_index.calc_operation import (
     CalcOperation,
@@ -20,7 +21,6 @@ from icclim.frequency import FrequencyRegistry
 from icclim.generic.registry import GenericIndicatorRegistry
 from icclim.logger import VerbosityRegistry
 from icclim.threshold.factory import build_threshold
-
 from tests.testing_utils import stub_tas
 
 if TYPE_CHECKING:
@@ -137,7 +137,7 @@ def test_txx__season_slice_mode() -> None:
     res = icclim.txx(tas, slice_mode=["season", [11, 12, 1, 2]]).compute()
     # THEN
     # missing values for nov, dec of first period
-    np.testing.assert_array_equal(res.TXx.isel(time=0), np.NAN)
+    np.testing.assert_array_equal(res.TXx.isel(time=0), np.nan)
     np.testing.assert_array_equal(res.TXx.isel(time=1), 30.0)
     np.testing.assert_array_equal(
         res.time_bounds.isel(time=0),
@@ -151,7 +151,7 @@ def test_txx__months_slice_mode() -> None:
     tas.loc[{"time": "2042-01-01"}] = 303.15  # 30°C 273.15
     res = icclim.txx(tas, slice_mode=["months", [11, 1]]).compute()
     np.testing.assert_array_equal(res.TXx.isel(time=0), 30)
-    np.testing.assert_array_equal(res.TXx.isel(time=1), np.NAN)
+    np.testing.assert_array_equal(res.TXx.isel(time=1), np.nan)
     np.testing.assert_almost_equal(res.TXx.sel(time="2042-11"), 21.85)
     np.testing.assert_array_equal(
         res.time_bounds.isel(time=0),
@@ -192,8 +192,8 @@ def test_custom_index__season_slice_mode(
         },
     ).compute()
     # missing values algo applied for first and last years
-    np.testing.assert_almost_equal(res.pouet.isel(time=0), np.NAN)
-    np.testing.assert_almost_equal(res.pouet.isel(time=-1), np.NAN)
+    np.testing.assert_almost_equal(res.pouet.isel(time=0), np.nan)
+    np.testing.assert_almost_equal(res.pouet.isel(time=-1), np.nan)
     np.testing.assert_almost_equal(res.pouet.isel(time=1), expectation_year_1)
     np.testing.assert_almost_equal(res.pouet.isel(time=2), expectation_year_2)
 
@@ -225,8 +225,8 @@ def test_custom_index_run_algos__season_slice_mode(
         },
     )
     # missing values algo applied for first and last years
-    np.testing.assert_almost_equal(res.pouet.isel(time=0), np.NAN)
-    np.testing.assert_almost_equal(res.pouet.isel(time=-1), np.NAN)
+    np.testing.assert_almost_equal(res.pouet.isel(time=0), np.nan)
+    np.testing.assert_almost_equal(res.pouet.isel(time=-1), np.nan)
     np.testing.assert_almost_equal(res.pouet.isel(time=1), expectation_year_1)
     np.testing.assert_almost_equal(res.pouet.isel(time=2), expectation_year_2)
 
@@ -280,12 +280,12 @@ def test_custom_index_anomaly__datetime_ref_period() -> None:
         },
     ).compute()
     # missing values algo applied for first and last years
-    np.testing.assert_almost_equal(res.anomaly.sel(time="2041"), np.NAN)
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2041"), np.nan)
     np.testing.assert_almost_equal(res.anomaly.sel(time="2042"), 0)
     np.testing.assert_almost_equal(res.anomaly.sel(time="2043"), 0)
     np.testing.assert_almost_equal(res.anomaly.sel(time="2044"), 4.80645161)
     np.testing.assert_almost_equal(res.anomaly.sel(time="2045"), 0)
-    np.testing.assert_almost_equal(res.anomaly.sel(time="2046"), np.NAN)
+    np.testing.assert_almost_equal(res.anomaly.sel(time="2046"), np.nan)
 
 
 def test_custom_index_anomaly__groupby_and_resample_month() -> None:
