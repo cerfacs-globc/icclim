@@ -6,12 +6,13 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import cftime
-import icclim
 import numpy as np
 import pandas as pd
 import pint
 import pytest
 import xarray as xr
+
+import icclim
 from icclim import __version__ as icclim_version
 from icclim._core.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
 from icclim._core.model.index_group import IndexGroupRegistry
@@ -19,7 +20,6 @@ from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import FrequencyRegistry
 from icclim.threshold.factory import build_threshold
-
 from tests.testing_utils import K2C, stub_pr, stub_tas
 
 
@@ -38,7 +38,7 @@ def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock) -> None:
 HEAT_INDICES = ["SU", "TR", "WSDI", "TG90p", "TN90p", "TX90p", "TXx", "TNx", "CSU"]
 
 
-@pytest.mark.slow()
+@pytest.mark.slow
 class TestIntegration:
     """
     Integration tests.
@@ -282,7 +282,7 @@ class TestIntegration:
             out_file=self.OUTPUT_FILE,
             slice_mode=FrequencyRegistry.DJF,
         )
-        np.testing.assert_array_equal(res.SU.isel(time=0), np.NAN)
+        np.testing.assert_array_equal(res.SU.isel(time=0), np.nan)
         np.testing.assert_array_equal(res.SU.isel(time=1), 0)
         # "+ 1" because DJF sampling create a december month with nans before first year
         np.testing.assert_array_equal(

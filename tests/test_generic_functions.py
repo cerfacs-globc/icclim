@@ -4,7 +4,6 @@ from icclim._core.generic.functions import percentile
 from icclim._core.model.standard_variable import StandardVariableRegistry
 from icclim.frequency import FrequencyRegistry
 from icclim.threshold.factory import build_threshold
-
 from tests.testing_utils import stub_tas
 
 

@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+
 from icclim._core.constants import UNITS_KEY
 from icclim._core.input_parsing import (
     PercentileDataArray,
