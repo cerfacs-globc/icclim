@@ -50,7 +50,6 @@ Package Contents
 
     .. Documentation below is auto-generated with the extract-icclim-funs.py script
     .. Generated API comment:Begin
-
     count_occurrences
     max_consecutive_occurrence
     sum_of_spell_lengths

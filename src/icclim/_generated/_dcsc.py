@@ -8,26 +8,25 @@ This module exposes each climate index as individual functions for convenience.
 """
 
 from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
-import icclim
+if TYPE_CHECKING:
+    from xarray import Dataset, DataArray
 from icclim._core.input_parsing import get_dataarray_from_dataset
-from icclim.dcsc.registry import DcscIndexRegistry
 from icclim.threshold.factory import build_threshold
+from icclim.dcsc.registry import DcscIndexRegistry
 
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Sequence
-    from typing import FrequencyLike, InFileLike
 
-    from xarray import DataArray, Dataset
-
+    from icclim.logger import Verbosity
+    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
+    from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
-    from icclim.frequency import Frequency
-    from icclim.logger import Verbosity
-
+    from icclim._core.legacy.user_index.model import UserIndexDict
+    from icclim._core.model.threshold import Threshold
 __all__ = [
     "tav",
     "txav",
@@ -80,7 +79,7 @@ def tav(
     TAV: Moyenne de la température moyenne.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -124,12 +123,13 @@ def tav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TAV,
         in_files=in_files,
@@ -161,7 +161,7 @@ def txav(
     TXAV: Moyenne de la température maximale.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -205,12 +205,13 @@ def txav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TXAV,
         in_files=in_files,
@@ -242,7 +243,7 @@ def trav(
     TRAV: Moyenne de l'amplitude thermique.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -286,12 +287,13 @@ def trav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TRAV,
         in_files=in_files,
@@ -327,7 +329,7 @@ def tx10(
     TX10: Extrême froid de la température maximale journalière (10e centile de la température maximale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -395,12 +397,13 @@ def tx10(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TX10,
         in_files=in_files,
@@ -447,7 +450,7 @@ def tx90(
     TX90: Extrême chaud de la température maximale journalière (90e centile de la température maximale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -515,12 +518,13 @@ def tx90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TX90,
         in_files=in_files,
@@ -567,7 +571,7 @@ def tn10(
     TN10: Extrême froid de la température minimale  journalière (10e centile de la température minimale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -635,12 +639,13 @@ def tn10(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TN10,
         in_files=in_files,
@@ -687,7 +692,7 @@ def tn90(
     TN90: Extrême chaud de la température minimale journalière (90e centile de la température minimale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -755,12 +760,13 @@ def tn90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TN90,
         in_files=in_files,
@@ -803,7 +809,7 @@ def tnfd(
     TNFD: Nombre de jours de gel (température minimale <= 0°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -847,12 +853,13 @@ def tnfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TNFD,
         in_files=in_files,
@@ -887,7 +894,7 @@ def txfd(
     TXFD: Nombre de jours sans dégel (température maximale <= 0°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -931,12 +938,13 @@ def txfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TXFD,
         in_files=in_files,
@@ -971,7 +979,7 @@ def sd(
     SD: Nombre de journées d'été (température maximale > 25°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1015,12 +1023,13 @@ def sd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.SD,
         in_files=in_files,
@@ -1055,7 +1064,7 @@ def tx35(
     TX35: Nombre de jours de forte chaleur (température maximale > 35°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1099,12 +1108,13 @@ def tx35(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TX35,
         in_files=in_files,
@@ -1139,7 +1149,7 @@ def tr(
     TR: Nombre de nuits tropicales (température minimale > 20°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1183,12 +1193,13 @@ def tr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TR,
         in_files=in_files,
@@ -1209,7 +1220,7 @@ def tr(
 
 def txnd(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1218,14 +1229,14 @@ def txnd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
 
     TXND: Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1269,18 +1280,14 @@ def txnd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
-
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
+    
     Notes
     -----
     This function has been auto-generated.
@@ -1292,6 +1299,7 @@ def txnd(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TXND,
         in_files=in_files,
@@ -1309,7 +1317,7 @@ def txnd(
 
 def tnht(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1318,14 +1326,14 @@ def tnht(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
 
     TNHT: Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1369,18 +1377,14 @@ def tnht(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
-
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
+    
     Notes
     -----
     This function has been auto-generated.
@@ -1392,6 +1396,7 @@ def tnht(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TNHT,
         in_files=in_files,
@@ -1409,7 +1414,7 @@ def tnht(
 
 def tnnd(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1418,14 +1423,14 @@ def tnnd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
 
     TNND: Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1469,18 +1474,14 @@ def tnnd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
-
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
+    
     Notes
     -----
     This function has been auto-generated.
@@ -1492,6 +1493,7 @@ def tnnd(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TNND,
         in_files=in_files,
@@ -1509,7 +1511,7 @@ def tnnd(
 
 def tncwd(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1518,14 +1520,14 @@ def tncwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
 
     TNCWD: Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1569,18 +1571,14 @@ def tncwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
-
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
+    
     Notes
     -----
     This function has been auto-generated.
@@ -1592,6 +1590,7 @@ def tncwd(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TNCWD,
         in_files=in_files,
@@ -1609,7 +1608,7 @@ def tncwd(
 
 def txhwd(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1618,14 +1617,14 @@ def txhwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
 
     TXHWD: Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1669,18 +1668,14 @@ def txhwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
-
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
+    
     Notes
     -----
     This function has been auto-generated.
@@ -1692,6 +1687,7 @@ def txhwd(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TXHWD,
         in_files=in_files,
@@ -1723,7 +1719,7 @@ def hdd(
     HDD: Degrés-jours de chauffage (Cumul sur la période des écarts négatifs au seuil de < 17°C par la température qt moyenne).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1767,12 +1763,13 @@ def hdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.HDD,
         in_files=in_files,
@@ -1807,7 +1804,7 @@ def cdd(
     CDD: Degrés-jours de climatisation(Cumul sur la période des dépassements du seuil de > 18°C par la température qt moyenne).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1851,12 +1848,13 @@ def cdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.CDD,
         in_files=in_files,
@@ -1891,7 +1889,7 @@ def pav(
     PAV: Précipitations quotidiennes moyennes.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1935,12 +1933,13 @@ def pav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PAV,
         in_files=in_files,
@@ -1972,7 +1971,7 @@ def pint(
     PINT: Précipitation moyenne des jours pluvieux (RR > 1 mm).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2016,12 +2015,13 @@ def pint(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PINT,
         in_files=in_files,
@@ -2056,7 +2056,7 @@ def rr(
     RR: Cumul de précipitation.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2100,12 +2100,13 @@ def rr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.RR,
         in_files=in_files,
@@ -2137,7 +2138,7 @@ def rr1mm(
     RR1MM: Nombre de jours de pluie (précipitations >= 1 mm).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2181,12 +2182,13 @@ def rr1mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.RR1MM,
         in_files=in_files,
@@ -2221,7 +2223,7 @@ def pn20mm(
     PN20MM: Nombre de jours de fortes précipitations (précipitations >= 20 mm).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2265,12 +2267,13 @@ def pn20mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PN20MM,
         in_files=in_files,
@@ -2305,7 +2308,7 @@ def pxcdd(
     PXCDD: Période de sécheresse (Max [Nbj consécutifs RR < 1 mm]).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2349,12 +2352,13 @@ def pxcdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PXCDD,
         in_files=in_files,
@@ -2389,7 +2393,7 @@ def pxcwd(
     PXCWD: Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm]).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2433,12 +2437,13 @@ def pxcwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PXCWD,
         in_files=in_files,
@@ -2477,7 +2482,7 @@ def r99(
     R99: Nombre de jours de précipitations extrêmes.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2545,12 +2550,13 @@ def r99(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.R99,
         in_files=in_files,
@@ -2572,7 +2578,7 @@ def r99(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -2598,7 +2604,7 @@ def pfl90(
     PFL90: Fraction des précipitations journalières intenses.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2666,12 +2672,13 @@ def pfl90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PFL90,
         in_files=in_files,
@@ -2693,7 +2700,7 @@ def pfl90(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -2719,7 +2726,7 @@ def pq90(
     PQ90: Précipitation quotidienne intense (90e centile des précipitations).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2787,12 +2794,13 @@ def pq90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PQ90,
         in_files=in_files,
@@ -2814,7 +2822,7 @@ def pq90(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -2840,7 +2848,7 @@ def pq99(
     PQ99: Précipitation quotidienne extrême (99e centile des précipitations).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2908,12 +2916,13 @@ def pq99(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PQ99,
         in_files=in_files,
@@ -2935,7 +2944,7 @@ def pq99(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -2958,7 +2967,7 @@ def ffav(
     FFAV: Écart de la vitesse du vent moyenne journalière (par rapport à une periode de référence).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3016,12 +3025,13 @@ def ffav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.FFAV,
         in_files=in_files,
@@ -3058,7 +3068,7 @@ def ff98(
     FF98: Nombre de jours de vent fort (vent ≥ 98e centile de la période de référence).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3126,12 +3136,13 @@ def ff98(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
-    """
+    """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.FF98,
         in_files=in_files,
@@ -3153,7 +3164,7 @@ def ff98(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 kt",
+            threshold_min_value="1 knot",
         ),
         out_unit="days",
     )
