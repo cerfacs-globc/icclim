@@ -239,7 +239,7 @@ def excess(
     The resulting excess values are then summed over the specified resample frequency.
     """  # noqa: E501
     study, threshold = _get_thresholded_var(climate_vars)
-    if threshold.operator is not OperatorRegistry.REACH:
+    if threshold.operator != OperatorRegistry.REACH:
         msg = "Excess can only be computed with 'reach' operator."
         raise InvalidIcclimArgumentError(msg)
     excesses = threshold.compute(study, override_op=operator.sub)

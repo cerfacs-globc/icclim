@@ -19,6 +19,7 @@ from functools import reduce
 from typing import TYPE_CHECKING, Callable
 from warnings import warn
 
+import numpy as np
 import xarray as xr
 import xclim
 
@@ -727,10 +728,14 @@ def _write_output_file(
         time_encoding = {
             "calendar": input_time_encoding.get("calendar"),
             UNITS_KEY: input_time_encoding.get(UNITS_KEY),
-            "dtype": input_time_encoding.get("dtype"),
+            # Force float64 to avoid serialization warning
+            "dtype": np.float64,
         }
     else:
-        time_encoding = {UNITS_KEY: "days since 1850-1-1"}
+        time_encoding = {
+            UNITS_KEY: "days since 1850-1-1",
+            "dtype": np.float64,  # force float
+        }
     result_ds.to_netcdf(
         file_path,
         format=netcdf_version.name,

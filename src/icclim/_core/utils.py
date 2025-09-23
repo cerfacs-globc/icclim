@@ -8,7 +8,6 @@ import dateparser
 
 from icclim.exception import InvalidIcclimArgumentError
 
-
 def read_date(in_date: str | datetime) -> datetime:
     """
     Read a date from a string or return the date if it is already a datetime object.

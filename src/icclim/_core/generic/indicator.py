@@ -19,9 +19,14 @@ from xclim.core.units import (
     rate2amount,
     units2pint,
 )
-from pint import DefinitionSyntaxError, UndefinedUnitError, UnitRegistry, DimensionalityError
-from pint.errors import UndefinedUnitError as PintUndefinedUnitError #fallback
 
+try:
+    from pint import UndefinedUnitError, DimensionalityError, DefinitionSyntaxError, OffsetUnitCalculusError
+except ImportError:
+    # fallback for older pint
+    from pint.errors import UndefinedUnitError, DimensionalityError, DefinitionSyntaxError, OffsetUnitCalculusError
+from pint import UnitRegistry
+    
 from icclim._core.generic.functions import check_freq
 from icclim._core.climate_variable import must_run_bootstrap
 from icclim._core.constants import (
@@ -40,8 +45,38 @@ if TYPE_CHECKING:
     from icclim._core.model.indicator import MissingMethodLike
     from icclim.frequency import Frequency
 
-jinja_env = Environment(autoescape=True)
+# Create one global registry for the whole module
+ureg = UnitRegistry()
 
+# Hydro context: kg/m2 <-> mm and kg/m2/time <-> mm/time
+# This is used for precipitation-like variables
+@ureg.context("hydro")
+def hydro(ctx):
+    # Flux (kg/m2 <-> mm)
+    ctx.add_transformation(
+        "[mass] / [length] ** 2",
+        "[length]",
+        lambda ureg, x: x * ureg("1 mm") / ureg("1 kg / m^2"),
+    )
+    ctx.add_transformation(
+        "[length]",
+        "[mass] / [length] ** 2",
+        lambda ureg, x: x * ureg("1 kg / m^2") / ureg("1 mm"),
+    )
+    # Rate flux (kg/m2 / time <-> mm / time)
+    ctx.add_transformation(
+        "[mass] / [length] ** 2 / [time]",
+        "[length] / [time]",
+        lambda ureg, x: x * ureg("1 mm / s") / ureg("1 kg / m^2 / s"),
+    )
+    ctx.add_transformation(
+        "[length] / [time]",
+        "[mass] / [length] ** 2 / [time]",
+        lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"),
+    )
+
+
+jinja_env = Environment(autoescape=True)
 
 class GenericIndicator(Indicator):
     """
@@ -214,6 +249,17 @@ class GenericIndicator(Indicator):
 
         """
         self._check_for_invalid_setup(climate_vars, sampling_method)
+
+        # >>> PATCHED: Convert thresholds to Kelvin if in Celsius
+        for cv in climate_vars:
+            if hasattr(cv, "threshold") and cv.threshold is not None:
+                if cv.threshold.unit in ["C", "degC", "degree_Celsius"]:
+                    # Make a copy, update internal fields
+                    new_threshold = deepcopy(cv.threshold)
+                    new_threshold._value = new_threshold.value + 273.15
+                    new_threshold._unit = "K"
+                    cv.threshold = new_threshold
+        
         if output_unit is not None:
             if _is_amount_unit(output_unit):
                 climate_vars = _convert_rates_to_amounts(
@@ -284,8 +330,24 @@ class GenericIndicator(Indicator):
         DataArray
             The postprocessed result.
         """
-        if out_unit is not None:
+        """
+        >>> PATCHED: Difference-aware postprocess
+        Convert absolute temperatures to degC at the very end.
+        Temperature differences (deltaT) remain in K (numerically identical to degC differences).
+        Precipitation / amounts handled normally.
+        """
+        if out_unit in ["C", "degC", "degree_Celsius"]:
+            # >>> DIFF-AWARE: only convert absolute temps
+            if not _is_a_diff_indicator(self):
+                result.values = result.values - 273.15
+                result.attrs["units"] = "degC"
+            else:
+                # Differences: keep in K, label as degC
+                result.attrs["units"] = "degC"
+
+        elif out_unit is not None and _is_amount_unit(out_unit):
             result = convert_units_to(result, out_unit, context="hydro")
+            
         if self.missing != "skip" and indexer is not None:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
@@ -313,6 +375,10 @@ class GenericIndicator(Indicator):
             result.attrs[prop] = getattr(self, prop)
         result.attrs["history"] = ""
         return result
+
+    # >>> PATCHED helper: difference-aware flag
+    def _is_a_diff_indicator(indicator: Indicator) -> bool:
+        return "compute_diff" in indicator.qualifiers
 
     def __call__(self, config: IndexConfig) -> DataArray:
         """
@@ -509,34 +575,57 @@ def _get_climate_vars_metadata(
     ]
 
 
-def _convert_rates_to_amounts(
-    climate_vars: list[ClimateVariable], output_unit: str
-) -> list[ClimateVariable]:
+def _convert_rates_to_amounts(climate_vars: list["ClimateVariable"], output_unit: str) -> list["ClimateVariable"]:
+    """
+    Convert rate-like climate variables to amount units using xclim's rate2amount.
+    This function handles both classic rates (e.g., mm/s) and precipitation (kg m-2 d-1)
+    by using a dedicated Pint context.
+    """
     for climate_var in climate_vars:
-        current_unit = climate_var.studied_data.attrs.get(UNITS_KEY, None)
-        if current_unit is not None and not _is_amount_unit(current_unit):
-            # Convert rates (e.g. mm s-1) to amounts (e.g. mm) using xclim's rate2amount.
-            # rate2amount accepts a DataArray and returns a DataArray.
-            climate_var.studied_data = rate2amount(
-                climate_var.studied_data,
-                out_units=output_unit,
-            )
+        current_unit = climate_var.studied_data.attrs.get("units", None)
+
+        if current_unit is None:
+            continue
+
+        # Check if the current unit is already an amount
+        if not _is_amount_unit(current_unit):
+            # Use a precipitation context if needed
+            if "kg/m2" in current_unit.replace(" ", "") or "mm" in output_unit:
+                with ureg.context("hydro"):
+                    # Convert rates (e.g., kg m-2 d-1) to amounts (mm)
+                    # rate2amount handles the multiplication by the time step
+                    climate_var.studied_data = rate2amount(
+                        climate_var.studied_data, out_units=output_unit
+                    )
+            else:
+                # Convert other rate units (e.g., mm/s) to amounts (e.g., mm)
+                climate_var.studied_data = rate2amount(
+                    climate_var.studied_data, out_units=output_unit
+                )
     return climate_vars
 
 
 def _is_amount_unit(unit: str) -> bool:
     """
     Return True if `unit` is an amount unit (i.e. a length-like unit such as m, mm).
-    Uses pint.UnitRegistry to test whether the unit can be converted to meters.
+    Units with mass, time, or offset units (e.g., °C) are NOT amounts.
+    This function is robust for rates (e.g., s-1, d-1, h-1) as well.
     """
+    unit = unit.strip()
+
+    # Quickly reject known offset units
+    offset_units = ["K", "degC", "degree_Celsius", "C", "?C"]
+    if any(u in unit for u in offset_units):
+        return False
+
+    # Split compound units and check dimensionality
     try:
-        # Try to create a pint quantity and convert to a length unit (meter).
-        ureg = UnitRegistry()
-        q = 1 * ureg(unit)  # can raise UndefinedUnitError
-        # Try converting to metre; if it fails with DimensionalityError it is not length-like.
-        q.to("meter")
-        return True
-    except (PintUndefinedUnitError, UndefinedUnitError, DimensionalityError, DefinitionSyntaxError):
+        q = 1 * ureg(unit)
+        dims = q.dimensionality
+        # Only pure length units are considered amounts
+        # This allows units like mm, cm, m
+        return dims == {ureg('[length]'): 1}
+    except (DimensionalityError, UndefinedUnitError, DefinitionSyntaxError, OffsetUnitCalculusError):
         return False
 
 
@@ -554,7 +643,7 @@ def _check_cf(climate_vars: list[ClimateVariable]) -> None:
     for da in climate_vars:
         with contextlib.suppress(KeyError):
             # Silently ignore unknown variables.
-            cfcheck_from_name(str(da.name), da)
+            cfcheck_from_name(str(da.name), da.studied_data)
 
 
 def _check_data(climate_vars: list, src_freq: str) -> None:

@@ -11,6 +11,8 @@ from icclim._core.generic.indicator import Indicator
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import FrequencyRegistry
 
+from pandas import to_datetime
+
 if TYPE_CHECKING:
     import xarray
 
@@ -71,14 +73,23 @@ class StandardizedPrecipitationIndex3(Indicator):
         if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
             msg = "`slice_mode` cannot be configured when computing SPI3"
             raise InvalidIcclimArgumentError(msg)
-        study, ref = get_couple_of_var(config.climate_variables, "SPI")
+        study, _ = get_single_var(config.climate_variables)
+        # Parse with correct format
+        study_cv = config.climate_variables[0]  # the ClimateVariable
+        if study_cv.reference_period is None:
+            raise ValueError("reference_period is missing for SPI index")
+        start, end = to_datetime(study_cv.reference_period, format="%m-%d-%Y")
+        # Convert back to YYYY-MM-DD
+        cal_start, cal_end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
         return xclim.atmos.standardized_precipitation_index(
             pr=study,
-            pr_cal=ref,
             freq="MS",
             window=3,
+            cal_start=cal_start,
+            cal_end=cal_end,
             dist="gamma",
             method="APP",
+            fitkwargs={"floc": 0},
         )
 
     def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
@@ -112,14 +123,23 @@ class StandardizedPrecipitationIndex6(Indicator):
         if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
             msg = "`slice_mode` cannot be configured when computing SPI6"
             raise InvalidIcclimArgumentError(msg)
-        study, ref = get_couple_of_var(config.climate_variables, "SPI")
+        study, _ = get_single_var(config.climate_variables)
+        # Parse with correct format
+        study_cv = config.climate_variables[0]  # the ClimateVariable
+        if study_cv.reference_period is None:
+            raise ValueError("reference_period is missing for SPI index")
+        start, end = to_datetime(study_cv.reference_period, format="%m-%d-%Y")
+        # Convert back to YYYY-MM-DD
+        cal_start, cal_end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
         return xclim.atmos.standardized_precipitation_index(
             pr=study,
-            pr_cal=ref,
             freq="MS",
             window=6,
+            cal_start=cal_start,
+            cal_end=cal_end,
             dist="gamma",
             method="APP",
+            fitkwargs={"floc": 0},
         )
 
     def preprocess(self, *args, **kwargs) -> list[xarray.DataArray]:
