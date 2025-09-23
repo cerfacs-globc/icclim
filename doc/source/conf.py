@@ -19,7 +19,7 @@ import icclim  # (import need to be after path update)
 
 # -- Project information -----------------------------------------------------
 project = "icclim"
-copyright = "2021, CERFACS"  # noqa: A001
+copyright = "2025, CERFACS"  # noqa: A001
 author = "Christian P."
 version = icclim.__version__
 release = icclim.__version__
