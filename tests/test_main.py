@@ -339,6 +339,7 @@ class TestIntegration:
         ds = self.data.to_dataset(name="tas")
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
+        print(ds)
         res = icclim.indices(
             index_group=["tas", "pr"],
             in_files=ds,

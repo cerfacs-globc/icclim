@@ -14,12 +14,14 @@ from __future__ import annotations
 import datetime as dt
 import operator
 import time
+import numbers
 from collections.abc import Sequence
 from functools import reduce
 from typing import TYPE_CHECKING, Callable
 from warnings import warn
 
 import xarray as xr
+import numpy as np
 import xclim
 
 from icclim._core.climate_variable import (
@@ -731,6 +733,16 @@ def _write_output_file(
         }
     else:
         time_encoding = {UNITS_KEY: "days since 1850-1-1"}
+
+    # Define valid NetCDF attribute types
+    VALID_ATTR_TYPES = (str, numbers.Number, np.ndarray, np.number, list, tuple, bytes)
+
+    # Loop over all variables and validate attrs
+    for var in result_ds.data_vars.values():
+        for attr_name, attr_value in list(var.attrs.items()):
+            if not isinstance(attr_value, VALID_ATTR_TYPES):
+                del var.attrs[attr_name]
+
     result_ds.to_netcdf(
         file_path,
         format=netcdf_version.name,
