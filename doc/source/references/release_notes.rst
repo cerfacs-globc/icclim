@@ -3,6 +3,18 @@
 #################
 
 ******
+ 7.0.2
+******
+
+date: 2025-09-24
+
+Details
+=======
+
+-  [maint] Bumped all dependency packages according to latest xclim.
+   Fixed the code to deal with breaking changes in xarray, pint, xclim.
+
+******
  7.0.0
 ******
 
