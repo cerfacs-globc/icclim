@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import dataclasses
 import operator
-from typing import TYPE_CHECKING, Callable, NoReturn
+from collections.abc import Callable
+from typing import TYPE_CHECKING, NoReturn
 
 from icclim._core.model.registry import Registry
 from icclim.exception import InvalidIcclimArgumentError

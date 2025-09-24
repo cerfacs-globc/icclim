@@ -5,13 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import xclim
+from pandas import to_datetime
 
-from icclim._core.generic.functions import get_couple_of_var, get_single_var
+from icclim._core.generic.functions import get_single_var
 from icclim._core.generic.indicator import Indicator
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import FrequencyRegistry
-
-from pandas import to_datetime
 
 if TYPE_CHECKING:
     import xarray

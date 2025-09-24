@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import contextlib
+from collections.abc import Callable
 from copy import deepcopy
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import xarray as xr
@@ -14,39 +15,59 @@ from xarray import DataArray
 from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.missing import MISSING_METHODS
-from xclim.core.units import convert_units_to, rate2amount, units2pint
+from xclim.core.units import convert_units_to, rate2amount
 from xclim.core.units import units as ureg
+
 try:
-    from pint import UndefinedUnitError, DimensionalityError, DefinitionSyntaxError, OffsetUnitCalculusError
+    from pint import (
+        DefinitionSyntaxError,
+        DimensionalityError,
+        OffsetUnitCalculusError,
+        UndefinedUnitError,
+    )
 except ImportError:
-    from pint.errors import UndefinedUnitError, DimensionalityError, DefinitionSyntaxError, OffsetUnitCalculusError
+    pass
 
-from pint import Context
 
-from icclim._core.generic.functions import check_freq
 from icclim._core.climate_variable import must_run_bootstrap
 from icclim._core.constants import (
     RESAMPLE_METHOD,
-    UNITS_KEY,
 )
+from icclim._core.generic.functions import check_freq
 from icclim._core.generic.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim._core.model.indicator import Indicator
 from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
     import jinja2
+
     from icclim._core.climate_variable import ClimateVariable
     from icclim._core.model.index_config import IndexConfig
-    from icclim._core.model.indicator import MissingMethodLike
     from icclim.frequency import Frequency
 
 
 # Hydro context for precipitation-like variables
-context_hydro = ureg.Context('hydro')
-context_hydro.add_transformation("[mass] / [length] ** 2", "[length]", lambda ureg, x: x * ureg("1 mm") / ureg("1 kg / m^2"))
-context_hydro.add_transformation("[length]", "[mass] / [length] ** 2", lambda ureg, x: x * ureg("1 kg / m^2") / ureg("1 mm"))
-context_hydro.add_transformation("[mass] / [length] ** 2 / [time]", "[length] / [time]", lambda ureg, x: x * ureg("1 mm / s") / ureg("1 kg / m^2 / s"))
-context_hydro.add_transformation("[length] / [time]", "[mass] / [length] ** 2 / [time]", lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"))
+context_hydro = ureg.Context("hydro")
+context_hydro.add_transformation(
+    "[mass] / [length] ** 2",
+    "[length]",
+    lambda ureg, x: x * ureg("1 mm") / ureg("1 kg / m^2"),
+)
+context_hydro.add_transformation(
+    "[length]",
+    "[mass] / [length] ** 2",
+    lambda ureg, x: x * ureg("1 kg / m^2") / ureg("1 mm"),
+)
+context_hydro.add_transformation(
+    "[mass] / [length] ** 2 / [time]",
+    "[length] / [time]",
+    lambda ureg, x: x * ureg("1 mm / s") / ureg("1 kg / m^2 / s"),
+)
+context_hydro.add_transformation(
+    "[length] / [time]",
+    "[mass] / [length] ** 2 / [time]",
+    lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"),
+)
 
 
 jinja_env = Environment(autoescape=True)
@@ -162,10 +183,10 @@ class GenericIndicator(Indicator):
         """  # noqa: E501
         super().__init__()
         self.missing_options = missing_options
-        
+
         # assign missing method name; default is "any"
         self.missing = missing  # <-- make sure to assign this first
-        
+
         # Assign the missing method (callable) directly
         self._missing = MISSING_METHODS[self.missing]
         if self.missing_options:
@@ -233,7 +254,7 @@ class GenericIndicator(Indicator):
                     new_threshold._value = new_threshold.value + 273.15
                     new_threshold._unit = "K"
                     cv.threshold = new_threshold
-        
+
         if output_unit is not None:
             if _is_amount_unit(output_unit):
                 climate_vars = _convert_rates_to_amounts(
@@ -304,7 +325,6 @@ class GenericIndicator(Indicator):
         DataArray
             The postprocessed result.
         """
-
         """
         >>> PATCHED: Difference-aware postprocess
         Convert absolute temperatures to degC at the very end.
@@ -327,14 +347,18 @@ class GenericIndicator(Indicator):
             if current_unit is not None:
                 try:
                     q = 1 * ureg(current_unit)
-                    if q.check("[mass] / [length] ** 2 / [time]") or q.check("[mass] / [length] ** 2"):
+                    if q.check("[mass] / [length] ** 2 / [time]") or q.check(
+                        "[mass] / [length] ** 2"
+                    ):
                         # Always use hydro context for rates and amounts
                         with context_hydro:
                             result = convert_units_to(result, out_unit, context="hydro")
                     else:
                         result = convert_units_to(result, out_unit)
                 except Exception as e:
-                    print(f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping")
+                    print(
+                        f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping"
+                    )
             else:
                 result = convert_units_to(result, out_unit)
 
@@ -349,6 +373,7 @@ class GenericIndicator(Indicator):
                 if src_freq is None:
                     try:
                         from icclim._core.generic.functions import check_freq
+
                         src_freq = check_freq(result, dim="time")
                     except Exception:
                         src_freq = "D"  # safe fallback: daily
@@ -358,14 +383,13 @@ class GenericIndicator(Indicator):
                     out_data=result,
                     resample_freq=output_freq,
                     src_freq=src_freq,
-                    indexer=indexer
+                    indexer=indexer,
                 )
 
         for prop in self.templated_properties:
             result.attrs[prop] = getattr(self, prop)
         result.attrs["history"] = ""
         return result
-
 
     # >>> PATCHED helper: difference-aware flag
     def _is_a_diff_indicator(indicator: Indicator) -> bool:
@@ -500,7 +524,9 @@ class GenericIndicator(Indicator):
             )
             setattr(self, templated_property, template.render())
 
-    def _handle_missing_values(self, in_data, out_data, resample_freq=None, src_freq=None, indexer=None):
+    def _handle_missing_values(
+        self, in_data, out_data, resample_freq=None, src_freq=None, indexer=None
+    ):
         """
         Handle missing values in climate index computations.
 
@@ -517,17 +543,18 @@ class GenericIndicator(Indicator):
         indexer : dict, optional
             Extra arguments used by some missing value methods.
         """
-        from functools import reduce
         import numpy as np
         from xarray import DataArray
         from xclim.core.missing import MISSING_METHODS
 
         missing_class = MISSING_METHODS[self.missing]  # Get the class
-        missing_obj = missing_class()                  # Instantiate with no args
+        missing_obj = missing_class()  # Instantiate with no args
 
         # We flag periods according to the missing method. Skip variables without a time coordinate.
         miss = (
-            missing_obj(da, freq=resample_freq, src_timestep=src_freq, **(indexer or {}))
+            missing_obj(
+                da, freq=resample_freq, src_timestep=src_freq, **(indexer or {})
+            )
             for da in in_data
             if "time" in da.coords
         )
@@ -540,7 +567,7 @@ class GenericIndicator(Indicator):
             mask = mask.reindex(time=out_data.time, fill_value=True)
 
         return out_data.where(~mask)
-        
+
 
 def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
     if len(climate_vars) == 1:
@@ -566,7 +593,9 @@ def _get_climate_vars_metadata(
     ]
 
 
-def _convert_rates_to_amounts(climate_vars: list["ClimateVariable"], output_unit: str) -> list["ClimateVariable"]:
+def _convert_rates_to_amounts(
+    climate_vars: list[ClimateVariable], output_unit: str
+) -> list[ClimateVariable]:
     """
     Convert rate-like climate variables to amount units using xclim's rate2amount.
     Handles both classic rates (e.g., mm/s) and precipitation (kg m-2 / time)
@@ -597,7 +626,9 @@ def _convert_rates_to_amounts(climate_vars: list["ClimateVariable"], output_unit
 
             if is_precip:
                 # >>> Hydro context applied here
-                print(f"Converting {climate_var.name}: {current_unit} -> {output_unit} with hydro context")
+                print(
+                    f"Converting {climate_var.name}: {current_unit} -> {output_unit} with hydro context"
+                )
                 with context_hydro:
                     da = rate2amount(climate_var.studied_data, out_units=output_unit)
             else:
@@ -609,7 +640,9 @@ def _convert_rates_to_amounts(climate_vars: list["ClimateVariable"], output_unit
 
         except Exception as e:
             # Skip on error but report it
-            print(f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping")
+            print(
+                f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping"
+            )
             continue
 
     return climate_vars
@@ -633,7 +666,6 @@ def _is_amount_unit(unit: str) -> bool:
         print(f"_is_amount_unit: exception {e} for unit '{unit}', returning False")
         return False
 
-    
 
 def _check_cf(climate_vars: list[ClimateVariable]) -> None:
     """Compare metadata attributes to CF-Convention standards.

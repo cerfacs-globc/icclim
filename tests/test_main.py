@@ -37,6 +37,7 @@ def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock) -> None:
 
 HEAT_INDICES = ["SU", "TR", "WSDI", "TG90p", "TN90p", "TX90p", "TXx", "TNx", "CSU"]
 
+
 def diagnose_time_frequency(time: xr.DataArray):
     print("=== Diagnosing time coordinate ===")
     print("Type of first element:", type(time.values[0]))
@@ -75,7 +76,9 @@ class TestIntegration:
 
     OUTPUT_FILE = Path("out.nc")
     TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
-    CF_TIME_RANGE = xr.cftime_range("2042-01-01", end="2045-12-31", freq="D", calendar="gregorian")
+    CF_TIME_RANGE = xr.cftime_range(
+        "2042-01-01", end="2045-12-31", freq="D", calendar="gregorian"
+    )
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
@@ -240,10 +243,10 @@ class TestIntegration:
         # THEN
         # Cast time_bounds to datetime64[ns] to avoid timezone warnings
         tb = res.time_bounds.astype("datetime64[ns]")
-        
+
         # Compare with naive datetime64 (UTC info is lost in np.datetime64)
-        assert tb[0, 0] == np.datetime64(dt.datetime(2042, 1, 1))   
-        assert tb[0, 1] == np.datetime64(dt.datetime(2042, 1, 14)) 
+        assert tb[0, 0] == np.datetime64(dt.datetime(2042, 1, 1))
+        assert tb[0, 1] == np.datetime64(dt.datetime(2042, 1, 14))
 
         assert (
             res.SU.attrs["standard_name"]
@@ -1094,4 +1097,3 @@ class TestIntegration:
         rh = icclim.rh(in_files=humidity, slice_mode="month").RH.compute()
         # THEN
         np.testing.assert_almost_equal(rh.isel(time=0), 10)
-

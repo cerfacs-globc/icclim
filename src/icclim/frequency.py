@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import dataclasses
 import re
+from collections.abc import Callable
 from datetime import timedelta
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any
 
 import cftime
 import numpy as np
@@ -180,7 +181,7 @@ def get_time_bounds_updater(
         # make time axis values be in the middle of the bounds
         da["time"] = starts + (ends - starts) / 2
         time_bounds_da = DataArray(
-            data=list(zip(starts, ends)),
+            data=list(zip(starts, ends, strict=False)),
             dims=["time", "bounds"],
             coords=[("time", da.time.values), ("bounds", [0, 1])],
         )

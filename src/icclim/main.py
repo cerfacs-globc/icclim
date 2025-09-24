@@ -14,15 +14,13 @@ from __future__ import annotations
 import datetime as dt
 import operator
 import time
-import numbers
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from functools import reduce
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 from warnings import warn
 
 import numpy as np
 import xarray as xr
-import numpy as np
 import xclim
 
 from icclim._core.climate_variable import (

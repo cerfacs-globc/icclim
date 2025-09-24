@@ -153,8 +153,11 @@ def build_climate_vars(
     -------
     list of ClimateVariable that will be used to compute the climate index.
     """
-    from icclim.ecad.binding import StandardizedPrecipitationIndex3, StandardizedPrecipitationIndex6
-    
+    from icclim.ecad.binding import (
+        StandardizedPrecipitationIndex3,
+        StandardizedPrecipitationIndex6,
+    )
+
     if standard_index is not None and len(standard_index.input_variables) > len(
         climate_vars_dict
     ):
@@ -173,7 +176,10 @@ def build_climate_vars(
             standard_var = None
 
         # For SPI, attach reference_period directly to the study variable
-        if standard_index is not None and standard_index.short_name.lower() in ("spi3", "spi6"):
+        if standard_index is not None and standard_index.short_name.lower() in (
+            "spi3",
+            "spi6",
+        ):
             reference_period = base_period
         else:
             reference_period = None
@@ -190,8 +196,13 @@ def build_climate_vars(
         acc.append(cv)
 
     # Only add a reference variable for non-SPI indices
-    if not isinstance(standard_index, (StandardizedPrecipitationIndex3, StandardizedPrecipitationIndex6)):
-        if _standard_index_needs_ref(standard_index, is_compared_to_reference) or _generic_index_needs_ref(standard_index, is_compared_to_reference):
+    if not isinstance(
+        standard_index,
+        (StandardizedPrecipitationIndex3, StandardizedPrecipitationIndex6),
+    ):
+        if _standard_index_needs_ref(
+            standard_index, is_compared_to_reference
+        ) or _generic_index_needs_ref(standard_index, is_compared_to_reference):
             standard_var = standard_index.input_variables[0] if standard_index else None
             added_var = _build_reference_variable(
                 base_period,
@@ -295,7 +306,7 @@ def build_climate_var(
         standard_var=standard_var,
         studied_data=studied_data,
         threshold=climate_var_thresh,
-        reference_period = reference_period,
+        reference_period=reference_period,
         global_metadata={
             "history": study_ds.attrs.get("history", None),
             "source": study_ds.attrs.get("source", None),

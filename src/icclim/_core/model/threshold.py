@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import abc
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Callable, TypedDict, Union
+from collections.abc import Callable, Sequence
+from typing import TYPE_CHECKING, Any, TypedDict, Union
 
 import xarray as xr
 from xarray import DataArray, Dataset
@@ -33,7 +33,7 @@ ThresholdValueType = Union[
     int,
     Dataset,
     DataArray,
-    Sequence[Union[float, int, str]],
+    Sequence[float | int | str],
     None,
 ]
 

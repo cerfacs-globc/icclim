@@ -18,16 +18,19 @@ The `DataArray` instance is the result of the computation of the generic index.
 from __future__ import annotations
 
 import operator
+from collections.abc import Callable
 from functools import partial
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 from warnings import warn
 
 import xarray as xr
+from numpy import abs as np_abs
+from numpy import diff as np_diff
+from numpy import median as np_median
+from pandas import Timedelta, date_range, infer_freq, to_timedelta
 from xarray import DataArray
-from xarray.core.resample import DataArrayResample
 from xarray.computation.rolling import DataArrayRolling
-from pandas import Timedelta, to_timedelta, infer_freq, date_range
-from numpy import diff as np_diff, median as np_median, array as np_array, all as np_all, abs as np_abs
+from xarray.core.resample import DataArrayResample
 from xclim.core.calendar import build_climatology_bounds
 from xclim.core.units import (
     convert_units_to,
@@ -1424,7 +1427,9 @@ def check_freq(da, dim: str = "time", strict: bool = True):
 
     # Otherwise, try pandas inference
     try:
-        return infer_freq(date_range(start=times[0], periods=len(times), freq=median_delta))
+        return infer_freq(
+            date_range(start=times[0], periods=len(times), freq=median_delta)
+        )
     except Exception as e:
         if strict:
             raise ValueError(f"[icclim] Unable to infer frequency: {e}")
