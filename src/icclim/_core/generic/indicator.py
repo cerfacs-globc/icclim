@@ -16,7 +16,6 @@ from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.missing import MISSING_METHODS
 from xclim.core.units import convert_units_to, rate2amount, units2pint
 from xclim.core.units import units as ureg
-
 try:
     from pint import UndefinedUnitError, DimensionalityError, DefinitionSyntaxError, OffsetUnitCalculusError
 except ImportError:
@@ -305,12 +304,14 @@ class GenericIndicator(Indicator):
         DataArray
             The postprocessed result.
         """
+
         """
         >>> PATCHED: Difference-aware postprocess
         Convert absolute temperatures to degC at the very end.
         Temperature differences (deltaT) remain in K (numerically identical to degC differences).
-        Precipitation / amounts handled normally.
+        Precipitation / amounts handled normally using hydro context.
         """
+
         if out_unit in ["C", "degC", "degree_Celsius"]:
             # >>> DIFF-AWARE: only convert absolute temps
             if not _is_a_diff_indicator(self):
@@ -321,8 +322,22 @@ class GenericIndicator(Indicator):
                 result.attrs["units"] = "degC"
 
         elif out_unit is not None and _is_amount_unit(out_unit):
-            result = convert_units_to(result, out_unit, context="hydro")
-            
+            # Use Pint dimensionality + hydro context for precipitation-like units
+            current_unit = result.attrs.get("units", None)
+            if current_unit is not None:
+                try:
+                    q = 1 * ureg(current_unit)
+                    if q.check("[mass] / [length] ** 2 / [time]") or q.check("[mass] / [length] ** 2"):
+                        # Always use hydro context for rates and amounts
+                        with context_hydro:
+                            result = convert_units_to(result, out_unit, context="hydro")
+                    else:
+                        result = convert_units_to(result, out_unit)
+                except Exception as e:
+                    print(f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping")
+            else:
+                result = convert_units_to(result, out_unit)
+
         if self.missing != "skip" and indexer is not None:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
@@ -337,7 +352,7 @@ class GenericIndicator(Indicator):
                         src_freq = check_freq(result, dim="time")
                     except Exception:
                         src_freq = "D"  # safe fallback: daily
-                        
+
                 result = self._handle_missing_values(
                     in_data=das,
                     out_data=result,
@@ -350,6 +365,7 @@ class GenericIndicator(Indicator):
             result.attrs[prop] = getattr(self, prop)
         result.attrs["history"] = ""
         return result
+
 
     # >>> PATCHED helper: difference-aware flag
     def _is_a_diff_indicator(indicator: Indicator) -> bool:
@@ -557,38 +573,46 @@ def _convert_rates_to_amounts(climate_vars: list["ClimateVariable"], output_unit
     using a dedicated Pint context.
     """
     for climate_var in climate_vars:
+        # Get the current unit of the variable
         current_unit = climate_var.studied_data.attrs.get("units", None)
         if current_unit is None:
             continue
 
-        # Skip if already an amount
+        # Skip conversion if already an amount
         if _is_amount_unit(current_unit):
             continue
 
         try:
-            # Clean unit for Pint parsing
+            # Clean unit string for Pint parsing
             unit_clean = current_unit.replace(" ", "*").replace("-", "**")
             q = 1 * ureg(unit_clean)
             dims = q.dimensionality
 
-            # Precipitation-like units: mass/area or mass/area/time
-            if dims == ureg("kg / m^2").dimensionality \
-               or dims == ureg("kg / m^2 / s").dimensionality \
-               or "kg/m2" in current_unit.replace(" ", "").lower():
-                print(f"Converting {climate_var.name}: {current_unit} -> {output_unit}")
+            # Determine if this is a precipitation-like unit (mass/area or mass/area/time)
+            is_precip = (
+                dims == ureg("kg / m^2").dimensionality
+                or dims == ureg("kg / m^2 / s").dimensionality
+                or "kg/m2" in current_unit.replace(" ", "").lower()
+            )
+
+            if is_precip:
+                # >>> Hydro context applied here
+                print(f"Converting {climate_var.name}: {current_unit} -> {output_unit} with hydro context")
                 with context_hydro:
                     da = rate2amount(climate_var.studied_data, out_units=output_unit)
-                    climate_var.studied_data = da.astype("float64")
             else:
+                # Non-precipitation rates: normal conversion
                 da = rate2amount(climate_var.studied_data, out_units=output_unit)
-                climate_var.studied_data = da.astype("float64")
+
+            # Update the variable with converted data
+            climate_var.studied_data = da.astype("float64")
 
         except Exception as e:
+            # Skip on error but report it
             print(f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping")
             continue
 
     return climate_vars
-
 
 
 def _is_amount_unit(unit: str) -> bool:

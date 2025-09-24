@@ -1,4 +1,3 @@
-
 # ruff: noqa: A001, E501, N803
 """
 icclim's API for dcsc indices.
@@ -7,39 +6,27 @@ This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
-import icclim
+if TYPE_CHECKING:
+    from xarray import Dataset, DataArray
+from icclim._core.input_parsing import get_dataarray_from_dataset
 from icclim.threshold.factory import build_threshold
-
-from icclim._core.input_parsing import (
-     get_dataarray_from_dataset
-     )
+from icclim.dcsc.registry import DcscIndexRegistry
 
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Sequence
 
-    from xarray import Dataset
-    from xarray import DataArray
-
-    from icclim.ecad.registry import EcadIndexRegistry
-    from icclim.dcsc.registry import DcscIndexRegistry
-    from icclim.generic.registry import GenericIndicatorRegistry
-
     from icclim.logger import Verbosity
-    from typing import (
-         FrequencyLike, InFileLike, SamplingMethodLike
-        )
-
+    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
     from icclim._core.legacy.user_index.model import UserIndexDict
     from icclim._core.model.threshold import Threshold
-
 __all__ = [
     "tav",
     "txav",
@@ -142,6 +129,7 @@ def tav(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TAV,
         in_files=in_files,
@@ -223,6 +211,7 @@ def txav(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TXAV,
         in_files=in_files,
@@ -304,6 +293,7 @@ def trav(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TRAV,
         in_files=in_files,
@@ -413,6 +403,7 @@ def tx10(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TX10,
         in_files=in_files,
@@ -533,6 +524,7 @@ def tx90(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TX90,
         in_files=in_files,
@@ -653,6 +645,7 @@ def tn10(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TN10,
         in_files=in_files,
@@ -773,6 +766,7 @@ def tn90(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TN90,
         in_files=in_files,
@@ -865,6 +859,7 @@ def tnfd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TNFD,
         in_files=in_files,
@@ -949,6 +944,7 @@ def txfd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TXFD,
         in_files=in_files,
@@ -1033,6 +1029,7 @@ def sd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.SD,
         in_files=in_files,
@@ -1117,6 +1114,7 @@ def tx35(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TX35,
         in_files=in_files,
@@ -1201,6 +1199,7 @@ def tr(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TR,
         in_files=in_files,
@@ -1221,7 +1220,7 @@ def tr(
 
 def txnd(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1230,7 +1229,7 @@ def txnd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
 
@@ -1281,17 +1280,13 @@ def txnd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
     
     Notes
     -----
@@ -1304,6 +1299,7 @@ def txnd(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TXND,
         in_files=in_files,
@@ -1321,7 +1317,7 @@ def txnd(
 
 def tnht(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1330,7 +1326,7 @@ def tnht(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
 
@@ -1381,17 +1377,13 @@ def tnht(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
     
     Notes
     -----
@@ -1404,6 +1396,7 @@ def tnht(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TNHT,
         in_files=in_files,
@@ -1421,7 +1414,7 @@ def tnht(
 
 def tnnd(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1430,7 +1423,7 @@ def tnnd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
 
@@ -1481,17 +1474,13 @@ def tnnd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
     
     Notes
     -----
@@ -1504,6 +1493,7 @@ def tnnd(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TNND,
         in_files=in_files,
@@ -1521,7 +1511,7 @@ def tnnd(
 
 def tncwd(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1530,7 +1520,7 @@ def tncwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
 
@@ -1581,17 +1571,13 @@ def tncwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
     
     Notes
     -----
@@ -1604,6 +1590,7 @@ def tncwd(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TNCWD,
         in_files=in_files,
@@ -1621,7 +1608,7 @@ def tncwd(
 
 def txhwd(
     in_files: InFileLike,
-    normal: str | Sequence[str] | Dataset | DataArray,
+    normal: _empty,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -1630,7 +1617,7 @@ def txhwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    normal_var_name: str | None = None,
+    normal_var_name: _empty = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
 
@@ -1681,17 +1668,13 @@ def txhwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    normal : Union[str, Sequence[str], Dataset, DataArray, None]
+    normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
-        Typically, the expected normal dataset should have one value per `lat, lon`
-        couple.
-        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or
-        DataArray.
+        Typically, the expected normal dataset should have one value per `lat, lon` couple.
+        Can be a path or a list of paths to netCDF datasets or a xarray Dataset or DataArray.
     normal_var_name : str | None, optional
         The name of the normal variable.
-        If missing, icclim will try to guess which variable must be used in the
-        `normal` dataset.
-        Ignored if ``normal`` is a
+        If missing, icclim will try to guess which variable must be used in the `normal` dataset.
     
     Notes
     -----
@@ -1704,6 +1687,7 @@ def txhwd(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.TXHWD,
         in_files=in_files,
@@ -1785,6 +1769,7 @@ def hdd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.HDD,
         in_files=in_files,
@@ -1869,6 +1854,7 @@ def cdd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.CDD,
         in_files=in_files,
@@ -1953,6 +1939,7 @@ def pav(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PAV,
         in_files=in_files,
@@ -2034,6 +2021,7 @@ def pint(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PINT,
         in_files=in_files,
@@ -2118,6 +2106,7 @@ def rr(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.RR,
         in_files=in_files,
@@ -2199,6 +2188,7 @@ def rr1mm(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.RR1MM,
         in_files=in_files,
@@ -2283,6 +2273,7 @@ def pn20mm(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PN20MM,
         in_files=in_files,
@@ -2367,6 +2358,7 @@ def pxcdd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PXCDD,
         in_files=in_files,
@@ -2451,6 +2443,7 @@ def pxcwd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PXCWD,
         in_files=in_files,
@@ -2563,6 +2556,7 @@ def r99(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.R99,
         in_files=in_files,
@@ -2684,6 +2678,7 @@ def pfl90(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PFL90,
         in_files=in_files,
@@ -2805,6 +2800,7 @@ def pq90(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PQ90,
         in_files=in_files,
@@ -2926,6 +2922,7 @@ def pq99(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.PQ99,
         in_files=in_files,
@@ -3034,6 +3031,7 @@ def ffav(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.FFAV,
         in_files=in_files,
@@ -3144,6 +3142,7 @@ def ff98(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=DcscIndexRegistry.FF98,
         in_files=in_files,

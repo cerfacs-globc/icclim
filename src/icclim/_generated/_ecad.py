@@ -1,4 +1,3 @@
-
 # ruff: noqa: A001, E501, N803
 """
 icclim's API for ECAD indices.
@@ -7,39 +6,27 @@ This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
-import icclim
+if TYPE_CHECKING:
+    from xarray import Dataset, DataArray
+from icclim._core.input_parsing import get_dataarray_from_dataset
 from icclim.threshold.factory import build_threshold
-
-from icclim._core.input_parsing import (
-     get_dataarray_from_dataset
-     )
+from icclim.ecad.registry import EcadIndexRegistry
 
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Sequence
 
-    from xarray import Dataset
-    from xarray import DataArray
-
-    from icclim.ecad.registry import EcadIndexRegistry
-    from icclim.dcsc.registry import DcscIndexRegistry
-    from icclim.generic.registry import GenericIndicatorRegistry
-
     from icclim.logger import Verbosity
-    from typing import (
-         FrequencyLike, InFileLike, SamplingMethodLike
-        )
-
+    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
     from icclim._core.legacy.user_index.model import UserIndexDict
     from icclim._core.model.threshold import Threshold
-
 __all__ = [
     "tg",
     "tn",
@@ -174,6 +161,7 @@ def tg(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TG,
         in_files=in_files,
@@ -255,6 +243,7 @@ def tn(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TN,
         in_files=in_files,
@@ -336,6 +325,7 @@ def tx(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TX,
         in_files=in_files,
@@ -417,6 +407,7 @@ def dtr(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.DTR,
         in_files=in_files,
@@ -498,6 +489,7 @@ def etr(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.ETR,
         in_files=in_files,
@@ -579,6 +571,7 @@ def vdtr(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.VDTR,
         in_files=in_files,
@@ -660,6 +653,7 @@ def su(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SU,
         in_files=in_files,
@@ -744,6 +738,7 @@ def tr(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TR,
         in_files=in_files,
@@ -856,6 +851,7 @@ def wsdi(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.WSDI,
         in_files=in_files,
@@ -976,6 +972,7 @@ def tg90p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TG90P,
         in_files=in_files,
@@ -1096,6 +1093,7 @@ def tn90p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TN90P,
         in_files=in_files,
@@ -1216,6 +1214,7 @@ def tx90p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TX90P,
         in_files=in_files,
@@ -1308,6 +1307,7 @@ def txx(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TXX,
         in_files=in_files,
@@ -1389,6 +1389,7 @@ def tnx(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TNX,
         in_files=in_files,
@@ -1470,6 +1471,7 @@ def csu(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.CSU,
         in_files=in_files,
@@ -1554,6 +1556,7 @@ def gd4(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.GD4,
         in_files=in_files,
@@ -1638,6 +1641,7 @@ def fd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.FD,
         in_files=in_files,
@@ -1722,6 +1726,7 @@ def cfd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.CFD,
         in_files=in_files,
@@ -1806,6 +1811,7 @@ def hd17(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.HD17,
         in_files=in_files,
@@ -1890,6 +1896,7 @@ def id(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.ID,
         in_files=in_files,
@@ -2002,6 +2009,7 @@ def tg10p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TG10P,
         in_files=in_files,
@@ -2122,6 +2130,7 @@ def tn10p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TN10P,
         in_files=in_files,
@@ -2242,6 +2251,7 @@ def tx10p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TX10P,
         in_files=in_files,
@@ -2334,6 +2344,7 @@ def txn(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TXN,
         in_files=in_files,
@@ -2415,6 +2426,7 @@ def tnn(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.TNN,
         in_files=in_files,
@@ -2524,6 +2536,7 @@ def csdi(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.CSDI,
         in_files=in_files,
@@ -2616,6 +2629,7 @@ def cdd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.CDD,
         in_files=in_files,
@@ -2700,6 +2714,7 @@ def prcptot(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.PRCPTOT,
         in_files=in_files,
@@ -2784,6 +2799,7 @@ def rr1(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.RR1,
         in_files=in_files,
@@ -2868,6 +2884,7 @@ def sdii(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SDII,
         in_files=in_files,
@@ -2952,6 +2969,7 @@ def cwd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.CWD,
         in_files=in_files,
@@ -3036,6 +3054,7 @@ def rr(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.RR,
         in_files=in_files,
@@ -3117,6 +3136,7 @@ def r10mm(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.R10MM,
         in_files=in_files,
@@ -3201,6 +3221,7 @@ def r20mm(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.R20MM,
         in_files=in_files,
@@ -3285,6 +3306,7 @@ def rx1day(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.RX1DAY,
         in_files=in_files,
@@ -3366,6 +3388,7 @@ def rx5day(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.RX5DAY,
         in_files=in_files,
@@ -3475,6 +3498,7 @@ def r75p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.R75P,
         in_files=in_files,
@@ -3596,6 +3620,7 @@ def r75ptot(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.R75PTOT,
         in_files=in_files,
@@ -3717,6 +3742,7 @@ def r95p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.R95P,
         in_files=in_files,
@@ -3838,6 +3864,7 @@ def r95ptot(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.R95PTOT,
         in_files=in_files,
@@ -3959,6 +3986,7 @@ def r99p(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.R99P,
         in_files=in_files,
@@ -4080,6 +4108,7 @@ def r99ptot(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.R99PTOT,
         in_files=in_files,
@@ -4173,6 +4202,7 @@ def sd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SD,
         in_files=in_files,
@@ -4254,6 +4284,7 @@ def sd1(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SD1,
         in_files=in_files,
@@ -4338,6 +4369,7 @@ def sd5cm(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SD5CM,
         in_files=in_files,
@@ -4422,6 +4454,7 @@ def sd50cm(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SD50CM,
         in_files=in_files,
@@ -4534,6 +4567,7 @@ def cd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.CD,
         in_files=in_files,
@@ -4661,6 +4695,7 @@ def cw(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.CW,
         in_files=in_files,
@@ -4788,6 +4823,7 @@ def wd(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.WD,
         in_files=in_files,
@@ -4915,6 +4951,7 @@ def ww(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.WW,
         in_files=in_files,
@@ -5014,6 +5051,7 @@ def fxx(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.FXX,
         in_files=in_files,
@@ -5095,6 +5133,7 @@ def fg6bft(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.FG6BFT,
         in_files=in_files,
@@ -5179,6 +5218,7 @@ def fgcalm(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.FGCALM,
         in_files=in_files,
@@ -5263,6 +5303,7 @@ def fg(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.FG,
         in_files=in_files,
@@ -5344,6 +5385,7 @@ def ddnorth(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.DDNORTH,
         in_files=in_files,
@@ -5428,6 +5470,7 @@ def ddeast(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.DDEAST,
         in_files=in_files,
@@ -5512,6 +5555,7 @@ def ddsouth(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.DDSOUTH,
         in_files=in_files,
@@ -5596,6 +5640,7 @@ def ddwest(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.DDWEST,
         in_files=in_files,
@@ -5680,6 +5725,7 @@ def gsl(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.GSL,
         in_files=in_files,
@@ -5776,6 +5822,7 @@ def spi6(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SPI6,
         in_files=in_files,
@@ -5873,6 +5920,7 @@ def spi3(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SPI3,
         in_files=in_files,
@@ -5955,6 +6003,7 @@ def pp(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.PP,
         in_files=in_files,
@@ -6036,6 +6085,7 @@ def ss(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.SS,
         in_files=in_files,
@@ -6117,6 +6167,7 @@ def rh(
     This function has been auto-generated.
 
     """  # noqa: D401
+    import icclim
     return icclim.index(
         index_name=EcadIndexRegistry.RH,
         in_files=in_files,

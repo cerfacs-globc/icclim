@@ -1,4 +1,3 @@
-
 # ruff: noqa: A001, E501, N803
 """
 icclim's API for generic indices.
@@ -7,39 +6,27 @@ This module has been auto-generated.
 To modify these, edit the extractor tool in `tools/extract-icclim-funs.py`.
 This module exposes each climate index as individual functions for convenience.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 from typing import TYPE_CHECKING
 
-import icclim
+if TYPE_CHECKING:
+    from xarray import Dataset, DataArray
+from icclim._core.input_parsing import get_dataarray_from_dataset
 from icclim.threshold.factory import build_threshold
-
-from icclim._core.input_parsing import (
-     get_dataarray_from_dataset
-     )
+from icclim.generic.registry import GenericIndicatorRegistry
 
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Sequence
 
-    from xarray import Dataset
-    from xarray import DataArray
-
-    from icclim.ecad.registry import EcadIndexRegistry
-    from icclim.dcsc.registry import DcscIndexRegistry
-    from icclim.generic.registry import GenericIndicatorRegistry
-
     from icclim.logger import Verbosity
-    from typing import (
-         FrequencyLike, InFileLike, SamplingMethodLike
-        )
-
+    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
     from icclim._core.legacy.user_index.model import UserIndexDict
     from icclim._core.model.threshold import Threshold
-
 __all__ = [
     "count_occurrences",
     "max_consecutive_occurrence",
@@ -143,7 +130,8 @@ def count_occurrences(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.CountOccurrences,
         in_files=in_files,
@@ -239,7 +227,8 @@ def max_consecutive_occurrence(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.MaxConsecutiveOccurrence,
         in_files=in_files,
@@ -339,7 +328,8 @@ def sum_of_spell_lengths(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.SumOfSpellLengths,
         in_files=in_files,
@@ -436,7 +426,8 @@ def excess(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.Excess,
         in_files=in_files,
@@ -532,7 +523,8 @@ def deficit(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.Deficit,
         in_files=in_files,
@@ -628,7 +620,8 @@ def fraction_of_total(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.FractionOfTotal,
         in_files=in_files,
@@ -724,7 +717,8 @@ def maximum(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.Maximum,
         in_files=in_files,
@@ -820,7 +814,8 @@ def minimum(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.Minimum,
         in_files=in_files,
@@ -916,7 +911,8 @@ def average(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.Average,
         in_files=in_files,
@@ -1012,7 +1008,8 @@ def sum(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.Sum,
         in_files=in_files,
@@ -1108,7 +1105,8 @@ def standard_deviation(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.StandardDeviation,
         in_files=in_files,
@@ -1208,7 +1206,8 @@ def max_of_rolling_sum(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.MaxOfRollingSum,
         in_files=in_files,
@@ -1309,7 +1308,8 @@ def min_of_rolling_sum(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.MinOfRollingSum,
         in_files=in_files,
@@ -1410,7 +1410,8 @@ def max_of_rolling_average(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.MaxOfRollingAverage,
         in_files=in_files,
@@ -1511,7 +1512,8 @@ def min_of_rolling_average(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.MinOfRollingAverage,
         in_files=in_files,
@@ -1608,7 +1610,8 @@ def mean_of_difference(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.MeanOfDifference,
         in_files=in_files,
@@ -1704,7 +1707,8 @@ def difference_of_extremes(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.DifferenceOfExtremes,
         in_files=in_files,
@@ -1800,7 +1804,8 @@ def mean_of_absolute_one_time_step_difference(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.MeanOfAbsoluteOneTimeStepDifference,
         in_files=in_files,
@@ -1905,7 +1910,8 @@ def difference_of_means(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.DifferenceOfMeans,
         in_files=in_files,
@@ -2002,7 +2008,8 @@ def percentile(
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
+    import icclim
     return icclim.index(
         index_name=GenericIndicatorRegistry.Percentile,
         in_files=in_files,
@@ -2141,6 +2148,7 @@ def custom_index(
     This function has been auto-generated.
 
     """
+    import icclim
     return icclim.index(
         user_index=user_index,
         in_files=in_files,
