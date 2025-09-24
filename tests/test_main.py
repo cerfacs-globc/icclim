@@ -38,7 +38,30 @@ def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock) -> None:
 HEAT_INDICES = ["SU", "TR", "WSDI", "TG90p", "TN90p", "TX90p", "TXx", "TNx", "CSU"]
 
 
-@pytest.mark.slow()
+def diagnose_time_frequency(time: xr.DataArray):
+    print("=== Diagnosing time coordinate ===")
+    print("Type of first element:", type(time.values[0]))
+    print("Time values (first 10):", time.values[:10])
+
+    # Check differences
+    try:
+        dt = np.diff(time.values.astype("datetime64[s]"))
+        print("Time differences (first 10):", dt[:10])
+        if np.all(dt == dt[0]):
+            print("Frequency is constant:", dt[0])
+        else:
+            print("Frequency is irregular!")
+    except Exception as e:
+        print("Could not compute time differences:", e)
+
+    # Check dask chunks
+    if hasattr(time.data, "chunks"):
+        print("Dask chunks:", time.chunks)
+
+    # Check encoding
+    print("Time encoding:", time.encoding)
+
+
 class TestIntegration:
     """
     Integration tests.
@@ -53,7 +76,9 @@ class TestIntegration:
 
     OUTPUT_FILE = Path("out.nc")
     TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
-    CF_TIME_RANGE = xr.cftime_range("2042-01-01", end="2045-12-31", freq="D")
+    CF_TIME_RANGE = xr.cftime_range(
+        "2042-01-01", end="2045-12-31", freq="D", calendar="gregorian"
+    )
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
@@ -81,7 +106,7 @@ class TestIntegration:
     full_data["hurs"].attrs[UNITS_KEY] = "%"
 
     data_cf_time = xr.DataArray(
-        data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
+        data=(np.full(len(CF_TIME_RANGE), 20).reshape((len(CF_TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
         coords={"lat": [42], "lon": [42], "time": CF_TIME_RANGE},
         attrs={UNITS_KEY: "degC"},
@@ -157,12 +182,16 @@ class TestIntegration:
         )
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(-10, res.DTR)
-        np.testing.assert_array_equal("°C", res.DTR.attrs["units"])
+        np.testing.assert_array_equal("degC", res.DTR.attrs["units"])
 
     def test_index_cd(self) -> None:
         ds = self.data.to_dataset(name="tas")
+        ds["tas"].attrs["cell_methods"] = "time: mean"
+        ds["tas"].attrs["standard_name"] = "air_temperature"
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs["cell_methods"] = "time: mean"
+        ds["pr"].attrs["standard_name"] = "precipitation_flux"
         res = icclim.index(
             index_name="CD",
             in_files=ds,
@@ -194,12 +223,9 @@ class TestIntegration:
             ],
         )
         # THEN
-        assert res_string_dates.time_bounds[0, 0] == np.datetime64(
-            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc),
-        )
-        assert res_string_dates.time_bounds[0, 1] == np.datetime64(
-            dt.datetime(2042, 12, 31, tzinfo=dt.timezone.utc),
-        )
+        tb = res_string_dates.time_bounds.astype("datetime64[ns]")
+        assert tb[0, 0] == np.datetime64("2042-01-01")
+        assert tb[0, 1] == np.datetime64("2042-12-31")
         np.testing.assert_array_equal(res_string_dates.SU, res_datetime_dates.SU)
         np.testing.assert_array_equal(
             res_string_dates.time_bounds,
@@ -215,12 +241,13 @@ class TestIntegration:
             slice_mode="2W-WED",
         )
         # THEN
-        assert res.time_bounds[0, 0] == np.datetime64(
-            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc),
-        )
-        assert res.time_bounds[0, 1] == np.datetime64(
-            dt.datetime(2042, 1, 14, tzinfo=dt.timezone.utc),
-        )
+        # Cast time_bounds to datetime64[ns] to avoid timezone warnings
+        tb = res.time_bounds.astype("datetime64[ns]")
+
+        # Compare with naive datetime64 (UTC info is lost in np.datetime64)
+        assert tb[0, 0] == np.datetime64(dt.datetime(2042, 1, 1))
+        assert tb[0, 1] == np.datetime64(dt.datetime(2042, 1, 14))
+
         assert (
             res.SU.attrs["standard_name"]
             == "number_of_days_when_maximum_air_temperature_is_greater_than_threshold"
@@ -282,7 +309,7 @@ class TestIntegration:
             out_file=self.OUTPUT_FILE,
             slice_mode=FrequencyRegistry.DJF,
         )
-        np.testing.assert_array_equal(res.SU.isel(time=0), np.NAN)
+        np.testing.assert_array_equal(res.SU.isel(time=0), np.nan)
         np.testing.assert_array_equal(res.SU.isel(time=1), 0)
         # "+ 1" because DJF sampling create a december month with nans before first year
         np.testing.assert_array_equal(
@@ -339,7 +366,7 @@ class TestIntegration:
         ds = self.data.to_dataset(name="tas")
         ds["pr"] = self.data.copy(deep=True)
         ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
-        print(ds)
+
         res = icclim.indices(
             index_group=["tas", "pr"],
             in_files=ds,
@@ -447,6 +474,7 @@ class TestIntegration:
             )
 
     def test_spi6__no_time_bounds(self) -> None:
+        print(">>> SPI6 freq:", diagnose_time_frequency(self.full_data.time))
         dataset = icclim.index(
             index_name="spi6",
             in_files=self.full_data,
@@ -763,7 +791,7 @@ class TestIntegration:
             tas,
             var_name=["tmin"],
             index_name="count_occurrences",
-            threshold=build_threshold(value=[1, 30], operator=">=", unit="deg_C"),
+            threshold=build_threshold(value=[1, 30], operator=">=", unit="degC"),
             slice_mode="month",
             save_thresholds=True,
         ).compute()

@@ -8,90 +8,91 @@ This module exposes each climate index as individual functions for convenience.
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from xarray import Dataset, DataArray
-from icclim._core.input_parsing import get_dataarray_from_dataset
-from icclim.threshold.factory import build_threshold
+    from xarray import Dataset
 from icclim.ecad.registry import EcadIndexRegistry
+from icclim.threshold.factory import build_threshold
 
 if TYPE_CHECKING:
     import datetime as dt
     from collections.abc import Sequence
 
-    from icclim.logger import Verbosity
-    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
-    from icclim.frequency import Frequency
+    from icclim._core.model.icclim_types import (
+        FrequencyLike,
+        InFileLike,
+    )
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
-    from icclim._core.legacy.user_index.model import UserIndexDict
-    from icclim._core.model.threshold import Threshold
+    from icclim.frequency import Frequency
+    from icclim.logger import Verbosity
 __all__ = [
-    "tg",
-    "tn",
-    "tx",
+    "cd",
+    "cdd",
+    "cfd",
+    "csdi",
+    "csu",
+    "cw",
+    "cwd",
+    "ddeast",
+    "ddnorth",
+    "ddsouth",
+    "ddwest",
     "dtr",
     "etr",
-    "vdtr",
-    "su",
-    "tr",
-    "wsdi",
-    "tg90p",
-    "tn90p",
-    "tx90p",
-    "txx",
-    "tnx",
-    "csu",
-    "gd4",
     "fd",
-    "cfd",
+    "fg",
+    "fg6bft",
+    "fgcalm",
+    "fxx",
+    "gd4",
+    "gsl",
     "hd17",
     "id",
-    "tg10p",
-    "tn10p",
-    "tx10p",
-    "txn",
-    "tnn",
-    "csdi",
-    "cdd",
+    "pp",
     "prcptot",
-    "rr1",
-    "sdii",
-    "cwd",
-    "rr",
     "r10mm",
     "r20mm",
-    "rx1day",
-    "rx5day",
     "r75p",
     "r75ptot",
     "r95p",
     "r95ptot",
     "r99p",
     "r99ptot",
+    "rh",
+    "rr",
+    "rr1",
+    "rx1day",
+    "rx5day",
     "sd",
     "sd1",
     "sd5cm",
     "sd50cm",
-    "cd",
-    "cw",
-    "wd",
-    "ww",
-    "fxx",
-    "fg6bft",
-    "fgcalm",
-    "fg",
-    "ddnorth",
-    "ddeast",
-    "ddsouth",
-    "ddwest",
-    "gsl",
-    "spi6",
+    "sdii",
     "spi3",
-    "pp",
+    "spi6",
     "ss",
-    "rh",
+    "su",
+    "tg",
+    "tg10p",
+    "tg90p",
+    "tn",
+    "tn10p",
+    "tn90p",
+    "tnn",
+    "tnx",
+    "tr",
+    "tx",
+    "tx10p",
+    "tx90p",
+    "txn",
+    "txx",
+    "vdtr",
+    "wd",
+    "wsdi",
+    "ww",
 ]
 
 
@@ -111,7 +112,7 @@ def tg(
     TG: Mean of daily mean temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -155,13 +156,14 @@ def tg(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TG,
         in_files=in_files,
@@ -193,7 +195,7 @@ def tn(
     TN: Mean of daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -237,13 +239,14 @@ def tn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TN,
         in_files=in_files,
@@ -275,7 +278,7 @@ def tx(
     TX: Mean of daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -319,13 +322,14 @@ def tx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TX,
         in_files=in_files,
@@ -357,7 +361,7 @@ def dtr(
     DTR: Mean Diurnal Temperature Range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -401,13 +405,14 @@ def dtr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.DTR,
         in_files=in_files,
@@ -439,7 +444,7 @@ def etr(
     ETR: Intra-period extreme temperature range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -483,13 +488,14 @@ def etr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.ETR,
         in_files=in_files,
@@ -521,7 +527,7 @@ def vdtr(
     vDTR: Mean day-to-day variation in Diurnal Temperature Range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -565,13 +571,14 @@ def vdtr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.VDTR,
         in_files=in_files,
@@ -603,7 +610,7 @@ def su(
     SU: Number of Summer Days (Tmax > 25C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -647,13 +654,14 @@ def su(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SU,
         in_files=in_files,
@@ -688,7 +696,7 @@ def tr(
     TR: Number of Tropical Nights (Tmin > 20C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -732,13 +740,14 @@ def tr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TR,
         in_files=in_files,
@@ -777,7 +786,7 @@ def wsdi(
     WSDI: Warm-spell duration index (days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -845,13 +854,14 @@ def wsdi(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.WSDI,
         in_files=in_files,
@@ -898,7 +908,7 @@ def tg90p(
     TG90p: Days when Tmean > 90th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -966,13 +976,14 @@ def tg90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TG90P,
         in_files=in_files,
@@ -1019,7 +1030,7 @@ def tn90p(
     TN90p: Days when Tmin > 90th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1087,13 +1098,14 @@ def tn90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TN90P,
         in_files=in_files,
@@ -1140,7 +1152,7 @@ def tx90p(
     TX90p: Days when Tmax > 90th daily percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1208,13 +1220,14 @@ def tx90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TX90P,
         in_files=in_files,
@@ -1257,7 +1270,7 @@ def txx(
     TXx: Maximum daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1301,13 +1314,14 @@ def txx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TXX,
         in_files=in_files,
@@ -1339,7 +1353,7 @@ def tnx(
     TNx: Maximum daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1383,13 +1397,14 @@ def tnx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TNX,
         in_files=in_files,
@@ -1421,7 +1436,7 @@ def csu(
     CSU: Maximum number of consecutive summer days (Tmax >25 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1465,13 +1480,14 @@ def csu(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.CSU,
         in_files=in_files,
@@ -1506,7 +1522,7 @@ def gd4(
     GD4: Growing degree days (sum of Tmean > 4 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1550,13 +1566,14 @@ def gd4(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.GD4,
         in_files=in_files,
@@ -1591,7 +1608,7 @@ def fd(
     FD: Number of Frost Days (Tmin < 0C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1635,13 +1652,14 @@ def fd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.FD,
         in_files=in_files,
@@ -1676,7 +1694,7 @@ def cfd(
     CFD: Maximum number of consecutive frost days (Tmin < 0 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1720,13 +1738,14 @@ def cfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.CFD,
         in_files=in_files,
@@ -1761,7 +1780,7 @@ def hd17(
     HD17: Heating degree days (sum of Tmean < 17 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1805,13 +1824,14 @@ def hd17(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.HD17,
         in_files=in_files,
@@ -1846,7 +1866,7 @@ def id(
     ID: Number of sharp Ice Days (Tmax < 0C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1890,13 +1910,14 @@ def id(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.ID,
         in_files=in_files,
@@ -1935,7 +1956,7 @@ def tg10p(
     TG10p: Days when Tmean < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2003,13 +2024,14 @@ def tg10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TG10P,
         in_files=in_files,
@@ -2056,7 +2078,7 @@ def tn10p(
     TN10p: Days when Tmin < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2124,13 +2146,14 @@ def tn10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TN10P,
         in_files=in_files,
@@ -2177,7 +2200,7 @@ def tx10p(
     TX10p: Days when Tmax < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2245,13 +2268,14 @@ def tx10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TX10P,
         in_files=in_files,
@@ -2294,7 +2318,7 @@ def txn(
     TXn: Minimum daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2338,13 +2362,14 @@ def txn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TXN,
         in_files=in_files,
@@ -2376,7 +2401,7 @@ def tnn(
     TNn: Minimum daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2420,13 +2445,14 @@ def tnn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.TNN,
         in_files=in_files,
@@ -2462,7 +2488,7 @@ def csdi(
     CSDI: Cold-spell duration index (days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2530,13 +2556,14 @@ def csdi(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.CSDI,
         in_files=in_files,
@@ -2579,7 +2606,7 @@ def cdd(
     CDD: Maximum consecutive dry days (Precip < 1mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2623,13 +2650,14 @@ def cdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.CDD,
         in_files=in_files,
@@ -2664,7 +2692,7 @@ def prcptot(
     PRCPTOT: Total precipitation during Wet Days.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2708,13 +2736,14 @@ def prcptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.PRCPTOT,
         in_files=in_files,
@@ -2749,7 +2778,7 @@ def rr1(
     RR1: Number of Wet Days (precip >= 1 mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2793,13 +2822,14 @@ def rr1(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.RR1,
         in_files=in_files,
@@ -2834,7 +2864,7 @@ def sdii(
     SDII: Average precipitation during Wet Days (SDII).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2878,13 +2908,14 @@ def sdii(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SDII,
         in_files=in_files,
@@ -2919,7 +2950,7 @@ def cwd(
     CWD: Maximum consecutive wet days (Precip >= 1mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2963,13 +2994,14 @@ def cwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.CWD,
         in_files=in_files,
@@ -3004,7 +3036,7 @@ def rr(
     RR: Precipitation sum (mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3048,13 +3080,14 @@ def rr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.RR,
         in_files=in_files,
@@ -3086,7 +3119,7 @@ def r10mm(
     R10mm: Number of heavy precipitation days (Precip >=10mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3130,13 +3163,14 @@ def r10mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.R10MM,
         in_files=in_files,
@@ -3171,7 +3205,7 @@ def r20mm(
     R20mm: Number of very heavy precipitation days (Precip >= 20mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3215,13 +3249,14 @@ def r20mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.R20MM,
         in_files=in_files,
@@ -3256,7 +3291,7 @@ def rx1day(
     RX1day: Maximum 1-day total precipitation.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3300,13 +3335,14 @@ def rx1day(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.RX1DAY,
         in_files=in_files,
@@ -3338,7 +3374,7 @@ def rx5day(
     RX5day: Maximum 5-day total precipitation.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3382,13 +3418,14 @@ def rx5day(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.RX5DAY,
         in_files=in_files,
@@ -3424,7 +3461,7 @@ def r75p(
     R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (d).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3492,13 +3529,14 @@ def r75p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.R75P,
         in_files=in_files,
@@ -3520,7 +3558,7 @@ def r75p(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="day",
     )
@@ -3546,7 +3584,7 @@ def r75ptot(
     R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3614,13 +3652,14 @@ def r75ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.R75PTOT,
         in_files=in_files,
@@ -3642,7 +3681,7 @@ def r75ptot(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="%",
     )
@@ -3668,7 +3707,7 @@ def r95p(
     R95p: Days with RR > 95th percentile of daily amounts (very wet days) (days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3736,13 +3775,14 @@ def r95p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.R95P,
         in_files=in_files,
@@ -3764,7 +3804,7 @@ def r95p(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="day",
     )
@@ -3790,7 +3830,7 @@ def r95ptot(
     R95pTOT: Precipitation fraction due to very wet days (> 95th percentile).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3858,13 +3898,14 @@ def r95ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.R95PTOT,
         in_files=in_files,
@@ -3886,7 +3927,7 @@ def r95ptot(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="%",
     )
@@ -3912,7 +3953,7 @@ def r99p(
     R99p: Days with RR > 99th percentile of daily amounts (extremely wet days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3980,13 +4021,14 @@ def r99p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.R99P,
         in_files=in_files,
@@ -4008,7 +4050,7 @@ def r99p(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="day",
     )
@@ -4034,7 +4076,7 @@ def r99ptot(
     R99pTOT: Precipitation fraction due to extremely wet days (> 99th percentile).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4102,13 +4144,14 @@ def r99ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.R99PTOT,
         in_files=in_files,
@@ -4130,7 +4173,7 @@ def r99ptot(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="%",
     )
@@ -4152,7 +4195,7 @@ def sd(
     SD: Mean of daily snow depth.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4196,13 +4239,14 @@ def sd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SD,
         in_files=in_files,
@@ -4234,7 +4278,7 @@ def sd1(
     SD1: Snow days (SD >= 1 cm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4278,13 +4322,14 @@ def sd1(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SD1,
         in_files=in_files,
@@ -4319,7 +4364,7 @@ def sd5cm(
     SD5cm: Number of days with snow depth >= 5 cm.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4363,13 +4408,14 @@ def sd5cm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SD5CM,
         in_files=in_files,
@@ -4404,7 +4450,7 @@ def sd50cm(
     SD50cm: Number of days with snow depth >= 50 cm.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4448,13 +4494,14 @@ def sd50cm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SD50CM,
         in_files=in_files,
@@ -4493,7 +4540,7 @@ def cd(
     CD: Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4561,13 +4608,14 @@ def cd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.CD,
         in_files=in_files,
@@ -4583,20 +4631,23 @@ def cd(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=[build_threshold(
-            query="< 25 doy_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-        ),build_threshold(
-            query="< 25 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
-        ),],
+        threshold=[
+            build_threshold(
+                query="< 25 doy_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+            ),
+            build_threshold(
+                query="< 25 period_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+                threshold_min_value="1 mm d-1",
+            ),
+        ],
         out_unit="day",
     )
 
@@ -4621,7 +4672,7 @@ def cw(
     CW: Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4689,13 +4740,14 @@ def cw(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.CW,
         in_files=in_files,
@@ -4711,20 +4763,23 @@ def cw(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=[build_threshold(
-            query="< 25 doy_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-        ),build_threshold(
-            query="> 75 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
-        ),],
+        threshold=[
+            build_threshold(
+                query="< 25 doy_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+            ),
+            build_threshold(
+                query="> 75 period_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+                threshold_min_value="1 mm d-1",
+            ),
+        ],
         out_unit="day",
     )
 
@@ -4749,7 +4804,7 @@ def wd(
     WD: Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4817,13 +4872,14 @@ def wd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.WD,
         in_files=in_files,
@@ -4839,20 +4895,23 @@ def wd(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=[build_threshold(
-            query="> 75 doy_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-        ),build_threshold(
-            query="< 25 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
-        ),],
+        threshold=[
+            build_threshold(
+                query="> 75 doy_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+            ),
+            build_threshold(
+                query="< 25 period_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+                threshold_min_value="1 mm d-1",
+            ),
+        ],
         out_unit="day",
     )
 
@@ -4877,7 +4936,7 @@ def ww(
     WW: Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4945,13 +5004,14 @@ def ww(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.WW,
         in_files=in_files,
@@ -4967,20 +5027,23 @@ def ww(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
-        threshold=[build_threshold(
-            query="> 75 doy_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-        ),build_threshold(
-            query="> 75 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
-        ),],
+        threshold=[
+            build_threshold(
+                query="> 75 doy_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+            ),
+            build_threshold(
+                query="> 75 period_per",
+                doy_window_width=5,
+                only_leap_years=only_leap_years,
+                interpolation=interpolation,
+                reference_period=base_period_time_range,
+                threshold_min_value="1 mm d-1",
+            ),
+        ],
         out_unit="day",
     )
 
@@ -5001,7 +5064,7 @@ def fxx(
     FXx: Maximum value of daily maximum wind gust.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5045,13 +5108,14 @@ def fxx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.FXX,
         in_files=in_files,
@@ -5083,7 +5147,7 @@ def fg6bft(
     FG6Bft: Days with daily averaged wind ≥ 6 Bft (10.8 m s-1).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5127,13 +5191,14 @@ def fg6bft(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.FG6BFT,
         in_files=in_files,
@@ -5168,7 +5233,7 @@ def fgcalm(
     FGcalm: Calm days, days with daily averaged wind <= 2 m s-1.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5212,13 +5277,14 @@ def fgcalm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.FGCALM,
         in_files=in_files,
@@ -5253,7 +5319,7 @@ def fg(
     FG: Mean of daily mean wind strength.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5297,13 +5363,14 @@ def fg(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.FG,
         in_files=in_files,
@@ -5335,7 +5402,7 @@ def ddnorth(
     DDnorth: Days with northerly winds (DD > 315° or DD ≤ 45°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5379,13 +5446,14 @@ def ddnorth(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.DDNORTH,
         in_files=in_files,
@@ -5420,7 +5488,7 @@ def ddeast(
     DDeast: Days with easterly winds (45° < DD <= 135°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5464,13 +5532,14 @@ def ddeast(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.DDEAST,
         in_files=in_files,
@@ -5505,7 +5574,7 @@ def ddsouth(
     DDsouth: Days with southerly winds (135° < DD <= 225°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5549,13 +5618,14 @@ def ddsouth(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.DDSOUTH,
         in_files=in_files,
@@ -5590,7 +5660,7 @@ def ddwest(
     DDwest: Days with westerly winds (225° < DD <= 315°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5634,13 +5704,14 @@ def ddwest(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.DDWEST,
         in_files=in_files,
@@ -5675,7 +5746,7 @@ def gsl(
     GSL: Growing season length.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5719,13 +5790,14 @@ def gsl(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.GSL,
         in_files=in_files,
@@ -5758,7 +5830,7 @@ def spi6(
     SPI6: 6-Month Standardized Precipitation Index.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5816,13 +5888,14 @@ def spi6(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SPI6,
         in_files=in_files,
@@ -5856,7 +5929,7 @@ def spi3(
     SPI3: 3-Month Standardized Precipitation Index.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5914,13 +5987,14 @@ def spi3(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SPI3,
         in_files=in_files,
@@ -5953,7 +6027,7 @@ def pp(
     PP: Mean of daily sea level pressure (hPa).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5997,13 +6071,14 @@ def pp(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.PP,
         in_files=in_files,
@@ -6035,7 +6110,7 @@ def ss(
     SS: Sunshine duration (hours).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6079,13 +6154,14 @@ def ss(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.SS,
         in_files=in_files,
@@ -6117,7 +6193,7 @@ def rh(
     RH: Mean of daily relative humidity (%).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6161,13 +6237,14 @@ def rh(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
 
-    """  # noqa: D401
+    """
     import icclim
+
     return icclim.index(
         index_name=EcadIndexRegistry.RH,
         in_files=in_files,

@@ -7,7 +7,8 @@ for example "> 95 doy_per AND >= 30 deg_C".
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from icclim._core.generic.threshold.threshold_templates import (
     EN_THRESHOLD_TEMPLATE,

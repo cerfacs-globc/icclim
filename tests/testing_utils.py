@@ -8,7 +8,9 @@ from icclim._core.constants import UNITS_KEY
 VALUE_COUNT = 365 * 5 + 1  # 5 years of data (with 1 leap year)
 K2C = 273.15
 
-CF_TIME_RANGE = xr.cftime_range("2042-01-01", periods=VALUE_COUNT, freq="D")
+CF_TIME_RANGE = xr.date_range(
+    "2042-01-01", periods=VALUE_COUNT, freq="D", use_cftime=True
+)
 
 
 def _get_coords(lat_lengh: int, lon_length: int, time_length: int):

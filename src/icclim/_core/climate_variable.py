@@ -60,6 +60,8 @@ class ClimateVariable:
         The variable studied.
     threshold: Threshold | None
         thresholds for this variable
+    reference_period: Sequence of str | None
+        The reference period to consider
     """  # noqa: E501
 
     name: str
@@ -68,6 +70,7 @@ class ClimateVariable:
     global_metadata: GlobalMetadata
     source_frequency: Frequency
     threshold: Threshold | None = None
+    reference_period: Sequence[datetime | str] | None = None
     is_reference: bool = False
 
     def build_indicator_metadata(
@@ -150,6 +153,11 @@ def build_climate_vars(
     -------
     list of ClimateVariable that will be used to compute the climate index.
     """
+    from icclim.ecad.binding import (
+        StandardizedPrecipitationIndex3,
+        StandardizedPrecipitationIndex6,
+    )
+
     if standard_index is not None and len(standard_index.input_variables) > len(
         climate_vars_dict
     ):
@@ -166,28 +174,43 @@ def build_climate_vars(
             standard_var = standard_index.input_variables[i]
         else:
             standard_var = None
-        acc.append(
-            build_climate_var(
-                raw_climate_var[0],
-                raw_climate_var[1],
-                ignore_Feb29th,
-                time_range,
+
+        # For SPI, attach reference_period directly to the study variable
+        if standard_index is not None and standard_index.short_name.lower() in (
+            "spi3",
+            "spi6",
+        ):
+            reference_period = base_period
+        else:
+            reference_period = None
+
+        cv = build_climate_var(
+            raw_climate_var[0],
+            raw_climate_var[1],
+            ignore_Feb29th,
+            time_range,
+            standard_var=standard_var,
+            reference_period=reference_period,
+        )
+
+        acc.append(cv)
+
+    # Only add a reference variable for non-SPI indices
+    if not isinstance(
+        standard_index,
+        (StandardizedPrecipitationIndex3, StandardizedPrecipitationIndex6),
+    ):
+        if _standard_index_needs_ref(
+            standard_index, is_compared_to_reference
+        ) or _generic_index_needs_ref(standard_index, is_compared_to_reference):
+            standard_var = standard_index.input_variables[0] if standard_index else None
+            added_var = _build_reference_variable(
+                base_period,
+                climate_vars_dict,
                 standard_var=standard_var,
             )
-        )
-    if _standard_index_needs_ref(
-        standard_index,
-        is_compared_to_reference,
-    ) or _generic_index_needs_ref(standard_index, is_compared_to_reference):
-        standard_var = (
-            standard_index.input_variables[0] if standard_index is not None else None
-        )
-        added_var = _build_reference_variable(
-            base_period,
-            climate_vars_dict,
-            standard_var=standard_var,
-        )
-        acc.append(added_var)
+            acc.append(added_var)
+
     return acc
 
 
@@ -197,6 +220,7 @@ def build_climate_var(
     ignore_Feb29th: bool,  # noqa: N803
     time_range: Sequence[datetime | str] | None,
     standard_var: StandardVariable | None,
+    reference_period: Sequence[datetime | str] | None = None,
 ) -> ClimateVariable:
     """
     Build a ClimateVariable object.
@@ -282,6 +306,7 @@ def build_climate_var(
         standard_var=standard_var,
         studied_data=studied_data,
         threshold=climate_var_thresh,
+        reference_period=reference_period,
         global_metadata={
             "history": study_ds.attrs.get("history", None),
             "source": study_ds.attrs.get("source", None),
@@ -390,6 +415,7 @@ def _build_reference_variable(
         standard_var=standard_var,
         studied_data=studied_data,
         threshold=None,
+        reference_period=reference_period,
         global_metadata={
             "history": study_ds.attrs.get("history", None),
             "source": study_ds.attrs.get("source", None),

@@ -13,7 +13,7 @@ InFileBaseType = Union[str, Sequence[str], Dataset, DataArray]
 ThresholdedDict = dict[str, InFileDictionary]
 InFileLike = Union[ThresholdedDict, InFileBaseType, dict[str, InFileBaseType]]
 
-FrequencyLike = Union[str, list[Union[str, tuple, int]], tuple[str, Union[list, tuple]]]
+FrequencyLike = Union[str, list[str | tuple | int], tuple[str, list | tuple]]
 # MonthsIndexer format: [12,1,2,3]
 MonthsIndexer = dict[Literal["month"], Sequence[int]]
 # DatesIndexer format: ("01-25", "02-28")
@@ -28,6 +28,6 @@ ThresholdValueType = Union[
     int,
     Dataset,
     DataArray,
-    Sequence[Union[float, int, str]],
+    Sequence[float | int | str],
     None,
 ]

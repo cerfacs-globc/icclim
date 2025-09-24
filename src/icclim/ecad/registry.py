@@ -764,7 +764,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         source=ECAD_ATBD,
         short_name="SPI6",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[StandardVariableRegistry.TAS],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[REFERENCE_PERIOD_INDEX],
         output_unit="",
     )
@@ -775,7 +775,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         source=ECAD_ATBD,
         short_name="SPI3",
         group=IndexGroupRegistry.RAIN,
-        input_variables=[StandardVariableRegistry.TAS],
+        input_variables=[StandardVariableRegistry.PR],
         qualifiers=[REFERENCE_PERIOD_INDEX],
         output_unit="",
     )

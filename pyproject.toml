@@ -20,28 +20,29 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
   "Natural Language :: English",
   "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
   "Topic :: Scientific/Engineering :: Atmospheric Science"
 ]
 dynamic = ["version", "description"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["netcdf", "climate", "climate-indices", "climate-indicators", "xarray"]
 dependencies = [
-    "numpy>=1.16,<2.0",
-    "xarray>=2023.1.0,<2024",
-    "xclim>=0.46.0,<0.47",
-    "cf_xarray>=0.8,<0.9",
-    "cftime>=1.4.1,<1.6.4",
-    "dask[array]",
-    "netCDF4>=1.5.7",
-    "psutil",
-    "zarr",
-    "rechunker>=0.3,!=0.4",
-    "fsspec",
-    "pandas>1.3,<2.3",
-    "dateparser",
-    "pint==0.23",
-    "jinja2"
+  "numpy==2.0.1",
+  "xarray==2025.6.1",
+  "xclim==0.58.1",
+  "cf_xarray>=0.10.6",
+  "cftime>=1.6.4,<1.6.5",
+  "dask[array]==2025.7.0",
+  "netCDF4==1.7.2",
+  "psutil",
+  "zarr==2.18.3",
+  "rechunker>=0.3, !=0.4",
+  "fsspec",
+  "pandas==2.3.2",
+  "dateparser",
+  "pint==0.24.4",
+  "jinja2",
+  "psutil"
 ]
 
 [project.optional-dependencies]
@@ -58,7 +59,7 @@ dev = [
   "docstring_parser"
 ]
 doc = [
-  "sphinx",
+  "sphinx==8.1.3",
   "sphinx_codeautolink",
   "sphinx_copybutton",
   "sphinx_lfs_content",
