@@ -2578,7 +2578,7 @@ def r99(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -2700,7 +2700,7 @@ def pfl90(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -2822,7 +2822,7 @@ def pq90(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -2944,7 +2944,7 @@ def pq99(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -3164,7 +3164,7 @@ def ff98(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 kt",
+            threshold_min_value="1 knot",
         ),
         out_unit="days",
     )

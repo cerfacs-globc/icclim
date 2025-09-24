@@ -3520,7 +3520,7 @@ def r75p(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -3642,7 +3642,7 @@ def r75ptot(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -3764,7 +3764,7 @@ def r95p(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -3886,7 +3886,7 @@ def r95ptot(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
@@ -4008,7 +4008,7 @@ def r99p(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="day",
     )
@@ -4130,7 +4130,7 @@ def r99ptot(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
+            threshold_min_value="1.0 millimeter / day",
         ),
         out_unit="%",
     )
