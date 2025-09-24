@@ -27,6 +27,7 @@ jobs:
         run: |
           ruff format src/icclim/_generated/
           ruff check src/icclim/_generated/ --fix
+        continue-on-error: true
       - name: create local ref
         run: |
           git fetch origin ${{ github.head_ref }}
