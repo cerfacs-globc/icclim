@@ -25,9 +25,8 @@ jobs:
         run: python ./tools/extract_icclim_funs.py
       - name: run ruff format on generated module
         run: |
-          ruff format src/icclim/_generated/
-          ruff check src/icclim/_generated/ --fix
-        continue-on-error: true
+          ruff format src/icclim/_generated/ --exit-zero
+          ruff check src/icclim/_generated/ --fix --exit-zero
       - name: create local ref
         run: |
           git fetch origin ${{ github.head_ref }}
