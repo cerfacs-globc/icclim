@@ -1,4 +1,4 @@
-# ruff: noqa: A001, E501, N803
+# ruff: noqa: E501, N803
 """
 icclim's API for dcsc indices.
 
@@ -30,38 +30,38 @@ if TYPE_CHECKING:
     from icclim.frequency import Frequency
     from icclim.logger import Verbosity
 __all__ = [
-    "tav",
-    "txav",
-    "trav",
-    "tx10",
-    "tx90",
-    "tn10",
-    "tn90",
-    "tnfd",
-    "txfd",
-    "sd",
-    "tx35",
-    "tr",
-    "txnd",
-    "tnht",
-    "tnnd",
-    "tncwd",
-    "txhwd",
-    "hdd",
     "cdd",
+    "ff98",
+    "ffav",
+    "hdd",
     "pav",
+    "pfl90",
     "pint",
-    "rr",
-    "rr1mm",
     "pn20mm",
+    "pq90",
+    "pq99",
     "pxcdd",
     "pxcwd",
     "r99",
-    "pfl90",
-    "pq90",
-    "pq99",
-    "ffav",
-    "ff98",
+    "rr",
+    "rr1mm",
+    "sd",
+    "tav",
+    "tn10",
+    "tn90",
+    "tncwd",
+    "tnfd",
+    "tnht",
+    "tnnd",
+    "tr",
+    "trav",
+    "tx10",
+    "tx35",
+    "tx90",
+    "txav",
+    "txfd",
+    "txhwd",
+    "txnd",
 ]
 
 
@@ -2607,7 +2607,7 @@ def r99(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="day",
     )
@@ -2730,7 +2730,7 @@ def pfl90(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="%",
     )
@@ -2853,7 +2853,7 @@ def pq90(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="%",
     )
@@ -2976,7 +2976,7 @@ def pq99(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1.0 millimeter / day",
+            threshold_min_value="1 mm d-1",
         ),
         out_unit="%",
     )
@@ -3198,7 +3198,7 @@ def ff98(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 knot",
+            threshold_min_value="1 kt",
         ),
         out_unit="days",
     )
