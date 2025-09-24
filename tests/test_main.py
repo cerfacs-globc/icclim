@@ -462,20 +462,6 @@ class TestIntegration:
 
     def test_indices_all_from_dataset__seasonal_spi_error(self) -> None:
         with pytest.raises(InvalidIcclimArgumentError):
-            # --- Diagnose precipitation for SPI3 ---
-            pr = self.full_data["pr"]  # or data_cf_time["pr"] depending on your setup
-            
-            print("=== Diagnosing precipitation for SPI3 ===")
-            print("Shape:", pr.shape)
-            print("First 10 values:", pr.isel(lat=0, lon=0)[:10].values)
-            print("Unique values:", np.unique(pr.isel(lat=0, lon=0).values))
-            print("Mean:", pr.mean().item(), "Std:", pr.std().item())
-            
-            # Optional: check for zeros or negatives
-            n_zeros = np.sum(pr.isel(lat=0, lon=0).values == 0)
-            print("Number of zeros:", n_zeros)
-            n_neg = np.sum(pr.isel(lat=0, lon=0).values < 0)
-            print("Number of negatives:", n_neg)
             icclim.indices(
                 index_group="SPI3",
                 in_files=self.full_data,

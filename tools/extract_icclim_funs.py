@@ -541,9 +541,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import icclim
-from {EcadIndexRegistry.__module__} import {EcadIndexRegistry.__name__}
-from {DcscIndexRegistry.__module__} import {DcscIndexRegistry.__name__}
-from {GenericIndicatorRegistry.__module__} import {GenericIndicatorRegistry.__name__}
 from {build_threshold.__module__} import {build_threshold.__name__}
 
 from {get_dataarray_from_dataset.__module__} import (
@@ -556,6 +553,10 @@ if TYPE_CHECKING:
 
     from xarray import Dataset
     from xarray import DataArray
+
+    from {EcadIndexRegistry.__module__} import {EcadIndexRegistry.__name__}
+    from {DcscIndexRegistry.__module__} import {DcscIndexRegistry.__name__}
+    from {GenericIndicatorRegistry.__module__} import {GenericIndicatorRegistry.__name__}
 
     from {Verbosity.__module__} import {Verbosity.__name__}
     from {FrequencyLike.__module__} import (

@@ -14,19 +14,16 @@ from xarray import DataArray
 from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
 from xclim.core.missing import MISSING_METHODS
-from xclim.core.units import (
-    convert_units_to,
-    rate2amount,
-    units2pint,
-)
+from xclim.core.units import convert_units_to, rate2amount, units2pint
+from xclim.core.units import units as ureg
 
 try:
     from pint import UndefinedUnitError, DimensionalityError, DefinitionSyntaxError, OffsetUnitCalculusError
 except ImportError:
-    # fallback for older pint
     from pint.errors import UndefinedUnitError, DimensionalityError, DefinitionSyntaxError, OffsetUnitCalculusError
-from pint import UnitRegistry
-    
+
+from pint import Context
+
 from icclim._core.generic.functions import check_freq
 from icclim._core.climate_variable import must_run_bootstrap
 from icclim._core.constants import (
@@ -39,44 +36,22 @@ from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
     import jinja2
-
     from icclim._core.climate_variable import ClimateVariable
     from icclim._core.model.index_config import IndexConfig
     from icclim._core.model.indicator import MissingMethodLike
     from icclim.frequency import Frequency
 
-# Create one global registry for the whole module
-ureg = UnitRegistry()
 
-# Hydro context: kg/m2 <-> mm and kg/m2/time <-> mm/time
-# This is used for precipitation-like variables
-@ureg.context("hydro")
-def hydro(ctx):
-    # Flux (kg/m2 <-> mm)
-    ctx.add_transformation(
-        "[mass] / [length] ** 2",
-        "[length]",
-        lambda ureg, x: x * ureg("1 mm") / ureg("1 kg / m^2"),
-    )
-    ctx.add_transformation(
-        "[length]",
-        "[mass] / [length] ** 2",
-        lambda ureg, x: x * ureg("1 kg / m^2") / ureg("1 mm"),
-    )
-    # Rate flux (kg/m2 / time <-> mm / time)
-    ctx.add_transformation(
-        "[mass] / [length] ** 2 / [time]",
-        "[length] / [time]",
-        lambda ureg, x: x * ureg("1 mm / s") / ureg("1 kg / m^2 / s"),
-    )
-    ctx.add_transformation(
-        "[length] / [time]",
-        "[mass] / [length] ** 2 / [time]",
-        lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"),
-    )
+# Hydro context for precipitation-like variables
+context_hydro = ureg.Context('hydro')
+context_hydro.add_transformation("[mass] / [length] ** 2", "[length]", lambda ureg, x: x * ureg("1 mm") / ureg("1 kg / m^2"))
+context_hydro.add_transformation("[length]", "[mass] / [length] ** 2", lambda ureg, x: x * ureg("1 kg / m^2") / ureg("1 mm"))
+context_hydro.add_transformation("[mass] / [length] ** 2 / [time]", "[length] / [time]", lambda ureg, x: x * ureg("1 mm / s") / ureg("1 kg / m^2 / s"))
+context_hydro.add_transformation("[length] / [time]", "[mass] / [length] ** 2 / [time]", lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"))
 
 
 jinja_env = Environment(autoescape=True)
+
 
 class GenericIndicator(Indicator):
     """
@@ -578,56 +553,63 @@ def _get_climate_vars_metadata(
 def _convert_rates_to_amounts(climate_vars: list["ClimateVariable"], output_unit: str) -> list["ClimateVariable"]:
     """
     Convert rate-like climate variables to amount units using xclim's rate2amount.
-    This function handles both classic rates (e.g., mm/s) and precipitation (kg m-2 d-1)
-    by using a dedicated Pint context.
+    Handles both classic rates (e.g., mm/s) and precipitation (kg m-2 / time)
+    using a dedicated Pint context.
     """
     for climate_var in climate_vars:
         current_unit = climate_var.studied_data.attrs.get("units", None)
-
         if current_unit is None:
             continue
 
-        # Check if the current unit is already an amount
-        if not _is_amount_unit(current_unit):
-            # Use a precipitation context if needed
-            if "kg/m2" in current_unit.replace(" ", "") or "mm" in output_unit:
-                with ureg.context("hydro"):
-                    # Convert rates (e.g., kg m-2 d-1) to amounts (mm)
-                    # rate2amount handles the multiplication by the time step
-                    climate_var.studied_data = rate2amount(
-                        climate_var.studied_data, out_units=output_unit
-                    )
+        # Skip if already an amount
+        if _is_amount_unit(current_unit):
+            continue
+
+        try:
+            # Clean unit for Pint parsing
+            unit_clean = current_unit.replace(" ", "*").replace("-", "**")
+            q = 1 * ureg(unit_clean)
+            dims = q.dimensionality
+
+            # Precipitation-like units: mass/area or mass/area/time
+            if dims == ureg("kg / m^2").dimensionality \
+               or dims == ureg("kg / m^2 / s").dimensionality \
+               or "kg/m2" in current_unit.replace(" ", "").lower():
+                print(f"Converting {climate_var.name}: {current_unit} -> {output_unit}")
+                with context_hydro:
+                    da = rate2amount(climate_var.studied_data, out_units=output_unit)
+                    climate_var.studied_data = da.astype("float64")
             else:
-                # Convert other rate units (e.g., mm/s) to amounts (e.g., mm)
-                climate_var.studied_data = rate2amount(
-                    climate_var.studied_data, out_units=output_unit
-                )
+                da = rate2amount(climate_var.studied_data, out_units=output_unit)
+                climate_var.studied_data = da.astype("float64")
+
+        except Exception as e:
+            print(f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping")
+            continue
+
     return climate_vars
+
 
 
 def _is_amount_unit(unit: str) -> bool:
     """
-    Return True if `unit` is an amount unit (i.e. a length-like unit such as m, mm).
-    Units with mass, time, or offset units (e.g., °C) are NOT amounts.
-    This function is robust for rates (e.g., s-1, d-1, h-1) as well.
+    Return True if `unit` is an amount unit (length-like), False otherwise.
     """
     unit = unit.strip()
-
-    # Quickly reject known offset units
     offset_units = ["K", "degC", "degree_Celsius", "C", "?C"]
     if any(u in unit for u in offset_units):
         return False
-
-    # Split compound units and check dimensionality
     try:
-        q = 1 * ureg(unit)
-        dims = q.dimensionality
-        # Only pure length units are considered amounts
-        # This allows units like mm, cm, m
-        return dims == {ureg('[length]'): 1}
-    except (DimensionalityError, UndefinedUnitError, DefinitionSyntaxError, OffsetUnitCalculusError):
+        # Fix for Pint parsing: replace spaces with * and '-' with '**'
+        unit_clean = unit.replace(" ", "*").replace("-", "**")
+        q = 1 * ureg(unit_clean)
+        # Compare to the dimensionality of 1 meter
+        return q.dimensionality == (1 * ureg("m")).dimensionality
+    except Exception as e:
+        print(f"_is_amount_unit: exception {e} for unit '{unit}', returning False")
         return False
 
+    
 
 def _check_cf(climate_vars: list[ClimateVariable]) -> None:
     """Compare metadata attributes to CF-Convention standards.
