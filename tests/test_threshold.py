@@ -5,6 +5,8 @@ from collections.abc import Callable
 import numpy as np
 import pint
 import pytest
+from xclim.core.units import units as xc_units
+
 from icclim._core.generic.threshold.basic import BasicThreshold
 from icclim._core.generic.threshold.bounded import BoundedThreshold
 from icclim._core.generic.threshold.percentile import PercentileThreshold
@@ -12,7 +14,6 @@ from icclim._core.model.logical_link import LogicalLinkRegistry
 from icclim._core.model.operator import OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.threshold.factory import build_threshold
-from xclim.core.units import units as xc_units
 
 
 # --- Patch for unit normalization in tests ---

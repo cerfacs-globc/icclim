@@ -334,7 +334,7 @@ class PercentileThreshold(Threshold):
                 self.value,
                 op,
                 self.is_doy_per_threshold,
-                kwargs.get("freq", None),
+                kwargs.get("freq"),
                 kwargs.get("bootstrap", False),
             )
         msg = (

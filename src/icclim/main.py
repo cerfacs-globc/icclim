@@ -489,7 +489,7 @@ def _build_config(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
         )
-    msg = "You must fill either index_name or user_index" "to compute a climate index."
+    msg = "You must fill either index_name or user_indexto compute a climate index."
     raise InvalidIcclimArgumentError(msg)
 
 

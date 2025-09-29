@@ -6,12 +6,13 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import cftime
-import icclim
 import numpy as np
 import pandas as pd
 import pint
 import pytest
 import xarray as xr
+
+import icclim
 from icclim import __version__ as icclim_version
 from icclim._core.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
 from icclim._core.model.index_group import IndexGroupRegistry
@@ -19,7 +20,6 @@ from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import FrequencyRegistry
 from icclim.threshold.factory import build_threshold
-
 from tests.testing_utils import K2C, stub_pr, stub_tas
 
 
