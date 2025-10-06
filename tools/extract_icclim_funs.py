@@ -15,7 +15,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-# import icclim
+import icclim
 from docstring_parser import Docstring, DocstringParam, DocstringStyle, compose, parse
 from icclim._core.constants import NEEDS_NORMAL, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
 from icclim._core.generic.threshold.percentile import PercentileThreshold
@@ -210,7 +210,6 @@ def custom_index(
     {args_docs}
     {END_NOTE}
     \"\"\"
-    import icclim
     return icclim.index(
         user_index=user_index,
         {formatted_common_args}
@@ -260,7 +259,6 @@ def {index.short_name.lower()}(
     {args_docs}
     {END_NOTE}
     \"\"\"  # noqa: D401
-    import icclim
     return icclim.index(
         index_name={registry.__name__}.{index_name_arg},
         {formatted_args},
@@ -332,7 +330,6 @@ def {index.short_name.lower()}(
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
-    import icclim
     return icclim.index(
         index_name={registry.__name__}.{index_name_arg},
         {formatted_args},
@@ -431,7 +428,6 @@ def {index.name.lower()}(
     {args_docs}
     {END_NOTE}
     \"\"\"
-    import icclim
     return icclim.index(
         index_name={GenericIndicatorRegistry.__name__}.{index_name_arg},
         {formatted_args},

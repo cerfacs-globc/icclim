@@ -159,6 +159,8 @@ ignore = [
   "FBT", # Allow booleans as positional arguments in tests.
   "D", # Disable docstring check for tests.
   "ANN", # Disable type check for tests.
+  "D401", # Allow docstrings to have non-imperative mood.
+  "F821", # Allow _empty.
   "SLF001" # Allow access to private values from tests.
 ]
 
