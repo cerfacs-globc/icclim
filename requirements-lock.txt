@@ -164,7 +164,7 @@ nest-asyncio==1.6.0
 netCDF4==1.7.2
 networkx==3.5
 nh3==0.3.0
-notebook==7.1.2
+notebook==7.2.2
 notebook_shim==0.2.4
 numpy==2.3.2
 nvidia-ml-py==12.575.51
