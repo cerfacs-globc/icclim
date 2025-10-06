@@ -27,20 +27,20 @@ dynamic = ["version", "description"]
 requires-python = ">=3.10"
 keywords = ["netcdf", "climate", "climate-indices", "climate-indicators", "xarray"]
 dependencies = [
-  "numpy==2.0.1",
-  "xarray==2025.6.1",
-  "xclim==0.58.1",
+  "numpy>=2.0.1",
+  "xarray>=2025.6.1",
+  "xclim>=0.58.1",
   "cf_xarray>=0.10.6",
-  "cftime>=1.6.4,<1.6.5",
-  "dask[array]==2025.7.0",
-  "netCDF4==1.7.2",
+  "cftime>=1.6.4",
+  "dask[array]>=2025.7.0",
+  "netCDF4>=1.7.2",
   "psutil",
-  "zarr==2.18.3",
+  "zarr>=2.18.3",
   "rechunker>=0.3, !=0.4",
   "fsspec",
-  "pandas==2.3.2",
+  "pandas>=2.3.2",
   "dateparser",
-  "pint==0.24.4",
+  "pint>=0.24.4",
   "jinja2",
   "psutil"
 ]
