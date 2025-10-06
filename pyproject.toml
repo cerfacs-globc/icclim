@@ -148,7 +148,7 @@ ignore = [
   "ANN101", # useless typing for `self`, will be removed from ruff
   "ANN102", # useless typing for `cls`, will be removed from ruff
   "ANN002", # Allow no typing for `*args`
-  "ANN003" # Allow no typing for `**kwargs`
+  "ANN003"  # Allow no typing for `**kwargs`
 ]
 
 [tool.ruff.lint.per-file-ignores]
