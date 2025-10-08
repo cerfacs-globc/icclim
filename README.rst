@@ -11,8 +11,6 @@ Installation
 
 From pypi: ``pip install icclim``.
 
-From conda-forge: ``conda install -c conda-forge icclim``.
-
 From sources:
     - Clone the repository ``git clone https://github.com/cerfacs-globc/icclim.git``
     - Install icclim ``pip install .``
