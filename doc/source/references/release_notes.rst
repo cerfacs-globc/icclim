@@ -3,6 +3,17 @@
 #################
 
 ******
+ 7.0.4
+******
+
+date: 2025-10-08
+
+Details
+=======
+
+-  [maint] unpin upper-bound versions for packages in pyproject.toml.
+
+******
  7.0.3
 ******
 
