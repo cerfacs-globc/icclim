@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from xarray import Dataset, DataArray
+import icclim
 from icclim._core.input_parsing import get_dataarray_from_dataset
 from icclim.threshold.factory import build_threshold
 from icclim.ecad.registry import EcadIndexRegistry

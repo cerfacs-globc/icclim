@@ -15,7 +15,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import icclim
+#import icclim
 from docstring_parser import Docstring, DocstringParam, DocstringStyle, compose, parse
 from icclim._core.constants import NEEDS_NORMAL, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
 from icclim._core.generic.threshold.percentile import PercentileThreshold
@@ -542,6 +542,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from xarray import Dataset, DataArray
+import icclim
 from icclim._core.input_parsing import get_dataarray_from_dataset
 from icclim.threshold.factory import build_threshold
 '''
