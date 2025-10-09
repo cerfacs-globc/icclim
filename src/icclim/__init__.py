@@ -21,4 +21,4 @@ __all__ = [
     "indices",
 ]
 
-__version__ = "7.0.4"
+__version__ = "7.0.5"

@@ -246,14 +246,14 @@ class GenericIndicator(Indicator):
         self._check_for_invalid_setup(climate_vars, sampling_method)
 
         # >>> PATCHED: Convert thresholds to Kelvin if in Celsius
-        for cv in climate_vars:
-            if hasattr(cv, "threshold") and cv.threshold is not None:
-                if cv.threshold.unit in ["C", "degC", "degree_Celsius"]:
-                    # Make a copy, update internal fields
-                    new_threshold = deepcopy(cv.threshold)
-                    new_threshold._value = new_threshold.value + 273.15
-                    new_threshold._unit = "K"
-                    cv.threshold = new_threshold
+        # for cv in climate_vars:
+        #    if hasattr(cv, "threshold") and cv.threshold is not None:
+        #        if cv.threshold.unit in ["C", "degC", "degree_Celsius"]:
+        #            # Make a copy, update internal fields
+        #            new_threshold = deepcopy(cv.threshold)
+        #            new_threshold._value = new_threshold.value + 273.15
+        #            new_threshold._unit = "K"
+        #            cv.threshold = new_threshold
 
         if output_unit is not None:
             if _is_amount_unit(output_unit):
@@ -332,16 +332,7 @@ class GenericIndicator(Indicator):
         Precipitation / amounts handled normally using hydro context.
         """
 
-        if out_unit in ["C", "degC", "degree_Celsius"]:
-            # >>> DIFF-AWARE: only convert absolute temps
-            if not _is_a_diff_indicator(self):
-                result.values = result.values - 273.15
-                result.attrs["units"] = "degC"
-            else:
-                # Differences: keep in K, label as degC
-                result.attrs["units"] = "degC"
-
-        elif out_unit is not None and _is_amount_unit(out_unit):
+        if out_unit is not None and _is_amount_unit(out_unit):
             # Use Pint dimensionality + hydro context for precipitation-like units
             current_unit = result.attrs.get("units", None)
             if current_unit is not None:
@@ -354,13 +345,15 @@ class GenericIndicator(Indicator):
                         with context_hydro:
                             result = convert_units_to(result, out_unit, context="hydro")
                     else:
-                        result = convert_units_to(result, out_unit)
+                        result = convert_units_to(result, out_unit, context="hydro")
                 except Exception as e:
                     print(
                         f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping"
                     )
             else:
-                result = convert_units_to(result, out_unit)
+                result = convert_units_to(result, out_unit, context="hydro")
+        elif out_unit is not None:
+            result = convert_units_to(result, out_unit, context="hydro")
 
         if self.missing != "skip" and indexer is not None:
             # reference variable is a subset of the studied variable,
