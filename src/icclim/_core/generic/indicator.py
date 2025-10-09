@@ -246,7 +246,7 @@ class GenericIndicator(Indicator):
         self._check_for_invalid_setup(climate_vars, sampling_method)
 
         # >>> PATCHED: Convert thresholds to Kelvin if in Celsius
-        #for cv in climate_vars:
+        # for cv in climate_vars:
         #    if hasattr(cv, "threshold") and cv.threshold is not None:
         #        if cv.threshold.unit in ["C", "degC", "degree_Celsius"]:
         #            # Make a copy, update internal fields
@@ -352,10 +352,8 @@ class GenericIndicator(Indicator):
                     )
             else:
                 result = convert_units_to(result, out_unit, context="hydro")
-        else:
-            if out_unit is not None:
-                result = convert_units_to(result, out_unit, context="hydro")
-
+        elif out_unit is not None:
+            result = convert_units_to(result, out_unit, context="hydro")
 
         if self.missing != "skip" and indexer is not None:
             # reference variable is a subset of the studied variable,
