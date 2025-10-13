@@ -20,11 +20,11 @@ repos:
     -   id: debug-statements
         language_version: python3
 -   repo: https://github.com/pappasam/toml-sort
-    rev: v0.23.1
+    rev: v0.24.3
     hooks:
      - id: toml-sort-fix
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.3
+    rev: v0.14.0
     hooks:
       -  id: ruff
          args: [ --fix ]
