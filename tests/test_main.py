@@ -76,7 +76,13 @@ class TestIntegration:
 
     OUTPUT_FILE = Path("out.nc")
     TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
-    CF_TIME_RANGE = xr.date_range(start="2042-01-01", end="2045-12-31", freq="D", calendar="gregorian", use_cftime=True)
+    CF_TIME_RANGE = xr.date_range(
+        start="2042-01-01",
+        end="2045-12-31",
+        freq="D",
+        calendar="gregorian",
+        use_cftime=True,
+    )
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
