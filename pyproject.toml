@@ -144,15 +144,14 @@ ignore = [
   "ISC001", # String concat on same line, Managed by ruff format
   "COM812", # No comma at the end, Managed by ruff format
   "SIM102", # Allow nexted if
-  "E501",   # Allow line too long
-  "D200",   # Allow one-line docstring on several lines
-  "LOG015", # Allow call on root logger
-  "UP038",  # Ignore isinstance
-  "UP045",  # Ignore Use `X | None` for type annotations
-  "UP007",  # Ignore Use `X | Y` for type annotations
-  "D401",   # Allow docstrings to have non-imperative mood.
+  "E501", # Allow line too long
+  "D200", # Allow one-line docstring on several lines
+  "UP038", # Ignore isinstance
+  "UP045", # Ignore Use `X | None` for type annotations
+  "UP007", # Ignore Use `X | Y` for type annotations
+  "D401", # Allow docstrings to have non-imperative mood.
   "ANN002", # Allow no typing for `*args`
-  "ANN003"  # Allow no typing for `**kwargs`
+  "ANN003" # Allow no typing for `**kwargs`
 ]
 
 [tool.ruff.lint.per-file-ignores]
