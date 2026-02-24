@@ -1,4 +1,4 @@
-# ruff: noqa: E501, N803
+# ruff: noqa: N803
 """
 icclim's API for dcsc indices.
 

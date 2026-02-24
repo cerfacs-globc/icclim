@@ -85,3 +85,5 @@ dask-worker-space/
 
 # notebooks checkpoints
 .ipynb_checkpoints
+.venv-icclim-705/
+.DS_Store

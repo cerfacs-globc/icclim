@@ -7,6 +7,21 @@ on:
   workflow_dispatch:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
+      - name: Install dev tools and project (with constraints)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev] -c constraints.txt
+      - name: Run pre-commit (ruff and friends)
+        run: pre-commit run -a
+
   # lint is handled by pre-commit ci conf
   generate-api:
     runs-on: ubuntu-latest
@@ -21,7 +36,9 @@ jobs:
       - name: Install build tools
         run: pip install --upgrade pip flit
       - name: Install icclim and dev requirements (dev, test and doc)
-        run: flit install --deps develop
+        run: |
+          pip install --upgrade pip
+          pip install -e .[dev,test,doc] -c constraints.txt
       - name: call fun extractor
         run: python ./tools/extract_icclim_funs.py
       - name: run ruff format on generated module
@@ -59,7 +76,9 @@ jobs:
       - name: Install build tools
         run: pip install --upgrade pip flit
       - name: Install icclim and dev requirements (dev, test and doc)
-        run: flit install --deps develop
+        run: |
+          pip install --upgrade pip
+          pip install -e .[dev,test,doc] -c constraints.txt
       - name: Build coverage file
         run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=icclim tests/ | tee pytest-coverage.txt; ( exit ${PIPESTATUS[0]} )
       - name: Pytest coverage comment
@@ -111,7 +130,9 @@ jobs:
       - name: Install build tools
         run: pip install --upgrade pip flit
       - name: Install icclim and dev requirements (dev, test and doc)
-        run: flit install --deps develop
+        run: |
+          pip install --upgrade pip
+          pip install -e .[dev,test,doc] -c constraints.txt
       - name: Generate logos
         run: |
           python ./tools/update_logo_version.py ./doc/source/_static/logo_icclim_colored__base.svg ./doc/source/_static/logo_icclim_colored__displayed.svg

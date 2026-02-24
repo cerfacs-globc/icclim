@@ -8,7 +8,7 @@ climate indices calculation.
 from __future__ import annotations
 
 import dataclasses
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
@@ -16,6 +16,8 @@ from xarray import DataArray
 
 from icclim._core.model.registry import Registry
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 @dataclasses.dataclass
 class CfCalendar:

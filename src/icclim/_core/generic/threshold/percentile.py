@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import xarray as xr
@@ -36,22 +35,23 @@ from icclim._core.model.quantile_interpolation import (
     QuantileInterpolation,
     QuantileInterpolationRegistry,
 )
+from icclim._core.model.threshold import Threshold, ThresholdValueType
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    # Standard library
+    from collections.abc import Callable, Sequence
     from datetime import datetime
 
+    # Third-party
     import jinja2
     import pint
 
+    # Local
     from icclim._core.model.operator import Operator
     from icclim.frequency import Frequency
 
-from typing import TYPE_CHECKING
 
-from icclim._core.model.threshold import Threshold, ThresholdValueType
-
-
+# ruff: noqa: PLW1641
 class PercentileThreshold(Threshold):
     """
     Percentile based threshold (e.g. "<= 10 doy_per").
@@ -334,7 +334,7 @@ class PercentileThreshold(Threshold):
                 self.value,
                 op,
                 self.is_doy_per_threshold,
-                kwargs.get("freq", None),
+                kwargs.get("freq"),
                 kwargs.get("bootstrap", False),
             )
         msg = (

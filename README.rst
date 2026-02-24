@@ -13,7 +13,8 @@ From pypi: ``pip install icclim``.
 
 From sources:
     - Clone the repository ``git clone https://github.com/cerfacs-globc/icclim.git``
-    - Install icclim ``pip install .``
+    - Install icclim ``pip install . -c constraints.txt``
+      (use the constraints file for a reproducible, validated environment)
 
 How to use icclim
 -----------------

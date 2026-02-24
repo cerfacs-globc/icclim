@@ -18,7 +18,6 @@ The `DataArray` instance is the result of the computation of the generic index.
 from __future__ import annotations
 
 import operator
-from collections.abc import Callable
 from functools import partial
 from typing import TYPE_CHECKING
 from warnings import warn
@@ -56,6 +55,7 @@ from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from datetime import timedelta
 
     import numpy as np
@@ -148,7 +148,7 @@ def max_consecutive_occurrence(
     -------
     DataArray
         The maximum number of consecutive occurrences of exceedances.
-    """  # noqa: E501
+    """
     merged_exceedances = _compute_exceedances(
         climate_vars,
         resample_freq.pandas_freq,
@@ -240,7 +240,7 @@ def excess(
     Only the values above the threshold are considered, and negative values are set to
     zero.
     The resulting excess values are then summed over the specified resample frequency.
-    """  # noqa: E501
+    """
     study, threshold = _get_thresholded_var(climate_vars)
     if threshold.operator != OperatorRegistry.REACH:
         msg = "Excess can only be computed with 'reach' operator."
@@ -282,7 +282,7 @@ def deficit(
     Only the values below the threshold are considered, and negative values are set to
     zero.
     The resulting deficit values are then summed over the specified resample frequency.
-    """  # noqa: E501
+    """
     study, threshold = get_single_var(climate_vars)
     deficit = threshold.compute(study, override_op=lambda da, th: th - da)
     res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
@@ -1399,7 +1399,7 @@ def _is_rate(query: Quantity | DataArray) -> bool:
     return query.dimensionality.get("[time]", None) == -1
 
 
-def check_freq(da, dim: str = "time", strict: bool = True):
+def check_freq(da: xr.DataArray, dim: str = "time", strict: bool = True) -> str | None:
     """
     Infer the sampling frequency of a DataArray along a given dimension.
 
@@ -1414,9 +1414,10 @@ def check_freq(da, dim: str = "time", strict: bool = True):
     # Compute deltas
     try:
         deltas = to_timedelta(np_diff(times))
-    except Exception as e:
+    except Exception as err:
         if strict:
-            raise ValueError(f"[icclim] Cannot compute time deltas: {e}")
+            msg = "[icclim] Cannot compute time deltas"
+            raise ValueError(msg) from err
         return None
 
     median_delta = Timedelta(np_median(deltas))
@@ -1430,7 +1431,8 @@ def check_freq(da, dim: str = "time", strict: bool = True):
         return infer_freq(
             date_range(start=times[0], periods=len(times), freq=median_delta)
         )
-    except Exception as e:
+    except Exception as err:
         if strict:
-            raise ValueError(f"[icclim] Unable to infer frequency: {e}")
+            msg = "[icclim] Unable to infer frequency"
+            raise ValueError(msg) from err
         return None

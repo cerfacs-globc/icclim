@@ -5,7 +5,6 @@ Icclim's constants.
 from __future__ import annotations
 
 # fmt: off
-# flake8: noqa
 
 # placeholders for user_index
 PERCENTILE_THRESHOLD_STAMP = "p"

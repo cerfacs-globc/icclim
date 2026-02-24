@@ -528,7 +528,7 @@ def _get_generic_doc() -> str:
 
 def _build_module_header(kind: str) -> str:
     header = f'''\
-# ruff: noqa: A001, E501, N803
+# ruff: noqa: A001, N803
 """
 icclim's API for {kind} indices.
 

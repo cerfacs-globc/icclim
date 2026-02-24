@@ -362,7 +362,7 @@ def index(
     save_percentile: bool
         DEPRECATED, use save_thresholds instead.
 
-    """  # noqa: E501
+    """
     _setup(callback, callback_percentage_start_value, logs_verbosity)
     (
         index_name,

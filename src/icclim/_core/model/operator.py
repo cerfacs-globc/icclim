@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import dataclasses
 import operator
-from collections.abc import Callable
 from typing import TYPE_CHECKING, NoReturn
 
 from icclim._core.model.registry import Registry
 from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from xarray import DataArray
 
 

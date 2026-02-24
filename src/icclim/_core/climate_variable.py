@@ -23,6 +23,10 @@ from icclim._core.input_parsing import (
     guess_standard_variable,
     read_dataset,
 )
+from icclim.ecad.binding import (
+    StandardizedPrecipitationIndex3,
+    StandardizedPrecipitationIndex6,
+)
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import Frequency, FrequencyRegistry
 from icclim.threshold.factory import build_threshold
@@ -62,7 +66,7 @@ class ClimateVariable:
         thresholds for this variable
     reference_period: Sequence of str | None
         The reference period to consider
-    """  # noqa: E501
+    """
 
     name: str
     standard_var: StandardVariable | None
@@ -153,11 +157,6 @@ def build_climate_vars(
     -------
     list of ClimateVariable that will be used to compute the climate index.
     """
-    from icclim.ecad.binding import (
-        StandardizedPrecipitationIndex3,
-        StandardizedPrecipitationIndex6,
-    )
-
     if standard_index is not None and len(standard_index.input_variables) > len(
         climate_vars_dict
     ):

@@ -65,9 +65,9 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         CalcOperationRegistry.MIN: GenericIndicatorRegistry.Minimum.clone(),
         CalcOperationRegistry.SUM: GenericIndicatorRegistry.Sum.clone(),
         CalcOperationRegistry.MEAN: GenericIndicatorRegistry.Average.clone(),
-        CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.CountOccurrences.clone(),  # noqa: E501
-        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.MaxConsecutiveOccurrence.clone(),  # noqa: E501
-        CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.DifferenceOfMeans.clone(),  # noqa: E501
+        CalcOperationRegistry.EVENT_COUNT: GenericIndicatorRegistry.CountOccurrences.clone(),
+        CalcOperationRegistry.MAX_NUMBER_OF_CONSECUTIVE_EVENTS: GenericIndicatorRegistry.MaxConsecutiveOccurrence.clone(),
+        CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.DifferenceOfMeans.clone(),
     }
     extrem_mode = user_index.get("extreme_mode", None)
     if calc_op == CalcOperationRegistry.RUN_SUM:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
     from icclim._core.model.threshold import Threshold
 
 
+# ruff: noqa: PLW1641
 @dataclass
 class StandardIndex:
     """
@@ -86,6 +88,5 @@ class StandardIndex:
 
     def clone(self) -> StandardIndex:
         """Return a deep copy of the index."""
-        from copy import deepcopy
 
         return deepcopy(self)

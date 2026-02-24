@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, TypedDict, Union
 import xarray as xr
 from xarray import DataArray, Dataset
 
+from icclim._core.generic.threshold.bounded import BoundedThreshold
 from icclim._core.model.logical_link import LogicalLink, LogicalLinkRegistry
 
 if TYPE_CHECKING:
@@ -17,7 +18,6 @@ if TYPE_CHECKING:
     import jinja2
     import pint
 
-    from icclim._core.generic.threshold.bounded import BoundedThreshold
     from icclim._core.generic.threshold.threshold_templates import (
         ThresholdMetadata,
     )
@@ -67,6 +67,7 @@ class ThresholdBuilderInput(TypedDict, total=False):
     logical_link: LogicalLink
 
 
+# ruff: noqa: PLW1641
 class Threshold(abc.ABC):
     """
     Abstract class for all thresholds.
@@ -100,9 +101,7 @@ class Threshold(abc.ABC):
         ...
 
     def __and__(self, other: Threshold) -> BoundedThreshold:
-        """Build a BoundedThreshold from two existing Threshold with a "AND" LogicalLink."""  # noqa: E501
-        from icclim._core.generic.threshold.bounded import BoundedThreshold
-
+        """Build a BoundedThreshold from two existing Threshold with a "AND" LogicalLink."""
         return BoundedThreshold(
             thresholds=[self, other],
             logical_link=LogicalLinkRegistry.LOGICAL_AND,
@@ -110,9 +109,7 @@ class Threshold(abc.ABC):
         )
 
     def __or__(self, other: Threshold) -> BoundedThreshold:
-        """Build a BoundedThreshold from two existing Threshold with a "OR" LogicalLink."""  # noqa: E501
-        from icclim._core.generic.threshold.bounded import BoundedThreshold
-
+        """Build a BoundedThreshold from two existing Threshold with a "OR" LogicalLink."""
         return BoundedThreshold(
             thresholds=[self, other],
             logical_link=LogicalLinkRegistry.LOGICAL_OR,

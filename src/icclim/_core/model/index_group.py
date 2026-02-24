@@ -6,8 +6,10 @@ import dataclasses
 from typing import Any
 
 from icclim._core.model.registry import Registry
+from icclim.ecad.registry import EcadIndexRegistry
 
 
+# ruff: noqa: PLW1641
 @dataclasses.dataclass(init=False)
 class IndexGroup:
     """
@@ -53,8 +55,6 @@ class IndexGroup:
         The list of indices is obtained by filtering the EcadIndexRegistry values.
         The others indices are not considered.
         """
-        from icclim.ecad.registry import EcadIndexRegistry
-
         return list(
             filter(lambda i: i.group in self.values, EcadIndexRegistry.values()),
         )

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import dataclasses
-from collections.abc import Callable
 from functools import reduce
 from typing import TYPE_CHECKING
 
@@ -12,6 +11,8 @@ import numpy as np
 from icclim._core.model.registry import Registry
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from xarray import DataArray
 
 

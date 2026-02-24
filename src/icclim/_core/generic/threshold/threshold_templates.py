@@ -1,11 +1,11 @@
+# ruff: noqa: I001
 from __future__ import annotations
-
-from typing import Any, TypedDict
+from typing import Any, TypedDict, TYPE_CHECKING
 
 # fmt: off
-# flake8: noqa
-from numpy import ndarray
-from pint import Quantity
+if TYPE_CHECKING:
+    from numpy import ndarray
+    from pint import Quantity
 
 
 class ThresholdMetadata(TypedDict):
@@ -23,6 +23,7 @@ class ThresholdMetadata(TypedDict):
     standard_name : str
         Standard name of the threshold. Ressemble the CF convention standard names, but is not actually standard.
     """
+
     long_name: str
     short_name: str
     standard_name: str

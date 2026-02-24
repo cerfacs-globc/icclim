@@ -44,12 +44,11 @@ class IcclimLogger:
             raise Exception(
                 "This class is a singleton! Use IcclimLogger.get_instance()."
             )
-        else:
-            IcclimLogger.__instance = self
-            self.verbosity = verbosity
-            logging.basicConfig(
-                level=verbosity.log_level, format="%(asctime)s %(message)s"
-            )
+        IcclimLogger.__instance = self
+        self.verbosity = verbosity
+        logging.basicConfig(
+            level=verbosity.log_level, format="%(asctime)s %(message)s"
+        )
 
     def set_verbosity(self, verbosity: str | Verbosity):
         if isinstance(verbosity, str):
@@ -60,7 +59,6 @@ class IcclimLogger:
     def start_message(self):
         from icclim import __version__ as icclim_version
 
-        # flake8: noqa
         time_now = time.asctime(time.gmtime())
         if self.verbosity == VerbosityRegistry.SILENT:
             return
@@ -100,7 +98,6 @@ class IcclimLogger:
     def ending_message(self, time_cpu):
         from icclim import __version__ as icclim_version
 
-        # flake8: noqa
         time_now = time.asctime(time.gmtime())
         if self.verbosity == VerbosityRegistry.SILENT:
             return

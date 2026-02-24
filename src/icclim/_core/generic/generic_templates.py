@@ -7,7 +7,6 @@ from __future__ import annotations
 from typing import TypedDict
 
 # fmt: off
-# flake8: noqa
 
 class IndicatorMetadata(TypedDict):
     standard_name: str

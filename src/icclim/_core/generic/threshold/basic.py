@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -29,12 +28,15 @@ from icclim._core.utils import is_number_sequence
 from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import jinja2
     import pint
 
     from icclim._core.model.operator import Operator
 
 
+# ruff: noqa: PLW1641
 class BasicThreshold(Threshold):
     """
     Pint ready simple threshold (e.g. "> 300 K").
