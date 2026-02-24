@@ -147,9 +147,9 @@ ignore = [
   "E501", # Allow line too long
   "D200", # Allow one-line docstring on several lines
   "UP038", # Ignore isinstance
-  "UP045", # Ignore Use `X | None` for type annotations
   "UP007", # Ignore Use `X | Y` for type annotations
   "D401", # Allow docstrings to have non-imperative mood.
+  "ANN101", # Allow typing omissions for `self`
   "ANN002", # Allow no typing for `*args`
   "ANN003" # Allow no typing for `**kwargs`
 ]
