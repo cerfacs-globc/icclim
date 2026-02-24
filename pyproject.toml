@@ -166,5 +166,9 @@ ignore = [
   "SLF001" # Allow access to private values from tests.
 ]
 
+"src/icclim/_generated/*.py" = [
+  "F821", # Allow placeholder names like _empty in generated API.
+]
+
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
