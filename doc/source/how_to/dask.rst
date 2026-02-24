@@ -113,81 +113,6 @@ configuration:
 
    dask.config.set({"array.slicing.split_large_chunks": True})
 
-Create an optimized chunking on disk
-====================================
-
-Sometimes, you have to work with data that were originally chunked and
-stored in a way that is suboptimal. Often climate data are stored in a
-one year per file format thus the natural chunking of the dataset will
-be one year per chunk. The most efficient way to read data on disk would
-be to chunk data in memory the same way it is distributed on disk. Here
-it means having one chunk per file, as long as a file size does not
-exceed the `array.chunk-size` configuration.
-
-This scattering of the time axis in many chunks can limit the
-computation performances of some indices. Indeed, indices such as
-percentile based indices require a specific chunking schema to be
-computed. This means we must either rechunk in memory to have an
-optimized chunking. However, this generates many dask tasks and can
-overload dask scheduler.
-
-To tackle this issue, icclim 5.1.0 comes with a new feature to first
-rewrite the data on disk before starting any computation. We rely on the
-`rechunker library
-<https://rechunker.readthedocs.io/en/latest/index.html>`_ to make this
-possible. The feature is ``icclim.create_optimized_zarr_store``. It is a
-context manager which allow you to rewrite an input data into a zarr
-store. Zarr stores are a modern way to store files on disk with
-optimized reading and writing in mind. In our case, it allows to
-rewrite files with a specific chunking schema, optimized for climate
-indices computation.
-
-Now, depending on the climate index you want to compute, the optimal
-chunking schema might differ.
-
-For most indices, if you consider chunking on time dimension, you should
-never chunk below the target resampling period. For example, with
-``slice_mode="month"``, ideally each chunk should include whole month
-and never chunk in the middle of a month. But month being of variable
-lengths, it might actually be much easier to have one chunk per year.
-Leap years would add another difficulty to this.
-
-However, on indices where a bootstrapping of percentile is necessary (e.g
-Tg90p), it is actually optimal to have no chunk at all on time
-dimension. This is true only because the bootstrapping algorithm rely on
-`map_block
-<https://xarray.pydata.org/en/stable/generated/xarray.map_blocks.html>`_.
-In that case, you can use ``icclim.create_optimized_zarr_store`` to
-first create a zarr store not chunked at all on time dimension:
-
-.. code:: python
-
-   import icclim
-
-   ref_period = [datetime.datetime(1980, 1, 1), datetime.datetime(2009, 12, 31)]
-   with icclim.create_optimized_zarr_store(
-       in_files="netcdf_files/tas.nc",
-       var_names="tas",
-       target_zarr_store_name="opti.zarr",
-       keep_target_store=False,
-       chunking={"time": -1, "lat": "auto", "lon": "auto"},
-   ) as opti_tas:
-       icclim.index(
-           index_name="TG90p",
-           in_files=opti_tas,
-           slice_mode="YS",
-           base_period_time_range=ref_period,
-           out_file="netcdf_files/output/tg90p.nc",
-       )
-
-Actually `chunking={"time": -1, "lat":"auto", "lon":"auto" }`,
-which avoid chunking on time, is the default behavior of the function.
-`chunking` parameter could thus be omitted in the above example.
-
-You can also control if you want to keep the optimized zarr store on
-disk by turning ``keep_target_store`` to True. This can be useful if you
-wish to compute other indices using the same chunking.
-
 *****************
  On performances
 *****************
@@ -487,13 +412,6 @@ try to:
 
 -  Use small chunk size, but beware the smaller they are, the more dask
    creates tasks thus, the more complex the dask graph becomes.
-
--  Rechunk your dataset into a zarr storage to optimize file reading and
-   reduce the amount of rechunking tasks needed by dask. For this, you
-   should consider the Pangeo rechunker library to ease this process:
-   https://rechunker.readthedocs.io/en/latest/ A shorthand to Pangeo
-   rechunker is available in icclim with
-   `icclim.create_optimized_zarr_store`.
 
 -  Split your data into smaller netcdf inputs and run the computation
    multiple times.

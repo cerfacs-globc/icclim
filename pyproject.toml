@@ -27,22 +27,20 @@ dynamic = ["version", "description"]
 requires-python = ">=3.10"
 keywords = ["netcdf", "climate", "climate-indices", "climate-indicators", "xarray"]
 dependencies = [
-  "numpy>=2.0.1",
-  "xarray>=2025.6.1",
-  "xclim>=0.58.1",
-  "cf_xarray>=0.10.6",
-  "cftime>=1.6.4",
-  "dask[array]>=2025.7.0",
-  "netCDF4>=1.7.2",
+  "numpy>=2.0,<2.1",
+  "xarray>=2025.6.1,<2026.0.0",
+  "xclim>=0.58.1,<0.59",
+  "cf_xarray>=0.10.6,<0.11",
+  "cftime>=1.6.4,<1.7",
+  "dask[array]>=2025.7.0,<2026.0.0",
+  "netCDF4>=1.7.2,<1.8",
   "psutil",
-  "zarr>=2.18.3",
-  "rechunker>=0.3, !=0.4",
-  "fsspec",
-  "pandas>=2.3.2",
-  "dateparser",
-  "pint>=0.24.4",
-  "jinja2",
-  "psutil"
+  "zarr>=2.18.3,<3.0",
+  "fsspec<2026.0.0",
+  "pandas>=2.3.2,<3.0",
+  "dateparser>=1.1,<2.0",
+  "pint>=0.24.4,<0.25",
+  "jinja2>=3.1,<4.0"
 ]
 
 [project.optional-dependencies]
@@ -145,10 +143,16 @@ ignore = [
   # -- True ignore
   "ISC001", # String concat on same line, Managed by ruff format
   "COM812", # No comma at the end, Managed by ruff format
-  "ANN101", # useless typing for `self`, will be removed from ruff
-  "ANN102", # useless typing for `cls`, will be removed from ruff
+  "SIM102", # Allow nexted if
+  "E501",   # Allow line too long
+  "D200",   # Allow one-line docstring on several lines
+  "LOG015", # Allow call on root logger
+  "UP038",  # Ignore isinstance
+  "UP045",  # Ignore Use `X | None` for type annotations
+  "UP007",  # Ignore Use `X | Y` for type annotations
+  "D401",   # Allow docstrings to have non-imperative mood.
   "ANN002", # Allow no typing for `*args`
-  "ANN003" # Allow no typing for `**kwargs`
+  "ANN003"  # Allow no typing for `**kwargs`
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -159,7 +163,6 @@ ignore = [
   "FBT", # Allow booleans as positional arguments in tests.
   "D", # Disable docstring check for tests.
   "ANN", # Disable type check for tests.
-  "D401", # Allow docstrings to have non-imperative mood.
   "F821", # Allow _empty.
   "SLF001" # Allow access to private values from tests.
 ]

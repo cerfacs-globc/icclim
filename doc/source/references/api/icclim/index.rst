@@ -30,7 +30,6 @@ Submodules
 
    exception/index.rst
    main/index.rst
-   rechunk/index.rst
 
 
 Package Contents

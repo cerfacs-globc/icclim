@@ -3,15 +3,42 @@
 #################
 
 ******
- 7.0.4
+7.0.5
 ******
 
-date: 2025-10-08
+date: 2026-02-24
 
 Details
 =======
 
--  [maint] unpin upper-bound versions for packages in pyproject.toml.
+-  [fix] Replace deprecated xarray ``cf_time_range`` with ``date_range``.
+-  [maint] Relax dependency pins to safe ranges with protective upper bounds
+   (e.g., ``xclim>=0.58.1,<0.59``, ``xarray>=2025.6.1,<2026.0.0``,
+   ``numpy>=2.0,<2.1``).
+-  [maint] Add ``constraints.txt`` and update CI to install with
+   ``pip install -e .[dev,test,doc] -c constraints.txt`` for reproducible builds.
+-  [maint] Update README to recommend ``constraints.txt`` when installing from
+   sources.
+-  [maint] Improve logging and exception handling in generic indicators; replace
+   prints with structured logging and narrow exception scopes, especially in
+   unit conversion paths.
+-  [maint] Minor cleanups (imports, typing, ruff config) and generated API refresh.
+-  [maint] Remove experimental ``icclim.rechunk.create_optimized_zarr_store`` helper
+   and drop the ``rechunker`` dependency; recommend using plain xarray+dask+zarr
+   workflows for any custom on-disk rechunking needs.
+-  [maint] PyPI release 7.0.5.
+
+******
+ 7.0.4
+******
+
+date: 2025-10-06
+
+Details
+=======
+
+-  [maint] Adjust some pinned dependencies (numpy)
+-  [maint] pypi bumped to 7.0.4
 
 ******
  7.0.3
