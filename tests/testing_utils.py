@@ -62,6 +62,7 @@ def stub_pr(value: float, use_dask=False, lat=1, lon=1):
         da.chunk()
     return da
 
+
 def normalize_unit(unit: str) -> str:
     """Return a canonical string for a unit, using xclim/pint."""
     try:

@@ -21,7 +21,11 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from icclim.logger import Verbosity
-    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
+    from icclim._core.model.icclim_types import (
+        FrequencyLike,
+        InFileLike,
+        SamplingMethodLike,
+    )
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
@@ -65,12 +69,12 @@ def count_occurrences(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).
 
     count_occurrences: Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -125,7 +129,7 @@ def count_occurrences(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -163,12 +167,12 @@ def max_consecutive_occurrence(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
     max_consecutive_occurrence: Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -223,7 +227,7 @@ def max_consecutive_occurrence(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -262,12 +266,12 @@ def sum_of_spell_lengths(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     min_spell_length: int | None = 6,
-    ) -> Dataset:
+) -> Dataset:
     """Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
     sum_of_spell_lengths: Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -325,7 +329,7 @@ def sum_of_spell_lengths(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -364,12 +368,12 @@ def excess(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
     excess: Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -424,7 +428,7 @@ def excess(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -462,12 +466,12 @@ def deficit(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
     deficit: Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -522,7 +526,7 @@ def deficit(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -560,12 +564,12 @@ def fraction_of_total(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
     fraction_of_total: Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -620,7 +624,7 @@ def fraction_of_total(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -658,12 +662,12 @@ def maximum(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
     maximum: Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -718,7 +722,7 @@ def maximum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -756,12 +760,12 @@ def minimum(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
     minimum: Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -816,7 +820,7 @@ def minimum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -854,12 +858,12 @@ def average(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn).
 
     average: Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -914,7 +918,7 @@ def average(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -952,12 +956,12 @@ def sum(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
     sum: Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1012,7 +1016,7 @@ def sum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1050,12 +1054,12 @@ def standard_deviation(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Standard deviation of values that met threshold(s), if threshold(s) are given.
 
     standard_deviation: Standard deviation of values that met threshold(s), if threshold(s) are given.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1110,7 +1114,7 @@ def standard_deviation(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1149,12 +1153,12 @@ def max_of_rolling_sum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     rolling_window_width: int | None = 5,
-    ) -> Dataset:
+) -> Dataset:
     """Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
     max_of_rolling_sum: Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1212,7 +1216,7 @@ def max_of_rolling_sum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1252,12 +1256,12 @@ def min_of_rolling_sum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     rolling_window_width: int | None = 5,
-    ) -> Dataset:
+) -> Dataset:
     """Minimum of rolling sum over time dimension.
 
     min_of_rolling_sum: Minimum of rolling sum over time dimension.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1315,7 +1319,7 @@ def min_of_rolling_sum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1355,12 +1359,12 @@ def max_of_rolling_average(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     rolling_window_width: int | None = 5,
-    ) -> Dataset:
+) -> Dataset:
     """Maximum of rolling average over time dimension.
 
     max_of_rolling_average: Maximum of rolling average over time dimension.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1418,7 +1422,7 @@ def max_of_rolling_average(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1458,12 +1462,12 @@ def min_of_rolling_average(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     rolling_window_width: int | None = 5,
-    ) -> Dataset:
+) -> Dataset:
     """Minimum of rolling average over time dimension.
 
     min_of_rolling_average: Minimum of rolling average over time dimension.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1521,7 +1525,7 @@ def min_of_rolling_average(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1560,12 +1564,12 @@ def mean_of_difference(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
     mean_of_difference: Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1620,7 +1624,7 @@ def mean_of_difference(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1658,12 +1662,12 @@ def difference_of_extremes(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
     difference_of_extremes: Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1718,7 +1722,7 @@ def difference_of_extremes(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1756,12 +1760,12 @@ def mean_of_absolute_one_time_step_difference(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
     mean_of_absolute_one_time_step_difference: Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1816,7 +1820,7 @@ def mean_of_absolute_one_time_step_difference(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1855,12 +1859,12 @@ def difference_of_means(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     sampling_method: SamplingMethodLike = "resample",
-    ) -> Dataset:
+) -> Dataset:
     """Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
     difference_of_means: Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1923,7 +1927,7 @@ def difference_of_means(
         (default: "resample")
         `groupby_ref_and_resample_study` may only be used when computing the
         `difference_of_means` (a.k.a the anomaly).
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1962,12 +1966,12 @@ def percentile(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
-    ) -> Dataset:
+) -> Dataset:
     """Percentile of a variable.
 
     percentile: Percentile of a variable.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2022,7 +2026,7 @@ def percentile(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -2048,8 +2052,8 @@ def percentile(
 
 
 def custom_index(
-        user_index: UserIndexDict,
-        in_files: InFileLike,
+    user_index: UserIndexDict,
+    in_files: InFileLike,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -2073,7 +2077,7 @@ def custom_index(
     Use the `user_index` parameter to describe how the index should be computed.
     You can find some examples in icclim documentation at :ref:`custom indices`
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2162,7 +2166,7 @@ def custom_index(
         (default: "resample")
         `groupby_ref_and_resample_study` may only be used when computing the
         `difference_of_means` (a.k.a the anomaly).
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -2187,6 +2191,5 @@ def custom_index(
         date_event=date_event,
         min_spell_length=min_spell_length,
         rolling_window_width=rolling_window_width,
-        sampling_method=sampling_method
+        sampling_method=sampling_method,
     )
-    
