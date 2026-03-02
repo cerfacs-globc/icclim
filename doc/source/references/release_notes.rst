@@ -6,27 +6,24 @@
 7.0.5
 ******
 
-date: 2026-02-24
+date: 2026-03-02
 
 Details
 =======
 
--  [fix] Replace deprecated xarray ``cf_time_range`` with ``date_range``.
--  [maint] Relax dependency pins to safe ranges with protective upper bounds
-   (e.g., ``xclim>=0.58.1,<0.59``, ``xarray>=2025.6.1,<2026.0.0``,
-   ``numpy>=2.0,<2.1``).
--  [maint] Add ``constraints.txt`` and update CI to install with
-   ``pip install -e .[dev,test,doc] -c constraints.txt`` for reproducible builds.
--  [maint] Update README to recommend ``constraints.txt`` when installing from
-   sources.
--  [maint] Improve logging and exception handling in generic indicators; replace
-   prints with structured logging and narrow exception scopes, especially in
-   unit conversion paths.
--  [maint] Minor cleanups (imports, typing, ruff config) and generated API refresh.
--  [maint] Remove experimental ``icclim.rechunk.create_optimized_zarr_store`` helper
-   and drop the ``rechunker`` dependency; recommend using plain xarray+dask+zarr
-   workflows for any custom on-disk rechunking needs.
--  [maint] PyPI release 7.0.5.
+-  [maint] Relax dependency constraints in ``pyproject.toml`` (e.g., ``numpy>=1.21``,
+   ``xarray>=2022.6.0``, ``xclim>=0.45.0``) to ensure broad **Python 3.9+**
+   compatibility while maintaining support for bleeding-edge versions (Zarr 3.x,
+   Pandas 3.x, Xarray 2026.x).
+-  [maint] Standardize all CI/CD workflows (``ci.yml``, ``publish-to-pipy.yml``) and
+   pre-commit hooks on **Python 3.9**.
+-  [maint] Update ``publish-to-pipy.yml`` to support PyPI trusted publishing.
+-  [maint] Bump pre-commit hooks: ``ruff`` to ``v0.15.2+`` and ``toml-sort`` to
+   ``v0.24.3``.
+-  [maint] Refine API extraction tool (``extract_icclim_funs.py``) to handle circular
+   imports and guarantee 100% Ruff compliance in all generated code.
+-  [maint] Project-wide linting and formatting of core modules, tests, and tutorials.
+-  [maint] Release 7.0.5.
 
 ******
  7.0.4
