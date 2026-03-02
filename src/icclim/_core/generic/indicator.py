@@ -6,7 +6,7 @@ import contextlib
 import logging
 from copy import deepcopy
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import xarray as xr
@@ -60,12 +60,12 @@ context_hydro.add_transformation(
     "[mass] / [length] ** 2 / [time]",
     lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"),
 )
+ureg.add_context(context_hydro)
 
 
 jinja_env = Environment(autoescape=True)
 
 
-# ruff: noqa: PLW1641
 class GenericIndicator(Indicator):
     """
     GenericIndicator are climate indicators wich are not specific to a particular domain.
@@ -197,6 +197,10 @@ class GenericIndicator(Indicator):
             sampling_methods if sampling_methods is not None else [RESAMPLE_METHOD]
         )
 
+    def __hash__(self) -> int:
+        """Return the hash of the indicator."""
+        return hash(self.name)
+
     def preprocess(
         self,
         climate_vars: list[ClimateVariable],
@@ -275,7 +279,7 @@ class GenericIndicator(Indicator):
         self._format_template(jinja_scope=jinja_scope)
         return climate_vars
 
-    def postprocess(   # noqa: C901
+    def postprocess(  # noqa: C901
         self,
         result: DataArray,
         climate_vars: list[ClimateVariable],
@@ -325,13 +329,22 @@ class GenericIndicator(Indicator):
                         "[mass] / [length] ** 2"
                     ):
                         # Always use hydro context for rates and amounts
-                        with context_hydro:
+                        with ureg.context("hydro"):
                             result = convert_units_to(result, out_unit, context="hydro")
                     else:
                         result = convert_units_to(result, out_unit, context="hydro")
-                except (DimensionalityError, UndefinedUnitError, ValueError, AttributeError, KeyError) as e:
+                except (
+                    DimensionalityError,
+                    UndefinedUnitError,
+                    ValueError,
+                    AttributeError,
+                    KeyError,
+                ) as e:
                     logger.warning(
-                        "Unit conversion failed for unit '%s': %s", current_unit, e, exc_info=True
+                        "Unit conversion failed for unit '%s': %s",
+                        current_unit,
+                        e,
+                        exc_info=True,
                     )
             else:
                 result = convert_units_to(result, out_unit, context="hydro")
@@ -499,12 +512,12 @@ class GenericIndicator(Indicator):
             setattr(self, templated_property, template.render())
 
     def _handle_missing_values(
-            self,
-            in_data: DataArray,
-            out_data: DataArray,
-            resample_freq: Optional[str] = None,
-            src_freq: Optional[str] = None,
-            indexer: Optional[dict[str, slice]] = None,
+        self,
+        in_data: DataArray,
+        out_data: DataArray,
+        resample_freq: str | None = None,
+        src_freq: str | None = None,
+        indexer: dict[str, slice] | None = None,
     ) -> None:
         """
         Handle missing values in climate index computations.
@@ -608,7 +621,7 @@ def _convert_rates_to_amounts(
                     current_unit,
                     output_unit,
                 )
-                with context_hydro:
+                with ureg.context("hydro"):
                     da = rate2amount(climate_var.studied_data, out_units=output_unit)
             else:
                 # Non-precipitation rates: normal conversion
@@ -617,7 +630,14 @@ def _convert_rates_to_amounts(
             # Update the variable with converted data
             climate_var.studied_data = da.astype("float64")
 
-        except (TypeError, ValueError, AttributeError, KeyError, DimensionalityError, UndefinedUnitError) as e:
+        except (
+            TypeError,
+            ValueError,
+            AttributeError,
+            KeyError,
+            DimensionalityError,
+            UndefinedUnitError,
+        ) as e:
             # Skip on error but report it
             logger.warning(
                 "_convert_rates_to_amounts: exception for unit '%s', skipping: %s",
@@ -645,7 +665,9 @@ def _is_amount_unit(unit: str) -> bool:
         # Compare to the dimensionality of 1 meter
         return q.dimensionality == (1 * ureg("m")).dimensionality
     except (DimensionalityError, UndefinedUnitError, AttributeError, TypeError) as e:
-        logger.warning("_is_amount_unit: exception for unit '%s', returning False: %s", unit, e)
+        logger.warning(
+            "_is_amount_unit: exception for unit '%s', returning False: %s", unit, e
+        )
         return False
 
 

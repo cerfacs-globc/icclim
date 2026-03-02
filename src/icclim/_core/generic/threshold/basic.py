@@ -36,7 +36,6 @@ if TYPE_CHECKING:
     from icclim._core.model.operator import Operator
 
 
-# ruff: noqa: PLW1641
 class BasicThreshold(Threshold):
     """
     Pint ready simple threshold (e.g. "> 300 K").
@@ -195,6 +194,10 @@ class BasicThreshold(Threshold):
             and self.initial_query == other.initial_query
             and self.threshold_min_value == other.threshold_min_value
         )
+
+    def __hash__(self) -> int:
+        """Return the hash of the threshold."""
+        return hash((self.operator, self.value, self.unit, self.initial_query))
 
     def __str__(self) -> str:
         """Return a string representation of the threshold."""

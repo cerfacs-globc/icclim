@@ -29,7 +29,6 @@ class MissingMethodLike(ABC):
         ...
 
 
-# ruff: noqa: PLW1641
 class Indicator(ABC):
     """
     Generic indicator abstract class.
@@ -81,6 +80,11 @@ class Indicator(ABC):
     @abc.abstractmethod
     def __eq__(self, __value: object, /) -> bool:
         """Check if two indicators are equal."""
+        ...
+
+    @abc.abstractmethod
+    def __hash__(self) -> int:
+        """Return the hash of the indicator."""
         ...
 
     def clone(self) -> Indicator:

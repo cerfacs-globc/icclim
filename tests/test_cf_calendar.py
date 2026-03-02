@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim.exception import InvalidIcclimArgumentError
 

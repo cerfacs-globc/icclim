@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from icclim._core.model.threshold import Threshold
 
 
-# ruff: noqa: PLW1641
 @dataclass
 class StandardIndex:
     """
@@ -81,12 +80,22 @@ class StandardIndex:
             self.indicator == other.indicator
             and self.threshold == other.threshold
             and self.output_unit == other.output_unit
-            and self.rolling_window_width == other.rolling_window_width
-            and self.doy_window_width == other.doy_window_width
             and self.min_spell_length == other.min_spell_length
+        )
+
+    def __hash__(self) -> int:
+        """Return the hash of the index."""
+        return hash(
+            (
+                self.indicator,
+                self.threshold,
+                self.output_unit,
+                self.rolling_window_width,
+                self.doy_window_width,
+                self.min_spell_length,
+            )
         )
 
     def clone(self) -> StandardIndex:
         """Return a deep copy of the index."""
-
         return deepcopy(self)

@@ -4,9 +4,9 @@ import cftime
 import numpy as np
 import pandas as pd
 import pytest
+
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import FrequencyRegistry, get_seasonal_time_updater
-
 from tests.testing_utils import stub_tas
 
 

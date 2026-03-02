@@ -18,8 +18,9 @@ The `DataArray` instance is the result of the computation of the generic index.
 from __future__ import annotations
 
 import operator
+from collections.abc import Callable
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from warnings import warn
 
 import xarray as xr
@@ -1013,10 +1014,14 @@ def _reduce_and_diff_of_resampled_x_by_groupedby_y(
     acc = []
     if resample_freq == FrequencyRegistry.MONTH:
         key = "month"
-        dt_selector = lambda x: x.time.dt.month  # noqa: E731
+
+        def dt_selector(x: Any) -> Any:  # noqa: ANN401
+            return x.time.dt.month
     elif resample_freq == FrequencyRegistry.DAY:
         key = "dayofyear"
-        dt_selector = lambda x: x.time.dt.dayofyear  # noqa: E731
+
+        def dt_selector(x: Any) -> Any:  # noqa: ANN401
+            return x.time.dt.dayofyear
     else:
         msg = (
             f"Can't use {GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD}"

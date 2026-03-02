@@ -11,7 +11,7 @@ from icclim.exception import InvalidIcclimArgumentError
 T = TypeVar("T")
 
 
-class Registry(Generic[T], ABC):
+class Registry(ABC, Generic[T]):
     """
     Registry classes acts as fancy enums.
 
@@ -28,7 +28,7 @@ class Registry(Generic[T], ABC):
     _item_class: type  # runtime type for the generic `T`
 
     @classmethod
-    def lookup(cls, query: T | str) -> T:
+    def lookup(cls: type[Registry], query: T | str) -> T:
         """
         Look up an item in the registry.
 
@@ -68,7 +68,7 @@ class Registry(Generic[T], ABC):
         raise InvalidIcclimArgumentError(msg)
 
     @classmethod
-    def lookup_no_error(cls, query: T | str) -> T | None:
+    def lookup_no_error(cls: type[Registry], query: T | str) -> T | None:
         """
         Also look up an item in the registry, but return None if not found.
 
@@ -90,7 +90,7 @@ class Registry(Generic[T], ABC):
             return None
 
     @classmethod
-    def every_aliases(cls) -> list[T]:
+    def every_aliases(cls: type[Registry]) -> list[T]:
         """
         Return a list of all aliases for items in the registry.
 
@@ -124,7 +124,7 @@ class Registry(Generic[T], ABC):
         return [item.name.upper()]
 
     @classmethod
-    def catalog(cls) -> dict[str, T]:
+    def catalog(cls: type[Registry]) -> dict[str, T]:
         """
         Return a dictionary of all items in the registry.
 
@@ -138,7 +138,7 @@ class Registry(Generic[T], ABC):
         return {k: v for k, v in cls.__dict__.items() if isinstance(v, cls._item_class)}
 
     @classmethod
-    def values(cls) -> list[T]:
+    def values(cls: type[Registry]) -> list[T]:
         """
         Return a list of all items in the registry.
 

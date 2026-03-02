@@ -19,6 +19,7 @@ from icclim._core.model.registry import Registry
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+
 @dataclasses.dataclass
 class CfCalendar:
     """

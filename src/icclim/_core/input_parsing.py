@@ -47,7 +47,7 @@ class PercentileDataArray(xr.DataArray):
     __slots__ = ()
 
     @classmethod
-    def is_compatible(cls, source: xr.DataArray) -> bool:
+    def is_compatible(cls: type[PercentileDataArray], source: xr.DataArray) -> bool:
         """Evaluate whether PecentileDataArray is conformant with expected fields.
 
         A PercentileDataArray must have climatology_bounds attributes and either a
@@ -61,7 +61,7 @@ class PercentileDataArray(xr.DataArray):
 
     @classmethod
     def from_da(
-        cls,
+        cls: type[PercentileDataArray],
         source: xr.DataArray,
         climatology_bounds: list[str] | None = None,
     ) -> PercentileDataArray:
@@ -495,7 +495,7 @@ def is_precipitation_amount(source: xr.DataArray) -> bool:
 def build_studied_data(
     original_da: DataArray,
     time_range: Sequence[datetime | str] | None,
-    ignore_Feb29th: bool,  # noqa: N803
+    ignore_Feb29th: bool,
     default_units: str | None,
 ) -> DataArray:
     """

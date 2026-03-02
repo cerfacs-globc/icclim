@@ -5,6 +5,8 @@ from collections.abc import Callable
 import numpy as np
 import pint
 import pytest
+from xclim.core.units import units as xc_units
+
 from icclim._core.generic.threshold.basic import BasicThreshold
 from icclim._core.generic.threshold.bounded import BoundedThreshold
 from icclim._core.generic.threshold.percentile import PercentileThreshold
@@ -12,16 +14,7 @@ from icclim._core.model.logical_link import LogicalLinkRegistry
 from icclim._core.model.operator import OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.threshold.factory import build_threshold
-from xclim.core.units import units as xc_units
-
-
-# --- Patch for unit normalization in tests ---
-def normalize_unit_for_test(unit: str) -> str:
-    """Return a canonical string for a unit, using xclim/pint."""
-    try:
-        return str(xc_units(unit).units)
-    except Exception:
-        return unit
+from tests.testing_utils import normalize_unit
 
 
 # ------------------- Tests -------------------
@@ -40,7 +33,7 @@ def test_build_threshold__from_query() -> None:
     assert isinstance(res, BasicThreshold)
     assert res.operator == OperatorRegistry.GREATER
     assert res.value == 10
-    assert normalize_unit_for_test(res.unit) == normalize_unit_for_test(
+    assert normalize_unit(res.unit) == normalize_unit(
         "degree_Celsius"
     )
 
@@ -50,13 +43,13 @@ def test_build_bounded_threshold__from_query() -> None:
     assert isinstance(res, BoundedThreshold)
     assert res.left_threshold.operator == OperatorRegistry.GREATER
     assert res.left_threshold.value == 10
-    assert normalize_unit_for_test(res.left_threshold.unit) == normalize_unit_for_test(
+    assert normalize_unit(res.left_threshold.unit) == normalize_unit(
         "degree_Celsius"
     )
     assert res.logical_link == LogicalLinkRegistry.LOGICAL_AND
     assert res.right_threshold.operator == OperatorRegistry.LOWER
     assert res.right_threshold.value == 20
-    assert normalize_unit_for_test(res.right_threshold.unit) == normalize_unit_for_test(
+    assert normalize_unit(res.right_threshold.unit) == normalize_unit(
         "degree_Celsius"
     )
 
@@ -66,10 +59,10 @@ def test_build_bounded_threshold__unit_conversion() -> None:
     res.unit = "degree_Fahrenheit"
     np.testing.assert_almost_equal(res.left_threshold.value, 50)
     np.testing.assert_almost_equal(res.right_threshold.value, 80.33)
-    assert normalize_unit_for_test(res.left_threshold.unit) == normalize_unit_for_test(
+    assert normalize_unit(res.left_threshold.unit) == normalize_unit(
         "degree_Fahrenheit"
     )
-    assert normalize_unit_for_test(res.right_threshold.unit) == normalize_unit_for_test(
+    assert normalize_unit(res.right_threshold.unit) == normalize_unit(
         "degree_Fahrenheit"
     )
 
@@ -96,7 +89,7 @@ def test_build_bounded_threshold__from_and() -> None:
     assert isinstance(t3.left_threshold, BasicThreshold)
     assert t3.left_threshold.operator == OperatorRegistry.GREATER
     assert t3.left_threshold.value == 10
-    assert normalize_unit_for_test(t3.left_threshold.unit) == normalize_unit_for_test(
+    assert normalize_unit(t3.left_threshold.unit) == normalize_unit(
         "degree_Celsius"
     )
     assert t3.logical_link == LogicalLinkRegistry.LOGICAL_AND
@@ -115,7 +108,7 @@ def test_build_bounded_threshold__from_or() -> None:
     assert isinstance(t3.left_threshold, BasicThreshold)
     assert t3.left_threshold.operator == OperatorRegistry.GREATER
     assert t3.left_threshold.value == 10
-    assert normalize_unit_for_test(t3.left_threshold.unit) == normalize_unit_for_test(
+    assert normalize_unit(t3.left_threshold.unit) == normalize_unit(
         "degree_Celsius"
     )
     assert t3.logical_link == LogicalLinkRegistry.LOGICAL_OR
@@ -137,7 +130,7 @@ def test_build_bounded_threshold__from_args() -> None:
     assert isinstance(t3.left_threshold, BasicThreshold)
     assert t3.left_threshold.operator == OperatorRegistry.GREATER
     assert t3.left_threshold.value == 10
-    assert normalize_unit_for_test(t3.left_threshold.unit) == normalize_unit_for_test(
+    assert normalize_unit(t3.left_threshold.unit) == normalize_unit(
         "degree_Celsius"
     )
     assert t3.logical_link == LogicalLinkRegistry.LOGICAL_OR
@@ -215,7 +208,7 @@ def test_build_per_threshold__from_query() -> None:
     assert isinstance(res, PercentileThreshold)
     assert res.operator == OperatorRegistry.LOWER_OR_EQUAL
     assert res.initial_value == [99]
-    assert normalize_unit_for_test(res.unit) == normalize_unit_for_test(
+    assert normalize_unit(res.unit) == normalize_unit(
         "doy_per"
     )  # not computed yet
     assert res._initial_unit == "doy_per"
@@ -229,6 +222,6 @@ def test_build_basic_threshold__special_char_in_unit() -> None:
     t = build_threshold("< 1 mm/day")
     assert t.operator == OperatorRegistry.LOWER
     assert t.value == 1
-    assert normalize_unit_for_test(t.unit) == normalize_unit_for_test(
+    assert normalize_unit(t.unit) == normalize_unit(
         "millimeter / day"
     )

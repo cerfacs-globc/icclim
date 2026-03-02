@@ -1,6 +1,6 @@
-# ruff: noqa: I001
 from __future__ import annotations
-from typing import Any, TypedDict, TYPE_CHECKING
+
+from typing import TYPE_CHECKING, Any, TypedDict
 
 # fmt: off
 if TYPE_CHECKING:

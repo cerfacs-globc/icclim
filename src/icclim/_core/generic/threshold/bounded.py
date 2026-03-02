@@ -18,7 +18,6 @@ from icclim._core.model.threshold import (
     ThresholdBuilderInput,
 )
 from icclim.exception import InvalidIcclimArgumentError
-from icclim.threshold.factory import build_threshold
 
 if TYPE_CHECKING:
     # Standard library
@@ -33,7 +32,6 @@ if TYPE_CHECKING:
     from icclim._core.model.logical_link import LogicalLink
 
 
-# ruff: noqa: PLW1641
 class BoundedThreshold(Threshold):
     """
     Threshold that binds two other thresholds (e.g. "> 95 doy_per AND >= 30 deg_C").
@@ -220,10 +218,15 @@ class BoundedThreshold(Threshold):
             and self.logical_link == other.logical_link
         )
 
+    def __hash__(self) -> int:
+        """Return the hash of the threshold."""
+        return hash((self.thresholds, self.logical_link))
+
     def _build_thresh(
         self,
         thresh_input: Threshold | str | ThresholdBuilderInput,
     ) -> Threshold:
+        from icclim.threshold.factory import build_threshold  # noqa: PLC0415
 
         if isinstance(thresh_input, Threshold):
             return thresh_input
