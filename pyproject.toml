@@ -36,7 +36,6 @@ dependencies = [
   "cftime>=1.5.0",
   "dask[array]>=2022.2.0",
   "netCDF4>=1.5.7",
-  "psutil",
   "zarr>=2.11.0",
   "numcodecs>=0.10.0",
   "fsspec",
