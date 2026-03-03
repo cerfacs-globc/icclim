@@ -1,4 +1,4 @@
-# ruff: noqa: A001, N803
+# ruff: noqa: A001, E501, N803
 """
 icclim's API for dcsc indices.
 
@@ -3200,7 +3200,7 @@ def ff98(
             only_leap_years=only_leap_years,
             interpolation=interpolation,
             reference_period=base_period_time_range,
-            threshold_min_value="1 kt",
+            threshold_min_value="1 kn",
         ),
         out_unit="days",
     )

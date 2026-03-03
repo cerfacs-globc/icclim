@@ -182,6 +182,9 @@ ignore = [
   "RUF022", # Allow unsorted __all__.
   "D" # Disable docstring checks for generated files.
 ]
+"doc/source/conf.py" = [
+  "INP001" # conf.py is a standalone script, not a package.
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"

@@ -1,4 +1,4 @@
-# ruff: noqa: A001, N803
+# ruff: noqa: A001, E501, N803
 """
 icclim's API for generic indices.
 
