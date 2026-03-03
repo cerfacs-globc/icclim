@@ -6,17 +6,17 @@
 7.0.5
 ******
 
-date: 2026-03-02
+date: 2026-03-03
 
 Details
 =======
 
 -  [maint] Relax dependency constraints in ``pyproject.toml`` (e.g., ``numpy>=1.21``,
-   ``xarray>=2022.6.0``, ``xclim>=0.45.0``) to ensure broad **Python 3.9+**
-   compatibility while maintaining support for bleeding-edge versions (Zarr 3.x,
-   Pandas 3.x, Xarray 2026.x).
+   ``xarray>=2022.6.0``, ``xclim>=0.45.0``) while maintaining support for
+   bleeding-edge versions (Zarr 3.x, Pandas 3.x, Xarray 2026.x).
 -  [maint] Standardize all CI/CD workflows (``ci.yml``, ``publish-to-pipy.yml``) and
-   pre-commit hooks on **Python 3.9**.
+   pre-commit hooks on **Python 3.11**.
+-  [maint] Drop support for **Python 3.9** and require **Python 3.10+**.
 -  [maint] Update ``publish-to-pipy.yml`` to support PyPI trusted publishing.
 -  [maint] Bump pre-commit hooks: ``ruff`` to ``v0.15.2+`` and ``toml-sort`` to
    ``v0.24.3``.
