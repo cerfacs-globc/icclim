@@ -15,9 +15,8 @@ To grasp the basic usage of icclim, you may consider following
    :maxdepth: 2
    :caption: How to
 
-   Chunk data and parallelize computation <dask>
    Run our jupyter notebooks <notebooks>
    Compute ECA&D indices <recipes_ecad>
    Compute Generic indices <recipes_generic>
-   Use icclim through OCGIS <ocgis>
+   Use icclim through OCGIS (deprecated) <ocgis>
    Create customized indices (deprecated) <recipes_custom>

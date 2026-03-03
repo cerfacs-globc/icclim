@@ -543,6 +543,14 @@ def build_studied_data(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_KEY, None) is None and default_units is not None:
         da.attrs[UNITS_KEY] = default_units
+    std_var = guess_standard_variable(da)
+    if (
+        std_var is not None
+        and std_var.default_units == "degree_Celsius"
+        and da.attrs.get(UNITS_KEY) is not None
+        and da.attrs.get(UNITS_KEY) != "degree_Celsius"
+    ):
+        da = convert_units_to(da, "degree_Celsius", context="hydro")
     if is_precipitation_amount(da):
         da = xclim.core.units.amount2rate(da)
     return da.chunk("auto")

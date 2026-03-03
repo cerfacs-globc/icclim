@@ -264,6 +264,8 @@ class GenericIndicator(Indicator):
                         climate_var.studied_data,
                         target=output_unit,
                     )
+                    if climate_var.threshold is not None:
+                        climate_var.threshold.unit = output_unit
         if coef is not None:
             for climate_var in climate_vars:
                 climate_var.studied_data = coef * climate_var.studied_data

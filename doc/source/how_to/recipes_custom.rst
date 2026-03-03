@@ -4,10 +4,11 @@
  User indices recipes
 ########################
 
-.. note::
+.. warning::
 
-   User indices are deprecated. You should switch to
-   :ref:`generic_indices_recipes` API.
+   The ``user_index`` API (also known as "User indices") is **deprecated**
+   and will be removed in a future version.
+   Please switch to the :ref:`generic_indices_recipes` API instead.
 
 .. code:: python
 
