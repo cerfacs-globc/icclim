@@ -7,7 +7,6 @@ for example "> 95 doy_per AND >= 30 deg_C".
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from icclim._core.generic.threshold.threshold_templates import (
@@ -21,12 +20,15 @@ from icclim._core.model.threshold import (
 from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    # Standard library
+    from collections.abc import Callable, Sequence
 
+    # Third-party
     import jinja2
     import xarray as xr
     from xarray import DataArray
 
+    # Local
     from icclim._core.model.logical_link import LogicalLink
 
 
@@ -216,11 +218,15 @@ class BoundedThreshold(Threshold):
             and self.logical_link == other.logical_link
         )
 
+    def __hash__(self) -> int:
+        """Return the hash of the threshold."""
+        return hash((self.thresholds, self.logical_link))
+
     def _build_thresh(
         self,
         thresh_input: Threshold | str | ThresholdBuilderInput,
     ) -> Threshold:
-        from icclim.threshold.factory import build_threshold
+        from icclim.threshold.factory import build_threshold  # noqa: PLC0415
 
         if isinstance(thresh_input, Threshold):
             return thresh_input

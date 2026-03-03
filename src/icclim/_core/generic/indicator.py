@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import contextlib
-from collections.abc import Callable
+import logging
 from copy import deepcopy
 from functools import reduce
 from typing import TYPE_CHECKING, Any
@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import xarray as xr
 from jinja2 import Environment
+from pint.errors import DimensionalityError, UndefinedUnitError
 from xarray import DataArray
 from xclim.core.calendar import select_time
 from xclim.core.cfchecks import cfcheck_from_name
@@ -18,27 +19,18 @@ from xclim.core.missing import MISSING_METHODS
 from xclim.core.units import convert_units_to, rate2amount
 from xclim.core.units import units as ureg
 
-try:
-    from pint import (
-        DefinitionSyntaxError,
-        DimensionalityError,
-        OffsetUnitCalculusError,
-        UndefinedUnitError,
-    )
-except ImportError:
-    pass
-
-
 from icclim._core.climate_variable import must_run_bootstrap
-from icclim._core.constants import (
-    RESAMPLE_METHOD,
-)
+from icclim._core.constants import RESAMPLE_METHOD
 from icclim._core.generic.functions import check_freq
 from icclim._core.generic.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim._core.model.indicator import Indicator
 from icclim.exception import InvalidIcclimArgumentError
 
+logger = logging.getLogger(__name__)
+
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import jinja2
 
     from icclim._core.climate_variable import ClimateVariable
@@ -68,6 +60,7 @@ context_hydro.add_transformation(
     "[mass] / [length] ** 2 / [time]",
     lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"),
 )
+ureg.add_context(context_hydro)
 
 
 jinja_env = Environment(autoescape=True)
@@ -108,7 +101,7 @@ class GenericIndicator(Indicator):
         The method for handling missing values.
     missing_options: dict | None
         Additional options for handling missing values.
-    """  # noqa: E501
+    """
 
     missing: str
     missing_options: dict | None
@@ -180,7 +173,7 @@ class GenericIndicator(Indicator):
         ...     qualifiers=(),
         ... )
 
-        """  # noqa: E501
+        """
         super().__init__()
         self.missing_options = missing_options
 
@@ -190,7 +183,7 @@ class GenericIndicator(Indicator):
         # Assign the missing method (callable) directly
         self._missing = MISSING_METHODS[self.missing]
         if self.missing_options:
-            missing_method.validate(**self.missing_options)
+            self._missing.validate(**self.missing_options)
         en_indicator_templates = deepcopy(INDICATORS_TEMPLATES_EN[name])
         self.name = name
         self.process = process
@@ -203,6 +196,10 @@ class GenericIndicator(Indicator):
         self.sampling_methods = (
             sampling_methods if sampling_methods is not None else [RESAMPLE_METHOD]
         )
+
+    def __hash__(self) -> int:
+        """Return the hash of the indicator."""
+        return hash(self.name)
 
     def preprocess(
         self,
@@ -245,16 +242,6 @@ class GenericIndicator(Indicator):
         """
         self._check_for_invalid_setup(climate_vars, sampling_method)
 
-        # >>> PATCHED: Convert thresholds to Kelvin if in Celsius
-        for cv in climate_vars:
-            if hasattr(cv, "threshold") and cv.threshold is not None:
-                if cv.threshold.unit in ["C", "degC", "degree_Celsius"]:
-                    # Make a copy, update internal fields
-                    new_threshold = deepcopy(cv.threshold)
-                    new_threshold._value = new_threshold.value + 273.15
-                    new_threshold._unit = "K"
-                    cv.threshold = new_threshold
-
         if output_unit is not None:
             if _is_amount_unit(output_unit):
                 climate_vars = _convert_rates_to_amounts(
@@ -292,7 +279,7 @@ class GenericIndicator(Indicator):
         self._format_template(jinja_scope=jinja_scope)
         return climate_vars
 
-    def postprocess(
+    def postprocess(  # noqa: C901
         self,
         result: DataArray,
         climate_vars: list[ClimateVariable],
@@ -332,16 +319,7 @@ class GenericIndicator(Indicator):
         Precipitation / amounts handled normally using hydro context.
         """
 
-        if out_unit in ["C", "degC", "degree_Celsius"]:
-            # >>> DIFF-AWARE: only convert absolute temps
-            if not _is_a_diff_indicator(self):
-                result.values = result.values - 273.15
-                result.attrs["units"] = "degC"
-            else:
-                # Differences: keep in K, label as degC
-                result.attrs["units"] = "degC"
-
-        elif out_unit is not None and _is_amount_unit(out_unit):
+        if out_unit is not None and _is_amount_unit(out_unit):
             # Use Pint dimensionality + hydro context for precipitation-like units
             current_unit = result.attrs.get("units", None)
             if current_unit is not None:
@@ -351,16 +329,27 @@ class GenericIndicator(Indicator):
                         "[mass] / [length] ** 2"
                     ):
                         # Always use hydro context for rates and amounts
-                        with context_hydro:
+                        with ureg.context("hydro"):
                             result = convert_units_to(result, out_unit, context="hydro")
                     else:
-                        result = convert_units_to(result, out_unit)
-                except Exception as e:
-                    print(
-                        f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping"
+                        result = convert_units_to(result, out_unit, context="hydro")
+                except (
+                    DimensionalityError,
+                    UndefinedUnitError,
+                    ValueError,
+                    AttributeError,
+                    KeyError,
+                ) as e:
+                    logger.warning(
+                        "Unit conversion failed for unit '%s': %s",
+                        current_unit,
+                        e,
+                        exc_info=True,
                     )
             else:
-                result = convert_units_to(result, out_unit)
+                result = convert_units_to(result, out_unit, context="hydro")
+        elif out_unit is not None:
+            result = convert_units_to(result, out_unit, context="hydro")
 
         if self.missing != "skip" and indexer is not None:
             # reference variable is a subset of the studied variable,
@@ -372,10 +361,8 @@ class GenericIndicator(Indicator):
                 # If src_freq cannot be inferred by xclim, fall back to universal check_freq
                 if src_freq is None:
                     try:
-                        from icclim._core.generic.functions import check_freq
-
                         src_freq = check_freq(result, dim="time")
-                    except Exception:
+                    except (ValueError, TypeError, AttributeError, KeyError):
                         src_freq = "D"  # safe fallback: daily
 
                 result = self._handle_missing_values(
@@ -392,8 +379,8 @@ class GenericIndicator(Indicator):
         return result
 
     # >>> PATCHED helper: difference-aware flag
-    def _is_a_diff_indicator(indicator: Indicator) -> bool:
-        return "compute_diff" in indicator.qualifiers
+    def _is_a_diff_indicator(self: Indicator) -> bool:
+        return "compute_diff" in self.qualifiers
 
     def __call__(self, config: IndexConfig) -> DataArray:
         """
@@ -525,8 +512,13 @@ class GenericIndicator(Indicator):
             setattr(self, templated_property, template.render())
 
     def _handle_missing_values(
-        self, in_data, out_data, resample_freq=None, src_freq=None, indexer=None
-    ):
+        self,
+        in_data: DataArray,
+        out_data: DataArray,
+        resample_freq: str | None = None,
+        src_freq: str | None = None,
+        indexer: dict[str, slice] | None = None,
+    ) -> None:
         """
         Handle missing values in climate index computations.
 
@@ -543,10 +535,6 @@ class GenericIndicator(Indicator):
         indexer : dict, optional
             Extra arguments used by some missing value methods.
         """
-        import numpy as np
-        from xarray import DataArray
-        from xclim.core.missing import MISSING_METHODS
-
         missing_class = MISSING_METHODS[self.missing]  # Get the class
         missing_obj = missing_class()  # Instantiate with no args
 
@@ -598,6 +586,7 @@ def _convert_rates_to_amounts(
 ) -> list[ClimateVariable]:
     """
     Convert rate-like climate variables to amount units using xclim's rate2amount.
+
     Handles both classic rates (e.g., mm/s) and precipitation (kg m-2 / time)
     using a dedicated Pint context.
     """
@@ -626,10 +615,13 @@ def _convert_rates_to_amounts(
 
             if is_precip:
                 # >>> Hydro context applied here
-                print(
-                    f"Converting {climate_var.name}: {current_unit} -> {output_unit} with hydro context"
+                logger.info(
+                    "Converting %s: %s -> %s with hydro context",
+                    climate_var.name,
+                    current_unit,
+                    output_unit,
                 )
-                with context_hydro:
+                with ureg.context("hydro"):
                     da = rate2amount(climate_var.studied_data, out_units=output_unit)
             else:
                 # Non-precipitation rates: normal conversion
@@ -638,10 +630,20 @@ def _convert_rates_to_amounts(
             # Update the variable with converted data
             climate_var.studied_data = da.astype("float64")
 
-        except Exception as e:
+        except (
+            TypeError,
+            ValueError,
+            AttributeError,
+            KeyError,
+            DimensionalityError,
+            UndefinedUnitError,
+        ) as e:
             # Skip on error but report it
-            print(
-                f"_convert_rates_to_amounts: exception {e} for unit '{current_unit}', skipping"
+            logger.warning(
+                "_convert_rates_to_amounts: exception for unit '%s', skipping: %s",
+                current_unit,
+                e,
+                exc_info=True,  # optional: include traceback
             )
             continue
 
@@ -662,8 +664,10 @@ def _is_amount_unit(unit: str) -> bool:
         q = 1 * ureg(unit_clean)
         # Compare to the dimensionality of 1 meter
         return q.dimensionality == (1 * ureg("m")).dimensionality
-    except Exception as e:
-        print(f"_is_amount_unit: exception {e} for unit '{unit}', returning False")
+    except (DimensionalityError, UndefinedUnitError, AttributeError, TypeError) as e:
+        logger.warning(
+            "_is_amount_unit: exception for unit '%s', returning False: %s", unit, e
+        )
         return False
 
 
@@ -692,10 +696,11 @@ def _check_data(climate_vars: list, src_freq: str) -> None:
         if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
             inferred_freq = check_freq(da, dim="time", strict=True)
             if inferred_freq != src_freq:
-                raise InvalidIcclimArgumentError(
+                msg = (
                     f"[icclim] Frequency mismatch for variable '{climate_var.name}': "
                     f"expected '{src_freq}', inferred '{inferred_freq}'"
                 )
+                raise InvalidIcclimArgumentError(msg)
 
 
 def _is_a_diff_indicator(indicator: Indicator) -> bool:

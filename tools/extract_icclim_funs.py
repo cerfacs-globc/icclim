@@ -11,18 +11,19 @@ from __future__ import annotations
 import copy
 import inspect
 import sys
-from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-#import icclim
 from docstring_parser import Docstring, DocstringParam, DocstringStyle, compose, parse
+
 from icclim._core.constants import NEEDS_NORMAL, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
 from icclim._core.generic.threshold.percentile import PercentileThreshold
 from icclim._core.model.threshold import Threshold
 from icclim.threshold.factory import build_threshold
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from icclim._core.generic.indicator import GenericIndicator
     from icclim._core.model.registry import Registry
     from icclim._core.model.standard_index import StandardIndex
@@ -114,6 +115,7 @@ NORMAL_INDEX_POP_ARGS = (
 # Main entry point
 # -----------------------
 def main() -> None:
+    """Generate the icclim API modules and documentation files."""
     dir_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_OUTPUT_PATH
     dir_path = Path(dir_path)
 
@@ -130,7 +132,7 @@ def main() -> None:
 # API generation functions
 # -----------------------
 def _generate_dcsc_api(file_path: Path) -> None:
-    from icclim.dcsc.registry import DcscIndexRegistry
+    from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
 
     dcsc_indices = DcscIndexRegistry.values()
     dcsc_index_names = [x.short_name for x in dcsc_indices]
@@ -143,10 +145,12 @@ def _generate_dcsc_api(file_path: Path) -> None:
     acc += "\n".join(dcsc_indices)
     with Path.open(file_path, "w") as f:
         f.write(acc)
+        if not acc.endswith("\n"):
+            f.write("\n")
 
 
 def _generate_generic_api(file_path: Path) -> None:
-    from icclim.generic.registry import GenericIndicatorRegistry
+    from icclim.generic.registry import GenericIndicatorRegistry  # noqa: PLC0415
 
     generic_indices = GenericIndicatorRegistry.values()
     generic_index_names = [x.name for x in generic_indices]
@@ -162,10 +166,12 @@ def _generate_generic_api(file_path: Path) -> None:
     acc += "\n".join(indices_to_write)
     with Path.open(file_path, "w") as f:
         f.write(acc)
+        if not acc.endswith("\n"):
+            f.write("\n")
 
 
 def _generate_ecad_api(file_path: Path) -> None:
-    from icclim.ecad.registry import EcadIndexRegistry
+    from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
 
     ecad_indices = EcadIndexRegistry.values()
     ecad_index_names = [x.short_name for x in ecad_indices]
@@ -178,13 +184,15 @@ def _generate_ecad_api(file_path: Path) -> None:
     acc += "\n".join(ecad_indices)
     with Path.open(file_path, "w") as f:
         f.write(acc)
+        if not acc.endswith("\n"):
+            f.write("\n")
 
 
 # -----------------------
 # Helper functions
 # -----------------------
 def _get_user_index_declaration() -> str:
-    from icclim import index as icclim_index
+    from icclim import index as icclim_index  # noqa: PLC0415
 
     icclim_index_args = dict(inspect.signature(icclim_index).parameters)
     pop_args = DEPRECATED_ARGS + UNNECESSARY_ARGS
@@ -224,7 +232,18 @@ def _get_standard_index_declaration(index: StandardIndex, registry: Registry) ->
 
 
 def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> str:
-    from icclim import index as icclim_index
+    from icclim import index as icclim_index  # noqa: PLC0415
+
+    registry_class = (
+        type(registry).__name__ if not isinstance(registry, type) else registry.__name__
+    )
+    registry_module = (
+        "icclim.ecad.registry"
+        if "Ecad" in registry_class
+        else "icclim.dcsc.registry"
+        if "Dcsc" in registry_class
+        else "icclim.generic.registry"
+    )
 
     if _is_quantile_based(index):
         index_args = _get_arguments(STANDARD_INDEX_POP_ARGS)
@@ -247,6 +266,9 @@ def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> 
     index_name_arg = next(
         k for k in catalog if catalog[k].short_name == index.short_name
     )
+    registry_import_line = (
+        f"    from {registry_module} import {registry_class}  # noqa: PLC0415\n"
+    )
     return f"""
 def {index.short_name.lower()}(
     {fun_signature_args},
@@ -259,18 +281,33 @@ def {index.short_name.lower()}(
     {args_docs}
     {END_NOTE}
     \"\"\"  # noqa: D401
-    return icclim.index(
-        index_name={registry.__name__}.{index_name_arg},
+{registry_import_line}    return icclim.index(
+        index_name={registry_class}.{index_name_arg},
         {formatted_args},
     )
 """
 
 
 def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> str:
-    from icclim import index as icclim_index
+    from icclim import index as icclim_index  # noqa: PLC0415
 
-    def _normal_index_placeholder(normal, normal_var_name=None):
-        """
+    registry_class = (
+        type(registry).__name__ if not isinstance(registry, type) else registry.__name__
+    )
+    registry_module = (
+        "icclim.ecad.registry"
+        if "Ecad" in registry_class
+        else "icclim.dcsc.registry"
+        if "Dcsc" in registry_class
+        else "icclim.generic.registry"
+    )
+
+    def _normal_index_placeholder(
+        normal: str | Sequence[str],
+        normal_var_name: str | None = None,
+    ) -> None:
+        """Placeholder for normal index.
+
         Parameters
         ----------
         normal: Union[str, Sequence[str], Dataset, DataArray]
@@ -312,6 +349,10 @@ def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> s
         k for k in catalog if catalog[k].short_name == index.short_name
     )
 
+    registry_import_line = (
+        f"    from {registry_module} import {registry_class}  # noqa: PLC0415\n"
+    )
+
     return f"""
 def {index.short_name.lower()}(
     {fun_signature_args},
@@ -324,14 +365,14 @@ def {index.short_name.lower()}(
     {args_docs}
     {END_NOTE}
     \"\"\"
-    standard_index = DcscIndexRegistry.{index.short_name}
+{registry_import_line}    standard_index = {registry_class}.{index.short_name}
     normal_da = get_dataarray_from_dataset(
         normal_var_name, normal, standard_index.input_variables[0]
     )
     threshold = standard_index.threshold
     threshold.prepare(normal_da)
     return icclim.index(
-        index_name={registry.__name__}.{index_name_arg},
+        index_name={registry_class}.{index_name_arg},
         {formatted_args},
     )
 """
@@ -340,20 +381,20 @@ def {index.short_name.lower()}(
 # -----------------------
 # Common helper functions
 # -----------------------
-def _is_compared_to_normal(index) -> bool:
+def _is_compared_to_normal(index: StandardIndex) -> bool:
     return index.qualifiers is not None and NEEDS_NORMAL in index.qualifiers
 
 
-def _is_quantile_based(index) -> bool:
+def _is_quantile_based(index: StandardIndex) -> bool:
     return index.qualifiers is not None and QUANTILE_BASED in index.qualifiers
 
 
-def _can_have_reference_period(index) -> bool:
+def _can_have_reference_period(index: StandardIndex) -> bool:
     return index.qualifiers is not None and REFERENCE_PERIOD_INDEX in index.qualifiers
 
 
 def _get_arguments(pop_args: list[str]) -> dict[str, inspect.Parameter]:
-    from icclim import index as icclim_index
+    from icclim import index as icclim_index  # noqa: PLC0415
 
     icclim_index_args = dict(inspect.signature(icclim_index).parameters)
     for pop_arg in pop_args:
@@ -361,20 +402,19 @@ def _get_arguments(pop_args: list[str]) -> dict[str, inspect.Parameter]:
     return icclim_index_args
 
 
-def _get_output_unit_argument(index) -> str:
+def _get_output_unit_argument(index: StandardIndex) -> str:
     if index.output_unit is not None:
         return f'out_unit="{index.output_unit}"'
     return ""
 
 
-def _get_threshold_argument(index) -> str:
+def _get_threshold_argument(index: StandardIndex) -> str:
     if isinstance(index.threshold, (str, Threshold)):
         return f"threshold={_format_thresh(index.threshold)}"
     if isinstance(index.threshold, (list, tuple)):
-        result = "threshold=["
-        for t in index.threshold:
-            result += _format_thresh(t) + ","
-        result += "]"
+        result = "threshold=[\n        "
+        result += f",\n{TAB}{TAB}".join(_format_thresh(t) for t in index.threshold)
+        result += "\n    ]"
         return result
     return ""
 
@@ -393,8 +433,8 @@ def _get_generic_index_declaration(index: GenericIndicator) -> str:
     str
         Python code defining a function for the given generic index.
     """
-    from icclim import index as icclim_index
-    from icclim.generic.registry import GenericIndicatorRegistry
+    from icclim import index as icclim_index  # noqa: PLC0415
+    from icclim.generic.registry import GenericIndicatorRegistry  # noqa: PLC0415
 
     pop_args = copy.copy(GENERIC_POP_ARGS)
     if index is not GenericIndicatorRegistry.SumOfSpellLengths:
@@ -428,11 +468,13 @@ def {index.name.lower()}(
     {args_docs}
     {END_NOTE}
     \"\"\"
+    from icclim.generic.registry import GenericIndicatorRegistry  # noqa: PLC0415
+
     return icclim.index(
-        index_name={GenericIndicatorRegistry.__name__}.{index_name_arg},
+        index_name=GenericIndicatorRegistry.{index_name_arg},
         {formatted_args},
     )
-    """
+"""
 
 
 def _build_fun_signature_args(args: dict[str, inspect.Parameter]) -> str:
@@ -506,21 +548,21 @@ def _generate_doc(doc_path: Path, replacing_content: str) -> None:
 
 
 def _get_ecad_doc() -> str:
-    from icclim.ecad.registry import EcadIndexRegistry
+    from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
 
     names = [x.short_name for x in EcadIndexRegistry.values()]
     return "\n".join(f"{TAB}{x.lower()}" for x in names) + "\n\n"
 
 
 def _get_dcsc_doc() -> str:
-    from icclim.dcsc.registry import DcscIndexRegistry
+    from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
 
     names = [x.short_name for x in DcscIndexRegistry.values()]
     return "\n".join(f"{TAB}{x.lower()}" for x in names) + "\n\n"
 
 
 def _get_generic_doc() -> str:
-    from icclim.generic.registry import GenericIndicatorRegistry
+    from icclim.generic.registry import GenericIndicatorRegistry  # noqa: PLC0415
 
     names = [x.name for x in GenericIndicatorRegistry.values()] + ["custom_index"]
     return "\n".join(f"{TAB}{x.lower()}" for x in names) + "\n\n"
@@ -547,15 +589,7 @@ from icclim._core.input_parsing import get_dataarray_from_dataset
 from icclim.threshold.factory import build_threshold
 '''
 
-    # Registry import depending on module type
-    if kind.lower() == "dcsc":
-        header += "from icclim.dcsc.registry import DcscIndexRegistry\n"
-    elif kind.lower() == "ecad":
-        header += "from icclim.ecad.registry import EcadIndexRegistry\n"
-    elif kind.lower() == "generic":
-        header += "from icclim.generic.registry import GenericIndicatorRegistry\n"
-
-    # TYPE_CHECKING imports for type hints
+    # TYPE_CHECKING imports for type hints (no runtime registry import to avoid circular imports)
     header += """
 if TYPE_CHECKING:
     import datetime as dt

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
@@ -29,6 +28,8 @@ from icclim._core.utils import is_number_sequence
 from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import jinja2
     import pint
 
@@ -193,6 +194,10 @@ class BasicThreshold(Threshold):
             and self.initial_query == other.initial_query
             and self.threshold_min_value == other.threshold_min_value
         )
+
+    def __hash__(self) -> int:
+        """Return the hash of the threshold."""
+        return hash((self.operator, self.value, self.unit, self.initial_query))
 
     def __str__(self) -> str:
         """Return a string representation of the threshold."""

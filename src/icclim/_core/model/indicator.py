@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import abc
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -77,12 +78,15 @@ class Indicator(ABC):
         ...
 
     @abc.abstractmethod
-    def __eq__(self, __value: object) -> bool:
+    def __eq__(self, __value: object, /) -> bool:
         """Check if two indicators are equal."""
+        ...
+
+    @abc.abstractmethod
+    def __hash__(self) -> int:
+        """Return the hash of the indicator."""
         ...
 
     def clone(self) -> Indicator:
         """Clone the indicator."""
-        from copy import deepcopy
-
         return deepcopy(self)

@@ -99,9 +99,16 @@ class Threshold(abc.ABC):
         """Check if two Threshold are equal."""
         ...
 
+    @abc.abstractmethod
+    def __hash__(self) -> int:
+        """Return the hash of the threshold."""
+        ...
+
     def __and__(self, other: Threshold) -> BoundedThreshold:
-        """Build a BoundedThreshold from two existing Threshold with a "AND" LogicalLink."""  # noqa: E501
-        from icclim._core.generic.threshold.bounded import BoundedThreshold
+        """Build a BoundedThreshold from two existing Threshold with a "AND" LogicalLink."""
+        from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
+            BoundedThreshold,
+        )
 
         return BoundedThreshold(
             thresholds=[self, other],
@@ -110,8 +117,10 @@ class Threshold(abc.ABC):
         )
 
     def __or__(self, other: Threshold) -> BoundedThreshold:
-        """Build a BoundedThreshold from two existing Threshold with a "OR" LogicalLink."""  # noqa: E501
-        from icclim._core.generic.threshold.bounded import BoundedThreshold
+        """Build a BoundedThreshold from two existing Threshold with a "OR" LogicalLink."""
+        from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
+            BoundedThreshold,
+        )
 
         return BoundedThreshold(
             thresholds=[self, other],

@@ -7,10 +7,11 @@ It holds the compiled configuration for the computation of climate indices.
 from __future__ import annotations
 
 import dataclasses
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from icclim._core.climate_variable import ClimateVariable
     from icclim._core.model.indicator import Indicator
     from icclim._core.model.logical_link import LogicalLink

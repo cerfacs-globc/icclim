@@ -21,28 +21,28 @@ classifiers = [
   "Natural Language :: English",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Scientific/Engineering :: Atmospheric Science"
 ]
 dynamic = ["version", "description"]
 requires-python = ">=3.10"
 keywords = ["netcdf", "climate", "climate-indices", "climate-indicators", "xarray"]
 dependencies = [
-  "numpy>=2.0.1",
-  "xarray>=2025.6.1",
-  "xclim>=0.58.1",
-  "cf_xarray>=0.10.6",
-  "cftime>=1.6.4",
-  "dask[array]>=2025.7.0",
-  "netCDF4>=1.7.2",
-  "psutil",
-  "zarr>=2.18.3",
-  "rechunker>=0.3, !=0.4",
+  "numpy>=1.21",
+  "xarray>=2022.6.0",
+  "xclim>=0.45.0",
+  "cf_xarray>=0.7.4",
+  "cftime>=1.5.0",
+  "dask[array]>=2022.2.0",
+  "netCDF4>=1.5.7",
+  "zarr>=2.11.0",
+  "numcodecs>=0.10.0",
   "fsspec",
-  "pandas>=2.3.2",
-  "dateparser",
-  "pint>=0.24.4",
-  "jinja2",
-  "psutil"
+  "pandas>=1.3.0",
+  "dateparser>=1.1.0",
+  "pint>=0.20",
+  "jinja2>=3.0"
 ]
 
 [project.optional-dependencies]
@@ -145,10 +145,16 @@ ignore = [
   # -- True ignore
   "ISC001", # String concat on same line, Managed by ruff format
   "COM812", # No comma at the end, Managed by ruff format
-  "ANN101", # useless typing for `self`, will be removed from ruff
-  "ANN102", # useless typing for `cls`, will be removed from ruff
+  "SIM102", # Allow nexted if
+  "E501", # Allow line too long
+  "D200", # Allow one-line docstring on several lines
+  "UP038", # Ignore isinstance
+  "UP007", # Ignore Use `X | Y` for type annotations
+  "D401", # Allow docstrings to have non-imperative mood.
+  "ANN101", # Allow typing omissions for `self`
   "ANN002", # Allow no typing for `*args`
-  "ANN003"  # Allow no typing for `**kwargs`
+  "ANN003", # Allow no typing for `**kwargs`
+  "N803" # Allow non-lowercase argument names (established API names like ignore_Feb29th)
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -159,9 +165,25 @@ ignore = [
   "FBT", # Allow booleans as positional arguments in tests.
   "D", # Disable docstring check for tests.
   "ANN", # Disable type check for tests.
-  "D401", # Allow docstrings to have non-imperative mood.
   "F821", # Allow _empty.
   "SLF001" # Allow access to private values from tests.
+]
+"src/icclim/_generated/*.py" = [
+  "F821", # Allow placeholder names like _empty in generated API.
+  "N803", # Allow non-lowercase argument names.
+  "A001", # Allow shadowing built-ins.
+  "F403", # Allow star imports.
+  "F401", # Allow unused imports (often used in headers for convenience).
+  "ERA001", # Allow commented out code.
+  "PLC0415", # Allow local imports (used to break circular dependencies).
+  "W293", # Allow blank lines with whitespace.
+  "I001", # Allow unsorted imports.
+  "RUF100", # Allow unused noqa.
+  "RUF022", # Allow unsorted __all__.
+  "D" # Disable docstring checks for generated files.
+]
+"doc/source/conf.py" = [
+  "INP001" # conf.py is a standalone script, not a package.
 ]
 
 [tool.ruff.lint.pydocstyle]

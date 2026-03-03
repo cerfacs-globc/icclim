@@ -53,7 +53,7 @@ class IndexGroup:
         The list of indices is obtained by filtering the EcadIndexRegistry values.
         The others indices are not considered.
         """
-        from icclim.ecad.registry import EcadIndexRegistry
+        from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
 
         return list(
             filter(lambda i: i.group in self.values, EcadIndexRegistry.values()),
@@ -94,6 +94,10 @@ class IndexGroup:
         if not isinstance(other, IndexGroup):
             return False
         return other.name == self.name
+
+    def __hash__(self) -> int:
+        """Return the hash of the index group."""
+        return hash(self.name)
 
 
 class IndexGroupRegistry(Registry[IndexGroup]):

@@ -1,4 +1,4 @@
-"""Sphinx configuration file for icclim documentation."""  # noqa: INP001
+"""Sphinx configuration file for icclim documentation."""
 # Configuration file for the Sphinx documentation builder.
 #
 # This file only contains a selection of the most common options. For a full
@@ -54,7 +54,7 @@ extensions = [
 autoapi_generate_api_docs = False
 autoapi_dirs = ["../../src"]
 autoapi_root = "references/api"
-# autoapi_keep_files = True   # noqa: ERA001 , E501 (uncomment to generate the API and recomment after)
+# autoapi_keep_files = True  # noqa: ERA001
 autoapi_options = [
     # "members",
     # "undoc-members",

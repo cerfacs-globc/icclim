@@ -13,7 +13,19 @@ From pypi: ``pip install icclim``.
 
 From sources:
     - Clone the repository ``git clone https://github.com/cerfacs-globc/icclim.git``
-    - Install icclim ``pip install .``
+    - Install icclim ``pip install . -c constraints.txt``
+      (use the constraints file for a reproducible, validated environment)
+
+Compatibility
+-------------
+
+icclim is designed to be highly compatible across the Python scientific ecosystem:
+
+- **Python**: Supports **Python 3.9 and above**.
+- **Backward Compatibility**: Supports older stable versions (e.g., ``numpy>=1.21``, ``xarray>=2022.6``, ``xclim>=0.45``).
+- **Bleeding Edge**: Fully verified and recommended to run on the latest major versions, including **Zarr 3.x**, **Pandas 3.x**, and **Xarray 2026.x**.
+
+For production environments, we recommend keeping your dependencies updated to their latest stable releases to benefit from the latest optimizations and features.
 
 How to use icclim
 -----------------
@@ -66,7 +78,7 @@ For a detailed description of each ECA&D index, please visit: https://www.ecad.e
 ..
   Pytest Coverage Comment:Begin
 
-.. |coverage| image:: https://img.shields.io/badge/Coverage-85%25-green.svg
+.. |coverage| image:: https://img.shields.io/badge/Coverage-84%25-green.svg
         :target: https://github.com/cerfacs-globc/icclim/blob/master/README.rst#code-coverage
         :alt: Code coverage
 

@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import dataclasses
 import re
-from collections.abc import Callable
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -37,7 +36,7 @@ from icclim._core.utils import read_date
 from icclim.exception import InvalidIcclimArgumentError
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
     from icclim._core.model.icclim_types import FrequencyLike, Indexer
 
@@ -404,7 +403,7 @@ class FrequencyRegistry(Registry[Frequency]):
     """Resample to fall season, from September to November included."""
 
     @classmethod
-    def lookup(cls, query: FrequencyLike | Frequency) -> Frequency:
+    def lookup(cls: type[Frequency], query: FrequencyLike | Frequency) -> Frequency:
         """
         Look up a Frequency object based on the query.
 

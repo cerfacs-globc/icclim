@@ -62,7 +62,7 @@ class ClimateVariable:
         thresholds for this variable
     reference_period: Sequence of str | None
         The reference period to consider
-    """  # noqa: E501
+    """
 
     name: str
     standard_var: StandardVariable | None
@@ -126,7 +126,7 @@ class ClimateVariable:
 
 def build_climate_vars(
     climate_vars_dict: dict[str, InFileDictionary],
-    ignore_Feb29th: bool,  # noqa: N803
+    ignore_Feb29th: bool,
     time_range: Sequence[datetime | str] | None,
     base_period: Sequence[str] | None,
     standard_index: StandardIndex | None,
@@ -153,7 +153,7 @@ def build_climate_vars(
     -------
     list of ClimateVariable that will be used to compute the climate index.
     """
-    from icclim.ecad.binding import (
+    from icclim.ecad.binding import (  # noqa: PLC0415
         StandardizedPrecipitationIndex3,
         StandardizedPrecipitationIndex6,
     )
@@ -217,7 +217,7 @@ def build_climate_vars(
 def build_climate_var(
     climate_var_name: str,
     climate_var_data: InFileDictionary | InFileBaseType,
-    ignore_Feb29th: bool,  # noqa: N803
+    ignore_Feb29th: bool,
     time_range: Sequence[datetime | str] | None,
     standard_var: StandardVariable | None,
     reference_period: Sequence[datetime | str] | None = None,

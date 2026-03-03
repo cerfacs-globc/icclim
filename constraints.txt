@@ -1,0 +1,19 @@
+# Exact versions validated in CI. Used with: pip install . -c constraints.txt
+# These constrain resolution while keeping relaxed ranges in pyproject.toml.
+
+numpy==2.0.1
+xarray==2025.6.1
+xclim==0.58.1
+cf-xarray==0.10.6
+cftime==1.6.4.post1
+# dask extra 'array,diagnostics' resolves via constraints on base package
+# pin the base dask version used by lock
+dask==2025.7.0
+netCDF4==1.7.2
+psutil==7.1.0
+zarr==2.18.3
+fsspec==2025.9.0
+pandas==2.3.2
+dateparser==1.2.2
+pint==0.24.4
+jinja2==3.1.6

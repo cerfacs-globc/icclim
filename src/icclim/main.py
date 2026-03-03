@@ -131,7 +131,7 @@ def indices(
                 if "thresholds" in res.coords:
                     res = res.rename({"thresholds": i.short_name + "_thresholds"})
                 acc.append(res)
-            except Exception:  # noqa: BLE001 (catch everything)
+            except Exception:  # noqa: BLE001
                 warn(f"Could not compute {i.short_name}.", stacklevel=2)
         else:
             res = index(**kwargs)
@@ -218,7 +218,7 @@ def index(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
-    ignore_Feb29th: bool = False,  # noqa: N803
+    ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -235,7 +235,7 @@ def index(
     save_percentile: bool | None = None,
     indice_name: str | None = None,
     user_indice: UserIndexDict | None = None,
-    transfer_limit_Mbytes: float | None = None,  # noqa: N803
+    transfer_limit_Mbytes: float | None = None,
 ) -> Dataset:
     """
     Compute climate index.
@@ -362,7 +362,7 @@ def index(
     save_percentile: bool
         DEPRECATED, use save_thresholds instead.
 
-    """  # noqa: E501
+    """
     _setup(callback, callback_percentage_start_value, logs_verbosity)
     (
         index_name,
@@ -434,7 +434,7 @@ def _build_config(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
     doy_window_width: int,
     only_leap_years: bool,
-    ignore_Feb29th: bool,  # noqa: N803
+    ignore_Feb29th: bool,
     interpolation: str | QuantileInterpolation,
     out_unit: str | None,
     netcdf_version: str | NetcdfVersion,
@@ -489,7 +489,7 @@ def _build_config(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
         )
-    msg = "You must fill either index_name or user_index" "to compute a climate index."
+    msg = "You must fill either index_name or user_indexto compute a climate index."
     raise InvalidIcclimArgumentError(msg)
 
 
@@ -545,7 +545,7 @@ def _build_user_index_config(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
     doy_window_width: int,
     only_leap_years: bool,
-    ignore_Feb29th: bool,  # noqa: N803
+    ignore_Feb29th: bool,
     interpolation: str | QuantileInterpolation,
     out_unit: str | None,
     netcdf_version: str | NetcdfVersion,
@@ -623,7 +623,7 @@ def _build_standard_index_config(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
     doy_window_width: int,
     only_leap_years: bool,
-    ignore_Feb29th: bool,  # noqa: N803
+    ignore_Feb29th: bool,
     interpolation: str | QuantileInterpolation,
     out_unit: str | None,
     netcdf_version: str | NetcdfVersion,
@@ -748,7 +748,7 @@ def _handle_deprecated_params(
     user_index: UserIndexDict | None,
     save_thresholds: bool,
     indice_name: str | None,
-    transfer_limit_Mbytes: float | None,  # noqa: N803
+    transfer_limit_Mbytes: float | None,
     user_indice: UserIndexDict | None,
     save_percentile: bool | None,
     window_width: int | None,
@@ -883,7 +883,7 @@ def _build_history(
     initial_history: str | None,
     indice_computed: Indicator,
 ) -> str:
-    from icclim import __version__ as icclim_version
+    from icclim import __version__ as icclim_version  # noqa: PLC0415
 
     if initial_history is None:
         # get xclim history

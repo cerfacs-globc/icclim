@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pint
 import xarray as xr
+from xclim.core.units import units as xc_units
+
 from icclim._core.constants import UNITS_KEY
 
 VALUE_COUNT = 365 * 5 + 1  # 5 years of data (with 1 leap year)
@@ -58,3 +61,13 @@ def stub_pr(value: float, use_dask=False, lat=1, lon=1):
     if use_dask:
         da.chunk()
     return da
+
+
+def normalize_unit(unit: str) -> str:
+    """Return a canonical string for a unit, using xclim/pint."""
+    try:
+        return str(xc_units(unit).units)
+    except (pint.errors.UndefinedUnitError, pint.errors.DefinitionSyntaxError):
+        return unit
+    except Exception:  # noqa: BLE001
+        return unit

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 import xarray as xr
@@ -36,20 +35,20 @@ from icclim._core.model.quantile_interpolation import (
     QuantileInterpolation,
     QuantileInterpolationRegistry,
 )
+from icclim._core.model.threshold import Threshold, ThresholdValueType
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    # Standard library
+    from collections.abc import Callable, Sequence
     from datetime import datetime
 
+    # Third-party
     import jinja2
     import pint
 
+    # Local
     from icclim._core.model.operator import Operator
     from icclim.frequency import Frequency
-
-from typing import TYPE_CHECKING
-
-from icclim._core.model.threshold import Threshold, ThresholdValueType
 
 
 class PercentileThreshold(Threshold):
@@ -243,6 +242,21 @@ class PercentileThreshold(Threshold):
             and self.threshold_min_value == other.threshold_min_value
         )
 
+    def __hash__(self) -> int:
+        """Return the hash of the threshold."""
+        return hash(
+            (
+                self.operator,
+                self.initial_query,
+                self.doy_window_width,
+                self.only_leap_years,
+                self.interpolation,
+                tuple(self.reference_period) if self.reference_period else None,
+                self.unit,
+                self.threshold_min_value,
+            )
+        )
+
     # noinspection PyMethodOverriding
     # (reason: with * and **kwargs we can have a different signature while still
     # being liskov proof)
@@ -334,7 +348,7 @@ class PercentileThreshold(Threshold):
                 self.value,
                 op,
                 self.is_doy_per_threshold,
-                kwargs.get("freq", None),
+                kwargs.get("freq"),
                 kwargs.get("bootstrap", False),
             )
         msg = (
@@ -360,8 +374,8 @@ class PercentileThreshold(Threshold):
         per: xr.DataArray,
         op: Callable[[DataArray, DataArray], DataArray],
         is_doy_per_threshold: bool,
-        freq: str,  # noqa: ARG002 used by @percentile_bootstrap
-        bootstrap: bool,  # noqa: ARG002 used by @percentile_bootstrap
+        freq: str,  # noqa: ARG002
+        bootstrap: bool,  # noqa: ARG002
     ) -> DataArray:
         if self.threshold_min_value is not None:
             # there is only a threshold_min_value when we are computing > or >=

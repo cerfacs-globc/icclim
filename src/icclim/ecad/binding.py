@@ -49,6 +49,8 @@ class GrowingSeasonLength(Indicator):
         """Not implemented as xclim indicator already handle pre/post processing."""
         raise NotImplementedError
 
+    __hash__ = None  # type: ignore[assignment]
+
     def __eq__(self, other: object) -> bool:
         """Check if the other object is a GrowingSeasonLength instance."""
         return isinstance(other, GrowingSeasonLength)
@@ -76,7 +78,8 @@ class StandardizedPrecipitationIndex3(Indicator):
         # Parse with correct format
         study_cv = config.climate_variables[0]  # the ClimateVariable
         if study_cv.reference_period is None:
-            raise ValueError("reference_period is missing for SPI index")
+            msg = "reference_period is missing for SPI index"
+            raise ValueError(msg)
         start, end = to_datetime(study_cv.reference_period, format="%m-%d-%Y")
         # Convert back to YYYY-MM-DD
         cal_start, cal_end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
@@ -98,6 +101,8 @@ class StandardizedPrecipitationIndex3(Indicator):
     def postprocess(self, *args, **kwargs) -> xarray.DataArray:
         """Not implemented as xclim indicator already handle pre/post processing."""
         raise NotImplementedError
+
+    __hash__ = None  # type: ignore[assignment]
 
     def __eq__(self, other: object) -> bool:
         """Check if the other object is a StandardizedPrecipitationIndex3 instance."""
@@ -126,7 +131,8 @@ class StandardizedPrecipitationIndex6(Indicator):
         # Parse with correct format
         study_cv = config.climate_variables[0]  # the ClimateVariable
         if study_cv.reference_period is None:
-            raise ValueError("reference_period is missing for SPI index")
+            msg = "reference_period is missing for SPI index"
+            raise ValueError(msg)
         start, end = to_datetime(study_cv.reference_period, format="%m-%d-%Y")
         # Convert back to YYYY-MM-DD
         cal_start, cal_end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
@@ -148,6 +154,8 @@ class StandardizedPrecipitationIndex6(Indicator):
     def postprocess(self, *args, **kwargs) -> xarray.DataArray:
         """Not implemented as xclim indicator already handle pre/post processing."""
         raise NotImplementedError
+
+    __hash__ = None  # type: ignore[assignment]
 
     def __eq__(self, other: object) -> bool:
         """Check if the other object is a StandardizedPrecipitationIndex6 instance."""

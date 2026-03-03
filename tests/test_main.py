@@ -6,12 +6,13 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import cftime
-import icclim
 import numpy as np
 import pandas as pd
 import pint
 import pytest
 import xarray as xr
+
+import icclim
 from icclim import __version__ as icclim_version
 from icclim._core.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
 from icclim._core.model.index_group import IndexGroupRegistry
@@ -19,8 +20,7 @@ from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import FrequencyRegistry
 from icclim.threshold.factory import build_threshold
-
-from tests.testing_utils import K2C, stub_pr, stub_tas
+from tests.testing_utils import K2C, normalize_unit, stub_pr, stub_tas
 
 
 @patch("icclim.main.index")
@@ -38,28 +38,19 @@ def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock) -> None:
 HEAT_INDICES = ["SU", "TR", "WSDI", "TG90p", "TN90p", "TX90p", "TXx", "TNx", "CSU"]
 
 
-def diagnose_time_frequency(time: xr.DataArray):
-    print("=== Diagnosing time coordinate ===")
-    print("Type of first element:", type(time.values[0]))
-    print("Time values (first 10):", time.values[:10])
-
+def diagnose_time_frequency(time: xr.DataArray) -> None:
+    """Print diagnostic info about the time coordinate frequency."""
     # Check differences
     try:
-        dt = np.diff(time.values.astype("datetime64[s]"))
-        print("Time differences (first 10):", dt[:10])
-        if np.all(dt == dt[0]):
-            print("Frequency is constant:", dt[0])
-        else:
-            print("Frequency is irregular!")
-    except Exception as e:
-        print("Could not compute time differences:", e)
+        diff = np.diff(time.values.astype("datetime64[s]"))
+        if not np.all(diff == diff[0]):
+            pass
+    except (TypeError, ValueError):
+        pass
 
     # Check dask chunks
     if hasattr(time.data, "chunks"):
-        print("Dask chunks:", time.chunks)
-
-    # Check encoding
-    print("Time encoding:", time.encoding)
+        _ = time.chunks
 
 
 class TestIntegration:
@@ -76,7 +67,13 @@ class TestIntegration:
 
     OUTPUT_FILE = Path("out.nc")
     TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
-    CF_TIME_RANGE = xr.date_range(start="2042-01-01", end="2045-12-31", freq="D", calendar="gregorian", use_cftime=True)
+    CF_TIME_RANGE = xr.date_range(
+        start="2042-01-01",
+        end="2045-12-31",
+        freq="D",
+        calendar="gregorian",
+        use_cftime=True,
+    )
     data = xr.DataArray(
         data=(np.full(len(TIME_RANGE), 20).reshape((len(TIME_RANGE), 1, 1))),
         dims=["time", "lat", "lon"],
@@ -180,7 +177,7 @@ class TestIntegration:
         )
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(-10, res.DTR)
-        np.testing.assert_array_equal("degC", res.DTR.attrs["units"])
+        assert normalize_unit(res.DTR.attrs["units"]) == normalize_unit("degC")
 
     def test_index_cd(self) -> None:
         ds = self.data.to_dataset(name="tas")
@@ -243,8 +240,12 @@ class TestIntegration:
         tb = res.time_bounds.astype("datetime64[ns]")
 
         # Compare with naive datetime64 (UTC info is lost in np.datetime64)
-        assert tb[0, 0] == np.datetime64(dt.datetime(2042, 1, 1))
-        assert tb[0, 1] == np.datetime64(dt.datetime(2042, 1, 14))
+        assert tb[0, 0] == np.datetime64(
+            dt.datetime(2042, 1, 1, tzinfo=dt.timezone.utc)
+        )
+        assert tb[0, 1] == np.datetime64(
+            dt.datetime(2042, 1, 14, tzinfo=dt.timezone.utc)
+        )
 
         assert (
             res.SU.attrs["standard_name"]
@@ -472,7 +473,6 @@ class TestIntegration:
             )
 
     def test_spi6__no_time_bounds(self) -> None:
-        print(">>> SPI6 freq:", diagnose_time_frequency(self.full_data.time))
         dataset = icclim.index(
             index_name="spi6",
             in_files=self.full_data,
