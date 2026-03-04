@@ -90,7 +90,17 @@ class BasicThreshold(Threshold):
         """
         if self.value is not None:
             if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
-                self.value = convert_units_to(self.value, unit, context="hydro")
+                import pint
+
+                try:
+                    self.value = convert_units_to(self.value, unit, context="hydro")
+                except pint.errors.DimensionalityError as e:
+                    raise InvalidIcclimArgumentError(
+                        f"Cannot convert threshold's unit ({self.value.attrs.get(UNITS_KEY)}) to "
+                        f"data's unit ({unit}). This typically occurs when a rate (e.g., mm/s) "
+                        f"is provided to an index that expects an amount or depth (e.g., cm), "
+                        f"or vice versa. Please explicitly convert your data prior to running icclim."
+                    ) from e
             self.value.attrs[UNITS_KEY] = unit
         else:
             self._unit = unit
