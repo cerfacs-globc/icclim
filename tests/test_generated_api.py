@@ -36,6 +36,7 @@ DEFAULT_ARGS = {
     "netcdf_version": NetcdfVersionRegistry.NETCDF4,
     "logs_verbosity": VerbosityRegistry.LOW,
     "date_event": False,
+    "run_index": "first",
 }
 
 
