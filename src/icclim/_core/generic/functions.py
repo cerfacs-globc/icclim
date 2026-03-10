@@ -125,7 +125,7 @@ def max_consecutive_occurrence(
     logical_link: LogicalLink,
     date_event: bool,
     source_freq_delta: timedelta,
-    **kwargs,  # noqa: ARG001
+    **kwargs,
 ) -> DataArray:
     """
     Calculate the maximum number of consecutive occurrences of exceedances for a given set of climate variables.
@@ -172,7 +172,7 @@ def sum_of_spell_lengths(
     resample_freq: Frequency,
     logical_link: LogicalLink,
     min_spell_length: int,
-    **kwargs,  # noqa: ARG001
+    **kwargs,
 ) -> DataArray:
     """
     Calculate the sum of the lengths of all spells in the data.

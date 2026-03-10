@@ -122,7 +122,7 @@ maximum consecutive occurrence of tasmax > 90th doy percentile)
        in_files=data, var_name="precip", threshold="> 90 doy_per AND > 28 degC"
    ).sum_of_spell_lengths.compute()
 
-Similar to ``max_consecutive_occurrence``, you can specify the ``run_index`` 
+Similar to ``max_consecutive_occurrence``, you can specify the ``run_index``
 parameter for ``sum_of_spell_lengths`` as well.
 
 ********

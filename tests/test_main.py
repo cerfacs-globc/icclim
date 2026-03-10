@@ -804,9 +804,9 @@ class TestIntegration:
             [25, 25, 25, 20, 20, 25, 25, 25, 25, 20],
             dims="time",
             coords={"time": time},
-            attrs={"units": "degC"}
+            attrs={"units": "degC"},
         )
-        
+
         # `first` should report the max occurrence (4) and the index of the first True (2000-01-06)
         res_first = icclim.index(
             in_files=data,
@@ -816,15 +816,19 @@ class TestIntegration:
             run_index="first",
             date_event=True,
         ).compute()
-        
+
         assert res_first.max_consecutive_occurrence.isel(time=0) == 4
         assert "event_date_start" in res_first.coords
         assert "event_date_end" in res_first.coords
         # Runs: Jan 1-3, Jan 6-9
         # Max run is Jan 6-9
-        assert res_first.max_consecutive_occurrence.isel(time=0).event_date_start == np.datetime64("2000-01-06")
-        assert res_first.max_consecutive_occurrence.isel(time=0).event_date_end == np.datetime64("2000-01-10")
-        
+        assert res_first.max_consecutive_occurrence.isel(
+            time=0
+        ).event_date_start == np.datetime64("2000-01-06")
+        assert res_first.max_consecutive_occurrence.isel(
+            time=0
+        ).event_date_end == np.datetime64("2000-01-10")
+
         # `last` should report the max occurrence (4) but in some cases xclim behavior handles 'last' differently or at least passes it down.
         # we check it doesn't crash
         res_last = icclim.index(
@@ -835,7 +839,7 @@ class TestIntegration:
             run_index="last",
             date_event=True,
         ).compute()
-        
+
         assert res_last.max_consecutive_occurrence.isel(time=0) == 4
 
     def test_count_occurrences__multiple_doy_per_thresholds(self) -> None:
