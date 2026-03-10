@@ -9,7 +9,9 @@ import icclim
 
 def test_snow_depth_unit_conversion():
     time = pd.date_range("2000-01-01", periods=10)
-    da = xr.DataArray(np.ones(10), coords=[time], dims=["time"], name="snd", attrs={"units": "mm/s"})
+    da = xr.DataArray(
+        np.ones(10), coords=[time], dims=["time"], name="snd", attrs={"units": "mm/s"}
+    )
 
     test_file = Path("test_snow_depth_unit_conversion.nc")
     da.to_netcdf(test_file)

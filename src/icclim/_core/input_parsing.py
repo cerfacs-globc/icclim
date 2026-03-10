@@ -553,7 +553,9 @@ def build_studied_data(
         da = convert_units_to(da, "degree_Celsius", context="hydro")
     if is_precipitation_amount(da):
         da = xclim.core.units.amount2rate(da)
-    elif std_var == StandardVariableRegistry.SND and _is_rate(xclim.core.units.units2pint(da)):
+    elif std_var == StandardVariableRegistry.SND and _is_rate(
+        xclim.core.units.units2pint(da)
+    ):
         da = xclim.core.units.rate2amount(da)
     return da.chunk("auto")
 
