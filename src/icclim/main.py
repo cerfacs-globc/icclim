@@ -229,6 +229,7 @@ def index(
     min_spell_length: int | None = 6,
     rolling_window_width: int | None = 5,
     sampling_method: SamplingMethodLike = RESAMPLE_METHOD,
+    run_index: str | None = "first",
     *,
     # deprecated params are kwargs only
     window_width: int | None = None,
@@ -320,6 +321,10 @@ def index(
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
+    run_index: str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years: bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th: bool
@@ -407,6 +412,7 @@ def index(
         min_spell_length=min_spell_length,
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
+        run_index=run_index,
     )
     result_ds = _compute_climate_index(
         climate_index=config.indicator,
@@ -449,6 +455,7 @@ def _build_config(
     min_spell_length: int | None,
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
+    run_index: str | None,
 ) -> IndexConfig:
     if user_index is not None and (index_name is None or isinstance(index_name, str)):
         return _build_user_index_config(
@@ -471,6 +478,7 @@ def _build_config(
             min_spell_length=min_spell_length,
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
+            run_index=run_index,
         )
     if index_name is not None:
         return _build_standard_index_config(
@@ -493,6 +501,7 @@ def _build_config(
             min_spell_length=min_spell_length,
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
+            run_index=run_index,
         )
     msg = "You must fill either index_name or user_indexto compute a climate index."
     raise InvalidIcclimArgumentError(msg)
@@ -559,6 +568,7 @@ def _build_user_index_config(
     min_spell_length: int | None,
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
+    run_index: str | None,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     indicator = parse.read_indicator(user_index)
@@ -614,6 +624,7 @@ def _build_user_index_config(
         rename=rename,
         indicator=indicator,
         reference=ICCLIM_REFERENCE,
+        run_index=run_index,
     )
 
 
@@ -637,6 +648,7 @@ def _build_standard_index_config(
     min_spell_length: int | None,
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
+    run_index: str | None,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     # logical link here link two climate_variable computations as with user_index.
@@ -706,6 +718,7 @@ def _build_standard_index_config(
         rename=rename,
         indicator=indicator,
         reference=reference,
+        run_index=run_index,
     )
 
 

@@ -99,6 +99,16 @@ pr is below 1 mm/day).
        in_files=data, var_name="precip", threshold="< 1.3 mm/day"
    ).max_consecutive_occurrence.compute()
 
+You can control the run-length encoding index using the ``run_index`` parameter
+(either ``"first"`` or ``"last"``). The default is ``"first"``. For example,
+to record the longest spell at the date where the spell ends (like Climdex does):
+
+.. code:: python
+
+   CDD_last = icclim.max_consecutive_occurrence(
+       in_files=data, var_name="precip", threshold="< 1.3 mm/day", run_index="last"
+   ).max_consecutive_occurrence.compute()
+
 **********************
  Sum of Spell Lengths
 **********************
@@ -111,6 +121,9 @@ maximum consecutive occurrence of tasmax > 90th doy percentile)
    custom_wsdi = icclim.sum_of_spell_lengths(
        in_files=data, var_name="precip", threshold="> 90 doy_per AND > 28 degC"
    ).sum_of_spell_lengths.compute()
+
+Similar to ``max_consecutive_occurrence``, you can specify the ``run_index`` 
+parameter for ``sum_of_spell_lengths`` as well.
 
 ********
  Excess

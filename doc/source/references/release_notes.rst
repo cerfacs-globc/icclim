@@ -17,6 +17,8 @@ Details
 -  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
 -  [fix] Move ``time_bounds`` to coordinates in the resulting Dataset to avoid
    errors when calling ``.sum()`` on the entire Dataset (#340).
+-  [enh] Add ``run_index`` parameter to generic indices computation (``max_consecutive_occurrence``, ``sum_of_spell_lengths``)
+   to allow specifying RLE indexing behavior (e.g., "first" vs "last") (#321).
 
 ******
 7.0.5

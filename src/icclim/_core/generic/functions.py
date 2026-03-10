@@ -155,7 +155,9 @@ def max_consecutive_occurrence(
         resample_freq.pandas_freq,
         logical_link,
     )
-    rle = run_length.rle(merged_exceedances, dim="time", index="first")
+    rle = run_length.rle(
+        merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
+    )
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
         result = _consecutive_occurrences_with_dates(resampled, source_freq_delta)
@@ -201,7 +203,9 @@ def sum_of_spell_lengths(
         resample_freq.pandas_freq,
         logical_link,
     )
-    rle = run_length.rle(merged_exceedances, dim="time", index="first")
+    rle = run_length.rle(
+        merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
+    )
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).max(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")

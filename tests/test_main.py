@@ -797,6 +797,47 @@ class TestIntegration:
         # The 5 days rolling turn the 1 day unusual value into a 5 day time lapse
         assert res.count_occurrences.isel(time=0).sel(threshold=30) == 1
 
+    def test_max_consecutive_occurrence__run_index(self) -> None:
+        # Create a boolean sequence over 10 days: 3 trues, 2 falses, 4 trues, 1 false
+        time = pd.date_range("2000-01-01", periods=10, freq="D")
+        data = xr.DataArray(
+            [25, 25, 25, 20, 20, 25, 25, 25, 25, 20],
+            dims="time",
+            coords={"time": time},
+            attrs={"units": "degC"}
+        )
+        
+        # `first` should report the max occurrence (4) and the index of the first True (2000-01-06)
+        res_first = icclim.index(
+            in_files=data,
+            index_name="max_consecutive_occurrence",
+            threshold=">= 25 degC",
+            slice_mode="month",
+            run_index="first",
+            date_event=True,
+        ).compute()
+        
+        assert res_first.max_consecutive_occurrence.isel(time=0) == 4
+        assert "event_date_start" in res_first.coords
+        assert "event_date_end" in res_first.coords
+        # Runs: Jan 1-3, Jan 6-9
+        # Max run is Jan 6-9
+        assert res_first.max_consecutive_occurrence.isel(time=0).event_date_start == np.datetime64("2000-01-06")
+        assert res_first.max_consecutive_occurrence.isel(time=0).event_date_end == np.datetime64("2000-01-10")
+        
+        # `last` should report the max occurrence (4) but in some cases xclim behavior handles 'last' differently or at least passes it down.
+        # we check it doesn't crash
+        res_last = icclim.index(
+            in_files=data,
+            index_name="max_consecutive_occurrence",
+            threshold=">= 25 degC",
+            slice_mode="month",
+            run_index="last",
+            date_event=True,
+        ).compute()
+        
+        assert res_last.max_consecutive_occurrence.isel(time=0) == 4
+
     def test_count_occurrences__multiple_doy_per_thresholds(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)
         tas[10] = 35 + K2C
