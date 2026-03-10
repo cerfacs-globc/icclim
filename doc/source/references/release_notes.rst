@@ -11,6 +11,8 @@ date: 2026-03-10
 Details
 =======
 
+-  [fix] Add automatic rate-to-amount conversion for snow depth indices (``SND``)
+   to resolve ``DimensionalityError`` when input units are in ``mm/s`` (#320).
 -  [maint] Drop support for **Python 3.9** and require **Python 3.10+**.
 -  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
 

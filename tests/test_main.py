@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 import cftime
 import numpy as np
 import pandas as pd
-import pint
 import pytest
 import xarray as xr
 
@@ -999,7 +998,7 @@ class TestIntegration:
         )
         precip.loc[{"time": slice("2000-01-01", "2000-01-05")}] = 50
         # THEN
-        with pytest.raises(pint.DimensionalityError):
+        with pytest.raises(InvalidIcclimArgumentError):
             # WHEN
             icclim.r10mm(in_files=precip)
 
