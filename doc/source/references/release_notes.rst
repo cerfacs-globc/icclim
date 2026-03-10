@@ -15,6 +15,8 @@ Details
    to resolve ``DimensionalityError`` when input units are in ``mm/s`` (#320).
 -  [maint] Drop support for **Python 3.9** and require **Python 3.10+**.
 -  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
+-  [fix] Move ``time_bounds`` to coordinates in the resulting Dataset to avoid
+   errors when calling ``.sum()`` on the entire Dataset (#340).
 
 ******
 7.0.5
