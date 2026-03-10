@@ -835,7 +835,7 @@ def _compute_climate_index(
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
         result_ds = resampled_da.to_dataset()
         if time_bounds is not None:
-            result_ds["time_bounds"] = time_bounds
+            result_ds.coords["time_bounds"] = time_bounds
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
         result_ds = result_da.to_dataset()
