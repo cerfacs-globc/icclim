@@ -19,4 +19,5 @@ To grasp the basic usage of icclim, you may consider following
    Compute ECA&D indices <recipes_ecad>
    Compute Generic indices <recipes_generic>
    Use icclim through OCGIS (deprecated) <ocgis>
+   Parallelize computation with Dask <dask>
    Create customized indices (deprecated) <recipes_custom>
