@@ -16,7 +16,7 @@ file.
 
 .. note::
 
-   Make sure you have **Python 3.9+**.
+   Make sure you have **Python 3.10+**.
 
 To install from pip
 ===================

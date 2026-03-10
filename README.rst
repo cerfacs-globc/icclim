@@ -21,7 +21,7 @@ Compatibility
 
 icclim is designed to be highly compatible across the Python scientific ecosystem:
 
-- **Python**: Supports **Python 3.9 and above**.
+- **Python**: Supports **Python 3.10 and above**.
 - **Backward Compatibility**: Supports older stable versions (e.g., ``numpy>=1.21``, ``xarray>=2022.6``, ``xclim>=0.45``).
 - **Bleeding Edge**: Fully verified and recommended to run on the latest major versions, including **Zarr 3.x**, **Pandas 3.x**, and **Xarray 2026.x**.
 
@@ -49,8 +49,8 @@ For more examples on how to use icclim, see icclim's `How to ... <https://icclim
 Who use icclim
 --------------
 
-icclim is part of `C4I platform <https://dev.climate4impact.eu>`_ backend and is integrated in `CLIPC Portal <http://www.clipc.eu>`_.
-icclim is also used by some independent researchers.
+icclim is part of `C4I platform <https://www.climate4impact.eu>`_ backend and is integrated in `CLIPC Portal <http://www.clipc.eu>`_.
+icclim is also used by independent researchers.
 
 
 Who made icclim
@@ -63,10 +63,12 @@ Grants
 ~~~~~~
 This open-source project has been possible thanks to funding by the European Commission projects:
 
-* FP7-CLIPC (2013-2016)
-* FP7-IS-ENES2 (2013-2017)
-* EUDAT2020 (2015-2018)
-* H2020-IS-ENES3 (2019-2023)
+* FP7 CLIPC (2013-2016)
+* FP7 IS-ENES2 (2013-2017)
+* H2020 EUDAT2020 (2015-2018)
+* H2020 IS-ENES3 (2019-2023)
+
+This project also receives funding from Agence Nationale de la Recherche - France 2030 as part of the PEPR TRACCS programme under grant number ANR-22-EXTR-0003 (PC2-INVEST 2024-2032).
 
 The beautiful icclim logo is a creation of `Carole Petetin <https://carolepetetin.com>`_ and has been funded by the H2020 `IS-ENES3 <https://is.enes.org>`_ project grant agreement No 824084 (2019-2023).
 
