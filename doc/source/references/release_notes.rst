@@ -3,6 +3,18 @@
 #################
 
 ******
+7.0.6
+******
+
+date: 2026-03-10
+
+Details
+=======
+
+-  [maint] Drop support for **Python 3.9** and require **Python 3.10+**.
+-  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
+
+******
 7.0.5
 ******
 
@@ -23,7 +35,6 @@ Details
 -  [maint] Refine API extraction tool (``extract_icclim_funs.py``) to handle circular
    imports and guarantee 100% Ruff compliance in all generated code.
 -  [maint] Project-wide linting and formatting of core modules, tests, and tutorials.
--  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
 -  [maint] Release 7.0.5.
 
 ******
