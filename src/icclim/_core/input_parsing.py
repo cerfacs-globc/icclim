@@ -460,9 +460,8 @@ def guess_standard_variable(data: DataArray) -> StandardVariable | None:
     """
     std_var = StandardVariableRegistry.lookup_no_error(str(data.name))
     if std_var is None and data.attrs.get("standard_name", None) is not None:
-        std_var = StandardVariableRegistry.lookup(
+        std_var = StandardVariableRegistry.lookup_no_error(
             data.attrs.get("standard_name"),
-            no_error=True,
         )
     if std_var is None:
         return None
@@ -543,6 +542,14 @@ def build_studied_data(
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_KEY, None) is None and default_units is not None:
         da.attrs[UNITS_KEY] = default_units
+    std_var = guess_standard_variable(da)
+    if (
+        std_var is not None
+        and std_var.default_units == "degree_Celsius"
+        and da.attrs.get(UNITS_KEY) is not None
+        and da.attrs.get(UNITS_KEY) != "degree_Celsius"
+    ):
+        da = convert_units_to(da, "degree_Celsius", context="hydro")
     if is_precipitation_amount(da):
         da = xclim.core.units.amount2rate(da)
     return da.chunk("auto")

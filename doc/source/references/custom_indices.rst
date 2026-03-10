@@ -4,6 +4,13 @@
  Create your own index with ``user_index``
 ###########################################
 
+.. warning::
+
+   The ``user_index`` API (also known as "custom indices") is **deprecated**
+   and will be removed in a future version.
+   Please use the :ref:`generic_functions_api` instead, which is more powerful
+   and consistent with the rest of icclim.
+
 You can calculate custom climate indices by using the ``user_index``
 parameters. It is a configuration dictionary to describe how the index
 should be computed. In icclim documentation we usually call them custom
@@ -171,6 +178,12 @@ parameters:
    in running window. Do not confuse with 'window_width' of
    :func:`icclim.index`, which is used for computing of temperature
    percentiles and set to 5 as default.
+
+.. warning::
+
+   The ``user_index`` API (also known as "User indices") is **deprecated**
+   and will be removed in a future version.
+   Please switch to the :ref:`generic_indices_recipes` API instead.
 
 .. note::
 

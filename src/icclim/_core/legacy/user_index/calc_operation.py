@@ -1,4 +1,10 @@
-"""Contain the CalcOperationLike and CalcOperation classes."""
+"""
+Contain the CalcOperationLike and CalcOperation classes.
+
+.. warning::
+   The ``user_index`` API (also known as "custom indices") is **deprecated**
+   and will be removed in a future version.
+"""
 
 from __future__ import annotations
 

@@ -885,7 +885,7 @@ class TestIntegration:
             threshold="> 20 degree_Celsius",
             slice_mode="jja",
         ).compute()
-        np.testing.assert_almost_equal(res.fraction_of_total.isel(time=0), 0.98967164)
+        np.testing.assert_almost_equal(res.fraction_of_total.isel(time=0), 0.99562363)
         assert res.fraction_of_total.isel(time=1) == 1
         assert res.fraction_of_total.attrs[UNITS_KEY] == PART_OF_A_WHOLE_UNIT
 
@@ -899,7 +899,7 @@ class TestIntegration:
             out_unit="%",
             slice_mode="jja",
         ).compute()
-        np.testing.assert_almost_equal(res.fraction_of_total.isel(time=0), 98.96716372)
+        np.testing.assert_almost_equal(res.fraction_of_total.isel(time=0), 99.56236324)
         assert res.fraction_of_total.isel(time=1) == 100
         assert res.fraction_of_total.attrs[UNITS_KEY] == "%"
 

@@ -4,10 +4,11 @@
  User indices recipes
 ########################
 
-.. note::
+.. warning::
 
-   User indices are deprecated. You should switch to
-   :ref:`generic_indices_recipes` API.
+   The ``user_index`` API (also known as "User indices") is **deprecated**
+   and will be removed in a future version.
+   Please switch to the :ref:`generic_indices_recipes` API instead.
 
 .. code:: python
 
@@ -36,15 +37,28 @@
        callback=callback.defaultCallback2,
    )
 
+**Generic API equivalent:**
+
+.. code:: python
+
+   icclim.maximum(
+       in_files=file_tas,
+       var_name="tas",
+       slice_mode="year",
+       out_file=out_f,
+       callback=callback.defaultCallback2,
+   )
+
 *********************************************************************
  Min of positive values within the year and the date of this minimum
 *********************************************************************
 
 Get minimum temperature which is above zero Celsius and find its date.
 
-.. warning::
+.. note::
 
-   If input data are in Kelvin, then ``thresh`` must be in Kelvin too.
+   icclim automatically handles temperature conversion. Even if input data are in Kelvin,
+   thresholds are typically expressed in Celsius for standard variables (tas, tasmin, tasmax).
 
 .. note::
 
@@ -57,7 +71,7 @@ Get minimum temperature which is above zero Celsius and find its date.
        "index_name": "my_index",
        "calc_operation": "min",
        "logical_operation": "gt",
-       "thresh": 0 + 273.15,  ### input data in Kelvin ==> threshold in Kelvin!
+       "thresh": 0,  ### icclim handles Kelvin to Celsius conversion automatically
        "date_event": True,
    }
 
@@ -71,6 +85,20 @@ Get minimum temperature which is above zero Celsius and find its date.
        slice_mode="year",
        out_file=out_f,
        callback=callback.defaultCallback2,
+   )
+
+**Generic API equivalent:**
+
+.. code:: python
+
+   icclim.index(
+       index_name="min",
+       in_files=file_tasmin,
+       var_name="tasmin",
+       threshold="> 0 degC",
+       date_event=True,
+       slice_mode="year",
+       out_file=out_f,
    )
 
 ***************************
@@ -116,7 +144,7 @@ Get minimum temperature which is above zero Celsius and find its date.
        "index_name": "my_index",
        "calc_operation": "nb_events",  ### 'calc_operation': 'max_nb_consecutive_events'
        "logical_operation": "lt",
-       "thresh": 15 + 273.15,  ### input data in Kelvin ==> threshold in Kelvin!
+       "thresh": 15,  ### icclim handles Kelvin to Celsius conversion automatically
    }
 
    file_tas = "tas_day_CNRM-CM5_historical_r1i1p1_19010101-20001231.nc"
@@ -242,7 +270,7 @@ Get minimum temperature which is above zero Celsius and find its date.
        "index_name": "my_index",
        "calc_operation": "max_nb_consecutive_events",
        "logical_operation": "get",
-       "thresh": 25 + 273.15,  ### input data in Kelvin ==> threshold in Kelvin!
+       "thresh": 25,  ### icclim handles Kelvin to Celsius conversion automatically
        "date_event": True,
    }
 
@@ -368,9 +396,9 @@ Get minimum temperature which is above zero Celsius and find its date.
        "calc_operation": "nb_events",  ### 'calc_operation': 'max_nb_consecutive_events'
        "logical_operation": ["get", "gt"],
        "thresh": [
-           10 + 273.15,
-           25 + 273.15,
-       ],  ### input data in Kelvin ==> threshold in Kelvin!
+           10,
+           25,
+       ],  ### icclim handles Kelvin to Celsius conversion automatically
        "link_logical_operations": "and",
    }
 
@@ -408,9 +436,9 @@ Get minimum temperature which is above zero Celsius and find its date.
        "calc_operation": "nb_events",  ### 'calc_operation': 'max_nb_consecutive_events'
        "logical_operation": ["get", "gt"],
        "thresh": [
-           10 + 273.15,
+           10,
            "p90",
-       ],  ### input data in Kelvin ==> threshold in Kelvin!
+       ],  ### icclim handles Kelvin to Celsius conversion automatically
        "var_type": "t",  ### or ['-','t']
        "link_logical_operations": "and",
        "date_event": True,
@@ -505,7 +533,7 @@ the section 5.3.3 "Compound indices") are based on daily precipitation
        "index_name": "my_index",
        "calc_operation": "nb_events",  ### 'calc_operation': 'max_nb_consecutive_events'
        "logical_operation": ["gt", "get", "lt"],
-       "thresh": ["p90", 10 + 273.15, "p30"],
+       "thresh": ["p90", 10, "p30"],
        "var_type": ["t", "-", "p"],
        "link_logical_operations": "and",
    }

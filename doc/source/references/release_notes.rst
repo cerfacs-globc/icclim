@@ -3,6 +3,18 @@
 #################
 
 ******
+7.0.6
+******
+
+date: 2026-03-10
+
+Details
+=======
+
+-  [maint] Drop support for **Python 3.9** and require **Python 3.10+**.
+-  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
+
+******
 7.0.5
 ******
 

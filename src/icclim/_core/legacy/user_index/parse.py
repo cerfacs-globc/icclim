@@ -1,4 +1,10 @@
-"""Contain the parsing operations to create a user indices."""
+"""
+Contain the parsing operations to create a user indices.
+
+.. warning::
+   The ``user_index`` API (also known as "custom indices") is **deprecated**
+   and will be removed in a future version.
+"""
 
 from __future__ import annotations
 

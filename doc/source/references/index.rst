@@ -19,7 +19,7 @@ mechanisms of icclim.
    ecad_functions_api
    dcsc_functions_api
    generic_functions_api
-   custom_indices
+    custom_indices (deprecated) <custom_indices>
    output_metadata
    release_notes
    api/index

@@ -19,11 +19,14 @@ class UserIndexDict(TypedDict, total=False):
     """
     User index dictionary.
 
+    .. warning::
+       The ``user_index`` API (also known as "custom indices") is **deprecated**
+       and will be removed in a future version.
+       Please use the generic indices API instead.
+       See :ref:`generic_indices_recipes` for examples.
+
     This dictionary is used to describe how a user index should be setup to compute a
     custom climate index.
-    The reccomended way to create a custom indices is now to use the
-    generic indices API.
-    See :ref:`generic_indices_recipes` for how to combine thresholds with generic
     """
 
     index_name: str

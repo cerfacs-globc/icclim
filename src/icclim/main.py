@@ -242,6 +242,10 @@ def index(
 
     This is the main entry point for icclim.
 
+    .. warning::
+       The ``user_index`` parameter is deprecated.
+       Please use the generic indices API instead.
+
     Parameters
     ----------
     in_files: str | list[str] | Dataset | DataArray | InputDictionary
@@ -332,6 +336,7 @@ def index(
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     user_index: UserIndexDict
         ``optional`` A dictionary with parameters for user defined index.
+        **Deprecated**, use generic indices instead.
         See :ref:`Custom indices`.
         Ignored for ECA&D indices.
     save_thresholds: bool
