@@ -3,6 +3,18 @@
 #################
 
 ******
+7.0.6
+******
+
+date: 2026-03-10
+
+Details
+=======
+
+-  [fix] Add automatic rate-to-amount conversion for snow depth indices (``SND``)
+   to resolve ``DimensionalityError`` when input units are in ``mm/s`` (#320).
+
+******
 7.0.5
 ******
 
