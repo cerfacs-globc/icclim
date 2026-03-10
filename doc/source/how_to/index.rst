@@ -18,7 +18,6 @@ To grasp the basic usage of icclim, you may consider following
    Run our jupyter notebooks <notebooks>
    Compute ECA&D indices <recipes_ecad>
    Compute Generic indices <recipes_generic>
-   Parallelize with dask <dask>
    Use icclim through OCGIS (deprecated) <ocgis>
    Parallelize computation with Dask <dask>
    Create customized indices (deprecated) <recipes_custom>

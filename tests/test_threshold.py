@@ -65,7 +65,7 @@ def test_build_bounded_threshold__unit_conversion_erorr() -> None:
     # GIVEN
     res = build_threshold(">10degC and <300 K")
     # THEN
-    with pytest.raises(pint.DimensionalityError):
+    with pytest.raises(InvalidIcclimArgumentError):
         # WHEN
         res.unit = "meter"
 
