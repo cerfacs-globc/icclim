@@ -23,6 +23,8 @@ Details
 -  [maint] Refine API extraction tool (``extract_icclim_funs.py``) to handle circular
    imports and guarantee 100% Ruff compliance in all generated code.
 -  [maint] Project-wide linting and formatting of core modules, tests, and tutorials.
+-  [fix] Add automatic rate-to-amount conversion for snow depth indices (``SND``)
+   to resolve ``DimensionalityError`` when input units are in ``mm/s`` (#320).
 -  [maint] Release 7.0.5.
 
 ******
