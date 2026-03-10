@@ -460,9 +460,8 @@ def guess_standard_variable(data: DataArray) -> StandardVariable | None:
     """
     std_var = StandardVariableRegistry.lookup_no_error(str(data.name))
     if std_var is None and data.attrs.get("standard_name", None) is not None:
-        std_var = StandardVariableRegistry.lookup(
+        std_var = StandardVariableRegistry.lookup_no_error(
             data.attrs.get("standard_name"),
-            no_error=True,
         )
     if std_var is None:
         return None
