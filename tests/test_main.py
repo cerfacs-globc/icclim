@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 import cftime
 import numpy as np
 import pandas as pd
+import pint
 import pytest
 import xarray as xr
 

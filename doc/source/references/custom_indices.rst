@@ -8,7 +8,7 @@
 
    The ``user_index`` API (also known as "custom indices") is **deprecated**
    and will be removed in a future version.
-   Please use the :ref:`generic_indices` API instead, which is more powerful
+   Please use the :ref:`generic_functions_api` instead, which is more powerful
    and consistent with the rest of icclim.
 
 You can calculate custom climate indices by using the ``user_index``
