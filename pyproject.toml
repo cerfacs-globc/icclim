@@ -15,7 +15,7 @@ readme = "README.rst"
 license = {file = "LICENSE"}
 classifiers = [
   "Programming Language :: Python",
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Science/Research",
   "License :: OSI Approved :: Apache Software License",
   "Natural Language :: English",
