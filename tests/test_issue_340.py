@@ -9,7 +9,8 @@ import icclim
 def test_issue_340():
     # Recreate a minimal version of the issue
     time = pd.date_range("2000-01-01", periods=366, freq="D")
-    data = np.random.rand(366)
+    rng = np.random.default_rng()
+    data = rng.random(366)
     da = xr.DataArray(data, dims="time", coords={"time": time}, name="TG")
     da.attrs["units"] = "degC"
 
@@ -26,11 +27,8 @@ def test_issue_340():
     assert "time_bounds" not in res.data_vars
 
     # Verify that .sum() no longer fails
-    try:
-        sum_res = res.sum().compute()
-        assert sum_res is not None
-    except Exception as e:
-        pytest.fail(f"Dataset.sum() failed with error: {e}")
+    sum_res = res.sum().compute()
+    assert sum_res is not None
 
 
 if __name__ == "__main__":
