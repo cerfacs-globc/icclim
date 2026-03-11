@@ -16,7 +16,7 @@ import operator
 import time
 from collections.abc import Callable, Sequence
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Literal, Union
+from typing import TYPE_CHECKING, Literal, Union
 from warnings import warn
 
 import numpy as np

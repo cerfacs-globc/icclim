@@ -16,7 +16,7 @@ This PR introduces support for **partial seasons** and **spatially varying seaso
   - `False` — exclude any incomplete period (default, preserving existing behaviour)
   - `"start"` — include only the first incomplete period
   - `"end"` — include only the last incomplete period
-  
+
   This is essential for indices like the KNMI Hellmann dataset which require including unfinished seasons at the boundaries of a time series.
 
 - **Spatially Varying Seasons**: `slice_mode` now accepts a tuple of `(start_doy, end_doy)` `xarray.DataArray` objects, enabling per-pixel or per-cell seasonal definitions across a spatial grid.
