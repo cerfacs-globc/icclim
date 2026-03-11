@@ -24,6 +24,7 @@ Details
 -  [doc] Rewrite ``release_process.rst`` with up-to-date conda-forge bot behavior, rerender procedure and automerge instructions.
 -  [maint] Add ``typing-extensions>=4.0`` to dependencies for Python 3.10/3.11 compatibility.
 -  [maint] Add ``CI`` URL to ``pyproject.toml`` project URLs for PyPI badge display.
+-  [enh] Add inline doctests to CI test suite and expand test coverage for generic reducers (#109).
 
 ******
 7.0.5

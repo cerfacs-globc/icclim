@@ -4,56 +4,156 @@
  Generic indices recipes
 #########################
 
-You will find below a few example of icclim v6
-:ref:`generic_functions_api`.
+The generic index API lets you compute any climate indicator by combining a
+**reducer function** (e.g. ``count_occurrences``, ``sum``, ``average``) with a
+**threshold** (e.g. ``"> 25 degC"``).
+
+.. seealso::
+
+   :ref:`thresholds_reference` — full table of operators and threshold types.
+
+***********************
+ Quick-start reference
+***********************
+
+Threshold mini-cheat-sheet
+==========================
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Threshold string
+     - Meaning
+   * - ``"> 25 degC"``
+     - Fixed scalar: strictly above 25 °C
+   * - ``">= 1 mm/day"``
+     - Fixed scalar: at least 1 mm/day
+   * - ``"> 90 doy_per"``
+     - Day-of-year percentile (temperature indices): 90th per-calendar-day percentile
+   * - ``"> 75 period_per"``
+     - Period percentile (precip indices): 75th percentile of the whole period
+   * - ``">= 18 degC AND <= 30 degC"``
+     - Bounded (AND): value must satisfy both conditions simultaneously
+   * - ``"< 0 degC OR > 35 degC"``
+     - Bounded (OR): value must satisfy at least one condition
+
+See :ref:`thresholds_reference` for ``threshold_min_value``, per-grid-cell thresholds,
+and all available operators.
+
+Imports and in-memory sample data
+==================================
+
+All examples below that use **in-memory data** share the same setup:
 
 .. code:: python
 
+   import numpy as np
+   import pandas as pd
+   import xarray as xr
    import icclim
    from icclim import build_threshold
 
-   # Change `data` to your own netcdf file path.
+   # 5 years of daily data, single grid cell
+   time = pd.date_range("2000-01-01", periods=365 * 5, freq="D")
+
+   # Temperature: 30 °C everywhere (300+ K)
+   tas = xr.DataArray(
+       np.full(len(time), 303.15),   # 30 °C in K
+       coords={"time": time},
+       dims=["time"],
+       attrs={"units": "K"},
+   )
+
+   # Precipitation: alternating 5 mm/day and 0.5 mm/day
+   pr_vals = np.where(np.arange(len(time)) % 2 == 0, 5e-5, 5e-6)
+   pr = xr.DataArray(
+       pr_vals,
+       coords={"time": time},
+       dims=["time"],
+       attrs={"units": "kg m-2 s-1"},
+   )
+
+For file-based examples, set:
+
+.. code:: python
+
    data = "netcdf_files/gridded.1991-2010.nc"
 
 *******************
  Count occurrences
 *******************
 
-Occurrences of events where tas is between 20 and 30 degree Celsius and
-precipitation are above 3 mm/day.
+Count days per year when temperature exceeds a fixed threshold:
 
 .. code:: python
 
-   # Equivalent to using `okay_temp = "<= 30 deg_C AND >= 20 deg_C"`
-   okay_temp = build_threshold("<= 30 deg_C") & build_threshold(">= 20 deg_C")
-   some_rain = icclim.build_threshold("> 3 mm/day")
+   # In-memory example: count days when tas > 25 °C
+   result = icclim.count_occurrences(
+       in_files=tas,
+       var_name="tas",
+       threshold="> 25 degC",
+   ).compute()
+   print(result.count_occurrences)
 
-   dataset = icclim.count_occurrences(
+Count days when both temperature AND precipitation exceed their respective thresholds
+(multivariable index):
+
+.. code:: python
+
+   okay_temp = build_threshold(">= 20 degC") & build_threshold("<= 30 degC")
+   some_rain = build_threshold("> 3 mm/day")
+
+   result = icclim.count_occurrences(
        in_files={
-           "tmax": {"study": data, "thresholds": okay_temp},
-           "precip": {"study": data, "thresholds": some_rain},
+           "tas": {"study": tas, "thresholds": okay_temp},
+           "pr":  {"study": pr,  "thresholds": some_rain},
        }
-   )
-   # .compute must be called to ask dask to run the actual computation
-   conputed_data = dataset.count_occurrences.compute()
+   ).compute()
+
+Using a day-of-year percentile threshold (equivalent to TX99p):
 
 .. code:: python
 
-   tx99p_dataset = icclim.count_occurrences(
+   tx99p = icclim.count_occurrences(
+       in_files=tas, var_name="tas", threshold=">= 99 doy_per"
+   ).count_occurrences.compute()
+
+Using ``out_unit="%"`` to get the result as a fraction of days:
+
+.. code:: python
+
+   result_pct = icclim.count_occurrences(
+       in_files=tas, var_name="tas",
+       threshold="> 25 degC", out_unit="%",
+   ).count_occurrences.compute()
+
+File-based example:
+
+.. code:: python
+
+   result_file = icclim.count_occurrences(
        in_files=data, var_name="tasmax", threshold=">= 99 doy_per"
-   )
-   # .compute must be called to ask dask to run the actual computation
-   tx99p = dataset.count_occurrences.compute()
+   ).count_occurrences.compute()
 
 *****
  Sum
 *****
 
-Sum of precipitation that are above 4 mm/day.
+Sum of precipitation values above 4 mm/day per year:
 
 .. code:: python
 
-   rain_sum_above_4mm = icclim.sum(
+   # In-memory example
+   rain_sum = icclim.sum(
+       in_files=pr, var_name="pr", threshold="> 4 mm/day"
+   ).sum.compute()
+
+File-based:
+
+.. code:: python
+
+   rain_sum_file = icclim.sum(
        in_files=data, var_name="precip", threshold="> 4 mm/day"
    ).sum.compute()
 
@@ -61,37 +161,70 @@ Sum of precipitation that are above 4 mm/day.
  Standard Deviation
 ********************
 
-Standard deviation of ``tas`` variable.
+Interannual variability of daily temperature:
 
 .. code:: python
 
-   tas_std = icclim.std(in_files=data, var_name="tas").std.compute()
+   # In-memory example
+   tas_std = icclim.std(in_files=tas, var_name="tas").std.compute()
+
+File-based:
+
+.. code:: python
+
+   tas_std_file = icclim.std(in_files=data, var_name="tas").std.compute()
 
 *********
  Average
 *********
 
-Average of the ``tas`` variable, per year by default.
+Annual mean temperature:
 
 .. code:: python
 
-   tas_average = icclim.average(in_files=data, var_name="tas").average.compute()
+   # In-memory example
+   tas_avg = icclim.average(in_files=tas, var_name="tas").average.compute()
 
-Average of the ``tas`` values that are above the 87th period percentile
-(computed on the whole period here), per year by default.
+Mean of values above the 87th period percentile:
 
 .. code:: python
 
-   tas_average_above_percentile_of_period = icclim.average(
-       in_files=data, var_name="tas", threshold="> 87 period_per"
+   tas_hot_avg = icclim.average(
+       in_files=tas, var_name="tas", threshold="> 87 period_per"
+   ).average.compute()
+
+Monthly means (``slice_mode="month"``):
+
+.. code:: python
+
+   tas_monthly = icclim.average(
+       in_files=tas, var_name="tas", slice_mode="month"
    ).average.compute()
 
 *********************************
  Maximum Consecutive Occurrences
 *********************************
 
-Almost equivalent to ECAD's index CDD (Consecutive Dry Days, days when
-pr is below 1 mm/day).
+Longest dry spell per year (consecutive days when pr < 1 mm/day), equivalent to
+ECA&D's CDD:
+
+.. code:: python
+
+   # In-memory example
+   dry_spell = icclim.max_consecutive_occurrence(
+       in_files=pr, var_name="pr", threshold="< 1 mm/day"
+   ).max_consecutive_occurrence.compute()
+
+Use ``run_index="last"`` to stamp the spell at its *end* date (Climdex convention):
+
+.. code:: python
+
+   dry_spell_last = icclim.max_consecutive_occurrence(
+       in_files=pr, var_name="pr",
+       threshold="< 1 mm/day", run_index="last"
+   ).max_consecutive_occurrence.compute()
+
+File-based:
 
 .. code:: python
 
@@ -99,65 +232,83 @@ pr is below 1 mm/day).
        in_files=data, var_name="precip", threshold="< 1.3 mm/day"
    ).max_consecutive_occurrence.compute()
 
-You can control the run-length encoding index using the ``run_index`` parameter
-(either ``"first"`` or ``"last"``). The default is ``"first"``. For example,
-to record the longest spell at the date where the spell ends (like Climdex does):
-
-.. code:: python
-
-   CDD_last = icclim.max_consecutive_occurrence(
-       in_files=data, var_name="precip", threshold="< 1.3 mm/day", run_index="last"
-   ).max_consecutive_occurrence.compute()
-
 **********************
  Sum of Spell Lengths
 **********************
 
-Almost equivalent to ECAD's index WSDI (Warm Spell Duration Index,
-maximum consecutive occurrence of tasmax > 90th doy percentile)
+Total duration of all heat spells per year where tasmax > 28 °C for at least
+6 consecutive days (equivalent parameter to ECA&D's WSDI):
+
+.. code:: python
+
+   # In-memory example: spell ≥ 3 consecutive days above 25 °C
+   spell_total = icclim.sum_of_spell_lengths(
+       in_files=tas,
+       var_name="tas",
+       threshold="> 25 degC",
+       min_spell_length=3,
+   ).sum_of_spell_lengths.compute()
+
+Combine a percentile threshold via a bounded string:
 
 .. code:: python
 
    custom_wsdi = icclim.sum_of_spell_lengths(
-       in_files=data, var_name="precip", threshold="> 90 doy_per AND > 28 degC"
+       in_files=data, var_name="tasmax", threshold="> 90 doy_per"
    ).sum_of_spell_lengths.compute()
 
-Similar to ``max_consecutive_occurrence``, you can specify the ``run_index``
-parameter for ``sum_of_spell_lengths`` as well.
+``run_index`` is also supported here (``"first"`` or ``"last"``).
 
 ********
  Excess
 ********
 
-Excess of minimal daily temperature above the 22 daily percentile
-threshold computed overs the 1991-1995 reference period, with a focus on
-the June to August periods.
+Cumulative degree-days above a threshold (sum of ``value - threshold`` for each
+exceedance day). Equivalent to ECA&D's GD4 when threshold is 4 °C.
 
 .. code:: python
 
-   jja_tmin_excess = (
-       icclim.excess(
-           climp_file,
-           var_name=["tmin"],
-           threshold=icclim.build_threshold(
-               "22 doy_per", base_period_time_range=["1991-01-01", "1995-12-31"]
-           ),
-           slice_mode="jja",
-       )
-       .compute()
-       .excess
-   )
+   # In-memory example: degree-days above 25 °C
+   gd25 = icclim.excess(
+       in_files=tas, var_name="tas",
+       threshold="25 degC",
+   ).excess.compute()
+
+With a day-of-year percentile reference period:
+
+.. code:: python
+
+   jja_excess = icclim.excess(
+       in_files=data,
+       var_name="tmin",
+       threshold=build_threshold(
+           "22 doy_per",
+           base_period_time_range=["1991-01-01", "1995-12-31"],
+       ),
+       slice_mode="jja",
+   ).excess.compute()
 
 *********
  Deficit
 *********
 
-Deficit of minimal daily temperature below 17 degree Celsius.
+Cumulative degree-days below a threshold (sum of ``threshold - value``).
+Equivalent to ECA&D's HD17 when threshold is 17 °C.
 
 .. code:: python
 
-   result13 = icclim.index(
-       climp_file,
+   # In-memory example: heating degree-days relative to 17 °C
+   hd17 = icclim.deficit(
+       in_files=tas, var_name="tas",
+       threshold="17 degC",
+   ).deficit.compute()
+
+File-based with the ``icclim.index`` entry point:
+
+.. code:: python
+
+   result = icclim.index(
+       in_files=data,
        var_name=["tmin"],
        index_name="deficit",
        threshold=build_threshold("17 degC"),
@@ -167,223 +318,243 @@ Deficit of minimal daily temperature below 17 degree Celsius.
  Fraction of Total
 *******************
 
-Fraction of precipitations above the 75th period percentile, where
-percentiles are computed only on values above 1 mm/day This is
-equivalent to the ECAD's index R75pTOT.
+Fraction of total precipitation contributed by days above the 75th period percentile
+(wet days only), equivalent to ECA&D's R75pTOT:
 
 .. code:: python
 
-   result14 = (
-       icclim.fraction_of_total(
-           climp_file,
-           var_name=["precip"],
-           threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
-       )
-       .compute()
-       .fraction_of_total
-   )
+   # In-memory example
+   r75ptot = icclim.fraction_of_total(
+       in_files=pr,
+       var_name="pr",
+       threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+   ).fraction_of_total.compute()
+
+   # Return as mm instead of % using out_unit
+   r75ptot_mm = icclim.fraction_of_total(
+       in_files=pr,
+       var_name="pr",
+       threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+       out_unit="mm",
+   ).fraction_of_total.compute()
+
+File-based:
+
+.. code:: python
+
+   result_frac = icclim.fraction_of_total(
+       in_files=data,
+       var_name=["precip"],
+       threshold=build_threshold("> 75 period_per", threshold_min_value="1 mm/day"),
+   ).fraction_of_total.compute()
 
 *********
  Maximum
 *********
 
-Maximum of tas temperature per month.
+Annual maximum temperature:
 
 .. code:: python
 
-   max_of_tas = (
-       icclim.maximum(
-           climp_file,
-           var_name=["tas"],
-           slice_mode="month",
-       )
-       .compute()
-       .maximum
-   )
+   # In-memory example
+   txx = icclim.maximum(in_files=tas, var_name="tas").maximum.compute()
+
+Monthly maximum with event date:
+
+.. code:: python
+
+   txx_monthly = icclim.maximum(
+       in_files=tas, var_name="tas",
+       slice_mode="month", date_event=True,
+   ).compute()
 
 *********
  Minimum
 *********
 
-Minimum of tas temperature per month.
+Annual minimum temperature:
 
 .. code:: python
 
-   min_of_tas = (
-       icclim.minimum(
-           climp_file,
-           var_name=["tas"],
-           slice_mode="month",
-       )
-       .compute()
-       .minimum
-   )
+   # In-memory example
+   tnn = icclim.minimum(in_files=tas, var_name="tas").minimum.compute()
+
+Monthly minimum:
+
+.. code:: python
+
+   tnn_monthly = icclim.minimum(
+       in_files=data, var_name="tas", slice_mode="month"
+   ).minimum.compute()
 
 ********************
  Max of Rolling Sum
 ********************
 
-Maximum of rolling sum of precipitation that are above the period
-median, where the median is computed for the whole period (default
-behavior when there is no `base_period_time_range`) only on values above
-1mm/day.
+Maximum 5-day accumulated precipitation per year (equivalent to ECA&D's RX5day):
 
 .. code:: python
 
-   max_of_rolling_sum = (
-       icclim.index(
-           climp_file,
-           index_name="max_of_rolling_sum",
-           var_name=["precip"],
-           threshold=build_threshold(">= 50 period_per", threshold_min_value="1 mmday"),
-       )
-       .compute()
-       .max_of_rolling_sum
-   )
+   # In-memory example (5-day rolling window)
+   rx5day = icclim.max_of_rolling_sum(
+       in_files=pr,
+       var_name="pr",
+       rolling_window_width=5,
+   ).max_of_rolling_sum.compute()
+
+With a wet-day percentile filter:
+
+.. code:: python
+
+   max_rolling = icclim.max_of_rolling_sum(
+       in_files=data,
+       var_name="precip",
+       threshold=build_threshold(">= 50 period_per", threshold_min_value="1 mm/day"),
+   ).max_of_rolling_sum.compute()
 
 ********************
  Min of Rolling Sum
 ********************
 
-Minimum of rolling sum of precipitation that are above the period
-median, where the median is computed for the whole period (default
-behavior when there is no `base_period_time_range`) only on values above
-1mm/day.
+Minimum 5-day accumulated precipitation per year:
 
 .. code:: python
 
-   min_of_rolling_sum = (
-       icclim.min_of_rolling_sum(
-           climp_file,
-           var_name=["precip"],
-           threshold=build_threshold(">= 50 period_per", threshold_min_value="1 mmday"),
-       )
-       .compute()
-       .min_of_rolling_sum
-   )
+   # In-memory example
+   min_rolling = icclim.min_of_rolling_sum(
+       in_files=pr, var_name="pr", rolling_window_width=5,
+   ).min_of_rolling_sum.compute()
 
 ************************
  Max of Rolling Average
 ************************
 
-Maximum of rolling average of precipitation that are above the period
-median, where the median is computed for the whole period (default
-behavior when there is no `base_period_time_range`) only on values above
-1mm/day.
+Maximum 5-day rolling mean temperature:
 
 .. code:: python
 
-   max_of_rolling_average = (
-       icclim.index(
-           climp_file,
-           index_name="max_of_rolling_average",
-           var_name=["precip"],
-           threshold=build_threshold(">= 50 period_per", threshold_min_value="1 mmday"),
-       )
-       .compute()
-       .max_of_rolling_average
-   )
+   # In-memory example
+   max_rolling_avg = icclim.max_of_rolling_average(
+       in_files=tas, var_name="tas", rolling_window_width=5,
+   ).max_of_rolling_average.compute()
 
 ************************
  Min of Rolling Average
 ************************
 
-Minimum of rolling average of precipitation that are above the period
-median, where the median is computed for the whole period (default
-behavior when there is no `base_period_time_range`) only on values above
-1mm/day.
+Minimum 5-day rolling mean temperature:
 
 .. code:: python
 
-   min_of_rolling_average = (
-       icclim.min_of_rolling_average(
-           climp_file,
-           var_name=["precip"],
-           threshold=build_threshold(">= 50 period_per", threshold_min_value="1 mmday"),
-       )
-       .compute()
-       .min_of_rolling_average
-   )
+   # In-memory example
+   min_rolling_avg = icclim.min_of_rolling_average(
+       in_files=tas, var_name="tas", rolling_window_width=5,
+   ).min_of_rolling_average.compute()
 
 ********************
  Mean of difference
 ********************
 
-Mean of the difference between tasmax in tasmin. It's a generification
-of ECAD's index DTR.
+Mean daily difference between two variables (e.g. tasmax − tasmin), equivalent to
+ECA&D's DTR:
 
 .. code:: python
 
-   dtr = (
-       icclim.index(
-           climp_file,
-           index_name="mean_of_difference",
-           var_name=["tmax", "tmin"],
-       )
-       .compute()
-       .mean_of_difference
-   )
+   # In-memory example: mean of (tasmax - tasmin)
+   tasmin = tas - 10   # artificial 10 °C spread
+   tasmin.attrs["units"] = "K"
+
+   dtr = icclim.mean_of_difference(
+       in_files=xr.Dataset({"tasmax": tas, "tasmin": tasmin}),
+       var_name=["tasmax", "tasmin"],
+   ).mean_of_difference.compute()
+
+File-based via ``icclim.index``:
+
+.. code:: python
+
+   dtr_file = icclim.index(
+       in_files=data,
+       index_name="mean_of_difference",
+       var_name=["tmax", "tmin"],
+   ).mean_of_difference.compute()
 
 ************************
  Difference of extremes
 ************************
 
-Difference of the maximum of tasmax and the minimum of tasmin. It's a
-generification of ECAD's index ETR.
+Annual maximum of tasmax minus annual minimum of tasmin, equivalent to ECA&D's ETR:
 
 .. code:: python
 
-   dtr = (
-       icclim.index(
-           climp_file,
-           index_name="difference_of_extremes",
-           var_name=["tmax", "tmin"],
-       )
-       .compute()
-       .difference_of_extremes
-   )
+   # In-memory example
+   tasmin = tas - 10
+   tasmin.attrs["units"] = "K"
+
+   etr = icclim.difference_of_extremes(
+       in_files=xr.Dataset({"tasmax": tas, "tasmin": tasmin}),
+       var_name=["tasmax", "tasmin"],
+   ).difference_of_extremes.compute()
+
+File-based:
+
+.. code:: python
+
+   etr_file = icclim.index(
+       in_files=data,
+       index_name="difference_of_extremes",
+       var_name=["tmax", "tmin"],
+   ).difference_of_extremes.compute()
 
 *********************
  Difference of means
 *********************
 
-Difference between averaged tas and the averaged tas values of the
-reference period. Also known as the ``anomaly``.
+Anomaly: mean of the study period minus mean of the reference period:
 
 .. code:: python
 
-   anomaly = (
-       icclim.difference_of_means(
-           climp_file,
-           var_name=["tas"],
-           base_period_time_range=["1991-01-01", "1995-12-31"],
-       )
-       .compute()
-       .difference_of_means
-   )
+   # In-memory example: anomaly relative to first year
+   anomaly = icclim.difference_of_means(
+       in_files=tas,
+       var_name="tas",
+       base_period_time_range=["2000-01-01", "2000-12-31"],
+   ).difference_of_means.compute()
+
+File-based:
+
+.. code:: python
+
+   anomaly_file = icclim.difference_of_means(
+       in_files=data,
+       var_name=["tas"],
+       base_period_time_range=["1991-01-01", "1995-12-31"],
+   ).difference_of_means.compute()
 
 *******************************************
  Mean Of Absolute One Time Step Difference
 *******************************************
 
-Mean of absolute difference between tasmax and tasmin with a one time
-step lag (usually 1 day). This is equivalent to the pseudo-code:
+Mean day-to-day variability in the diurnal temperature range, equivalent to ECA&D's
+vDTR. The formula is: ``mean(|(tasmax[t+1] - tasmin[t+1]) - (tasmax[t] - tasmin[t])|)``
 
 .. code:: python
 
-   a = tasmax[T + 1] - tasmin[T + 1]
-   b = tasmax[T] - tasmin[T]
-   average(a - b)
-
-It's a generification of ECAD's index vDTR.
-
-.. code:: python
-
-   result = (
-       icclim.mean_of_absolute_one_time_step_difference(
-           climp_file,
-           var_name=["tmax", "tmin"],
-       )
-       .compute()
-       .mean_of_absolute_one_time_step_difference
+   # In-memory example
+   tasmin = tas - 10 + xr.DataArray(
+       np.random.default_rng(42).normal(0, 1, len(time)),
+       coords={"time": time}, dims=["time"], attrs={"units": "K"},
    )
+   vdtr = icclim.mean_of_absolute_one_time_step_difference(
+       in_files=xr.Dataset({"tasmax": tas, "tasmin": tasmin}),
+       var_name=["tasmax", "tasmin"],
+   ).mean_of_absolute_one_time_step_difference.compute()
+
+File-based:
+
+.. code:: python
+
+   vdtr_file = icclim.mean_of_absolute_one_time_step_difference(
+       in_files=data,
+       var_name=["tmax", "tmin"],
+   ).mean_of_absolute_one_time_step_difference.compute()
