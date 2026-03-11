@@ -4,7 +4,7 @@ import xarray as xr
 import pytest
 import icclim
 
-class Test_SpatiallyVaryingSeasons:
+class TestSpatiallyVaryingSeasons:
     def test_tg_spatially_varying(self):
         time = pd.date_range("2000-01-01", periods=366, freq="D")
         # Create a 2x1 grid
@@ -74,7 +74,6 @@ class Test_SpatiallyVaryingSeasons:
         # Pixel 1: 10 days >= 25
         # SU should have 10
         # Pixel 2 should have 21
-        print(f"SU dims: {result.SU.dims}")
         if "lat" in result.SU.dims:
             assert result.SU.isel(time=0, lat=0, lon=0) == 10
             assert result.SU.isel(time=0, lat=0, lon=1) == 21

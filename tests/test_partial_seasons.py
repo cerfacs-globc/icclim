@@ -49,15 +49,5 @@ def test_allow_partial_seasons():
     assert not np.isnan(res_partial.SU.values[-1])
     assert res_partial.SU.values[-1] == 61
     
-    # Also check the first one (it's also partial at start)
-    # icclim usually includes it if it has some data, unless it's strictly filtered by xclim.
-    # Actually, icclim's _handle_missing_values for the first period?
-    # mask = mask.reindex(time=out_data.time, fill_value=True)
-    # If the first period is also considered missing by xclim, then mask.values[0] might be True.
-    # My current fix only does mask.values[..., -1] = False.
-    
-    print(f"Default SU: {res_default.SU.values}")
-    print(f"Partial SU: {res_partial.SU.values}")
-
 if __name__ == "__main__":
     test_allow_partial_seasons()

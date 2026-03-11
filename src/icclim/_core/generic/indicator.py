@@ -241,34 +241,7 @@ class GenericIndicator(Indicator):
 
         """
         self._check_for_invalid_setup(climate_vars, sampling_method)
-
-        if output_unit is not None:
-            if _is_amount_unit(output_unit):
-                climate_vars = _convert_rates_to_amounts(
-                    climate_vars=climate_vars,
-                    output_unit=output_unit,
-                )
-            elif _is_a_diff_indicator(self) and output_unit != "%":
-                # [gh:255] Indicators computing the difference between two
-                # variables must first convert the units of input variables
-                # to the expected output unit in order to avoid converting
-                # the output of the difference.
-                # This is because a difference of relative units is not equivalent
-                # to a difference of absolute on scale units.
-                # In other words: a 15 Kelvin difference *is* equivalent
-                # to a 15 degC difference, but if we would convert the unit after
-                # computing the difference, we could get -258.15 degC from the
-                # 15 Kelvin.
-                for climate_var in climate_vars:
-                    climate_var.studied_data = convert_units_to(
-                        climate_var.studied_data,
-                        target=output_unit,
-                    )
-                    if climate_var.threshold is not None:
-                        climate_var.threshold.unit = output_unit
-        if coef is not None:
-            for climate_var in climate_vars:
-                climate_var.studied_data = coef * climate_var.studied_data
+        climate_vars = self._apply_transforms(climate_vars, output_unit, coef)
         if output_frequency.indexer:
             for climate_var in climate_vars:
                 climate_var.studied_data = select_time(
@@ -281,6 +254,31 @@ class GenericIndicator(Indicator):
         _check_data(climate_vars, src_freq.pandas_freq)
         _check_cf(climate_vars)
         self._format_template(jinja_scope=jinja_scope)
+        return climate_vars
+
+    def _apply_transforms(
+        self,
+        climate_vars: list[ClimateVariable],
+        output_unit: str | None,
+        coef: float | None,
+    ) -> list[ClimateVariable]:
+        if output_unit is not None:
+            if _is_amount_unit(output_unit):
+                climate_vars = _convert_rates_to_amounts(
+                    climate_vars=climate_vars,
+                    output_unit=output_unit,
+                )
+            elif _is_a_diff_indicator(self) and output_unit != "%":
+                for climate_var in climate_vars:
+                    climate_var.studied_data = convert_units_to(
+                        climate_var.studied_data,
+                        target=output_unit,
+                    )
+                    if climate_var.threshold is not None:
+                        climate_var.threshold.unit = output_unit
+        if coef is not None:
+            for climate_var in climate_vars:
+                climate_var.studied_data = coef * climate_var.studied_data
         return climate_vars
 
     def postprocess(  # noqa: C901

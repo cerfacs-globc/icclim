@@ -566,7 +566,7 @@ def _get_frequency_from_iterable(
         and isinstance(freq_keyword[0], DataArray)
         and isinstance(freq_keyword[1], DataArray)
     ):
-        # format: ( (start_da, end_da), "YS" )
+        # Expected format: ( (start_da, end_da), "YS" )
         bounds = freq_keyword
         pandas_freq = slice_mode_list[1] if len(slice_mode_list) > 1 else "YS"
         return _build_spatially_varying_seasonal_freq(bounds, pandas_freq)
