@@ -17,8 +17,9 @@ Details
 -  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
 -  [fix] Move ``time_bounds`` to coordinates in the resulting Dataset to avoid
    errors when calling ``.sum()`` on the entire Dataset (#340).
--  [enh] Add ``run_index`` parameter to generic indices computation (``max_consecutive_occurrence``, ``sum_of_spell_lengths``)
-   to allow specifying RLE indexing behavior (e.g., "first" vs "last") (#321).
+-  [enh] Add ``run_index`` parameter to RLE-based indices to allow specifying RLE indexing behavior (e.g., "first" vs "last") (#321).
+-  [fix] Fix ``sum_of_spell_lengths`` (used by ``WSDI`` and ``CSDI``) to correctly sum all spells instead of only returning the maximum spell length.
+-  [fix] Fix date calculation (``event_date_start``, ``event_date_end``) when using ``run_index="last"``.
 
 ******
 7.0.5
