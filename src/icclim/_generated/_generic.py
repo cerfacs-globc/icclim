@@ -70,6 +70,7 @@ def count_occurrences(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).
 
@@ -94,6 +95,9 @@ def count_occurrences(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -134,6 +138,14 @@ def count_occurrences(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -157,6 +169,7 @@ def count_occurrences(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -174,6 +187,7 @@ def max_consecutive_occurrence(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
@@ -198,6 +212,9 @@ def max_consecutive_occurrence(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -238,6 +255,14 @@ def max_consecutive_occurrence(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -261,6 +286,7 @@ def max_consecutive_occurrence(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -279,6 +305,7 @@ def sum_of_spell_lengths(
     date_event: bool = False,
     min_spell_length: int | None = 6,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
@@ -303,6 +330,9 @@ def sum_of_spell_lengths(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -346,6 +376,14 @@ def sum_of_spell_lengths(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -370,6 +408,7 @@ def sum_of_spell_lengths(
         date_event=date_event,
         min_spell_length=min_spell_length,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -387,6 +426,7 @@ def excess(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
@@ -411,6 +451,9 @@ def excess(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -451,6 +494,14 @@ def excess(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -474,6 +525,7 @@ def excess(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -491,6 +543,7 @@ def deficit(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
@@ -515,6 +568,9 @@ def deficit(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -555,6 +611,14 @@ def deficit(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -578,6 +642,7 @@ def deficit(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -595,6 +660,7 @@ def fraction_of_total(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
@@ -619,6 +685,9 @@ def fraction_of_total(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -659,6 +728,14 @@ def fraction_of_total(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -682,6 +759,7 @@ def fraction_of_total(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -699,6 +777,7 @@ def maximum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
@@ -723,6 +802,9 @@ def maximum(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -763,6 +845,14 @@ def maximum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -786,6 +876,7 @@ def maximum(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -803,6 +894,7 @@ def minimum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
@@ -827,6 +919,9 @@ def minimum(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -867,6 +962,14 @@ def minimum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -890,6 +993,7 @@ def minimum(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -907,6 +1011,7 @@ def average(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn).
 
@@ -931,6 +1036,9 @@ def average(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -971,6 +1079,14 @@ def average(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -994,6 +1110,7 @@ def average(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1011,6 +1128,7 @@ def sum(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
@@ -1035,6 +1153,9 @@ def sum(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1075,6 +1196,14 @@ def sum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1098,6 +1227,7 @@ def sum(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1115,6 +1245,7 @@ def standard_deviation(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Standard deviation of values that met threshold(s), if threshold(s) are given.
 
@@ -1139,6 +1270,9 @@ def standard_deviation(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1179,6 +1313,14 @@ def standard_deviation(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1202,6 +1344,7 @@ def standard_deviation(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1220,6 +1363,7 @@ def max_of_rolling_sum(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
@@ -1244,6 +1388,9 @@ def max_of_rolling_sum(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1287,6 +1434,14 @@ def max_of_rolling_sum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1311,6 +1466,7 @@ def max_of_rolling_sum(
         date_event=date_event,
         rolling_window_width=rolling_window_width,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1329,6 +1485,7 @@ def min_of_rolling_sum(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Minimum of rolling sum over time dimension.
 
@@ -1353,6 +1510,9 @@ def min_of_rolling_sum(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1396,6 +1556,14 @@ def min_of_rolling_sum(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1420,6 +1588,7 @@ def min_of_rolling_sum(
         date_event=date_event,
         rolling_window_width=rolling_window_width,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1438,6 +1607,7 @@ def max_of_rolling_average(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Maximum of rolling average over time dimension.
 
@@ -1462,6 +1632,9 @@ def max_of_rolling_average(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1505,6 +1678,14 @@ def max_of_rolling_average(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1529,6 +1710,7 @@ def max_of_rolling_average(
         date_event=date_event,
         rolling_window_width=rolling_window_width,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1547,6 +1729,7 @@ def min_of_rolling_average(
     date_event: bool = False,
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Minimum of rolling average over time dimension.
 
@@ -1571,6 +1754,9 @@ def min_of_rolling_average(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1614,6 +1800,14 @@ def min_of_rolling_average(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1638,6 +1832,7 @@ def min_of_rolling_average(
         date_event=date_event,
         rolling_window_width=rolling_window_width,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1655,6 +1850,7 @@ def mean_of_difference(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
@@ -1679,6 +1875,9 @@ def mean_of_difference(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1719,6 +1918,14 @@ def mean_of_difference(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1742,6 +1949,7 @@ def mean_of_difference(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1759,6 +1967,7 @@ def difference_of_extremes(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
@@ -1783,6 +1992,9 @@ def difference_of_extremes(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1823,6 +2035,14 @@ def difference_of_extremes(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1846,6 +2066,7 @@ def difference_of_extremes(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1863,6 +2084,7 @@ def mean_of_absolute_one_time_step_difference(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
@@ -1887,6 +2109,9 @@ def mean_of_absolute_one_time_step_difference(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -1927,6 +2152,14 @@ def mean_of_absolute_one_time_step_difference(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1950,6 +2183,7 @@ def mean_of_absolute_one_time_step_difference(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -1968,6 +2202,7 @@ def difference_of_means(
     date_event: bool = False,
     sampling_method: SamplingMethodLike = "resample",
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
@@ -1992,6 +2227,9 @@ def difference_of_means(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -2040,6 +2278,14 @@ def difference_of_means(
         (default: "resample")
         `groupby_ref_and_resample_study` may only be used when computing the
         `difference_of_means` (a.k.a the anomaly).
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2064,6 +2310,7 @@ def difference_of_means(
         date_event=date_event,
         sampling_method=sampling_method,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -2081,6 +2328,7 @@ def percentile(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Percentile of a variable.
 
@@ -2105,6 +2353,9 @@ def percentile(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -2145,6 +2396,14 @@ def percentile(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2168,6 +2427,7 @@ def percentile(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -2192,6 +2452,7 @@ def custom_index(
     rolling_window_width: int | None = 5,
     sampling_method: SamplingMethodLike = "resample",
     run_index: str | None = "first",
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Compute custom indices using simple operators.
 
@@ -2217,6 +2478,9 @@ def custom_index(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -2291,6 +2555,14 @@ def custom_index(
         (default: "resample")
         `groupby_ref_and_resample_study` may only be used when computing the
         `difference_of_means` (a.k.a the anomaly).
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2318,4 +2590,5 @@ def custom_index(
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )

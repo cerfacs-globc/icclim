@@ -37,6 +37,7 @@ DEFAULT_ARGS = {
     "logs_verbosity": VerbosityRegistry.LOW,
     "date_event": False,
     "run_index": "first",
+    "allow_partial_seasons": False,
 }
 
 
@@ -124,6 +125,7 @@ def test_custom_index(index_fun_mock: MagicMock) -> None:
             "date_event": True,
         },
         "run_index": "first",
+        "allow_partial_seasons": False,
     }
     icclim.custom_index(**user_index_args)
     index_fun_mock.assert_called_with(**user_index_args)
