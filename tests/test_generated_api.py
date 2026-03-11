@@ -36,6 +36,7 @@ DEFAULT_ARGS = {
     "netcdf_version": NetcdfVersionRegistry.NETCDF4,
     "logs_verbosity": VerbosityRegistry.LOW,
     "date_event": False,
+    "run_index": "first",
 }
 
 
@@ -122,6 +123,7 @@ def test_custom_index(index_fun_mock: MagicMock) -> None:
             "thresh": 0,
             "date_event": True,
         },
+        "run_index": "first",
     }
     icclim.custom_index(**user_index_args)
     index_fun_mock.assert_called_with(**user_index_args)

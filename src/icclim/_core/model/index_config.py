@@ -87,6 +87,9 @@ class IndexConfig:
         The indicator to be computed.
     reference : str
         The reference value for the index calculation.
+    run_index : str | None
+        The index to use for the run length encoding.
+        None if the index is not a spell index.
     """
 
     frequency: Frequency
@@ -108,3 +111,4 @@ class IndexConfig:
     rename: str | None
     indicator: Indicator
     reference: str
+    run_index: str | None = None

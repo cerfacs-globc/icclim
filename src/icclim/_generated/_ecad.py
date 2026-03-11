@@ -109,6 +109,7 @@ def tg(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean of daily mean temperature.
 
@@ -148,6 +149,10 @@ def tg(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -178,6 +183,7 @@ def tg(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -192,6 +198,7 @@ def tn(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean of daily minimum temperature.
 
@@ -231,6 +238,10 @@ def tn(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -261,6 +272,7 @@ def tn(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -275,6 +287,7 @@ def tx(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean of daily maximum temperature.
 
@@ -314,6 +327,10 @@ def tx(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -344,6 +361,7 @@ def tx(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -358,6 +376,7 @@ def dtr(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean Diurnal Temperature Range.
 
@@ -397,6 +416,10 @@ def dtr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -427,6 +450,7 @@ def dtr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -441,6 +465,7 @@ def etr(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Intra-period extreme temperature range.
 
@@ -480,6 +505,10 @@ def etr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -510,6 +539,7 @@ def etr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -524,6 +554,7 @@ def vdtr(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean day-to-day variation in Diurnal Temperature Range.
 
@@ -563,6 +594,10 @@ def vdtr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -593,6 +628,7 @@ def vdtr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -607,6 +643,7 @@ def su(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of Summer Days (Tmax > 25C).
 
@@ -646,6 +683,10 @@ def su(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -676,6 +717,7 @@ def su(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 25 degree_Celsius",
         ),
@@ -693,6 +735,7 @@ def tr(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of Tropical Nights (Tmin > 20C).
 
@@ -732,6 +775,10 @@ def tr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -762,6 +809,7 @@ def tr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 20 degree_Celsius",
         ),
@@ -783,6 +831,7 @@ def wsdi(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Warm-spell duration index (days).
 
@@ -836,6 +885,10 @@ def wsdi(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -880,6 +933,7 @@ def wsdi(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -905,6 +959,7 @@ def tg90p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days when Tmean > 90th percentile.
 
@@ -958,6 +1013,10 @@ def tg90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -1002,6 +1061,7 @@ def tg90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -1027,6 +1087,7 @@ def tn90p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days when Tmin > 90th percentile.
 
@@ -1080,6 +1141,10 @@ def tn90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -1124,6 +1189,7 @@ def tn90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -1149,6 +1215,7 @@ def tx90p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days when Tmax > 90th daily percentile.
 
@@ -1202,6 +1269,10 @@ def tx90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -1246,6 +1317,7 @@ def tx90p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -1267,6 +1339,7 @@ def txx(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum daily maximum temperature.
 
@@ -1306,6 +1379,10 @@ def txx(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1336,6 +1413,7 @@ def txx(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -1350,6 +1428,7 @@ def tnx(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum daily minimum temperature.
 
@@ -1389,6 +1468,10 @@ def tnx(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1419,6 +1502,7 @@ def tnx(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -1433,6 +1517,7 @@ def csu(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum number of consecutive summer days (Tmax >25 C).
 
@@ -1472,6 +1557,10 @@ def csu(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1502,6 +1591,7 @@ def csu(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 25 degree_Celsius",
         ),
@@ -1519,6 +1609,7 @@ def gd4(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Growing degree days (sum of Tmean > 4 C).
 
@@ -1558,6 +1649,10 @@ def gd4(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1588,6 +1683,7 @@ def gd4(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="4 degree_Celsius",
         ),
@@ -1605,6 +1701,7 @@ def fd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of Frost Days (Tmin < 0C).
 
@@ -1644,6 +1741,10 @@ def fd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1674,6 +1775,7 @@ def fd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
@@ -1691,6 +1793,7 @@ def cfd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum number of consecutive frost days (Tmin < 0 C).
 
@@ -1730,6 +1833,10 @@ def cfd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1760,6 +1867,7 @@ def cfd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
@@ -1777,6 +1885,7 @@ def hd17(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Heating degree days (sum of Tmean < 17 C).
 
@@ -1816,6 +1925,10 @@ def hd17(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1846,6 +1959,7 @@ def hd17(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="17 degree_Celsius",
         ),
@@ -1863,6 +1977,7 @@ def id(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of sharp Ice Days (Tmax < 0C).
 
@@ -1902,6 +2017,10 @@ def id(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1932,6 +2051,7 @@ def id(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
@@ -1953,6 +2073,7 @@ def tg10p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days when Tmean < 10th percentile.
 
@@ -2006,6 +2127,10 @@ def tg10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2050,6 +2175,7 @@ def tg10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -2075,6 +2201,7 @@ def tn10p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days when Tmin < 10th percentile.
 
@@ -2128,6 +2255,10 @@ def tn10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2172,6 +2303,7 @@ def tn10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -2197,6 +2329,7 @@ def tx10p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days when Tmax < 10th percentile.
 
@@ -2250,6 +2383,10 @@ def tx10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2294,6 +2431,7 @@ def tx10p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -2315,6 +2453,7 @@ def txn(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Minimum daily maximum temperature.
 
@@ -2354,6 +2493,10 @@ def txn(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2384,6 +2527,7 @@ def txn(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -2398,6 +2542,7 @@ def tnn(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Minimum daily minimum temperature.
 
@@ -2437,6 +2582,10 @@ def tnn(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2467,6 +2616,7 @@ def tnn(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -2485,6 +2635,7 @@ def csdi(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Cold-spell duration index (days).
 
@@ -2538,6 +2689,10 @@ def csdi(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2582,6 +2737,7 @@ def csdi(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -2603,6 +2759,7 @@ def cdd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum consecutive dry days (Precip < 1mm).
 
@@ -2642,6 +2799,10 @@ def cdd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2672,6 +2833,7 @@ def cdd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 1 mm/day",
         ),
@@ -2689,6 +2851,7 @@ def prcptot(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Total precipitation during Wet Days.
 
@@ -2728,6 +2891,10 @@ def prcptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2758,6 +2925,7 @@ def prcptot(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -2775,6 +2943,7 @@ def rr1(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of Wet Days (precip >= 1 mm).
 
@@ -2814,6 +2983,10 @@ def rr1(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2844,6 +3017,7 @@ def rr1(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -2861,6 +3035,7 @@ def sdii(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Average precipitation during Wet Days (SDII).
 
@@ -2900,6 +3075,10 @@ def sdii(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2930,6 +3109,7 @@ def sdii(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -2947,6 +3127,7 @@ def cwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum consecutive wet days (Precip >= 1mm).
 
@@ -2986,6 +3167,10 @@ def cwd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3016,6 +3201,7 @@ def cwd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -3033,6 +3219,7 @@ def rr(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Precipitation sum (mm).
 
@@ -3072,6 +3259,10 @@ def rr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3102,6 +3293,7 @@ def rr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="mm",
     )
 
@@ -3116,6 +3308,7 @@ def r10mm(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of heavy precipitation days (Precip >=10mm).
 
@@ -3155,6 +3348,10 @@ def r10mm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3185,6 +3382,7 @@ def r10mm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 10 mm/day",
         ),
@@ -3202,6 +3400,7 @@ def r20mm(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of very heavy precipitation days (Precip >= 20mm).
 
@@ -3241,6 +3440,10 @@ def r20mm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3271,6 +3474,7 @@ def r20mm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 20 mm/day",
         ),
@@ -3288,6 +3492,7 @@ def rx1day(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum 1-day total precipitation.
 
@@ -3327,6 +3532,10 @@ def rx1day(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3357,6 +3566,7 @@ def rx1day(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="mm/day",
     )
 
@@ -3371,6 +3581,7 @@ def rx5day(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum 5-day total precipitation.
 
@@ -3410,6 +3621,10 @@ def rx5day(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3440,6 +3655,7 @@ def rx5day(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="mm",
     )
 
@@ -3458,6 +3674,7 @@ def r75p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with RR > 75th percentile of daily amounts (moderate wet days) (d).
 
@@ -3511,6 +3728,10 @@ def r75p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3555,6 +3776,7 @@ def r75p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 75 period_per",
             doy_window_width=5,
@@ -3581,6 +3803,7 @@ def r75ptot(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Precipitation fraction due to moderate wet days (> 75th percentile).
 
@@ -3634,6 +3857,10 @@ def r75ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3678,6 +3905,7 @@ def r75ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 75 period_per",
             doy_window_width=5,
@@ -3704,6 +3932,7 @@ def r95p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with RR > 95th percentile of daily amounts (very wet days) (days).
 
@@ -3757,6 +3986,10 @@ def r95p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3801,6 +4034,7 @@ def r95p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 95 period_per",
             doy_window_width=5,
@@ -3827,6 +4061,7 @@ def r95ptot(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Precipitation fraction due to very wet days (> 95th percentile).
 
@@ -3880,6 +4115,10 @@ def r95ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3924,6 +4163,7 @@ def r95ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 95 period_per",
             doy_window_width=5,
@@ -3950,6 +4190,7 @@ def r99p(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with RR > 99th percentile of daily amounts (extremely wet days).
 
@@ -4003,6 +4244,10 @@ def r99p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -4047,6 +4292,7 @@ def r99p(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 99 period_per",
             doy_window_width=5,
@@ -4073,6 +4319,7 @@ def r99ptot(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Precipitation fraction due to extremely wet days (> 99th percentile).
 
@@ -4126,6 +4373,10 @@ def r99ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -4170,6 +4421,7 @@ def r99ptot(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 99 period_per",
             doy_window_width=5,
@@ -4192,6 +4444,7 @@ def sd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean of daily snow depth.
 
@@ -4231,6 +4484,10 @@ def sd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4261,6 +4518,7 @@ def sd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="cm",
     )
 
@@ -4275,6 +4533,7 @@ def sd1(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Snow days (SD >= 1 cm).
 
@@ -4314,6 +4573,10 @@ def sd1(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4344,6 +4607,7 @@ def sd1(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 1 cm",
         ),
@@ -4361,6 +4625,7 @@ def sd5cm(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of days with snow depth >= 5 cm.
 
@@ -4400,6 +4665,10 @@ def sd5cm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4430,6 +4699,7 @@ def sd5cm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 5 cm",
         ),
@@ -4447,6 +4717,7 @@ def sd50cm(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Number of days with snow depth >= 50 cm.
 
@@ -4486,6 +4757,10 @@ def sd50cm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -4516,6 +4791,7 @@ def sd50cm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 50 cm",
         ),
@@ -4537,6 +4813,7 @@ def cd(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days).
 
@@ -4590,6 +4867,10 @@ def cd(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -4634,6 +4915,7 @@ def cd(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=[
             build_threshold(
                 query="< 25 doy_per",
@@ -4669,6 +4951,7 @@ def cw(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days).
 
@@ -4722,6 +5005,10 @@ def cw(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -4766,6 +5053,7 @@ def cw(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=[
             build_threshold(
                 query="< 25 doy_per",
@@ -4801,6 +5089,7 @@ def wd(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days).
 
@@ -4854,6 +5143,10 @@ def wd(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -4898,6 +5191,7 @@ def wd(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=[
             build_threshold(
                 query="> 75 doy_per",
@@ -4933,6 +5227,7 @@ def ww(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days).
 
@@ -4986,6 +5281,10 @@ def ww(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -5030,6 +5329,7 @@ def ww(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=[
             build_threshold(
                 query="> 75 doy_per",
@@ -5061,6 +5361,7 @@ def fxx(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Maximum value of daily maximum wind gust.
 
@@ -5100,6 +5401,10 @@ def fxx(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5130,6 +5435,7 @@ def fxx(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="m s-1",
     )
 
@@ -5144,6 +5450,7 @@ def fg6bft(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with daily averaged wind ≥ 6 Bft (10.8 m s-1).
 
@@ -5183,6 +5490,10 @@ def fg6bft(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5213,6 +5524,7 @@ def fg6bft(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 10.8 m s-1",
         ),
@@ -5230,6 +5542,7 @@ def fgcalm(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Calm days, days with daily averaged wind <= 2 m s-1.
 
@@ -5269,6 +5582,10 @@ def fgcalm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5299,6 +5616,7 @@ def fgcalm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="<= 2 m s-1",
         ),
@@ -5316,6 +5634,7 @@ def fg(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean of daily mean wind strength.
 
@@ -5355,6 +5674,10 @@ def fg(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5385,6 +5708,7 @@ def fg(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="m s-1",
     )
 
@@ -5399,6 +5723,7 @@ def ddnorth(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with northerly winds (DD > 315° or DD ≤ 45°).
 
@@ -5438,6 +5763,10 @@ def ddnorth(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5468,6 +5797,7 @@ def ddnorth(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 315 degree OR <= 45 degree",
         ),
@@ -5485,6 +5815,7 @@ def ddeast(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with easterly winds (45° < DD <= 135°).
 
@@ -5524,6 +5855,10 @@ def ddeast(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5554,6 +5889,7 @@ def ddeast(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 45 degree AND <= 135 degree",
         ),
@@ -5571,6 +5907,7 @@ def ddsouth(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with southerly winds (135° < DD <= 225°).
 
@@ -5610,6 +5947,10 @@ def ddsouth(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5640,6 +5981,7 @@ def ddsouth(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 135 degree AND <= 225 degree",
         ),
@@ -5657,6 +5999,7 @@ def ddwest(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Days with westerly winds (225° < DD <= 315°).
 
@@ -5696,6 +6039,10 @@ def ddwest(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5726,6 +6073,7 @@ def ddwest(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 225 degree AND <= 315 degree",
         ),
@@ -5743,6 +6091,7 @@ def gsl(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Growing season length.
 
@@ -5782,6 +6131,10 @@ def gsl(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5812,6 +6165,7 @@ def gsl(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="day",
     )
 
@@ -5827,6 +6181,7 @@ def spi6(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """6-Month Standardized Precipitation Index.
 
@@ -5880,6 +6235,10 @@ def spi6(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -5911,6 +6270,7 @@ def spi6(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="",
     )
 
@@ -5926,6 +6286,7 @@ def spi3(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """3-Month Standardized Precipitation Index.
 
@@ -5979,6 +6340,10 @@ def spi3(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -6010,6 +6375,7 @@ def spi3(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="",
     )
 
@@ -6024,6 +6390,7 @@ def pp(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean of daily sea level pressure (hPa).
 
@@ -6063,6 +6430,10 @@ def pp(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -6093,6 +6464,7 @@ def pp(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="hPa",
     )
 
@@ -6107,6 +6479,7 @@ def ss(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Sunshine duration (hours).
 
@@ -6146,6 +6519,10 @@ def ss(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -6176,6 +6553,7 @@ def ss(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="hours",
     )
 
@@ -6190,6 +6568,7 @@ def rh(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Mean of daily relative humidity (%).
 
@@ -6229,6 +6608,10 @@ def rh(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -6259,5 +6642,6 @@ def rh(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="%",
     )

@@ -125,7 +125,7 @@ def max_consecutive_occurrence(
     logical_link: LogicalLink,
     date_event: bool,
     source_freq_delta: timedelta,
-    **kwargs,  # noqa: ARG001
+    **kwargs,
 ) -> DataArray:
     """
     Calculate the maximum number of consecutive occurrences of exceedances for a given set of climate variables.
@@ -155,10 +155,14 @@ def max_consecutive_occurrence(
         resample_freq.pandas_freq,
         logical_link,
     )
-    rle = run_length.rle(merged_exceedances, dim="time", index="first")
+    rle = run_length.rle(
+        merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
+    )
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
-        result = _consecutive_occurrences_with_dates(resampled, source_freq_delta)
+        result = _consecutive_occurrences_with_dates(
+            resampled, source_freq_delta, kwargs.get("run_index", "first")
+        )
     else:
         result = resampled.max(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")
@@ -170,7 +174,7 @@ def sum_of_spell_lengths(
     resample_freq: Frequency,
     logical_link: LogicalLink,
     min_spell_length: int,
-    **kwargs,  # noqa: ARG001
+    **kwargs,
 ) -> DataArray:
     """
     Calculate the sum of the lengths of all spells in the data.
@@ -201,9 +205,11 @@ def sum_of_spell_lengths(
         resample_freq.pandas_freq,
         logical_link,
     )
-    rle = run_length.rle(merged_exceedances, dim="time", index="first")
+    rle = run_length.rle(
+        merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
+    )
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
-    result = cropped_rle.resample(time=resample_freq.pandas_freq).max(dim="time")
+    result = cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
 
@@ -1309,6 +1315,7 @@ def _count_occurrences_with_date(resampled: DataArrayResample) -> DataArray:
 def _consecutive_occurrences_with_dates(
     resampled: DataArrayResample,
     source_freq_delta: timedelta,
+    run_index: str,
 ) -> DataArray:
     acc = []
     for label, _sample in resampled:
@@ -1318,10 +1325,16 @@ def _consecutive_occurrences_with_dates(
         # https://github.com/pydata/xarray/pull/5873
         time_index_of_max_rle = time_index_of_max_rle.compute()
         dated_longest_run = sample[{"time": time_index_of_max_rle}]
-        start_time = sample.isel(
+        anchor_time = sample.isel(
             time=time_index_of_max_rle.where(time_index_of_max_rle > 0, 0),
         ).time
-        end_time = start_time + (dated_longest_run * source_freq_delta)
+        if run_index == "last":
+            end_time = anchor_time + source_freq_delta
+            start_time = end_time - (dated_longest_run * source_freq_delta)
+        else:
+            # default to 'first' behavior
+            start_time = anchor_time
+            end_time = start_time + (dated_longest_run * source_freq_delta)
         dated_longest_run = _add_date_coords(
             original_sample=sample,
             result=dated_longest_run,
