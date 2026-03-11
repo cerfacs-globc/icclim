@@ -78,7 +78,7 @@ def tav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Moyenne de la température moyenne.
 
@@ -136,6 +136,14 @@ def tav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -172,7 +180,7 @@ def txav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Moyenne de la température maximale.
 
@@ -230,6 +238,14 @@ def txav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -266,7 +282,7 @@ def trav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Moyenne de l'amplitude thermique.
 
@@ -324,6 +340,14 @@ def trav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -364,7 +388,7 @@ def tx10(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Extrême froid de la température maximale journalière (10e centile de la température maximale).
 
@@ -446,6 +470,14 @@ def tx10(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -497,7 +529,7 @@ def tx90(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Extrême chaud de la température maximale journalière (90e centile de la température maximale).
 
@@ -579,6 +611,14 @@ def tx90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -630,7 +670,7 @@ def tn10(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Extrême froid de la température minimale  journalière (10e centile de la température minimale).
 
@@ -712,6 +752,14 @@ def tn10(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -763,7 +811,7 @@ def tn90(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Extrême chaud de la température minimale journalière (90e centile de la température minimale).
 
@@ -845,6 +893,14 @@ def tn90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -892,7 +948,7 @@ def tnfd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de jours de gel (température minimale <= 0°C).
 
@@ -950,6 +1006,14 @@ def tnfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -989,7 +1053,7 @@ def txfd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de jours sans dégel (température maximale <= 0°C).
 
@@ -1047,6 +1111,14 @@ def txfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1086,7 +1158,7 @@ def sd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de journées d'été (température maximale > 25°C).
 
@@ -1144,6 +1216,14 @@ def sd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1183,7 +1263,7 @@ def tx35(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de jours de forte chaleur (température maximale > 35°C).
 
@@ -1241,6 +1321,14 @@ def tx35(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1280,7 +1368,7 @@ def tr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de nuits tropicales (température minimale > 20°C).
 
@@ -1338,6 +1426,14 @@ def tr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -1378,7 +1474,7 @@ def txnd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
@@ -1437,6 +1533,14 @@ def txnd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -1487,7 +1591,7 @@ def tnht(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
@@ -1546,6 +1650,14 @@ def tnht(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -1596,7 +1708,7 @@ def tnnd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
@@ -1655,6 +1767,14 @@ def tnnd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -1705,7 +1825,7 @@ def tncwd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
@@ -1764,6 +1884,14 @@ def tncwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -1814,7 +1942,7 @@ def txhwd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
@@ -1873,6 +2001,14 @@ def txhwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -1922,7 +2058,7 @@ def hdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Degrés-jours de chauffage (Cumul sur la période des écarts négatifs au seuil de < 17°C par la température qt moyenne).
 
@@ -1980,6 +2116,14 @@ def hdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2019,7 +2163,7 @@ def cdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Degrés-jours de climatisation(Cumul sur la période des dépassements du seuil de > 18°C par la température qt moyenne).
 
@@ -2077,6 +2221,14 @@ def cdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2116,7 +2268,7 @@ def pav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Précipitations quotidiennes moyennes.
 
@@ -2174,6 +2326,14 @@ def pav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2210,7 +2370,7 @@ def pint(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Précipitation moyenne des jours pluvieux (RR > 1 mm).
 
@@ -2268,6 +2428,14 @@ def pint(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2307,7 +2475,7 @@ def rr(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Cumul de précipitation.
 
@@ -2365,6 +2533,14 @@ def rr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2401,7 +2577,7 @@ def rr1mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de jours de pluie (précipitations >= 1 mm).
 
@@ -2459,6 +2635,14 @@ def rr1mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2498,7 +2682,7 @@ def pn20mm(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de jours de fortes précipitations (précipitations >= 20 mm).
 
@@ -2556,6 +2740,14 @@ def pn20mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2595,7 +2787,7 @@ def pxcdd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Période de sécheresse (Max [Nbj consécutifs RR < 1 mm]).
 
@@ -2653,6 +2845,14 @@ def pxcdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2692,7 +2892,7 @@ def pxcwd(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm]).
 
@@ -2750,6 +2950,14 @@ def pxcwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2793,7 +3001,7 @@ def r99(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de jours de précipitations extrêmes.
 
@@ -2875,6 +3083,14 @@ def r99(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -2927,7 +3143,7 @@ def pfl90(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Fraction des précipitations journalières intenses.
 
@@ -3009,6 +3225,14 @@ def pfl90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -3061,7 +3285,7 @@ def pq90(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Précipitation quotidienne intense (90e centile des précipitations).
 
@@ -3143,6 +3367,14 @@ def pq90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -3195,7 +3427,7 @@ def pq99(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Précipitation quotidienne extrême (99e centile des précipitations).
 
@@ -3277,6 +3509,14 @@ def pq99(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -3326,7 +3566,7 @@ def ffav(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Écart de la vitesse du vent moyenne journalière (par rapport à une periode de référence).
 
@@ -3398,6 +3638,14 @@ def ffav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
@@ -3439,7 +3687,7 @@ def ff98(
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal[start, end] = False,
 ) -> Dataset:
     """Nombre de jours de vent fort (vent ≥ 98e centile de la période de référence).
 
@@ -3521,6 +3769,14 @@ def ff98(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Notes
     -----
