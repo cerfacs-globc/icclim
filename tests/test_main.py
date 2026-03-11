@@ -841,6 +841,33 @@ class TestIntegration:
         ).compute()
 
         assert res_last.max_consecutive_occurrence.isel(time=0) == 4
+        assert res_last.max_consecutive_occurrence.isel(
+            time=0
+        ).event_date_start == np.datetime64("2000-01-06")
+        assert res_last.max_consecutive_occurrence.isel(
+            time=0
+        ).event_date_end == np.datetime64("2000-01-10")
+        
+    def test_sum_of_spell_lengths__multiple_spells(self) -> None:
+        # 2 spells: 3 days and 4 days
+        time = pd.date_range("2000-01-01", periods=10, freq="D")
+        data = xr.DataArray(
+            [25, 25, 25, 20, 25, 25, 25, 25, 20, 20],
+            dims="time",
+            coords={"time": time},
+            attrs={"units": "degC"},
+        )
+        
+        # sum_of_spell_lengths with min_spell_length=2 should be 3 + 4 = 7
+        res = icclim.index(
+            in_files=data,
+            index_name="sum_of_spell_lengths",
+            threshold=">= 25 degC",
+            slice_mode="month",
+            min_spell_length=2,
+        ).compute()
+        
+        assert res.sum_of_spell_lengths.isel(time=0) == 7
 
     def test_count_occurrences__multiple_doy_per_thresholds(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)
