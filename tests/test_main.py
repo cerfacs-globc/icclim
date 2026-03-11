@@ -847,7 +847,7 @@ class TestIntegration:
         assert res_last.max_consecutive_occurrence.isel(
             time=0
         ).event_date_end == np.datetime64("2000-01-10")
-        
+
     def test_sum_of_spell_lengths__multiple_spells(self) -> None:
         # 2 spells: 3 days and 4 days
         time = pd.date_range("2000-01-01", periods=10, freq="D")
@@ -857,7 +857,7 @@ class TestIntegration:
             coords={"time": time},
             attrs={"units": "degC"},
         )
-        
+
         # sum_of_spell_lengths with min_spell_length=2 should be 3 + 4 = 7
         res = icclim.index(
             in_files=data,
@@ -866,7 +866,7 @@ class TestIntegration:
             slice_mode="month",
             min_spell_length=2,
         ).compute()
-        
+
         assert res.sum_of_spell_lengths.isel(time=0) == 7
 
     def test_count_occurrences__multiple_doy_per_thresholds(self) -> None:
