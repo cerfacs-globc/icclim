@@ -276,6 +276,8 @@ class GenericIndicator(Indicator):
                     **output_frequency.indexer,
                     drop=True,
                 )
+        if output_frequency.seasonal_bounds:
+            _apply_seasonal_mask(climate_vars, output_frequency.seasonal_bounds)
         _check_data(climate_vars, src_freq.pandas_freq)
         _check_cf(climate_vars)
         self._format_template(jinja_scope=jinja_scope)
@@ -289,6 +291,7 @@ class GenericIndicator(Indicator):
         src_freq: str,
         indexer: dict,
         out_unit: str | None,
+        allow_partial_seasons: bool,
     ) -> DataArray:
         """
         Postprocesses the result of the indicator computation.
@@ -373,6 +376,7 @@ class GenericIndicator(Indicator):
                     resample_freq=output_freq,
                     src_freq=src_freq,
                     indexer=indexer,
+                    allow_partial_seasons=allow_partial_seasons,
                 )
 
         for prop in self.templated_properties:
@@ -451,6 +455,7 @@ class GenericIndicator(Indicator):
             src_freq=src_freq.pandas_freq,
             indexer=config.frequency.indexer,
             out_unit=config.out_unit,
+            allow_partial_seasons=config.allow_partial_seasons,
         )
 
     def __eq__(self, other: object) -> bool:
@@ -521,7 +526,8 @@ class GenericIndicator(Indicator):
         resample_freq: str | None = None,
         src_freq: str | None = None,
         indexer: dict[str, slice] | None = None,
-    ) -> None:
+        allow_partial_seasons: bool = False,
+    ) -> DataArray:
         """
         Handle missing values in climate index computations.
 
@@ -556,6 +562,12 @@ class GenericIndicator(Indicator):
         # Reindex mask to match output if needed
         if isinstance(mask, DataArray) and mask.time.size < out_data.time.size:
             mask = mask.reindex(time=out_data.time, fill_value=True)
+
+        if allow_partial_seasons:
+            # Unmask the first and last periods
+            mask = xr.where(
+                (mask.time == mask.time[0]) | (mask.time == mask.time[-1]), False, mask
+            )
 
         return out_data.where(~mask)
 
@@ -708,3 +720,19 @@ def _check_data(climate_vars: list, src_freq: str) -> None:
 
 def _is_a_diff_indicator(indicator: Indicator) -> bool:
     return "compute_diff" in indicator.qualifiers
+
+
+def _apply_seasonal_mask(
+    climate_vars: list[ClimateVariable],
+    seasonal_bounds: tuple[DataArray, DataArray],
+) -> None:
+    start_da, end_da = seasonal_bounds
+    for climate_var in climate_vars:
+        da = climate_var.studied_data
+        doy = da.time.dt.dayofyear
+        mask = xr.where(
+            start_da <= end_da,
+            (doy >= start_da) & (doy <= end_da),
+            (doy >= start_da) | (doy <= end_da),
+        )
+        climate_var.studied_data = da.where(mask)

@@ -90,6 +90,10 @@ class IndexConfig:
     run_index : str | None
         The index to use for the run length encoding.
         None if the index is not a spell index.
+    allow_partial_seasons : bool
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        Default is False.
     """
 
     frequency: Frequency
@@ -112,3 +116,4 @@ class IndexConfig:
     indicator: Indicator
     reference: str
     run_index: str | None = None
+    allow_partial_seasons: bool = False

@@ -252,6 +252,7 @@ class Frequency:
     long_name: str
     group_by_key: str | None
     delta: np.timedelta64
+    seasonal_bounds: tuple[DataArray, DataArray] | None = None
 
     def build_frequency_kwargs(self) -> dict[str, Any]:
         """Build kwargs with possible keys in {"freq", "month", "date_bounds"}."""
@@ -544,15 +545,36 @@ def _get_frequency_from_iterable(
             " its second a list (e.g `slice_mode=['season', [1,2,3]]` )."
         )
         raise InvalidIcclimArgumentError(msg)
+    if (
+        isinstance(slice_mode_list, (list, tuple))
+        and len(slice_mode_list) == 2
+        and isinstance(slice_mode_list[0], DataArray)
+        and isinstance(slice_mode_list[1], DataArray)
+    ):
+        # format: (start_da, end_da) -> defaults to YS
+        return _build_spatially_varying_seasonal_freq(slice_mode_list, "YS")
+
     freq_keyword = slice_mode_list[0]
-    if freq_keyword in ["month", "months"]:
+    if isinstance(freq_keyword, str) and freq_keyword in ["month", "months"]:
         return _build_frequency_filtered_by_month(slice_mode_list[1])
-    if freq_keyword in ["season", "seasons"]:
+    if isinstance(freq_keyword, str) and freq_keyword in ["season", "seasons"]:
         season = slice_mode_list[1]
         return _build_seasonal_freq(season)
+    if (
+        isinstance(freq_keyword, (list, tuple))
+        and len(freq_keyword) == 2
+        and isinstance(freq_keyword[0], DataArray)
+        and isinstance(freq_keyword[1], DataArray)
+    ):
+        # format: ( (start_da, end_da), "YS" )
+        bounds = freq_keyword
+        pandas_freq = slice_mode_list[1] if len(slice_mode_list) > 1 else "YS"
+        return _build_spatially_varying_seasonal_freq(bounds, pandas_freq)
+
     msg = (
         f"Unknown frequency {slice_mode_list}."
         " The sampling frequency must be one of {'season', 'month'}"
+        " or a tuple of (DataArray, DataArray) for spatially varying seasons."
     )
     raise InvalidIcclimArgumentError(msg)
 
@@ -623,6 +645,24 @@ def _build_seasonal_frequency_for_months(season: tuple | list) -> Frequency:
         long_name=f"seasonal time series (season: {season})",
         group_by_key=RUN_INDEXER,
         delta=np.timedelta64(len(season), "M"),
+    )
+
+
+def _build_spatially_varying_seasonal_freq(
+    bounds: tuple[DataArray, DataArray],
+    pandas_freq: str,
+) -> Frequency:
+    return Frequency(
+        indexer=None,
+        post_processing=get_time_bounds_updater(pandas_freq),
+        pandas_freq=pandas_freq,
+        adjective="spatially varying seasonal",
+        accepted_values=[],
+        units="spatially_varying_seasons",
+        long_name="spatially varying seasonal time series",
+        group_by_key=None,
+        delta=_get_delta(pandas_freq),
+        seasonal_bounds=bounds,
     )
 
 

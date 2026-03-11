@@ -174,6 +174,44 @@ Additionally, you can define a season between two exact dates:
 
    slice_mode = ["clipped_season", ["07-19", "08-14"]]
 
+Spatially varying seasons
+-------------------------
+
+|  For indices where the season changes across the grid (e.g., following a crop
+   growth stage or a local climatic boundary), you can provide a tuple of two
+   ``xarray.DataArray`` objects. These DataArrays must contain the start and end
+   day-of-year for each grid point.
+|  This feature is available for all indices in the generic framework.
+
+.. code:: python
+
+   # start_da and end_da are DataArrays with same spatial dimensions as input data
+   slice_mode = (start_da, end_da)
+
+   # You can also specify the resampling frequency (default is "YS")
+   slice_mode = ((start_da, end_da), "2YS")
+ 
+``allow_partial_seasons``
+=========================
+ 
+|  The ``allow_partial_seasons`` parameter (default ``False``) determines whether
+   incomplete seasons at the very beginning or the very end of the time series
+   should be included in the results.
+|  By default, icclim masks seasons that do not have daily data for their entire
+   duration (reporting them as ``NaN``). Enabling this flag preserves these partial
+   periods, which is useful for near-real-time monitoring or for replicating
+   datasets like the KNMI Hellmann values.
+ 
+.. code:: python
+ 
+   # Include the ongoing season at the end of the data
+   icclim.index(
+       in_files=ds,
+       index_name="SU",
+       slice_mode=("season", ("1 november", "31 march")),
+       allow_partial_seasons=True
+   )
+ 
 .. note::
 
    With 5.3.0 icclim now accepts pandas string frequency for slice_mode

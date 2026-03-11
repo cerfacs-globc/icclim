@@ -230,6 +230,7 @@ def index(
     rolling_window_width: int | None = 5,
     sampling_method: SamplingMethodLike = RESAMPLE_METHOD,
     run_index: str | None = "first",
+    allow_partial_seasons: bool = False,
     *,
     # deprecated params are kwargs only
     window_width: int | None = None,
@@ -269,6 +270,9 @@ def index(
         frequency.
         A season can also be defined between two exact dates:
         ``("season", ("19 july", "14 august"))``.
+        Spatially varying seasons can be defined by providing a tuple of
+        two ``xarray.DataArray`` objects (start day-of-year and end day-of-year):
+        ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
     time_range: list[datetime.datetime ] | list[str]  | tuple[str, str] | None
@@ -387,6 +391,55 @@ def index(
     >>> result = icclim.index(in_files=tasmax, index_name="SU", var_name="tasmax")
     >>> int(result["SU"].isel(time=0).values)
     365
+
+    Compute a generic index with spatially varying seasons:
+
+    >>> import numpy as np, pandas as pd, xarray as xr, icclim
+    >>> time = pd.date_range("2000-01-01", periods=366, freq="D")
+    >>> tas = xr.DataArray(
+    ...     np.full((366, 1, 2), 300.0),
+    ...     coords={"time": time, "lat": [45], "lon": [5, 10]},
+    ...     dims=["time", "lat", "lon"],
+    ...     attrs={"units": "K"},
+    ... )
+    >>> # Pixel 1: season is JJA (doy 153 to 244 in leap year)
+    >>> # Pixel 2: season is SON (doy 245 to 335 in leap year)
+    >>> start = xr.DataArray(
+    ...     [[153, 245]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5, 10]}
+    ... )
+    >>> end = xr.DataArray(
+    ...     [[244, 335]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5, 10]}
+    ... )
+    >>> result = icclim.index(
+    ...     in_files=tas,
+    ...     index_name="TG",
+    ...     slice_mode=(start, end),
+    ... )
+    >>> # TG is the mean temperature over the season.
+    >>> # Since all values are 300K (26.85°C), the result should be ~26.85
+    >>> round(float(result["TG"].isel(time=0, lat=0, lon=0).values), 2)
+    26.85
+ 
+    Compute an index with an incomplete season at the end (Hellmann style):
+
+    >>> import numpy as np, pandas as pd, xarray as xr, icclim
+    >>> time = pd.date_range("2020-01-01", "2021-12-31", freq="D")
+    >>> tas = xr.DataArray(
+    ...     np.full(len(time), 30.0),
+    ...     coords={"time": time},
+    ...     dims=["time"],
+    ...     attrs={"units": "degC"},
+    ... )
+    >>> slice_mode = ("season", ("1 november", "31 march"))
+    >>> result = icclim.index(
+    ...     in_files=tas,
+    ...     index_name="SU",
+    ...     slice_mode=slice_mode,
+    ...     allow_partial_seasons=True
+    ... )
+    >>> # The last season (2021-11-01 to 2022-03-31) is partial (61 days in 2021)
+    >>> int(result["SU"].values[-1])
+    61
     """
     _setup(callback, callback_percentage_start_value, logs_verbosity)
     (
@@ -428,6 +481,7 @@ def index(
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
     result_ds = _compute_climate_index(
         climate_index=config.indicator,
@@ -471,6 +525,7 @@ def _build_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    allow_partial_seasons: bool,
 ) -> IndexConfig:
     if user_index is not None and (index_name is None or isinstance(index_name, str)):
         return _build_user_index_config(
@@ -494,6 +549,7 @@ def _build_config(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            allow_partial_seasons=allow_partial_seasons,
         )
     if index_name is not None:
         return _build_standard_index_config(
@@ -517,6 +573,7 @@ def _build_config(
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
             run_index=run_index,
+            allow_partial_seasons=allow_partial_seasons,
         )
     msg = "You must fill either index_name or user_indexto compute a climate index."
     raise InvalidIcclimArgumentError(msg)
@@ -584,6 +641,7 @@ def _build_user_index_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    allow_partial_seasons: bool,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     indicator = parse.read_indicator(user_index)
@@ -640,6 +698,7 @@ def _build_user_index_config(
         indicator=indicator,
         reference=ICCLIM_REFERENCE,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
@@ -664,6 +723,7 @@ def _build_standard_index_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
+    allow_partial_seasons: bool,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     # logical link here link two climate_variable computations as with user_index.
@@ -734,6 +794,7 @@ def _build_standard_index_config(
         indicator=indicator,
         reference=reference,
         run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
     )
 
 
