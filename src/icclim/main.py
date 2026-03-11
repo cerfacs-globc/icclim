@@ -16,7 +16,7 @@ import operator
 import time
 from collections.abc import Callable, Sequence
 from functools import reduce
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, Union
 from warnings import warn
 
 import numpy as np
@@ -69,6 +69,8 @@ if TYPE_CHECKING:
     )
     from icclim._core.model.in_file_dictionary import InFileDictionary
     from icclim._core.model.indicator import Indicator
+
+SliceMode = Union[str, Sequence[str], "Frequency", "FrequencyLike"]
 
 log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 
@@ -203,10 +205,7 @@ def indice(*args, **kwargs) -> Dataset:
 
 def index(
     in_files: InFileLike,
-    index_name: str
-    | GenericIndicator
-    | StandardIndex
-    | None = None,  # optional when computing user_indices
+    index_name: str | GenericIndicator | StandardIndex | None = None,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -230,7 +229,7 @@ def index(
     rolling_window_width: int | None = 5,
     sampling_method: SamplingMethodLike = RESAMPLE_METHOD,
     run_index: str | None = "first",
-    allow_partial_seasons: bool = False,
+    allow_partial_seasons: bool | Literal["start", "end"] = False,
     *,
     # deprecated params are kwargs only
     window_width: int | None = None,
@@ -375,6 +374,14 @@ def index(
         instead.
     save_percentile: bool
         DEPRECATED, use save_thresholds instead.
+    allow_partial_seasons : bool | "start" | "end"
+        Flag indicating whether to allow partial seasons to be included in the
+        index calculation.
+        - True: Unmasks both the first and last periods.
+        - False: Masks any incomplete periods (standard behavior).
+        - "start": Unmasks only the first period.
+        - "end": Unmasks only the last period.
+        Default is False.
 
     Examples
     --------
@@ -525,7 +532,7 @@ def _build_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
-    allow_partial_seasons: bool,
+    allow_partial_seasons: bool | Literal["start", "end"],
 ) -> IndexConfig:
     if user_index is not None and (index_name is None or isinstance(index_name, str)):
         return _build_user_index_config(
@@ -641,7 +648,7 @@ def _build_user_index_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
-    allow_partial_seasons: bool,
+    allow_partial_seasons: bool | Literal["start", "end"],
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     indicator = parse.read_indicator(user_index)
@@ -723,7 +730,7 @@ def _build_standard_index_config(
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
     run_index: str | None,
-    allow_partial_seasons: bool,
+    allow_partial_seasons: bool | Literal["start", "end"],
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     # logical link here link two climate_variable computations as with user_index.

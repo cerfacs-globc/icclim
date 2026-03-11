@@ -561,11 +561,17 @@ class GenericIndicator(Indicator):
         if isinstance(mask, DataArray) and mask.time.size < out_data.time.size:
             mask = mask.reindex(time=out_data.time, fill_value=True)
 
-        if allow_partial_seasons:
+        if allow_partial_seasons is True:
             # Unmask the first and last periods
             mask = xr.where(
                 (mask.time == mask.time[0]) | (mask.time == mask.time[-1]), False, mask
             )
+        elif allow_partial_seasons == "start":
+            # Unmask only the first period
+            mask = xr.where(mask.time == mask.time[0], False, mask)
+        elif allow_partial_seasons == "end":
+            # Unmask only the last period
+            mask = xr.where(mask.time == mask.time[-1], False, mask)
 
         return out_data.where(~mask)
 

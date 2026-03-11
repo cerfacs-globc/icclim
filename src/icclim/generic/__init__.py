@@ -20,3 +20,4 @@ Examples
 >>> print(result.count_occurrences)
 
 """
+from icclim._generated._generic import *  # noqa: F403

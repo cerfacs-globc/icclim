@@ -26,9 +26,13 @@ class GrowingSeasonLength(Indicator):
     """
 
     name = "growing_season_length"
-    standard_name = xclim.atmos.growing_season_length.standard_name
     long_name = "ECAD Growing Season Length (Tmean > 5 degree_Celsius)"
     cell_methods = ""
+
+    @property
+    def standard_name(self) -> str:  # type: ignore[override]
+        """Lazily access xclim to avoid triggering numba cache on import."""
+        return xclim.atmos.growing_season_length.standard_name
 
     def __call__(self, config: IndexConfig) -> xarray.DataArray:
         """Compute the growing season length."""
@@ -65,9 +69,13 @@ class StandardizedPrecipitationIndex3(Indicator):
     """
 
     name = "standardized_precipitation_index_3"
-    standard_name = xclim.atmos.standardized_precipitation_index.standard_name
     long_name = "3-Month Standardized Precipitation Index (SPI3)"
     cell_methods = ""
+
+    @property
+    def standard_name(self) -> str:  # type: ignore[override]
+        """Lazily access xclim to avoid triggering numba cache on import."""
+        return xclim.atmos.standardized_precipitation_index.standard_name
 
     def __call__(self, config: IndexConfig) -> xarray.DataArray:
         """Compute the 3-Month Standardized Precipitation Index."""
@@ -118,9 +126,13 @@ class StandardizedPrecipitationIndex6(Indicator):
     """
 
     name = "standardized_precipitation_index_6"
-    standard_name = xclim.atmos.standardized_precipitation_index.standard_name
     long_name = "6-Month Standardized Precipitation Index (SPI6)"
     cell_methods = ""
+
+    @property
+    def standard_name(self) -> str:  # type: ignore[override]
+        """Lazily access xclim to avoid triggering numba cache on import."""
+        return xclim.atmos.standardized_precipitation_index.standard_name
 
     def __call__(self, config: IndexConfig) -> xarray.DataArray:
         """Compute the 6-Month Standardized Precipitation Index."""
