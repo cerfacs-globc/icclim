@@ -1,8 +1,8 @@
 .. _thresholds_reference:
 
-###############################
+###################################
  Thresholds and Operators Reference
-###############################
+###################################
 
 This page documents all available **operators** and **threshold types** that can be used
 with :func:`icclim.build_threshold` and the generic index API.
@@ -184,9 +184,9 @@ directly as a path to a NetCDF/Zarr file, or as an ``xarray.DataArray``.
    doys = xclim.core.calendar.percentile_doy(tasmax_ds.tasmax)
    t_doy = build_threshold(operator=">=", value=doys)
 
-*****************************
+******************************
  Combining thresholds (AND/OR)
-*****************************
+******************************
 
 Multiple thresholds on **different variables** can be combined via the
 ``in_files`` dictionary syntax when calling a generic index:

@@ -156,10 +156,10 @@ ignore = [
   "SIM102", # Allow nexted if
   "E501", # Allow line too long
   "D200", # Allow one-line docstring on several lines
-  "UP038", # Ignore isinstance
+
   "UP007", # Ignore Use `X | Y` for type annotations
   "D401", # Allow docstrings to have non-imperative mood.
-  "ANN101", # Allow typing omissions for `self`
+
   "ANN002", # Allow no typing for `*args`
   "ANN003", # Allow no typing for `**kwargs`
   "N803" # Allow non-lowercase argument names (established API names like ignore_Feb29th)

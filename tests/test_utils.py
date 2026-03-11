@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -9,7 +9,7 @@ from icclim.exception import InvalidIcclimArgumentError
 class TestReadDate:
     def test_read_date_from_datetime(self):
         # Given
-        dt = datetime(2000, 1, 1)
+        dt = datetime(2000, 1, 1, tzinfo=timezone.utc)
 
         # When
         result = read_date(dt)
@@ -24,7 +24,7 @@ class TestReadDate:
             ("1994-12-02", 1994, 12, 2),
             (
                 "2 december",
-                datetime.now().year,
+                datetime.now(timezone.utc).year,
                 12,
                 2,
             ),  # dateparser uses current year if missing
