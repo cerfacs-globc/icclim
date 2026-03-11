@@ -61,9 +61,9 @@ Use this checklist when the bot PR requires manual intervention:
 #. If Python support bounds changed, comment: ``@conda-forge-admin, rerender``.
 #. Wait for CI to pass, then merge.
 
-****************************
+*************************************
  Enabling Auto-merge on Bot PRs
-****************************
+*************************************
 
 To make routine patch releases fully automatic (no manual merge needed),
 add the following to ``conda-forge.yml`` in the feedstock:
