@@ -12,7 +12,7 @@ This PR introduces support for **partial seasons** and **spatially varying seaso
 
 - **Partial Seasons Support**: Added `allow_partial_seasons` parameter to `icclim.index`. When enabled, it allows including unfinished seasons at the time series boundaries (essential for indices like the KNMI Hellmann dataset).
 - **Spatially Varying Seasons**: `slice_mode` now accepts a tuple of `(start, end)` day-of-year `DataArray` objects, enabling per-pixel seasonal definitions across a spatial grid.
-- **Frequency Warning Fix**: 
+- **Frequency Warning Fix**:
     - Explicitly sets the `freq` attribute on `DataArray.time` coordinates in `ClimateVariable` for better CF compliance.
     - Implemented a `_safe_to_agg_units` wrapper in `functions.py` to suppress redundant `xclim` "assuming 'D'" warnings during aggregation when the frequency is known but not automatically inferable by `xarray` (typical for irregular seasonal series).
 

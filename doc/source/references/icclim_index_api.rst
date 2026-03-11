@@ -190,10 +190,10 @@ Spatially varying seasons
 
    # You can also specify the resampling frequency (default is "YS")
    slice_mode = ((start_da, end_da), "2YS")
- 
+
 ``allow_partial_seasons``
 =========================
- 
+
 |  The ``allow_partial_seasons`` parameter (default ``False``) determines whether
    incomplete seasons at the very beginning or the very end of the time series
    should be included in the results.
@@ -201,9 +201,9 @@ Spatially varying seasons
    duration (reporting them as ``NaN``). Enabling this flag preserves these partial
    periods, which is useful for near-real-time monitoring or for replicating
    datasets like the KNMI Hellmann values.
- 
+
 .. code:: python
- 
+
    # Include the ongoing season at the end of the data
    icclim.index(
        in_files=ds,
@@ -211,7 +211,7 @@ Spatially varying seasons
        slice_mode=("season", ("1 november", "31 march")),
        allow_partial_seasons=True
    )
- 
+
 .. note::
 
    With 5.3.0 icclim now accepts pandas string frequency for slice_mode

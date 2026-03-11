@@ -419,7 +419,7 @@ def index(
     >>> # Since all values are 300K (26.85°C), the result should be ~26.85
     >>> round(float(result["TG"].isel(time=0, lat=0, lon=0).values), 2)
     26.85
- 
+
     Compute an index with an incomplete season at the end (Hellmann style):
 
     >>> import numpy as np, pandas as pd, xarray as xr, icclim
@@ -435,7 +435,7 @@ def index(
     ...     in_files=tas,
     ...     index_name="SU",
     ...     slice_mode=slice_mode,
-    ...     allow_partial_seasons=True
+    ...     allow_partial_seasons=True,
     ... )
     >>> # The last season (2021-11-01 to 2022-03-31) is partial (61 days in 2021)
     >>> int(result["SU"].values[-1])

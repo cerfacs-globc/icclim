@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 import xarray as xr
-import pytest
+
 import icclim
+
 
 class TestSpatiallyVaryingSeasons:
     def test_tg_spatially_varying(self):
@@ -13,14 +14,14 @@ class TestSpatiallyVaryingSeasons:
         data = np.zeros((366, 1, 2))
         data[:, 0, 0] = 10
         data[:, 0, 1] = 20
-        
+
         tas = xr.DataArray(
             data,
             coords={"time": time, "lat": [45], "lon": [5, 10]},
             dims=["time", "lat", "lon"],
             attrs={"units": "degC"},
         )
-        
+
         # Pixel 1: season is doy 1 to 50 (50 days)
         # Pixel 2: season is doy 100 to 150 (51 days)
         start = xr.DataArray(
@@ -29,13 +30,13 @@ class TestSpatiallyVaryingSeasons:
         end = xr.DataArray(
             [[50, 150]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5, 10]}
         )
-        
+
         result = icclim.index(
             in_files={"tas": tas},
             index_name="TG",
             slice_mode=(start, end),
         )
-        
+
         # TG is the mean
         # Pixel 1 should have 10
         # Pixel 2 should have 20
@@ -49,14 +50,14 @@ class TestSpatiallyVaryingSeasons:
         data[0:10, 0, 0] = 30
         # Pixel 2: 30°C on doy 100 to 120 (21 days), 0 elsewhere
         data[99:120, 0, 1] = 30
-        
+
         tasmax = xr.DataArray(
             data,
             coords={"time": time, "lat": [45], "lon": [5, 10]},
             dims=["time", "lat", "lon"],
             attrs={"units": "degC"},
         )
-        
+
         # Seasonal bounds that cover the hot periods
         start = xr.DataArray(
             [[1, 100]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5, 10]}
@@ -64,13 +65,13 @@ class TestSpatiallyVaryingSeasons:
         end = xr.DataArray(
             [[20, 150]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5, 10]}
         )
-        
+
         result = icclim.index(
             in_files={"tasmax": tasmax},
             index_name="SU",
             slice_mode=(start, end),
         )
-        
+
         # Pixel 1: 10 days >= 25
         # SU should have 10
         # Pixel 2 should have 21
@@ -90,23 +91,25 @@ class TestSpatiallyVaryingSeasons:
         # Total 12 days in the season doy 360 to doy 5
         data[359:366, 0, 0] = 10
         data[0:5, 0, 0] = 10
-        
+
         tas = xr.DataArray(
             data,
             coords={"time": time, "lat": [45], "lon": [5]},
             dims=["time", "lat", "lon"],
             attrs={"units": "degC"},
         )
-        
+
         # Wrapping season: 360 to 5
-        start = xr.DataArray([[360]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5]})
+        start = xr.DataArray(
+            [[360]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5]}
+        )
         end = xr.DataArray([[5]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5]})
-        
+
         result = icclim.index(
             in_files={"tas": tas},
             index_name="TG",
             slice_mode=(start, end),
         )
-        
+
         # Mean should be 10 (ignoring 0s outside the season)
         assert result.TG.isel(time=0, lat=0, lon=0) == 10
