@@ -380,7 +380,8 @@ def index(
     >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
     >>> tasmax = xr.DataArray(
     ...     np.full(365, 303.15),
-    ...     coords={"time": time}, dims=["time"],
+    ...     coords={"time": time},
+    ...     dims=["time"],
     ...     attrs={"units": "K"},
     ... )
     >>> result = icclim.index(in_files=tasmax, index_name="SU", var_name="tasmax")

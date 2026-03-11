@@ -112,7 +112,8 @@ def count_occurrences(
     >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
     >>> tas = xr.DataArray(
     ...     np.full(365, 303.15),
-    ...     coords={"time": time}, dims=["time"],
+    ...     coords={"time": time},
+    ...     dims=["time"],
     ...     attrs={"units": "K"},
     ... )
     >>> result = icclim.count_occurrences(
@@ -182,7 +183,8 @@ def max_consecutive_occurrence(
     >>> # Dry every day
     >>> pr = xr.DataArray(
     ...     np.zeros(365),
-    ...     coords={"time": time}, dims=["time"],
+    ...     coords={"time": time},
+    ...     dims=["time"],
     ...     attrs={"units": "mm/day"},
     ... )
     >>> result = icclim.max_consecutive_occurrence(
@@ -442,7 +444,8 @@ def maximum(
     >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
     >>> tas = xr.DataArray(
     ...     np.arange(365, dtype=float) + 273.15,
-    ...     coords={"time": time}, dims=["time"],
+    ...     coords={"time": time},
+    ...     dims=["time"],
     ...     attrs={"units": "K"},
     ... )
     >>> result = icclim.maximum(in_files=tas, var_name="tas")
@@ -493,7 +496,8 @@ def minimum(
     >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
     >>> tas = xr.DataArray(
     ...     np.zeros(365) + 273.15,
-    ...     coords={"time": time}, dims=["time"],
+    ...     coords={"time": time},
+    ...     dims=["time"],
     ...     attrs={"units": "K"},
     ... )
     >>> result = icclim.minimum(in_files=tas, var_name="tas")
@@ -541,7 +545,8 @@ def average(
     >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
     >>> tas = xr.DataArray(
     ...     np.full(365, 293.15),
-    ...     coords={"time": time}, dims=["time"],
+    ...     coords={"time": time},
+    ...     dims=["time"],
     ...     attrs={"units": "K"},
     ... )
     >>> result = icclim.average(in_files=tas, var_name="tas")
@@ -589,7 +594,8 @@ def generic_sum(
     >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
     >>> pr = xr.DataArray(
     ...     np.full(365, 2.0),
-    ...     coords={"time": time}, dims=["time"],
+    ...     coords={"time": time},
+    ...     dims=["time"],
     ...     attrs={"units": "mm/day"},
     ... )
     >>> result = icclim.sum(in_files=pr, var_name="pr")

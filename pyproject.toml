@@ -75,6 +75,12 @@ Documentation = "https://icclim.readthedocs.io/en/latest/how_to/index.html"
 Source = "https://github.com/cerfacs-globc/icclim/"
 CI = "https://github.com/cerfacs-globc/icclim/actions"
 
+[tool.pytest.ini_options]
+testpaths = ["tests", "src/icclim"]
+addopts = "--doctest-modules"
+doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
+norecursedirs = ["src/icclim/_generated"]
+
 [tool.ruff]
 
 [tool.ruff.format]
@@ -190,9 +196,3 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
-
-[tool.pytest.ini_options]
-testpaths = ["tests", "src/icclim"]
-addopts = "--doctest-modules"
-doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
-norecursedirs = ["src/icclim/_generated"]
