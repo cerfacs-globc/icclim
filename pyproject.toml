@@ -42,7 +42,8 @@ dependencies = [
   "pandas>=1.3.0",
   "dateparser>=1.1.0",
   "pint>=0.20",
-  "jinja2>=3.0"
+  "jinja2>=3.0",
+  "typing-extensions>=4.0"
 ]
 
 [project.optional-dependencies]
@@ -72,6 +73,7 @@ doc = [
 [project.urls]
 Documentation = "https://icclim.readthedocs.io/en/latest/how_to/index.html"
 Source = "https://github.com/cerfacs-globc/icclim/"
+CI = "https://github.com/cerfacs-globc/icclim/actions"
 
 [tool.ruff]
 

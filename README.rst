@@ -9,12 +9,13 @@ icclim name stands for index, calculation, climate.
 Installation
 ------------
 
+From conda-forge (recommended): ``conda install -c conda-forge icclim``.
+
 From pypi: ``pip install icclim``.
 
 From sources:
     - Clone the repository ``git clone https://github.com/cerfacs-globc/icclim.git``
-    - Install icclim ``pip install . -c constraints.txt``
-      (use the constraints file for a reproducible, validated environment)
+    - Install icclim ``pip install .``
 
 Compatibility
 -------------

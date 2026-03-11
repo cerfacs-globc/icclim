@@ -2,21 +2,29 @@
  Installation
 ##############
 
-**************
- Dependencies
-**************
+.. note::
 
-The dependencies to run icclim are listed under our `requirements.txt
-<https://github.com/cerfacs-globc/icclim/blob/master/requirements.txt>`_
-file.
+   Make sure you have **Python 3.10+**.
 
 ****************************
  Installation (Linux, OS X)
 ****************************
 
-.. note::
+To install from conda-forge (recommended)
+==========================================
 
-   Make sure you have **Python 3.10+**.
+The easiest way to install icclim is via `conda-forge <https://conda-forge.org/>`_,
+which also installs all dependencies automatically:
+
+.. code:: sh
+
+   conda install -c conda-forge icclim
+
+Or, if you are using ``mamba``:
+
+.. code:: sh
+
+   mamba install -c conda-forge icclim
 
 To install from pip
 ===================
@@ -30,42 +38,25 @@ To install from sources
 
 With git:
 
-#. ``git clone git://github.com/cerfacs-globc/icclim``
+#. ``git clone https://github.com/cerfacs-globc/icclim.git``
 #. ``cd icclim``
+#. ``pip install .``
 
 Or without git:
 
 #. Go to https://github.com/cerfacs-globc/icclim/releases/.
-#. you can download the last release: click to **Source code (zip)** or
-   **Source code (tar.gz)**.
-#. Extract the file.
-#. Go to extracted directory.
+#. Download the last release: click **Source code (zip)** or **Source code (tar.gz)**.
+#. Extract the archive and go to the extracted directory.
+#. ``pip install .``
 
-Then run the following commands:
+Check the installation
+=======================
 
-.. code:: sh
+.. code:: python
 
-   [sudo] python setup.py install
-
-or if you don't have root or sudo access, as a normal user:
-
-.. code:: sh
-
-   python setup.py install --user
-
-6. Check if the library is installed correctly:
-
-.. code:: sh
-
-   >>> import icclim
-
-To get the version of installed library, do the following:
-
-.. code:: sh
-
-   >>> icclim.__version__
-   5.0.0
+   import icclim
+   print(icclim.__version__)
 
 .. note::
 
-   icclim was not tested on Windows platform...
+   icclim was not tested on Windows platform.
