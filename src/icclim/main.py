@@ -372,6 +372,20 @@ def index(
     save_percentile: bool
         DEPRECATED, use save_thresholds instead.
 
+    Examples
+    --------
+    Compute Summer Days (SU) from an in-memory xarray DataArray:
+
+    >>> import numpy as np, pandas as pd, xarray as xr, icclim
+    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> tasmax = xr.DataArray(
+    ...     np.full(365, 303.15),
+    ...     coords={"time": time}, dims=["time"],
+    ...     attrs={"units": "K"},
+    ... )
+    >>> result = icclim.index(in_files=tasmax, index_name="SU", var_name="tasmax")
+    >>> int(result["SU"].isel(time=0).values)
+    365
     """
     _setup(callback, callback_percentage_start_value, logs_verbosity)
     (
