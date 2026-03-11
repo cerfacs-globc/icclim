@@ -25,6 +25,7 @@ Details
 -  [maint] Add ``typing-extensions>=4.0`` to dependencies for Python 3.10/3.11 compatibility.
 -  [maint] Add ``CI`` URL to ``pyproject.toml`` project URLs for PyPI badge display.
 -  [enh] Add inline doctests to CI test suite and expand test coverage for generic reducers (#109).
+-  [doc] Remove deprecated ``create_optimized_zarr_store`` from API documentation (#138).
 
 ******
 7.0.5
