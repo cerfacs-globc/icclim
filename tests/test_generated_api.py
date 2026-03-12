@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import inspect
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
@@ -60,18 +61,29 @@ def build_expected_args(index: StandardIndex):
             },
         )
     if index.threshold is not None:
-        if isinstance(index.threshold, str):
-            t = build_threshold(index.threshold)
-        elif isinstance(index.threshold, (list, tuple)):
-            t = []
-            for thresh in index.threshold:
-                if isinstance(thresh, str):
-                    t.append(build_threshold(thresh))
-                else:
-                    t.append(thresh)
-        else:
-            t = index.threshold
-        expected_call_args.update({"threshold": t})
+        def _build_t(thresh):
+            if isinstance(thresh, str):
+                return build_threshold(thresh)
+            if isinstance(thresh, dict):
+                thresh_args = thresh.copy()
+                if QUANTILE_BASED in qualifiers:
+                    thresh_args.update(
+                        {
+                            "doy_window_width": 5,
+                            "only_leap_years": False,
+                            "interpolation": QuantileInterpolationRegistry.MEDIAN_UNBIASED.name,
+                            "reference_period": None,
+                        }
+                    )
+                return build_threshold(**thresh_args)
+            return thresh
+
+        if isinstance(index.threshold, (list, tuple)):
+            t = [_build_t(thresh) for thresh in index.threshold]
+            expected_call_args.update({"threshold": t})
+        elif not isinstance(index.threshold, dict):
+            t = _build_t(index.threshold)
+            expected_call_args.update({"threshold": t})
     expected_call_args.update({"out_unit": index.output_unit})
     return expected_call_args
 
@@ -85,6 +97,8 @@ def test_generated_api(generic_index_fun_mock: MagicMock) -> None:
         api_index_fun(**DEFAULT_ARGS)
         # THEN
         expected_call_args = build_expected_args(i)
+        # The generated API for standard indices might NOT have a threshold parameter
+        # if it's already defined in the registry.
         generic_index_fun_mock.assert_called_with(**expected_call_args)
     for g in GenericIndicatorRegistry.values():
         # GIVEN

@@ -8,7 +8,7 @@ This module exposes each climate index as individual functions for convenience.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from xarray import Dataset, DataArray

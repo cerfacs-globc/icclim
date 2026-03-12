@@ -4,12 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+import numpy as np
 import xarray as xr
 from xarray import DataArray, Dataset
-from xclim.core.bootstrapping import percentile_bootstrap
-from xclim.core.calendar import build_climatology_bounds, percentile_doy, resample_doy
-from xclim.core.units import convert_units_to
-from xclim.core.utils import calc_perc
 
 from icclim._core.constants import (
     DEFAULT_DOY_WINDOW,
@@ -98,13 +95,20 @@ class PercentileThreshold(Threshold):
     @unit.setter
     def unit(self, unit: str | xr.DataArray | pint.Quantity | pint.Unit) -> None:
         if self.is_ready:
-            if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
+            if (
+                self._prepared_value.attrs.get(UNITS_KEY, None) is not None
+                and unit is not None
+            ):
+                from xclim.core.units import convert_units_to  # noqa: PLC0415
+
                 self._prepared_value = convert_units_to(
                     self._prepared_value,
                     unit,
                     context="hydro",
                 )
-            self.value.attrs[UNITS_KEY] = unit
+            self._prepared_value.attrs[UNITS_KEY] = unit
+        else:
+            self._initial_unit = unit
 
     @property
     def value(self) -> PercentileDataArray:
@@ -367,31 +371,57 @@ class PercentileThreshold(Threshold):
             return EN_THRESHOLD_TEMPLATE["single_period_percentile"]
         return EN_THRESHOLD_TEMPLATE["multiple_period_percentiles"]
 
-    @percentile_bootstrap
     def _per_compute(
         self,
         comparison_data: xr.DataArray,
         per: xr.DataArray,
         op: Callable[[DataArray, DataArray], DataArray],
         is_doy_per_threshold: bool,
-        freq: str,  # noqa: ARG002
-        bootstrap: bool,  # noqa: ARG002
+        freq: str,
+        bootstrap: bool,
     ) -> DataArray:
-        if self.threshold_min_value is not None:
-            # there is only a threshold_min_value when we are computing > or >=
-            thresh = self.threshold_min_value
-            thresh = convert_units_to(thresh, per, context="hydro")
-            per = per.where(per > thresh, thresh)
-        if is_doy_per_threshold:
-            threshold_value = resample_doy(per, comparison_data)
-        else:
-            threshold_value = per
-        return op(comparison_data, threshold_value)
+        from xclim.core.bootstrapping import percentile_bootstrap  # noqa: PLC0415
+
+        @percentile_bootstrap
+        def __per_compute(
+            da: xr.DataArray,
+            per: xr.DataArray,
+            op: Callable[[DataArray, DataArray], DataArray],
+            is_doy_per_threshold: bool,
+            freq: str,
+            bootstrap: bool,
+        ) -> DataArray:
+            if self.threshold_min_value is not None:
+                # there is only a threshold_min_value when we are computing > or >=
+                thresh = self.threshold_min_value
+                from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+                thresh = convert_units_to(thresh, per, context="hydro")
+                per = per.where(per > thresh, thresh)
+            if is_doy_per_threshold:
+                from xclim.core.calendar import resample_doy  # noqa: PLC0415
+
+                threshold_value = resample_doy(per, da)
+            else:
+                threshold_value = per
+            return op(da, threshold_value)
+
+        return __per_compute(
+            comparison_data,
+            per,
+            op,
+            is_doy_per_threshold,
+            freq,
+            bootstrap,
+        )
 
 
 def _compute_per(
     per_val: float, alpha: float, beta: float, study: DataArray
 ) -> PercentileDataArray:
+    from xclim.core.calendar import build_climatology_bounds  # noqa: PLC0415
+    from xclim.core.utils import calc_perc  # noqa: PLC0415
+
     computed_per = xr.apply_ufunc(
         calc_perc,
         study,
@@ -449,13 +479,15 @@ def _build_doy_per(
         only_leap_years,
         percentile_min_value,
     )
+    from xclim.core.calendar import percentile_doy  # noqa: PLC0415
+
     return percentile_doy(
         arr=reference,
         window=doy_window_width,
         per=per_val,
         alpha=interpolation.alpha,
         beta=interpolation.beta,
-    ).compute()  # "optimization" (diminish dask scheduler workload)
+    )
 
 
 def _build_per_thresh_from_dataset(
@@ -471,6 +503,8 @@ def _build_per_thresh_from_dataset(
     )
     if unit is not None:
         if built_value.attrs.get(UNITS_KEY, None) is not None:
+            from xclim.core.units import convert_units_to  # noqa: PLC0415
+
             built_value = convert_units_to(built_value, unit, context="hydro")
         built_value.attrs[UNITS_KEY] = unit
     return built_value, DOY_COORDINATE in built_value.coords

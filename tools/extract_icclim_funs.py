@@ -489,7 +489,25 @@ def _get_parameter_declaration(param: inspect.Parameter) -> str:
     if type(annotation) is type:
         annotation = annotation.__name__
     annotation = str(annotation).replace("NoneType", "None")
-    annotation = annotation.replace("xarray.core.dataset.Dataset", "Dataset")
+    annotation = (
+        annotation.replace("xarray.core.dataset.Dataset", "Dataset")
+        .replace("xarray.core.dataarray.DataArray", "DataArray")
+        .replace("typing.", "")
+    )
+    # handles annotation such as Literal[start, end] which should be Literal['start', 'end']
+    if "Literal" in annotation:
+        # if the literals are not quoted, we quote them
+        # (this is a bit hacky but it should work for icclim's use case)
+        # We expect something like Literal[start, end] or Literal['start', 'end']
+        # We want Literal['start', 'end']
+        import re  # noqa: PLC0415
+        match = re.match(r"Literal\[(.*)\]", annotation)
+        if match:
+            literals = []
+            for l in match.group(1).split(","):
+                l_clean = l.strip().replace("'", "").replace('"', "")
+                literals.append(f"'{l_clean}'")
+            annotation = f"Literal[{', '.join(literals)}]"
     prefix = f"{param.name}: {annotation}"
     if param.default is inspect.Parameter.empty:
         return prefix
@@ -515,18 +533,25 @@ def _get_params_docstring(
     return f"\n{TAB}".join(param_str.splitlines())
 
 
-def _format_thresh(t: str | Threshold) -> str:
+def _format_thresh(t: str | Threshold | dict) -> str:
     params = {}
     if isinstance(t, str):
         t = build_threshold(t)
-    params["query"] = f'"{t.initial_query}"'
-    if isinstance(t, PercentileThreshold):
-        params["doy_window_width"] = t.doy_window_width
-        params["only_leap_years"] = "only_leap_years"
-        params["interpolation"] = "interpolation"
-        params["reference_period"] = "base_period_time_range"
-    if getattr(t, "threshold_min_value", None) is not None:
-        params["threshold_min_value"] = f'"{t.threshold_min_value}"'
+
+    if isinstance(t, dict):
+        params["query"] = f'"{t["query"]}"'
+        if "threshold_min_value" in t:
+            params["threshold_min_value"] = f'"{t["threshold_min_value"]}"'
+    else:
+        params["query"] = f'"{t.initial_query}"'
+        if isinstance(t, PercentileThreshold):
+            params["doy_window_width"] = t.doy_window_width
+            params["only_leap_years"] = "only_leap_years"
+            params["interpolation"] = "interpolation"
+            params["reference_period"] = "base_period_time_range"
+        if getattr(t, "threshold_min_value", None) is not None:
+            params["threshold_min_value"] = f'"{t.threshold_min_value}"'
+
     acc = f"{build_threshold.__name__}(\n"
     for k, v in params.items():
         acc += f"{TAB}{TAB}{TAB}{k}={v},\n"
@@ -580,7 +605,7 @@ This module exposes each climate index as individual functions for convenience.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from xarray import Dataset, DataArray

@@ -10,10 +10,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import xarray as xr
-import xclim
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
-from xclim.core.units import convert_units_to
 
 from icclim._core.constants import UNITS_KEY, VALID_PERCENTILE_DIMENSION
 from icclim._core.model.cf_calendar import CfCalendarRegistry
@@ -486,6 +484,7 @@ def is_precipitation_amount(source: xr.DataArray) -> bool:
     -----
     Using pint, the rate is a quantity with a dimensionality of [time]^-1.
     """
+    import xclim  # noqa: PLC0415
     standard_name = source.attrs.get("standard_name", None)
     source_unit = xclim.core.units.units2pint(source)
     return standard_name == PR_AMOUNT_STANDARD_NAME and _is_amount(source_unit)
@@ -539,6 +538,7 @@ def build_studied_data(
     else:
         da = original_da
     if ignore_Feb29th:
+        import xclim  # noqa: PLC0415
         da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_KEY, None) is None and default_units is not None:
         da.attrs[UNITS_KEY] = default_units
@@ -549,8 +549,10 @@ def build_studied_data(
         and da.attrs.get(UNITS_KEY) is not None
         and da.attrs.get(UNITS_KEY) != "degree_Celsius"
     ):
+        from xclim.core.units import convert_units_to  # noqa: PLC0415
         da = convert_units_to(da, "degree_Celsius", context="hydro")
     if is_precipitation_amount(da):
+        import xclim  # noqa: PLC0415
         da = xclim.core.units.amount2rate(da)
     return da.chunk("auto")
 
@@ -641,6 +643,7 @@ def build_reference_da(
     if only_leap_years:
         reference = _reduce_only_leap_years(original_da)
     if percentile_min_value is not None:
+        from xclim.core.units import convert_units_to  # noqa: PLC0415
         percentile_min_value = convert_units_to(
             str(percentile_min_value),
             reference,
