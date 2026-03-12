@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import inspect
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
@@ -62,6 +61,7 @@ def build_expected_args(index: StandardIndex):
             },
         )
     if index.threshold is not None:
+
         def _build_t(thresh):
             if isinstance(thresh, str):
                 return build_threshold(thresh)

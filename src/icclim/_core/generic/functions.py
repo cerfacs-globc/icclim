@@ -131,6 +131,7 @@ def count_occurrences(
         return result
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     from xclim.core.units import to_agg_units  # noqa: PLC0415
+
     return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
 
 
@@ -206,6 +207,7 @@ def max_consecutive_occurrence(
         result = resampled.max(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     from xclim.core.units import to_agg_units  # noqa: PLC0415
+
     return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
 
 
@@ -254,6 +256,7 @@ def sum_of_spell_lengths(
     result = cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     from xclim.core.units import to_agg_units  # noqa: PLC0415
+
     return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
 
 
@@ -302,6 +305,7 @@ def excess(
     res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
     freq = check_freq(study, dim="time")
     from xclim.core.units import to_agg_units  # noqa: PLC0415
+
     return to_agg_units(res, study, "integral", deffreq=freq)
 
 
@@ -340,6 +344,7 @@ def deficit(
     res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
     freq = check_freq(study, dim="time")
     from xclim.core.units import to_agg_units  # noqa: PLC0415
+
     return to_agg_units(res, study, "integral", deffreq=freq)
 
 
@@ -1016,6 +1021,7 @@ def difference_of_means(
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
     from xclim.core.units import convert_units_to  # noqa: PLC0415
+
     study = convert_units_to(study, ref, context="hydro")
     return _reduce_and_diff(
         study,
@@ -1235,6 +1241,7 @@ def get_couple_of_var(
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
     from xclim.core.units import convert_units_to  # noqa: PLC0415
+
     study = convert_units_to(study, ref, context="hydro")
     return study, ref
 

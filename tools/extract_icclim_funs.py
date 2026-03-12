@@ -501,6 +501,7 @@ def _get_parameter_declaration(param: inspect.Parameter) -> str:
         # We expect something like Literal[start, end] or Literal['start', 'end']
         # We want Literal['start', 'end']
         import re  # noqa: PLC0415
+
         match = re.match(r"Literal\[(.*)\]", annotation)
         if match:
             literals = []

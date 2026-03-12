@@ -319,6 +319,7 @@ class GenericIndicator(Indicator):
         Precipitation / amounts handled normally using hydro context.
         """
         from xclim.core.units import convert_units_to  # noqa: PLC0415
+
         ureg = _get_ureg()
 
         if out_unit is not None and _is_amount_unit(out_unit):
@@ -596,6 +597,7 @@ def _convert_rates_to_amounts(
     using a dedicated Pint context.
     """
     from xclim.core.units import rate2amount  # noqa: PLC0415
+
     ureg = _get_ureg()
 
     for climate_var in climate_vars:

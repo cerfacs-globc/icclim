@@ -954,7 +954,7 @@ def _build_threshold(
             "reference_period": reference_period,
             "only_leap_years": only_leap_years,
             "interpolation": interpolation,
-            **threshold
+            **threshold,
         }
         return build_threshold(**kwargs)
     return build_threshold(
