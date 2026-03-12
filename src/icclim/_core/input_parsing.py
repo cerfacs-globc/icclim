@@ -552,9 +552,9 @@ def build_studied_data(
         from xclim.core.units import convert_units_to  # noqa: PLC0415
 
         da = convert_units_to(da, "degree_Celsius", context="hydro")
-    if is_precipitation_amount(da):
-        import xclim  # noqa: PLC0415
+    import xclim  # noqa: PLC0415
 
+    if is_precipitation_amount(da):
         da = xclim.core.units.amount2rate(da)
     elif std_var in [
         StandardVariableRegistry.SND,
