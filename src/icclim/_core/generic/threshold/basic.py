@@ -8,7 +8,6 @@ import numpy as np
 import pint
 import xarray as xr
 from xarray import DataArray, Dataset
-from xclim.core.units import convert_units_to, str2pint
 
 from icclim._core.constants import (
     UNITS_KEY,
@@ -90,6 +89,8 @@ class BasicThreshold(Threshold):
         """
         if self.value is not None:
             if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
+                from xclim.core.units import convert_units_to  # noqa: PLC0415
+
                 try:
                     self.value = convert_units_to(self.value, unit, context="hydro")
                 except pint.errors.DimensionalityError as e:
@@ -189,6 +190,8 @@ class BasicThreshold(Threshold):
         self.initial_query = initial_query
         self.offset = offset
         if threshold_min_value is not None and threshold_min_value.dimensionless:
+            from xclim.core.units import str2pint  # noqa: PLC0415
+
             self.threshold_min_value = float(threshold_min_value.m) * str2pint(unit)
         else:
             self.threshold_min_value = threshold_min_value
@@ -327,6 +330,8 @@ class BasicThreshold(Threshold):
         built_value = _apply_min_value(value, min_value)
         built_value = _apply_offset(built_value, offset)
         if unit is not None:
+            from xclim.core.units import convert_units_to  # noqa: PLC0415
+
             built_value = convert_units_to(built_value, unit, context="hydro")
         self.is_ready = True
         return built_value
@@ -338,6 +343,8 @@ def _apply_offset(da: DataArray, offset: pint.Quantity | None) -> xr.DataArray:
             # We assume the same unit as `da` if it's dimensionless
             offset = offset.m
         else:
+            from xclim.core.units import convert_units_to  # noqa: PLC0415
+
             offset = convert_units_to(str(offset), da, context="hydro")
         with xr.set_options(keep_attrs=True):
             return da + offset
@@ -350,6 +357,8 @@ def _apply_min_value(da: DataArray, min_value: pint.Quantity | None) -> xr.DataA
             # We assume min_value use the same unit as thresh_da if it's dimensionless
             min_value = min_value.m
         else:
+            from xclim.core.units import convert_units_to  # noqa: PLC0415
+
             min_value = convert_units_to(str(min_value), da, context="hydro")
         return da.where(da > min_value, np.nan)
     return da

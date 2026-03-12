@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import xclim
 from pandas import to_datetime
 
 from icclim._core.generic.functions import get_single_var
@@ -26,12 +25,20 @@ class GrowingSeasonLength(Indicator):
     """
 
     name = "growing_season_length"
-    standard_name = xclim.atmos.growing_season_length.standard_name
     long_name = "ECAD Growing Season Length (Tmean > 5 degree_Celsius)"
     cell_methods = ""
 
+    @property
+    def standard_name(self) -> str:  # type: ignore[override]
+        """Lazily access xclim to avoid triggering numba cache on import."""
+        import xclim  # noqa: PLC0415
+
+        return xclim.atmos.growing_season_length.standard_name
+
     def __call__(self, config: IndexConfig) -> xarray.DataArray:
         """Compute the growing season length."""
+        import xclim  # noqa: PLC0415
+
         study, _ = get_single_var(config.climate_variables)
         return xclim.atmos.growing_season_length(
             tas=study,
@@ -65,12 +72,20 @@ class StandardizedPrecipitationIndex3(Indicator):
     """
 
     name = "standardized_precipitation_index_3"
-    standard_name = xclim.atmos.standardized_precipitation_index.standard_name
     long_name = "3-Month Standardized Precipitation Index (SPI3)"
     cell_methods = ""
 
+    @property
+    def standard_name(self) -> str:  # type: ignore[override]
+        """Lazily access xclim to avoid triggering numba cache on import."""
+        import xclim  # noqa: PLC0415
+
+        return xclim.atmos.standardized_precipitation_index.standard_name
+
     def __call__(self, config: IndexConfig) -> xarray.DataArray:
         """Compute the 3-Month Standardized Precipitation Index."""
+        import xclim  # noqa: PLC0415
+
         if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
             msg = "`slice_mode` cannot be configured when computing SPI3"
             raise InvalidIcclimArgumentError(msg)
@@ -118,12 +133,20 @@ class StandardizedPrecipitationIndex6(Indicator):
     """
 
     name = "standardized_precipitation_index_6"
-    standard_name = xclim.atmos.standardized_precipitation_index.standard_name
     long_name = "6-Month Standardized Precipitation Index (SPI6)"
     cell_methods = ""
 
+    @property
+    def standard_name(self) -> str:  # type: ignore[override]
+        """Lazily access xclim to avoid triggering numba cache on import."""
+        import xclim  # noqa: PLC0415
+
+        return xclim.atmos.standardized_precipitation_index.standard_name
+
     def __call__(self, config: IndexConfig) -> xarray.DataArray:
         """Compute the 6-Month Standardized Precipitation Index."""
+        import xclim  # noqa: PLC0415
+
         if config.frequency is not FrequencyRegistry.YEAR:  # year is default freq
             msg = "`slice_mode` cannot be configured when computing SPI6"
             raise InvalidIcclimArgumentError(msg)

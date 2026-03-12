@@ -8,7 +8,7 @@ This module exposes each climate index as individual functions for convenience.
 """
 
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from xarray import Dataset, DataArray
@@ -3777,14 +3777,6 @@ def r75p(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
-        threshold=build_threshold(
-            query="> 75 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
-        ),
         out_unit="day",
     )
 
@@ -3906,14 +3898,6 @@ def r75ptot(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
-        threshold=build_threshold(
-            query="> 75 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
-        ),
         out_unit="%",
     )
 
@@ -4035,14 +4019,6 @@ def r95p(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
-        threshold=build_threshold(
-            query="> 95 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
-        ),
         out_unit="day",
     )
 
@@ -4164,14 +4140,6 @@ def r95ptot(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
-        threshold=build_threshold(
-            query="> 95 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
-        ),
         out_unit="%",
     )
 
@@ -4293,14 +4261,6 @@ def r99p(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
-        threshold=build_threshold(
-            query="> 99 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
-        ),
         out_unit="day",
     )
 
@@ -4422,14 +4382,6 @@ def r99ptot(
         logs_verbosity=logs_verbosity,
         date_event=date_event,
         run_index=run_index,
-        threshold=build_threshold(
-            query="> 99 period_per",
-            doy_window_width=5,
-            only_leap_years=only_leap_years,
-            interpolation=interpolation,
-            reference_period=base_period_time_range,
-            threshold_min_value="1 mm d-1",
-        ),
         out_unit="%",
     )
 
@@ -4926,11 +4878,7 @@ def cd(
             ),
             build_threshold(
                 query="< 25 period_per",
-                doy_window_width=5,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-                reference_period=base_period_time_range,
-                threshold_min_value="1 mm d-1",
+                threshold_min_value="1 mm/day",
             ),
         ],
         out_unit="day",
@@ -5064,11 +5012,7 @@ def cw(
             ),
             build_threshold(
                 query="> 75 period_per",
-                doy_window_width=5,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-                reference_period=base_period_time_range,
-                threshold_min_value="1 mm d-1",
+                threshold_min_value="1 mm/day",
             ),
         ],
         out_unit="day",
@@ -5202,11 +5146,7 @@ def wd(
             ),
             build_threshold(
                 query="< 25 period_per",
-                doy_window_width=5,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-                reference_period=base_period_time_range,
-                threshold_min_value="1 mm d-1",
+                threshold_min_value="1 mm/day",
             ),
         ],
         out_unit="day",
@@ -5340,11 +5280,7 @@ def ww(
             ),
             build_threshold(
                 query="> 75 period_per",
-                doy_window_width=5,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-                reference_period=base_period_time_range,
-                threshold_min_value="1 mm d-1",
+                threshold_min_value="1 mm/day",
             ),
         ],
         out_unit="day",

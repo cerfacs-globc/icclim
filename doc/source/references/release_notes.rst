@@ -15,6 +15,8 @@ Details
    to resolve ``DimensionalityError`` when input units are in ``mm/s`` (#320).
 -  [maint] Drop support for **Python 3.9** and require **Python 3.10+**.
 -  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
+-  [enh] Implement **lazy loading** for ``xclim`` imports to improve startup time.
+-  [fix] Fix bootstrapping logic in ``percentile.py`` and resolve regressions in generated API.
 -  [fix] Move ``time_bounds`` to coordinates in the resulting Dataset to avoid
    errors when calling ``.sum()`` on the entire Dataset (#340).
 -  [enh] Add ``run_index`` parameter to RLE-based indices to allow specifying RLE indexing behavior (e.g., "first" vs "last") (#321).
