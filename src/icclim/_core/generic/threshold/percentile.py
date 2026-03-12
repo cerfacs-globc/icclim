@@ -387,8 +387,8 @@ class PercentileThreshold(Threshold):
             per: xr.DataArray,
             op: Callable[[DataArray, DataArray], DataArray],
             is_doy_per_threshold: bool,
-            freq: str,
-            bootstrap: bool,
+            freq: str,  # noqa: ARG001
+            bootstrap: bool,  # noqa: ARG001
         ) -> DataArray:
             if self.threshold_min_value is not None:
                 # there is only a threshold_min_value when we are computing > or >=

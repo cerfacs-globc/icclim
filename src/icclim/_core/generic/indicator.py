@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from icclim.frequency import Frequency
 
 
-def _get_ureg() -> Any:
+def _get_ureg() -> Any:  # noqa: ANN401
     """Lazily initialize the unit registry and its hydro context."""
     from xclim.core.units import units as ureg  # noqa: PLC0415
 

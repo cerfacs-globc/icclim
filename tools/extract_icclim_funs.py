@@ -505,8 +505,8 @@ def _get_parameter_declaration(param: inspect.Parameter) -> str:
         match = re.match(r"Literal\[(.*)\]", annotation)
         if match:
             literals = []
-            for l in match.group(1).split(","):
-                l_clean = l.strip().replace("'", "").replace('"', "")
+            for lit in match.group(1).split(","):
+                l_clean = lit.strip().replace("'", "").replace('"', "")
                 literals.append(f"'{l_clean}'")
             annotation = f"Literal[{', '.join(literals)}]"
     prefix = f"{param.name}: {annotation}"

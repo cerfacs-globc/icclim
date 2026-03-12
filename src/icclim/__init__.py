@@ -1,8 +1,11 @@
+"""Python library for climate indices calculation."""
+
 from __future__ import annotations
 
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
-"""Python library for climate indices calculation."""
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from icclim import dcsc, ecad, generic
 from icclim._generated._ecad import *  # noqa: F403
