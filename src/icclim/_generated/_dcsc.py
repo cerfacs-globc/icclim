@@ -21,11 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from icclim.logger import Verbosity
-    from icclim._core.model.icclim_types import (
-        FrequencyLike,
-        InFileLike,
-        SamplingMethodLike,
-    )
+    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
@@ -77,13 +73,14 @@ def tav(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Moyenne de la température moyenne.
 
     TAV: Moyenne de la température moyenne.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -116,6 +113,10 @@ def tav(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -127,14 +128,13 @@ def tav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TAV,
         in_files=in_files,
@@ -146,6 +146,7 @@ def tav(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -160,13 +161,14 @@ def txav(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Moyenne de la température maximale.
 
     TXAV: Moyenne de la température maximale.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -199,6 +201,10 @@ def txav(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -210,14 +216,13 @@ def txav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TXAV,
         in_files=in_files,
@@ -229,6 +234,7 @@ def txav(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -243,13 +249,14 @@ def trav(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Moyenne de l'amplitude thermique.
 
     TRAV: Moyenne de l'amplitude thermique.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -282,6 +289,10 @@ def trav(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -293,14 +304,13 @@ def trav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TRAV,
         in_files=in_files,
@@ -312,6 +322,7 @@ def trav(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="degree_Celsius",
     )
 
@@ -330,13 +341,14 @@ def tx10(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Extrême froid de la température maximale journalière (10e centile de la température maximale).
 
     TX10: Extrême froid de la température maximale journalière (10e centile de la température maximale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -383,6 +395,10 @@ def tx10(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -404,14 +420,13 @@ def tx10(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TX10,
         in_files=in_files,
@@ -427,6 +442,7 @@ def tx10(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -452,13 +468,14 @@ def tx90(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Extrême chaud de la température maximale journalière (90e centile de la température maximale).
 
     TX90: Extrême chaud de la température maximale journalière (90e centile de la température maximale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -505,6 +522,10 @@ def tx90(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -526,14 +547,13 @@ def tx90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TX90,
         in_files=in_files,
@@ -549,6 +569,7 @@ def tx90(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -574,13 +595,14 @@ def tn10(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Extrême froid de la température minimale  journalière (10e centile de la température minimale).
 
     TN10: Extrême froid de la température minimale  journalière (10e centile de la température minimale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -627,6 +649,10 @@ def tn10(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -648,14 +674,13 @@ def tn10(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TN10,
         in_files=in_files,
@@ -671,6 +696,7 @@ def tn10(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -696,13 +722,14 @@ def tn90(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Extrême chaud de la température minimale journalière (90e centile de la température minimale).
 
     TN90: Extrême chaud de la température minimale journalière (90e centile de la température minimale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -749,6 +776,10 @@ def tn90(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -770,14 +801,13 @@ def tn90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TN90,
         in_files=in_files,
@@ -793,6 +823,7 @@ def tn90(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -814,13 +845,14 @@ def tnfd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de jours de gel (température minimale <= 0°C).
 
     TNFD: Nombre de jours de gel (température minimale <= 0°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -853,6 +885,10 @@ def tnfd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -864,14 +900,13 @@ def tnfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TNFD,
         in_files=in_files,
@@ -883,6 +918,7 @@ def tnfd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
@@ -900,13 +936,14 @@ def txfd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de jours sans dégel (température maximale <= 0°C).
 
     TXFD: Nombre de jours sans dégel (température maximale <= 0°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -939,6 +976,10 @@ def txfd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -950,14 +991,13 @@ def txfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TXFD,
         in_files=in_files,
@@ -969,6 +1009,7 @@ def txfd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
@@ -986,13 +1027,14 @@ def sd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de journées d'été (température maximale > 25°C).
 
     SD: Nombre de journées d'été (température maximale > 25°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1025,6 +1067,10 @@ def sd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1036,14 +1082,13 @@ def sd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.SD,
         in_files=in_files,
@@ -1055,6 +1100,7 @@ def sd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 25 degree_Celsius",
         ),
@@ -1072,13 +1118,14 @@ def tx35(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de jours de forte chaleur (température maximale > 35°C).
 
     TX35: Nombre de jours de forte chaleur (température maximale > 35°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1111,6 +1158,10 @@ def tx35(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1122,14 +1173,13 @@ def tx35(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TX35,
         in_files=in_files,
@@ -1141,6 +1191,7 @@ def tx35(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 35 degree_Celsius",
         ),
@@ -1158,13 +1209,14 @@ def tr(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de nuits tropicales (température minimale > 20°C).
 
     TR: Nombre de nuits tropicales (température minimale > 20°C).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1197,6 +1249,10 @@ def tr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1208,14 +1264,13 @@ def tr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.TR,
         in_files=in_files,
@@ -1227,6 +1282,7 @@ def tr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 20 degree_Celsius",
         ),
@@ -1245,6 +1301,7 @@ def txnd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
@@ -1252,7 +1309,7 @@ def txnd(
     TXND: Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1285,6 +1342,10 @@ def txnd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1303,14 +1364,13 @@ def txnd(
     normal_var_name : str | None, optional
         The name of the normal variable.
         If missing, icclim will try to guess which variable must be used in the `normal` dataset.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     standard_index = DcscIndexRegistry.TXND
     normal_da = get_dataarray_from_dataset(
         normal_var_name, normal, standard_index.input_variables[0]
@@ -1328,6 +1388,7 @@ def txnd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="day",
     )
 
@@ -1343,6 +1404,7 @@ def tnht(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
@@ -1350,7 +1412,7 @@ def tnht(
     TNHT: Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1383,6 +1445,10 @@ def tnht(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1401,14 +1467,13 @@ def tnht(
     normal_var_name : str | None, optional
         The name of the normal variable.
         If missing, icclim will try to guess which variable must be used in the `normal` dataset.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     standard_index = DcscIndexRegistry.TNHT
     normal_da = get_dataarray_from_dataset(
         normal_var_name, normal, standard_index.input_variables[0]
@@ -1426,6 +1491,7 @@ def tnht(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="day",
     )
 
@@ -1441,6 +1507,7 @@ def tnnd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
@@ -1448,7 +1515,7 @@ def tnnd(
     TNND: Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1481,6 +1548,10 @@ def tnnd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1499,14 +1570,13 @@ def tnnd(
     normal_var_name : str | None, optional
         The name of the normal variable.
         If missing, icclim will try to guess which variable must be used in the `normal` dataset.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     standard_index = DcscIndexRegistry.TNND
     normal_da = get_dataarray_from_dataset(
         normal_var_name, normal, standard_index.input_variables[0]
@@ -1524,6 +1594,7 @@ def tnnd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="day",
     )
 
@@ -1539,6 +1610,7 @@ def tncwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
@@ -1546,7 +1618,7 @@ def tncwd(
     TNCWD: Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1579,6 +1651,10 @@ def tncwd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1597,14 +1673,13 @@ def tncwd(
     normal_var_name : str | None, optional
         The name of the normal variable.
         If missing, icclim will try to guess which variable must be used in the `normal` dataset.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     standard_index = DcscIndexRegistry.TNCWD
     normal_da = get_dataarray_from_dataset(
         normal_var_name, normal, standard_index.input_variables[0]
@@ -1622,6 +1697,7 @@ def tncwd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="day",
     )
 
@@ -1637,6 +1713,7 @@ def txhwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
@@ -1644,7 +1721,7 @@ def txhwd(
     TXHWD: Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1677,6 +1754,10 @@ def txhwd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1695,14 +1776,13 @@ def txhwd(
     normal_var_name : str | None, optional
         The name of the normal variable.
         If missing, icclim will try to guess which variable must be used in the `normal` dataset.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     standard_index = DcscIndexRegistry.TXHWD
     normal_da = get_dataarray_from_dataset(
         normal_var_name, normal, standard_index.input_variables[0]
@@ -1720,6 +1800,7 @@ def txhwd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="day",
     )
 
@@ -1734,13 +1815,14 @@ def hdd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Degrés-jours de chauffage (Cumul sur la période des écarts négatifs au seuil de < 17°C par la température qt moyenne).
 
     HDD: Degrés-jours de chauffage (Cumul sur la période des écarts négatifs au seuil de < 17°C par la température qt moyenne).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1773,6 +1855,10 @@ def hdd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1784,14 +1870,13 @@ def hdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.HDD,
         in_files=in_files,
@@ -1803,6 +1888,7 @@ def hdd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="17 degree_Celsius",
         ),
@@ -1820,13 +1906,14 @@ def cdd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Degrés-jours de climatisation(Cumul sur la période des dépassements du seuil de > 18°C par la température qt moyenne).
 
     CDD: Degrés-jours de climatisation(Cumul sur la période des dépassements du seuil de > 18°C par la température qt moyenne).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1859,6 +1946,10 @@ def cdd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1870,14 +1961,13 @@ def cdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.CDD,
         in_files=in_files,
@@ -1889,6 +1979,7 @@ def cdd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="18 degree_Celsius",
         ),
@@ -1906,13 +1997,14 @@ def pav(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Précipitations quotidiennes moyennes.
 
     PAV: Précipitations quotidiennes moyennes.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1945,6 +2037,10 @@ def pav(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -1956,14 +2052,13 @@ def pav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.PAV,
         in_files=in_files,
@@ -1975,6 +2070,7 @@ def pav(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="mm/day",
     )
 
@@ -1989,13 +2085,14 @@ def pint(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Précipitation moyenne des jours pluvieux (RR > 1 mm).
 
     PINT: Précipitation moyenne des jours pluvieux (RR > 1 mm).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2028,6 +2125,10 @@ def pint(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2039,14 +2140,13 @@ def pint(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.PINT,
         in_files=in_files,
@@ -2058,6 +2158,7 @@ def pint(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -2075,13 +2176,14 @@ def rr(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Cumul de précipitation.
 
     RR: Cumul de précipitation.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2114,6 +2216,10 @@ def rr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2125,14 +2231,13 @@ def rr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.RR,
         in_files=in_files,
@@ -2144,6 +2249,7 @@ def rr(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="mm",
     )
 
@@ -2158,13 +2264,14 @@ def rr1mm(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de jours de pluie (précipitations >= 1 mm).
 
     RR1MM: Nombre de jours de pluie (précipitations >= 1 mm).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2197,6 +2304,10 @@ def rr1mm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2208,14 +2319,13 @@ def rr1mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.RR1MM,
         in_files=in_files,
@@ -2227,6 +2337,7 @@ def rr1mm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -2244,13 +2355,14 @@ def pn20mm(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de jours de fortes précipitations (précipitations >= 20 mm).
 
     PN20MM: Nombre de jours de fortes précipitations (précipitations >= 20 mm).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2283,6 +2395,10 @@ def pn20mm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2294,14 +2410,13 @@ def pn20mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.PN20MM,
         in_files=in_files,
@@ -2313,6 +2428,7 @@ def pn20mm(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 20 mm/day",
         ),
@@ -2330,13 +2446,14 @@ def pxcdd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Période de sécheresse (Max [Nbj consécutifs RR < 1 mm]).
 
     PXCDD: Période de sécheresse (Max [Nbj consécutifs RR < 1 mm]).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2369,6 +2486,10 @@ def pxcdd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2380,14 +2501,13 @@ def pxcdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.PXCDD,
         in_files=in_files,
@@ -2399,6 +2519,7 @@ def pxcdd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="< 1 mm/day",
         ),
@@ -2416,13 +2537,14 @@ def pxcwd(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm]).
 
     PXCWD: Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm]).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2455,6 +2577,10 @@ def pxcwd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -2466,14 +2592,13 @@ def pxcwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.PXCWD,
         in_files=in_files,
@@ -2485,6 +2610,7 @@ def pxcwd(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -2506,13 +2632,14 @@ def r99(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de jours de précipitations extrêmes.
 
     R99: Nombre de jours de précipitations extrêmes.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2559,6 +2686,10 @@ def r99(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2580,14 +2711,13 @@ def r99(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.R99,
         in_files=in_files,
@@ -2603,6 +2733,7 @@ def r99(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 99 period_per",
             doy_window_width=5,
@@ -2629,13 +2760,14 @@ def pfl90(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Fraction des précipitations journalières intenses.
 
     PFL90: Fraction des précipitations journalières intenses.
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2682,6 +2814,10 @@ def pfl90(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2703,14 +2839,13 @@ def pfl90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.PFL90,
         in_files=in_files,
@@ -2726,6 +2861,7 @@ def pfl90(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 90 period_per",
             doy_window_width=5,
@@ -2752,13 +2888,14 @@ def pq90(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Précipitation quotidienne intense (90e centile des précipitations).
 
     PQ90: Précipitation quotidienne intense (90e centile des précipitations).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2805,6 +2942,10 @@ def pq90(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2826,14 +2967,13 @@ def pq90(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.PQ90,
         in_files=in_files,
@@ -2849,6 +2989,7 @@ def pq90(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -2875,13 +3016,14 @@ def pq99(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Précipitation quotidienne extrême (99e centile des précipitations).
 
     PQ99: Précipitation quotidienne extrême (99e centile des précipitations).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2928,6 +3070,10 @@ def pq99(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -2949,14 +3095,13 @@ def pq99(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.PQ99,
         in_files=in_files,
@@ -2972,6 +3117,7 @@ def pq99(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 99 doy_per",
             doy_window_width=5,
@@ -2995,13 +3141,14 @@ def ffav(
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Écart de la vitesse du vent moyenne journalière (par rapport à une periode de référence).
 
     FFAV: Écart de la vitesse du vent moyenne journalière (par rapport à une periode de référence).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3048,6 +3195,10 @@ def ffav(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
     netcdf_version : str | NetcdfVersion
@@ -3059,14 +3210,13 @@ def ffav(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.FFAV,
         in_files=in_files,
@@ -3079,6 +3229,7 @@ def ffav(
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         out_unit="m s-1",
     )
 
@@ -3097,13 +3248,14 @@ def ff98(
     save_thresholds: bool = False,
     logs_verbosity: Verbosity | str = "LOW",
     date_event: bool = False,
+    run_index: str | None = "first",
 ) -> Dataset:
     """Nombre de jours de vent fort (vent ≥ 98e centile de la période de référence).
 
     FF98: Nombre de jours de vent fort (vent ≥ 98e centile de la période de référence).
     Source: Portail DRIAS, DCSC, MeteoFrance.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3150,6 +3302,10 @@ def ff98(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    run_index : str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years : bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
@@ -3171,14 +3327,13 @@ def ff98(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=DcscIndexRegistry.FF98,
         in_files=in_files,
@@ -3194,6 +3349,7 @@ def ff98(
         save_thresholds=save_thresholds,
         logs_verbosity=logs_verbosity,
         date_event=date_event,
+        run_index=run_index,
         threshold=build_threshold(
             query="> 98 period_per",
             doy_window_width=5,

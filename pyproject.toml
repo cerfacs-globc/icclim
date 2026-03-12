@@ -42,7 +42,8 @@ dependencies = [
   "pandas>=1.3.0",
   "dateparser>=1.1.0",
   "pint>=0.20",
-  "jinja2>=3.0"
+  "jinja2>=3.0",
+  "typing-extensions>=4.0"
 ]
 
 [project.optional-dependencies]
@@ -72,6 +73,13 @@ doc = [
 [project.urls]
 Documentation = "https://icclim.readthedocs.io/en/latest/how_to/index.html"
 Source = "https://github.com/cerfacs-globc/icclim/"
+CI = "https://github.com/cerfacs-globc/icclim/actions"
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "src/icclim"]
+addopts = "--doctest-modules"
+doctest_optionflags = ["NORMALIZE_WHITESPACE", "ELLIPSIS"]
+norecursedirs = ["src/icclim/_generated"]
 
 [tool.ruff]
 
@@ -148,10 +156,8 @@ ignore = [
   "SIM102", # Allow nexted if
   "E501", # Allow line too long
   "D200", # Allow one-line docstring on several lines
-  "UP038", # Ignore isinstance
   "UP007", # Ignore Use `X | Y` for type annotations
   "D401", # Allow docstrings to have non-imperative mood.
-  "ANN101", # Allow typing omissions for `self`
   "ANN002", # Allow no typing for `*args`
   "ANN003", # Allow no typing for `**kwargs`
   "N803" # Allow non-lowercase argument names (established API names like ignore_Feb29th)

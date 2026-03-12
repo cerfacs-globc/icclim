@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import numpy as np
-import pint
 import pytest
 from xclim.core.units import units as xc_units
 
@@ -65,7 +64,7 @@ def test_build_bounded_threshold__unit_conversion_erorr() -> None:
     # GIVEN
     res = build_threshold(">10degC and <300 K")
     # THEN
-    with pytest.raises(pint.DimensionalityError):
+    with pytest.raises(InvalidIcclimArgumentError):
         # WHEN
         res.unit = "meter"
 

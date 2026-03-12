@@ -461,8 +461,6 @@ def guess_standard_variable(data: DataArray) -> StandardVariable | None:
         std_var = StandardVariableRegistry.lookup_no_error(
             data.attrs.get("standard_name"),
         )
-    if std_var is None:
-        return None
     return std_var
 
 
@@ -554,6 +552,11 @@ def build_studied_data(
     if is_precipitation_amount(da):
         import xclim  # noqa: PLC0415
         da = xclim.core.units.amount2rate(da)
+    elif std_var in [
+        StandardVariableRegistry.SND,
+        StandardVariableRegistry.SNW,
+    ] and _is_rate(xclim.core.units.units2pint(da)):
+        da = xclim.core.units.rate2amount(da)
     return da.chunk("auto")
 
 

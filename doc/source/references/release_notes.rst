@@ -11,10 +11,23 @@ date: 2026-03-10
 Details
 =======
 
+-  [fix] Add automatic rate-to-amount conversion for snow depth indices (``SND``)
+   to resolve ``DimensionalityError`` when input units are in ``mm/s`` (#320).
 -  [maint] Drop support for **Python 3.9** and require **Python 3.10+**.
 -  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
 -  [enh] Implement **lazy loading** for ``xclim`` imports to improve startup time.
 -  [fix] Fix bootstrapping logic in ``percentile.py`` and resolve regressions in generated API.
+-  [fix] Move ``time_bounds`` to coordinates in the resulting Dataset to avoid
+   errors when calling ``.sum()`` on the entire Dataset (#340).
+-  [enh] Add ``run_index`` parameter to RLE-based indices to allow specifying RLE indexing behavior (e.g., "first" vs "last") (#321).
+-  [fix] Fix ``sum_of_spell_lengths`` (used by ``WSDI`` and ``CSDI``) to correctly sum all spells instead of only returning the maximum spell length.
+-  [fix] Fix date calculation (``event_date_start``, ``event_date_end``) when using ``run_index="last"``.
+-  [doc] Add conda-forge installation instructions to ``README.rst`` and ``installation.rst``.
+-  [doc] Rewrite ``release_process.rst`` with up-to-date conda-forge bot behavior, rerender procedure and automerge instructions.
+-  [maint] Add ``typing-extensions>=4.0`` to dependencies for Python 3.10/3.11 compatibility.
+-  [maint] Add ``CI`` URL to ``pyproject.toml`` project URLs for PyPI badge display.
+-  [enh] Add inline doctests to CI test suite and expand test coverage for generic reducers (#109).
+-  [doc] Remove deprecated ``create_optimized_zarr_store`` from API documentation (#138).
 
 ******
 7.0.5

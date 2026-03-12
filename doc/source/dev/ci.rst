@@ -22,4 +22,6 @@ These goals are reached using multiple tools:
       documentation on each new pull request.
 
    -  github actions are used to run unit tests and report the results
-      in each pull request. They are configured in ``../.github/workflows/ci.yml``
+      in each pull request. They are configured in ``../.github/workflows/ci.yml``.
+      The test suite also runs `pytest --doctest-modules` to ensure all
+      docstring examples (e.g. in `icclim.index`) remain runnable and correct.

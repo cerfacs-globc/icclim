@@ -93,6 +93,27 @@ def count_occurrences(
     -------
     DataArray
         The count of occurrences of exceedances.
+
+    Examples
+    --------
+    Count days per year when temperature exceeds 25 °C:
+
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> import icclim
+    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> tas = xr.DataArray(
+    ...     np.full(365, 303.15),
+    ...     coords={"time": time},
+    ...     dims=["time"],
+    ...     attrs={"units": "K"},
+    ... )
+    >>> result = icclim.count_occurrences(
+    ...     in_files=tas, var_name="tas", threshold="> 25 degC"
+    ... )
+    >>> int(result.count_occurrences.isel(time=0).values)
+    365
     """
     if date_event:
         reducer_op = _count_occurrences_with_date
@@ -119,7 +140,7 @@ def max_consecutive_occurrence(
     logical_link: LogicalLink,
     date_event: bool,
     source_freq_delta: timedelta,
-    **kwargs,  # noqa: ARG001
+    **kwargs,
 ) -> DataArray:
     """
     Calculate the maximum number of consecutive occurrences of exceedances for a given set of climate variables.
@@ -143,6 +164,28 @@ def max_consecutive_occurrence(
     -------
     DataArray
         The maximum number of consecutive occurrences of exceedances.
+
+    Examples
+    --------
+    Longest dry spell (consecutive days with pr < 1 mm/day), equivalent to CDD:
+
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> import icclim
+    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> # Dry every day
+    >>> pr = xr.DataArray(
+    ...     np.zeros(365),
+    ...     coords={"time": time},
+    ...     dims=["time"],
+    ...     attrs={"units": "mm/day"},
+    ... )
+    >>> result = icclim.max_consecutive_occurrence(
+    ...     in_files=pr, var_name="pr", threshold="< 1 mm/day"
+    ... )
+    >>> int(result.max_consecutive_occurrence.isel(time=0).values)
+    365
     """
     merged_exceedances = _compute_exceedances(
         climate_vars,
@@ -151,10 +194,14 @@ def max_consecutive_occurrence(
     )
     from xclim.indices import run_length  # noqa: PLC0415
 
-    rle = run_length.rle(merged_exceedances, dim="time", index="first")
+    rle = run_length.rle(
+        merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
+    )
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
-        result = _consecutive_occurrences_with_dates(resampled, source_freq_delta)
+        result = _consecutive_occurrences_with_dates(
+            resampled, source_freq_delta, kwargs.get("run_index", "first")
+        )
     else:
         result = resampled.max(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")
@@ -167,7 +214,7 @@ def sum_of_spell_lengths(
     resample_freq: Frequency,
     logical_link: LogicalLink,
     min_spell_length: int,
-    **kwargs,  # noqa: ARG001
+    **kwargs,
 ) -> DataArray:
     """
     Calculate the sum of the lengths of all spells in the data.
@@ -200,9 +247,11 @@ def sum_of_spell_lengths(
     )
     from xclim.indices import run_length  # noqa: PLC0415
 
-    rle = run_length.rle(merged_exceedances, dim="time", index="first")
+    rle = run_length.rle(
+        merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
+    )
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
-    result = cropped_rle.resample(time=resample_freq.pandas_freq).max(dim="time")
+    result = cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")
     from xclim.core.units import to_agg_units  # noqa: PLC0415
     return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
@@ -387,6 +436,25 @@ def maximum(
     -------
     DataArray
         The maximum value of the climate variables.
+
+    Examples
+    --------
+    Annual maximum of a linearly increasing temperature series:
+
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> import icclim
+    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> tas = xr.DataArray(
+    ...     np.arange(365, dtype=float) + 273.15,
+    ...     coords={"time": time},
+    ...     dims=["time"],
+    ...     attrs={"units": "K"},
+    ... )
+    >>> result = icclim.maximum(in_files=tas, var_name="tas")
+    >>> round(float(result.maximum.isel(time=0).values), 2)
+    364.0
     """
     return _run_simple_reducer(
         climate_vars=climate_vars,
@@ -420,6 +488,25 @@ def minimum(
     -------
     DataArray
         The minimum value of the climate variables.
+
+    Examples
+    --------
+    Annual minimum of a constant 0 °C series:
+
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> import icclim
+    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> tas = xr.DataArray(
+    ...     np.zeros(365) + 273.15,
+    ...     coords={"time": time},
+    ...     dims=["time"],
+    ...     attrs={"units": "K"},
+    ... )
+    >>> result = icclim.minimum(in_files=tas, var_name="tas")
+    >>> round(float(result.minimum.isel(time=0).values), 2)
+    0.0
     """
     return _run_simple_reducer(
         climate_vars=climate_vars,
@@ -451,6 +538,24 @@ def average(
     DataArray
         The computed average as a DataArray.
 
+    Examples
+    --------
+    Annual mean of a constant 20 °C temperature series:
+
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> import icclim
+    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> tas = xr.DataArray(
+    ...     np.full(365, 293.15),
+    ...     coords={"time": time},
+    ...     dims=["time"],
+    ...     attrs={"units": "K"},
+    ... )
+    >>> result = icclim.average(in_files=tas, var_name="tas")
+    >>> round(float(result.average.isel(time=0).values), 2)
+    20.0
     """
     return _run_simple_reducer(
         climate_vars=climate_vars,
@@ -481,6 +586,25 @@ def generic_sum(
     -------
     DataArray
         The computed sum as a DataArray.
+
+    Examples
+    --------
+    Annual total precipitation from a constant daily rate of 2 mm/day:
+
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> import icclim
+    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> pr = xr.DataArray(
+    ...     np.full(365, 2.0),
+    ...     coords={"time": time},
+    ...     dims=["time"],
+    ...     attrs={"units": "mm/day"},
+    ... )
+    >>> result = icclim.sum(in_files=pr, var_name="pr")
+    >>> int(result["sum"].isel(time=0).values)
+    730
     """
     return _run_simple_reducer(
         climate_vars=climate_vars,
@@ -1319,6 +1443,7 @@ def _count_occurrences_with_date(resampled: DataArrayResample) -> DataArray:
 def _consecutive_occurrences_with_dates(
     resampled: DataArrayResample,
     source_freq_delta: timedelta,
+    run_index: str,
 ) -> DataArray:
     acc = []
     for label, _sample in resampled:
@@ -1328,10 +1453,16 @@ def _consecutive_occurrences_with_dates(
         # https://github.com/pydata/xarray/pull/5873
         time_index_of_max_rle = time_index_of_max_rle.compute()
         dated_longest_run = sample[{"time": time_index_of_max_rle}]
-        start_time = sample.isel(
+        anchor_time = sample.isel(
             time=time_index_of_max_rle.where(time_index_of_max_rle > 0, 0),
         ).time
-        end_time = start_time + (dated_longest_run * source_freq_delta)
+        if run_index == "last":
+            end_time = anchor_time + source_freq_delta
+            start_time = end_time - (dated_longest_run * source_freq_delta)
+        else:
+            # default to 'first' behavior
+            start_time = anchor_time
+            end_time = start_time + (dated_longest_run * source_freq_delta)
         dated_longest_run = _add_date_coords(
             original_sample=sample,
             result=dated_longest_run,

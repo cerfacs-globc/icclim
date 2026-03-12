@@ -228,6 +228,7 @@ def index(
     min_spell_length: int | None = 6,
     rolling_window_width: int | None = 5,
     sampling_method: SamplingMethodLike = RESAMPLE_METHOD,
+    run_index: str | None = "first",
     *,
     # deprecated params are kwargs only
     window_width: int | None = None,
@@ -319,6 +320,10 @@ def index(
     rolling_window_width: int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
+    run_index: str | None
+        ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
+        Default is "first".
+        Ignored for non spell indices.
     only_leap_years: bool
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th: bool
@@ -366,6 +371,21 @@ def index(
     save_percentile: bool
         DEPRECATED, use save_thresholds instead.
 
+    Examples
+    --------
+    Compute Summer Days (SU) from an in-memory xarray DataArray:
+
+    >>> import numpy as np, pandas as pd, xarray as xr, icclim
+    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> tasmax = xr.DataArray(
+    ...     np.full(365, 303.15),
+    ...     coords={"time": time},
+    ...     dims=["time"],
+    ...     attrs={"units": "K"},
+    ... )
+    >>> result = icclim.index(in_files=tasmax, index_name="SU", var_name="tasmax")
+    >>> int(result["SU"].isel(time=0).values)
+    365
     """
     _setup(callback, callback_percentage_start_value, logs_verbosity)
     (
@@ -406,6 +426,7 @@ def index(
         min_spell_length=min_spell_length,
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
+        run_index=run_index,
     )
     result_ds = _compute_climate_index(
         climate_index=config.indicator,
@@ -448,6 +469,7 @@ def _build_config(
     min_spell_length: int | None,
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
+    run_index: str | None,
 ) -> IndexConfig:
     if user_index is not None and (index_name is None or isinstance(index_name, str)):
         return _build_user_index_config(
@@ -470,6 +492,7 @@ def _build_config(
             min_spell_length=min_spell_length,
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
+            run_index=run_index,
         )
     if index_name is not None:
         return _build_standard_index_config(
@@ -492,6 +515,7 @@ def _build_config(
             min_spell_length=min_spell_length,
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
+            run_index=run_index,
         )
     msg = "You must fill either index_name or user_indexto compute a climate index."
     raise InvalidIcclimArgumentError(msg)
@@ -558,6 +582,7 @@ def _build_user_index_config(
     min_spell_length: int | None,
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
+    run_index: str | None,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     indicator = parse.read_indicator(user_index)
@@ -613,6 +638,7 @@ def _build_user_index_config(
         rename=rename,
         indicator=indicator,
         reference=ICCLIM_REFERENCE,
+        run_index=run_index,
     )
 
 
@@ -636,6 +662,7 @@ def _build_standard_index_config(
     min_spell_length: int | None,
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,
+    run_index: str | None,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     # logical link here link two climate_variable computations as with user_index.
@@ -706,6 +733,7 @@ def _build_standard_index_config(
         rename=rename,
         indicator=indicator,
         reference=reference,
+        run_index=run_index,
     )
 
 
@@ -837,7 +865,7 @@ def _compute_climate_index(
         resampled_da, time_bounds = config.frequency.post_processing(result_da)
         result_ds = resampled_da.to_dataset()
         if time_bounds is not None:
-            result_ds["time_bounds"] = time_bounds
+            result_ds.coords["time_bounds"] = time_bounds
             result_ds.time.attrs["bounds"] = "time_bounds"
     else:
         result_ds = result_da.to_dataset()

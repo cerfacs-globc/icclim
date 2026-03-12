@@ -442,6 +442,7 @@ class GenericIndicator(Indicator):
             source_freq_delta=src_freq.delta,
             to_percent=config.out_unit == "%",
             sampling_method=config.sampling_method,
+            run_index=config.run_index,
         )
         return self.postprocess(
             result,
