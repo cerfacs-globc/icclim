@@ -13,6 +13,8 @@ Details
 
 -  [maint] Drop support for **Python 3.9** and require **Python 3.10+**.
 -  [maint] Update development status in ``pyproject.toml`` to **Production/Stable**.
+-  [enh] Implement **lazy loading** for ``xclim`` imports to improve startup time.
+-  [fix] Fix bootstrapping logic in ``percentile.py`` and resolve regressions in generated API.
 
 ******
 7.0.5
