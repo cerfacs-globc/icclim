@@ -12,9 +12,9 @@ on:
 
 jobs:
   sync-gitlab:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,9 +44,9 @@ jobs:
           fi
 
   sync-github:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
         with:

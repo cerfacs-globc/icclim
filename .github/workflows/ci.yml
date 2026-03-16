@@ -14,10 +14,10 @@ permissions:
 jobs:
   # lint is handled by pre-commit ci conf
   generate-api:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       FLIT_ROOT_INSTALL: 1
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.11
@@ -52,10 +52,10 @@ jobs:
           git push origin ${{ github.head_ref }}
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       FLIT_ROOT_INSTALL: 1
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
        # actions/checkout@v2 checkouts to a new merge commit
       - uses: actions/checkout@v4
@@ -104,10 +104,10 @@ jobs:
           git push origin ${{ github.head_ref }}
 
   logo-update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       FLIT_ROOT_INSTALL: 1
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
         with:
