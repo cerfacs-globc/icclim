@@ -9,6 +9,9 @@ on:
       - '.github/workflows/notebook_sync.yml'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   sync-gitlab:
     runs-on: ubuntu-latest

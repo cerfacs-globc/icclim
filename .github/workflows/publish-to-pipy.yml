@@ -5,6 +5,9 @@ on:
     types:
       - published
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deployment:
     runs-on: ubuntu-latest
