@@ -187,6 +187,10 @@ ignore = [
   "RUF022", # Allow unsorted __all__.
   "D" # Disable docstring checks for generated files.
 ]
+"doc/source/tutorials/notebooks/*.ipynb" = [
+  "PLR2004", # Magic numbers are expected in tutorials for coordinate bounds.
+  "T201",    # Print statements are standard in notebooks for output display.
+]
 "doc/source/conf.py" = [
   "INP001" # conf.py is a standalone script, not a package.
 ]
