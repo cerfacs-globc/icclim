@@ -1,21 +1,45 @@
 """Python library for climate indices calculation."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 from icclim import dcsc, ecad, generic
 from icclim._generated._ecad import *  # noqa: F403
 from icclim._generated._generic import *  # noqa: F403
-from icclim.main import index, indice, indices
-from icclim.threshold.factory import build_threshold
 
 __all__ = [
     # -- Threshold factory function
-    "build_threshold",
+    "build_threshold",  # noqa: F405
     # -- Base functions
     "dcsc",
     "ecad",
     "generic",
-    "index",
-    "indice",  # deprecated
-    "indices",
+    "index",  # noqa: F405
+    "indice",  # noqa: F405 (deprecated)
+    "indices",  # noqa: F405
 ]
 
 __version__ = "7.1.0"
+
+
+def __getattr__(name: str) -> Callable:
+    if name in ["index", "indice", "indices"]:
+        from icclim.main import index as index_mod  # noqa: PLC0415
+        from icclim.main import indice as indice_mod  # noqa: PLC0415
+        from icclim.main import indices as indices_mod  # noqa: PLC0415
+
+        if name == "index":
+            return index_mod
+        if name == "indice":
+            return indice_mod
+        return indices_mod
+    if name == "build_threshold":
+        from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+
+        return build_threshold
+    msg = f"module {__name__} has no attribute {name}"
+    raise AttributeError(msg)

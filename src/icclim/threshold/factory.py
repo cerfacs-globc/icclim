@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 from pint.errors import UndefinedUnitError
 from xarray import DataArray, Dataset
-from xclim.core.units import units as xc_units
 
 from icclim._core.constants import (
     DOY_PERCENTILE_UNIT,
@@ -196,6 +195,8 @@ def _read_string_threshold(query: str) -> tuple[str, str, float]:
         val = re.findall(VALUE_REGEX, no_op_query)[0]
         unit = PERIOD_PERCENTILE_UNIT
     else:
+        from xclim.core.units import units as xc_units  # noqa: PLC0415
+
         try:
             quantity = xc_units.Quantity(no_op_query)
         except UndefinedUnitError as e:
@@ -212,6 +213,8 @@ def _build_quantity(
 ) -> pint.Quantity | None:
     if quantity is None:
         return None
+    from xclim.core.units import units as xc_units  # noqa: PLC0415
+
     if isinstance(quantity, xc_units.Quantity):
         return quantity
     if isinstance(quantity, (float, int)):

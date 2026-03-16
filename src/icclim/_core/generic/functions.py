@@ -32,15 +32,8 @@ from pandas import Timedelta, date_range, infer_freq, to_timedelta
 from xarray import DataArray
 from xarray.computation.rolling import DataArrayRolling
 from xarray.core.resample import DataArrayResample
-from xclim.core.calendar import build_climatology_bounds
-from xclim.core.units import (
-    convert_units_to,
-    rate2amount,
-    str2pint,
-    to_agg_units,
-)
-from xclim.indices import run_length
 
+# xclim imports are deferred to avoid triggering fire module load (and numba cache errors) on import.
 from icclim._core.climate_variable import must_run_bootstrap
 from icclim._core.constants import (
     GROUP_BY_METHOD,
@@ -201,6 +194,8 @@ def max_consecutive_occurrence(
         resample_freq.pandas_freq,
         logical_link,
     )
+    from xclim.indices import run_length  # noqa: PLC0415
+
     rle = run_length.rle(
         merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
     )
@@ -253,6 +248,8 @@ def sum_of_spell_lengths(
         resample_freq.pandas_freq,
         logical_link,
     )
+    from xclim.indices import run_length  # noqa: PLC0415
+
     rle = run_length.rle(
         merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
     )
@@ -387,6 +384,8 @@ def fraction_of_total(
     study, threshold = get_single_var(climate_vars)
     if threshold.threshold_min_value is not None:
         min_val = threshold.threshold_min_value
+        from xclim.core.units import convert_units_to  # noqa: PLC0415
+
         min_val = convert_units_to(min_val, study, context="hydro")
         total = (
             study.where(threshold.operator(study, min_val))
@@ -1018,6 +1017,8 @@ def difference_of_means(
     """
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
     study = convert_units_to(study, ref, context="hydro")
     return _reduce_and_diff(
         study,
@@ -1070,6 +1071,8 @@ def percentile(
     )
     result.coords["quantile"] = result.coords["quantile"] * 100
     result = result.rename(quantile="percentiles")
+    from xclim.core.calendar import build_climatology_bounds  # noqa: PLC0415
+
     return PercentileDataArray.from_da(
         source=result,
         climatology_bounds=build_climatology_bounds(study),
@@ -1234,6 +1237,8 @@ def get_couple_of_var(
         raise InvalidIcclimArgumentError(msg)
     study = climate_vars[0].studied_data
     ref = climate_vars[1].studied_data
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
     study = convert_units_to(study, ref, context="hydro")
     return study, ref
 
@@ -1312,6 +1317,8 @@ def _run_simple_reducer(
     else:
         filtered_study = study
     if must_convert_rate and _is_rate(filtered_study):
+        from xclim.core.units import rate2amount  # noqa: PLC0415
+
         filtered_study = rate2amount(filtered_study)
     if date_event:
         return _reduce_with_date_event(
@@ -1538,6 +1545,8 @@ def _is_leap_year(da: DataArray) -> np.ndarray:
 
 def _is_rate(query: Quantity | DataArray) -> bool:
     if isinstance(query, DataArray):
+        from xclim.core.units import str2pint  # noqa: PLC0415
+
         query = str2pint(query.attrs[UNITS_KEY])
     return query.dimensionality.get("[time]", None) == -1
 
@@ -1582,6 +1591,8 @@ def check_freq(da: xr.DataArray, dim: str = "time", strict: bool = True) -> str 
 
 
 def _safe_to_agg_units(*args, **kwargs) -> DataArray:
+    from xclim.core.units import to_agg_units  # noqa: PLC0415
+
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",

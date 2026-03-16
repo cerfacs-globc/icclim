@@ -57,7 +57,7 @@ class StandardIndex:
     qualifiers: list[str] | None = None
     source: str | None = None
     definition: str | None = None
-    threshold: str | None | Threshold | Sequence[str | Threshold] = None
+    threshold: str | None | Threshold | Sequence[str | Threshold] | dict = None
     output_unit: str | None = None
     # additional, index specific args
     rolling_window_width: int | None = None
