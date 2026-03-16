@@ -42,9 +42,7 @@ def main(output_file: str, data_path_str: str | None = None) -> None:
 
     results = {}
 
-    print(
-        f"Computing statistics for {icclim.__name__} {icclim.__version__}..."
-    )
+    print(f"Computing statistics for {icclim.__name__} {icclim.__version__}...")
 
     # 1. SU (Summer Days)
     su = icclim.index(index_name="SU", in_files=tas_files, var_name="tas")

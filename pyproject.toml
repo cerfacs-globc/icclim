@@ -176,7 +176,7 @@ ignore = [
 ]
 "scripts/*.py" = [
   "PLR2004", # Magic numbers are common in CLI scripts (argv length checks).
-  "T201"     # Path handling and comparison results are printed in scripts.
+  "T201" # Path handling and comparison results are printed in scripts.
 ]
 "src/icclim/_generated/*.py" = [
   "F821", # Allow placeholder names like _empty in generated API.
