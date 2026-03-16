@@ -1,33 +1,33 @@
 PR Title: Integrate external notebooks and add CI synchronization
 
 ### Pull Request to resolve #354
+- [x] Unit tests cover the changes.
+- [x] These changes were tested on real data.
+- [x] The relevant documentation has been added or updated.
+- [x] A short description of the changes has been added to doc/source/references/release_notes.rst.
 
-# Integrated C3S climate index notebooks and automated synchronization
+### Describe the changes you made
 
-This PR integrates 6 notebooks from the C3S Copernicus Training repository and adds a synchronization mechanism.
+This PR integrates external notebooks from GitLab (C4I) and GitHub (Copernicus Training) into the icclim repository tutorials. The following major changes were implemented:
 
-## Proposed Changes
+1. Notebook Integration and API Update
+   - Added 6 new tutorials from C3S/C4I to doc/source/tutorials/notebooks.
+   - Updated all notebooks to use the latest icclim.index API, replacing deprecated function calls.
+   - Fixed a path handling issue in deltaT_deltaP_anomaly.ipynb where PosixPath objects from glob were being overwritten in loops.
+- Fixed comprehensive notebook linting errors (E402, N816, T201, ERA001, S602, S603, S607) across all integrated notebooks. This includes moving imports to the top cell, renaming mixedCase variables, restoring informative prints with noqa suppression, and refactoring problematic subprocess/ncatted calls into native Xarray in-memory unit corrections.
 
-### Notebook Integration
-Integrated the following C3S notebooks into the tutorials:
-- cold_spell_duration
-- diurnal_temperature_range
-- heavy_precipitation
-- summer_days
-- tn90p
-- warm_wet_days
+2. Documentation and Versioning
+   - Updated doc/source/tutorials/index.rst to include the newly added notebooks in the main tutorials list.
+   - Injected an icclim version compatibility note (Compatible with icclim 7.1.0+) into the introductory text of all notebooks.
+   - Resolved documentation build errors by normalizing the markdown header hierarchy (H1, H2, H3) and adding missing image assets.
+   - Updated the release history (doc/source/references/release_notes.rst) by consolidating all recent changes into the 7.1.0 section.
 
-All notebooks were updated to be compatible with icclim 7.1.0+ and fixed common issues such as header hierarchy, variable naming, and import ordering.
+3. Automated Synchronization
+   - Implemented a new GitHub Action (notebook_sync.yml) that automatically synchronizes the tutorials content from the icclim master branch to the external GitLab and GitHub repositories whenever changes are pushed.
+   - This ensures that tutorial resources remain consistent across different platforms.
 
-### Documentation
-- Updated tutorials index to include the new C3S notebooks.
-- Added necessary image assets for the notebooks.
-- Updated release notes for version 7.1.0.
-
-### Automated Synchronization
-- Added a GitHub Action to synchronize the notebooks to external repositories (GitLab and GitHub) on every push to the master branch.
-
-## Verification
+### Verification
 - Documentation build verified for header consistency and toctree inclusion.
-- Notebook linting fixed for E402, N816, ERA001, and S605/S602.
+- Notebook linting verified locally across all 13 integrated and native tutorials.
+- Subprocess removal verified in heavy_precipitation and warm_wet_days tutorials.
 - Synchronization workflow tested.
