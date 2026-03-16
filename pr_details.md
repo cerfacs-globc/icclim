@@ -14,7 +14,7 @@ This PR integrates external notebooks from GitLab (C4I) and GitHub (Copernicus T
    - Added 6 new tutorials from C3S/C4I to doc/source/tutorials/notebooks.
    - Updated all notebooks to use the latest icclim.index API, replacing deprecated function calls.
    - Fixed a path handling issue in deltaT_deltaP_anomaly.ipynb where PosixPath objects from glob were being overwritten in loops.
-- Fixed comprehensive notebook linting errors (E402, N816, T201, ERA001, S602, S603, S607) across all integrated notebooks. This includes moving imports to the top cell, renaming mixedCase variables, restoring informative prints with noqa suppression, and refactoring problematic subprocess/ncatted calls into native Xarray in-memory unit corrections.
+- Fixed comprehensive notebook linting errors (E402, N816, T201, ERA001, S602, S603, S607, F821) across all integrated notebooks. This includes moving imports to the top cell, renaming mixedCase variables, restoring informative prints with noqa suppression, refactoring problematic subprocess/ncatted calls into native Xarray in-memory unit corrections, and localizing/fixing broken NBViewer badge images.
 
 2. Documentation and Versioning
    - Updated doc/source/tutorials/index.rst to include the newly added notebooks in the main tutorials list.
@@ -30,4 +30,5 @@ This PR integrates external notebooks from GitLab (C4I) and GitHub (Copernicus T
 - Documentation build verified for header consistency and toctree inclusion.
 - Notebook linting verified locally across all 13 integrated and native tutorials.
 - Subprocess removal verified in heavy_precipitation and warm_wet_days tutorials.
+- NBViewer localized badge image verified.
 - Synchronization workflow tested.
