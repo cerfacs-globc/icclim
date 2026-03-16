@@ -21,7 +21,11 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from icclim.logger import Verbosity
-    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
+    from icclim._core.model.icclim_types import (
+        FrequencyLike,
+        InFileLike,
+        SamplingMethodLike,
+    )
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
@@ -67,12 +71,12 @@ def count_occurrences(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).
 
     count_occurrences: Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -142,7 +146,7 @@ def count_occurrences(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -184,12 +188,12 @@ def max_consecutive_occurrence(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
     max_consecutive_occurrence: Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -259,7 +263,7 @@ def max_consecutive_occurrence(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -302,12 +306,12 @@ def sum_of_spell_lengths(
     min_spell_length: int | None = 6,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
     sum_of_spell_lengths: Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -380,7 +384,7 @@ def sum_of_spell_lengths(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -423,12 +427,12 @@ def excess(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
     excess: Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -498,7 +502,7 @@ def excess(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -540,12 +544,12 @@ def deficit(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
     deficit: Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -615,7 +619,7 @@ def deficit(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -657,12 +661,12 @@ def fraction_of_total(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
     fraction_of_total: Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -732,7 +736,7 @@ def fraction_of_total(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -774,12 +778,12 @@ def maximum(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
     maximum: Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -849,7 +853,7 @@ def maximum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -891,12 +895,12 @@ def minimum(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
     minimum: Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -966,7 +970,7 @@ def minimum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1008,12 +1012,12 @@ def average(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn).
 
     average: Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1083,7 +1087,7 @@ def average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1125,12 +1129,12 @@ def sum(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
     sum: Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1200,7 +1204,7 @@ def sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1242,12 +1246,12 @@ def standard_deviation(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Standard deviation of values that met threshold(s), if threshold(s) are given.
 
     standard_deviation: Standard deviation of values that met threshold(s), if threshold(s) are given.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1317,7 +1321,7 @@ def standard_deviation(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1360,12 +1364,12 @@ def max_of_rolling_sum(
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
     max_of_rolling_sum: Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1438,7 +1442,7 @@ def max_of_rolling_sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1482,12 +1486,12 @@ def min_of_rolling_sum(
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Minimum of rolling sum over time dimension.
 
     min_of_rolling_sum: Minimum of rolling sum over time dimension.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1560,7 +1564,7 @@ def min_of_rolling_sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1604,12 +1608,12 @@ def max_of_rolling_average(
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Maximum of rolling average over time dimension.
 
     max_of_rolling_average: Maximum of rolling average over time dimension.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1682,7 +1686,7 @@ def max_of_rolling_average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1726,12 +1730,12 @@ def min_of_rolling_average(
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Minimum of rolling average over time dimension.
 
     min_of_rolling_average: Minimum of rolling average over time dimension.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1804,7 +1808,7 @@ def min_of_rolling_average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1847,12 +1851,12 @@ def mean_of_difference(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
     mean_of_difference: Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1922,7 +1926,7 @@ def mean_of_difference(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -1964,12 +1968,12 @@ def difference_of_extremes(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
     difference_of_extremes: Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2039,7 +2043,7 @@ def difference_of_extremes(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -2081,12 +2085,12 @@ def mean_of_absolute_one_time_step_difference(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
     mean_of_absolute_one_time_step_difference: Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2156,7 +2160,7 @@ def mean_of_absolute_one_time_step_difference(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -2199,12 +2203,12 @@ def difference_of_means(
     sampling_method: SamplingMethodLike = "resample",
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
     difference_of_means: Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2282,7 +2286,7 @@ def difference_of_means(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -2325,12 +2329,12 @@ def percentile(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
-    ) -> Dataset:
+) -> Dataset:
     """Percentile of a variable.
 
     percentile: Percentile of a variable.
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2400,7 +2404,7 @@ def percentile(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -2428,8 +2432,8 @@ def percentile(
 
 
 def custom_index(
-        user_index: UserIndexDict,
-        in_files: InFileLike,
+    user_index: UserIndexDict,
+    in_files: InFileLike,
     var_name: str | Sequence[str] | None = None,
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
@@ -2455,7 +2459,7 @@ def custom_index(
     Use the `user_index` parameter to describe how the index should be computed.
     You can find some examples in icclim documentation at :ref:`custom indices`
 
-    
+
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2559,7 +2563,7 @@ def custom_index(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    
+
     Notes
     -----
     This function has been auto-generated.
@@ -2586,6 +2590,5 @@ def custom_index(
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
         run_index=run_index,
-        allow_partial_seasons=allow_partial_seasons
+        allow_partial_seasons=allow_partial_seasons,
     )
-    
