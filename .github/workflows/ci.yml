@@ -19,9 +19,9 @@ jobs:
       FLIT_ROOT_INSTALL: 1
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - name: Install build tools
@@ -58,9 +58,9 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
        # actions/checkout@v2 checkouts to a new merge commit
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - name: Install build tools
@@ -71,7 +71,7 @@ jobs:
         run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=icclim tests/ | tee pytest-coverage.txt; ( exit ${PIPESTATUS[0]} )
       - name: Pytest coverage comment
         id: coverageComment
-        uses: MishaKav/pytest-coverage-comment@v1.1.53
+        uses: MishaKav/pytest-coverage-comment@v1.7.1
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           title: Report
@@ -109,11 +109,11 @@ jobs:
       FLIT_ROOT_INSTALL: 1
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           lfs: true
       - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
       - name: Install build tools
