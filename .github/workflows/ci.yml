@@ -1,6 +1,9 @@
 name: ci-build
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     branches:
       - master
@@ -44,12 +47,13 @@ jobs:
           git config user.name "GitHub Actions Bot - API updater"
           git config user.email "<>"
       - name: commit
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           # Stage the file, commit and push
           git add src/icclim/_generated
           # Ignore error cases
           git commit -m "MAINT: Update generated API" || true
-          git push origin ${{ github.head_ref }}
+          git push origin master
 
   test:
     runs-on: ubuntu-24.04
@@ -96,12 +100,13 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
       - name: commit
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           # Stage the file, commit and push
           git add README.rst
           # Ignore error cases with `|| true`
           git commit -m "[skip ci] DOC: Update coverage" || true
-          git push origin ${{ github.head_ref }}
+          git push origin master
 
   logo-update:
     runs-on: ubuntu-24.04
@@ -135,9 +140,10 @@ jobs:
           git config user.name "GitHub Actions Bot - logo updater"
           git config user.email "<>"
       - name: commit
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           # Stage the file, commit and push
           git add doc/source/_static/*__displayed.svg
           # Ignore error cases with `|| true`
           git commit -m "MAINT: Update logos" || true
-          git push origin ${{ github.head_ref }}
+          git push origin master
