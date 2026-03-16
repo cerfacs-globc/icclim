@@ -13,12 +13,8 @@ import xarray as xr
 from jinja2 import Environment
 from pint.errors import DimensionalityError, UndefinedUnitError
 from xarray import DataArray
-from xclim.core.calendar import select_time
-from xclim.core.cfchecks import cfcheck_from_name
-from xclim.core.missing import MISSING_METHODS
-from xclim.core.units import convert_units_to, rate2amount
-from xclim.core.units import units as ureg
 
+# xclim imports are deferred to avoid triggering fire module load (and numba cache errors) on import.
 from icclim._core.climate_variable import must_run_bootstrap
 from icclim._core.constants import RESAMPLE_METHOD
 from icclim._core.generic.functions import check_freq
@@ -38,29 +34,34 @@ if TYPE_CHECKING:
     from icclim.frequency import Frequency
 
 
-# Hydro context for precipitation-like variables
-context_hydro = ureg.Context("hydro")
-context_hydro.add_transformation(
-    "[mass] / [length] ** 2",
-    "[length]",
-    lambda ureg, x: x * ureg("1 mm") / ureg("1 kg / m^2"),
-)
-context_hydro.add_transformation(
-    "[length]",
-    "[mass] / [length] ** 2",
-    lambda ureg, x: x * ureg("1 kg / m^2") / ureg("1 mm"),
-)
-context_hydro.add_transformation(
-    "[mass] / [length] ** 2 / [time]",
-    "[length] / [time]",
-    lambda ureg, x: x * ureg("1 mm / s") / ureg("1 kg / m^2 / s"),
-)
-context_hydro.add_transformation(
-    "[length] / [time]",
-    "[mass] / [length] ** 2 / [time]",
-    lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"),
-)
-ureg.add_context(context_hydro)
+def _get_ureg() -> Any:  # noqa: ANN401
+    """Lazily initialize the unit registry and its hydro context."""
+    from xclim.core.units import units as ureg  # noqa: PLC0415
+
+    if "hydro" not in ureg._contexts:  # noqa: SLF001
+        context_hydro = ureg.Context("hydro")
+        context_hydro.add_transformation(
+            "[mass] / [length] ** 2",
+            "[length]",
+            lambda ureg, x: x * ureg("1 mm") / ureg("1 kg / m^2"),
+        )
+        context_hydro.add_transformation(
+            "[length]",
+            "[mass] / [length] ** 2",
+            lambda ureg, x: x * ureg("1 kg / m^2") / ureg("1 mm"),
+        )
+        context_hydro.add_transformation(
+            "[mass] / [length] ** 2 / [time]",
+            "[length] / [time]",
+            lambda ureg, x: x * ureg("1 mm / s") / ureg("1 kg / m^2 / s"),
+        )
+        context_hydro.add_transformation(
+            "[length] / [time]",
+            "[mass] / [length] ** 2 / [time]",
+            lambda ureg, x: x * ureg("1 kg / m^2 / s") / ureg("1 mm / s"),
+        )
+        ureg.add_context(context_hydro)
+    return ureg
 
 
 jinja_env = Environment(autoescape=True)
@@ -177,13 +178,7 @@ class GenericIndicator(Indicator):
         super().__init__()
         self.missing_options = missing_options
 
-        # assign missing method name; default is "any"
-        self.missing = missing  # <-- make sure to assign this first
-
-        # Assign the missing method (callable) directly
-        self._missing = MISSING_METHODS[self.missing]
-        if self.missing_options:
-            self._missing.validate(**self.missing_options)
+        self.missing = missing or "any"
         en_indicator_templates = deepcopy(INDICATORS_TEMPLATES_EN[name])
         self.name = name
         self.process = process
@@ -249,12 +244,12 @@ class GenericIndicator(Indicator):
                     output_unit=output_unit,
                 )
             elif _is_a_diff_indicator(self) and output_unit != "%":
+                from xclim.core.units import convert_units_to  # noqa: PLC0415
+
                 # [gh:255] Indicators computing the difference between two
                 # variables must first convert the units of input variables
                 # to the expected output unit in order to avoid converting
                 # the output of the difference.
-                # This is because a difference of relative units is not equivalent
-                # to a difference of absolute on scale units.
                 # In other words: a 15 Kelvin difference *is* equivalent
                 # to a 15 degC difference, but if we would convert the unit after
                 # computing the difference, we could get -258.15 degC from the
@@ -263,6 +258,7 @@ class GenericIndicator(Indicator):
                     climate_var.studied_data = convert_units_to(
                         climate_var.studied_data,
                         target=output_unit,
+                        context="hydro",
                     )
                     if climate_var.threshold is not None:
                         climate_var.threshold.unit = output_unit
@@ -270,6 +266,8 @@ class GenericIndicator(Indicator):
             for climate_var in climate_vars:
                 climate_var.studied_data = coef * climate_var.studied_data
         if output_frequency.indexer:
+            from xclim.core.calendar import select_time  # noqa: PLC0415
+
             for climate_var in climate_vars:
                 climate_var.studied_data = select_time(
                     climate_var.studied_data,
@@ -320,6 +318,9 @@ class GenericIndicator(Indicator):
         Temperature differences (deltaT) remain in K (numerically identical to degC differences).
         Precipitation / amounts handled normally using hydro context.
         """
+        from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+        ureg = _get_ureg()
 
         if out_unit is not None and _is_amount_unit(out_unit):
             # Use Pint dimensionality + hydro context for precipitation-like units
@@ -538,6 +539,8 @@ class GenericIndicator(Indicator):
         indexer : dict, optional
             Extra arguments used by some missing value methods.
         """
+        from xclim.core.missing import MISSING_METHODS  # noqa: PLC0415
+
         missing_class = MISSING_METHODS[self.missing]  # Get the class
         missing_obj = missing_class()  # Instantiate with no args
 
@@ -593,6 +596,10 @@ def _convert_rates_to_amounts(
     Handles both classic rates (e.g., mm/s) and precipitation (kg m-2 / time)
     using a dedicated Pint context.
     """
+    from xclim.core.units import rate2amount  # noqa: PLC0415
+
+    ureg = _get_ureg()
+
     for climate_var in climate_vars:
         # Get the current unit of the variable
         current_unit = climate_var.studied_data.attrs.get("units", None)
@@ -657,6 +664,7 @@ def _is_amount_unit(unit: str) -> bool:
     """
     Return True if `unit` is an amount unit (length-like), False otherwise.
     """
+    ureg = _get_ureg()
     unit = unit.strip()
     offset_units = ["K", "degC", "degree_Celsius", "C", "?C"]
     if any(u in unit for u in offset_units):
@@ -685,6 +693,8 @@ def _check_cf(climate_vars: list[ClimateVariable]) -> None:
     When subclassing this method, use functions decorated using
     `xclim.core.options.cfcheck`.
     """
+    from xclim.core.cfchecks import cfcheck_from_name  # noqa: PLC0415
+
     for da in climate_vars:
         with contextlib.suppress(KeyError):
             # Silently ignore unknown variables.

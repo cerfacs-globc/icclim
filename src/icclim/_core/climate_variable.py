@@ -429,12 +429,15 @@ def _build_reference_variable(
 
 
 def _build_threshold(
-    climate_var_thresh: str | Threshold,
+    climate_var_thresh: str | Threshold | dict,
     original_data: DataArray,
     conversion_unit: str,
 ) -> Threshold:
     if isinstance(climate_var_thresh, str):
         climate_var_thresh: Threshold = build_threshold(climate_var_thresh)
+    elif isinstance(climate_var_thresh, dict):
+        climate_var_thresh: Threshold = build_threshold(**climate_var_thresh)
+
     if climate_var_thresh.prepare is not None and not climate_var_thresh.is_ready:
         climate_var_thresh.prepare(original_data)
     climate_var_thresh.unit = conversion_unit

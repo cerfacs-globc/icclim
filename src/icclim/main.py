@@ -21,7 +21,6 @@ from warnings import warn
 
 import numpy as np
 import xarray as xr
-import xclim
 
 from icclim._core.climate_variable import (
     ClimateVariable,
@@ -541,7 +540,7 @@ def _parse_threshold(
 ) -> Threshold | Sequence[Threshold] | None:
     if isinstance(threshold, Threshold):
         return threshold
-    if isinstance(threshold, str):
+    if isinstance(threshold, (str, dict)):
         return _build_threshold(
             threshold,
             doy_window_width=doy_window_width,
@@ -675,7 +674,8 @@ def _build_standard_index_config(
     if isinstance(index, StandardIndex):
         standard_index = index.clone()
         indicator = standard_index.indicator.clone()
-        threshold = standard_index.threshold
+        if threshold is None:
+            threshold = standard_index.threshold
         rename = standard_index.short_name
         output_unit = out_unit or standard_index.output_unit
         reference = standard_index.reference
@@ -809,6 +809,8 @@ def _setup(
     callback_start_value: int,
     logs_verbosity: Verbosity | str,
 ) -> None:
+    import xclim  # noqa: PLC0415
+
     # make xclim input daily check a warning instead of an error
     # TODO @bzah: it might be safer to feed a context manager which will setup
     #             and teardown these confs
@@ -938,7 +940,7 @@ def _build_history(
 
 
 def _build_threshold(
-    threshold: str | Threshold,
+    threshold: str | dict | Threshold,
     doy_window_width: int,
     reference_period: Sequence[dt.datetime | str] | None,
     only_leap_years: bool,
@@ -946,6 +948,15 @@ def _build_threshold(
 ) -> Threshold:
     if isinstance(threshold, Threshold):
         return threshold
+    if isinstance(threshold, dict):
+        kwargs = {
+            "doy_window_width": doy_window_width,
+            "reference_period": reference_period,
+            "only_leap_years": only_leap_years,
+            "interpolation": interpolation,
+            **threshold,
+        }
+        return build_threshold(**kwargs)
     return build_threshold(
         threshold,
         doy_window_width=doy_window_width,
