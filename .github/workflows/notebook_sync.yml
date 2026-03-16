@@ -28,18 +28,17 @@ jobs:
           echo "$GITLAB_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
-          git remote add gitlab git@gitlab.com:is-enes-cdi-c4i/notebooks.git
-          git fetch gitlab master
-          
-          # Create a temp directory for the sync
-          mkdir temp_sync
+
+          git clone git@gitlab.com:is-enes-cdi-c4i/notebooks.git temp_sync
           cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
           cd temp_sync
-          git init
-          git remote add origin git@gitlab.com:is-enes-cdi-c4i/notebooks.git
           git add .
-          git commit -m "Sync notebooks from icclim master"
-          git push -f origin master
+          if git diff --staged --quiet; then
+            echo "No changes to sync"
+          else
+            git commit -m "Sync notebooks from icclim master"
+            git push origin master
+          fi
 
   sync-github:
     runs-on: ubuntu-latest
@@ -55,12 +54,13 @@ jobs:
           GIT_COMMITTER_NAME: "GitHub Actions Bot"
           GIT_COMMITTER_EMAIL: "actions@github.com"
         run: |
-          # Similar logic for GitHub external repo
-          mkdir temp_sync
+          git clone https://x-access-token:${EXTERNAL_GITHUB_TOKEN}@github.com/cerfacs-globc/copernicus-training.git temp_sync
           cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
           cd temp_sync
-          git init
-          git remote add origin https://x-access-token:${EXTERNAL_GITHUB_TOKEN}@github.com/cerfacs-globc/copernicus-training.git
           git add .
-          git commit -m "Sync notebooks from icclim master"
-          git push -f origin master
+          if git diff --staged --quiet; then
+            echo "No changes to sync"
+          else
+            git commit -m "Sync notebooks from icclim master"
+            git push origin master
+          fi
