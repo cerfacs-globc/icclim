@@ -6,6 +6,7 @@ on:
       - master
     paths:
       - 'doc/source/tutorials/notebooks/*.ipynb'
+      - '.github/workflows/notebook_sync.yml'
   workflow_dispatch:
 
 jobs:
@@ -18,22 +19,18 @@ jobs:
       - name: Sync to GitLab
         env:
           GITLAB_SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_PRIVATE_KEY }}
+          GIT_AUTHOR_NAME: "GitHub Actions Bot"
+          GIT_AUTHOR_EMAIL: "actions@github.com"
+          GIT_COMMITTER_NAME: "GitHub Actions Bot"
+          GIT_COMMITTER_EMAIL: "actions@github.com"
         run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "actions@github.com"
           mkdir -p ~/.ssh
           echo "$GITLAB_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
           git remote add gitlab git@gitlab.com:is-enes-cdi-c4i/notebooks.git
           git fetch gitlab master
-          # We force push to keep external repo identical to doc/source/tutorials/notebooks
-          # BUT we only want to push the notebooks, so we might need a subtree push or similar.
-          # For simplicity and based on user request, we sync the whole repo state if that's what they had.
-          # Actually, the user integrated them into the repo, but the external repos only contain notebooks.
-          # So we should only push the content of doc/source/tutorials/notebooks/ to the root of the external repos.
-
-
+          
           # Create a temp directory for the sync
           mkdir temp_sync
           cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
@@ -53,9 +50,11 @@ jobs:
       - name: Sync to GitHub External
         env:
           EXTERNAL_GITHUB_TOKEN: ${{ secrets.EXTERNAL_GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: "GitHub Actions Bot"
+          GIT_AUTHOR_EMAIL: "actions@github.com"
+          GIT_COMMITTER_NAME: "GitHub Actions Bot"
+          GIT_COMMITTER_EMAIL: "actions@github.com"
         run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "actions@github.com"
           # Similar logic for GitHub external repo
           mkdir temp_sync
           cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
