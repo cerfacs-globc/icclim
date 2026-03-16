@@ -9,11 +9,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from icclim._core.constants import EXPECTED_RANGE_LEN
 from icclim._core.generic.threshold.threshold_templates import (
     EN_THRESHOLD_TEMPLATE,
     ThresholdMetadata,
 )
-from icclim._core.constants import EXPECTED_RANGE_LEN
 from icclim._core.model.threshold import (
     Threshold,
     ThresholdBuilderInput,

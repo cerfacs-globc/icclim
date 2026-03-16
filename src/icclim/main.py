@@ -128,7 +128,7 @@ def indices(
             res = index(**kwargs)
             res = _rename_coords(res, i.short_name)
             acc.append(res)
-        except Exception:  # noqa: BLE001
+        except Exception:
             if ignore_error:
                 warn(f"Could not compute {i.short_name}.", stacklevel=2)
             else:
@@ -228,7 +228,7 @@ def index(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
-    ignore_Feb29th: bool = False,  # noqa: N803
+    ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -247,7 +247,7 @@ def index(
     save_percentile: bool | None = None,
     indice_name: str | None = None,
     user_indice: UserIndexDict | None = None,
-    transfer_limit_Mbytes: float | None = None,  # noqa: N803
+    transfer_limit_Mbytes: float | None = None,
 ) -> Dataset:
     """
     Compute climate index.
@@ -849,7 +849,7 @@ def _handle_deprecated_params(
     user_index: UserIndexDict | None,
     save_thresholds: bool,
     indice_name: str | None,
-    transfer_limit_mbytes: float | None, # noqa: N803
+    transfer_limit_mbytes: float | None,
     user_indice: UserIndexDict | None,
     save_percentile: bool | None,
     window_width: int | None,
@@ -1056,6 +1056,7 @@ def _must_add_reference_var(
     t = next(iter(climate_vars_dict.values())).get("thresholds", None)
     return t is None and len(climate_vars_dict) == 1 and reference_period is not None
 
+
 def _rename_coords(ds: Dataset, short_name: str) -> Dataset:
     if "percentiles" in ds.coords:
         ds = ds.rename({"percentiles": short_name + "_percentiles"})
@@ -1076,7 +1077,9 @@ def _parse_indicator_config(
         return {
             "standard_index": standard_index,
             "indicator": indicator,
-            "threshold": threshold if threshold is not None else standard_index.threshold,
+            "threshold": threshold
+            if threshold is not None
+            else standard_index.threshold,
             "rename": standard_index.short_name,
             "output_unit": out_unit or standard_index.output_unit,
             "reference": standard_index.reference,

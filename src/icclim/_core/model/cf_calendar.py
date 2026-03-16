@@ -7,8 +7,6 @@ climate indices calculation.
 
 from __future__ import annotations
 
-from icclim._core.constants import GREGORIAN_SHIFT_YEAR
-
 import dataclasses
 from typing import TYPE_CHECKING
 
@@ -16,6 +14,7 @@ import numpy as np
 import xarray as xr
 from xarray import DataArray
 
+from icclim._core.constants import GREGORIAN_SHIFT_YEAR
 from icclim._core.model.registry import Registry
 
 if TYPE_CHECKING:
@@ -192,7 +191,9 @@ def _standard_leap(years: DataArray) -> DataArray:
         A boolean array indicating if the years are part of a leap year.
     """
     res = xr.full_like(years, False)
-    res[years < GREGORIAN_SHIFT_YEAR] = _julian_leap(years[years < GREGORIAN_SHIFT_YEAR])
+    res[years < GREGORIAN_SHIFT_YEAR] = _julian_leap(
+        years[years < GREGORIAN_SHIFT_YEAR]
+    )
     res[years >= GREGORIAN_SHIFT_YEAR] = _proleptic_gregorian_leap(
         years[years >= GREGORIAN_SHIFT_YEAR]
     )

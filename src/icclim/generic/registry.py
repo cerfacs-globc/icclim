@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from icclim._core.constants import (
     EXPECTED_RANGE_LEN,
-    ICCLIM_REFERENCE,
     GROUP_BY_METHOD,
     GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
     RESAMPLE_METHOD,
