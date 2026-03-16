@@ -171,7 +171,12 @@ ignore = [
   "D", # Disable docstring check for tests.
   "ANN", # Disable type check for tests.
   "F821", # Allow _empty.
-  "SLF001" # Allow access to private values from tests.
+  "SLF001", # Allow access to private values from tests.
+  "PLR2004" # Magic numbers are expected in test assertions.
+]
+"scripts/*.py" = [
+  "PLR2004", # Magic numbers are common in CLI scripts (argv length checks).
+  "T201"     # Path handling and comparison results are printed in scripts.
 ]
 "src/icclim/_generated/*.py" = [
   "F821", # Allow placeholder names like _empty in generated API.

@@ -37,12 +37,12 @@ def main(output_file: str, data_path_str: str | None = None) -> None:
     pr_files = [str(f) for f in data_path.glob("pr_day*CMCC*historical*2014*.nc")]
 
     if not tas_files or not pr_files:
-        print(f"Error: No NetCDF files found in {data_path}")  # noqa: T201
+        print(f"Error: No NetCDF files found in {data_path}")
         sys.exit(1)
 
     results = {}
 
-    print(  # noqa: T201
+    print(
         f"Computing statistics for {icclim.__name__} {icclim.__version__}..."
     )
 
@@ -60,12 +60,12 @@ def main(output_file: str, data_path_str: str | None = None) -> None:
 
     with Path(output_file).open("w") as f:
         json.dump(results, f, indent=4)
-    print(f"Stats saved to {output_file}")  # noqa: T201
+    print(f"Stats saved to {output_file}")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python compare_stats.py <output_json> [data_path]")  # noqa: T201
+        print("Usage: python compare_stats.py <output_json> [data_path]")
     else:
         out = sys.argv[1]
         dp = sys.argv[2] if len(sys.argv) > 2 else None
