@@ -3,10 +3,10 @@
 #################
 
 ******
-7.0.6
+7.1.0
 ******
 
-date: 2026-03-10
+date: 2026-03-11
 
 Details
 =======
@@ -29,6 +29,16 @@ Details
 -  [maint] Add ``CI`` URL to ``pyproject.toml`` project URLs for PyPI badge display.
 -  [enh] Add inline doctests to CI test suite and expand test coverage for generic reducers (#109).
 -  [doc] Remove deprecated ``create_optimized_zarr_store`` from API documentation (#138).
+-  [enh] Add support for spatially varying seasons in all indices by allowing
+   ``slice_mode`` to accept a tuple of ``DataArray`` objects representing
+   day-of-year bounds (#170).
+-  [enh] Add ``allow_partial_seasons`` parameter to ``icclim.index`` to include
+   incomplete seasons at the beginning or end of a time series. It supports
+   granular control: ``True`` (both), ``False`` (none), ``"start"`` (first only),
+   or ``"end"`` (last only) (#350).
+-  [fix] Suppress ``UserWarning`` from ``xclim`` regarding frequency inference by explicitly setting the ``freq`` attribute on time coordinates and using a warning filter during aggregation.
+-  [change] **Behavioral change**: Temperature variables recognized via ``standard_name`` (e.g., ``air_temperature``) are now automatically converted to ``degree_Celsius`` before computation when units differ. This ensures correct ECA&D index computation regardless of the input unit (e.g., Kelvin). Users who previously managed unit conversion manually may see different output values if ``out_unit`` was not explicitly set.
+-  [fix] Fix ``RuntimeError: cannot cache function '_keetch_byram_drought_index'`` that occurred on ``import icclim`` in conda environments where xclim is installed from a compiled package. The fix defers access to ``xclim.atmos`` attributes in ``ecad/binding.py`` from class definition time to first use via lazy ``@property`` definitions.
 
 ******
 7.0.5

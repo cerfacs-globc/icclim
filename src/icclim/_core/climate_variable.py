@@ -301,6 +301,9 @@ def build_climate_var(
             original_data=study_ds[climate_var_name],
             conversion_unit=studied_data.attrs[UNITS_KEY],
         )
+    if "time" in studied_data.coords:
+        inferred_freq = xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY
+        studied_data.time.attrs["freq"] = inferred_freq
     return ClimateVariable(
         name=climate_var_name,
         standard_var=standard_var,
@@ -313,7 +316,7 @@ def build_climate_var(
             "time_encoding": study_ds.time.encoding,
         },
         source_frequency=FrequencyRegistry.lookup(
-            xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY,
+            studied_data.time.attrs.get("freq", DEFAULT_INPUT_FREQUENCY)
         ),
     )
 

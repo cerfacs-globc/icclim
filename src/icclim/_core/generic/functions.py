@@ -18,6 +18,7 @@ The `DataArray` instance is the result of the computation of the generic index.
 from __future__ import annotations
 
 import operator
+import warnings
 from collections.abc import Callable
 from functools import partial
 from typing import TYPE_CHECKING, Any
@@ -130,9 +131,9 @@ def count_occurrences(
         result.attrs[UNITS_KEY] = "%"
         return result
     freq = check_freq(climate_vars[0].studied_data, dim="time")
-    from xclim.core.units import to_agg_units  # noqa: PLC0415
-
-    return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
+    return _safe_to_agg_units(
+        result, climate_vars[0].studied_data, "count", deffreq=freq
+    )
 
 
 def max_consecutive_occurrence(
@@ -206,9 +207,9 @@ def max_consecutive_occurrence(
     else:
         result = resampled.max(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")
-    from xclim.core.units import to_agg_units  # noqa: PLC0415
-
-    return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
+    return _safe_to_agg_units(
+        result, climate_vars[0].studied_data, "count", deffreq=freq
+    )
 
 
 def sum_of_spell_lengths(
@@ -255,9 +256,9 @@ def sum_of_spell_lengths(
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
     freq = check_freq(climate_vars[0].studied_data, dim="time")
-    from xclim.core.units import to_agg_units  # noqa: PLC0415
-
-    return to_agg_units(result, climate_vars[0].studied_data, "count", deffreq=freq)
+    return _safe_to_agg_units(
+        result, climate_vars[0].studied_data, "count", deffreq=freq
+    )
 
 
 def excess(
@@ -304,9 +305,7 @@ def excess(
     )
     res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
     freq = check_freq(study, dim="time")
-    from xclim.core.units import to_agg_units  # noqa: PLC0415
-
-    return to_agg_units(res, study, "integral", deffreq=freq)
+    return _safe_to_agg_units(res, study, "integral", deffreq=freq)
 
 
 def deficit(
@@ -343,9 +342,7 @@ def deficit(
     res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
     freq = check_freq(study, dim="time")
-    from xclim.core.units import to_agg_units  # noqa: PLC0415
-
-    return to_agg_units(res, study, "integral", deffreq=freq)
+    return _safe_to_agg_units(res, study, "integral", deffreq=freq)
 
 
 def fraction_of_total(
@@ -1591,3 +1588,15 @@ def check_freq(da: xr.DataArray, dim: str = "time", strict: bool = True) -> str 
             msg = "[icclim] Unable to infer frequency"
             raise ValueError(msg) from err
         return None
+
+
+def _safe_to_agg_units(*args, **kwargs) -> DataArray:
+    from xclim.core.units import to_agg_units  # noqa: PLC0415
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            category=UserWarning,
+            message=".*Unable to find the sampling frequency.*",
+        )
+        return to_agg_units(*args, **kwargs)
