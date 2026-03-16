@@ -1,0 +1,67 @@
+name: sync-notebooks
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'doc/source/tutorials/notebooks/*.ipynb'
+  workflow_dispatch:
+
+jobs:
+  sync-gitlab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Sync to GitLab
+        env:
+          GITLAB_SSH_PRIVATE_KEY: ${{ secrets.GITLAB_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$GITLAB_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
+          git remote add gitlab git@gitlab.com:is-enes-cdi-c4i/notebooks.git
+          git fetch gitlab master
+          # We force push to keep external repo identical to doc/source/tutorials/notebooks
+          # BUT we only want to push the notebooks, so we might need a subtree push or similar.
+          # For simplicity and based on user request, we sync the whole repo state if that's what they had.
+          # Actually, the user integrated them into the repo, but the external repos only contain notebooks.
+          # So we should only push the content of doc/source/tutorials/notebooks/ to the root of the external repos.
+
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+
+          # Create a temp directory for the sync
+          mkdir temp_sync
+          cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
+          cd temp_sync
+          git init
+          git remote add origin git@gitlab.com:is-enes-cdi-c4i/notebooks.git
+          git add .
+          git commit -m "Sync notebooks from icclim master"
+          git push -f origin master
+
+  sync-github:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Sync to GitHub External
+        env:
+          EXTERNAL_GITHUB_TOKEN: ${{ secrets.EXTERNAL_GITHUB_TOKEN }}
+        run: |
+          # Similar logic for GitHub external repo
+          mkdir temp_sync
+          cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
+          cd temp_sync
+          git init
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
+          git remote add origin https://x-access-token:${EXTERNAL_GITHUB_TOKEN}@github.com/cerfacs-globc/copernicus-training.git
+          git add .
+          git commit -m "Sync notebooks from icclim master"
+          git push -f origin master

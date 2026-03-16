@@ -3,25 +3,19 @@
 #################
 
 ******
-7.1.1
+7.1.0
 ******
 
 date: 2026-03-16
+
 
 Details
 =======
 
 -  [fix] Increase viewBox width of SVG logos to prevent version text cropping (#269).
-
-******
-7.1.0
-******
-
-date: 2026-03-11
-
-
-Details
-=======
+-  [maint] Integrate and update external notebooks from C3S and C4I, fixing path handling issues and updating to latest API (#354).
+-  [enh] Add GitHub Action to automatically synchronize tutorials to external GitLab/GitHub repositories.
+-  [doc] Update tutorials index and add icclim version compatibility notes to all notebooks.
 
 -  [fix] Add automatic rate-to-amount conversion for snow depth indices (``SND``)
    to resolve ``DimensionalityError`` when input units are in ``mm/s`` (#320).
