@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 permissions:
   contents: write
@@ -71,7 +71,7 @@ jobs:
         run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=icclim tests/ | tee pytest-coverage.txt; ( exit ${PIPESTATUS[0]} )
       - name: Pytest coverage comment
         id: coverageComment
-        uses: MishaKav/pytest-coverage-comment@main
+        uses: MishaKav/pytest-coverage-comment@v1.1.53
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           title: Report
