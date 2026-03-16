@@ -15,7 +15,11 @@ This PR refactors several core modules to improve code quality and comply with R
 
 1. **Ruff Compliance**:
    - Resolved multiple violations including PLR0915 (too many statements), PLR2004 (magic numbers), ARG (unused arguments), PD (pandas-specific), and N (naming conventions).
-   - Achieved 0 violations for the targeted rule sets.
+   - Achieved 0 violations for the targeted rule sets across core library, tests, scripts, and notebooks (using per-file-ignores for conventional patterns in non-library code).
+
+2. **CI Robustness and Maintenance**:
+   - Fixed a recurring merge conflict issue by restricting automated documentation/API commits to the `master` branch.
+   - Resolved persistent merge conflicts in `PR 357` and rebased all changes onto latest `master`.
 
 2. **Structural Refactoring**:
    - Decomposed the monolithic `icclim.main.index` function into a modular architecture using specialized helper functions:

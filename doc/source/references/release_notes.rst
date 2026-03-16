@@ -13,6 +13,8 @@ Details
 =======
 
 -  [maint] Refactor core modules for **Ruff compliance** (PLR0915, PLR2004, ARG, PD, N), improve modularity in ``icclim.main.index``, and ensure backward compatibility for ``ignore_Feb29th`` parameter (#186).
+-  [maint] Improve **CI robustness** by restricting automated commits (coverage, API, logos) to the ``master`` branch, preventing recurring merge conflicts in PRs.
+-  [maint] Expand Ruff ``per-file-ignores`` to white-list conventional patterns (magic numbers, prints) in notebooks, tests, and utility scripts.
 -  [fix] Increase viewBox width of SVG logos to prevent version text cropping (#269).
 -  [maint] Integrate and update external notebooks from C3S and C4I, fixing path handling issues and updating to latest API (#354).
 -  [enh] Add GitHub Action to automatically synchronize tutorials to external GitLab/GitHub repositories.
