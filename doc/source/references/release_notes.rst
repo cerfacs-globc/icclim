@@ -3,10 +3,22 @@
 #################
 
 ******
+7.1.1
+******
+
+date: 2026-03-16
+
+Details
+=======
+
+-  [fix] Increase viewBox width of SVG logos to prevent version text cropping (#269).
+
+******
 7.1.0
 ******
 
 date: 2026-03-11
+
 
 Details
 =======
