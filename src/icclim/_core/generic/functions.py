@@ -36,6 +36,8 @@ from xarray.core.resample import DataArrayResample
 # xclim imports are deferred to avoid triggering fire module load (and numba cache errors) on import.
 from icclim._core.climate_variable import must_run_bootstrap
 from icclim._core.constants import (
+    EXPECTED_RANGE_LEN,
+    FREQ_DELTA_TOLERANCE,
     GROUP_BY_METHOD,
     GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
     PART_OF_A_WHOLE_UNIT,
@@ -1226,7 +1228,7 @@ def get_couple_of_var(
     The function checks the number of climate variables and raises an error
     if it is not equal to 2 or if thresholds are present.
     """
-    if len(climate_vars) != 2:
+    if len(climate_vars) != EXPECTED_RANGE_LEN:
         msg = (
             f"{indicator} needs two variables **or** one variable and a "
             f"`base_period_time_range` period to extract a reference variable."
@@ -1559,8 +1561,8 @@ def check_freq(da: xr.DataArray, dim: str = "time", strict: bool = True) -> str 
     (which can break pandas' infer_freq). Falls back to pandas.infer_freq
     if not daily.
     """
-    times = da[dim].values
-    if len(times) < 2:
+    times = da[dim].to_numpy()
+    if len(times) < EXPECTED_RANGE_LEN:
         return None
 
     # Compute deltas
@@ -1575,7 +1577,7 @@ def check_freq(da: xr.DataArray, dim: str = "time", strict: bool = True) -> str 
     median_delta = Timedelta(np_median(deltas))
 
     # If ~daily, force "D"
-    if np_abs(median_delta / Timedelta("1D") - 1) < 1e-6:
+    if np_abs(median_delta / Timedelta("1D") - 1) < FREQ_DELTA_TOLERANCE:
         return "D"
 
     # Otherwise, try pandas inference

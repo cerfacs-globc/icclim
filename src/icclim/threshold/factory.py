@@ -11,6 +11,7 @@ from xarray import DataArray, Dataset
 
 from icclim._core.constants import (
     DOY_PERCENTILE_UNIT,
+    EXPECTED_RANGE_LEN,
     PERIOD_PERCENTILE_UNIT,
 )
 from icclim._core.generic.threshold.basic import BasicThreshold
@@ -281,7 +282,7 @@ def _read_bounded_threshold(
         else:
             msg = f"Unknown type '{type(t)}'"
             raise NotImplementedError(msg)
-    if len(acc) > 2:
+    if len(acc) > EXPECTED_RANGE_LEN:
         msg = "Can't build BoundedThreshold on more than 2 thresholds."
         raise NotImplementedError(msg)
     if isinstance(logical_link, str):
@@ -358,7 +359,7 @@ def _read_bounded_threshold_query(query: str) -> ThresholdBuilderInput:
         msg = f"No logical link found in {query}"
         raise InvalidIcclimArgumentError(msg)
     threshs = [t.strip() for t in query.split(split_word)]
-    if len(threshs) != 2:
+    if len(threshs) != EXPECTED_RANGE_LEN:
         msg = (
             "BoundedThreshold can only be built on 2"
             f" thresholds. We found {len(threshs)} here."

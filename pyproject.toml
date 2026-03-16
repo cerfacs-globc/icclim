@@ -148,7 +148,6 @@ select = [
 ignore = [
   # -- Rules to add
   "PLR0913", # too many arguments in function, to add
-  "PLR2004", # Magic values, to add
   "PLR0915", # Too many statement, to add
   # -- True ignore
   "ISC001", # String concat on same line, Managed by ruff format

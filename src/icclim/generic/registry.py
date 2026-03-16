@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from icclim._core.constants import (
+    EXPECTED_RANGE_LEN,
+    ICCLIM_REFERENCE,
     GROUP_BY_METHOD,
     GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD,
     RESAMPLE_METHOD,
@@ -51,7 +53,7 @@ def _check_couple_of_vars(
     climate_vars: list[ClimateVariable],
     indicator: GenericIndicator,
 ) -> None:
-    if len(climate_vars) != 2:
+    if len(climate_vars) != EXPECTED_RANGE_LEN:
         msg = (
             f"{indicator.name} can only be computed on two variables sharing the same"
             f" unit (e.g. 2 temperatures). You can either provide a secondary variable"

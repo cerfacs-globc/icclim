@@ -16,7 +16,7 @@ from xarray import DataArray
 
 # xclim imports are deferred to avoid triggering fire module load (and numba cache errors) on import.
 from icclim._core.climate_variable import must_run_bootstrap
-from icclim._core.constants import RESAMPLE_METHOD
+from icclim._core.constants import MIN_LEN_FOR_FREQ_INFERENCE, RESAMPLE_METHOD
 from icclim._core.generic.functions import check_freq
 from icclim._core.generic.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim._core.model.indicator import Indicator
@@ -732,7 +732,11 @@ def _check_data(climate_vars: list, src_freq: str) -> None:
         return
     for climate_var in climate_vars:
         da = climate_var.studied_data
-        if "time" in da.coords and da.time.ndim == 1 and len(da.time) > 3:
+        if (
+            "time" in da.coords
+            and da.time.ndim == 1
+            and len(da.time) > MIN_LEN_FOR_FREQ_INFERENCE
+        ):
             inferred_freq = check_freq(da, dim="time", strict=True)
             if inferred_freq != src_freq:
                 msg = (

@@ -12,6 +12,7 @@ date: 2026-03-16
 Details
 =======
 
+-  [maint] Refactor core modules for **Ruff compliance** (PLR0915, PLR2004, ARG, PD, N), improve modularity in ``icclim.main.index``, and ensure backward compatibility for ``ignore_Feb29th`` parameter (#186).
 -  [fix] Increase viewBox width of SVG logos to prevent version text cropping (#269).
 -  [maint] Integrate and update external notebooks from C3S and C4I, fixing path handling issues and updating to latest API (#354).
 -  [enh] Add GitHub Action to automatically synchronize tutorials to external GitLab/GitHub repositories.

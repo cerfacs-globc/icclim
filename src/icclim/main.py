@@ -16,7 +16,7 @@ import operator
 import time
 from collections.abc import Callable, Sequence
 from functools import reduce
-from typing import TYPE_CHECKING, Literal, Union
+from typing import TYPE_CHECKING, Any, Literal, Union
 from warnings import warn
 
 import numpy as np
@@ -27,6 +27,7 @@ from icclim._core.climate_variable import (
     build_climate_vars,
 )
 from icclim._core.constants import (
+    ICCLIM_REFERENCE,
     RESAMPLE_METHOD,
     UNITS_KEY,
 )
@@ -75,7 +76,6 @@ log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
-ICCLIM_REFERENCE = "icclim"
 
 
 def indices(
@@ -124,23 +124,15 @@ def indices(
     for i in indices:
         log.info("Computing index %s", i.short_name)
         kwargs["index_name"] = i.short_name
-        if ignore_error:
-            try:
-                res = index(**kwargs)
-                if "percentiles" in res.coords:
-                    res = res.rename({"percentiles": i.short_name + "_percentiles"})
-                if "thresholds" in res.coords:
-                    res = res.rename({"thresholds": i.short_name + "_thresholds"})
-                acc.append(res)
-            except Exception:  # noqa: BLE001
-                warn(f"Could not compute {i.short_name}.", stacklevel=2)
-        else:
+        try:
             res = index(**kwargs)
-            if "percentiles" in res.coords:
-                res = res.rename({"percentiles": i.short_name + "_percentiles"})
-            if "thresholds" in res.coords:
-                res = res.rename({"thresholds": i.short_name + "_thresholds"})
+            res = _rename_coords(res, i.short_name)
             acc.append(res)
+        except Exception:  # noqa: BLE001
+            if ignore_error:
+                warn(f"Could not compute {i.short_name}.", stacklevel=2)
+            else:
+                raise
     ds: Dataset = xr.merge(acc)
     if out is not None:
         _write_output_file(
@@ -159,16 +151,35 @@ def _get_ecad_indices_of_group(
         isinstance(query, str)
         and query.lower() == IndexGroupRegistry.WILD_CARD_GROUP.name
     ):
-        # case of group="all"
         return EcadIndexRegistry.values()
     if not isinstance(query, (list, tuple)):
         query = [query]
-    # -- Look for standard indices (e.g. index_group='tx90p')
+
+    indices = _look_for_standard_indices(query)
+    if indices:
+        return indices
+
+    indices = _look_for_variable_indices(query)
+    if indices:
+        return indices
+
+    indices = _look_for_index_groups(query)
+    if indices:
+        return indices
+
+    msg = f"The index group {query} was not recognized."
+    raise InvalidIcclimArgumentError(msg)
+
+
+def _look_for_standard_indices(query: Sequence[Any]) -> list[StandardIndex] | None:
     indices = [EcadIndexRegistry.lookup_no_error(i) for i in query]
     indices = list(filter(lambda x: x is not None, indices))
     if len(indices) == len(query):
         return indices
-    # -- Look for variables in standard indices (e.g. index_group='tasmax')
+    return None
+
+
+def _look_for_variable_indices(query: Sequence[Any]) -> list[StandardIndex] | None:
     indices = []
     for ecad_index in EcadIndexRegistry.values():
         has_var = True
@@ -181,15 +192,16 @@ def _get_ecad_indices_of_group(
             indices.append(ecad_index)
     if len(indices) >= len(query):
         return indices
-    # -- Look for index group (e.g. index_group='HEAT')
+    return None
+
+
+def _look_for_index_groups(query: Sequence[Any]) -> list[StandardIndex] | None:
     groups = [IndexGroupRegistry.lookup_no_error(i) for i in query]
     groups = list(filter(lambda x: x is not None, groups))
-    indices = (x.get_indices() for x in groups)
-    indices = reduce(operator.add, indices, [])  # flatten list[list]
-    if len(indices) >= len(query):
-        return indices
-    msg = f"The index group {query} was not recognized."
-    raise InvalidIcclimArgumentError(msg)
+    if groups:
+        indices = (x.get_indices() for x in groups)
+        return reduce(operator.add, indices, [])  # flatten list[list]
+    return None
 
 
 def indice(*args, **kwargs) -> Dataset:
@@ -216,7 +228,7 @@ def index(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
-    ignore_Feb29th: bool = False,
+    ignore_Feb29th: bool = False,  # noqa: N803
     interpolation: str | QuantileInterpolation = "median_unbiased",
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -235,7 +247,7 @@ def index(
     save_percentile: bool | None = None,
     indice_name: str | None = None,
     user_indice: UserIndexDict | None = None,
-    transfer_limit_Mbytes: float | None = None,
+    transfer_limit_Mbytes: float | None = None,  # noqa: N803
 ) -> Dataset:
     """
     Compute climate index.
@@ -476,7 +488,7 @@ def index(
         base_period_time_range=base_period_time_range,
         doy_window_width=doy_window_width,
         only_leap_years=only_leap_years,
-        ignore_Feb29th=ignore_Feb29th,
+        ignore_feb29th=ignore_Feb29th,
         interpolation=interpolation,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -520,7 +532,7 @@ def _build_config(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
     doy_window_width: int,
     only_leap_years: bool,
-    ignore_Feb29th: bool,
+    ignore_feb29th: bool,
     interpolation: str | QuantileInterpolation,
     out_unit: str | None,
     netcdf_version: str | NetcdfVersion,
@@ -545,7 +557,7 @@ def _build_config(
             base_period_time_range=base_period_time_range,
             doy_window_width=doy_window_width,
             only_leap_years=only_leap_years,
-            ignore_Feb29th=ignore_Feb29th,
+            ignore_feb29th=ignore_feb29th,
             interpolation=interpolation,
             out_unit=out_unit,
             netcdf_version=netcdf_version,
@@ -569,7 +581,7 @@ def _build_config(
             base_period_time_range=base_period_time_range,
             doy_window_width=doy_window_width,
             only_leap_years=only_leap_years,
-            ignore_Feb29th=ignore_Feb29th,
+            ignore_feb29th=ignore_feb29th,
             interpolation=interpolation,
             out_unit=out_unit,
             netcdf_version=netcdf_version,
@@ -637,7 +649,7 @@ def _build_user_index_config(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
     doy_window_width: int,
     only_leap_years: bool,
-    ignore_Feb29th: bool,
+    ignore_feb29th: bool,
     interpolation: str | QuantileInterpolation,
     out_unit: str | None,
     netcdf_version: str | NetcdfVersion,
@@ -677,7 +689,7 @@ def _build_user_index_config(
     is_compared_to_ref = _must_add_reference_var(climate_vars_dict, reference_period)
     climate_vars = build_climate_vars(
         climate_vars_dict=climate_vars_dict,
-        ignore_Feb29th=ignore_Feb29th,
+        ignore_feb29th=ignore_feb29th,
         time_range=time_range,
         base_period=reference_period,
         standard_index=None,
@@ -719,7 +731,7 @@ def _build_standard_index_config(
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
     doy_window_width: int,
     only_leap_years: bool,
-    ignore_Feb29th: bool,
+    ignore_feb29th: bool,
     interpolation: str | QuantileInterpolation,
     out_unit: str | None,
     netcdf_version: str | NetcdfVersion,
@@ -737,26 +749,14 @@ def _build_standard_index_config(
     logical_link = LogicalLinkRegistry.LOGICAL_AND
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)
     coef = None
-    index = _parse_index_kind(index_name)
-    if isinstance(index, StandardIndex):
-        standard_index = index.clone()
-        indicator = standard_index.indicator.clone()
-        if threshold is None:
-            threshold = standard_index.threshold
-        rename = standard_index.short_name
-        output_unit = out_unit or standard_index.output_unit
-        reference = standard_index.reference
-        indicator_name = standard_index.short_name
-    elif isinstance(index, GenericIndicator):
-        rename = None
-        output_unit = out_unit
-        standard_index = None
-        indicator = index.clone()
-        reference = ICCLIM_REFERENCE
-        indicator_name = indicator.name
-    else:
-        err = f"Unknown index_name : `{index_name}`"
-        raise InvalidIcclimArgumentError(err)
+    indicator_info = _parse_indicator_config(index_name, out_unit, threshold)
+    standard_index = indicator_info["standard_index"]
+    indicator = indicator_info["indicator"]
+    threshold = indicator_info["threshold"]
+    rename = indicator_info["rename"]
+    output_unit = indicator_info["output_unit"]
+    reference = indicator_info["reference"]
+    indicator_name = indicator_info["indicator_name"]
     reference_period = _get_reference_period(base_period_time_range)
     threshold = _parse_threshold(
         threshold,
@@ -774,7 +774,7 @@ def _build_standard_index_config(
     is_compared_to_ref = _must_add_reference_var(climate_vars_dict, reference_period)
     climate_vars = build_climate_vars(
         climate_vars_dict=climate_vars_dict,
-        ignore_Feb29th=ignore_Feb29th,
+        ignore_feb29th=ignore_feb29th,
         time_range=time_range,
         base_period=reference_period,
         standard_index=standard_index,
@@ -849,7 +849,7 @@ def _handle_deprecated_params(
     user_index: UserIndexDict | None,
     save_thresholds: bool,
     indice_name: str | None,
-    transfer_limit_Mbytes: float | None,
+    transfer_limit_mbytes: float | None, # noqa: N803
     user_indice: UserIndexDict | None,
     save_percentile: bool | None,
     window_width: int | None,
@@ -861,7 +861,7 @@ def _handle_deprecated_params(
     if user_indice is not None:
         log.deprecation_warning(old="user_indice", new="user_index")
         user_index = user_indice
-    if transfer_limit_Mbytes is not None:
+    if transfer_limit_mbytes is not None:
         log.deprecation_warning(old="transfer_limit_Mbytes")
     if save_percentile is not None:
         log.deprecation_warning(old="save_percentile", new="save_thresholds")
@@ -1055,3 +1055,43 @@ def _must_add_reference_var(
     """
     t = next(iter(climate_vars_dict.values())).get("thresholds", None)
     return t is None and len(climate_vars_dict) == 1 and reference_period is not None
+
+def _rename_coords(ds: Dataset, short_name: str) -> Dataset:
+    if "percentiles" in ds.coords:
+        ds = ds.rename({"percentiles": short_name + "_percentiles"})
+    if "thresholds" in ds.coords:
+        ds = ds.rename({"thresholds": short_name + "_thresholds"})
+    return ds
+
+
+def _parse_indicator_config(
+    index_name: str | GenericIndicator | StandardIndex,
+    out_unit: str | None,
+    threshold: str | Threshold | Sequence[str | Threshold] | None,
+) -> dict[str, Any]:
+    index = _parse_index_kind(index_name)
+    if isinstance(index, StandardIndex):
+        standard_index = index.clone()
+        indicator = standard_index.indicator.clone()
+        return {
+            "standard_index": standard_index,
+            "indicator": indicator,
+            "threshold": threshold if threshold is not None else standard_index.threshold,
+            "rename": standard_index.short_name,
+            "output_unit": out_unit or standard_index.output_unit,
+            "reference": standard_index.reference,
+            "indicator_name": standard_index.short_name,
+        }
+    if isinstance(index, GenericIndicator):
+        indicator = index.clone()
+        return {
+            "standard_index": None,
+            "indicator": indicator,
+            "threshold": threshold,
+            "rename": None,
+            "output_unit": out_unit,
+            "reference": ICCLIM_REFERENCE,
+            "indicator_name": indicator.name,
+        }
+    err = f"Unknown index_name : `{index_name}`"
+    raise InvalidIcclimArgumentError(err)
