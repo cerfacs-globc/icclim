@@ -158,8 +158,10 @@ def build_climate_vars(
         StandardizedPrecipitationIndex6,
     )
 
-    if standard_index is not None and len(standard_index.input_variables) > len(
-        climate_vars_dict
+    if (
+        standard_index is not None
+        and standard_index.input_variables is not None
+        and len(standard_index.input_variables) > len(climate_vars_dict)
     ):
         msg = (
             f"Index {standard_index.short_name} needs"
@@ -170,7 +172,7 @@ def build_climate_vars(
         raise InvalidIcclimArgumentError(msg)
     acc = []
     for i, raw_climate_var in enumerate(climate_vars_dict.items()):
-        if standard_index is not None:
+        if standard_index is not None and standard_index.input_variables is not None:
             standard_var = standard_index.input_variables[i]
         else:
             standard_var = None
@@ -203,11 +205,15 @@ def build_climate_vars(
         if _standard_index_needs_ref(
             standard_index, is_compared_to_reference
         ) or _generic_index_needs_ref(standard_index, is_compared_to_reference):
-            standard_var = standard_index.input_variables[0] if standard_index else None
+            standard_var = (
+                standard_index.input_variables[0]
+                if standard_index and standard_index.input_variables
+                else None
+            )
             added_var = _build_reference_variable(
                 base_period,
                 climate_vars_dict,
-                standard_var=standard_var,
+                standard_var=standard_var,  # type: ignore[arg-type]
             )
             acc.append(added_var)
 
@@ -356,7 +362,10 @@ def must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
     ):
         return False
     reference = threshold.value
-    study_years = np.unique(da.indexes.get("time").year)
+    time_index = da.indexes.get("time")
+    if time_index is None:
+        return False
+    study_years = np.unique(time_index.year)
     overlapping_years = np.unique(
         da.sel(time=_get_ref_period_slice(reference)).indexes.get("time").year,
     )
@@ -364,9 +373,9 @@ def must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
 
 
 def _standard_index_needs_ref(
-    standard_index: StandardIndex, is_compared_to_reference: bool
+    standard_index: StandardIndex | None, is_compared_to_reference: bool
 ) -> bool:
-    return (
+    return bool(
         standard_index
         and standard_index.qualifiers
         and REFERENCE_PERIOD_INDEX in standard_index.qualifiers
@@ -375,7 +384,7 @@ def _standard_index_needs_ref(
 
 
 def _generic_index_needs_ref(
-    standard_index: StandardIndex, is_compared_to_reference: bool
+    standard_index: StandardIndex | None, is_compared_to_reference: bool
 ) -> bool:
     return standard_index is None and is_compared_to_reference
 
@@ -436,15 +445,18 @@ def _build_threshold(
     original_data: DataArray,
     conversion_unit: str,
 ) -> Threshold:
+    res: Threshold
     if isinstance(climate_var_thresh, str):
-        climate_var_thresh: Threshold = build_threshold(climate_var_thresh)
+        res = build_threshold(climate_var_thresh)
     elif isinstance(climate_var_thresh, dict):
-        climate_var_thresh: Threshold = build_threshold(**climate_var_thresh)
+        res = build_threshold(**climate_var_thresh)
+    else:
+        res = climate_var_thresh
 
-    if climate_var_thresh.prepare is not None and not climate_var_thresh.is_ready:
-        climate_var_thresh.prepare(original_data)
-    climate_var_thresh.unit = conversion_unit
-    return climate_var_thresh
+    if res.prepare is not None and not res.is_ready:
+        res.prepare(original_data)
+    res.unit = conversion_unit
+    return res
 
 
 def _get_ref_period_slice(da: DataArray) -> slice:
