@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from pint.errors import UndefinedUnitError
 from xarray import DataArray, Dataset
@@ -167,11 +167,11 @@ def build_threshold(
         **kwargs,
     )
     if _must_build_per_threshold(input_thresh):
-        return PercentileThreshold(**input_thresh)
+        return PercentileThreshold(**input_thresh)  # type: ignore[arg-type]
     if _must_build_basic_threshold(input_thresh):
-        return BasicThreshold(**input_thresh)
+        return BasicThreshold(**input_thresh)  # type: ignore[arg-type]
     if _must_build_bounded_threshold(input_thresh):
-        return BoundedThreshold(**input_thresh)
+        return BoundedThreshold(**input_thresh)  # type: ignore[arg-type]
     if _must_build_per_grid_cell_threshold(input_thresh):
         return BasicThreshold(**input_thresh)
     msg = f"Threshold cannot be built from a {type(value)}"
@@ -186,15 +186,15 @@ def _get_operator(query: str) -> tuple[Operator | None, str]:
     return None, query
 
 
-def _read_string_threshold(query: str) -> tuple[str, str, float]:
+def _read_string_threshold(query: str) -> tuple[str, str | None, float]:
     op, no_op_query = _get_operator(query)
     operand = op.operand if op else ""
     if DOY_PERCENTILE_UNIT in no_op_query:
-        val = re.findall(VALUE_REGEX, no_op_query)[0]
-        unit = DOY_PERCENTILE_UNIT
+        val = float(re.findall(VALUE_REGEX, no_op_query)[0])
+        unit_str = DOY_PERCENTILE_UNIT
     elif PERIOD_PERCENTILE_UNIT in no_op_query:
-        val = re.findall(VALUE_REGEX, no_op_query)[0]
-        unit = PERIOD_PERCENTILE_UNIT
+        val = float(re.findall(VALUE_REGEX, no_op_query)[0])
+        unit_str = PERIOD_PERCENTILE_UNIT
     else:
         from xclim.core.units import units as xc_units  # noqa: PLC0415
 
@@ -204,8 +204,10 @@ def _read_string_threshold(query: str) -> tuple[str, str, float]:
             msg = f"Could not build threshold from {query}"
             raise InvalidIcclimArgumentError(msg) from e
         val = quantity.m
-        unit = None if quantity.unitless else str(quantity.units)
-    return operand, unit, val
+        unit_str = (
+            None if quantity.unitless else str(quantity.units).replace("°C", "degC")
+        )
+    return operand, unit_str, val
 
 
 def _build_quantity(
@@ -242,8 +244,8 @@ def _read_input(
     operator: Operator | str | None = None,
     value: ThresholdValueType = None,
     unit: str | None = None,
-    threshold_min_value: str | float | None = None,
-    thresholds: tuple[Threshold, Threshold] | None = None,
+    threshold_min_value: str | float | pint.Quantity | None = None,
+    thresholds: Sequence[Threshold | str] | None = None,
     logical_link: str | LogicalLink | None = None,
     offset: str | float | pint.Quantity | None = None,
     **kwargs,
@@ -252,28 +254,33 @@ def _read_input(
         if _is_bounded_threshold_query(query):
             return _read_bounded_threshold_query(query)
         return _read_threshold_from_query(query, threshold_min_value, kwargs)
-    if _must_read_bounded(operator, value, unit, thresholds, logical_link):
+    if (
+        _must_read_bounded(operator, value, unit, thresholds, logical_link)
+        and thresholds is not None
+        and logical_link is not None
+    ):
         return _read_bounded_threshold(thresholds, logical_link)
     if operator is not None:
-        if (operator := OperatorRegistry.lookup_no_error(operator)) is None:
-            operator = OperatorRegistry.REACH
-        return {
-            "operator": operator,
+        if (op := OperatorRegistry.lookup_no_error(operator)) is None:
+            op = OperatorRegistry.REACH
+        res: ThresholdBuilderInput = {
+            "operator": op,
             "unit": unit,
             "value": value,
             "threshold_min_value": _build_quantity(threshold_min_value, unit),
             "offset": _build_quantity(offset, unit),
-            **kwargs,
         }
+        res.update(kwargs)  # type: ignore[typeddict-item]
+        return res
     msg = "Could not read threshold"
     raise NotImplementedError(msg)
 
 
 def _read_bounded_threshold(
-    thresholds: tuple[Threshold, Threshold],
+    thresholds: Sequence[Threshold | str],
     logical_link: LogicalLink | str,
 ) -> ThresholdBuilderInput:
-    acc = []
+    acc: list[ThresholdBuilderInput | Threshold] = []
     for t in thresholds:
         if isinstance(t, str):
             acc.append(_read_input(t))
@@ -289,7 +296,10 @@ def _read_bounded_threshold(
         logical_link = LogicalLinkRegistry.lookup(logical_link)
     return {
         "initial_query": None,
-        "thresholds": tuple(acc),
+        "thresholds": cast(
+            "tuple[ThresholdBuilderInput | Threshold, ThresholdBuilderInput | Threshold]",
+            tuple(acc),
+        ),
         "logical_link": logical_link,
     }
 
@@ -299,17 +309,18 @@ def _read_threshold_from_query(
     threshold_min_value: None | str | float | pint.Quantity,
     kwargs: dict,
 ) -> ThresholdBuilderInput:
-    operator, unit, value = _read_string_threshold(query)
-    if (operator := OperatorRegistry.lookup_no_error(operator)) is None:
-        operator = OperatorRegistry.REACH
-    return {
-        "operator": operator,
+    op_str, unit, value = _read_string_threshold(query)
+    if (op := OperatorRegistry.lookup_no_error(op_str)) is None:
+        op = OperatorRegistry.REACH
+    res: ThresholdBuilderInput = {
+        "operator": op,
         "unit": unit,
         "value": value,
         "threshold_min_value": _build_quantity(threshold_min_value, unit),
         "initial_query": query,
-        **kwargs,
     }
+    res.update(kwargs)  # type: ignore[typeddict-item]
+    return res
 
 
 def _must_read_query(
@@ -327,7 +338,7 @@ def _must_read_bounded(
     operator: Operator | str | None,
     value: ThresholdValueType,
     unit: str | None,
-    thresholds: tuple[Threshold, Threshold] | None,
+    thresholds: Sequence[Threshold | str] | None,
     logical_link: str | LogicalLink | None,
 ) -> bool:
     return (
@@ -376,14 +387,19 @@ def _must_build_per_threshold(builder_input: ThresholdBuilderInput) -> bool:
     value = builder_input.get("value")
     unit = builder_input.get("unit", None)
     var_name = builder_input.get("threshold_var_name", None)
-    return _has_per_unit(unit, value) or _is_per_dataset(var_name, value)
+    per_unit = _has_per_unit(unit, cast("float", value))
+    return per_unit or _is_per_dataset(var_name, value)
 
 
-def _is_per_dataset(threshold_var_name: str, value: str | Dataset | DataArray) -> bool:
-    if is_dataset_path(value) or isinstance(value, Dataset):
+def _is_per_dataset(threshold_var_name: str | None, value: ThresholdValueType) -> bool:
+    if isinstance(value, (Dataset, str)) and (
+        isinstance(value, Dataset) or is_dataset_path(value)
+    ):
         thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
-    else:
+    elif isinstance(value, DataArray):
         thresh_da = value
+    else:
+        return False
     return PercentileDataArray.is_compatible(thresh_da)
 
 
@@ -401,7 +417,9 @@ def _must_build_per_grid_cell_threshold(builder_input: ThresholdBuilderInput) ->
         # the threshold is setup but ::prepare must be called
         # to initialize the value
         return True
-    if is_dataset_path(value) or isinstance(value, Dataset):
+    if isinstance(value, (Dataset, str)) and (
+        isinstance(value, Dataset) or is_dataset_path(value)
+    ):
         thresh_da = _get_dataarray_from_dataset(threshold_var_name, value)
         return not PercentileDataArray.is_compatible(thresh_da)
     return False
@@ -428,7 +446,7 @@ def _get_dataarray_from_dataset(
         else:
             names = find_standard_vars(ds)
             if len(names) == 1:
-                threshold_var_name = names[0]
+                threshold_var_name = cast("str", names[0])
             else:
                 msg = (
                     f"Could not guess the variable to use as a threshold in {ds}."

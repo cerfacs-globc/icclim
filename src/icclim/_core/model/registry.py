@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC
 from copy import deepcopy
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 
 from icclim.exception import InvalidIcclimArgumentError
 
@@ -55,12 +55,12 @@ class Registry(ABC, Generic[T]):
         returns a deep copy of the query.
         """
         if isinstance(query, cls._item_class):
-            return deepcopy(query)
+            return cast("T", deepcopy(query))
         if isinstance(query, str):
             q = query.upper()
             for key, item in cls.catalog().items():
                 if q == key.upper() or q in cls.get_item_aliases(item):
-                    return deepcopy(item)
+                    return cast("T", deepcopy(item))
         msg = (
             f"Unknown {cls._item_class.__qualname__}: '{query}'. "
             f"Use one of {cls.every_aliases()}."
@@ -90,7 +90,7 @@ class Registry(ABC, Generic[T]):
             return None
 
     @classmethod
-    def every_aliases(cls: type[Registry]) -> list[T]:
+    def every_aliases(cls: type[Registry]) -> list[list[str]]:
         """
         Return a list of all aliases for items in the registry.
 
@@ -103,13 +103,13 @@ class Registry(ABC, Generic[T]):
         return list(map(cls.get_item_aliases, list(cls.catalog().values())))
 
     @staticmethod
-    def get_item_aliases(item: T) -> list[str]:
+    def get_item_aliases(item: Any) -> list[str]:  # noqa: ANN401
         """
         Get the aliases for the given item.
 
         Parameters
         ----------
-        item : T
+        item : Any
             The item to get aliases for.
 
         Returns
@@ -135,7 +135,11 @@ class Registry(ABC, Generic[T]):
             item names and the values are the item instances.
 
         """
-        return {k: v for k, v in cls.__dict__.items() if isinstance(v, cls._item_class)}
+        return {
+            k: cast("T", v)
+            for k, v in cls.__dict__.items()
+            if isinstance(v, cls._item_class)
+        }
 
     @classmethod
     def values(cls: type[Registry]) -> list[T]:
@@ -148,4 +152,8 @@ class Registry(ABC, Generic[T]):
             A list containing all items in the registry.
 
         """
-        return [v for v in cls.__dict__.values() if isinstance(v, cls._item_class)]
+        return [
+            cast("T", v)
+            for v in cls.__dict__.values()
+            if isinstance(v, cls._item_class)
+        ]

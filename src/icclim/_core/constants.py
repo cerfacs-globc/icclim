@@ -4,6 +4,11 @@ Icclim's constants.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from icclim._core.model.icclim_types import SamplingMethodLike
+
 # fmt: off
 
 # placeholders for user_index
@@ -82,7 +87,7 @@ PART_OF_A_WHOLE_UNIT = "1"
 
 # companion parameter to slice_mode
 GROUP_BY_METHOD = "groupby"
-RESAMPLE_METHOD = "resample"
+RESAMPLE_METHOD: SamplingMethodLike = "resample"
 GROUP_BY_REF_AND_RESAMPLE_STUDY_METHOD = "groupby_ref_and_resample_study"
 
 DEFAULT_DOY_WINDOW = 5

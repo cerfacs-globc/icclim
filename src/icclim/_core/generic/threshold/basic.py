@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import pint
@@ -68,12 +68,12 @@ class BasicThreshold(Threshold):
     @property
     def unit(self) -> str | None:
         """The unit of the threshold value(s)."""
-        if self.value is not None:
-            return self.value.attrs[UNITS_KEY]
-        return self._unit
+        v = self.value
+        res = v.attrs.get(UNITS_KEY, None) if isinstance(v, DataArray) else self._unit
+        return res.replace("°C", "degC") if res else None
 
     @unit.setter
-    def unit(self, unit: str) -> None:
+    def unit(self, unit: str | None) -> None:
         """
         Set the unit of the threshold value(s).
 
@@ -87,21 +87,22 @@ class BasicThreshold(Threshold):
         This setter will attempt a unit conversion using units found in xclim's pint
         registry.
         """
-        if self.value is not None:
-            if self.value.attrs.get(UNITS_KEY, None) is not None and unit is not None:
+        v = self.value
+        if isinstance(v, DataArray):
+            if v.attrs.get(UNITS_KEY, None) is not None and unit is not None:
                 from xclim.core.units import convert_units_to  # noqa: PLC0415
 
                 try:
-                    self.value = convert_units_to(self.value, unit, context="hydro")
+                    self.value = convert_units_to(v, unit, context="hydro")
                 except pint.errors.DimensionalityError as e:
                     msg = (
-                        f"Cannot convert threshold's unit ({self.value.attrs.get(UNITS_KEY)}) to "
+                        f"Cannot convert threshold's unit ({v.attrs.get(UNITS_KEY)}) to "
                         f"data's unit ({unit}). This typically occurs when a rate (e.g., mm/s) "
                         f"is provided to an index that expects an amount or depth (e.g., cm), "
                         f"or vice versa. Please explicitly convert your data prior to running icclim."
                     )
                     raise InvalidIcclimArgumentError(msg) from e
-            self.value.attrs[UNITS_KEY] = unit
+            v.attrs[UNITS_KEY] = unit
         else:
             self._unit = unit
 
@@ -153,9 +154,12 @@ class BasicThreshold(Threshold):
         ) and threshold_min_value is not None:
             msg = "Cannot use threshold_min_value with scalar thresholds."
             raise InvalidIcclimArgumentError(msg)
-        if is_dataset_path(value) or isinstance(value, Dataset):
+        if (isinstance(value, (str, Dataset)) and is_dataset_path(value)) or isinstance(
+            value, Dataset
+        ):
             # e.g. build_threshold(">", "thresh*.nc" , "degC") noqa: ERA001
-            thresh_da = get_dataarray_from_dataset(threshold_var_name, value)
+            v = cast("Dataset | str", value)
+            thresh_da = get_dataarray_from_dataset(threshold_var_name, v)
             self.value = self._prepare_da(thresh_da, threshold_min_value, offset, unit)
             unit = self.value.attrs.get(UNITS_KEY, None)
         elif isinstance(value, DataArray):
@@ -184,7 +188,8 @@ class BasicThreshold(Threshold):
             msg = f"Cannot build threshold from a {type(value)}."
             raise NotImplementedError(msg)
         self.operator = operator
-        self.unit = unit
+        if unit is not None:
+            self.unit = unit
         self.is_ready = True
         self.threshold_var_name = threshold_var_name
         self.initial_query = initial_query
@@ -201,7 +206,14 @@ class BasicThreshold(Threshold):
         return (
             isinstance(other, BasicThreshold)
             and self.operator == other.operator
-            and self.value == other.value
+            and (
+                (self.value is None and other.value is None)
+                or (
+                    isinstance(self.value, DataArray)
+                    and isinstance(other.value, DataArray)
+                    and self.value.equals(other.value)
+                )
+            )
             and self.unit == other.unit
             and self.initial_query == other.initial_query
             and self.threshold_min_value == other.threshold_min_value
@@ -260,10 +272,15 @@ class BasicThreshold(Threshold):
             "value": self.value,
         }
         conf.update(jinja_scope)
-        return {
-            k: jinja_env.from_string(v, globals=conf).render()
-            for k, v in templates.items()
-        }
+        return cast(
+            "ThresholdMetadata",
+            {
+                k: cast(
+                    "str", jinja_env.from_string(cast("str", v), globals=conf).render()
+                )
+                for k, v in templates.items()
+            },
+        )
 
     def compute(
         self,
@@ -299,8 +316,10 @@ class BasicThreshold(Threshold):
 
         """
         if override_op is not None:
-            return override_op(comparison_data, self.value)
-        return self.operator.compute(comparison_data, self.value)
+            return override_op(comparison_data, cast("DataArray", self.value))
+        return cast("Operator", self.operator).compute(
+            comparison_data, cast("DataArray", self.value)
+        )
 
     def _partial_prepare_da(
         self,
@@ -316,7 +335,7 @@ class BasicThreshold(Threshold):
         return _final_prepare_da
 
     def _get_metadata_templates(self) -> ThresholdMetadata:
-        if self.value.size == 1:
+        if isinstance(self.value, DataArray) and self.value.size == 1:
             return EN_THRESHOLD_TEMPLATE["single_value"]
         return EN_THRESHOLD_TEMPLATE["multiple_values"]
 

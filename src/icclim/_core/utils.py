@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-import dateparser
+import dateparser  # type: ignore[import-untyped]
 
 from icclim.exception import InvalidIcclimArgumentError
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 import dataclasses
 import re
 from datetime import timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import cftime
 import numpy as np
@@ -554,7 +554,9 @@ def _get_frequency_from_iterable(
         and isinstance(slice_mode_list[1], DataArray)
     ):
         # format: (start_da, end_da) -> defaults to YS
-        return _build_spatially_varying_seasonal_freq(slice_mode_list, "YS")
+        return _build_spatially_varying_seasonal_freq(
+            cast("tuple[DataArray, DataArray]", tuple(slice_mode_list)), "YS"
+        )
 
     freq_keyword = slice_mode_list[0]
     if isinstance(freq_keyword, str) and freq_keyword in ["month", "months"]:
@@ -571,7 +573,9 @@ def _get_frequency_from_iterable(
         # Expected format: ( (start_da, end_da), "YS" )
         bounds = freq_keyword
         pandas_freq = slice_mode_list[1] if len(slice_mode_list) > 1 else "YS"
-        return _build_spatially_varying_seasonal_freq(bounds, pandas_freq)
+        return _build_spatially_varying_seasonal_freq(
+            cast("tuple[DataArray, DataArray]", tuple(bounds)), pandas_freq
+        )
 
     msg = (
         f"Unknown frequency {slice_mode_list}."
@@ -583,7 +587,7 @@ def _get_frequency_from_iterable(
 
 def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
     return Frequency(
-        indexer={"month": months},
+        indexer=cast("Any", {"month": months}),
         post_processing=get_time_bounds_updater("MS"),
         pandas_freq="MS",
         adjective="monthly",
@@ -598,7 +602,7 @@ def _build_frequency_filtered_by_month(months: Sequence[int]) -> Frequency:
 def _build_seasonal_freq(season: Sequence) -> Frequency:
     if isinstance(season[0], str):
         return _build_seasonal_frequency_between_dates(season)
-    if isinstance(season, tuple) or isinstance(season[0], int):
+    if isinstance(season, (tuple, list)):
         return _build_seasonal_frequency_for_months(season)
     raise NotImplementedError
 

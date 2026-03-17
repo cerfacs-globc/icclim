@@ -6,8 +6,6 @@ import dataclasses
 from functools import reduce
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from icclim._core.model.registry import Registry
 
 if TYPE_CHECKING:
@@ -47,12 +45,12 @@ class LogicalLinkRegistry(Registry[LogicalLink]):
         standard_name="OR",
         long_name="OR",
         short_name="OR",
-        compute=lambda data_list: reduce(np.logical_or, data_list),
+        compute=lambda data_list: reduce(lambda x, y: x | y, data_list),
     )
     LOGICAL_AND = LogicalLink(
         name="and",
         standard_name="AND",
         long_name="AND",
         short_name="AND",
-        compute=lambda data_list: reduce(np.logical_and, data_list),
+        compute=lambda data_list: reduce(lambda x, y: x & y, data_list),
     )

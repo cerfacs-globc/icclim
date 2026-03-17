@@ -39,7 +39,7 @@ class EcadIndexRegistry(Registry[StandardIndex]):
         return [item.short_name]
 
     @classmethod
-    def to_list(cls: type) -> list[str]:
+    def to_list(cls: type[EcadIndexRegistry]) -> list[str]:
         """Get a printable list of all indices in the registry."""
         return [
             f"{i.group.name} | {i.short_name} | {i.definition}" for i in cls.values()

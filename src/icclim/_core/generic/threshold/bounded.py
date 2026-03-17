@@ -7,7 +7,7 @@ for example "> 95 doy_per AND >= 30 deg_C".
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from icclim._core.constants import EXPECTED_RANGE_LEN
 from icclim._core.generic.threshold.threshold_templates import (
@@ -60,7 +60,7 @@ class BoundedThreshold(Threshold):
         return None
 
     @unit.setter
-    def unit(self, unit: str) -> None:
+    def unit(self, unit: str | None) -> None:
         """
         Set the unit on each of the thresholds.
 
@@ -187,12 +187,17 @@ class BoundedThreshold(Threshold):
             ),
         }
         conf.update(jinja_scope)
-        return {
-            k: jinja_env.from_string(v, globals=conf).render()
-            for k, v in templates.items()
-        }
+        return cast(
+            "ThresholdMetadata",
+            {
+                k: cast(
+                    "str", jinja_env.from_string(cast("str", v), globals=conf).render()
+                )
+                for k, v in templates.items()
+            },
+        )
 
-    def __eq__(self, other: BoundedThreshold) -> bool:
+    def __eq__(self, other: object) -> bool:
         """
         Check if the comparison threshold is equivalent to `self`.
 
@@ -221,7 +226,7 @@ class BoundedThreshold(Threshold):
 
     def __hash__(self) -> int:
         """Return the hash of the threshold."""
-        return hash((self.thresholds, self.logical_link))
+        return hash((self.left_threshold, self.right_threshold, self.logical_link))
 
     def _build_thresh(
         self,
@@ -233,7 +238,7 @@ class BoundedThreshold(Threshold):
             return thresh_input
         if isinstance(thresh_input, str):
             return build_threshold(thresh_input)
-        return build_threshold(**thresh_input)
+        return build_threshold(**thresh_input)  # type: ignore[arg-type]
 
     def _get_metadata_templates(self) -> ThresholdMetadata:
         return EN_THRESHOLD_TEMPLATE["bounded_threshold"]

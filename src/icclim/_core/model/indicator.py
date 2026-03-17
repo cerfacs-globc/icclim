@@ -8,6 +8,8 @@ from copy import deepcopy
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from xarray import DataArray
     from xclim.core.missing import MissingBase
 
@@ -68,7 +70,7 @@ class Indicator(ABC):
         ...
 
     @abc.abstractmethod
-    def preprocess(self, *args, **kwargs) -> list[DataArray]:
+    def preprocess(self, *args: object, **kwargs: object) -> Sequence[object]:
         """Preprocess the data."""
         ...
 
