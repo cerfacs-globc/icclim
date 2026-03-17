@@ -5,8 +5,8 @@ description: how to perform real data validation using CMIP6 and ERA5 datasets w
 This workflow describes how to validate icclim changes using real datasets and ensuring numerical consistency with the previous stable release.
 
 ### Prerequisites
-- Assets are located at `/Users/page/Documents/projets/COST_FutureMed/school_2025/icclim/data/latest`
-- The validation script is `/Users/page/Documents/projets/COST_FutureMed/school_2025/icclim/run_icclim.py`
+- Assets are located at `/Users/page/src/icclim/icclim_usecase/data/latest`
+- The validation script is `/Users/page/src/icclim/icclim_usecase/run_icclim.py`
 - Comparison utility: `scripts/compare_stats.py`
 
 ### Steps
