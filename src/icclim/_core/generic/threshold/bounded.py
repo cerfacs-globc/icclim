@@ -190,7 +190,9 @@ class BoundedThreshold(Threshold):
         return cast(
             "ThresholdMetadata",
             {
-                k: cast("str", jinja_env.from_string(cast("str", v), globals=conf).render())
+                k: cast(
+                    "str", jinja_env.from_string(cast("str", v), globals=conf).render()
+                )
                 for k, v in templates.items()
             },
         )

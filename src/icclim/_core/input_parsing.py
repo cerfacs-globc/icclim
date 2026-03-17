@@ -780,7 +780,9 @@ def _read_dataarray(
             )
             raise InvalidIcclimArgumentError(msg)
         var_name = var_name[0]
-        data_name = var_name or (standard_var.short_name if standard_var else None) or None
+        data_name = (
+            var_name or (standard_var.short_name if standard_var else None) or None
+        )
     else:
         data_name = var_name or data.name or "unnamed_var"
     return data.to_dataset(name=data_name, promote_attrs=True)

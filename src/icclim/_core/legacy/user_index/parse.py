@@ -243,9 +243,7 @@ def read_thresholds(
     else:
         err = "Invalid user_index: logical_operation must be None or a string."
         raise InvalidIcclimArgumentError(err)
-    thresh_query = _build_thresh_query(
-        cast("str | float", thresh), var_type, op
-    )
+    thresh_query = _build_thresh_query(cast("str | float", thresh), var_type, op)
     return build_threshold(
         thresh_query,
         doy_window_width=doy_window_width,

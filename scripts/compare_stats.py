@@ -26,9 +26,7 @@ def get_stats(da: xr.DataArray) -> dict[str, float]:
 def main(output_file: str, data_path_str: str | None = None) -> None:
     """Compute statistics for standard indices and save to JSON."""
     if data_path_str is None:
-        data_path = Path(
-            "/Users/page/src/icclim/icclim_usecase/data/latest"
-        )
+        data_path = Path("/Users/page/src/icclim/icclim_usecase/data/latest")
     else:
         data_path = Path(data_path_str)
 

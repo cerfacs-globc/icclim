@@ -153,5 +153,7 @@ class Registry(ABC, Generic[T]):
 
         """
         return [
-            cast("T", v) for v in cls.__dict__.values() if isinstance(v, cls._item_class)
+            cast("T", v)
+            for v in cls.__dict__.values()
+            if isinstance(v, cls._item_class)
         ]

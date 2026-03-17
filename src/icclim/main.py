@@ -1054,7 +1054,9 @@ def _format_threshold(cf_var: ClimateVariable) -> DataArray | None:
         if isinstance(val, xr.DataArray):
             return val.rename(cf_var.name + "_thresholds").reindex()  # type: ignore[return-value]
         if isinstance(val, xr.Dataset):
-            return val.rename(dict.fromkeys(val.data_vars, cf_var.name + "_thresholds")).reindex()  # type: ignore[arg-type]
+            return val.rename(
+                dict.fromkeys(val.data_vars, cf_var.name + "_thresholds")
+            ).reindex()  # type: ignore[arg-type]
     return None
 
 

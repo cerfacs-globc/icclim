@@ -205,9 +205,7 @@ def _read_string_threshold(query: str) -> tuple[str, str | None, float]:
             raise InvalidIcclimArgumentError(msg) from e
         val = quantity.m
         unit_str = (
-            None
-            if quantity.unitless
-            else str(quantity.units).replace("°C", "degC")
+            None if quantity.unitless else str(quantity.units).replace("°C", "degC")
         )
     return operand, unit_str, val
 
@@ -393,9 +391,7 @@ def _must_build_per_threshold(builder_input: ThresholdBuilderInput) -> bool:
     return per_unit or _is_per_dataset(var_name, value)
 
 
-def _is_per_dataset(
-    threshold_var_name: str | None, value: ThresholdValueType
-) -> bool:
+def _is_per_dataset(threshold_var_name: str | None, value: ThresholdValueType) -> bool:
     if isinstance(value, (Dataset, str)) and (
         isinstance(value, Dataset) or is_dataset_path(value)
     ):

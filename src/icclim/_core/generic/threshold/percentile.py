@@ -360,7 +360,11 @@ class PercentileThreshold(Threshold):
             with a `studied_data` parameter in order to prepare the threshold
             for computation.
         """
-        op_func = override_op if override_op is not None else cast("Operator", self.operator).compute
+        op_func = (
+            override_op
+            if override_op is not None
+            else cast("Operator", self.operator).compute
+        )
         if self.is_ready:
             return self._per_compute(
                 comparison_data,
@@ -438,6 +442,7 @@ def _compute_per(
 
     from xclim.core.calendar import build_climatology_bounds  # noqa: PLC0415
     from xclim.core.utils import calc_perc  # noqa: PLC0415
+
     computed_per = xr.apply_ufunc(
         calc_perc,
         study,

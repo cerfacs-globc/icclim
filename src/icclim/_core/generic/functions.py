@@ -414,9 +414,7 @@ def fraction_of_total(
         bootstrap=must_run_bootstrap(study, threshold),
     ).squeeze()
     over = (
-        study.where(ex_da, 0)
-        .resample(time=resample_freq.pandas_freq)
-        .sum(dim="time")
+        study.where(ex_da, 0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     )
     res = over / total
     if to_percent:
@@ -1156,9 +1154,7 @@ def _reduce_and_diff_of_resampled_x_by_groupedby_y(
     to_percent: bool,
     study: DataArray,
     ref: DataArray,
-    reducer: Callable[
-        [DataArrayResample | DataArray | DataArrayGroupBy], DataArray
-    ],
+    reducer: Callable[[DataArrayResample | DataArray | DataArrayGroupBy], DataArray],
 ) -> DataArray:
     mean_ref = reducer(ref.groupby(resample_freq.group_by_key))
     acc = []
