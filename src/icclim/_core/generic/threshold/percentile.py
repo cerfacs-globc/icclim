@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import xarray as xr
 from xarray import DataArray, Dataset
@@ -44,7 +44,6 @@ if TYPE_CHECKING:
 
     # Local
     from icclim._core.model.operator import Operator
-    from icclim.frequency import Frequency
 
 
 class PercentileThreshold(Threshold):
@@ -74,7 +73,7 @@ class PercentileThreshold(Threshold):
     Before that, setting unit has no effect.
     """
 
-    reference_period: Sequence[str]
+    reference_period: Sequence[datetime | str] | None
     doy_window_width: int
     only_leap_years: bool
     interpolation: QuantileInterpolation
@@ -84,15 +83,18 @@ class PercentileThreshold(Threshold):
     _prepared_value: PercentileDataArray
     _initial_unit: str | None
 
-    @property
+    @property  # type: ignore[override]
     def unit(self) -> str | None:
         """The unit of the threshold."""
+        res = None
         if self.is_ready:
-            return self._prepared_value.attrs[UNITS_KEY]
-        return self._initial_unit
+            res = self._prepared_value.attrs.get(UNITS_KEY, None)
+        else:
+            res = self._initial_unit
+        return res.replace("°C", "degC") if res else None
 
     @unit.setter
-    def unit(self, unit: str | xr.DataArray | pint.Quantity | pint.Unit) -> None:
+    def unit(self, unit: str | xr.DataArray | pint.Quantity | pint.Unit | None) -> None:
         if self.is_ready:
             if (
                 self._prepared_value.attrs.get(UNITS_KEY, None) is not None
@@ -107,10 +109,10 @@ class PercentileThreshold(Threshold):
                 )
             self._prepared_value.attrs[UNITS_KEY] = unit
         else:
-            self._initial_unit = unit
+            self._initial_unit = unit  # type: ignore[assignment]
 
-    @property
-    def value(self) -> PercentileDataArray:
+    @property  # type: ignore[override]
+    def value(self) -> PercentileDataArray:  # type: ignore[override]
         """
         The computed percentile threshold.
 
@@ -143,17 +145,17 @@ class PercentileThreshold(Threshold):
         threshold_var_name: str | None = None,
         **kwargs,  # noqa: ARG002
     ) -> None:
-        if is_dataset_path(value) or isinstance(value, Dataset):
+        if is_dataset_path(cast("Any", value)) or isinstance(value, Dataset):
             value, is_doy_per_threshold = _build_per_thresh_from_dataset(
                 value=value,
                 unit=unit,
-                threshold_var_name=threshold_var_name,
-                reference_period=reference_period,
+                threshold_var_name=cast("str", threshold_var_name),
+                reference_period=cast("Sequence[datetime | str]", reference_period),
             )
         else:
             is_doy_per_threshold = unit == DOY_PERCENTILE_UNIT
         if isinstance(value, DataArray):
-            self.prepare = None
+            self.prepare = cast("Any", None)  # type: ignore[method-assign]
             self._prepared_value = PercentileDataArray.from_da(value)
             self.is_ready = True
             self._initial_unit = None
@@ -162,9 +164,12 @@ class PercentileThreshold(Threshold):
         else:
             self.is_ready = False
             self._initial_unit = unit
-            if not isinstance(value, list):
-                value = [value]
-            self.initial_value = [float(x) for x in value]
+            if isinstance(value, (float, int)):
+                self.initial_value = [float(value)]
+            elif isinstance(value, (list, tuple)):
+                self.initial_value = [float(x) for x in value]
+            else:
+                self.initial_value = None
             self.unit = unit
         self.operator = operator
         self.threshold_var_name = threshold_var_name
@@ -198,8 +203,8 @@ class PercentileThreshold(Threshold):
         if self._initial_unit == DOY_PERCENTILE_UNIT:
             prepared_data = _build_doy_per(
                 studied_data=studied_data,
-                per_val=self.initial_value,
-                reference_period=self.reference_period,
+                per_val=cast("Sequence[float]", self.initial_value),
+                reference_period=cast("Sequence[str]", self.reference_period),
                 interpolation=self.interpolation,
                 only_leap_years=self.only_leap_years,
                 doy_window_width=self.doy_window_width,
@@ -208,8 +213,8 @@ class PercentileThreshold(Threshold):
         elif self._initial_unit == PERIOD_PERCENTILE_UNIT:
             prepared_data = _build_period_per(
                 studied_data=studied_data,
-                per_val=self.initial_value,
-                reference_period=self.reference_period,
+                per_val=cast("Sequence[float]", self.initial_value),
+                reference_period=cast("Sequence[str]", self.reference_period),
                 interpolation=self.interpolation,
                 only_leap_years=self.only_leap_years,
                 percentile_min_value=self.threshold_min_value,
@@ -268,9 +273,7 @@ class PercentileThreshold(Threshold):
         *,
         jinja_scope: dict[str, Any],
         jinja_env: jinja2.Environment,
-        src_freq: Frequency,
-        must_run_bootstrap: bool = False,
-        **kwargs,  # noqa: ARG002
+        **kwargs,
     ) -> ThresholdMetadata:
         """
         Generate the metadata for the threshold.
@@ -283,19 +286,24 @@ class PercentileThreshold(Threshold):
             The jinja scope, it contains the variables to be used in the jinja template.
         jinja_env : jinja2.Environment
             The jinja environment, it contains the jinja rendering engine.
-        src_freq : Frequency
-            The frequency of the source data.
-        must_run_bootstrap : bool, optional
-            Whether to run bootstrap, by default False.
+        **kwargs
+            Additional keyword arguments, ignored for compatibility with other
+            `format_metadata` methods.
+            src_freq : Frequency
+                The frequency of the source data.
+            must_run_bootstrap : bool, optional
+                Whether to run bootstrap, by default False.
 
         Returns
         -------
         ThresholdMetadata
             The metadata for the threshold.
         """
+        src_freq = kwargs.get("src_freq")
+        must_run_bootstrap = kwargs.get("must_run_bootstrap", False)
         per_coord = self.value.coords["percentiles"]
         templates = self._get_metadata_templates(per_coord)
-        climatology_bounds: list[str] = self.value.attrs.get("climatology_bounds")
+        climatology_bounds: list[str] = self.value.attrs.get("climatology_bounds", [])
         conf: PercentileTemplateConfig = {
             "climatology_bounds": climatology_bounds,
             "doy_window_width": self.doy_window_width,
@@ -306,11 +314,19 @@ class PercentileThreshold(Threshold):
             "threshold_min_value": self.threshold_min_value,
             "must_run_bootstrap": must_run_bootstrap,
         }
-        conf.update(jinja_scope)
-        return {
-            k: jinja_env.from_string(v, globals=conf).render()
-            for k, v in templates.items()
-        }
+        conf.update(jinja_scope)  # type: ignore[typeddict-item]
+        return cast(
+            "ThresholdMetadata",
+            {
+                k: cast(
+                    "str",
+                    jinja_env.from_string(
+                        cast("str", v), globals=cast("dict[str, Any]", conf)
+                    ).render(),
+                )
+                for k, v in templates.items()
+            },
+        )
 
     def compute(
         self,
@@ -344,15 +360,15 @@ class PercentileThreshold(Threshold):
             with a `studied_data` parameter in order to prepare the threshold
             for computation.
         """
-        op = override_op if override_op is not None else self.operator
+        op_func = override_op if override_op is not None else cast("Operator", self.operator).compute
         if self.is_ready:
             return self._per_compute(
                 comparison_data,
                 self.value,
-                op,
+                op_func,
                 self.is_doy_per_threshold,
-                kwargs.get("freq"),
-                kwargs.get("bootstrap", False),
+                cast("str", kwargs.get("freq", "")),
+                bootstrap=kwargs.get("bootstrap", False),
             )
         msg = (
             "This PercentileThreshold is not ready. You must first call `.prepare`"
@@ -416,11 +432,12 @@ class PercentileThreshold(Threshold):
 
 
 def _compute_per(
-    per_val: float, alpha: float, beta: float, study: DataArray
+    per_val: float | Sequence[float], alpha: float, beta: float, study: DataArray
 ) -> PercentileDataArray:
+    from collections.abc import Sequence  # noqa: PLC0415
+
     from xclim.core.calendar import build_climatology_bounds  # noqa: PLC0415
     from xclim.core.utils import calc_perc  # noqa: PLC0415
-
     computed_per = xr.apply_ufunc(
         calc_perc,
         study,
@@ -435,7 +452,12 @@ def _compute_per(
         },
         dask="parallelized",
         output_dtypes=[study.dtype],
-        dask_gufunc_kwargs={"output_sizes": {"percentiles": 1}, "allow_rechunk": True},
+        dask_gufunc_kwargs={
+            "output_sizes": {
+                "percentiles": len(per_val) if isinstance(per_val, Sequence) else 1
+            },
+            "allow_rechunk": True,
+        },
     )
     computed_per = computed_per.assign_coords(
         percentiles=xr.DataArray(per_val, dims=("percentiles",)),
@@ -495,7 +517,16 @@ def _build_per_thresh_from_dataset(
     threshold_var_name: str,
     reference_period: Sequence[datetime | str],
 ) -> tuple[DataArray, bool]:
-    thresh_da = get_dataarray_from_dataset(threshold_var_name, value)
+    if (isinstance(value, (str, Dataset)) and is_dataset_path(value)) or isinstance(
+        value, Dataset
+    ):
+        v = cast("Dataset | str", value)
+        thresh_da = get_dataarray_from_dataset(threshold_var_name, v)
+    elif isinstance(value, DataArray):
+        thresh_da = value
+    else:
+        msg = f"Cannot build threshold from a {type(value)}."
+        raise NotImplementedError(msg)
     built_value = PercentileDataArray.from_da(
         standardize_percentile_dim_name(thresh_da),
         read_clim_bounds(reference_period, thresh_da),

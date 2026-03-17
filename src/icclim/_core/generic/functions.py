@@ -21,7 +21,7 @@ import operator
 import warnings
 from collections.abc import Callable
 from functools import partial
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from warnings import warn
 
 import xarray as xr
@@ -30,7 +30,6 @@ from numpy import diff as np_diff
 from numpy import median as np_median
 from pandas import Timedelta, date_range, infer_freq, to_timedelta
 from xarray import DataArray
-from xarray.computation.rolling import DataArrayRolling
 from xarray.core.resample import DataArrayResample
 
 # xclim imports are deferred to avoid triggering fire module load (and numba cache errors) on import.
@@ -47,7 +46,7 @@ from icclim._core.constants import (
 )
 from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
-from icclim._core.model.operator import OperatorRegistry
+from icclim._core.model.operator import Operator, OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
 from icclim.frequency import RUN_INDEXER, Frequency, FrequencyRegistry
 
@@ -57,6 +56,7 @@ if TYPE_CHECKING:
 
     import numpy as np
     from pint import Quantity
+    from xarray.computation.rolling import DataArrayRolling
     from xarray.core.groupby import DataArrayGroupBy
 
     from icclim._core.climate_variable import ClimateVariable
@@ -340,6 +340,9 @@ def deficit(
     The resulting deficit values are then summed over the specified resample frequency.
     """
     study, threshold = get_single_var(climate_vars)
+    if threshold is None:
+        msg = "No threshold found"
+        raise InvalidIcclimArgumentError(msg)
     deficit = threshold.compute(study, override_op=lambda da, th: th - da)
     res = deficit.clip(min=0).resample(time=resample_freq.pandas_freq).sum(dim="time")
     res = res.assign_attrs(units=f"delta_{res.attrs['units']}")
@@ -384,26 +387,34 @@ def fraction_of_total(
     PART_OF_A_WHOLE_UNIT, which is 1.
     """
     study, threshold = get_single_var(climate_vars)
+    if threshold is None:
+        msg = "No threshold found"
+        raise InvalidIcclimArgumentError(msg)
     if threshold.threshold_min_value is not None:
         min_val = threshold.threshold_min_value
         from xclim.core.units import convert_units_to  # noqa: PLC0415
 
         min_val = convert_units_to(min_val, study, context="hydro")
+        op = (
+            threshold.operator
+            if isinstance(threshold.operator, Operator)
+            else OperatorRegistry.lookup(threshold.operator)
+        )
         total = (
-            study.where(threshold.operator(study, min_val))
+            study.where(op(study, min_val))
             .resample(time=resample_freq.pandas_freq)
             .sum(dim="time")
         )
     else:
         total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")
-    exceedance = _compute_exceedance(
+    ex_da = _compute_exceedance(
         study=study,
         threshold=threshold,
         freq=resample_freq.pandas_freq,
         bootstrap=must_run_bootstrap(study, threshold),
     ).squeeze()
     over = (
-        study.where(exceedance, 0)
+        study.where(ex_da, 0)
         .resample(time=resample_freq.pandas_freq)
         .sum(dim="time")
     )
@@ -696,8 +707,8 @@ def max_of_rolling_sum(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
         rolling_window_width=rolling_window_width,
-        rolling_op=DataArrayRolling.sum,
-        resampled_op=DataArrayResample.max,
+        rolling_op=lambda x: x.sum(),
+        resampled_op=lambda x: x.max(),
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -744,8 +755,8 @@ def min_of_rolling_sum(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
         rolling_window_width=rolling_window_width,
-        rolling_op=DataArrayRolling.sum,
-        resampled_op=DataArrayResample.min,
+        rolling_op=lambda x: x.sum(),
+        resampled_op=lambda x: x.min(),
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -793,8 +804,8 @@ def min_of_rolling_average(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
         rolling_window_width=rolling_window_width,
-        rolling_op=DataArrayRolling.mean,
-        resampled_op=DataArrayResample.min,
+        rolling_op=lambda x: x.mean(),
+        resampled_op=lambda x: x.min(),
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -842,8 +853,8 @@ def max_of_rolling_average(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
         rolling_window_width=rolling_window_width,
-        rolling_op=DataArrayRolling.mean,
-        resampled_op=DataArrayResample.max,
+        rolling_op=lambda x: x.mean(),
+        resampled_op=lambda x: x.max(),
         date_event=date_event,
         source_freq_delta=source_freq_delta,
     )
@@ -1065,9 +1076,12 @@ def percentile(
     coordinate variable.
     """
     study, threshold = get_single_var(climate_vars)
-    threshold: PercentileThreshold
-    quantile = threshold.initial_value[0] * 0.01
-    method = threshold.interpolation.name
+    percentile_threshold = cast("PercentileThreshold", threshold)
+    if percentile_threshold.initial_value is None:
+        msg = "PercentileThreshold must have a value"
+        raise InvalidIcclimArgumentError(msg)
+    quantile = percentile_threshold.initial_value[0] * 0.01
+    method = cast("Any", percentile_threshold.interpolation.name)
     result = study.resample(time=resample_freq.pandas_freq).quantile(
         quantile, method=method
     )
@@ -1143,7 +1157,7 @@ def _reduce_and_diff_of_resampled_x_by_groupedby_y(
     study: DataArray,
     ref: DataArray,
     reducer: Callable[
-        [DataArrayResample | DataArrayGroupBy | DataArray | ClimateVariable], DataArray
+        [DataArrayResample | DataArray | DataArrayGroupBy], DataArray
     ],
 ) -> DataArray:
     mean_ref = reducer(ref.groupby(resample_freq.group_by_key))
@@ -1189,9 +1203,11 @@ def _compute_exceedance(
 ) -> DataArray:
     exceedances = threshold.compute(study, freq=freq, bootstrap=bootstrap)
     if bootstrap:
-        exceedances.attrs[REFERENCE_PERIOD_ID] = threshold.value.attrs[
-            "climatology_bounds"
-        ]
+        climatology_bounds = getattr(threshold.value, "attrs", {}).get(
+            "climatology_bounds", None
+        )
+        if climatology_bounds is not None:
+            exceedances.attrs[REFERENCE_PERIOD_ID] = climatology_bounds
     return exceedances
 
 
@@ -1264,15 +1280,15 @@ def _run_rolling_reducer(
         ).squeeze()
         study = study.where(exceedance)
     study = rolling_op(study.rolling(time=rolling_window_width))
-    study = study.resample(time=resample_freq.pandas_freq)
+    resampled = study.resample(time=resample_freq.pandas_freq)
     if date_event:
         return _reduce_with_date_event(
-            resampled=study,
+            resampled=resampled,
             reducer=resampled_op,
             window=rolling_window_width,
             source_delta=source_freq_delta,
         )
-    return resampled_op(study, dim="time")
+    return resampled_op(resampled)
 
 
 def _run_simple_reducer(
@@ -1363,18 +1379,22 @@ def _compute_exceedances(
     resample_freq: str,
     logical_link: LogicalLink,
 ) -> DataArray:
-    exceedances = [
-        _compute_exceedance(
-            study=climate_var.studied_data,
-            threshold=climate_var.threshold,
-            freq=resample_freq,
-            bootstrap=must_run_bootstrap(
-                climate_var.studied_data,
-                climate_var.threshold,
-            ),
-        ).squeeze()
-        for climate_var in climate_vars
-    ]
+    exceedances = []
+    for climate_var in climate_vars:
+        if climate_var.threshold is None:
+            msg = "No threshold found"
+            raise InvalidIcclimArgumentError(msg)
+        exceedances.append(
+            _compute_exceedance(
+                study=climate_var.studied_data,
+                threshold=climate_var.threshold,
+                freq=resample_freq,
+                bootstrap=must_run_bootstrap(
+                    climate_var.studied_data,
+                    climate_var.threshold,
+                ),
+            ).squeeze()
+        )
     return logical_link(exceedances)
 
 
@@ -1411,7 +1431,11 @@ def _reduce_with_date_event(
                 original_sample=sample,
                 result=sample.sum(dim="time"),
                 start_time=reduced_result.time,
-                end_time=reduced_result.time + window * source_delta,
+                end_time=(
+                    reduced_result.time + window * source_delta
+                    if window is not None and source_delta is not None
+                    else reduced_result.time
+                ),
                 label=label,
             )
         else:
@@ -1457,18 +1481,18 @@ def _consecutive_occurrences_with_dates(
         time_index_of_max_rle = sample.argmax(dim="time")
         # TODO @bzah: `.compute` is needed until xarray merges this pr:
         # https://github.com/pydata/xarray/pull/5873
-        time_index_of_max_rle = time_index_of_max_rle.compute()
+        time_index_of_max_rle = cast("DataArray", time_index_of_max_rle).compute()
         dated_longest_run = sample[{"time": time_index_of_max_rle}]
         anchor_time = sample.isel(
             time=time_index_of_max_rle.where(time_index_of_max_rle > 0, 0),
         ).time
         if run_index == "last":
             end_time = anchor_time + source_freq_delta
-            start_time = end_time - (dated_longest_run * source_freq_delta)
+            start_time = end_time - (dated_longest_run * cast("Any", source_freq_delta))
         else:
             # default to 'first' behavior
             start_time = anchor_time
-            end_time = start_time + (dated_longest_run * source_freq_delta)
+            end_time = start_time + (dated_longest_run * cast("Any", source_freq_delta))
         dated_longest_run = _add_date_coords(
             original_sample=sample,
             result=dated_longest_run,
@@ -1484,11 +1508,13 @@ def _add_date_coords(
     original_sample: DataArray,
     result: DataArray,
     label: str | np.datetime64,
-    start_time: DataArray = None,
-    end_time: DataArray = None,
-    event_date: DataArray = None,
+    start_time: DataArray | None = None,
+    end_time: DataArray | None = None,
+    event_date: DataArray | None = None,
 ) -> DataArray:
-    new_coords = {c: original_sample[c] for c in original_sample.coords if c != "time"}
+    new_coords: dict[Any, Any] = {
+        c: original_sample[c] for c in original_sample.coords if c != "time"
+    }  # type: ignore[misc]
     if event_date is None:
         new_coords["event_date_start"] = start_time
         new_coords["event_date_end"] = end_time

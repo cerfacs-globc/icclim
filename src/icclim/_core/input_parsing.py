@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import re
 import warnings
-from collections.abc import Sequence
+from collections.abc import Hashable, Sequence
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import xarray as xr
@@ -780,7 +780,7 @@ def _read_dataarray(
             )
             raise InvalidIcclimArgumentError(msg)
         var_name = var_name[0]
-        data_name = var_name or standard_var.short_name or None
+        data_name = var_name or (standard_var.short_name if standard_var else None) or None
     else:
         data_name = var_name or data.name or "unnamed_var"
     return data.to_dataset(name=data_name, promote_attrs=True)
@@ -794,7 +794,7 @@ def _guess_dataset_var_names(
 
     The expected kind of variable of the index is used to guess the variable names.
     """
-    if standard_index is not None:
+    if standard_index is not None and standard_index.input_variables is not None:
         main_aliases = ", ".join(
             (v.short_name for v in standard_index.input_variables),
         )
@@ -816,7 +816,7 @@ def _guess_dataset_var_names(
                     break
         if len(climate_var_names) < len(standard_index.input_variables):
             raise InvalidIcclimArgumentError(error_msg)
-        return climate_var_names
+        return cast("list[Hashable]", climate_var_names)
     if len(ds.data_vars) == 1:
         return [get_name_of_first_var(ds)]
     return find_standard_vars(ds)

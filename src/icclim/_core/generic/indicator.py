@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import contextlib
 import logging
+from collections.abc import Sequence
 from copy import deepcopy
 from functools import reduce
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import numpy as np
 import xarray as xr
@@ -295,9 +296,9 @@ class GenericIndicator(Indicator):
         climate_vars: list[ClimateVariable],
         output_freq: str,
         src_freq: str,
-        indexer: dict,
+        indexer: dict[Any, Any] | None,
         out_unit: str | None,
-        allow_partial_seasons: bool,
+        allow_partial_seasons: bool | Literal["start", "end"],
     ) -> DataArray:
         """
         Postprocesses the result of the indicator computation.
@@ -368,9 +369,8 @@ class GenericIndicator(Indicator):
         if self.missing != "skip" and indexer is not None:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
-            das = filter(lambda cv: not cv.is_reference, climate_vars)
-            das = (cv.studied_data for cv in das)
-            das = list(das)
+            it = filter(lambda cv: not cv.is_reference, climate_vars)
+            das = [cv.studied_data for cv in it]
             if "time" in result.dims:
                 # If src_freq cannot be inferred by xclim, fall back to universal check_freq
                 if src_freq is None:
@@ -530,12 +530,12 @@ class GenericIndicator(Indicator):
 
     def _handle_missing_values(
         self,
-        in_data: DataArray,
+        in_data: Sequence[DataArray] | DataArray,
         out_data: DataArray,
         resample_freq: str | None = None,
         src_freq: str | None = None,
-        indexer: dict[str, slice] | None = None,
-        allow_partial_seasons: bool = False,
+        indexer: dict[Any, Any] | None = None,
+        allow_partial_seasons: bool | Literal["start", "end"] = False,
     ) -> DataArray:
         """
         Handle missing values in climate index computations.
@@ -563,7 +563,7 @@ class GenericIndicator(Indicator):
             missing_obj(
                 da, freq=resample_freq, src_timestep=src_freq, **(indexer or {})
             )
-            for da in in_data
+            for da in (in_data if isinstance(in_data, Sequence) else [in_data])
             if "time" in da.coords
         )
 
@@ -601,7 +601,7 @@ def _get_climate_vars_metadata(
     resample_freq: Frequency,
     jinja_scope: dict[str, Any],
     jinja_env: jinja2.Environment,
-) -> list[dict[str, str]]:
+) -> list[dict[str, Any]]:
     return [
         c_var.build_indicator_metadata(
             resample_freq,

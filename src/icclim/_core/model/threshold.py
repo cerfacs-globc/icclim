@@ -95,7 +95,7 @@ class Threshold(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def __eq__(self, other: Threshold) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if two Threshold are equal."""
         ...
 

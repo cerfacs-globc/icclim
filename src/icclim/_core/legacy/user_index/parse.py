@@ -8,7 +8,7 @@ Contain the parsing operations to create a user indices.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 from icclim._core.constants import (
     PERCENTILE_THRESHOLD_STAMP,
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
     from icclim._core.generic.indicator import GenericIndicator
     from icclim._core.legacy.user_index.model import UserIndexDict
+    from icclim._core.model.indicator import Indicator
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
 
 
@@ -76,6 +77,7 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         CalcOperationRegistry.ANOMALY: GenericIndicatorRegistry.DifferenceOfMeans.clone(),
     }
     extrem_mode = user_index.get("extreme_mode", None)
+    indicator: Indicator | None
     if calc_op == CalcOperationRegistry.RUN_SUM:
         if extrem_mode == "max":
             indicator = GenericIndicatorRegistry.MaxOfRollingSum.clone()
@@ -91,14 +93,14 @@ def read_indicator(user_index: UserIndexDict) -> GenericIndicator:
         else:
             raise NotImplementedError
     else:
-        indicator = user_index_map.get(calc_op)
+        indicator = cast("Indicator | None", user_index_map.get(calc_op))
     if indicator is None:
         msg = (
             "Unknown user_index's calc_operation:"
             f" '{user_index.get('calc_operation', None)}'"
         )
         raise InvalidIcclimArgumentError(msg)
-    return indicator
+    return cast("GenericIndicator", indicator)
 
 
 def read_logical_link(user_index: UserIndexDict) -> LogicalLink:
@@ -231,16 +233,19 @@ def read_thresholds(
             )
             for t in thresholds
         ]
+    op: Operator
     if logical_operation is None:
-        logical_operation = OperatorRegistry.REACH
+        op = OperatorRegistry.REACH
     elif isinstance(logical_operation, str):
-        logical_operation = OperatorRegistry.lookup(logical_operation)
+        op = OperatorRegistry.lookup(logical_operation)
     elif isinstance(logical_operation, Operator):
-        pass
+        op = logical_operation
     else:
         err = "Invalid user_index: logical_operation must be None or a string."
         raise InvalidIcclimArgumentError(err)
-    thresh_query = _build_thresh_query(thresh, var_type, logical_operation)
+    thresh_query = _build_thresh_query(
+        cast("str | float", thresh), var_type, op
+    )
     return build_threshold(
         thresh_query,
         doy_window_width=doy_window_width,

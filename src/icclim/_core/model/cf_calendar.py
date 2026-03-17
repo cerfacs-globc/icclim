@@ -153,10 +153,7 @@ def _proleptic_gregorian_leap(years: DataArray) -> DataArray:
     DataArray
         A boolean array indicating if the years are part of a leap year.
     """
-    return np.logical_or(
-        years % 400 == 0,
-        np.logical_and(years % 100 != 0, years % 4 == 0),
-    )
+    return (years % 400 == 0) | ((years % 100 != 0) & (years % 4 == 0))
 
 
 def _julian_leap(years: DataArray) -> DataArray:

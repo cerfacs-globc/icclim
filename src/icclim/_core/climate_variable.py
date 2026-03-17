@@ -99,7 +99,7 @@ class ClimateVariable:
         dict of str, str | dict
             The metadata for the indicator.
         """
-        metadata: dict[str, str | dict] = {"threshold": {}}
+        metadata: dict[str, Any] = {"threshold": {}}
         if self.standard_var is None:
             metadata.update(
                 {
@@ -321,7 +321,7 @@ def build_climate_var(
             "source": study_ds.attrs.get("source", None),
             "time_encoding": study_ds.time.encoding,
         },
-        source_frequency=FrequencyRegistry.lookup(
+        source_frequency=FrequencyRegistry.lookup(  # type: ignore[arg-type]
             studied_data.time.attrs.get("freq", DEFAULT_INPUT_FREQUENCY)
         ),
     )
@@ -366,9 +366,10 @@ def must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
     if time_index is None:
         return False
     study_years = np.unique(time_index.year)
-    overlapping_years = np.unique(
-        da.sel(time=_get_ref_period_slice(reference)).indexes.get("time").year,
-    )
+    ref_idx = da.sel(time=_get_ref_period_slice(reference)).indexes.get("time")
+    if ref_idx is None:
+        return False
+    overlapping_years = np.unique(ref_idx.year)
     return 1 < len(overlapping_years) < len(study_years)
 
 
@@ -433,7 +434,7 @@ def _build_reference_variable(
             "source": study_ds.attrs.get("source", None),
             "time_encoding": study_ds.time.encoding,
         },
-        source_frequency=FrequencyRegistry.lookup(
+        source_frequency=FrequencyRegistry.lookup(  # type: ignore[arg-type]
             xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY,
         ),
         is_reference=True,

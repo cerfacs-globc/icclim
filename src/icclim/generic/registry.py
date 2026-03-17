@@ -174,7 +174,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         definition="Average of the difference between two variables"
         ", or one variable and it's reference period values"
         " (e.g. DTR: `mean(tasmax - tasmin)`).",
-        qualifiers=["compute_diff"],
+        qualifiers=("compute_diff",),
     )
     DifferenceOfExtremes = GenericIndicator(
         "difference_of_extremes",
@@ -185,7 +185,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         " The extremes are always `maximum` for the first variable and"
         " `minimum` for the second variable"
         " (e.g. ETR: `max(tasmax) - min(tasmin)`).",
-        qualifiers=["compute_diff"],
+        qualifiers=("compute_diff",),
     )
     MeanOfAbsoluteOneTimeStepDifference = GenericIndicator(
         "mean_of_absolute_one_time_step_difference",
@@ -197,7 +197,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         " (e.g. vDTR:"
         " `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ;"
         " where i is the day of measure).",
-        qualifiers=["compute_diff"],
+        qualifiers=("compute_diff",),
     )
     DifferenceOfMeans = GenericIndicator(
         "difference_of_means",
@@ -211,7 +211,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         definition="Difference of the average between two variables"
         ", or one variable and it's reference period values"
         " (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.",
-        qualifiers=["compute_diff"],
+        qualifiers=("compute_diff",),
     )
     Percentile = GenericIndicator(
         "percentile",

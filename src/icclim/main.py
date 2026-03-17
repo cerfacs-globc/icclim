@@ -152,18 +152,17 @@ def _get_ecad_indices_of_group(
         and query.lower() == IndexGroupRegistry.WILD_CARD_GROUP.name
     ):
         return EcadIndexRegistry.values()
-    if not isinstance(query, (list, tuple)):
-        query = [query]
+    query_list = query if isinstance(query, (list, tuple)) else [query]
 
-    indices = _look_for_standard_indices(query)
+    indices = _look_for_standard_indices(query_list)
     if indices:
         return indices
 
-    indices = _look_for_variable_indices(query)
+    indices = _look_for_variable_indices(query_list)
     if indices:
         return indices
 
-    indices = _look_for_index_groups(query)
+    indices = _look_for_index_groups(query_list)
     if indices:
         return indices
 
@@ -173,9 +172,9 @@ def _get_ecad_indices_of_group(
 
 def _look_for_standard_indices(query: Sequence[Any]) -> list[StandardIndex] | None:
     indices = [EcadIndexRegistry.lookup_no_error(i) for i in query]
-    indices = list(filter(lambda x: x is not None, indices))
-    if len(indices) == len(query):
-        return indices
+    res = [i for i in indices if i is not None]
+    if len(res) == len(query):
+        return res
     return None
 
 
@@ -183,11 +182,14 @@ def _look_for_variable_indices(query: Sequence[Any]) -> list[StandardIndex] | No
     indices = []
     for ecad_index in EcadIndexRegistry.values():
         has_var = True
-        for var in ecad_index.input_variables:
-            is_query_in_aliases = (
-                standard_var in var.aliases for standard_var in query
-            )
-            has_var &= any(is_query_in_aliases)
+        if ecad_index.input_variables is not None:
+            for var in ecad_index.input_variables:
+                is_query_in_aliases = (
+                    standard_var in var.aliases for standard_var in query
+                )
+                has_var &= any(is_query_in_aliases)
+        else:
+            has_var = False
         if has_var:
             indices.append(ecad_index)
     if len(indices) >= len(query):
@@ -197,9 +199,9 @@ def _look_for_variable_indices(query: Sequence[Any]) -> list[StandardIndex] | No
 
 def _look_for_index_groups(query: Sequence[Any]) -> list[StandardIndex] | None:
     groups = [IndexGroupRegistry.lookup_no_error(i) for i in query]
-    groups = list(filter(lambda x: x is not None, groups))
-    if groups:
-        indices = (x.get_indices() for x in groups)
+    res = [i for i in groups if i is not None]
+    if res:
+        indices = [x.get_indices() for x in res]
         return reduce(operator.add, indices, [])  # flatten list[list]
     return None
 
@@ -663,7 +665,7 @@ def _build_user_index_config(
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     indicator = parse.read_indicator(user_index)
-    sampling_frequency = FrequencyRegistry.lookup(slice_mode)
+    sampling_frequency = FrequencyRegistry.lookup(slice_mode)  # type: ignore[arg-type]
     threshold = parse.read_thresholds(
         user_index,
         doy_window_width=doy_window_width,
@@ -747,7 +749,7 @@ def _build_standard_index_config(
     # logical link here link two climate_variable computations as with user_index.
     # It isalways AND for standard indices.
     logical_link = LogicalLinkRegistry.LOGICAL_AND
-    sampling_frequency = FrequencyRegistry.lookup(slice_mode)
+    sampling_frequency = FrequencyRegistry.lookup(slice_mode)  # type: ignore[arg-type]
     coef = None
     indicator_info = _parse_indicator_config(index_name, out_unit, threshold)
     standard_index = indicator_info["standard_index"]
@@ -809,12 +811,13 @@ def _parse_index_kind(
     index_name: StandardIndex | GenericIndicator | str,
 ) -> StandardIndex | GenericIndicator:
     if isinstance(index_name, str):
-        index = EcadIndexRegistry.lookup_no_error(index_name)
-        if index is None:
-            index = DcscIndexRegistry.lookup_no_error(index_name)
-        if index is None:
-            index = GenericIndicatorRegistry.lookup(index_name)
-        return index
+        res: StandardIndex | GenericIndicator | None
+        res = EcadIndexRegistry.lookup_no_error(index_name)
+        if res is None:
+            res = DcscIndexRegistry.lookup_no_error(index_name)
+        if res is None:
+            res = GenericIndicatorRegistry.lookup(index_name)
+        return res
     return index_name
 
 
@@ -869,7 +872,12 @@ def _handle_deprecated_params(
     if window_width is not None:
         log.deprecation_warning(old="window_width", new="doy_window_width")
         doy_window_width = window_width
-    return index_name, user_index, save_thresholds, doy_window_width
+    return (  # type: ignore[return-value]
+        index_name,
+        user_index,
+        save_thresholds,
+        doy_window_width,
+    )
 
 
 def _setup(
@@ -1035,11 +1043,19 @@ def _build_threshold(
 
 
 def _format_thresholds_for_export(climate_vars: list[ClimateVariable]) -> Dataset:
-    return xr.merge([_format_threshold(v) for v in climate_vars])
+    return xr.merge(
+        [v for v in (_format_threshold(v) for v in climate_vars) if v is not None],
+    )
 
 
-def _format_threshold(cf_var: ClimateVariable) -> DataArray:
-    return cf_var.threshold.value.rename(cf_var.name + "_thresholds").reindex()
+def _format_threshold(cf_var: ClimateVariable) -> DataArray | None:
+    if cf_var.threshold is not None and cf_var.threshold.value is not None:
+        val = cf_var.threshold.value
+        if isinstance(val, xr.DataArray):
+            return val.rename(cf_var.name + "_thresholds").reindex()  # type: ignore[return-value]
+        if isinstance(val, xr.Dataset):
+            return val.rename(dict.fromkeys(val.data_vars, cf_var.name + "_thresholds")).reindex()  # type: ignore[arg-type]
+    return None
 
 
 def _must_add_reference_var(
