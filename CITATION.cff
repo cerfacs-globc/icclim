@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Page"
+    given-names: "Christian"
+    orcid: "https://orcid.org/0000-0002-4018-4720"
+    affiliation: "CERFACS, Toulouse, France"
+  - family-names: "Aoun"
+    given-names: "Abel"
+title: "icclim: Index Calculation CLIMate"
+version: 7.1.0
+doi: 10.5281/zenodo.15936714
+date-released: 2026-03-17
+url: "https://github.com/cerfacs-globc/icclim"
+license: Apache-2.0
+repository-code: "https://github.com/cerfacs-globc/icclim"
+keywords:
+  - "climate"
+  - "climate indices"
+  - "eca-d"
+  - "xarray"
+  - "xclim"
+  - "dask"
