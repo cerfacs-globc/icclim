@@ -75,6 +75,7 @@ jobs:
       - name: Build coverage file
         run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=icclim tests/ | tee pytest-coverage.txt; ( exit ${PIPESTATUS[0]} )
       - name: Pytest coverage comment
+        if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push'
         id: coverageComment
         uses: MishaKav/pytest-coverage-comment@v1.7.1
         with:
