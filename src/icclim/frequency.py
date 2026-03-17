@@ -24,9 +24,11 @@ from icclim._core.constants import (
     AMJJAS_MONTHS,
     DJF_MONTHS,
     EN_FREQ_MAPPING,
+    EXPECTED_RANGE_LEN,
     FREQ_DELTA_MAPPING,
     JJA_MONTHS,
     MAM_MONTHS,
+    MONTHS_IN_YEAR,
     MONTHS_MAP,
     ONDJFM_MONTHS,
     SON_MONTHS,
@@ -87,7 +89,7 @@ def get_seasonal_time_updater(
         da_years = np.unique(da.time.dt.year)
         time_bounds = []
         new_time_axis = []
-        first_time = da.time.values[0]
+        first_time = da.time.to_numpy()[0]
         for year in da_years:
             year_of_season_end = year + 1 if start_month > end_month else year
             if isinstance(first_time, cftime.datetime):
@@ -118,7 +120,7 @@ def get_seasonal_time_updater(
         time_bounds_da = DataArray(
             data=time_bounds,
             dims=["time", "bounds"],
-            coords=[("time", da.time.values), ("bounds", [0, 1])],
+            coords=[("time", da.time.to_numpy()), ("bounds", [0, 1])],
         )
         return da, time_bounds_da
 
@@ -182,7 +184,7 @@ def get_time_bounds_updater(
         time_bounds_da = DataArray(
             data=list(zip(starts, ends, strict=False)),
             dims=["time", "bounds"],
-            coords=[("time", da.time.values), ("bounds", [0, 1])],
+            coords=[("time", da.time.to_numpy()), ("bounds", [0, 1])],
         )
         return da, time_bounds_da
 
@@ -480,7 +482,7 @@ def _get_end_date(
 ) -> cftime.datetime | pd.Timestamp:
     delta = timedelta(days=0)
     if day is None:
-        if month == 12:
+        if month == MONTHS_IN_YEAR:
             day = 31
         else:
             # get the next month and subtract a day (handle any month and leap years)
@@ -527,9 +529,9 @@ def _get_frequency_from_string(query: str) -> Frequency:
 def _is_season_valid(months: list[int]) -> bool:
     is_valid = True
     for i in range(len(months) - 1):
-        is_valid = is_valid and 0 < months[i] < 13
+        is_valid = is_valid and 0 < months[i] <= MONTHS_IN_YEAR
         if months[i] > months[i + 1]:
-            is_valid = is_valid and months[i + 1] == 1 and months[i] == 12
+            is_valid = is_valid and months[i + 1] == 1 and months[i] == MONTHS_IN_YEAR
         else:
             is_valid = is_valid and (months[i + 1] - months[i] == 1)
     return is_valid
@@ -538,7 +540,7 @@ def _is_season_valid(months: list[int]) -> bool:
 def _get_frequency_from_iterable(
     slice_mode_list: list | tuple[str, Sequence],
 ) -> Frequency:
-    if len(slice_mode_list) < 2:
+    if len(slice_mode_list) < EXPECTED_RANGE_LEN:
         msg = (
             "Invalid slice_mode format."
             " When slice_mode is a list, its first element must be a keyword and"
@@ -547,7 +549,7 @@ def _get_frequency_from_iterable(
         raise InvalidIcclimArgumentError(msg)
     if (
         isinstance(slice_mode_list, (list, tuple))
-        and len(slice_mode_list) == 2
+        and len(slice_mode_list) == EXPECTED_RANGE_LEN
         and isinstance(slice_mode_list[0], DataArray)
         and isinstance(slice_mode_list[1], DataArray)
     ):
@@ -562,7 +564,7 @@ def _get_frequency_from_iterable(
         return _build_seasonal_freq(season)
     if (
         isinstance(freq_keyword, (list, tuple))
-        and len(freq_keyword) == 2
+        and len(freq_keyword) == EXPECTED_RANGE_LEN
         and isinstance(freq_keyword[0], DataArray)
         and isinstance(freq_keyword[1], DataArray)
     ):
@@ -602,7 +604,7 @@ def _build_seasonal_freq(season: Sequence) -> Frequency:
 
 
 def _build_seasonal_frequency_between_dates(season: Sequence[str]) -> Frequency:
-    if len(season) != 2:
+    if len(season) != EXPECTED_RANGE_LEN:
         raise InvalidIcclimArgumentError(SEASON_ERR_MSG)
     begin_date = read_date(season[0])
     end_date = read_date(season[1])

@@ -126,7 +126,7 @@ class ClimateVariable:
 
 def build_climate_vars(
     climate_vars_dict: dict[str, InFileDictionary],
-    ignore_Feb29th: bool,
+    ignore_feb29th: bool,
     time_range: Sequence[datetime | str] | None,
     base_period: Sequence[str] | None,
     standard_index: StandardIndex | None,
@@ -139,7 +139,7 @@ def build_climate_vars(
     ----------
     climate_vars_dict: dict of str, InFileDictionary
         The dictionary of input files.
-    ignore_Feb29th: bool
+    ignore_feb29th: bool
         Whether to ignore February 29th.
     time_range: Sequence of datetime | str | None
         The time range to consider.
@@ -187,8 +187,8 @@ def build_climate_vars(
         cv = build_climate_var(
             raw_climate_var[0],
             raw_climate_var[1],
-            ignore_Feb29th,
-            time_range,
+            ignore_feb29th=ignore_feb29th,
+            time_range=time_range,
             standard_var=standard_var,
             reference_period=reference_period,
         )
@@ -217,7 +217,7 @@ def build_climate_vars(
 def build_climate_var(
     climate_var_name: str,
     climate_var_data: InFileDictionary | InFileBaseType,
-    ignore_Feb29th: bool,
+    ignore_feb29th: bool,
     time_range: Sequence[datetime | str] | None,
     standard_var: StandardVariable | None,
     reference_period: Sequence[datetime | str] | None = None,
@@ -232,7 +232,7 @@ def build_climate_var(
     climate_var_data : InFileDictionary | InFileBaseType
         The input data for the climate variable. It can be either a dictionary
         or a file.
-    ignore_Feb29th : bool
+    ignore_feb29th : bool
         Flag indicating whether to ignore February 29th in the time range.
     time_range : Sequence[datetime | str] | None
         The time range to consider for the climate variable. It can be a sequence
@@ -261,7 +261,7 @@ def build_climate_var(
     The standard variable is used to determine the conversion unit for the
     threshold data.
 
-    The studied data is built based on the study data, time range, ignore_Feb29th
+    The studied data is built based on the study data, time range, ignore_feb29th
     flag, and standard variable.
 
     If a threshold is provided in the dictionary, it is added to the ClimateVariable.
@@ -270,11 +270,11 @@ def build_climate_var(
     --------
     >>> climate_var_name = "tas"
     >>> climate_var_data = {"study": "/path/to/data.nc", "thresholds": ">= 27 degC"}
-    >>> ignore_Feb29th = False
+    >>> ignore_feb29th = False
     >>> time_range = ["2000-01-01", "2010-12-31"]
     >>> standard_var = StandardVariableRegistry.TAS
     >>> climate_var = build_climate_var(
-    ...     climate_var_name, climate_var_data, ignore_Feb29th, time_range, standard_var
+    ...     climate_var_name, climate_var_data, ignore_feb29th, time_range, standard_var
     ... )
     """
     if isinstance(climate_var_data, dict):
@@ -292,7 +292,7 @@ def build_climate_var(
     studied_data = build_studied_data(
         study_ds[climate_var_name],
         time_range,
-        ignore_Feb29th,
+        ignore_feb29th,
         standard_var.default_units if standard_var else None,
     )
     if climate_var_thresh is not None:

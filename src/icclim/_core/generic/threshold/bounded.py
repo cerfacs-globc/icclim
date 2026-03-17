@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from icclim._core.constants import EXPECTED_RANGE_LEN
 from icclim._core.generic.threshold.threshold_templates import (
     EN_THRESHOLD_TEMPLATE,
     ThresholdMetadata,
@@ -83,7 +84,7 @@ class BoundedThreshold(Threshold):
         initial_query: str | None,
         **kwargs,  # noqa: ARG002
     ) -> None:
-        if len(thresholds) != 2:
+        if len(thresholds) != EXPECTED_RANGE_LEN:
             msg = (
                 f"BoundedThreshold can only be built on 2 thresholds, {len(thresholds)}"
                 f" were found."

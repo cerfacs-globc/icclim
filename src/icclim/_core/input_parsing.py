@@ -13,7 +13,12 @@ import xarray as xr
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
-from icclim._core.constants import UNITS_KEY, VALID_PERCENTILE_DIMENSION
+from icclim._core.constants import (
+    EXPECTED_RANGE_LEN,
+    MAX_LEAP_YEAR_DAYS,
+    UNITS_KEY,
+    VALID_PERCENTILE_DIMENSION,
+)
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.standard_variable import (
     StandardVariable,
@@ -343,8 +348,8 @@ def read_clim_bounds(
     climatology bounds from the `climatology_bounds` attribute of `per_da`.
     """
     bds = climatology_bounds or per_da.attrs.get("climatology_bounds", None)
-    if len(bds) != 2:
-        msg = "climatology_bounds must be an iterable of length 2."
+    if len(bds) != EXPECTED_RANGE_LEN:
+        msg = f"climatology_bounds must be an iterable of length {EXPECTED_RANGE_LEN}."
         raise InvalidIcclimArgumentError(msg)
     return [get_date_to_iso_format(bd) for bd in bds]
 
@@ -492,7 +497,7 @@ def is_precipitation_amount(source: xr.DataArray) -> bool:
 def build_studied_data(
     original_da: DataArray,
     time_range: Sequence[datetime | str] | None,
-    ignore_Feb29th: bool,
+    ignore_feb29th: bool,
     default_units: str | None,
 ) -> DataArray:
     """
@@ -505,7 +510,7 @@ def build_studied_data(
     time_range : Sequence[datetime | str] | None
         The time range to select from the data array. If None, the entire time range is
         used.
-    ignore_Feb29th : bool
+    ignore_feb29th : bool
         Whether to ignore February 29th when processing the data.
     default_units : str | None
         The default units to use for the data array if it is uniteless.
@@ -536,10 +541,10 @@ def build_studied_data(
             raise InvalidIcclimArgumentError(msg)
     else:
         da = original_da
-    if ignore_Feb29th:
+    if ignore_feb29th:
         import xclim  # noqa: PLC0415
 
-        da = xclim.core.calendar.convert_calendar(da, CfCalendarRegistry.NO_LEAP.name)
+        da = da.convert_calendar(CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_KEY, None) is None and default_units is not None:
         da.attrs[UNITS_KEY] = default_units
     std_var = guess_standard_variable(da)
@@ -818,11 +823,11 @@ def _guess_dataset_var_names(
 
 
 def _check_time_range_pre_validity(key: str, tr: Sequence[datetime | str]) -> None:
-    if len(tr) != 2:
+    if len(tr) != EXPECTED_RANGE_LEN:
         msg = (
             f"The given `{key}` {tr}"
             f" has {len(tr)} elements."
-            f" It must have exactly 2 dates."
+            f" It must have exactly {EXPECTED_RANGE_LEN} dates."
         )
         raise InvalidIcclimArgumentError(msg)
 
@@ -854,7 +859,7 @@ def _get_actual_name(ds: Dataset, alias: str) -> str:
 def _reduce_only_leap_years(da: DataArray) -> DataArray:
     reduced_list = []
     for _, val in da.groupby(da.time.dt.year):
-        if val.time.dt.dayofyear.max() == 366:
+        if val.time.dt.dayofyear.max() == MAX_LEAP_YEAR_DAYS:
             reduced_list.append(val)
     if not reduced_list:
         msg = "No leap year in current dataset. Do not use `only_leap_years` parameter."

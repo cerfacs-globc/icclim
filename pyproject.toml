@@ -148,7 +148,6 @@ select = [
 ignore = [
   # -- Rules to add
   "PLR0913", # too many arguments in function, to add
-  "PLR2004", # Magic values, to add
   "PLR0915", # Too many statement, to add
   # -- True ignore
   "ISC001", # String concat on same line, Managed by ruff format
@@ -172,7 +171,12 @@ ignore = [
   "D", # Disable docstring check for tests.
   "ANN", # Disable type check for tests.
   "F821", # Allow _empty.
-  "SLF001" # Allow access to private values from tests.
+  "SLF001", # Allow access to private values from tests.
+  "PLR2004" # Magic numbers are expected in test assertions.
+]
+"scripts/*.py" = [
+  "PLR2004", # Magic numbers are common in CLI scripts (argv length checks).
+  "T201" # Path handling and comparison results are printed in scripts.
 ]
 "src/icclim/_generated/*.py" = [
   "F821", # Allow placeholder names like _empty in generated API.
@@ -187,6 +191,10 @@ ignore = [
   "RUF100", # Allow unused noqa.
   "RUF022", # Allow unsorted __all__.
   "D" # Disable docstring checks for generated files.
+]
+"doc/source/tutorials/notebooks/*.ipynb" = [
+  "PLR2004", # Magic numbers are expected in tutorials for coordinate bounds.
+  "T201" # Print statements are standard in notebooks for output display.
 ]
 "doc/source/conf.py" = [
   "INP001" # conf.py is a standalone script, not a package.
