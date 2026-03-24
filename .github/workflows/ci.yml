@@ -47,14 +47,15 @@ jobs:
           # setup the username and email.
           git config user.name "GitHub Actions Bot - API updater"
           git config user.email "<>"
-      - name: commit
+      - name: Create Pull Request for API
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: |
-          # Stage the file, commit and push
-          git add src/icclim/_generated
-          # Ignore error cases
-          git commit -m "MAINT: Update generated API" || true
-          git push origin master
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "MAINT: Update generated API"
+          branch: automation/api-update
+          title: "MAINT: Update generated API"
+          body: "Automated update of generated API."
+          add-paths: src/icclim/_generated
 
   test:
     runs-on: ubuntu-24.04
@@ -102,14 +103,15 @@ jobs:
           # setup the username and email.
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-      - name: commit
+      - name: Create Pull Request for coverage
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: |
-          # Stage the file, commit and push
-          git add README.rst
-          # Ignore error cases with `|| true`
-          git commit -m "[skip ci] DOC: Update coverage" || true
-          git push origin master
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "[skip ci] DOC: Update coverage"
+          branch: automation/coverage-update
+          title: "DOC: Update coverage"
+          body: "Automated coverage update in README.rst."
+          add-paths: README.rst
 
   logo-update:
     runs-on: ubuntu-24.04
@@ -143,11 +145,13 @@ jobs:
           # setup the username and email.
           git config user.name "GitHub Actions Bot - logo updater"
           git config user.email "<>"
-      - name: commit
+      - name: Create Pull Request for logos
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-        run: |
-          # Stage the file, commit and push
-          git add doc/source/_static/*__displayed.svg
-          # Ignore error cases with `|| true`
-          git commit -m "MAINT: Update logos" || true
-          git push origin master
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "MAINT: Update logos"
+          branch: automation/logo-update
+          title: "MAINT: Update logos"
+          body: "Automated logo update."
+          add-paths: |
+            doc/source/_static/*__displayed.svg
