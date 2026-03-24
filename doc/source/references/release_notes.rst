@@ -12,6 +12,8 @@ date: 2026-03-17
 Details
 =======
 
+-  [maint] Use pull requests for automated maintenance tasks (coverage, API, logos) in CI to support protected ``master`` branch.
+
 -  [fix] Standardize degree Celsius representation to ``degC`` throughout core threshold logic to resolve metadata inconsistencies and assertion errors in tests.
 -  [fix] Resolve critical ``UnboundLocalError`` and ``TypeError`` regressions in ``threshold/factory.py``.
 -  [maint] Improve code quality and type safety by resolving dozens of Ruff lints in 21 core files.
