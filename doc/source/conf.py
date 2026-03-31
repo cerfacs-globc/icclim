@@ -115,5 +115,7 @@ intersphinx_mapping = {
     "xclim": ("https://xclim.readthedocs.io/en/stable/", None),
 }
 
+intersphinx_timeout = 30
+
 # The master toctree document.
 master_doc = "index"
