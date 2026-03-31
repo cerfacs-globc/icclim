@@ -13,6 +13,8 @@
 #
 import sys
 from pathlib import Path
+import requests
+from requests.exceptions import RequestException
 
 sys.path.insert(0, Path("../..").resolve())
 import icclim  # (import need to be after path update)
@@ -108,12 +110,20 @@ html_theme_options = {
 intersphinx_mapping = {
     "clisops": ("https://clisops.readthedocs.io/en/latest/", None),
     "flox": ("https://flox.readthedocs.io/en/latest/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
     "sklearn": ("https://scikit-learn.org/stable/", None),
     "statsmodels": ("https://www.statsmodels.org/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "xclim": ("https://xclim.readthedocs.io/en/stable/", None),
 }
+
+# Dynamic SciPy mapping as it's often flaky or unreachable from some CI/RTD environments
+try:
+    scipy_url = "https://docs.scipy.org/doc/scipy/"
+    # Probe with a 5s timeout to avoid slowing down the build too much
+    requests.get(scipy_url + "objects.inv", timeout=5)
+    intersphinx_mapping["scipy"] = (scipy_url, None)
+except RequestException:
+    print("WARNING: SciPy intersphinx inventory unreachable. Skipping.")
 
 intersphinx_timeout = 30
 
