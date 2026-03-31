@@ -124,7 +124,7 @@ try:
     requests.get(scipy_url + "objects.inv", timeout=5)
     intersphinx_mapping["scipy"] = (scipy_url, None)
 except RequestException:
-    print("WARNING: SciPy intersphinx inventory unreachable. Skipping.")
+    print("WARNING: SciPy intersphinx inventory unreachable. Skipping.")  # noqa: T201
 
 intersphinx_timeout = 30
 
