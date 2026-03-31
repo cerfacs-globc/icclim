@@ -13,6 +13,7 @@
 #
 import sys
 from pathlib import Path
+
 import requests
 from requests.exceptions import RequestException
 
