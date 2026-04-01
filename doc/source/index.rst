@@ -1,3 +1,5 @@
+:notoc:
+
 .. icclim_doc documentation master file, created by
    sphinx-quickstart on Thu Mar 26 15:23:24 2026.
    You can adapt this file completely to your liking, but it should at least
@@ -25,25 +27,56 @@ Welcome to :mod:`icclim` documentation!
         :shadow: md
     
         New to *icclim*? Check out our tutorials. They will help you to discover *icclim'* and its capabilities.
+        
+        .. button-ref:: tutorial
+            :ref-type: ref
+            :click-parent:
+            :color: info
+            :expand:
+            
+            To our tutorials
             
     .. grid-item-card:: How to
         :class-card: intro-card
         :shadow: md
 
         You will find here recipes to use *icclim* to solve specific problems.
+        
+        .. button-ref:: howtos
+            :ref-type: ref
+            :click-parent:
+            :color: info
+            :expand:
+            
+            To go to our *icclim* recipes
           
     .. grid-item-card:: References
         :class-card: intro-card
         :shadow: md
 
         The references guide contains *icclim* technical documentation. You will find here an overview of *icclim* API and the description of its internal mechanisms.
+        
+        .. button-ref:: references
+            :ref-type: ref
+            :click-parent:
+            :color: info
+            :expand:
+            
+            To the reference guide
 
     .. grid-item-card:: Explanations
         :class-card: intro-card
         :shadow: md
 
         You will find here other information related to *icclim*.
-
+        
+        .. button-ref:: explanations
+            :ref-type: ref
+            :click-parent:
+            :color: info
+            :expand:
+            
+            To get further informations
 
 
 

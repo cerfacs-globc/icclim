@@ -328,7 +328,7 @@ def index(
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
     doy_window_width: int
-        ``optional`` Window width used to aggreagte day of year values when computing
+        ``optional`` Window width used to aggregate day of year values when computing
         day of year percentiles (doy_per)
         Default: 5 (5 days).
     min_spell_length: int
