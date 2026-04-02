@@ -4,7 +4,10 @@ Tutorials
 =========
 
 .. toctree::
+   :titlesonly:
+
    Installation
+   Learn how to calculate the CSDI <TUTO_Cold_Spell_Duration_Index>
    Calculate the Averaged Temperature Anomaly
    Calculate averaged surface Temperature and Precipitation Anomalies
    Calculate percentage of day when Tmean > 90th percentile (TG90p)
