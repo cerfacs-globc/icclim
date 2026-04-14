@@ -256,7 +256,7 @@ pygments==2.20.0
     #   pydata-sphinx-theme
     #   pytest
     #   sphinx
-pytest==9.0.2
+pytest==9.0.3
     # via
     #   icclim (pyproject.toml)
     #   pytest-cov
