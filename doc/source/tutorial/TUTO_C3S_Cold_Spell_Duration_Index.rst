@@ -72,3 +72,39 @@ We copy and paste them into a URL and KEY variable respectively.
 
     URL = 'https://cds.climate.copernicus.eu/api'
     KEY = '<PERSONAL-ACCESS-TOKEN>'
+
+Data download
+-------------
+As we saw it at the beginning of this tutorial, we will need daily minimum temperature data. Data for this parameter are available as part of the E-OBS daily gridded meteorological data for Europe from 1950 to present. For this exercise we select a shorter period to allow a faster download: we will pick the period from 2011 to 2021.
+In the frame of this tutorial, we will specifically use the **E-OBS daily gridded meteorological data for Europe from 1950 to present derived from in-situ observations** data set, which can be found using the search bar from CDS `home page <Climate Data Store>`__.
+Having selected the data set from the search results page, we now need to specify what product type, variables, temporal and geographic coverage we are interested in. These can all be selected in the **"Download data"** tab (see picture below).
+
+.. image:: Screenshot_E-OBS_daily_gridded_data_download_tab.png
+    :align: center
+    :alt: Download tab of the E-OBS daily gridded meteorological data for Europe from 1950 to present derived from in-situ observations
+
+
+We select the following parameters to refine our data selection :
+
+* Product type: **Ensemble mean**
+* Variable: **Minimum temperature**
+* Grid resolution: **0.1deg** 
+* Period: **2011-2021**
+* Version: **25.0e** (in "All other available versions")
+
+Then at the bottom of the form appears a code block which we can copy and paste in our script.
+
+.. code-block:: python
+
+    dataset = "insitu-gridded-observations-europe"
+    request = {
+        "period": "2011_2021"
+    }
+
+    client = cdsapi.Client()
+    client.retrieve(dataset, request).download()
+
+.. note::
+    Since we already imported :mod:`cdsapi` library, we can skip that code line in the generated code block.
+
+Before running the code block, we need to accept the terms and conditions of this specific data set. When the code is run in our environment, we will receive the daily minimum temperature in a zip archive.
