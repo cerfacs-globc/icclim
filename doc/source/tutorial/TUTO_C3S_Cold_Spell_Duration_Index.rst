@@ -6,7 +6,7 @@ About
 =====
 In this tutorial, we will show you haw to calculate the :ref:`Cold-Spell Duration Index<csdi>` (CSDI), using data provided by Copernicus Climate Change Service (`C3S`_).
 
-After preparing our environment, we will download the minimum temperature data from C3S `Climate Data Store`_, inspect them and use the :mod:`icclim` library to calculate the CSDI. Finally, we will display the CSDI using :mod:`matplotlib` to end up with the following map.
+After preparing our environment, we will download the daily minimum temperature data from C3S `Climate Data Store`_, inspect them and use the :mod:`icclim` library to calculate the CSDI. Finally, we will display the CSDI using :mod:`matplotlib` to end up with the following map.
 
 .. image:: E_OBS_csdi_index.png
     :align: center
@@ -58,6 +58,17 @@ Data download and data call
 ===========================
 Climate Data Store API key set-up
 ---------------------------------
-Since we will work with the minimum temperature data from C3S `Climate Data Store`_ (CDS), we will need first to `log in, or register`_, to the CDS. Once logged in, we retrieve can retrieve the API URL, as well as our CDS API key.
+Since we will work with the minimum temperature data from C3S `Climate Data Store`_ (CDS), we will need first to `log in, or register`_, to the CDS. Once logged in, we retrieve can retrieve the API URL, as well as our CDS API key:
 
 .. _log in, or register: https://accounts.ecmwf.int/auth/realms/ecmwf/protocol/openid-connect/auth?client_id=cds&scope=openid%20email&response_type=code&redirect_uri=https%3A%2F%2Fcds.climate.copernicus.eu%2Fapi%2Fauth%2Fcallback%2Fkeycloak&state=nyS6TnhZ00Dp6WUovTTWs3rDWLoAbV0-TsmZjH678L8&code_challenge=y49Rc-vRJVxgVgQ56tWI2dQGIuRBSkQw8EzlE2Zugso&code_challenge_method=S256
+
+.. image:: Screenshot_C3S_CDS.png
+    :align: center
+    :alt: URL and the API key from C3S CDS
+
+We copy and paste them into a URL and KEY variable respectively.
+
+.. code-block:: python
+
+    URL = 'https://cds.climate.copernicus.eu/api'
+    KEY = '<PERSONAL-ACCESS-TOKEN>'

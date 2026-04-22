@@ -7,7 +7,7 @@ Installation
    Make sure you have **Python 3.10+**.
 
 .. note::
-    :mod:`icclim` has been developed for **Linux** and **OS X** operating systems and has not been tested on Windows OS.
+    :mod:`icclim` has been developed for **Linux** and **macOS** operating systems and has not been tested on Windows OS.
 
 
 To install from conda-forge (recommended)
