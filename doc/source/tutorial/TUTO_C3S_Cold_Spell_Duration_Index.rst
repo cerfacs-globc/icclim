@@ -108,3 +108,18 @@ Then at the bottom of the form appears a code block which we can copy and paste 
     Since we already imported :mod:`cdsapi` library, we can skip that code line in the generated code block.
 
 Before running the code block, we need to accept the terms and conditions of this specific data set. When the code is run in our environment, we will receive the daily minimum temperature in a zip archive.
+
+Extract Data
+------------
+As we just saw, the retrieved data are in a zip format. Before going any further, we need first to decompress the archive and retrieve the filename. This is done with zipfile library.
+
+.. code-block:: python
+
+    # Create a ZipFile Object and load eobs_pr.zip in it
+    with ZipFile(f"{DATADIR}/eobs_tasmin.zip", "r") as zip_obj:
+        # Get a list of all archived file names from the zip
+        list_of_file_names = zip_obj.namelist()
+        # Extract all the contents of zip file in current directory
+        zip_obj.extractall()
+
+# List the NetCDF filenames of the dataset
