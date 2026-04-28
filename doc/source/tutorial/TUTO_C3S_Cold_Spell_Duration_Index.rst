@@ -96,18 +96,31 @@ Then at the bottom of the form appears a code block which we can copy and paste 
 
 .. code-block:: python
 
+    # DATA DIRECTORY & FILE NAME DEFINITION
+    data_dir = './data/CSDI/'
+    filename = 'eobs_tasmin.zip'
+
+    # API CODE BLOCK
     dataset = "insitu-gridded-observations-europe"
     request = {
-        "period": "2011_2021"
-    }
+        "product_type": "ensemble_mean",
+        "variable": ["minimum_temperature"],
+        "grid_resolution": "0_1deg",
+        "period": "2011_2021",
+        "version": ["25_0e"]
+        }
 
     client = cdsapi.Client()
-    client.retrieve(dataset, request).download()
+    client.retrieve(dataset, request, f'{data_dir}{filename}').download()
+
 
 .. note::
     Since we already imported :mod:`cdsapi` library, we can skip that code line in the generated code block.
 
-Before running the code block, we need to accept the terms and conditions of this specific data set. When the code is run in our environment, we will receive the daily minimum temperature in a zip archive.
+.. note::
+    The data directory we defined before the CDS API code block will be used for both data download and to our :mod:`icclim` output file
+
+Before running the code block, we need to accept the terms and conditions of this specific data set on the CDS form. When the code is run in our environment, we will receive the daily minimum temperature in a zip archive.
 
 Extract Data
 ------------
@@ -122,4 +135,91 @@ As we just saw, the retrieved data are in a zip format. Before going any further
         # Extract all the contents of zip file in current directory
         zip_obj.extractall()
 
-# List the NetCDF filenames of the dataset
+    # List the NetCDF filenames of the dataset
+
+:mod:`list_of_file_names` will be then used as input parameter in icclim.
+
+Parameters definition
+=====================
+Now that we managed to load the data we need, we can prepare our icclim input parameters:
+
+.. code-block:: python
+
+    index = 'CSDI'
+    input_f = list_of_file_names
+    slice_mode = 'year'
+
+    output_f = f“{data_dir}out_icclim_CSDI_2011_to_2021.nc”
+
+Calculate the Cold-Spell Duration Index
+=======================================
+Our data and parameters are finally set-up. It is time to calculate the CSDI. The function can be called either by calling directly :mod:`icclim.csdi()` or using the index name as an input parameter :mod:`icclim.index(index_name = “CSDI”)`.
+Both calls will return the same results, independently the calling method. Here we choose the latter one.
+
+.. code-block:: python
+
+    csdi = icclim.index(index_name = index, in_files  = input_f,
+                        slice_mode = slice_mode, out_file = output_f)
+
+Before jumping to the plot section, let’s have a look at the data we just created:
+
+.. code-block::
+
+    csdi
+
+The created dataset is of :mod:`xarray.Dataset` type. Along with the coordinates (lon, lat, time, bounds), the data variable (CSDI), and indexes (for lon, lat, time, bounds) we can find additional information in Attributes. We will find the long title of the index (LATER CHECK), as well as the reference on the index calculation (European Climate Assessment & Dataset (ECA&D)).
+
+CSDI Data analysis
+==================
+With our index now calculated, let’s bring the CSDI to life by mapping its mean across Europe, over our selected time period. For the area of interest, we will take the same European subset as in the `C3S Climate Bulletins <bulletins>`__.
+
+.. _bulletins: https://climate.copernicus.eu/climate-bulletin
+
+.. code-block::
+
+    # Calculate CSDI mean over time
+    csdi_mean = csdi['CSDI'].mean(dim = 'time', keep_attrs = True)
+
+    # Set spatial extend and center it
+    extent = [-25, 40, 34, 72]  # Western Europe    
+    central_lat = 53.0
+    central_lon = 7.5
+
+    # Select European subset
+    csdi_sub = csdi_avg.where(
+        (csdi_avg.latitude < 72)
+        & (csdi_avg.latitude > 34)
+        & (csdi_avg.longitude < 40)
+        & (csdi_avg.longitude > -25),
+        drop=True,
+    )
+
+    # Select map projection
+    map_proj = ccrs.AlbersEqualArea(central_longitude=central_lon, 
+                                    central_latitude=central_lat)
+
+    # Define plot
+    f, ax = plt.subplots(figsize=(18, 9), subplot_kw={"projection": map_proj})
+
+    # Plot data
+    csdi_subset.plot(cmap = plt.cm.RdBu_r, transform = ccrs.PlateCarree(),
+                cbar_kwargs = {
+                    'orientation' : 'vertical',
+                    'label' : 'Mean Cold-Spell Occurrences'
+                })
+    # Plot information
+    plt.title('Occurences of cold-spells over Europe (2011-2021)', fontsize = 20)
+
+    # Add the coastlines to axis and set extent
+    ax.coastlines()
+    ax.gridlines()
+    ax.set_extent(extent)
+
+    # Save plot as png
+    plt.savefig(f'{data_dir}E-OBS_csdi_mean_over_Europe_2011to2021.png')
+
+.. image:: 2011to2021_E-OBS_csdi.png
+    :align: center
+    :alt: European map of the Cold-Spell Duration Index
+
+As we can notice on our output map, over the period 2011-2021, occurrences of cold-spells is rather steady over Western Europe. Cold-spells mostly happened more often in Denmark, near Black Sea southern coast.
