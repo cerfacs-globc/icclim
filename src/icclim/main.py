@@ -76,6 +76,7 @@ log: IcclimLogger = IcclimLogger.get_instance(VerbosityRegistry.LOW)
 
 HISTORY_CF_KEY = "history"
 SOURCE_CF_KEY = "source"
+NUMBER_OF_NOTNULL_VAR = "number_of_notnull"
 
 
 def indices(
@@ -127,13 +128,14 @@ def indices(
         try:
             res = index(**kwargs)
             res = _rename_coords(res, i.short_name)
+            res = _drop_group_auxiliary_vars(res)
             acc.append(res)
         except Exception:
             if ignore_error:
                 warn(f"Could not compute {i.short_name}.", stacklevel=2)
             else:
                 raise
-    ds: Dataset = xr.merge(acc)
+    ds: Dataset = xr.merge(acc, compat="no_conflicts", join="outer")
     if out is not None:
         _write_output_file(
             result_ds=ds,
@@ -1081,6 +1083,10 @@ def _rename_coords(ds: Dataset, short_name: str) -> Dataset:
     if "thresholds" in ds.coords:
         ds = ds.rename({"thresholds": short_name + "_thresholds"})
     return ds
+
+
+def _drop_group_auxiliary_vars(ds: Dataset) -> Dataset:
+    return ds.drop_vars(NUMBER_OF_NOTNULL_VAR, errors="ignore")
 
 
 def _parse_indicator_config(
