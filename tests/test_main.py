@@ -34,6 +34,27 @@ def test_deprecated_indice(log_mock: MagicMock, index_mock: MagicMock) -> None:
     index_mock.assert_called_once()
 
 
+@patch("icclim.main.index")
+def test_indices_drops_conflicting_number_of_notnull(index_mock: MagicMock) -> None:
+    def _fake_index(**kwargs: object) -> xr.Dataset:
+        index_name = str(kwargs["index_name"])
+        return xr.Dataset(
+            {
+                index_name: ("time", [1]),
+                "number_of_notnull": ("time", [len(index_name)]),
+            },
+            coords={"time": [np.datetime64("2042-01-01")]},
+        )
+
+    index_mock.side_effect = _fake_index
+
+    res = icclim.indices(index_group=["SU", "TR"], in_files=object())
+
+    assert "SU" in res
+    assert "TR" in res
+    assert "number_of_notnull" not in res
+
+
 HEAT_INDICES = ["SU", "TR", "WSDI", "TG90p", "TN90p", "TX90p", "TXx", "TNx", "CSU"]
 
 
