@@ -345,7 +345,7 @@ sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
 stack-data==0.6.3
     # via ipython
-starlette==0.52.1
+starlette==1.0.1
     # via sphinx-autobuild
 threadpoolctl==3.6.0
     # via scikit-learn
