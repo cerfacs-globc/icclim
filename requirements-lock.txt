@@ -29,7 +29,7 @@ beautifulsoup4==4.14.3
     #   nbconvert
     #   pydata-sphinx-theme
     #   sphinx-codeautolink
-bleach[css]==6.3.0
+bleach[css]==6.4.0
     # via nbconvert
 boltons==25.0.0
     # via xclim
