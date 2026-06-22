@@ -5,20 +5,21 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any
 
 import xarray as xr
 from xarray import DataArray, Dataset
+from xclim.core.calendar import select_time
+from xclim.core.units import rate2amount
 
 import icclim
 from icclim._core.constants import UNITS_KEY
 from icclim._core.generic.functions import _is_rate, check_freq
-from icclim.frequency import FrequencyRegistry
+from icclim.frequency import Frequency, FrequencyRegistry
 
 WET_DAY_THRESHOLD = 1.0
 
 
-def _parse_slice_mode(raw: str) -> Any:
+def _parse_slice_mode(raw: str) -> object:
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
@@ -38,18 +39,18 @@ def _reduce_to_point(ds: Dataset, isel_specs: list[str]) -> Dataset:
     return ds.isel(indexers, drop=True)
 
 
-def _subset_for_slice_mode(da: DataArray, slice_mode: Any) -> tuple[DataArray, Any]:
+def _subset_for_slice_mode(
+    da: DataArray, slice_mode: object
+) -> tuple[DataArray, Frequency]:
     freq = FrequencyRegistry.lookup(slice_mode)
     if freq.indexer:
-        from xclim.core.calendar import select_time
-
         da = select_time(da, **freq.indexer, drop=True)
     return da, freq
 
 
 def _threshold_count(
     da: DataArray,
-    slice_mode: Any,
+    slice_mode: object,
     threshold: float,
     op: str,
 ) -> DataArray:
@@ -66,20 +67,16 @@ def _threshold_count(
     return out
 
 
-def _manual_rr(da: DataArray, slice_mode: Any) -> DataArray:
+def _manual_rr(da: DataArray, slice_mode: object) -> DataArray:
     subset, freq = _subset_for_slice_mode(da, slice_mode)
     if _is_rate(subset):
-        from xclim.core.units import rate2amount
-
         subset = rate2amount(subset)
     return subset.resample(time=freq.pandas_freq).sum(dim="time")
 
 
-def _manual_prcptot(da: DataArray, slice_mode: Any) -> DataArray:
+def _manual_prcptot(da: DataArray, slice_mode: object) -> DataArray:
     subset, freq = _subset_for_slice_mode(da, slice_mode)
     if _is_rate(subset):
-        from xclim.core.units import rate2amount
-
         subset = rate2amount(subset)
     return (
         subset.where(subset >= WET_DAY_THRESHOLD, 0)
@@ -88,17 +85,17 @@ def _manual_prcptot(da: DataArray, slice_mode: Any) -> DataArray:
     )
 
 
-def _manual_mean(da: DataArray, slice_mode: Any) -> DataArray:
+def _manual_mean(da: DataArray, slice_mode: object) -> DataArray:
     subset, freq = _subset_for_slice_mode(da, slice_mode)
     return subset.resample(time=freq.pandas_freq).mean(dim="time")
 
 
-def _manual_max(da: DataArray, slice_mode: Any) -> DataArray:
+def _manual_max(da: DataArray, slice_mode: object) -> DataArray:
     subset, freq = _subset_for_slice_mode(da, slice_mode)
     return subset.resample(time=freq.pandas_freq).max(dim="time")
 
 
-def _manual_min(da: DataArray, slice_mode: Any) -> DataArray:
+def _manual_min(da: DataArray, slice_mode: object) -> DataArray:
     subset, freq = _subset_for_slice_mode(da, slice_mode)
     return subset.resample(time=freq.pandas_freq).min(dim="time")
 
@@ -128,7 +125,7 @@ def _data_var_name(ds: Dataset) -> str:
     return next(iter(ds.data_vars))
 
 
-def _summarize_result(icclim_da: DataArray, manual_da: DataArray) -> dict[str, Any]:
+def _summarize_result(icclim_da: DataArray, manual_da: DataArray) -> dict[str, object]:
     if "time" in icclim_da.dims and "time" in manual_da.dims:
         if icclim_da.sizes["time"] != manual_da.sizes["time"]:
             msg = (
@@ -154,6 +151,7 @@ def _summarize_result(icclim_da: DataArray, manual_da: DataArray) -> dict[str, A
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the CLI argument parser."""
     parser = argparse.ArgumentParser(
         description=(
             "Compare an icclim index against a simple manual reference "
@@ -187,6 +185,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    """Run the reference comparison CLI."""
     parser = build_parser()
     args = parser.parse_args()
 
