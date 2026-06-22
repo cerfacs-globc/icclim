@@ -81,9 +81,11 @@ def _manual_prcptot(da: DataArray, slice_mode: Any) -> DataArray:
         from xclim.core.units import rate2amount
 
         subset = rate2amount(subset)
-    return subset.where(subset >= WET_DAY_THRESHOLD, 0).resample(
-        time=freq.pandas_freq
-    ).sum(dim="time")
+    return (
+        subset.where(subset >= WET_DAY_THRESHOLD, 0)
+        .resample(time=freq.pandas_freq)
+        .sum(dim="time")
+    )
 
 
 def _manual_mean(da: DataArray, slice_mode: Any) -> DataArray:

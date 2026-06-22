@@ -79,9 +79,7 @@ def test_prcptot_custom_season_matches_manual_wet_day_sum() -> None:
     ).PRCPTOT.load()
 
     season_mask = (
-        (pr.time.dt.month == 11)
-        | (pr.time.dt.month == 12)
-        | (pr.time.dt.month <= 3)
+        (pr.time.dt.month == 11) | (pr.time.dt.month == 12) | (pr.time.dt.month <= 3)
     )
     expected = (
         pr.where(season_mask)
