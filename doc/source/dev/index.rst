@@ -14,3 +14,4 @@ development.
    release_process
    ci
    contributing
+   climpact_comparison_protocol

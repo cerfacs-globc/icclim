@@ -1333,7 +1333,13 @@ def _run_simple_reducer(
     if must_convert_rate and _is_rate(filtered_study):
         from xclim.core.units import rate2amount  # noqa: PLC0415
 
-        filtered_study = rate2amount(filtered_study)
+        src_freq = check_freq(filtered_study, dim="time", strict=False)
+        if src_freq == "D":
+            filtered_study = _rate_to_amount_for_daily_subseries(filtered_study)
+        else:
+            if src_freq is not None:
+                filtered_study = filtered_study.resample(time=src_freq).asfreq()
+            filtered_study = rate2amount(filtered_study)
     if date_event:
         return _reduce_with_date_event(
             resampled=filtered_study.resample(time=resample_freq.pandas_freq),
@@ -1368,6 +1374,30 @@ def get_single_var(
             climate_vars[0].threshold,
         )
     return climate_vars[0].studied_data, None
+
+
+def _rate_to_amount_for_daily_subseries(filtered_study: DataArray) -> DataArray:
+    from xclim.core.units import rate2amount  # noqa: PLC0415
+
+    original_time = filtered_study.time
+    first_time = original_time.values[0]
+    if hasattr(first_time, "calendar"):
+        synthetic_time = xr.date_range(
+            start="2000-01-01",
+            periods=filtered_study.sizes["time"],
+            freq="D",
+            use_cftime=True,
+            calendar=first_time.calendar,
+        )
+    else:
+        synthetic_time = date_range(
+            start="2000-01-01",
+            periods=filtered_study.sizes["time"],
+            freq="D",
+        )
+    synthetic = filtered_study.assign_coords(time=synthetic_time)
+    converted = rate2amount(synthetic)
+    return converted.assign_coords(time=original_time)
 
 
 def _compute_exceedances(
