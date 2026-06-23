@@ -68,6 +68,7 @@ This open-source project has been possible thanks to funding by the European Com
 * FP7 IS-ENES2 (2013-2017)
 * H2020 EUDAT2020 (2015-2018)
 * H2020 IS-ENES3 (2019-2023)
+* Horizon Europe FUTURA and ENES-RISe (2026-2029)
 
 This project also receives funding from Agence Nationale de la Recherche - France 2030 as part of the PEPR TRACCS programme under grant number ANR-22-EXTR-0003 (PC2-INVEST 2024-2032).
 
