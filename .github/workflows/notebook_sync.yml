@@ -5,7 +5,7 @@ on:
     branches:
       - master
     paths:
-      - 'doc/source/tutorials/notebooks/*.ipynb'
+      - 'doc/source/tutorials/notebooks/**/*.ipynb'
       - '.github/workflows/notebook_sync.yml'
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
 
           git clone git@gitlab.com:is-enes-cdi-c4i/notebooks.git temp_sync
-          cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
+          cp doc/source/tutorials/notebooks/**/*.ipynb temp_sync/
           cd temp_sync
           git add .
           if git diff --staged --quiet; then
@@ -60,7 +60,7 @@ jobs:
           GIT_COMMITTER_EMAIL: "actions@github.com"
         run: |
           git clone https://x-access-token:${EXTERNAL_GITHUB_TOKEN}@github.com/cerfacs-globc/copernicus-training.git temp_sync
-          cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
+          cp doc/source/tutorials/notebooks/**/*.ipynb temp_sync/
           cd temp_sync
           git add .
           if git diff --staged --quiet; then
