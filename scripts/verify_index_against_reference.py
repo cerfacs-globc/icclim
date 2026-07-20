@@ -133,8 +133,15 @@ def _summarize_result(icclim_da: DataArray, manual_da: DataArray) -> dict[str, o
                 f"{manual_da.sizes['time']} vs {icclim_da.sizes['time']}."
             )
             raise ValueError(msg)
-        aligned_icclim = icclim_da
-        aligned_manual = manual_da.assign_coords(time=icclim_da.time)
+        try:
+            aligned_icclim, aligned_manual = xr.align(
+                icclim_da, manual_da, join="exact"
+            )
+        except ValueError as err:
+            msg = (
+                "Manual reference and icclim result have different time coordinates."
+            )
+            raise ValueError(msg) from err
     else:
         aligned_icclim, aligned_manual = xr.align(icclim_da, manual_da, join="inner")
     abs_diff = abs(aligned_icclim - aligned_manual)
