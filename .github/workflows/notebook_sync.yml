@@ -34,7 +34,11 @@ jobs:
           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
 
           git clone git@gitlab.com:is-enes-cdi-c4i/notebooks.git temp_sync
-          rm -f temp_sync/*.ipynb
+          root_notebooks="$(find temp_sync -maxdepth 1 -type f -name '*.ipynb' -print)"
+          if [ -n "$root_notebooks" ]; then
+            echo "::warning title=Root notebooks detected::Unexpected root-level notebooks remain in GitLab mirror."
+            printf '%s\n' "$root_notebooks"
+          fi
           mkdir -p temp_sync/C4I_Use_Cases
           mkdir -p temp_sync/Copernicus_Climate_Change_Service_CDS
           rsync -av --delete \
@@ -69,7 +73,11 @@ jobs:
           GIT_COMMITTER_EMAIL: "actions@github.com"
         run: |
           git clone https://x-access-token:${EXTERNAL_GITHUB_TOKEN}@github.com/cerfacs-globc/copernicus-training.git temp_sync
-          rm -f temp_sync/*.ipynb
+          root_notebooks="$(find temp_sync -maxdepth 1 -type f -name '*.ipynb' -print)"
+          if [ -n "$root_notebooks" ]; then
+            echo "::warning title=Root notebooks detected::Unexpected root-level notebooks remain in external GitHub mirror."
+            printf '%s\n' "$root_notebooks"
+          fi
           mkdir -p temp_sync/C4I_Use_Cases
           mkdir -p temp_sync/Copernicus_Climate_Change_Service_CDS
           rsync -av --delete \
