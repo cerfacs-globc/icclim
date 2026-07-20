@@ -11,7 +11,8 @@ LLM or a human contributor without requiring reconstruction of previous experime
 ## Branch And Baseline
 
 - Working branch: `fix/bootstrap-next`
-- Current checkpoint commit: `7ef205d`
+- Current branch head (docs/meta): `0a406cf`
+- Current implementation checkpoint: `7ef205d`
 - Baseline upstream behavior: `master` at `9d97cf1` / `origin/master` at `c3dd4e5`
 
 ## What Has Been Done
@@ -57,14 +58,27 @@ Reusable benchmark helpers were added:
 
 ### Current best local implementation
 
-The current branch uses reducer-level orchestration plus bounded donor
-vectorization using a bootstrap dimension per target year.
+The current best implementation is commit `7ef205d`.
+
+It uses reducer-level orchestration plus bounded donor vectorization using a
+bootstrap dimension per target year.
 
 This is the first version that is:
 
 - semantically much closer to the correct bootstrap model
 - numerically aligned with `master`
-- locally competitive enough to justify large-scale testing
+- locally close enough to `master` to justify large-scale testing
+
+Commit `0a406cf` only adds this handoff documentation on top of that code
+checkpoint.
+
+## Current Best Candidate
+
+Treat `7ef205d` as the performance/control candidate on `fix/bootstrap-next`.
+
+Do **not** use the older slow native path (`4dc59d1` or earlier) as the main
+comparison point anymore. Those older checkpoints are useful only as historical
+references for dead ends and regressions.
 
 ## Current Validation Status
 
@@ -140,6 +154,8 @@ Conclusion:
 - current branch is numerically good
 - current branch is architecturally better
 - current branch is not yet a clear performance win over `master`
+- current branch should therefore be treated as an RC for large-scale testing,
+  not as a release-ready optimization win
 
 ## Hard Constraints
 
@@ -165,9 +181,12 @@ a correctness issue is found.
 
 ### Phase 1: Freeze the current baseline
 
-1. Use `7ef205d` as the control implementation.
-2. Always compare against `master` using the benchmark scripts.
-3. Never evaluate a change without both:
+1. Use `7ef205d` as the control implementation on `fix/bootstrap-next`.
+2. Use `master` (`9d97cf1` / `c3dd4e5`) as the upstream comparison baseline.
+3. Compare every new candidate against **both**:
+   - `master`
+   - `7ef205d`
+4. Never evaluate a change without both:
    - reduced benchmark
    - larger laptop benchmark
 
@@ -200,13 +219,19 @@ This is the main algorithmic target.
 
 Idea:
 
-1. Precompute rolling-window views for each overlap year from the raw reference.
+1. Add a helper near the bootstrap code in
+   `src/icclim/_core/generic/functions.py` dedicated to cached percentile
+   preparation.
+2. Precompute rolling-window views for each overlap year from the raw
+   reference.
 2. For bootstrap target year `Y`, only recompute rolling-window views for:
    - `Y - 1`
    - `Y`
    - `Y + 1`
-3. Reuse the unaffected precomputed rolling-window views for all other years.
-4. Only after that, rebuild the `year/dayofyear/window` structure used by
+3. Cache these views in a structure keyed by year label, with each value
+   representing the pre-`percentile_doy` rolling window state for that year.
+4. Reuse the unaffected precomputed rolling-window views for all other years.
+5. Only after that, rebuild the `year/dayofyear/window` structure used by
    `percentile_doy`.
 
 Why this is safe:
@@ -221,6 +246,10 @@ Keep the current structure:
 
 - bootstrap orchestration at reducer level
 - donor vectorization only within one target year
+
+Do **not** spend more time on high-level bootstrap orchestration refactors
+unless a correctness issue is found. The current orchestration layer is now good
+enough; the remaining work is on percentile construction cost.
 
 Do not build one giant all-years bootstrap cube.
 
@@ -277,6 +306,16 @@ python scripts/compare_bootstrap_cached_outputs.py \
   --label-right candidate
 ```
 
+Also compare against the current bounded-path control when appropriate:
+
+```bash
+python scripts/compare_bootstrap_cached_outputs.py \
+  --left /tmp/icclim-laptop-bench/next-auto-laptop-time730.result.nc \
+  --right /tmp/icclim-laptop-bench/candidate-reduced.result.nc \
+  --label-left current_bounded \
+  --label-right candidate
+```
+
 ### Phase 6: Acceptance criteria
 
 A candidate is worth carrying to Kraken only if:
@@ -298,7 +337,8 @@ If a candidate meets the laptop acceptance criteria, run exactly the same
 benchmark family on Kraken and compare:
 
 - `master auto`
-- candidate auto
+- current bounded candidate (`7ef205d`) auto
+- new candidate auto
 - optionally `bootstrap=false` as a lower-bound reference
 
 Kraken should only be used to validate scale, not to do first-pass debugging.
