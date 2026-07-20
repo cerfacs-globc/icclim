@@ -72,6 +72,7 @@ class ClimateVariable:
     threshold: Threshold | None = None
     reference_period: Sequence[datetime | str] | None = None
     is_reference: bool = False
+    bootstrap: bool | None = None
 
     def build_indicator_metadata(
         self,
@@ -131,6 +132,7 @@ def build_climate_vars(
     base_period: Sequence[str] | None,
     standard_index: StandardIndex | None,
     is_compared_to_reference: bool,
+    bootstrap: bool | None = None,
 ) -> list[ClimateVariable]:
     """
     Build a list of ClimateVariable from a dictionary of input files.
@@ -193,6 +195,7 @@ def build_climate_vars(
             time_range=time_range,
             standard_var=standard_var,
             reference_period=reference_period,
+            bootstrap=bootstrap,
         )
 
         acc.append(cv)
@@ -214,6 +217,7 @@ def build_climate_vars(
                 base_period,
                 climate_vars_dict,
                 standard_var=standard_var,  # type: ignore[arg-type]
+                bootstrap=bootstrap,
             )
             acc.append(added_var)
 
@@ -227,6 +231,7 @@ def build_climate_var(
     time_range: Sequence[datetime | str] | None,
     standard_var: StandardVariable | None,
     reference_period: Sequence[datetime | str] | None = None,
+    bootstrap: bool | None = None,
 ) -> ClimateVariable:
     """
     Build a ClimateVariable object.
@@ -324,10 +329,13 @@ def build_climate_var(
         source_frequency=FrequencyRegistry.lookup(  # type: ignore[arg-type]
             studied_data.time.attrs.get("freq", DEFAULT_INPUT_FREQUENCY)
         ),
+        bootstrap=bootstrap,
     )
 
 
-def must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
+def must_run_bootstrap(
+    da: DataArray, threshold: Threshold | None, bootstrap: bool | None = None
+) -> bool:
     """
     Determine whether to run the bootstrap method.
 
@@ -361,6 +369,8 @@ def must_run_bootstrap(da: DataArray, threshold: Threshold | None) -> bool:
         )
     ):
         return False
+    if bootstrap is not None:
+        return bootstrap
     reference = threshold.value
     time_index = da.indexes.get("time")
     if time_index is None:
@@ -394,6 +404,7 @@ def _build_reference_variable(
     reference_period: Sequence[str] | None,
     in_files: dict[str, InFileDictionary],
     standard_var: StandardVariable,
+    bootstrap: bool | None = None,
 ) -> ClimateVariable:
     """
     Add a secondary variable for indices such as anomaly.
@@ -438,6 +449,7 @@ def _build_reference_variable(
             xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY,
         ),
         is_reference=True,
+        bootstrap=bootstrap,
     )
 
 
