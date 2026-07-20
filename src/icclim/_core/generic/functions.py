@@ -21,6 +21,7 @@ import operator
 import warnings
 from collections.abc import Callable
 from functools import partial
+from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
 from warnings import warn
 
@@ -63,6 +64,25 @@ if TYPE_CHECKING:
     from icclim._core.generic.threshold.percentile import PercentileThreshold
     from icclim._core.model.logical_link import LogicalLink
     from icclim._core.model.threshold import Threshold
+
+
+_BOOTSTRAP_PROFILE: dict[str, float | int] = {}
+
+
+def reset_bootstrap_profile() -> None:
+    _BOOTSTRAP_PROFILE.clear()
+
+
+def get_bootstrap_profile() -> dict[str, float | int]:
+    return dict(_BOOTSTRAP_PROFILE)
+
+
+def _profile_bootstrap_add(name: str, seconds: float) -> None:
+    _BOOTSTRAP_PROFILE[name] = float(_BOOTSTRAP_PROFILE.get(name, 0.0)) + seconds
+
+
+def _profile_bootstrap_inc(name: str, count: int = 1) -> None:
+    _BOOTSTRAP_PROFILE[name] = int(_BOOTSTRAP_PROFILE.get(name, 0)) + count
 
 
 def count_occurrences(
@@ -1282,6 +1302,7 @@ def _compute_bootstrapped_percentile_index(
     resample_freq: Frequency,
     compute_from_exceedance: Callable[[DataArray, DataArray], DataArray],
 ) -> DataArray | None:
+    total_start = perf_counter()
     study = climate_var.studied_data
     threshold = climate_var.threshold
     if threshold is None:
@@ -1316,6 +1337,9 @@ def _compute_bootstrapped_percentile_index(
     overlap_groups = overlap_da.resample(time=bfreq).groups
     study_groups = study.resample(time=bfreq).groups
     overlap_labels = set(overlap_groups)
+    _profile_bootstrap_inc("bootstrap_total_calls")
+    _profile_bootstrap_inc("bootstrap_overlap_years", len(overlap_labels))
+    _profile_bootstrap_inc("bootstrap_study_years", len(study_groups))
     per_values = per.percentiles.data.tolist()
     if not isinstance(per_values, list):
         per_values = [per_values]
@@ -1326,16 +1350,28 @@ def _compute_bootstrapped_percentile_index(
     for year_key, year_slice in study_groups.items():
         year_da = study.isel(time=year_slice)
         if year_key not in overlap_labels:
+            non_overlap_start = perf_counter()
             exceedance = threshold.compute(
                 year_da,
                 freq=resample_freq.pandas_freq,
                 bootstrap=False,
             ).squeeze()
             value = compute_from_exceedance(year_da, exceedance)
+            _profile_bootstrap_add(
+                "bootstrap_non_overlap_seconds",
+                perf_counter() - non_overlap_start,
+            )
+            _profile_bootstrap_inc("bootstrap_non_overlap_year_count")
             acc.append(value)
             continue
 
+        overlap_start = perf_counter()
+        build_ref_start = perf_counter()
         boot_ref = build_bootstrap_year_da(overlap_da, overlap_groups, year_key)
+        _profile_bootstrap_add(
+            "bootstrap_build_boot_ref_seconds",
+            perf_counter() - build_ref_start,
+        )
         if BOOTSTRAP_DIM not in per_template.dims:
             per_template = per_template.expand_dims(
                 {BOOTSTRAP_DIM: boot_ref[BOOTSTRAP_DIM]}
@@ -1347,6 +1383,7 @@ def _compute_bootstrapped_percentile_index(
                 }
                 per_template = per_template.chunk(chunking)
 
+        donor_per_start = perf_counter()
         donor_per = xr.map_blocks(
             percentile_doy.__wrapped__,
             obj=boot_ref,
@@ -1359,25 +1396,40 @@ def _compute_bootstrapped_percentile_index(
             },
             template=per_template,
         )
+        _profile_bootstrap_add(
+            "bootstrap_map_blocks_seconds",
+            perf_counter() - donor_per_start,
+        )
         donor_per = PercentileDataArray.from_da(
             donor_per,
             climatology_bounds=per.attrs["climatology_bounds"],
         )
         if "percentiles" not in per.dims:
             donor_per = donor_per.squeeze("percentiles")
+        apply_op_start = perf_counter()
         donor_exceedance = threshold._apply_percentile_op(
             da=year_da,
             per=donor_per,
             op=op,
             is_doy_per_threshold=True,
         )
+        _profile_bootstrap_add(
+            "bootstrap_apply_percentile_op_seconds",
+            perf_counter() - apply_op_start,
+        )
         if "percentiles" in donor_exceedance.dims:
             donor_exceedance = donor_exceedance.squeeze("percentiles")
+        reduce_start = perf_counter()
         donor_result = compute_from_exceedance(year_da, donor_exceedance).astype(
             "float32"
         )
+        _profile_bootstrap_add(
+            "bootstrap_compute_from_exceedance_seconds",
+            perf_counter() - reduce_start,
+        )
 
         if BOOTSTRAP_DIM not in donor_result.dims:
+            fallback_start = perf_counter()
             value = compute_from_exceedance(
                 year_da,
                 threshold.compute(
@@ -1386,15 +1438,34 @@ def _compute_bootstrapped_percentile_index(
                     bootstrap=False,
                 ).squeeze(),
             )
+            _profile_bootstrap_add(
+                "bootstrap_fallback_seconds",
+                perf_counter() - fallback_start,
+            )
+            _profile_bootstrap_inc("bootstrap_fallback_year_count")
         else:
+            mean_start = perf_counter()
             value = donor_result.mean(dim=BOOTSTRAP_DIM, keep_attrs=True)
+            _profile_bootstrap_add(
+                "bootstrap_donor_mean_seconds",
+                perf_counter() - mean_start,
+            )
         if "percentiles" in value.dims:
             value = value.squeeze("percentiles")
+        _profile_bootstrap_add(
+            "bootstrap_overlap_year_seconds",
+            perf_counter() - overlap_start,
+        )
+        _profile_bootstrap_inc("bootstrap_overlap_year_count")
         acc.append(value)
 
     result = xr.concat(acc, dim="time", coords="minimal", compat="override")
     result.attrs.update(acc[-1].attrs)
     result.attrs[REFERENCE_PERIOD_ID] = clim
+    _profile_bootstrap_add(
+        "bootstrap_total_seconds",
+        perf_counter() - total_start,
+    )
     return result
 
 

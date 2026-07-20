@@ -112,6 +112,7 @@ def main() -> None:
     sys.path.insert(0, str(repo / "src"))
 
     import icclim  # noqa: PLC0415
+    from icclim._core.generic import functions as generic_functions  # noqa: PLC0415
 
     cache_dir = args.cache_dir.resolve() if args.cache_dir else None
     cache_key = args.cache_key or _default_cache_key(repo, args.bootstrap)
@@ -156,9 +157,11 @@ def main() -> None:
     bootstrap = _resolve_bootstrap_arg(args.bootstrap)
     if bootstrap is not None:
         index_kwargs["bootstrap"] = bootstrap
+    generic_functions.reset_bootstrap_profile()
     with dask.config.set(scheduler=args.scheduler):
         result = icclim.index(**index_kwargs)
     build_end = time.perf_counter()
+    bootstrap_profile = generic_functions.get_bootstrap_profile()
 
     tg90p = result["TG90p"]
     graph = tg90p.data.__dask_graph__()
@@ -189,6 +192,7 @@ def main() -> None:
         "graph_tasks": len(graph),
         "result_shape": tuple(int(x) for x in loaded.shape),
         "result_mean": float(loaded.mean().item()),
+        "bootstrap_profile": bootstrap_profile,
     }
 
     if result_path is not None and args.save_output:
