@@ -138,9 +138,7 @@ def _summarize_result(icclim_da: DataArray, manual_da: DataArray) -> dict[str, o
                 icclim_da, manual_da, join="exact"
             )
         except ValueError as err:
-            msg = (
-                "Manual reference and icclim result have different time coordinates."
-            )
+            msg = "Manual reference and icclim result have different time coordinates."
             raise ValueError(msg) from err
     else:
         aligned_icclim, aligned_manual = xr.align(icclim_da, manual_da, join="inner")
