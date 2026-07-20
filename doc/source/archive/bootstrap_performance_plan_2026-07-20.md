@@ -11,7 +11,7 @@ LLM or a human contributor without requiring reconstruction of previous experime
 ## Branch And Baseline
 
 - Working branch: `fix/bootstrap-next`
-- Current branch head (docs/meta): `0a406cf`
+- Current branch head (docs/meta): `0058873`
 - Current implementation checkpoint: `7ef205d`
 - Baseline upstream behavior: `master` at `9d97cf1` / `origin/master` at `c3dd4e5`
 
@@ -69,8 +69,8 @@ This is the first version that is:
 - numerically aligned with `master`
 - locally close enough to `master` to justify large-scale testing
 
-Commit `0a406cf` only adds this handoff documentation on top of that code
-checkpoint.
+Commit `0a406cf` added the initial handoff documentation, and `0058873`
+tightened it into the current version on top of that same code checkpoint.
 
 ## Current Best Candidate
 
