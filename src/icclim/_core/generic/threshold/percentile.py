@@ -627,23 +627,30 @@ def _build_single_bootstrap_reference(
     donor_label: Any,
     dim: str = "time",
 ) -> DataArray:
-    target = da[dim][groups[target_label]]
-    source = da.isel({dim: groups[donor_label]})
-    out = da.copy(deep=True)
+    target_slice = groups[target_label]
+    donor_slice = groups[donor_label]
+    target_start = target_slice.start or 0
+    target_stop = target_slice.stop or da.sizes[dim]
+    target = da[dim][target_slice]
+    source = da.isel({dim: donor_slice})
     if len(source[dim]) < 360 and len(source[dim]) < len(target):
-        return out
+        return da
     if len(source[dim]) == len(target):
-        replacement = source.data
+        replacement = source
     elif len(target) == 365:
-        replacement = source.convert_calendar("noleap").data
+        replacement = source.convert_calendar("noleap")
     elif len(target) == 366:
-        replacement = source.convert_calendar("366_day", missing=np.nan).data
+        replacement = source.convert_calendar("366_day", missing=np.nan)
     elif len(target) < 365:
-        replacement = source.data[: len(target)]
+        replacement = source.isel({dim: slice(0, len(target))})
     else:
         msg = "Unsupported bootstrap year replacement shape."
         raise NotImplementedError(msg)
-    out.loc[{dim: target}] = replacement
+    replacement = replacement.assign_coords({dim: target})
+    prefix = da.isel({dim: slice(None, target_start)})
+    suffix = da.isel({dim: slice(target_stop, None)})
+    out = xr.concat([prefix, replacement, suffix], dim=dim)
+    out.attrs.update(da.attrs)
     return out
 
 
