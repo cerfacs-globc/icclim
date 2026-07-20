@@ -447,7 +447,9 @@ class PercentileThreshold(Threshold):
 
         clim = per.attrs["climatology_bounds"]
         overlap_da = comparison_data.sel(time=slice(*clim))
-        if len(overlap_da.time) == 0 or len(overlap_da.time) == len(comparison_data.time):
+        if len(overlap_da.time) == 0 or len(overlap_da.time) == len(
+            comparison_data.time
+        ):
             return self._apply_percentile_op(
                 da=comparison_data,
                 per=per,
@@ -511,8 +513,9 @@ class PercentileThreshold(Threshold):
                 )
             if donor_results:
                 acc.append(
-                    xr.concat(donor_results, dim="_bootstrap")
-                    .mean(dim="_bootstrap", keep_attrs=True)
+                    xr.concat(donor_results, dim="_bootstrap").mean(
+                        dim="_bootstrap", keep_attrs=True
+                    )
                 )
             else:
                 acc.append(
