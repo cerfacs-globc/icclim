@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, cast
 
+import numpy as np
 import xarray as xr
 from xarray import DataArray, Dataset
 
@@ -399,40 +400,133 @@ class PercentileThreshold(Threshold):
         freq: str,
         bootstrap: bool,
     ) -> DataArray:
-        from xclim.core.bootstrapping import percentile_bootstrap  # noqa: PLC0415
-
-        @percentile_bootstrap
-        def __per_compute(
-            da: xr.DataArray,
-            per: xr.DataArray,
-            op: Callable[[DataArray, DataArray], DataArray],
-            is_doy_per_threshold: bool,
-            freq: str,  # noqa: ARG001
-            bootstrap: bool,  # noqa: ARG001
-        ) -> DataArray:
-            if self.threshold_min_value is not None:
-                # there is only a threshold_min_value when we are computing > or >=
-                thresh = self.threshold_min_value
-                from xclim.core.units import convert_units_to  # noqa: PLC0415
-
-                thresh = convert_units_to(thresh, per, context="hydro")
-                per = per.where(per > thresh, thresh)
-            if is_doy_per_threshold:
-                from xclim.core.calendar import resample_doy  # noqa: PLC0415
-
-                threshold_value = resample_doy(per, da)
-            else:
-                threshold_value = per
-            return op(da, threshold_value)
-
-        return __per_compute(
-            comparison_data,
-            per,
-            op,
-            is_doy_per_threshold,
-            freq,
-            bootstrap,
+        if bootstrap and is_doy_per_threshold:
+            return self._bootstrap_per_compute(
+                comparison_data=comparison_data,
+                per=per,
+                op=op,
+                freq=freq,
+            )
+        return self._apply_percentile_op(
+            da=comparison_data,
+            per=per,
+            op=op,
+            is_doy_per_threshold=is_doy_per_threshold,
         )
+
+    def _apply_percentile_op(
+        self,
+        da: xr.DataArray,
+        per: xr.DataArray,
+        op: Callable[[DataArray, DataArray], DataArray],
+        is_doy_per_threshold: bool,
+    ) -> DataArray:
+        if self.threshold_min_value is not None:
+            # there is only a threshold_min_value when we are computing > or >=
+            thresh = self.threshold_min_value
+            from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+            thresh = convert_units_to(thresh, per, context="hydro")
+            per = per.where(per > thresh, thresh)
+        if is_doy_per_threshold:
+            from xclim.core.calendar import resample_doy  # noqa: PLC0415
+
+            threshold_value = resample_doy(per, da)
+        else:
+            threshold_value = per
+        return op(da, threshold_value)
+
+    def _bootstrap_per_compute(
+        self,
+        comparison_data: xr.DataArray,
+        per: PercentileDataArray,
+        op: Callable[[DataArray, DataArray], DataArray],
+        freq: str,
+    ) -> DataArray:
+        from xclim.core.calendar import percentile_doy  # noqa: PLC0415
+
+        clim = per.attrs["climatology_bounds"]
+        overlap_da = comparison_data.sel(time=slice(*clim))
+        if len(overlap_da.time) == 0 or len(overlap_da.time) == len(comparison_data.time):
+            return self._apply_percentile_op(
+                da=comparison_data,
+                per=per,
+                op=op,
+                is_doy_per_threshold=True,
+            )
+
+        bfreq = _get_bootstrap_freq(freq)
+        overlap_groups = overlap_da.resample(time=bfreq).groups
+        da_groups = comparison_data.resample(time=bfreq).groups
+        overlap_labels = set(overlap_groups)
+        per_values = per.percentiles.data.tolist()
+        if not isinstance(per_values, list):
+            per_values = [per_values]
+
+        acc: list[DataArray] = []
+        for year_key, year_slice in da_groups.items():
+            year_da = comparison_data.isel(time=year_slice)
+            if year_key not in overlap_labels:
+                acc.append(
+                    self._apply_percentile_op(
+                        da=year_da,
+                        per=per,
+                        op=op,
+                        is_doy_per_threshold=True,
+                    )
+                )
+                continue
+
+            donor_results: list[DataArray] = []
+            for donor_key in overlap_groups:
+                if donor_key == year_key:
+                    continue
+                boot_ref = _build_single_bootstrap_reference(
+                    overlap_da,
+                    overlap_groups,
+                    year_key,
+                    donor_key,
+                )
+                donor_per = percentile_doy(
+                    arr=boot_ref,
+                    window=per.attrs["window"],
+                    per=per_values,
+                    alpha=per.attrs["alpha"],
+                    beta=per.attrs["beta"],
+                    copy=False,
+                )
+                donor_per = PercentileDataArray.from_da(
+                    donor_per,
+                    climatology_bounds=per.attrs["climatology_bounds"],
+                )
+                if "percentiles" not in per.dims:
+                    donor_per = donor_per.squeeze("percentiles")
+                donor_results.append(
+                    self._apply_percentile_op(
+                        da=year_da,
+                        per=donor_per,
+                        op=op,
+                        is_doy_per_threshold=True,
+                    )
+                )
+            if donor_results:
+                acc.append(
+                    xr.concat(donor_results, dim="_bootstrap")
+                    .mean(dim="_bootstrap", keep_attrs=True)
+                )
+            else:
+                acc.append(
+                    self._apply_percentile_op(
+                        da=year_da,
+                        per=per,
+                        op=op,
+                        is_doy_per_threshold=True,
+                    )
+                )
+
+        result = xr.concat(acc, dim="time")
+        result.attrs.update(acc[-1].attrs)
+        return result
 
 
 def _compute_per(
@@ -514,6 +608,43 @@ def _build_doy_per(
         alpha=interpolation.alpha,
         beta=interpolation.beta,
     )
+
+
+def _get_bootstrap_freq(freq: str) -> str:
+    from xclim.core.calendar import parse_offset  # noqa: PLC0415
+
+    _, base, start_anchor, anchor = parse_offset(freq)
+    bfreq = "YS" if start_anchor else "YE"
+    if base in ["A", "Y", "Q"] and anchor is not None:
+        bfreq = f"{bfreq}-{anchor}"
+    return bfreq
+
+
+def _build_single_bootstrap_reference(
+    da: DataArray,
+    groups: dict[Any, slice],
+    target_label: Any,
+    donor_label: Any,
+    dim: str = "time",
+) -> DataArray:
+    target = da[dim][groups[target_label]]
+    source = da.isel({dim: groups[donor_label]})
+    out = da.copy(deep=True)
+    if len(source[dim]) < 360 and len(source[dim]) < len(target):
+        return out
+    if len(source[dim]) == len(target):
+        replacement = source.data
+    elif len(target) == 365:
+        replacement = source.convert_calendar("noleap").data
+    elif len(target) == 366:
+        replacement = source.convert_calendar("366_day", missing=np.nan).data
+    elif len(target) < 365:
+        replacement = source.data[: len(target)]
+    else:
+        msg = "Unsupported bootstrap year replacement shape."
+        raise NotImplementedError(msg)
+    out.loc[{dim: target}] = replacement
+    return out
 
 
 def _build_per_thresh_from_dataset(

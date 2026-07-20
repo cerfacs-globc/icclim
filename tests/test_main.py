@@ -736,6 +736,23 @@ class TestIntegration:
         # 2043 values are compared to 2042's 90th percentile due to bootstrap
         assert res.TX90p.sel(time="2043-01") == 5
 
+    def test_index_tx90p__bootstrap_2_years_with_dask(self) -> None:
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[5:10] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        res = icclim.index(
+            index_name="tx90p",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        ).compute()
+        assert REFERENCE_PERIOD_ID in res.TX90p.attrs
+        assert res.TX90p.sel(time="2042-01") == 0
+        assert res.TX90p.sel(time="2043-01") == 5
+
     def test_index_tx90p__bootstrap_can_be_disabled(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[5:10] = 0
