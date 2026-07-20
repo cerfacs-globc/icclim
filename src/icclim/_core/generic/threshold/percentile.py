@@ -477,7 +477,8 @@ class PercentileThreshold(Threshold):
                 )
                 continue
 
-            donor_results: list[DataArray] = []
+            donor_total: DataArray | None = None
+            donor_count = 0
             for donor_key in overlap_groups:
                 if donor_key == year_key:
                     continue
@@ -501,19 +502,22 @@ class PercentileThreshold(Threshold):
                 )
                 if "percentiles" not in per.dims:
                     donor_per = donor_per.squeeze("percentiles")
-                donor_results.append(
-                    self._apply_percentile_op(
-                        da=year_da,
-                        per=donor_per,
-                        op=op,
-                        is_doy_per_threshold=True,
-                    )
+                donor_result = self._apply_percentile_op(
+                    da=year_da,
+                    per=donor_per,
+                    op=op,
+                    is_doy_per_threshold=True,
                 )
-            if donor_results:
-                acc.append(
-                    xr.concat(donor_results, dim="_bootstrap")
-                    .mean(dim="_bootstrap", keep_attrs=True)
+                donor_total = (
+                    donor_result
+                    if donor_total is None
+                    else donor_total + donor_result
                 )
+                donor_count += 1
+            if donor_total is not None and donor_count > 0:
+                bootstrap_mean = donor_total / donor_count
+                bootstrap_mean.attrs.update(donor_total.attrs)
+                acc.append(bootstrap_mean)
             else:
                 acc.append(
                     self._apply_percentile_op(
