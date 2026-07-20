@@ -1,6 +1,9 @@
+import pytest
+
 from icclim._core.climate_variable import ClimateVariable
 from icclim._core.constants import GROUP_BY_METHOD
 from icclim._core.generic.functions import (
+    _safe_to_agg_units,
     average,
     count_occurrences,
     generic_sum,
@@ -113,3 +116,34 @@ def test_max_consecutive_occurrence() -> None:
         source_freq_delta="1D",
     )
     assert int(result.isel(time=0).values) >= 365
+
+
+def test_safe_to_agg_units_drops_unsupported_kwargs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    received: dict[str, object] = {}
+
+    def fake_to_agg_units(
+        out,
+        orig,
+        op,
+        dim="time",
+    ):
+        received["out"] = out
+        received["orig"] = orig
+        received["op"] = op
+        received["dim"] = dim
+        return out
+
+    monkeypatch.setattr("xclim.core.units.to_agg_units", fake_to_agg_units)
+    da = stub_tas()
+
+    result = _safe_to_agg_units(da, da, "count", dim="time", deffreq="YS")
+
+    assert result is da
+    assert received == {
+        "out": da,
+        "orig": da,
+        "op": "count",
+        "dim": "time",
+    }
