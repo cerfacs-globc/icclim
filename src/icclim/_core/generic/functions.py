@@ -118,6 +118,27 @@ def count_occurrences(
     >>> int(result.count_occurrences.isel(time=0).values)
     365
     """
+    if len(climate_vars) == 1 and not date_event:
+        maybe_bootstrapped = _compute_bootstrapped_percentile_index(
+            climate_vars[0],
+            resample_freq,
+            compute_from_exceedance=lambda _study, exceedance: exceedance.resample(
+                time=resample_freq.pandas_freq
+            ).sum(dim="time"),
+        )
+        if maybe_bootstrapped is not None:
+            if to_percent:
+                maybe_bootstrapped = _to_percent(maybe_bootstrapped, resample_freq)
+                maybe_bootstrapped.attrs[UNITS_KEY] = "%"
+                return maybe_bootstrapped
+            freq = check_freq(climate_vars[0].studied_data, dim="time")
+            return _safe_to_agg_units(
+                maybe_bootstrapped,
+                climate_vars[0].studied_data,
+                "count",
+                deffreq=freq,
+            )
+
     if date_event:
         reducer_op = _count_occurrences_with_date
     else:
@@ -191,6 +212,29 @@ def max_consecutive_occurrence(
     >>> int(result.max_consecutive_occurrence.isel(time=0).values)
     365
     """
+    if len(climate_vars) == 1 and not date_event:
+        from xclim.indices import run_length  # noqa: PLC0415
+
+        maybe_bootstrapped = _compute_bootstrapped_percentile_index(
+            climate_vars[0],
+            resample_freq,
+            compute_from_exceedance=lambda _study, exceedance: run_length.rle(
+                exceedance,
+                dim="time",
+                index=kwargs.get("run_index", "first"),
+            )
+            .resample(time=resample_freq.pandas_freq)
+            .max(dim="time"),
+        )
+        if maybe_bootstrapped is not None:
+            freq = check_freq(climate_vars[0].studied_data, dim="time")
+            return _safe_to_agg_units(
+                maybe_bootstrapped,
+                climate_vars[0].studied_data,
+                "count",
+                deffreq=freq,
+            )
+
     merged_exceedances = _compute_exceedances(
         climate_vars,
         resample_freq.pandas_freq,
@@ -245,6 +289,32 @@ def sum_of_spell_lengths(
     DataArray
         The sum of the lengths of all spells in the data.
     """
+    if len(climate_vars) == 1:
+        from xclim.indices import run_length  # noqa: PLC0415
+
+        def _spell_sum(_study: DataArray, exceedance: DataArray) -> DataArray:
+            rle = run_length.rle(
+                exceedance,
+                dim="time",
+                index=kwargs.get("run_index", "first"),
+            )
+            cropped_rle = rle.where(rle >= min_spell_length, other=0)
+            return cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
+
+        maybe_bootstrapped = _compute_bootstrapped_percentile_index(
+            climate_vars[0],
+            resample_freq,
+            compute_from_exceedance=_spell_sum,
+        )
+        if maybe_bootstrapped is not None:
+            freq = check_freq(climate_vars[0].studied_data, dim="time")
+            return _safe_to_agg_units(
+                maybe_bootstrapped,
+                climate_vars[0].studied_data,
+                "count",
+                deffreq=freq,
+            )
+
     merged_exceedances = _compute_exceedances(
         climate_vars,
         resample_freq.pandas_freq,
@@ -1205,6 +1275,127 @@ def _compute_exceedance(
         if climatology_bounds is not None:
             exceedances.attrs[REFERENCE_PERIOD_ID] = climatology_bounds
     return exceedances
+
+
+def _compute_bootstrapped_percentile_index(
+    climate_var: ClimateVariable,
+    resample_freq: Frequency,
+    compute_from_exceedance: Callable[[DataArray, DataArray], DataArray],
+) -> DataArray | None:
+    study = climate_var.studied_data
+    threshold = climate_var.threshold
+    if threshold is None:
+        return None
+
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+        _get_bootstrap_freq,
+    )
+
+    if not isinstance(threshold, PercentileThreshold) or not threshold.is_doy_per_threshold:
+        return None
+
+    bootstrap = must_run_bootstrap(study, threshold, climate_var.bootstrap)
+    if not bootstrap:
+        return None
+
+    from xclim.core.bootstrapping import (  # noqa: PLC0415
+        BOOTSTRAP_DIM,
+        build_bootstrap_year_da,
+    )
+    from xclim.core.calendar import percentile_doy  # noqa: PLC0415
+    from xclim.core.utils import uses_dask  # noqa: PLC0415
+
+    per = threshold.value
+    clim = per.attrs["climatology_bounds"]
+    overlap_da = study.sel(time=slice(*clim))
+    if len(overlap_da.time) == 0 or len(overlap_da.time) == len(study.time):
+        return None
+
+    bfreq = _get_bootstrap_freq(resample_freq.pandas_freq)
+    overlap_groups = overlap_da.resample(time=bfreq).groups
+    study_groups = study.resample(time=bfreq).groups
+    overlap_labels = set(overlap_groups)
+    per_values = per.percentiles.data.tolist()
+    if not isinstance(per_values, list):
+        per_values = [per_values]
+
+    op = cast("Operator", threshold.operator).compute
+    per_template = per.copy(deep=True)
+    acc: list[DataArray] = []
+    for year_key, year_slice in study_groups.items():
+        year_da = study.isel(time=year_slice)
+        if year_key not in overlap_labels:
+            exceedance = threshold.compute(
+                year_da,
+                freq=resample_freq.pandas_freq,
+                bootstrap=False,
+            ).squeeze()
+            value = compute_from_exceedance(year_da, exceedance)
+            acc.append(value)
+            continue
+
+        boot_ref = build_bootstrap_year_da(overlap_da, overlap_groups, year_key)
+        if BOOTSTRAP_DIM not in per_template.dims:
+            per_template = per_template.expand_dims(
+                {BOOTSTRAP_DIM: boot_ref[BOOTSTRAP_DIM]}
+            )
+            if uses_dask(boot_ref):
+                chunking = {
+                    dim: boot_ref.chunks[boot_ref.get_axis_num(dim)]
+                    for dim in set(boot_ref.dims).intersection(per_template.dims)
+                }
+                per_template = per_template.chunk(chunking)
+
+        donor_per = xr.map_blocks(
+            percentile_doy.__wrapped__,
+            obj=boot_ref,
+            kwargs={
+                "window": per.attrs["window"],
+                "per": per_values,
+                "alpha": per.attrs["alpha"],
+                "beta": per.attrs["beta"],
+                "copy": False,
+            },
+            template=per_template,
+        )
+        donor_per = PercentileDataArray.from_da(
+            donor_per,
+            climatology_bounds=per.attrs["climatology_bounds"],
+        )
+        if "percentiles" not in per.dims:
+            donor_per = donor_per.squeeze("percentiles")
+        donor_exceedance = threshold._apply_percentile_op(
+            da=year_da,
+            per=donor_per,
+            op=op,
+            is_doy_per_threshold=True,
+        )
+        if "percentiles" in donor_exceedance.dims:
+            donor_exceedance = donor_exceedance.squeeze("percentiles")
+        donor_result = compute_from_exceedance(year_da, donor_exceedance).astype(
+            "float32"
+        )
+
+        if BOOTSTRAP_DIM not in donor_result.dims:
+            value = compute_from_exceedance(
+                year_da,
+                threshold.compute(
+                    year_da,
+                    freq=resample_freq.pandas_freq,
+                    bootstrap=False,
+                ).squeeze(),
+            )
+        else:
+            value = donor_result.mean(dim=BOOTSTRAP_DIM, keep_attrs=True)
+        if "percentiles" in value.dims:
+            value = value.squeeze("percentiles")
+        acc.append(value)
+
+    result = xr.concat(acc, dim="time", coords="minimal", compat="override")
+    result.attrs.update(acc[-1].attrs)
+    result.attrs[REFERENCE_PERIOD_ID] = clim
+    return result
 
 
 def get_couple_of_var(

@@ -753,6 +753,29 @@ class TestIntegration:
         assert res.TX90p.sel(time="2042-01") == 0
         assert res.TX90p.sel(time="2043-01") == 5
 
+    def test_index_tx90p__bootstrap_3_years_with_dask(self) -> None:
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[5:10] = 0
+        tas[370:375] = 40 + K2C
+        tas[735:740] = 10 + K2C
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        res = icclim.index(
+            index_name="tx90p",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2044-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        ).compute()
+        assert REFERENCE_PERIOD_ID in res.TX90p.attrs
+        jan_slice = res.TX90p.sel(time=slice("2042-01-01", "2044-12-31"))
+        jan_values = jan_slice.where(jan_slice.time.dt.month == 1, drop=True).values.ravel()
+        assert jan_values.dtype.kind == "f"
+        assert len(set(jan_values.tolist())) > 1
+        assert jan_values.min() >= 0
+        assert jan_values.max() <= 31
+
     def test_index_tx90p__bootstrap_can_be_disabled(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[5:10] = 0
@@ -784,6 +807,24 @@ class TestIntegration:
         # 1 more day than in tas because of resample_doy that interpolate values
         assert res.WSDI.isel(time=0) == 11
 
+    def test_index_wsdi__bootstrap_overlap_runs(self) -> None:
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[0:10] = 0
+        tas[370:382] = 35 + K2C
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        res = icclim.index(
+            index_name="wsdi",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        ).compute()
+        assert REFERENCE_PERIOD_ID in res.WSDI.attrs
+        assert res.WSDI.dtype.kind == "f"
+        assert float(res.WSDI.min()) >= 0
+
     def test_index_csdi__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)
         tas[0:10] = 35 + K2C
@@ -799,6 +840,24 @@ class TestIntegration:
         assert REFERENCE_PERIOD_ID not in res.CSDI.attrs
         # 1 more day than in tas because of resample_doy that interpolate values
         assert res.CSDI.isel(time=0) == 11
+
+    def test_index_csdi__bootstrap_overlap_runs(self) -> None:
+        tas = stub_tas(tas_value=2 + K2C)
+        tas[0:10] = 35 + K2C
+        tas[370:382] = -5 + K2C
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        res = icclim.index(
+            index_name="csdi",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        ).compute()
+        assert REFERENCE_PERIOD_ID in res.CSDI.attrs
+        assert res.CSDI.dtype.kind == "f"
+        assert float(res.CSDI.min()) >= 0
 
     def test_count_occurrences__date_event(self) -> None:
         tas = stub_tas(tas_value=2 + K2C)

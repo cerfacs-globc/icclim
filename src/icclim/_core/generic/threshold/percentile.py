@@ -508,6 +508,7 @@ class PercentileThreshold(Threshold):
                     op=op,
                     is_doy_per_threshold=True,
                 )
+                donor_result = donor_result.astype("float32")
                 donor_total = (
                     donor_result
                     if donor_total is None
