@@ -768,6 +768,23 @@ class TestIntegration:
         )
         assert REFERENCE_PERIOD_ID not in res.TX90p.attrs
 
+    def test_index_tg90p__bootstrap_2_years_with_dask(self) -> None:
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[5:10] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        res = icclim.index(
+            index_name="tg90p",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        ).compute()
+        assert REFERENCE_PERIOD_ID in res.TG90p.attrs
+        assert res.TG90p.sel(time="2042-01") == 0
+        assert res.TG90p.sel(time="2043-01") == 5
+
     def test_index_wsdi__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[0:10] = 0
