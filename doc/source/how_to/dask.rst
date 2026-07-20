@@ -580,6 +580,12 @@ Disk read and write analysis - Dashboard
       put everything in the same Client constructor call.
    -  Beware, as of icclim 5.0.0, the bootstrapping of percentiles is
       known to produce **a lot** of i/o.
+   -  This bootstrap is scientifically important when percentile thresholds are
+      computed on a reference period that overlaps the study period, especially
+      for ETCCDI-style percentile-based extreme indices such as the 10th and
+      90th percentile temperature indices. If the exact overlap treatment is
+      too expensive for your dask setup, ``bootstrap=False`` can be used as a
+      pragmatic performance workaround.
 
 Worker chatterbox syndrome - Dashboard
 ======================================
