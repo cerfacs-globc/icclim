@@ -48,7 +48,9 @@ def _filter_supported_kwargs(func, kwargs: dict):
     return {key: value for key, value in kwargs.items() if key in params}
 
 
-def build_expected_args(index: StandardIndex, *, include_bootstrap: bool):
+def build_expected_args(  # noqa: C901
+    index: StandardIndex, *, include_bootstrap: bool
+):
     index_name = EcadIndexRegistry.lookup(index)
     expected_call_args = {"index_name": index_name}
     expected_call_args.update(DEFAULT_ARGS)
