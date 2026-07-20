@@ -14,6 +14,7 @@ Details
 
 -  [fix] Restore compatibility with latest ``xclim`` releases by adapting ``to_agg_units`` calls to the installed API signature instead of always passing ``deffreq``.
 -  [enh] Add a ``bootstrap`` override to ``icclim.index(...)`` for day-of-year percentile thresholds. Use ``bootstrap=False`` to disable overlap-based bootstrap on large dask-backed datasets when the default path is too expensive.
+-  [maint] Keep the existing bootstrap implementation as the release path while follow-up work continues on a native replacement. The experimental prepared-state optimization is not included in ``v7.1.3``.
 -  [maint] Bump ``peter-evans/create-pull-request`` from ``v7`` to ``v8`` in CI maintenance workflows to avoid GitHub Actions Node 20 deprecation warnings.
 
 ******
