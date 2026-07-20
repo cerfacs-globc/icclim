@@ -11,7 +11,7 @@ LLM or a human contributor without requiring reconstruction of previous experime
 ## Branch And Baseline
 
 - Working branch: `fix/bootstrap-next`
-- Current branch head (docs/meta): `0058873`
+- Current profiling/tooling checkpoint: `c7e1c86`
 - Current implementation checkpoint: `7ef205d`
 - Baseline upstream behavior: `master` at `9d97cf1` / `origin/master` at `c3dd4e5`
 
@@ -55,6 +55,11 @@ Reusable benchmark helpers were added:
 3. Reducer-level orchestration without donor vectorization:
    - architecturally better
    - still much too slow
+4. Splice-based bootstrap-year builder replacing
+   `xclim.core.bootstrapping.build_bootstrap_year_da(...)`:
+   - preserved correctness after chunk/layout fixes
+   - reduced graph task count dramatically
+   - made end-to-end compute slower on laptop benchmarks
 
 ### Current best local implementation
 
@@ -69,8 +74,9 @@ This is the first version that is:
 - numerically aligned with `master`
 - locally close enough to `master` to justify large-scale testing
 
-Commit `0a406cf` added the initial handoff documentation, and `0058873`
-tightened it into the current version on top of that same code checkpoint.
+Commit `0a406cf` added the initial handoff documentation, `0058873`
+tightened it, and `c7e1c86` added phase profiling on top of that same code
+checkpoint.
 
 ## Current Best Candidate
 
@@ -111,10 +117,11 @@ Chunk setting B:
 
 - `time=730, lat=144, lon=192`
 
-Results:
+Refreshed results with the current benchmark harness:
 
-- `master auto`: `22.98s`
-- current branch (`7ef205d`) auto: `25.22s`
+- `master auto`: `30.04s`
+- current branch (`7ef205d` + profiling tooling) auto: `22.30s`
+- splice-builder experiment: `30.49s`
 
 Numerics:
 
@@ -131,18 +138,20 @@ Chunk setting:
 
 - `time=730, lat=144, lon=192`
 
-Results:
+Refreshed results with the current benchmark harness:
 
 - `master auto`
-  - total `51.57s`
-  - compute `47.21s`
+  - total `37.46s`
+  - compute `33.13s`
   - graph tasks `207,827`
-  - max resident set about `6.47 GB`
-- current branch (`7ef205d`) auto
-  - total `52.67s`
-  - compute `48.32s`
+- current branch (`7ef205d` + profiling tooling) auto
+  - total `35.02s`
+  - compute `30.76s`
   - graph tasks `211,920`
-  - max resident set about `7.06 GB`
+- splice-builder experiment
+  - total `36.63s`
+  - compute `32.57s`
+  - graph tasks `31,102`
 
 Numerics:
 
@@ -153,9 +162,11 @@ Conclusion:
 
 - current branch is numerically good
 - current branch is architecturally better
-- current branch is not yet a clear performance win over `master`
-- current branch should therefore be treated as an RC for large-scale testing,
-  not as a release-ready optimization win
+- current branch is now a measured laptop performance win over current `master`
+- the win is clear on the reduced case and modest on the larger laptop case
+- the splice-builder experiment should not be pursued further without a new
+  compute-side hypothesis
+- the current branch is ready for large-scale Kraken validation
 
 ## Hard Constraints
 
@@ -169,7 +180,10 @@ The next optimization must obey all of these:
 
 ## Immediate Optimization Target
 
-The bottleneck is still repeated `percentile_doy(...)` work.
+The measured build-side hotspot is still `build_bootstrap_year_da(...)`, but
+the splice-based replacement did not improve end-to-end runtime. That means the
+remaining cost is primarily compute-side execution over the bootstrap-expanded
+data, not just graph construction.
 
 The next phase should focus on reducing repeated percentile construction while
 keeping reducer-level orchestration.
@@ -186,6 +200,7 @@ a correctness issue is found.
 3. Compare every new candidate against **both**:
    - `master`
    - `7ef205d`
+   - and, when useful, the profiling head `c7e1c86`
 4. Never evaluate a change without both:
    - reduced benchmark
    - larger laptop benchmark
@@ -215,7 +230,8 @@ Expected outcome:
 
 ### Phase 3: Implement cached local rolling-window reuse
 
-This is the main algorithmic target.
+This remains the main algorithmic target after Kraken if more improvement is
+needed.
 
 Idea:
 

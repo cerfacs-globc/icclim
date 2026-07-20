@@ -157,11 +157,24 @@ def main() -> None:
     bootstrap = _resolve_bootstrap_arg(args.bootstrap)
     if bootstrap is not None:
         index_kwargs["bootstrap"] = bootstrap
-    generic_functions.reset_bootstrap_profile()
+    reset_bootstrap_profile = getattr(
+        generic_functions,
+        "reset_bootstrap_profile",
+        None,
+    )
+    get_bootstrap_profile = getattr(
+        generic_functions,
+        "get_bootstrap_profile",
+        None,
+    )
+    if reset_bootstrap_profile is not None:
+        reset_bootstrap_profile()
     with dask.config.set(scheduler=args.scheduler):
         result = icclim.index(**index_kwargs)
     build_end = time.perf_counter()
-    bootstrap_profile = generic_functions.get_bootstrap_profile()
+    bootstrap_profile = (
+        get_bootstrap_profile() if get_bootstrap_profile is not None else {}
+    )
 
     tg90p = result["TG90p"]
     graph = tg90p.data.__dask_graph__()
