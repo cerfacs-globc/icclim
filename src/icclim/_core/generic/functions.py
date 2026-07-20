@@ -1646,12 +1646,19 @@ def check_freq(da: xr.DataArray, dim: str = "time", strict: bool = True) -> str 
 
 
 def _safe_to_agg_units(*args, **kwargs) -> DataArray:
+    import inspect  # noqa: PLC0415
+
     from xclim.core.units import to_agg_units  # noqa: PLC0415
 
+    supported_kwargs = {
+        key: value
+        for key, value in kwargs.items()
+        if key in inspect.signature(to_agg_units).parameters
+    }
     with warnings.catch_warnings():
         warnings.filterwarnings(
             "ignore",
             category=UserWarning,
             message=".*Unable to find the sampling frequency.*",
         )
-        return to_agg_units(*args, **kwargs)
+        return to_agg_units(*args, **supported_kwargs)
