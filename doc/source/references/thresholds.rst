@@ -130,7 +130,12 @@ Two flavours exist, selected by the unit string:
 
    When ``base_period_time_range`` overlaps with the study period (in-base years),
    icclim applies the **bootstrapping** procedure described in ETCCDI guidelines to
-   avoid artificially inflated counts.
+   avoid artificially inflated counts. This is relevant for standard
+   percentile-based extreme indices, including the classic 10th and 90th
+   percentile temperature indices, and can be even more important for stronger
+   percentile thresholds. On very large dask-backed datasets, users may still
+   choose ``bootstrap=False`` as a pragmatic workaround when the full
+   bootstrapping procedure is too expensive.
 
 BoundedThreshold
 ================
