@@ -23,7 +23,7 @@ __all__ = [
     "indices",  # noqa: F405
 ]
 
-__version__ = "7.1.2"
+__version__ = "7.1.3"
 
 
 def __getattr__(name: str) -> Callable:
