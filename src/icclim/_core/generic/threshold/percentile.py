@@ -443,6 +443,8 @@ class PercentileThreshold(Threshold):
         op: Callable[[DataArray, DataArray], DataArray],
         freq: str,
     ) -> DataArray:
+        from xclim.core.calendar import percentile_doy  # noqa: PLC0415
+
         clim = per.attrs["climatology_bounds"]
         overlap_da = comparison_data.sel(time=slice(*clim))
         if len(overlap_da.time) == 0 or len(overlap_da.time) == len(comparison_data.time):
@@ -460,10 +462,6 @@ class PercentileThreshold(Threshold):
         per_values = per.percentiles.data.tolist()
         if not isinstance(per_values, list):
             per_values = [per_values]
-        prepared_state = _prepare_doy_percentile_state(
-            arr=overlap_da,
-            window=per.attrs["window"],
-        )
 
         acc: list[DataArray] = []
         for year_key, year_slice in da_groups.items():
@@ -483,13 +481,15 @@ class PercentileThreshold(Threshold):
             for donor_key in overlap_groups:
                 if donor_key == year_key:
                     continue
-                donor_per = _compute_doy_percentile_from_state(
-                    state=_build_single_bootstrap_state(
-                        prepared_state,
-                        target_year=_get_group_year(year_key),
-                        donor_year=_get_group_year(donor_key),
-                    ),
-                    source=overlap_da,
+                boot_ref = _build_single_bootstrap_reference(
+                    overlap_da,
+                    overlap_groups,
+                    year_key,
+                    donor_key,
+                )
+                donor_per = percentile_doy(
+                    arr=boot_ref,
+                    window=per.attrs["window"],
                     per=per_values,
                     alpha=per.attrs["alpha"],
                     beta=per.attrs["beta"],
@@ -608,93 +608,6 @@ def _build_doy_per(
         alpha=interpolation.alpha,
         beta=interpolation.beta,
     )
-
-
-def _prepare_doy_percentile_state(arr: DataArray, window: int) -> DataArray:
-    import pandas as pd  # noqa: PLC0415
-
-    rr = arr.rolling(min_periods=1, center=True, time=window).construct("window")
-    crd = xr.Coordinates.from_pandas_multiindex(
-        pd.MultiIndex.from_arrays(
-            (rr.time.dt.year.values, rr.time.dt.dayofyear.values),
-            names=("year", "dayofyear"),
-        ),
-        "time",
-    )
-    rr = rr.drop_vars("time").assign_coords(crd)
-    return rr.unstack("time")
-
-
-def _compute_doy_percentile_from_state(
-    state: DataArray,
-    source: DataArray,
-    per: float | Sequence[float],
-    alpha: float,
-    beta: float,
-    copy: bool,
-) -> DataArray:
-    from collections.abc import Sequence  # noqa: PLC0415
-
-    from xclim.core.calendar import adjust_doy_calendar, build_climatology_bounds  # noqa: PLC0415
-    from xclim.core.utils import calc_perc  # noqa: PLC0415
-
-    rrr = state.stack(stack_dim=("year", "window"))
-    if rrr.chunks is not None and len(rrr.chunks[rrr.get_axis_num("stack_dim")]) > 1:
-        time_chunks_count = len(source.chunks[source.get_axis_num("time")])
-        doy_chunk_size = np.ceil(len(rrr.dayofyear) / (state.sizes["window"] * time_chunks_count))
-        rrr = rrr.chunk({"stack_dim": -1, "dayofyear": doy_chunk_size})
-
-    if np.isscalar(per):
-        per = [per]
-
-    p = xr.apply_ufunc(
-        calc_perc,
-        rrr,
-        input_core_dims=[["stack_dim"]],
-        output_core_dims=[["percentiles"]],
-        keep_attrs=True,
-        kwargs={"percentiles": per, "alpha": alpha, "beta": beta, "copy": copy},
-        dask="parallelized",
-        output_dtypes=[rrr.dtype],
-        dask_gufunc_kwargs={
-            "output_sizes": {"percentiles": len(per) if isinstance(per, Sequence) else 1}
-        },
-    )
-    p = p.assign_coords(percentiles=xr.DataArray(per, dims=("percentiles",)))
-
-    if p.dayofyear.max() == 366:
-        p = adjust_doy_calendar(p.sel(dayofyear=(p.dayofyear < 366)), source)
-
-    p.attrs.update(source.attrs.copy())
-    p.attrs["climatology_bounds"] = build_climatology_bounds(source)
-    p.attrs["window"] = state.sizes["window"]
-    p.attrs["alpha"] = alpha
-    p.attrs["beta"] = beta
-    return p.rename("per")
-
-
-def _build_single_bootstrap_state(
-    state: DataArray,
-    target_year: int,
-    donor_year: int,
-) -> DataArray:
-    donor_state = state.sel(year=donor_year)
-    donor_state = donor_state.expand_dims(year=[target_year])
-    prefix = state.sel(year=slice(None, target_year - 1))
-    suffix = state.sel(year=slice(target_year + 1, None))
-    out = xr.concat([prefix, donor_state, suffix], dim="year")
-    out.attrs.update(state.attrs)
-    return out.sortby("year")
-
-
-def _get_group_year(label: Any) -> int:
-    year = getattr(label, "year", None)
-    if year is not None:
-        return int(year)
-    if isinstance(label, np.datetime64):
-        return int(label.astype("datetime64[Y]").astype(int) + 1970)
-    msg = f"Unsupported bootstrap group label {label!r}."
-    raise TypeError(msg)
 
 
 def _get_bootstrap_freq(freq: str) -> str:
