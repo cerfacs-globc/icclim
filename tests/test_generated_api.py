@@ -109,7 +109,8 @@ def test_generated_api(generic_index_fun_mock: MagicMock) -> None:
         # THEN
         expected_call_args = build_expected_args(
             i,
-            include_bootstrap="bootstrap" in inspect.signature(api_index_fun).parameters,
+            include_bootstrap="bootstrap"
+            in inspect.signature(api_index_fun).parameters,
         )
         # The generated API for standard indices might NOT have a threshold parameter
         # if it's already defined in the registry.
