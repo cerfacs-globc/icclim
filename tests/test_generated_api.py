@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import inspect
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
@@ -32,6 +33,7 @@ DEFAULT_ARGS = {
     "slice_mode": FrequencyRegistry.YEAR,
     "time_range": None,
     "out_file": None,
+    "bootstrap": None,
     "ignore_Feb29th": False,
     "netcdf_version": NetcdfVersionRegistry.NETCDF4,
     "logs_verbosity": VerbosityRegistry.LOW,
@@ -41,10 +43,17 @@ DEFAULT_ARGS = {
 }
 
 
-def build_expected_args(index: StandardIndex):
+def _filter_supported_kwargs(func, kwargs: dict):
+    params = inspect.signature(func).parameters
+    return {key: value for key, value in kwargs.items() if key in params}
+
+
+def build_expected_args(index: StandardIndex, *, include_bootstrap: bool):
     index_name = EcadIndexRegistry.lookup(index)
     expected_call_args = {"index_name": index_name}
     expected_call_args.update(DEFAULT_ARGS)
+    if not include_bootstrap:
+        expected_call_args.pop("bootstrap", None)
     qualifiers = [] if index.qualifiers is None else index.qualifiers
     if QUANTILE_BASED in qualifiers:
         expected_call_args.update(
@@ -96,9 +105,12 @@ def test_generated_api(generic_index_fun_mock: MagicMock) -> None:
         # GIVEN
         api_index_fun = eval(f"icclim.{i.short_name.lower()}")
         # WHEN
-        api_index_fun(**DEFAULT_ARGS)
+        api_index_fun(**_filter_supported_kwargs(api_index_fun, DEFAULT_ARGS))
         # THEN
-        expected_call_args = build_expected_args(i)
+        expected_call_args = build_expected_args(
+            i,
+            include_bootstrap="bootstrap" in inspect.signature(api_index_fun).parameters,
+        )
         # The generated API for standard indices might NOT have a threshold parameter
         # if it's already defined in the registry.
         generic_index_fun_mock.assert_called_with(**expected_call_args)
@@ -106,7 +118,7 @@ def test_generated_api(generic_index_fun_mock: MagicMock) -> None:
         # GIVEN
         api_index_fun = eval(f"icclim.{g.name.lower()}")
         # WHEN
-        api_index_fun(**DEFAULT_ARGS)
+        api_index_fun(**_filter_supported_kwargs(api_index_fun, DEFAULT_ARGS))
         generic_index_fun_mock.assert_called()
 
 
@@ -119,6 +131,7 @@ def test_custom_index(index_fun_mock: MagicMock) -> None:
         "time_range": None,
         "out_file": None,
         "base_period_time_range": None,
+        "bootstrap": None,
         "only_leap_years": False,
         "ignore_Feb29th": False,
         "out_unit": None,
@@ -141,8 +154,12 @@ def test_custom_index(index_fun_mock: MagicMock) -> None:
         "run_index": "first",
         "allow_partial_seasons": False,
     }
-    icclim.custom_index(**user_index_args)
-    index_fun_mock.assert_called_with(**user_index_args)
+    call_args = _filter_supported_kwargs(icclim.custom_index, user_index_args)
+    icclim.custom_index(**call_args)
+    expected_args = user_index_args.copy()
+    if "bootstrap" not in inspect.signature(icclim.custom_index).parameters:
+        expected_args.pop("bootstrap", None)
+    index_fun_mock.assert_called_with(**expected_args)
 
 
 # integration test
