@@ -105,6 +105,7 @@ def tg(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -153,6 +154,11 @@ def tg(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -191,6 +197,7 @@ def tg(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -207,6 +214,7 @@ def tn(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -255,6 +263,11 @@ def tn(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -293,6 +306,7 @@ def tn(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -309,6 +323,7 @@ def tx(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -357,6 +372,11 @@ def tx(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -395,6 +415,7 @@ def tx(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -411,6 +432,7 @@ def dtr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -459,6 +481,11 @@ def dtr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -497,6 +524,7 @@ def dtr(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -513,6 +541,7 @@ def etr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -561,6 +590,11 @@ def etr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -599,6 +633,7 @@ def etr(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -615,6 +650,7 @@ def vdtr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -663,6 +699,11 @@ def vdtr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -701,6 +742,7 @@ def vdtr(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -717,6 +759,7 @@ def su(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -765,6 +808,11 @@ def su(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -803,6 +851,7 @@ def su(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -822,6 +871,7 @@ def tr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -870,6 +920,11 @@ def tr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -908,6 +963,7 @@ def tr(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -928,6 +984,7 @@ def wsdi(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -993,6 +1050,11 @@ def wsdi(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1042,6 +1104,7 @@ def wsdi(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -1069,6 +1132,7 @@ def tg90p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -1134,6 +1198,11 @@ def tg90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1183,6 +1252,7 @@ def tg90p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -1210,6 +1280,7 @@ def tn90p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -1275,6 +1346,11 @@ def tn90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1324,6 +1400,7 @@ def tn90p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -1351,6 +1428,7 @@ def tx90p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -1416,6 +1494,11 @@ def tx90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1465,6 +1548,7 @@ def tx90p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -1491,6 +1575,7 @@ def txx(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1539,6 +1624,11 @@ def txx(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1577,6 +1667,7 @@ def txx(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -1593,6 +1684,7 @@ def tnx(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1641,6 +1733,11 @@ def tnx(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1679,6 +1776,7 @@ def tnx(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -1695,6 +1793,7 @@ def csu(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1743,6 +1842,11 @@ def csu(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1781,6 +1885,7 @@ def csu(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -1800,6 +1905,7 @@ def gd4(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1848,6 +1954,11 @@ def gd4(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1886,6 +1997,7 @@ def gd4(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -1905,6 +2017,7 @@ def fd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1953,6 +2066,11 @@ def fd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1991,6 +2109,7 @@ def fd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -2010,6 +2129,7 @@ def cfd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2058,6 +2178,11 @@ def cfd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2096,6 +2221,7 @@ def cfd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -2115,6 +2241,7 @@ def hd17(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2163,6 +2290,11 @@ def hd17(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2201,6 +2333,7 @@ def hd17(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -2220,6 +2353,7 @@ def id(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2268,6 +2402,11 @@ def id(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2306,6 +2445,7 @@ def id(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -2326,6 +2466,7 @@ def tg10p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -2391,6 +2532,11 @@ def tg10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2440,6 +2586,7 @@ def tg10p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -2467,6 +2614,7 @@ def tn10p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -2532,6 +2680,11 @@ def tn10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2581,6 +2734,7 @@ def tn10p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -2608,6 +2762,7 @@ def tx10p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -2673,6 +2828,11 @@ def tx10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2722,6 +2882,7 @@ def tx10p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -2748,6 +2909,7 @@ def txn(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2796,6 +2958,11 @@ def txn(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2834,6 +3001,7 @@ def txn(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -2850,6 +3018,7 @@ def tnn(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2898,6 +3067,11 @@ def tnn(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2936,6 +3110,7 @@ def tnn(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -2953,6 +3128,7 @@ def csdi(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -3018,6 +3194,11 @@ def csdi(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3067,6 +3248,7 @@ def csdi(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -3093,6 +3275,7 @@ def cdd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3141,6 +3324,11 @@ def cdd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3179,6 +3367,7 @@ def cdd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -3198,6 +3387,7 @@ def prcptot(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3246,6 +3436,11 @@ def prcptot(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3284,6 +3479,7 @@ def prcptot(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -3303,6 +3499,7 @@ def rr1(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3351,6 +3548,11 @@ def rr1(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3389,6 +3591,7 @@ def rr1(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -3408,6 +3611,7 @@ def sdii(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3456,6 +3660,11 @@ def sdii(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3494,6 +3703,7 @@ def sdii(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -3513,6 +3723,7 @@ def cwd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3561,6 +3772,11 @@ def cwd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3599,6 +3815,7 @@ def cwd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -3618,6 +3835,7 @@ def rr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3666,6 +3884,11 @@ def rr(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3704,6 +3927,7 @@ def rr(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -3720,6 +3944,7 @@ def r10mm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3768,6 +3993,11 @@ def r10mm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3806,6 +4036,7 @@ def r10mm(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -3825,6 +4056,7 @@ def r20mm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3873,6 +4105,11 @@ def r20mm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3911,6 +4148,7 @@ def r20mm(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -3930,6 +4168,7 @@ def rx1day(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3978,6 +4217,11 @@ def rx1day(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4016,6 +4260,7 @@ def rx1day(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -4032,6 +4277,7 @@ def rx5day(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -4080,6 +4326,11 @@ def rx5day(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4118,6 +4369,7 @@ def rx5day(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -4135,6 +4387,7 @@ def r75p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4200,6 +4453,11 @@ def r75p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4249,6 +4507,7 @@ def r75p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -4269,6 +4528,7 @@ def r75ptot(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4334,6 +4594,11 @@ def r75ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4383,6 +4648,7 @@ def r75ptot(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -4403,6 +4669,7 @@ def r95p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4468,6 +4735,11 @@ def r95p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4517,6 +4789,7 @@ def r95p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -4537,6 +4810,7 @@ def r95ptot(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4602,6 +4876,11 @@ def r95ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4651,6 +4930,7 @@ def r95ptot(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -4671,6 +4951,7 @@ def r99p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4736,6 +5017,11 @@ def r99p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4785,6 +5071,7 @@ def r99p(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -4805,6 +5092,7 @@ def r99ptot(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4870,6 +5158,11 @@ def r99ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4919,6 +5212,7 @@ def r99ptot(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -4938,6 +5232,7 @@ def sd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -4986,6 +5281,11 @@ def sd(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5024,6 +5324,7 @@ def sd(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -5040,6 +5341,7 @@ def sd1(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -5088,6 +5390,11 @@ def sd1(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5126,6 +5433,7 @@ def sd1(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -5145,6 +5453,7 @@ def sd5cm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -5193,6 +5502,11 @@ def sd5cm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5231,6 +5545,7 @@ def sd5cm(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -5250,6 +5565,7 @@ def sd50cm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -5298,6 +5614,11 @@ def sd50cm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5336,6 +5657,7 @@ def sd50cm(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -5356,6 +5678,7 @@ def cd(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -5421,6 +5744,11 @@ def cd(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5470,6 +5798,7 @@ def cd(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -5503,6 +5832,7 @@ def cw(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -5568,6 +5898,11 @@ def cw(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5617,6 +5952,7 @@ def cw(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -5650,6 +5986,7 @@ def wd(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -5715,6 +6052,11 @@ def wd(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5764,6 +6106,7 @@ def wd(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -5797,6 +6140,7 @@ def ww(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -5862,6 +6206,11 @@ def ww(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5911,6 +6260,7 @@ def ww(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
         interpolation=interpolation,
@@ -5943,6 +6293,7 @@ def fxx(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -5991,6 +6342,11 @@ def fxx(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6029,6 +6385,7 @@ def fxx(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6045,6 +6402,7 @@ def fg6bft(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6093,6 +6451,11 @@ def fg6bft(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6131,6 +6494,7 @@ def fg6bft(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6150,6 +6514,7 @@ def fgcalm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6198,6 +6563,11 @@ def fgcalm(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6236,6 +6606,7 @@ def fgcalm(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6255,6 +6626,7 @@ def fg(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6303,6 +6675,11 @@ def fg(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6341,6 +6718,7 @@ def fg(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6357,6 +6735,7 @@ def ddnorth(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6405,6 +6784,11 @@ def ddnorth(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6443,6 +6827,7 @@ def ddnorth(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6462,6 +6847,7 @@ def ddeast(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6510,6 +6896,11 @@ def ddeast(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6548,6 +6939,7 @@ def ddeast(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6567,6 +6959,7 @@ def ddsouth(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6615,6 +7008,11 @@ def ddsouth(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6653,6 +7051,7 @@ def ddsouth(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6672,6 +7071,7 @@ def ddwest(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6720,6 +7120,11 @@ def ddwest(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6758,6 +7163,7 @@ def ddwest(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6777,6 +7183,7 @@ def gsl(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6825,6 +7232,11 @@ def gsl(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6863,6 +7275,7 @@ def gsl(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6880,6 +7293,7 @@ def spi6(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6942,6 +7356,11 @@ def spi6(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6981,6 +7400,7 @@ def spi6(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -6998,6 +7418,7 @@ def spi3(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7060,6 +7481,11 @@ def spi3(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7099,6 +7525,7 @@ def spi3(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -7115,6 +7542,7 @@ def pp(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7163,6 +7591,11 @@ def pp(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7201,6 +7634,7 @@ def pp(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -7217,6 +7651,7 @@ def ss(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7265,6 +7700,11 @@ def ss(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7303,6 +7743,7 @@ def ss(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
@@ -7319,6 +7760,7 @@ def rh(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7367,6 +7809,11 @@ def rh(
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7405,6 +7852,7 @@ def rh(
         slice_mode=slice_mode,
         time_range=time_range,
         out_file=out_file,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         netcdf_version=netcdf_version,
         logs_verbosity=logs_verbosity,
