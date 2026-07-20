@@ -63,6 +63,7 @@ def count_occurrences(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -117,6 +118,11 @@ def count_occurrences(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -162,6 +168,7 @@ def count_occurrences(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -180,6 +187,7 @@ def max_consecutive_occurrence(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -234,6 +242,11 @@ def max_consecutive_occurrence(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -279,6 +292,7 @@ def max_consecutive_occurrence(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -297,6 +311,7 @@ def sum_of_spell_lengths(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -352,6 +367,11 @@ def sum_of_spell_lengths(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     min_spell_length : int
         ``optional`` Minimum spell duration to be taken into account when computing
         the sum_of_spell_lengths.
@@ -400,6 +420,7 @@ def sum_of_spell_lengths(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -419,6 +440,7 @@ def excess(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -473,6 +495,11 @@ def excess(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -518,6 +545,7 @@ def excess(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -536,6 +564,7 @@ def deficit(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -590,6 +619,11 @@ def deficit(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -635,6 +669,7 @@ def deficit(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -653,6 +688,7 @@ def fraction_of_total(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -707,6 +743,11 @@ def fraction_of_total(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -752,6 +793,7 @@ def fraction_of_total(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -770,6 +812,7 @@ def maximum(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -824,6 +867,11 @@ def maximum(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -869,6 +917,7 @@ def maximum(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -887,6 +936,7 @@ def minimum(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -941,6 +991,11 @@ def minimum(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -986,6 +1041,7 @@ def minimum(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1004,6 +1060,7 @@ def average(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -1058,6 +1115,11 @@ def average(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1103,6 +1165,7 @@ def average(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1121,6 +1184,7 @@ def sum(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -1175,6 +1239,11 @@ def sum(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1220,6 +1289,7 @@ def sum(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1238,6 +1308,7 @@ def standard_deviation(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -1292,6 +1363,11 @@ def standard_deviation(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1337,6 +1413,7 @@ def standard_deviation(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1355,6 +1432,7 @@ def max_of_rolling_sum(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -1410,6 +1488,11 @@ def max_of_rolling_sum(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     rolling_window_width : int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
@@ -1458,6 +1541,7 @@ def max_of_rolling_sum(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1477,6 +1561,7 @@ def min_of_rolling_sum(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -1532,6 +1617,11 @@ def min_of_rolling_sum(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     rolling_window_width : int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
@@ -1580,6 +1670,7 @@ def min_of_rolling_sum(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1599,6 +1690,7 @@ def max_of_rolling_average(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -1654,6 +1746,11 @@ def max_of_rolling_average(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     rolling_window_width : int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
@@ -1702,6 +1799,7 @@ def max_of_rolling_average(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1721,6 +1819,7 @@ def min_of_rolling_average(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -1776,6 +1875,11 @@ def min_of_rolling_average(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     rolling_window_width : int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
@@ -1824,6 +1928,7 @@ def min_of_rolling_average(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1843,6 +1948,7 @@ def mean_of_difference(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -1897,6 +2003,11 @@ def mean_of_difference(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1942,6 +2053,7 @@ def mean_of_difference(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -1960,6 +2072,7 @@ def difference_of_extremes(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -2014,6 +2127,11 @@ def difference_of_extremes(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2059,6 +2177,7 @@ def difference_of_extremes(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -2077,6 +2196,7 @@ def mean_of_absolute_one_time_step_difference(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -2131,6 +2251,11 @@ def mean_of_absolute_one_time_step_difference(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2176,6 +2301,7 @@ def mean_of_absolute_one_time_step_difference(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -2194,6 +2320,7 @@ def difference_of_means(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -2249,6 +2376,11 @@ def difference_of_means(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2302,6 +2434,7 @@ def difference_of_means(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -2321,6 +2454,7 @@ def percentile(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     threshold: str | Threshold | Sequence[str | Threshold] | None = None,
+    bootstrap: bool | None = None,
     ignore_Feb29th: bool = False,
     out_unit: str | None = None,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
@@ -2375,6 +2509,11 @@ def percentile(
         Default depend on the index, see their individual definition.
         When a list of threshold is provided, the index will be computed for each
         thresholds.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     run_index : str | None, default="first"
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2420,6 +2559,7 @@ def percentile(
         time_range=time_range,
         out_file=out_file,
         threshold=threshold,
+        bootstrap=bootstrap,
         ignore_Feb29th=ignore_Feb29th,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
@@ -2439,6 +2579,7 @@ def custom_index(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -2509,6 +2650,11 @@ def custom_index(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap : bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     doy_window_width : int, default=5
         ``optional`` Window width used to aggreagte day of year values when computing
         day of year percentiles (doy_per)
@@ -2577,6 +2723,7 @@ def custom_index(
         time_range=time_range,
         out_file=out_file,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         doy_window_width=doy_window_width,
         only_leap_years=only_leap_years,
         ignore_Feb29th=ignore_Feb29th,
