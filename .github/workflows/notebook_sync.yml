@@ -5,7 +5,8 @@ on:
     branches:
       - master
     paths:
-      - 'doc/source/tutorials/notebooks/*.ipynb'
+      - 'doc/source/tutorials/notebooks/C4I_Use_Cases/*.ipynb'
+      - 'doc/source/tutorials/notebooks/Copernicus_Climate_Change_Service_CDS/*.ipynb'
       - '.github/workflows/notebook_sync.yml'
   workflow_dispatch:
 
@@ -33,7 +34,15 @@ jobs:
           ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
 
           git clone git@gitlab.com:is-enes-cdi-c4i/notebooks.git temp_sync
-          cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
+          rm -f temp_sync/*.ipynb
+          mkdir -p temp_sync/C4I_Use_Cases
+          mkdir -p temp_sync/Copernicus_Climate_Change_Service_CDS
+          rsync -av --delete \
+            doc/source/tutorials/notebooks/C4I_Use_Cases/ \
+            temp_sync/C4I_Use_Cases/
+          rsync -av --delete \
+            doc/source/tutorials/notebooks/Copernicus_Climate_Change_Service_CDS/ \
+            temp_sync/Copernicus_Climate_Change_Service_CDS/
           cd temp_sync
           git add .
           if git diff --staged --quiet; then
@@ -60,7 +69,15 @@ jobs:
           GIT_COMMITTER_EMAIL: "actions@github.com"
         run: |
           git clone https://x-access-token:${EXTERNAL_GITHUB_TOKEN}@github.com/cerfacs-globc/copernicus-training.git temp_sync
-          cp doc/source/tutorials/notebooks/*.ipynb temp_sync/
+          rm -f temp_sync/*.ipynb
+          mkdir -p temp_sync/C4I_Use_Cases
+          mkdir -p temp_sync/Copernicus_Climate_Change_Service_CDS
+          rsync -av --delete \
+            doc/source/tutorials/notebooks/C4I_Use_Cases/ \
+            temp_sync/C4I_Use_Cases/
+          rsync -av --delete \
+            doc/source/tutorials/notebooks/Copernicus_Climate_Change_Service_CDS/ \
+            temp_sync/Copernicus_Climate_Change_Service_CDS/
           cd temp_sync
           git add .
           if git diff --staged --quiet; then
