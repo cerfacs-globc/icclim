@@ -3,6 +3,21 @@
 #################
 
 ******
+7.1.2
+******
+
+date: 2026-07-20
+
+
+Details
+=======
+
+-  [fix] Fix inflated seasonal totals in ``icclim.sum(...)`` when converting filtered daily rate data such as precipitation in ``mm/day`` to amounts. Seasonal selections like ``MAM`` no longer integrate across inter-season gaps, so reproduced cases such as ``4228.6`` now correctly return ``310.4``.
+-  [enh] Add a faster daily-source conversion path for seasonal rate-to-amount handling, preserving the bug fix without paying the full cost of rebuilding sparse seasonal timelines.
+-  [enh] Add generalized reference-verification scripts and regression tests covering seasonal precipitation and non-precipitation cases, plus a developer protocol for broader Climpact/manual comparisons.
+-  [fix] Tighten reference-verification summaries so mismatched period coordinates raise an error instead of being compared positionally.
+
+******
 7.1.1
 ******
 
@@ -12,9 +27,7 @@ date: 2026-06-22
 Details
 =======
 
--  [fix] Fix inflated seasonal totals in ``icclim.sum(...)`` when converting filtered daily rate data such as precipitation in ``mm/day`` to amounts. Seasonal selections like ``MAM`` no longer integrate across inter-season gaps, so reproduced cases such as ``4228.6`` now correctly return ``310.4``.
--  [enh] Add a faster daily-source conversion path for seasonal rate-to-amount handling, preserving the bug fix without paying the full cost of rebuilding sparse seasonal timelines.
--  [enh] Add generalized reference-verification scripts and regression tests covering seasonal precipitation and non-precipitation cases, plus a developer protocol for broader Climpact/manual comparisons.
+-  [maint] Publish release metadata for ``v7.1.1``. The seasonal rate-conversion fix and its associated verification tooling ship in ``v7.1.2``.
 
 ******
 7.1.0

@@ -8,14 +8,14 @@ authors:
   - family-names: "Aoun"
     given-names: "Abel"
 title: "icclim: Index Calculation CLIMate"
-version: 7.1.1
+version: 7.1.2
 doi: 10.5281/zenodo.6046052
-date-released: 2026-06-22
+date-released: 2026-07-20
 url: "https://github.com/cerfacs-globc/icclim"
 repository-code: "https://github.com/cerfacs-globc/icclim"
 identifiers:
   - type: url
-    value: "https://github.com/cerfacs-globc/icclim/tree/v7.1.1"
+    value: "https://github.com/cerfacs-globc/icclim/tree/v7.1.2"
     description: "Specific version source code"
 keywords:
   - "climate"
