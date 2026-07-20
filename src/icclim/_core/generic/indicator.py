@@ -605,7 +605,7 @@ def _get_climate_vars_metadata(
     return [
         c_var.build_indicator_metadata(
             resample_freq,
-            must_run_bootstrap(c_var.studied_data, c_var.threshold),
+            must_run_bootstrap(c_var.studied_data, c_var.threshold, c_var.bootstrap),
             jinja_scope,
             jinja_env,
         )

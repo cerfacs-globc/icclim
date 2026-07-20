@@ -230,6 +230,7 @@ def index(
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
+    bootstrap: bool | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -329,6 +330,11 @@ def index(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
+    bootstrap: bool | None
+        ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
+        Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
+        ``False`` to disable bootstrap, or ``True`` to force it when supported by the
+        threshold type.
     doy_window_width: int
         ``optional`` Window width used to aggreagte day of year values when computing
         day of year percentiles (doy_per)
@@ -490,6 +496,7 @@ def index(
         threshold=threshold,
         callback=callback,
         base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
         doy_window_width=doy_window_width,
         only_leap_years=only_leap_years,
         ignore_feb29th=ignore_Feb29th,
@@ -534,6 +541,7 @@ def _build_config(
     threshold: str | Threshold | Sequence[str | Threshold] | None,
     callback: Callable[[int], None],
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
+    bootstrap: bool | None,
     doy_window_width: int,
     only_leap_years: bool,
     ignore_feb29th: bool,
@@ -559,6 +567,7 @@ def _build_config(
             time_range=time_range,
             callback=callback,
             base_period_time_range=base_period_time_range,
+            bootstrap=bootstrap,
             doy_window_width=doy_window_width,
             only_leap_years=only_leap_years,
             ignore_feb29th=ignore_feb29th,
@@ -583,6 +592,7 @@ def _build_config(
             threshold=threshold,
             callback=callback,
             base_period_time_range=base_period_time_range,
+            bootstrap=bootstrap,
             doy_window_width=doy_window_width,
             only_leap_years=only_leap_years,
             ignore_feb29th=ignore_feb29th,
@@ -651,6 +661,7 @@ def _build_user_index_config(
     time_range: Sequence[dt.datetime | str] | None,
     callback: Callable[[int], None],
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
+    bootstrap: bool | None,
     doy_window_width: int,
     only_leap_years: bool,
     ignore_feb29th: bool,
@@ -698,6 +709,7 @@ def _build_user_index_config(
         base_period=reference_period,
         standard_index=None,
         is_compared_to_reference=is_compared_to_ref,
+        bootstrap=bootstrap,
     )
     return IndexConfig(
         save_thresholds=save_thresholds,
@@ -733,6 +745,7 @@ def _build_standard_index_config(
     threshold: str | Threshold | Sequence[str | Threshold] | None,
     callback: Callable[[int], None],
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
+    bootstrap: bool | None,
     doy_window_width: int,
     only_leap_years: bool,
     ignore_feb29th: bool,
@@ -783,6 +796,7 @@ def _build_standard_index_config(
         base_period=reference_period,
         standard_index=standard_index,
         is_compared_to_reference=is_compared_to_ref,
+        bootstrap=bootstrap,
     )
     return IndexConfig(
         save_thresholds=save_thresholds,

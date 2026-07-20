@@ -411,7 +411,7 @@ def fraction_of_total(
         study=study,
         threshold=threshold,
         freq=resample_freq.pandas_freq,
-        bootstrap=must_run_bootstrap(study, threshold),
+        bootstrap=must_run_bootstrap(study, threshold, climate_vars[0].bootstrap),
     ).squeeze()
     over = (
         study.where(ex_da, 0).resample(time=resample_freq.pandas_freq).sum(dim="time")
@@ -1272,7 +1272,7 @@ def _run_rolling_reducer(
             study=study,
             freq=resample_freq.pandas_freq,
             threshold=threshold,
-            bootstrap=must_run_bootstrap(study, threshold),
+            bootstrap=must_run_bootstrap(study, threshold, climate_vars[0].bootstrap),
         ).squeeze()
         study = study.where(exceedance)
     study = rolling_op(study.rolling(time=rolling_window_width))
@@ -1325,7 +1325,7 @@ def _run_simple_reducer(
             study=study,
             freq=resample_freq.pandas_freq,
             threshold=threshold,
-            bootstrap=must_run_bootstrap(study, threshold),
+            bootstrap=must_run_bootstrap(study, threshold, climate_vars[0].bootstrap),
         ).squeeze()
         filtered_study = study.where(exceedance)
     else:
@@ -1418,6 +1418,7 @@ def _compute_exceedances(
                 bootstrap=must_run_bootstrap(
                     climate_var.studied_data,
                     climate_var.threshold,
+                    climate_var.bootstrap,
                 ),
             ).squeeze()
         )
