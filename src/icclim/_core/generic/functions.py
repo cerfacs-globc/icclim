@@ -1381,7 +1381,7 @@ def _compute_safe_tiled_bootstrapped_percentile_index(
     return result
 
 
-def _uses_safe_bootstrap_mode(bootstrap: Any) -> bool:
+def _uses_safe_bootstrap_mode(bootstrap: object) -> bool:
     return bootstrap == "safe" or os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe"
 
 
@@ -1431,11 +1431,11 @@ def _slice_threshold_for_tile(
         dim: indexer for dim, indexer in tile_indexers.items() if dim in value.dims
     }
     if value_indexers:
-        sliced._prepared_value = value.isel(value_indexers)
+        sliced._prepared_value = value.isel(value_indexers)  # noqa: SLF001
     return sliced
 
 
-def _compute_bootstrapped_percentile_index(
+def _compute_bootstrapped_percentile_index(  # noqa: C901, PLR0912
     climate_var: ClimateVariable,
     resample_freq: Frequency,
     compute_from_exceedance: Callable[[DataArray, DataArray], DataArray],
@@ -1551,7 +1551,7 @@ def _compute_bootstrapped_percentile_index(
         if "percentiles" not in per.dims:
             donor_per = donor_per.squeeze("percentiles")
         apply_op_start = perf_counter()
-        donor_exceedance = threshold._apply_percentile_op(
+        donor_exceedance = threshold._apply_percentile_op(  # noqa: SLF001
             da=year_da,
             per=donor_per,
             op=op,

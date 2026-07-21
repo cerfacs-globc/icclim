@@ -21,11 +21,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from icclim.logger import Verbosity
-    from icclim._core.model.icclim_types import (
-        FrequencyLike,
-        InFileLike,
-        SamplingMethodLike,
-    )
+    from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
@@ -105,7 +101,7 @@ def tg(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -118,7 +114,7 @@ def tg(
     TG: Mean of daily mean temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -129,7 +125,7 @@ def tg(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -142,24 +138,25 @@ def tg(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -174,7 +171,7 @@ def tg(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -182,14 +179,13 @@ def tg(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TG,
         in_files=in_files,
@@ -214,7 +210,7 @@ def tn(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -227,7 +223,7 @@ def tn(
     TN: Mean of daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -238,7 +234,7 @@ def tn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -251,24 +247,25 @@ def tn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -283,7 +280,7 @@ def tn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -291,14 +288,13 @@ def tn(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TN,
         in_files=in_files,
@@ -323,7 +319,7 @@ def tx(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -336,7 +332,7 @@ def tx(
     TX: Mean of daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -347,7 +343,7 @@ def tx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -360,24 +356,25 @@ def tx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -392,7 +389,7 @@ def tx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -400,14 +397,13 @@ def tx(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TX,
         in_files=in_files,
@@ -432,7 +428,7 @@ def dtr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -445,7 +441,7 @@ def dtr(
     DTR: Mean Diurnal Temperature Range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -456,7 +452,7 @@ def dtr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -469,24 +465,25 @@ def dtr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -501,7 +498,7 @@ def dtr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -509,14 +506,13 @@ def dtr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.DTR,
         in_files=in_files,
@@ -541,7 +537,7 @@ def etr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -554,7 +550,7 @@ def etr(
     ETR: Intra-period extreme temperature range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -565,7 +561,7 @@ def etr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -578,24 +574,25 @@ def etr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -610,7 +607,7 @@ def etr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -618,14 +615,13 @@ def etr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.ETR,
         in_files=in_files,
@@ -650,7 +646,7 @@ def vdtr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -663,7 +659,7 @@ def vdtr(
     vDTR: Mean day-to-day variation in Diurnal Temperature Range.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -674,7 +670,7 @@ def vdtr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -687,24 +683,25 @@ def vdtr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -719,7 +716,7 @@ def vdtr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -727,14 +724,13 @@ def vdtr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.VDTR,
         in_files=in_files,
@@ -759,7 +755,7 @@ def su(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -772,7 +768,7 @@ def su(
     SU: Number of Summer Days (Tmax > 25C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -783,7 +779,7 @@ def su(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -796,24 +792,25 @@ def su(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -828,7 +825,7 @@ def su(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -836,14 +833,13 @@ def su(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SU,
         in_files=in_files,
@@ -871,7 +867,7 @@ def tr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -884,7 +880,7 @@ def tr(
     TR: Number of Tropical Nights (Tmin > 20C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -895,7 +891,7 @@ def tr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -908,24 +904,25 @@ def tr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -940,7 +937,7 @@ def tr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -948,14 +945,13 @@ def tr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TR,
         in_files=in_files,
@@ -984,7 +980,7 @@ def wsdi(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -1000,7 +996,7 @@ def wsdi(
     WSDI: Warm-spell duration index (days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1011,7 +1007,7 @@ def wsdi(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1024,13 +1020,13 @@ def wsdi(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1050,12 +1046,13 @@ def wsdi(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1063,7 +1060,7 @@ def wsdi(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1080,7 +1077,7 @@ def wsdi(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1088,14 +1085,13 @@ def wsdi(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.WSDI,
         in_files=in_files,
@@ -1132,7 +1128,7 @@ def tg90p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -1148,7 +1144,7 @@ def tg90p(
     TG90p: Days when Tmean > 90th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1159,7 +1155,7 @@ def tg90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1172,13 +1168,13 @@ def tg90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1198,12 +1194,13 @@ def tg90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1211,7 +1208,7 @@ def tg90p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1228,7 +1225,7 @@ def tg90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1236,14 +1233,13 @@ def tg90p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TG90P,
         in_files=in_files,
@@ -1280,7 +1276,7 @@ def tn90p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -1296,7 +1292,7 @@ def tn90p(
     TN90p: Days when Tmin > 90th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1307,7 +1303,7 @@ def tn90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1320,13 +1316,13 @@ def tn90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1346,12 +1342,13 @@ def tn90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1359,7 +1356,7 @@ def tn90p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1376,7 +1373,7 @@ def tn90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1384,14 +1381,13 @@ def tn90p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TN90P,
         in_files=in_files,
@@ -1428,7 +1424,7 @@ def tx90p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -1444,7 +1440,7 @@ def tx90p(
     TX90p: Days when Tmax > 90th daily percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1455,7 +1451,7 @@ def tx90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1468,13 +1464,13 @@ def tx90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1494,12 +1490,13 @@ def tx90p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1507,7 +1504,7 @@ def tx90p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1524,7 +1521,7 @@ def tx90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1532,14 +1529,13 @@ def tx90p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TX90P,
         in_files=in_files,
@@ -1575,7 +1571,7 @@ def txx(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1588,7 +1584,7 @@ def txx(
     TXx: Maximum daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1599,7 +1595,7 @@ def txx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1612,24 +1608,25 @@ def txx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1644,7 +1641,7 @@ def txx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1652,14 +1649,13 @@ def txx(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TXX,
         in_files=in_files,
@@ -1684,7 +1680,7 @@ def tnx(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1697,7 +1693,7 @@ def tnx(
     TNx: Maximum daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1708,7 +1704,7 @@ def tnx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1721,24 +1717,25 @@ def tnx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1753,7 +1750,7 @@ def tnx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1761,14 +1758,13 @@ def tnx(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TNX,
         in_files=in_files,
@@ -1793,7 +1789,7 @@ def csu(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1806,7 +1802,7 @@ def csu(
     CSU: Maximum number of consecutive summer days (Tmax >25 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1817,7 +1813,7 @@ def csu(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1830,24 +1826,25 @@ def csu(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1862,7 +1859,7 @@ def csu(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1870,14 +1867,13 @@ def csu(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.CSU,
         in_files=in_files,
@@ -1905,7 +1901,7 @@ def gd4(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -1918,7 +1914,7 @@ def gd4(
     GD4: Growing degree days (sum of Tmean > 4 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -1929,7 +1925,7 @@ def gd4(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1942,24 +1938,25 @@ def gd4(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1974,7 +1971,7 @@ def gd4(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1982,14 +1979,13 @@ def gd4(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.GD4,
         in_files=in_files,
@@ -2017,7 +2013,7 @@ def fd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2030,7 +2026,7 @@ def fd(
     FD: Number of Frost Days (Tmin < 0C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2041,7 +2037,7 @@ def fd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2054,24 +2050,25 @@ def fd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2086,7 +2083,7 @@ def fd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2094,14 +2091,13 @@ def fd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.FD,
         in_files=in_files,
@@ -2129,7 +2125,7 @@ def cfd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2142,7 +2138,7 @@ def cfd(
     CFD: Maximum number of consecutive frost days (Tmin < 0 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2153,7 +2149,7 @@ def cfd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2166,24 +2162,25 @@ def cfd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2198,7 +2195,7 @@ def cfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2206,14 +2203,13 @@ def cfd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.CFD,
         in_files=in_files,
@@ -2241,7 +2237,7 @@ def hd17(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2254,7 +2250,7 @@ def hd17(
     HD17: Heating degree days (sum of Tmean < 17 C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2265,7 +2261,7 @@ def hd17(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2278,24 +2274,25 @@ def hd17(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2310,7 +2307,7 @@ def hd17(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2318,14 +2315,13 @@ def hd17(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.HD17,
         in_files=in_files,
@@ -2353,7 +2349,7 @@ def id(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2366,7 +2362,7 @@ def id(
     ID: Number of sharp Ice Days (Tmax < 0C).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2377,7 +2373,7 @@ def id(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2390,24 +2386,25 @@ def id(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2422,7 +2419,7 @@ def id(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2430,14 +2427,13 @@ def id(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.ID,
         in_files=in_files,
@@ -2466,7 +2462,7 @@ def tg10p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -2482,7 +2478,7 @@ def tg10p(
     TG10p: Days when Tmean < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2493,7 +2489,7 @@ def tg10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2506,13 +2502,13 @@ def tg10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2532,12 +2528,13 @@ def tg10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2545,7 +2542,7 @@ def tg10p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -2562,7 +2559,7 @@ def tg10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2570,14 +2567,13 @@ def tg10p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TG10P,
         in_files=in_files,
@@ -2614,7 +2610,7 @@ def tn10p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -2630,7 +2626,7 @@ def tn10p(
     TN10p: Days when Tmin < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2641,7 +2637,7 @@ def tn10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2654,13 +2650,13 @@ def tn10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2680,12 +2676,13 @@ def tn10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2693,7 +2690,7 @@ def tn10p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -2710,7 +2707,7 @@ def tn10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2718,14 +2715,13 @@ def tn10p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TN10P,
         in_files=in_files,
@@ -2762,7 +2758,7 @@ def tx10p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -2778,7 +2774,7 @@ def tx10p(
     TX10p: Days when Tmax < 10th percentile.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2789,7 +2785,7 @@ def tx10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2802,13 +2798,13 @@ def tx10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2828,12 +2824,13 @@ def tx10p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2841,7 +2838,7 @@ def tx10p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -2858,7 +2855,7 @@ def tx10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2866,14 +2863,13 @@ def tx10p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TX10P,
         in_files=in_files,
@@ -2909,7 +2905,7 @@ def txn(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -2922,7 +2918,7 @@ def txn(
     TXn: Minimum daily maximum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -2933,7 +2929,7 @@ def txn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2946,24 +2942,25 @@ def txn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2978,7 +2975,7 @@ def txn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2986,14 +2983,13 @@ def txn(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TXN,
         in_files=in_files,
@@ -3018,7 +3014,7 @@ def tnn(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3031,7 +3027,7 @@ def tnn(
     TNn: Minimum daily minimum temperature.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3042,7 +3038,7 @@ def tnn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3055,24 +3051,25 @@ def tnn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3087,7 +3084,7 @@ def tnn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3095,14 +3092,13 @@ def tnn(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.TNN,
         in_files=in_files,
@@ -3128,7 +3124,7 @@ def csdi(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -3144,7 +3140,7 @@ def csdi(
     CSDI: Cold-spell duration index (days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3155,7 +3151,7 @@ def csdi(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3168,13 +3164,13 @@ def csdi(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3194,12 +3190,13 @@ def csdi(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3207,7 +3204,7 @@ def csdi(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -3224,7 +3221,7 @@ def csdi(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3232,14 +3229,13 @@ def csdi(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.CSDI,
         in_files=in_files,
@@ -3275,7 +3271,7 @@ def cdd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3288,7 +3284,7 @@ def cdd(
     CDD: Maximum consecutive dry days (Precip < 1mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3299,7 +3295,7 @@ def cdd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3312,24 +3308,25 @@ def cdd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3344,7 +3341,7 @@ def cdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3352,14 +3349,13 @@ def cdd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.CDD,
         in_files=in_files,
@@ -3387,7 +3383,7 @@ def prcptot(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3400,7 +3396,7 @@ def prcptot(
     PRCPTOT: Total precipitation during Wet Days.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3411,7 +3407,7 @@ def prcptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3424,24 +3420,25 @@ def prcptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3456,7 +3453,7 @@ def prcptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3464,14 +3461,13 @@ def prcptot(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.PRCPTOT,
         in_files=in_files,
@@ -3499,7 +3495,7 @@ def rr1(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3512,7 +3508,7 @@ def rr1(
     RR1: Number of Wet Days (precip >= 1 mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3523,7 +3519,7 @@ def rr1(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3536,24 +3532,25 @@ def rr1(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3568,7 +3565,7 @@ def rr1(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3576,14 +3573,13 @@ def rr1(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.RR1,
         in_files=in_files,
@@ -3611,7 +3607,7 @@ def sdii(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3624,7 +3620,7 @@ def sdii(
     SDII: Average precipitation during Wet Days (SDII).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3635,7 +3631,7 @@ def sdii(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3648,24 +3644,25 @@ def sdii(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3680,7 +3677,7 @@ def sdii(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3688,14 +3685,13 @@ def sdii(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SDII,
         in_files=in_files,
@@ -3723,7 +3719,7 @@ def cwd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3736,7 +3732,7 @@ def cwd(
     CWD: Maximum consecutive wet days (Precip >= 1mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3747,7 +3743,7 @@ def cwd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3760,24 +3756,25 @@ def cwd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3792,7 +3789,7 @@ def cwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3800,14 +3797,13 @@ def cwd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.CWD,
         in_files=in_files,
@@ -3835,7 +3831,7 @@ def rr(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3848,7 +3844,7 @@ def rr(
     RR: Precipitation sum (mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3859,7 +3855,7 @@ def rr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3872,24 +3868,25 @@ def rr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3904,7 +3901,7 @@ def rr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3912,14 +3909,13 @@ def rr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.RR,
         in_files=in_files,
@@ -3944,7 +3940,7 @@ def r10mm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -3957,7 +3953,7 @@ def r10mm(
     R10mm: Number of heavy precipitation days (Precip >=10mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -3968,7 +3964,7 @@ def r10mm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3981,24 +3977,25 @@ def r10mm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4013,7 +4010,7 @@ def r10mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4021,14 +4018,13 @@ def r10mm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.R10MM,
         in_files=in_files,
@@ -4056,7 +4052,7 @@ def r20mm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -4069,7 +4065,7 @@ def r20mm(
     R20mm: Number of very heavy precipitation days (Precip >= 20mm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4080,7 +4076,7 @@ def r20mm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4093,24 +4089,25 @@ def r20mm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4125,7 +4122,7 @@ def r20mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4133,14 +4130,13 @@ def r20mm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.R20MM,
         in_files=in_files,
@@ -4168,7 +4164,7 @@ def rx1day(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -4181,7 +4177,7 @@ def rx1day(
     RX1day: Maximum 1-day total precipitation.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4192,7 +4188,7 @@ def rx1day(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4205,24 +4201,25 @@ def rx1day(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4237,7 +4234,7 @@ def rx1day(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4245,14 +4242,13 @@ def rx1day(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.RX1DAY,
         in_files=in_files,
@@ -4277,7 +4273,7 @@ def rx5day(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -4290,7 +4286,7 @@ def rx5day(
     RX5day: Maximum 5-day total precipitation.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4301,7 +4297,7 @@ def rx5day(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4314,24 +4310,25 @@ def rx5day(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4346,7 +4343,7 @@ def rx5day(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4354,14 +4351,13 @@ def rx5day(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.RX5DAY,
         in_files=in_files,
@@ -4387,7 +4383,7 @@ def r75p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4403,7 +4399,7 @@ def r75p(
     R75p: Days with RR > 75th percentile of daily amounts (moderate wet days) (d).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4414,7 +4410,7 @@ def r75p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4427,13 +4423,13 @@ def r75p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4453,12 +4449,13 @@ def r75p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4466,7 +4463,7 @@ def r75p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -4483,7 +4480,7 @@ def r75p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4491,14 +4488,13 @@ def r75p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.R75P,
         in_files=in_files,
@@ -4528,7 +4524,7 @@ def r75ptot(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4544,7 +4540,7 @@ def r75ptot(
     R75pTOT: Precipitation fraction due to moderate wet days (> 75th percentile).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4555,7 +4551,7 @@ def r75ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4568,13 +4564,13 @@ def r75ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4594,12 +4590,13 @@ def r75ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4607,7 +4604,7 @@ def r75ptot(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -4624,7 +4621,7 @@ def r75ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4632,14 +4629,13 @@ def r75ptot(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.R75PTOT,
         in_files=in_files,
@@ -4669,7 +4665,7 @@ def r95p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4685,7 +4681,7 @@ def r95p(
     R95p: Days with RR > 95th percentile of daily amounts (very wet days) (days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4696,7 +4692,7 @@ def r95p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4709,13 +4705,13 @@ def r95p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4735,12 +4731,13 @@ def r95p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4748,7 +4745,7 @@ def r95p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -4765,7 +4762,7 @@ def r95p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4773,14 +4770,13 @@ def r95p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.R95P,
         in_files=in_files,
@@ -4810,7 +4806,7 @@ def r95ptot(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4826,7 +4822,7 @@ def r95ptot(
     R95pTOT: Precipitation fraction due to very wet days (> 95th percentile).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4837,7 +4833,7 @@ def r95ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4850,13 +4846,13 @@ def r95ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4876,12 +4872,13 @@ def r95ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4889,7 +4886,7 @@ def r95ptot(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -4906,7 +4903,7 @@ def r95ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4914,14 +4911,13 @@ def r95ptot(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.R95PTOT,
         in_files=in_files,
@@ -4951,7 +4947,7 @@ def r99p(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -4967,7 +4963,7 @@ def r99p(
     R99p: Days with RR > 99th percentile of daily amounts (extremely wet days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -4978,7 +4974,7 @@ def r99p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4991,13 +4987,13 @@ def r99p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5017,12 +5013,13 @@ def r99p(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5030,7 +5027,7 @@ def r99p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5047,7 +5044,7 @@ def r99p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5055,14 +5052,13 @@ def r99p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.R99P,
         in_files=in_files,
@@ -5092,7 +5088,7 @@ def r99ptot(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -5108,7 +5104,7 @@ def r99ptot(
     R99pTOT: Precipitation fraction due to extremely wet days (> 99th percentile).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5119,7 +5115,7 @@ def r99ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5132,13 +5128,13 @@ def r99ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5158,12 +5154,13 @@ def r99ptot(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5171,7 +5168,7 @@ def r99ptot(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5188,7 +5185,7 @@ def r99ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5196,14 +5193,13 @@ def r99ptot(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.R99PTOT,
         in_files=in_files,
@@ -5232,7 +5228,7 @@ def sd(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -5245,7 +5241,7 @@ def sd(
     SD: Mean of daily snow depth.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5256,7 +5252,7 @@ def sd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5269,24 +5265,25 @@ def sd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5301,7 +5298,7 @@ def sd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5309,14 +5306,13 @@ def sd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SD,
         in_files=in_files,
@@ -5341,7 +5337,7 @@ def sd1(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -5354,7 +5350,7 @@ def sd1(
     SD1: Snow days (SD >= 1 cm).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5365,7 +5361,7 @@ def sd1(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5378,24 +5374,25 @@ def sd1(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5410,7 +5407,7 @@ def sd1(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5418,14 +5415,13 @@ def sd1(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SD1,
         in_files=in_files,
@@ -5453,7 +5449,7 @@ def sd5cm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -5466,7 +5462,7 @@ def sd5cm(
     SD5cm: Number of days with snow depth >= 5 cm.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5477,7 +5473,7 @@ def sd5cm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5490,24 +5486,25 @@ def sd5cm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5522,7 +5519,7 @@ def sd5cm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5530,14 +5527,13 @@ def sd5cm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SD5CM,
         in_files=in_files,
@@ -5565,7 +5561,7 @@ def sd50cm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -5578,7 +5574,7 @@ def sd50cm(
     SD50cm: Number of days with snow depth >= 50 cm.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5589,7 +5585,7 @@ def sd50cm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5602,24 +5598,25 @@ def sd50cm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5634,7 +5631,7 @@ def sd50cm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5642,14 +5639,13 @@ def sd50cm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SD50CM,
         in_files=in_files,
@@ -5678,7 +5674,7 @@ def cd(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -5694,7 +5690,7 @@ def cd(
     CD: Days with TG < 25th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (cold/dry days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5705,7 +5701,7 @@ def cd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5718,13 +5714,13 @@ def cd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5744,12 +5740,13 @@ def cd(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5757,7 +5754,7 @@ def cd(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5774,7 +5771,7 @@ def cd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5782,14 +5779,13 @@ def cd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.CD,
         in_files=in_files,
@@ -5809,18 +5805,18 @@ def cd(
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         threshold=[
-            build_threshold(
-                query="< 25 doy_per",
-                doy_window_width=5,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-                reference_period=base_period_time_range,
-            ),
-            build_threshold(
-                query="< 25 period_per",
-                threshold_min_value="1 mm/day",
-            ),
-        ],
+        build_threshold(
+            query="< 25 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
+        build_threshold(
+            query="< 25 period_per",
+            threshold_min_value="1 mm/day",
+        )
+    ],
         out_unit="day",
     )
 
@@ -5832,7 +5828,7 @@ def cw(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -5848,7 +5844,7 @@ def cw(
     CW: Days with TG < 25th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (cold/wet days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -5859,7 +5855,7 @@ def cw(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5872,13 +5868,13 @@ def cw(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5898,12 +5894,13 @@ def cw(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5911,7 +5908,7 @@ def cw(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5928,7 +5925,7 @@ def cw(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5936,14 +5933,13 @@ def cw(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.CW,
         in_files=in_files,
@@ -5963,18 +5959,18 @@ def cw(
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         threshold=[
-            build_threshold(
-                query="< 25 doy_per",
-                doy_window_width=5,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-                reference_period=base_period_time_range,
-            ),
-            build_threshold(
-                query="> 75 period_per",
-                threshold_min_value="1 mm/day",
-            ),
-        ],
+        build_threshold(
+            query="< 25 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
+        build_threshold(
+            query="> 75 period_per",
+            threshold_min_value="1 mm/day",
+        )
+    ],
         out_unit="day",
     )
 
@@ -5986,7 +5982,7 @@ def wd(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -6002,7 +5998,7 @@ def wd(
     WD: Days with TG > 75th percentile of daily mean temperature and RR <25th percentile of daily precipitation sum (warm/dry days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6013,7 +6009,7 @@ def wd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6026,13 +6022,13 @@ def wd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6052,12 +6048,13 @@ def wd(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6065,7 +6062,7 @@ def wd(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6082,7 +6079,7 @@ def wd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6090,14 +6087,13 @@ def wd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.WD,
         in_files=in_files,
@@ -6117,18 +6113,18 @@ def wd(
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         threshold=[
-            build_threshold(
-                query="> 75 doy_per",
-                doy_window_width=5,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-                reference_period=base_period_time_range,
-            ),
-            build_threshold(
-                query="< 25 period_per",
-                threshold_min_value="1 mm/day",
-            ),
-        ],
+        build_threshold(
+            query="> 75 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
+        build_threshold(
+            query="< 25 period_per",
+            threshold_min_value="1 mm/day",
+        )
+    ],
         out_unit="day",
     )
 
@@ -6140,7 +6136,7 @@ def ww(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
     interpolation: str | QuantileInterpolation = "median_unbiased",
@@ -6156,7 +6152,7 @@ def ww(
     WW: Days with TG > 75th percentile of daily mean temperature and RR >75th percentile of daily precipitation sum (warm/wet days).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6167,7 +6163,7 @@ def ww(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6180,13 +6176,13 @@ def ww(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6206,12 +6202,13 @@ def ww(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6219,7 +6216,7 @@ def ww(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6236,7 +6233,7 @@ def ww(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6244,14 +6241,13 @@ def ww(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.WW,
         in_files=in_files,
@@ -6271,18 +6267,18 @@ def ww(
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         threshold=[
-            build_threshold(
-                query="> 75 doy_per",
-                doy_window_width=5,
-                only_leap_years=only_leap_years,
-                interpolation=interpolation,
-                reference_period=base_period_time_range,
-            ),
-            build_threshold(
-                query="> 75 period_per",
-                threshold_min_value="1 mm/day",
-            ),
-        ],
+        build_threshold(
+            query="> 75 doy_per",
+            doy_window_width=5,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+            reference_period=base_period_time_range,
+        ),
+        build_threshold(
+            query="> 75 period_per",
+            threshold_min_value="1 mm/day",
+        )
+    ],
         out_unit="day",
     )
 
@@ -6293,7 +6289,7 @@ def fxx(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6306,7 +6302,7 @@ def fxx(
     FXx: Maximum value of daily maximum wind gust.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6317,7 +6313,7 @@ def fxx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6330,24 +6326,25 @@ def fxx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6362,7 +6359,7 @@ def fxx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6370,14 +6367,13 @@ def fxx(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.FXX,
         in_files=in_files,
@@ -6402,7 +6398,7 @@ def fg6bft(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6415,7 +6411,7 @@ def fg6bft(
     FG6Bft: Days with daily averaged wind ≥ 6 Bft (10.8 m s-1).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6426,7 +6422,7 @@ def fg6bft(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6439,24 +6435,25 @@ def fg6bft(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6471,7 +6468,7 @@ def fg6bft(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6479,14 +6476,13 @@ def fg6bft(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.FG6BFT,
         in_files=in_files,
@@ -6514,7 +6510,7 @@ def fgcalm(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6527,7 +6523,7 @@ def fgcalm(
     FGcalm: Calm days, days with daily averaged wind <= 2 m s-1.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6538,7 +6534,7 @@ def fgcalm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6551,24 +6547,25 @@ def fgcalm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6583,7 +6580,7 @@ def fgcalm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6591,14 +6588,13 @@ def fgcalm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.FGCALM,
         in_files=in_files,
@@ -6626,7 +6622,7 @@ def fg(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6639,7 +6635,7 @@ def fg(
     FG: Mean of daily mean wind strength.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6650,7 +6646,7 @@ def fg(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6663,24 +6659,25 @@ def fg(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6695,7 +6692,7 @@ def fg(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6703,14 +6700,13 @@ def fg(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.FG,
         in_files=in_files,
@@ -6735,7 +6731,7 @@ def ddnorth(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6748,7 +6744,7 @@ def ddnorth(
     DDnorth: Days with northerly winds (DD > 315° or DD ≤ 45°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6759,7 +6755,7 @@ def ddnorth(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6772,24 +6768,25 @@ def ddnorth(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6804,7 +6801,7 @@ def ddnorth(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6812,14 +6809,13 @@ def ddnorth(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.DDNORTH,
         in_files=in_files,
@@ -6847,7 +6843,7 @@ def ddeast(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6860,7 +6856,7 @@ def ddeast(
     DDeast: Days with easterly winds (45° < DD <= 135°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6871,7 +6867,7 @@ def ddeast(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6884,24 +6880,25 @@ def ddeast(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6916,7 +6913,7 @@ def ddeast(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6924,14 +6921,13 @@ def ddeast(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.DDEAST,
         in_files=in_files,
@@ -6959,7 +6955,7 @@ def ddsouth(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -6972,7 +6968,7 @@ def ddsouth(
     DDsouth: Days with southerly winds (135° < DD <= 225°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -6983,7 +6979,7 @@ def ddsouth(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6996,24 +6992,25 @@ def ddsouth(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7028,7 +7025,7 @@ def ddsouth(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7036,14 +7033,13 @@ def ddsouth(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.DDSOUTH,
         in_files=in_files,
@@ -7071,7 +7067,7 @@ def ddwest(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7084,7 +7080,7 @@ def ddwest(
     DDwest: Days with westerly winds (225° < DD <= 315°).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7095,7 +7091,7 @@ def ddwest(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7108,24 +7104,25 @@ def ddwest(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7140,7 +7137,7 @@ def ddwest(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7148,14 +7145,13 @@ def ddwest(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.DDWEST,
         in_files=in_files,
@@ -7183,7 +7179,7 @@ def gsl(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7196,7 +7192,7 @@ def gsl(
     GSL: Growing season length.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7207,7 +7203,7 @@ def gsl(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7220,24 +7216,25 @@ def gsl(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7252,7 +7249,7 @@ def gsl(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7260,14 +7257,13 @@ def gsl(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.GSL,
         in_files=in_files,
@@ -7293,7 +7289,7 @@ def spi6(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7306,7 +7302,7 @@ def spi6(
     SPI6: 6-Month Standardized Precipitation Index.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7317,7 +7313,7 @@ def spi6(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7330,13 +7326,13 @@ def spi6(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7356,12 +7352,13 @@ def spi6(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7376,7 +7373,7 @@ def spi6(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7384,14 +7381,13 @@ def spi6(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SPI6,
         in_files=in_files,
@@ -7418,7 +7414,7 @@ def spi3(
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7431,7 +7427,7 @@ def spi3(
     SPI3: 3-Month Standardized Precipitation Index.
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7442,7 +7438,7 @@ def spi3(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7455,13 +7451,13 @@ def spi3(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7481,12 +7477,13 @@ def spi3(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7501,7 +7498,7 @@ def spi3(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7509,14 +7506,13 @@ def spi3(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SPI3,
         in_files=in_files,
@@ -7542,7 +7538,7 @@ def pp(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7555,7 +7551,7 @@ def pp(
     PP: Mean of daily sea level pressure (hPa).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7566,7 +7562,7 @@ def pp(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7579,24 +7575,25 @@ def pp(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7611,7 +7608,7 @@ def pp(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7619,14 +7616,13 @@ def pp(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.PP,
         in_files=in_files,
@@ -7651,7 +7647,7 @@ def ss(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7664,7 +7660,7 @@ def ss(
     SS: Sunshine duration (hours).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7675,7 +7671,7 @@ def ss(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7688,24 +7684,25 @@ def ss(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7720,7 +7717,7 @@ def ss(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7728,14 +7725,13 @@ def ss(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.SS,
         in_files=in_files,
@@ -7760,7 +7756,7 @@ def rh(
     slice_mode: FrequencyLike | Frequency = "year",
     time_range: Sequence[dt.datetime | str] | None = None,
     out_file: str | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     ignore_Feb29th: bool = False,
     netcdf_version: str | NetcdfVersion = "NETCDF4",
     logs_verbosity: Verbosity | str = "LOW",
@@ -7773,7 +7769,7 @@ def rh(
     RH: Mean of daily relative humidity (%).
     Source: ECA&D, Algorithm Theoretical Basis Document (ATBD) v11.
 
-
+    
     Parameters
     ----------
     in_files : str | list[str] | Dataset | DataArray | InputDictionary
@@ -7784,7 +7780,7 @@ def rh(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for a user index.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7797,24 +7793,25 @@ def rh(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
         Use the function returned value instead to retrieve the computed value.
         If ``out_file`` already exists, icclim will overwrite it!
-    bootstrap : bool | None
+    bootstrap : bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
-    run_index : str | None, default="first"
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7829,7 +7826,7 @@ def rh(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7837,14 +7834,13 @@ def rh(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-
+    
     Notes
     -----
     This function has been auto-generated.
 
     """  # noqa: D401
     from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
-
     return icclim.index(
         index_name=EcadIndexRegistry.RH,
         in_files=in_files,

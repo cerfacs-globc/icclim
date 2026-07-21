@@ -1,3 +1,5 @@
+"""Benchmark TG90p bootstrap behavior on realistic NetCDF inputs."""
+
 from __future__ import annotations
 
 import argparse
@@ -79,8 +81,8 @@ def _git_rev_parse(repo: Path, ref: str) -> str | None:
         return None
     try:
         return (
-            subprocess.check_output(
-                ["git", "-C", str(repo), "rev-parse", ref],
+            subprocess.check_output(  # noqa: S603
+                ["git", "-C", str(repo), "rev-parse", ref],  # noqa: S607
                 text=True,
             )
             .strip()
@@ -109,6 +111,7 @@ def _cached_paths(cache_dir: Path, cache_key: str) -> tuple[Path, Path]:
 
 
 def main() -> None:
+    """Run the benchmark and print a JSON summary."""
     args = _parse_args()
     repo = args.repo.resolve()
     sys.path.insert(0, str(repo / "src"))
@@ -127,9 +130,10 @@ def main() -> None:
             print(summary_path.read_text())
             return
 
-    files = sorted(glob.glob(args.file_glob))
+    files = sorted(glob.glob(args.file_glob))  # noqa: PTH207
     if not files:
-        raise FileNotFoundError(f"No files matched {args.file_glob!r}.")
+        msg = f"No files matched {args.file_glob!r}."
+        raise FileNotFoundError(msg)
 
     open_start = time.perf_counter()
     ds = xr.open_mfdataset(
@@ -148,14 +152,14 @@ def main() -> None:
     open_end = time.perf_counter()
 
     build_start = time.perf_counter()
-    index_kwargs = dict(
-        index_name="tg90p",
-        in_files=da,
-        var_name="tas",
-        slice_mode="year",
-        time_range=(args.time_range_start, args.time_range_end),
-        base_period_time_range=(args.base_period_start, args.base_period_end),
-    )
+    index_kwargs = {
+        "index_name": "tg90p",
+        "in_files": da,
+        "var_name": "tas",
+        "slice_mode": "year",
+        "time_range": (args.time_range_start, args.time_range_end),
+        "base_period_time_range": (args.base_period_start, args.base_period_end),
+    }
     bootstrap = _resolve_bootstrap_arg(args.bootstrap)
     if bootstrap is not None:
         index_kwargs["bootstrap"] = bootstrap

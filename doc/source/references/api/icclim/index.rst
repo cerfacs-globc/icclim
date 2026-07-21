@@ -106,14 +106,18 @@ Package Contents
    :param bootstrap: ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
                      Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
                      ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-                     threshold type. This overlap-based bootstrap is part of the standard
+                     threshold type. Use ``"safe"`` to compute bootstrap one bounded spatial tile
+                     at a time. This mode is intended for large dask-backed datasets where the
+                     default bootstrap graph may become too large to build or execute reliably.
+                     It may be slower, but it avoids returning one large bootstrap graph.
+                     This overlap-based bootstrap is part of the standard
                      treatment for percentile-based extreme indices when the reference period
                      overlaps the study period. In practice it matters for common ETCCDI-style
                      thresholds such as the 10th and 90th percentiles, and can be even more
                      consequential for stronger percentile thresholds. Because it is
                      computationally expensive, ``bootstrap=False`` can still be a useful
                      pragmatic workaround on large dask-backed datasets.
-   :type bootstrap: bool | None
+   :type bootstrap: bool | "safe" | None
    :param doy_window_width: ``optional`` Window width used to aggreagte day of year values when computing
                             day of year percentiles (doy_per)
                             Default: 5 (5 days).

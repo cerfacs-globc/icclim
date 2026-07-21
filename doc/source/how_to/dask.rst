@@ -218,6 +218,10 @@ https://docs.dask.org/en/stable/scheduling.html#local-threads
    The bootstrap period is the overlapping years between the period
    where percentile are computed (a.k.a "in base") and the period where
    the climate index is computed (a.k.a "out of base").
+|  If the default bootstrap graph becomes too large to build or execute
+   reliably, use ``bootstrap="safe"``. This computes bootstrap through bounded
+   spatial tiles and returns an eager result. It can be slower, but it avoids
+   leaving users with a very large Dask graph that may never finish.
 
 .. note::
 
@@ -583,9 +587,10 @@ Disk read and write analysis - Dashboard
    -  This bootstrap is scientifically important when percentile thresholds are
       computed on a reference period that overlaps the study period, especially
       for ETCCDI-style percentile-based extreme indices such as the 10th and
-      90th percentile temperature indices. If the exact overlap treatment is
-      too expensive for your dask setup, ``bootstrap=False`` can be used as a
-      pragmatic performance workaround.
+      90th percentile temperature indices. If the default dask graph is too
+      large, prefer ``bootstrap="safe"``. If the exact overlap treatment is
+      still operationally impossible, ``bootstrap=False`` can be used as a
+      pragmatic fallback with a scientific tradeoff.
 
 Worker chatterbox syndrome - Dashboard
 ======================================

@@ -791,19 +791,20 @@ class TestIntegration:
         )
         assert REFERENCE_PERIOD_ID not in res.TX90p.attrs
 
-    def test_index_tx90p__bootstrap_safe_matches_default(self) -> None:
-        tas = stub_tas(tas_value=27 + K2C)
+    def test_index_tx90p__bootstrap_safe_matches_default(self, monkeypatch) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
         tas[5:10] = 0
         tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
-        common_kwargs = dict(
-            index_name="tx90p",
-            in_files=tas,
-            doy_window_width=1,
-            time_range=("2042-01-01", "2045-12-31"),
-            base_period_time_range=("2042-01-01", "2043-12-31"),
-            out_file=self.OUTPUT_FILE,
-            slice_mode="ms",
-        )
+        common_kwargs = {
+            "index_name": "tx90p",
+            "in_files": tas,
+            "doy_window_width": 1,
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "base_period_time_range": ("2042-01-01", "2043-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "ms",
+        }
 
         default = icclim.index(**common_kwargs).compute()
         safe = icclim.index(**common_kwargs, bootstrap="safe").compute()

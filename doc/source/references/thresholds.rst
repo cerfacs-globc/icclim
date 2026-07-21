@@ -133,9 +133,11 @@ Two flavours exist, selected by the unit string:
    avoid artificially inflated counts. This is relevant for standard
    percentile-based extreme indices, including the classic 10th and 90th
    percentile temperature indices, and can be even more important for stronger
-   percentile thresholds. On very large dask-backed datasets, users may still
-   choose ``bootstrap=False`` as a pragmatic workaround when the full
-   bootstrapping procedure is too expensive.
+   percentile thresholds. On very large dask-backed datasets, use
+   ``bootstrap="safe"`` when the default bootstrap graph is too large to build
+   or execute reliably. Users may still choose ``bootstrap=False`` as a
+   pragmatic fallback when the full bootstrapping procedure is operationally
+   impossible, but this disables the overlap correction.
 
 BoundedThreshold
 ================
