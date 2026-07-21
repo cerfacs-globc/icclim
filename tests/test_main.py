@@ -14,6 +14,7 @@ import xarray as xr
 import icclim
 from icclim import __version__ as icclim_version
 from icclim._core.constants import PART_OF_A_WHOLE_UNIT, REFERENCE_PERIOD_ID, UNITS_KEY
+from icclim._core.generic import functions as generic_functions
 from icclim._core.model.index_group import IndexGroupRegistry
 from icclim.ecad.registry import EcadIndexRegistry
 from icclim.exception import InvalidIcclimArgumentError
@@ -818,6 +819,29 @@ class TestIntegration:
         assert not hasattr(default.TX90p.data, "__dask_graph__")
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
         xr.testing.assert_allclose(safe.TX90p, legacy.TX90p)
+
+    def test_index_tx90p__safe_bootstrap_uses_memory_budget(self, monkeypatch) -> None:
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", raising=False)
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY", "1B")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
+        tas[5:10] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+
+        generic_functions.reset_bootstrap_profile()
+        res = icclim.index(
+            index_name="tx90p",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert not hasattr(res.TX90p.data, "__dask_graph__")
+        assert profile["bootstrap_safe_max_tile_cells"] == 1
+        assert profile["bootstrap_safe_tile_count"] == 4
 
     def test_index_wsdi__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)

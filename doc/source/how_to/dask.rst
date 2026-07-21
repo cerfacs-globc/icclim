@@ -221,7 +221,10 @@ https://docs.dask.org/en/stable/scheduling.html#local-threads
 |  For dask-backed percentile count indices, icclim automatically uses bounded
    spatial tiles when bootstrap is needed. This reliability path may be slower,
    but it avoids leaving users with a very large Dask graph that may never
-   finish. Users can request it explicitly with ``bootstrap="safe"``.
+   finish. Users can request it explicitly with ``bootstrap="safe"``. The tile
+   size is derived from ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default:
+   ``2GB``), and can be overridden for diagnostics with
+   ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS``.
 
 .. note::
 
@@ -594,6 +597,10 @@ Disk read and write analysis - Dashboard
       only for fast exploratory assessment. This disables the overlap correction,
       so percentile-based results can be scientifically biased and should not be
       treated as the corrected final result.
+   -  To reduce peak memory further, lower the safe bootstrap budget, for example
+      ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY=512MB``. This will create more spatial
+      tiles and can be slower, but each tile asks dask to keep less bootstrap
+      working data in memory.
 
 Worker chatterbox syndrome - Dashboard
 ======================================

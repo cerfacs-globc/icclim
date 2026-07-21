@@ -126,10 +126,12 @@ def count_occurrences(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -257,10 +259,12 @@ def max_consecutive_occurrence(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -389,10 +393,12 @@ def sum_of_spell_lengths(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     min_spell_length : int
         ``optional`` Minimum spell duration to be taken into account when computing
         the sum_of_spell_lengths.
@@ -524,10 +530,12 @@ def excess(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -655,10 +663,12 @@ def deficit(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -786,10 +796,12 @@ def fraction_of_total(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -917,10 +929,12 @@ def maximum(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1048,10 +1062,12 @@ def minimum(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1179,10 +1195,12 @@ def average(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1310,10 +1328,12 @@ def sum(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1441,10 +1461,12 @@ def standard_deviation(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1573,10 +1595,12 @@ def max_of_rolling_sum(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     rolling_window_width : int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
@@ -1709,10 +1733,12 @@ def min_of_rolling_sum(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     rolling_window_width : int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
@@ -1845,10 +1871,12 @@ def max_of_rolling_average(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     rolling_window_width : int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
@@ -1981,10 +2009,12 @@ def min_of_rolling_average(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     rolling_window_width : int
         ``optional`` Window width of the rolling window for indicators such as
         `{max_of_rolling_sum, max_of_rolling_average, min_of_rolling_sum, min_of_rolling_average}`
@@ -2116,10 +2146,12 @@ def mean_of_difference(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2247,10 +2279,12 @@ def difference_of_extremes(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2378,10 +2412,12 @@ def mean_of_absolute_one_time_step_difference(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2510,10 +2546,12 @@ def difference_of_means(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2650,10 +2688,12 @@ def percentile(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2798,10 +2838,12 @@ def custom_index(
         uses bounded spatial tiles so users do not have to find a working dask chunking
         strategy by trial and error. Use ``"safe"`` to request this reliability mode
         explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
-        graph path for diagnostics. ``bootstrap=False`` should only be used as an
-        explicit user shortcut for fast exploratory assessments, because disabling
-        bootstrap removes the overlap correction and can bias percentile-based
-        results.
+        graph path for diagnostics. The safe path derives its spatial tile size from
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+        ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+        ``bootstrap=False`` should only be used as an explicit user shortcut for fast
+        exploratory assessments, because disabling bootstrap removes the overlap
+        correction and can bias percentile-based results.
     doy_window_width : int
         ``optional`` Window width used to aggreagte day of year values when computing
         day of year percentiles (doy_per)

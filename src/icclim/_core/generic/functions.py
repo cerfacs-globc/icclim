@@ -70,6 +70,8 @@ if TYPE_CHECKING:
 
 
 _BOOTSTRAP_PROFILE: dict[str, float | int] = {}
+_DEFAULT_BOOTSTRAP_SAFE_TILE_MEMORY = "2GB"
+_BOOTSTRAP_SAFE_MEMORY_FACTOR = 12
 
 
 def reset_bootstrap_profile() -> None:
@@ -86,6 +88,10 @@ def _profile_bootstrap_add(name: str, seconds: float) -> None:
 
 def _profile_bootstrap_inc(name: str, count: int = 1) -> None:
     _BOOTSTRAP_PROFILE[name] = int(_BOOTSTRAP_PROFILE.get(name, 0)) + count
+
+
+def _profile_bootstrap_set(name: str, value: float) -> None:
+    _BOOTSTRAP_PROFILE[name] = value
 
 
 def count_occurrences(
@@ -1348,7 +1354,12 @@ def _compute_safe_tiled_bootstrapped_percentile_index(
         return None
 
     safe_start = perf_counter()
-    max_cells = int(os.environ.get("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "2048"))
+    max_cells = _get_safe_bootstrap_max_cells(
+        climate_var.studied_data,
+        threshold,
+        resample_freq,
+    )
+    _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
     tile_results: list[DataArray] = []
     for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
         tile_start = perf_counter()
@@ -1400,6 +1411,68 @@ def _should_use_safe_bootstrap_mode(climate_var: ClimateVariable) -> bool:
     from xclim.core.utils import uses_dask  # noqa: PLC0415
 
     return uses_dask(climate_var.studied_data)
+
+
+def _get_safe_bootstrap_max_cells(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+) -> int:
+    if max_cells := os.environ.get("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS"):
+        return max(1, int(max_cells))
+    max_mem = _parse_byte_size(
+        os.environ.get(
+            "ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY",
+            _DEFAULT_BOOTSTRAP_SAFE_TILE_MEMORY,
+        )
+    )
+    bytes_per_cell = _estimate_bootstrap_working_bytes_per_cell(
+        study,
+        threshold,
+        resample_freq,
+    )
+    _profile_bootstrap_set("bootstrap_safe_tile_memory_bytes", max_mem)
+    _profile_bootstrap_set("bootstrap_safe_estimated_bytes_per_cell", bytes_per_cell)
+    return max(1, max_mem // bytes_per_cell)
+
+
+def _estimate_bootstrap_working_bytes_per_cell(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+) -> int:
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        _get_bootstrap_freq,
+    )
+
+    clim = threshold.value.attrs["climatology_bounds"]
+    overlap_da = study.sel(time=slice(*clim))
+    overlap_groups = overlap_da.resample(
+        time=_get_bootstrap_freq(resample_freq.pandas_freq)
+    ).groups
+    n_bootstrap = max(1, len(overlap_groups) - 1)
+    itemsize = getattr(study.dtype, "itemsize", 8)
+    raw_bootstrap_bytes = max(1, overlap_da.sizes["time"]) * n_bootstrap * itemsize
+    return raw_bootstrap_bytes * _BOOTSTRAP_SAFE_MEMORY_FACTOR
+
+
+def _parse_byte_size(value: str) -> int:
+    normalized = value.strip().lower().replace(" ", "")
+    units = {
+        "b": 1,
+        "kb": 1000,
+        "kib": 1024,
+        "mb": 1000**2,
+        "mib": 1024**2,
+        "gb": 1000**3,
+        "gib": 1024**3,
+    }
+    for unit, multiplier in sorted(
+        units.items(), key=lambda item: len(item[0]), reverse=True
+    ):
+        if normalized.endswith(unit):
+            return max(1, int(float(normalized.removesuffix(unit)) * multiplier))
+    return max(1, int(float(normalized)))
 
 
 def _iter_spatial_tiles(

@@ -111,7 +111,9 @@ Package Contents
                      users do not have to find a working dask chunking strategy by trial and
                      error. Use ``"safe"`` to request this reliability mode explicitly, or set
                      ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask graph path for
-                     diagnostics.
+                     diagnostics. The safe path derives its spatial tile size from
+                     ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+                     ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
                      This overlap-based bootstrap is part of the standard
                      treatment for percentile-based extreme indices when the reference period
                      overlaps the study period. In practice it matters for common ETCCDI-style

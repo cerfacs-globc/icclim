@@ -13,7 +13,7 @@ Details
 =======
 
 -  [fix] Restore compatibility with latest ``xclim`` releases by adapting ``to_agg_units`` calls to the installed API signature instead of always passing ``deffreq``.
--  [enh] Add bootstrap controls to ``icclim.index(...)`` for day-of-year percentile thresholds. For dask-backed percentile count indices, icclim now uses a bounded tiled bootstrap path by default to avoid oversized dask graphs. ``bootstrap=False`` remains an explicit user shortcut for fast exploratory assessment only, because it disables the overlap correction and can bias percentile-based results.
+-  [enh] Add bootstrap controls to ``icclim.index(...)`` for day-of-year percentile thresholds. For dask-backed percentile count indices, icclim now uses a memory-budgeted tiled bootstrap path by default to avoid oversized dask graphs and reduce peak memory risk. ``bootstrap=False`` remains an explicit user shortcut for fast exploratory assessment only, because it disables the overlap correction and can bias percentile-based results.
 -  [maint] Keep the existing bootstrap implementation as the release path while follow-up work continues on a native replacement. The experimental prepared-state optimization is not included in ``v7.1.3``.
 -  [maint] Bump ``peter-evans/create-pull-request`` from ``v7`` to ``v8`` in CI maintenance workflows to avoid GitHub Actions Node 20 deprecation warnings.
 

@@ -140,6 +140,9 @@ Two flavours exist, selected by the unit string:
    the full bootstrapping procedure is operationally impossible. This disables
    the overlap correction, so percentile-based results can be scientifically
    biased and should not be treated as the corrected final result.
+   The safe path derives its spatial tile size from
+   ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+   ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
 
 BoundedThreshold
 ================
