@@ -1326,9 +1326,6 @@ def _compute_safe_tiled_bootstrapped_percentile_index(
     resample_freq: Frequency,
     compute_from_exceedance: Callable[[DataArray, DataArray], DataArray],
 ) -> DataArray | None:
-    if not _uses_safe_bootstrap_mode(climate_var.bootstrap):
-        return None
-
     threshold = climate_var.threshold
     if threshold is None:
         return None
@@ -1341,7 +1338,13 @@ def _compute_safe_tiled_bootstrapped_percentile_index(
         or not threshold.is_doy_per_threshold
     ):
         return None
-    if not must_run_bootstrap(climate_var.studied_data, threshold, True):
+    if not _should_use_safe_bootstrap_mode(climate_var):
+        return None
+    if not must_run_bootstrap(
+        climate_var.studied_data,
+        threshold,
+        climate_var.bootstrap,
+    ):
         return None
 
     safe_start = perf_counter()
@@ -1386,8 +1389,17 @@ def _compute_safe_tiled_bootstrapped_percentile_index(
     return result
 
 
-def _uses_safe_bootstrap_mode(bootstrap: object) -> bool:
-    return bootstrap == "safe" or os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe"
+def _should_use_safe_bootstrap_mode(climate_var: ClimateVariable) -> bool:
+    if climate_var.bootstrap is False:
+        return False
+    mode = os.environ.get("ICCLIM_BOOTSTRAP_MODE")
+    if climate_var.bootstrap == "safe" or mode == "safe":
+        return True
+    if mode == "default":
+        return False
+    from xclim.core.utils import uses_dask  # noqa: PLC0415
+
+    return uses_dask(climate_var.studied_data)
 
 
 def _iter_spatial_tiles(

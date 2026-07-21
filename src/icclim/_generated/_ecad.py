@@ -158,8 +158,14 @@ def tg(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -268,8 +274,14 @@ def tn(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -378,8 +390,14 @@ def tx(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -488,8 +506,14 @@ def dtr(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -598,8 +622,14 @@ def etr(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -708,8 +738,14 @@ def vdtr(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -818,8 +854,14 @@ def su(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -931,8 +973,14 @@ def tr(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1062,8 +1110,14 @@ def wsdi(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1211,8 +1265,14 @@ def tg90p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1360,8 +1420,14 @@ def tn90p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1509,8 +1575,14 @@ def tx90p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1640,8 +1712,14 @@ def txx(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1750,8 +1828,14 @@ def tnx(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1860,8 +1944,14 @@ def csu(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -1973,8 +2063,14 @@ def gd4(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2086,8 +2182,14 @@ def fd(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2199,8 +2301,14 @@ def cfd(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2312,8 +2420,14 @@ def hd17(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2425,8 +2539,14 @@ def id(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2556,8 +2676,14 @@ def tg10p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2705,8 +2831,14 @@ def tn10p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2854,8 +2986,14 @@ def tx10p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -2985,8 +3123,14 @@ def txn(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3095,8 +3239,14 @@ def tnn(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3223,8 +3373,14 @@ def csdi(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3354,8 +3510,14 @@ def cdd(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3467,8 +3629,14 @@ def prcptot(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3580,8 +3748,14 @@ def rr1(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3693,8 +3867,14 @@ def sdii(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3806,8 +3986,14 @@ def cwd(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -3919,8 +4105,14 @@ def rr(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4029,8 +4221,14 @@ def r10mm(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4142,8 +4340,14 @@ def r20mm(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4255,8 +4459,14 @@ def rx1day(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4365,8 +4575,14 @@ def rx5day(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4493,8 +4709,14 @@ def r75p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4635,8 +4857,14 @@ def r75ptot(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4777,8 +5005,14 @@ def r95p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -4919,8 +5153,14 @@ def r95ptot(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5061,8 +5301,14 @@ def r99p(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5203,8 +5449,14 @@ def r99ptot(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5327,8 +5579,14 @@ def sd(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5437,8 +5695,14 @@ def sd1(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5550,8 +5814,14 @@ def sd5cm(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5663,8 +5933,14 @@ def sd50cm(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5794,8 +6070,14 @@ def cd(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -5949,8 +6231,14 @@ def cw(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6104,8 +6392,14 @@ def wd(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6259,8 +6553,14 @@ def ww(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6396,8 +6696,14 @@ def fxx(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6506,8 +6812,14 @@ def fg6bft(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6619,8 +6931,14 @@ def fgcalm(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6732,8 +7050,14 @@ def fg(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6842,8 +7166,14 @@ def ddnorth(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -6955,8 +7285,14 @@ def ddeast(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7068,8 +7404,14 @@ def ddsouth(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7181,8 +7523,14 @@ def ddwest(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7294,8 +7642,14 @@ def gsl(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7419,8 +7773,14 @@ def spi6(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7545,8 +7905,14 @@ def spi3(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7656,8 +8022,14 @@ def pp(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7766,8 +8138,14 @@ def ss(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
@@ -7876,8 +8254,14 @@ def rh(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".

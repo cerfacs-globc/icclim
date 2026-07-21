@@ -334,8 +334,14 @@ def index(
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
-        which is slower but avoids building one large Dask graph.
+        threshold type. For dask-backed percentile count indices, icclim automatically
+        uses bounded spatial tiles so users do not have to find a working dask chunking
+        strategy by trial and error. Use ``"safe"`` to request this reliability mode
+        explicitly, or set ``ICCLIM_BOOTSTRAP_MODE=default`` to keep the legacy dask
+        graph path for diagnostics. ``bootstrap=False`` should only be used as an
+        explicit user shortcut for fast exploratory assessments, because disabling
+        bootstrap removes the overlap correction and can bias percentile-based
+        results.
     doy_window_width: int
         ``optional`` Window width used to aggreagte day of year values when computing
         day of year percentiles (doy_per)

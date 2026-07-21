@@ -808,10 +808,16 @@ class TestIntegration:
             "slice_mode": "ms",
         }
 
-        default = icclim.index(**common_kwargs).compute()
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        legacy = icclim.index(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+
+        default = icclim.index(**common_kwargs)
         safe = icclim.index(**common_kwargs, bootstrap="safe").compute()
 
-        xr.testing.assert_allclose(safe.TX90p, default.TX90p)
+        assert not hasattr(default.TX90p.data, "__dask_graph__")
+        xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
+        xr.testing.assert_allclose(safe.TX90p, legacy.TX90p)
 
     def test_index_wsdi__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
