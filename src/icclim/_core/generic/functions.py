@@ -1360,6 +1360,39 @@ def _compute_safe_tiled_bootstrapped_percentile_index(
         resample_freq,
     )
     _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
+    while True:
+        try:
+            return _compute_safe_tiled_bootstrap_with_max_cells(
+                climate_var,
+                threshold,
+                resample_freq,
+                compute_from_exceedance,
+                max_cells,
+                safe_start,
+            )
+        except Exception as err:  # noqa: PERF203
+            if not _is_memory_like_bootstrap_error(err):
+                raise
+            if max_cells <= 1:
+                msg = (
+                    "Percentile bootstrap failed even with one spatial cell per tile. "
+                    "Try reducing the time range, using fewer workers/threads, or "
+                    "running with more memory."
+                )
+                raise MemoryError(msg) from err
+            max_cells = max(1, max_cells // 2)
+            _profile_bootstrap_inc("bootstrap_safe_memory_retry_count")
+            _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
+
+
+def _compute_safe_tiled_bootstrap_with_max_cells(
+    climate_var: ClimateVariable,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+    compute_from_exceedance: Callable[[DataArray, DataArray], DataArray],
+    max_cells: int,
+    safe_start: float,
+) -> DataArray | None:
     tile_results: list[DataArray] = []
     for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
         tile_start = perf_counter()
@@ -1398,6 +1431,34 @@ def _compute_safe_tiled_bootstrapped_percentile_index(
         perf_counter() - safe_start,
     )
     return result
+
+
+def _is_memory_like_bootstrap_error(err: BaseException) -> bool:
+    if isinstance(err, MemoryError):
+        return True
+    err_type = type(err).__name__.lower()
+    memory_error_types = {
+        "arraymemoryerror",
+        "killedworker",
+        "nannyrestart",
+        "reschedule",
+        "workerlost",
+        "workerkilled",
+    }
+    if err_type in memory_error_types:
+        return True
+    message = str(err).lower()
+    memory_fragments = (
+        "failed to allocate",
+        "killed worker",
+        "malloc",
+        "memoryerror",
+        "out of memory",
+        "oom",
+        "worker died",
+        "worker exceeded",
+    )
+    return any(fragment in message for fragment in memory_fragments)
 
 
 def _should_use_safe_bootstrap_mode(climate_var: ClimateVariable) -> bool:

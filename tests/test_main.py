@@ -843,6 +843,50 @@ class TestIntegration:
         assert profile["bootstrap_safe_max_tile_cells"] == 1
         assert profile["bootstrap_safe_tile_count"] == 4
 
+    def test_index_tx90p__safe_bootstrap_retries_on_memory_error(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "4")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
+        tas[5:10] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        original_bootstrap = generic_functions._compute_bootstrapped_percentile_index
+
+        def fail_until_single_cell(*args, **kwargs):
+            climate_var = args[0]
+            spatial_cells = 1
+            for dim, size in climate_var.studied_data.sizes.items():
+                if dim != "time":
+                    spatial_cells *= size
+            if spatial_cells > 1:
+                msg = "simulated bootstrap tile memory pressure"
+                raise MemoryError(msg)
+            return original_bootstrap(*args, **kwargs)
+
+        monkeypatch.setattr(
+            generic_functions,
+            "_compute_bootstrapped_percentile_index",
+            fail_until_single_cell,
+        )
+        generic_functions.reset_bootstrap_profile()
+
+        res = icclim.index(
+            index_name="tx90p",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert not hasattr(res.TX90p.data, "__dask_graph__")
+        assert profile["bootstrap_safe_memory_retry_count"] == 2
+        assert profile["bootstrap_safe_max_tile_cells"] == 1
+        assert profile["bootstrap_safe_tile_count"] == 4
+
     def test_index_wsdi__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[0:10] = 0
