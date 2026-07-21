@@ -80,13 +80,10 @@ def _git_rev_parse(repo: Path, ref: str) -> str | None:
     if not git_dir.exists():
         return None
     try:
-        return (
-            subprocess.check_output(  # noqa: S603
-                ["git", "-C", str(repo), "rev-parse", ref],  # noqa: S607
-                text=True,
-            )
-            .strip()
-        )
+        return subprocess.check_output(  # noqa: S603
+            ["git", "-C", str(repo), "rev-parse", ref],  # noqa: S607
+            text=True,
+        ).strip()
     except Exception:  # noqa: BLE001
         return None
 
@@ -126,7 +123,11 @@ def main() -> None:
     if cache_dir is not None:
         cache_dir.mkdir(parents=True, exist_ok=True)
         summary_path, result_path = _cached_paths(cache_dir, cache_key)
-        if summary_path.exists() and (not args.save_output or result_path.exists()) and not args.force:
+        if (
+            summary_path.exists()
+            and (not args.save_output or result_path.exists())
+            and not args.force
+        ):
             print(summary_path.read_text())
             return
 

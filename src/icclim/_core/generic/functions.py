@@ -260,13 +260,15 @@ def max_consecutive_occurrence(
         maybe_bootstrapped = _compute_bootstrapped_percentile_index(
             climate_vars[0],
             resample_freq,
-            compute_from_exceedance=lambda _study, exceedance: run_length.rle(
-                exceedance,
-                dim="time",
-                index=kwargs.get("run_index", "first"),
-            )
-            .resample(time=resample_freq.pandas_freq)
-            .max(dim="time"),
+            compute_from_exceedance=lambda _study, exceedance: (
+                run_length.rle(
+                    exceedance,
+                    dim="time",
+                    index=kwargs.get("run_index", "first"),
+                )
+                .resample(time=resample_freq.pandas_freq)
+                .max(dim="time")
+            ),
         )
         if maybe_bootstrapped is not None:
             freq = check_freq(climate_vars[0].studied_data, dim="time")
@@ -1334,7 +1336,10 @@ def _compute_safe_tiled_bootstrapped_percentile_index(
         PercentileThreshold,
     )
 
-    if not isinstance(threshold, PercentileThreshold) or not threshold.is_doy_per_threshold:
+    if (
+        not isinstance(threshold, PercentileThreshold)
+        or not threshold.is_doy_per_threshold
+    ):
         return None
     if not must_run_bootstrap(climate_var.studied_data, threshold, True):
         return None
@@ -1414,9 +1419,7 @@ def _iter_spatial_tiles(
             for start in range(0, da.sizes[dim], tile_lengths[dim])
         ]
         tiles = [
-            {**prefix, dim: dim_tile}
-            for prefix in tiles
-            for dim_tile in dim_tiles
+            {**prefix, dim: dim_tile} for prefix in tiles for dim_tile in dim_tiles
         ]
     return tiles
 
@@ -1451,7 +1454,10 @@ def _compute_bootstrapped_percentile_index(  # noqa: C901, PLR0912
         _get_bootstrap_freq,
     )
 
-    if not isinstance(threshold, PercentileThreshold) or not threshold.is_doy_per_threshold:
+    if (
+        not isinstance(threshold, PercentileThreshold)
+        or not threshold.is_doy_per_threshold
+    ):
         return None
 
     bootstrap = must_run_bootstrap(study, threshold, climate_var.bootstrap)

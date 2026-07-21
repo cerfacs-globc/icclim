@@ -13,7 +13,9 @@ def _parse_args() -> argparse.Namespace:
         description="Compare cached TG90p benchmark outputs.",
     )
     parser.add_argument("--left", type=Path, required=True, help="Left NetCDF result.")
-    parser.add_argument("--right", type=Path, required=True, help="Right NetCDF result.")
+    parser.add_argument(
+        "--right", type=Path, required=True, help="Right NetCDF result."
+    )
     parser.add_argument(
         "--label-left",
         default="left",

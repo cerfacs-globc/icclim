@@ -770,7 +770,9 @@ class TestIntegration:
         ).compute()
         assert REFERENCE_PERIOD_ID in res.TX90p.attrs
         jan_slice = res.TX90p.sel(time=slice("2042-01-01", "2044-12-31"))
-        jan_values = jan_slice.where(jan_slice.time.dt.month == 1, drop=True).values.ravel()
+        jan_values = jan_slice.where(
+            jan_slice.time.dt.month == 1, drop=True
+        ).values.ravel()
         assert jan_values.dtype.kind == "f"
         assert len(set(jan_values.tolist())) > 1
         assert jan_values.min() >= 0
