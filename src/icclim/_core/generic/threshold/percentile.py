@@ -36,7 +36,7 @@ from icclim._core.model.threshold import Threshold, ThresholdValueType
 
 if TYPE_CHECKING:
     # Standard library
-    from collections.abc import Callable, Sequence
+    from collections.abc import Callable, Hashable, Sequence
     from datetime import datetime
 
     # Third-party
@@ -45,6 +45,11 @@ if TYPE_CHECKING:
 
     # Local
     from icclim._core.model.operator import Operator
+
+
+MIN_BOOTSTRAP_DONOR_DAYS = 360
+NOLEAP_YEAR_DAYS = 365
+LEAP_YEAR_DAYS = 366
 
 
 class PercentileThreshold(Threshold):
@@ -627,9 +632,9 @@ def _get_bootstrap_freq(freq: str) -> str:
 
 def _build_single_bootstrap_reference(
     da: DataArray,
-    groups: dict[Any, slice],
-    target_label: Any,
-    donor_label: Any,
+    groups: dict[Hashable, slice],
+    target_label: Hashable,
+    donor_label: Hashable,
     dim: str = "time",
 ) -> DataArray:
     target_slice = groups[target_label]
@@ -638,15 +643,15 @@ def _build_single_bootstrap_reference(
     target_stop = target_slice.stop or da.sizes[dim]
     target = da[dim][target_slice]
     source = da.isel({dim: donor_slice})
-    if len(source[dim]) < 360 and len(source[dim]) < len(target):
+    if len(source[dim]) < MIN_BOOTSTRAP_DONOR_DAYS and len(source[dim]) < len(target):
         return da
     if len(source[dim]) == len(target):
         replacement = source
-    elif len(target) == 365:
+    elif len(target) == NOLEAP_YEAR_DAYS:
         replacement = source.convert_calendar("noleap")
-    elif len(target) == 366:
+    elif len(target) == LEAP_YEAR_DAYS:
         replacement = source.convert_calendar("366_day", missing=np.nan)
-    elif len(target) < 365:
+    elif len(target) < NOLEAP_YEAR_DAYS:
         replacement = source.isel({dim: slice(0, len(target))})
     else:
         msg = "Unsupported bootstrap year replacement shape."

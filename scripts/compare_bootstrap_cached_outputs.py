@@ -1,3 +1,5 @@
+"""Compare cached TG90p benchmark outputs."""
+
 from __future__ import annotations
 
 import argparse
@@ -30,6 +32,7 @@ def _parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    """Print a JSON summary of numerical differences between two outputs."""
     args = _parse_args()
     left = xr.open_dataarray(args.left)
     right = xr.open_dataarray(args.right)
