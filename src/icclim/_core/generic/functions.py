@@ -18,8 +18,11 @@ The `DataArray` instance is the result of the computation of the generic index.
 from __future__ import annotations
 
 import operator
+import os
 import warnings
 from collections.abc import Callable
+from copy import copy
+from dataclasses import replace
 from functools import partial
 from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
@@ -139,6 +142,25 @@ def count_occurrences(
     365
     """
     if len(climate_vars) == 1 and not date_event:
+        safe_bootstrapped = _compute_safe_tiled_bootstrapped_percentile_index(
+            climate_vars[0],
+            resample_freq,
+            compute_from_exceedance=lambda _study, exceedance: exceedance.resample(
+                time=resample_freq.pandas_freq
+            ).sum(dim="time"),
+        )
+        if safe_bootstrapped is not None:
+            if to_percent:
+                safe_bootstrapped = _to_percent(safe_bootstrapped, resample_freq)
+                safe_bootstrapped.attrs[UNITS_KEY] = "%"
+                return safe_bootstrapped
+            freq = check_freq(climate_vars[0].studied_data, dim="time")
+            return _safe_to_agg_units(
+                safe_bootstrapped,
+                climate_vars[0].studied_data,
+                "count",
+                deffreq=freq,
+            )
         maybe_bootstrapped = _compute_bootstrapped_percentile_index(
             climate_vars[0],
             resample_freq,
@@ -1295,6 +1317,122 @@ def _compute_exceedance(
         if climatology_bounds is not None:
             exceedances.attrs[REFERENCE_PERIOD_ID] = climatology_bounds
     return exceedances
+
+
+def _compute_safe_tiled_bootstrapped_percentile_index(
+    climate_var: ClimateVariable,
+    resample_freq: Frequency,
+    compute_from_exceedance: Callable[[DataArray, DataArray], DataArray],
+) -> DataArray | None:
+    if not _uses_safe_bootstrap_mode(climate_var.bootstrap):
+        return None
+
+    threshold = climate_var.threshold
+    if threshold is None:
+        return None
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if not isinstance(threshold, PercentileThreshold) or not threshold.is_doy_per_threshold:
+        return None
+    if not must_run_bootstrap(climate_var.studied_data, threshold, True):
+        return None
+
+    safe_start = perf_counter()
+    max_cells = int(os.environ.get("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "2048"))
+    tile_results: list[DataArray] = []
+    for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
+        tile_start = perf_counter()
+        tile_study = climate_var.studied_data.isel(tile_indexers)
+        tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        tile_cv = replace(
+            climate_var,
+            studied_data=tile_study,
+            threshold=tile_threshold,
+            bootstrap=True,
+        )
+        tile_result = _compute_bootstrapped_percentile_index(
+            tile_cv,
+            resample_freq,
+            compute_from_exceedance,
+        )
+        if tile_result is None:
+            return None
+        tile_results.append(tile_result.load())
+        _profile_bootstrap_inc("bootstrap_safe_tile_count")
+        _profile_bootstrap_add(
+            "bootstrap_safe_tile_seconds",
+            perf_counter() - tile_start,
+        )
+
+    if len(tile_results) == 1:
+        result = tile_results[0]
+    else:
+        result = xr.combine_by_coords(
+            [tile.to_dataset(name="__icclim_bootstrap_tile") for tile in tile_results],
+            combine_attrs="override",
+        )["__icclim_bootstrap_tile"]
+    result.attrs.update(tile_results[-1].attrs)
+    _profile_bootstrap_add(
+        "bootstrap_safe_total_seconds",
+        perf_counter() - safe_start,
+    )
+    return result
+
+
+def _uses_safe_bootstrap_mode(bootstrap: Any) -> bool:
+    return bootstrap == "safe" or os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe"
+
+
+def _iter_spatial_tiles(
+    da: DataArray,
+    max_cells: int,
+) -> list[dict[str, slice]]:
+    spatial_dims = [dim for dim in da.dims if dim != "time"]
+    if not spatial_dims:
+        return [{}]
+
+    tile_lengths = {dim: da.sizes[dim] for dim in spatial_dims}
+    product = 1
+    for dim in spatial_dims:
+        product *= tile_lengths[dim]
+    while product > max_cells:
+        dim = max(tile_lengths, key=tile_lengths.get)
+        old = tile_lengths[dim]
+        tile_lengths[dim] = max(1, old // 2)
+        product = 1
+        for value in tile_lengths.values():
+            product *= value
+        if tile_lengths[dim] == old:
+            break
+
+    tiles: list[dict[str, slice]] = [{}]
+    for dim in spatial_dims:
+        dim_tiles = [
+            slice(start, min(start + tile_lengths[dim], da.sizes[dim]))
+            for start in range(0, da.sizes[dim], tile_lengths[dim])
+        ]
+        tiles = [
+            {**prefix, dim: dim_tile}
+            for prefix in tiles
+            for dim_tile in dim_tiles
+        ]
+    return tiles
+
+
+def _slice_threshold_for_tile(
+    threshold: PercentileThreshold,
+    tile_indexers: dict[str, slice],
+) -> PercentileThreshold:
+    sliced = copy(threshold)
+    value = threshold.value
+    value_indexers = {
+        dim: indexer for dim, indexer in tile_indexers.items() if dim in value.dims
+    }
+    if value_indexers:
+        sliced._prepared_value = value.isel(value_indexers)
+    return sliced
 
 
 def _compute_bootstrapped_percentile_index(

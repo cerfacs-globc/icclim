@@ -230,7 +230,7 @@ def index(
     callback_percentage_start_value: int = 0,
     callback_percentage_total: int = 100,
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | Literal["safe"] | None = None,
     doy_window_width: int = 5,
     only_leap_years: bool = False,
     ignore_Feb29th: bool = False,
@@ -330,11 +330,12 @@ def index(
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
         (a.k.a anomaly) if a single variable is given in input.
-    bootstrap: bool | None
+    bootstrap: bool | "safe" | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
         ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-        threshold type.
+        threshold type. Use ``"safe"`` to run bootstrap through bounded spatial tiles,
+        which is slower but avoids building one large Dask graph.
     doy_window_width: int
         ``optional`` Window width used to aggreagte day of year values when computing
         day of year percentiles (doy_per)
@@ -541,7 +542,7 @@ def _build_config(
     threshold: str | Threshold | Sequence[str | Threshold] | None,
     callback: Callable[[int], None],
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
-    bootstrap: bool | None,
+    bootstrap: bool | Literal["safe"] | None,
     doy_window_width: int,
     only_leap_years: bool,
     ignore_feb29th: bool,
@@ -661,7 +662,7 @@ def _build_user_index_config(
     time_range: Sequence[dt.datetime | str] | None,
     callback: Callable[[int], None],
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
-    bootstrap: bool | None,
+    bootstrap: bool | Literal["safe"] | None,
     doy_window_width: int,
     only_leap_years: bool,
     ignore_feb29th: bool,
@@ -745,7 +746,7 @@ def _build_standard_index_config(
     threshold: str | Threshold | Sequence[str | Threshold] | None,
     callback: Callable[[int], None],
     base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
-    bootstrap: bool | None,
+    bootstrap: bool | Literal["safe"] | None,
     doy_window_width: int,
     only_leap_years: bool,
     ignore_feb29th: bool,

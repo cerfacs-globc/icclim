@@ -791,6 +791,25 @@ class TestIntegration:
         )
         assert REFERENCE_PERIOD_ID not in res.TX90p.attrs
 
+    def test_index_tx90p__bootstrap_safe_matches_default(self) -> None:
+        tas = stub_tas(tas_value=27 + K2C)
+        tas[5:10] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = dict(
+            index_name="tx90p",
+            in_files=tas,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2045-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="ms",
+        )
+
+        default = icclim.index(**common_kwargs).compute()
+        safe = icclim.index(**common_kwargs, bootstrap="safe").compute()
+
+        xr.testing.assert_allclose(safe.TX90p, default.TX90p)
+
     def test_index_wsdi__no_bootstrap_because_no_overlap(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
         tas[0:10] = 0

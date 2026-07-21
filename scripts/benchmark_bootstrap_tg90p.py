@@ -46,7 +46,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--bootstrap",
         default="auto",
-        choices=["auto", "true", "false"],
+        choices=["auto", "true", "false", "safe"],
         help="Override bootstrap behavior when supported by the checked out code.",
     )
     parser.add_argument(
@@ -89,9 +89,11 @@ def _git_rev_parse(repo: Path, ref: str) -> str | None:
         return None
 
 
-def _resolve_bootstrap_arg(value: str) -> bool | None:
+def _resolve_bootstrap_arg(value: str) -> bool | str | None:
     if value == "auto":
         return None
+    if value == "safe":
+        return "safe"
     return value == "true"
 
 
@@ -177,7 +179,8 @@ def main() -> None:
     )
 
     tg90p = result["TG90p"]
-    graph = tg90p.data.__dask_graph__()
+    graph_getter = getattr(tg90p.data, "__dask_graph__", None)
+    graph = graph_getter() if graph_getter is not None else None
 
     compute_start = time.perf_counter()
     with dask.config.set(scheduler=args.scheduler):
@@ -202,7 +205,7 @@ def main() -> None:
         "build_seconds": build_end - build_start,
         "compute_seconds": compute_end - compute_start,
         "total_seconds": compute_end - open_start,
-        "graph_tasks": len(graph),
+        "graph_tasks": len(graph) if graph is not None else 0,
         "result_shape": tuple(int(x) for x in loaded.shape),
         "result_mean": float(loaded.mean().item()),
         "bootstrap_profile": bootstrap_profile,

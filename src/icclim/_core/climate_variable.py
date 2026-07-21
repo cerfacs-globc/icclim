@@ -72,7 +72,7 @@ class ClimateVariable:
     threshold: Threshold | None = None
     reference_period: Sequence[datetime | str] | None = None
     is_reference: bool = False
-    bootstrap: bool | None = None
+    bootstrap: bool | str | None = None
 
     def build_indicator_metadata(
         self,
@@ -132,7 +132,7 @@ def build_climate_vars(
     base_period: Sequence[str] | None,
     standard_index: StandardIndex | None,
     is_compared_to_reference: bool,
-    bootstrap: bool | None = None,
+    bootstrap: bool | str | None = None,
 ) -> list[ClimateVariable]:
     """
     Build a list of ClimateVariable from a dictionary of input files.
@@ -231,7 +231,7 @@ def build_climate_var(
     time_range: Sequence[datetime | str] | None,
     standard_var: StandardVariable | None,
     reference_period: Sequence[datetime | str] | None = None,
-    bootstrap: bool | None = None,
+    bootstrap: bool | str | None = None,
 ) -> ClimateVariable:
     """
     Build a ClimateVariable object.
@@ -334,7 +334,7 @@ def build_climate_var(
 
 
 def must_run_bootstrap(
-    da: DataArray, threshold: Threshold | None, bootstrap: bool | None = None
+    da: DataArray, threshold: Threshold | None, bootstrap: bool | str | None = None
 ) -> bool:
     """
     Determine whether to run the bootstrap method.
@@ -370,7 +370,7 @@ def must_run_bootstrap(
     ):
         return False
     if bootstrap is not None:
-        return bootstrap
+        return bootstrap is not False
     reference = threshold.value
     time_index = da.indexes.get("time")
     if time_index is None:
@@ -404,7 +404,7 @@ def _build_reference_variable(
     reference_period: Sequence[str] | None,
     in_files: dict[str, InFileDictionary],
     standard_var: StandardVariable,
-    bootstrap: bool | None = None,
+    bootstrap: bool | str | None = None,
 ) -> ClimateVariable:
     """
     Add a secondary variable for indices such as anomaly.
