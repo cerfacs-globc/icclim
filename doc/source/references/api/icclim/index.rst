@@ -106,13 +106,21 @@ Package Contents
    :param bootstrap: ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
                      Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
                      ``False`` to disable bootstrap, or ``True`` to force it when supported by the
-                     threshold type. This overlap-based bootstrap is part of the standard
+                     threshold type. For dask-backed percentile count indices, icclim
+                     automatically computes bootstrap one bounded spatial tile at a time so
+                     users do not have to find a working dask chunking strategy by trial and
+                     error. The safe path derives its spatial tile size from
+                     ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+                     ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
+                     Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the
+                     legacy dask graph path.
+                     This overlap-based bootstrap is part of the standard
                      treatment for percentile-based extreme indices when the reference period
                      overlaps the study period. In practice it matters for common ETCCDI-style
                      thresholds such as the 10th and 90th percentiles, and can be even more
-                     consequential for stronger percentile thresholds. Because it is
-                     computationally expensive, ``bootstrap=False`` can still be a useful
-                     pragmatic workaround on large dask-backed datasets.
+                     consequential for stronger percentile thresholds. ``bootstrap=False`` is
+                     only a user-selected shortcut for fast exploratory assessment: it disables
+                     the overlap correction and can bias percentile-based results.
    :type bootstrap: bool | None
    :param doy_window_width: ``optional`` Window width used to aggreagte day of year values when computing
                             day of year percentiles (doy_per)

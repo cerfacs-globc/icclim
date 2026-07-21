@@ -218,6 +218,10 @@ https://docs.dask.org/en/stable/scheduling.html#local-threads
    The bootstrap period is the overlapping years between the period
    where percentile are computed (a.k.a "in base") and the period where
    the climate index is computed (a.k.a "out of base").
+|  For dask-backed percentile count indices, icclim automatically uses bounded
+   spatial tiles when bootstrap is needed. This reliability path may be slower,
+   but it avoids leaving users with a very large Dask graph that may never
+   finish.
 
 .. note::
 
@@ -583,9 +587,22 @@ Disk read and write analysis - Dashboard
    -  This bootstrap is scientifically important when percentile thresholds are
       computed on a reference period that overlaps the study period, especially
       for ETCCDI-style percentile-based extreme indices such as the 10th and
-      90th percentile temperature indices. If the exact overlap treatment is
-      too expensive for your dask setup, ``bootstrap=False`` can be used as a
-      pragmatic performance workaround.
+      90th percentile temperature indices. For dask-backed percentile count
+      indices, icclim automatically uses a tiled reliability path to avoid one
+      huge bootstrap graph. If the exact overlap treatment is still
+      operationally impossible, a user may explicitly choose ``bootstrap=False``
+      only for fast exploratory assessment. This disables the overlap correction,
+      so percentile-based results can be scientifically biased and should not be
+      treated as the corrected final result.
+   -  Expert configuration: lower
+      ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``) to reduce peak
+      memory further, for example ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY=512MB``.
+      This creates more spatial tiles and can be slower, but each tile asks dask
+      to keep less bootstrap working data in memory.
+   -  Expert diagnostics: ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` overrides the
+      memory-derived tile size with an explicit maximum number of spatial cells
+      per tile. ``ICCLIM_BOOTSTRAP_MODE=default`` disables the safe tiled path
+      and keeps the legacy dask graph path for comparison only.
 
 Worker chatterbox syndrome - Dashboard
 ======================================

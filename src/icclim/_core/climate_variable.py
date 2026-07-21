@@ -369,8 +369,8 @@ def must_run_bootstrap(
         )
     ):
         return False
-    if bootstrap is not None:
-        return bootstrap
+    if bootstrap is False:
+        return False
     reference = threshold.value
     time_index = da.indexes.get("time")
     if time_index is None:

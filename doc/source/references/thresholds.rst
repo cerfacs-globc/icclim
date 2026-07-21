@@ -133,9 +133,16 @@ Two flavours exist, selected by the unit string:
    avoid artificially inflated counts. This is relevant for standard
    percentile-based extreme indices, including the classic 10th and 90th
    percentile temperature indices, and can be even more important for stronger
-   percentile thresholds. On very large dask-backed datasets, users may still
-   choose ``bootstrap=False`` as a pragmatic workaround when the full
-   bootstrapping procedure is too expensive.
+   percentile thresholds. On dask-backed percentile count indices, icclim uses
+   bounded spatial tiles automatically when bootstrap is needed, so users do not
+   have to discover a working dask chunking strategy by trial and error. The safe
+   path derives its spatial tile size from
+   ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
+   ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override. Users may
+   still choose ``bootstrap=False`` only as a fast exploratory shortcut when the
+   full bootstrapping procedure is operationally impossible. This disables the
+   overlap correction, so percentile-based results can be scientifically biased
+   and should not be treated as the corrected final result.
 
 BoundedThreshold
 ================
