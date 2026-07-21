@@ -1346,17 +1346,23 @@ def _compute_bootstrapped_percentile_index(
 
     op = cast("Operator", threshold.operator).compute
     per_template = per.copy(deep=True)
+    baseline_start = perf_counter()
+    baseline_exceedance = threshold.compute(
+        study,
+        freq=resample_freq.pandas_freq,
+        bootstrap=False,
+    ).squeeze()
+    baseline_result = compute_from_exceedance(study, baseline_exceedance)
+    _profile_bootstrap_add(
+        "bootstrap_baseline_result_seconds",
+        perf_counter() - baseline_start,
+    )
     acc: list[DataArray] = []
     for year_key, year_slice in study_groups.items():
         year_da = study.isel(time=year_slice)
         if year_key not in overlap_labels:
             non_overlap_start = perf_counter()
-            exceedance = threshold.compute(
-                year_da,
-                freq=resample_freq.pandas_freq,
-                bootstrap=False,
-            ).squeeze()
-            value = compute_from_exceedance(year_da, exceedance)
+            value = baseline_result.sel(time=[year_key])
             _profile_bootstrap_add(
                 "bootstrap_non_overlap_seconds",
                 perf_counter() - non_overlap_start,
@@ -1430,14 +1436,7 @@ def _compute_bootstrapped_percentile_index(
 
         if BOOTSTRAP_DIM not in donor_result.dims:
             fallback_start = perf_counter()
-            value = compute_from_exceedance(
-                year_da,
-                threshold.compute(
-                    year_da,
-                    freq=resample_freq.pandas_freq,
-                    bootstrap=False,
-                ).squeeze(),
-            )
+            value = baseline_result.sel(time=[year_key])
             _profile_bootstrap_add(
                 "bootstrap_fallback_seconds",
                 perf_counter() - fallback_start,
