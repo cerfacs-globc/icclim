@@ -18,9 +18,12 @@ The `DataArray` instance is the result of the computation of the generic index.
 from __future__ import annotations
 
 import operator
+import os
 import warnings
 from collections.abc import Callable
+from copy import copy
 from functools import partial
+from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
 from warnings import warn
 
@@ -63,6 +66,31 @@ if TYPE_CHECKING:
     from icclim._core.generic.threshold.percentile import PercentileThreshold
     from icclim._core.model.logical_link import LogicalLink
     from icclim._core.model.threshold import Threshold
+
+
+_BOOTSTRAP_PROFILE: dict[str, float | int] = {}
+_DEFAULT_BOOTSTRAP_SAFE_TILE_MEMORY = "2GB"
+_BOOTSTRAP_SAFE_MEMORY_FACTOR = 12
+
+
+def reset_bootstrap_profile() -> None:
+    _BOOTSTRAP_PROFILE.clear()
+
+
+def get_bootstrap_profile() -> dict[str, float | int]:
+    return dict(_BOOTSTRAP_PROFILE)
+
+
+def _profile_bootstrap_add(name: str, seconds: float) -> None:
+    _BOOTSTRAP_PROFILE[name] = float(_BOOTSTRAP_PROFILE.get(name, 0.0)) + seconds
+
+
+def _profile_bootstrap_inc(name: str, count: int = 1) -> None:
+    _BOOTSTRAP_PROFILE[name] = int(_BOOTSTRAP_PROFILE.get(name, 0)) + count
+
+
+def _profile_bootstrap_set(name: str, value: float) -> None:
+    _BOOTSTRAP_PROFILE[name] = value
 
 
 def count_occurrences(
@@ -118,6 +146,24 @@ def count_occurrences(
     >>> int(result.count_occurrences.isel(time=0).values)
     365
     """
+    if len(climate_vars) == 1 and not date_event:
+        safe_bootstrapped = _compute_safe_tiled_count_occurrences(
+            climate_vars[0],
+            resample_freq,
+        )
+        if safe_bootstrapped is not None:
+            if to_percent:
+                safe_bootstrapped = _to_percent(safe_bootstrapped, resample_freq)
+                safe_bootstrapped.attrs[UNITS_KEY] = "%"
+                return safe_bootstrapped
+            freq = check_freq(climate_vars[0].studied_data, dim="time")
+            return _safe_to_agg_units(
+                safe_bootstrapped,
+                climate_vars[0].studied_data,
+                "count",
+                deffreq=freq,
+            )
+
     if date_event:
         reducer_op = _count_occurrences_with_date
     else:
@@ -1205,6 +1251,259 @@ def _compute_exceedance(
         if climatology_bounds is not None:
             exceedances.attrs[REFERENCE_PERIOD_ID] = climatology_bounds
     return exceedances
+
+
+def _compute_safe_tiled_count_occurrences(
+    climate_var: ClimateVariable,
+    resample_freq: Frequency,
+) -> DataArray | None:
+    threshold = climate_var.threshold
+    if threshold is None:
+        return None
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if (
+        not isinstance(threshold, PercentileThreshold)
+        or not threshold.is_doy_per_threshold
+    ):
+        return None
+    if not _should_use_safe_count_bootstrap(climate_var):
+        return None
+    if not must_run_bootstrap(
+        climate_var.studied_data, threshold, climate_var.bootstrap
+    ):
+        return None
+
+    safe_start = perf_counter()
+    max_cells = _get_safe_bootstrap_max_cells(
+        climate_var.studied_data,
+        threshold,
+        resample_freq,
+    )
+    _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
+    while True:
+        try:
+            return _compute_safe_tiled_count_occurrences_with_max_cells(
+                climate_var,
+                threshold,
+                resample_freq,
+                max_cells,
+                safe_start,
+            )
+        except Exception as err:  # noqa: PERF203
+            if not _is_memory_like_bootstrap_error(err):
+                raise
+            if max_cells <= 1:
+                msg = (
+                    "Percentile bootstrap failed even with one spatial cell per tile. "
+                    "Try reducing the time range, using fewer workers/threads, or "
+                    "running with more memory."
+                )
+                raise MemoryError(msg) from err
+            max_cells = max(1, max_cells // 2)
+            _profile_bootstrap_inc("bootstrap_safe_memory_retry_count")
+            _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
+
+
+def _compute_safe_tiled_count_occurrences_with_max_cells(
+    climate_var: ClimateVariable,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+    max_cells: int,
+    safe_start: float,
+) -> DataArray:
+    tile_results: list[DataArray] = []
+    for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
+        tile_start = perf_counter()
+        tile_study = climate_var.studied_data.isel(tile_indexers)
+        tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        tile_exceedance = _compute_exceedance(
+            tile_study,
+            tile_threshold,
+            freq=resample_freq.pandas_freq,
+            bootstrap=True,
+        )
+        tile_result = tile_exceedance.resample(time=resample_freq.pandas_freq).sum(
+            dim="time"
+        )
+        if "percentiles" in tile_result.dims:
+            tile_result = tile_result.squeeze("percentiles")
+        tile_results.append(tile_result.load())
+        _profile_bootstrap_inc("bootstrap_safe_tile_count")
+        _profile_bootstrap_add(
+            "bootstrap_safe_tile_seconds",
+            perf_counter() - tile_start,
+        )
+
+    if len(tile_results) == 1:
+        result = tile_results[0]
+    else:
+        result = xr.combine_by_coords(
+            [tile.to_dataset(name="__icclim_bootstrap_tile") for tile in tile_results],
+            combine_attrs="override",
+        )["__icclim_bootstrap_tile"]
+    result.attrs.update(tile_results[-1].attrs)
+    _profile_bootstrap_add(
+        "bootstrap_safe_total_seconds",
+        perf_counter() - safe_start,
+    )
+    return result
+
+
+def _should_use_safe_count_bootstrap(climate_var: ClimateVariable) -> bool:
+    if climate_var.bootstrap is False:
+        return False
+    if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "default":
+        return False
+    from xclim.core.utils import uses_dask  # noqa: PLC0415
+
+    return uses_dask(climate_var.studied_data)
+
+
+def _get_safe_bootstrap_max_cells(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+) -> int:
+    if max_cells := os.environ.get("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS"):
+        return max(1, int(max_cells))
+    max_mem = _parse_byte_size(
+        os.environ.get(
+            "ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY",
+            _DEFAULT_BOOTSTRAP_SAFE_TILE_MEMORY,
+        )
+    )
+    bytes_per_cell = _estimate_bootstrap_working_bytes_per_cell(
+        study,
+        threshold,
+        resample_freq,
+    )
+    _profile_bootstrap_set("bootstrap_safe_tile_memory_bytes", max_mem)
+    _profile_bootstrap_set("bootstrap_safe_estimated_bytes_per_cell", bytes_per_cell)
+    return max(1, max_mem // bytes_per_cell)
+
+
+def _estimate_bootstrap_working_bytes_per_cell(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+) -> int:
+    clim = threshold.value.attrs["climatology_bounds"]
+    overlap_da = study.sel(time=slice(*clim))
+    overlap_groups = overlap_da.resample(
+        time=_get_bootstrap_freq(resample_freq.pandas_freq)
+    ).groups
+    n_bootstrap = max(1, len(overlap_groups) - 1)
+    itemsize = getattr(study.dtype, "itemsize", 8)
+    raw_bootstrap_bytes = max(1, overlap_da.sizes["time"]) * n_bootstrap * itemsize
+    return raw_bootstrap_bytes * _BOOTSTRAP_SAFE_MEMORY_FACTOR
+
+
+def _get_bootstrap_freq(freq: str) -> str:
+    from xclim.core.calendar import parse_offset  # noqa: PLC0415
+
+    _, base, start_anchor, anchor = parse_offset(freq)
+    bfreq = "YS" if start_anchor else "YE"
+    if base in ["A", "Y", "Q"] and anchor is not None:
+        bfreq = f"{bfreq}-{anchor}"
+    return bfreq
+
+
+def _parse_byte_size(value: str) -> int:
+    normalized = value.strip().lower().replace(" ", "")
+    units = {
+        "b": 1,
+        "kb": 1000,
+        "kib": 1024,
+        "mb": 1000**2,
+        "mib": 1024**2,
+        "gb": 1000**3,
+        "gib": 1024**3,
+    }
+    for unit, multiplier in sorted(
+        units.items(), key=lambda item: len(item[0]), reverse=True
+    ):
+        if normalized.endswith(unit):
+            return max(1, int(float(normalized.removesuffix(unit)) * multiplier))
+    return max(1, int(float(normalized)))
+
+
+def _iter_spatial_tiles(
+    da: DataArray,
+    max_cells: int,
+) -> list[dict[str, slice]]:
+    spatial_dims = [dim for dim in da.dims if dim != "time"]
+    if not spatial_dims:
+        return [{}]
+
+    tile_lengths = {dim: da.sizes[dim] for dim in spatial_dims}
+    product = 1
+    for dim in spatial_dims:
+        product *= tile_lengths[dim]
+    while product > max_cells:
+        dim = max(tile_lengths, key=tile_lengths.get)
+        old = tile_lengths[dim]
+        tile_lengths[dim] = max(1, old // 2)
+        product = 1
+        for value in tile_lengths.values():
+            product *= value
+        if tile_lengths[dim] == old:
+            break
+
+    tiles: list[dict[str, slice]] = [{}]
+    for dim in spatial_dims:
+        dim_tiles = [
+            slice(start, min(start + tile_lengths[dim], da.sizes[dim]))
+            for start in range(0, da.sizes[dim], tile_lengths[dim])
+        ]
+        tiles = [
+            {**prefix, dim: dim_tile} for prefix in tiles for dim_tile in dim_tiles
+        ]
+    return tiles
+
+
+def _slice_threshold_for_tile(
+    threshold: PercentileThreshold,
+    tile_indexers: dict[str, slice],
+) -> PercentileThreshold:
+    sliced = copy(threshold)
+    value = threshold.value
+    value_indexers = {
+        dim: indexer for dim, indexer in tile_indexers.items() if dim in value.dims
+    }
+    if value_indexers:
+        sliced._prepared_value = value.isel(value_indexers)  # noqa: SLF001
+    return sliced
+
+
+def _is_memory_like_bootstrap_error(err: BaseException) -> bool:
+    if isinstance(err, MemoryError):
+        return True
+    err_type = type(err).__name__.lower()
+    memory_error_types = {
+        "arraymemoryerror",
+        "killedworker",
+        "nannyrestart",
+        "reschedule",
+        "workerlost",
+        "workerkilled",
+    }
+    if err_type in memory_error_types:
+        return True
+    message = str(err).lower()
+    memory_fragments = (
+        "failed to allocate",
+        "killed worker",
+        "malloc",
+        "memoryerror",
+        "out of memory",
+        "oom",
+        "worker died",
+        "worker exceeded",
+    )
+    return any(fragment in message for fragment in memory_fragments)
 
 
 def get_couple_of_var(
