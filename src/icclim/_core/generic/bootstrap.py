@@ -21,8 +21,9 @@ if TYPE_CHECKING:
 def compute_doy_percentile_bootstrap_count(
     study: DataArray,
     threshold: PercentileThreshold,
+    freq: str,
 ) -> DataArray | None:
-    """Compute annual percentile bootstrap counts without building a huge dask graph."""
+    """Compute percentile bootstrap counts without building a huge dask graph."""
     if not _can_compute_fast_bootstrap(study, threshold):
         return None
     loaded = study.load()
@@ -33,29 +34,40 @@ def compute_doy_percentile_bootstrap_count(
     ref_year_indices = _indices_by_year(ref_time)
     study_year_indices = _indices_by_year(study_time)
     ref_years = np.asarray(list(ref_year_indices), dtype=np.int64)
-    study_years = np.asarray(list(study_year_indices), dtype=np.int64)
-    study_starts = np.asarray(
-        [indices[0] for indices in study_year_indices.values()],
+    output_group_indices = _indices_by_resample_group(loaded, freq)
+    output_group_labels = list(output_group_indices)
+    output_starts = np.asarray(
+        [indices[0] for indices in output_group_indices.values()],
         dtype=np.int64,
     )
-    study_lengths = np.asarray(
-        [len(indices) for indices in study_year_indices.values()],
+    output_lengths = np.asarray(
+        [len(indices) for indices in output_group_indices.values()],
         dtype=np.int64,
     )
     source_max_doy = int(ref_time.dayofyear.max())
-    study_max_doys = np.asarray(
-        [
-            source_max_doy
-            if source_max_doy == 366
-            else int(study_time[indices].dayofyear.max())
-            for indices in study_year_indices.values()
-        ],
+    study_year_max_doy = {
+        year: source_max_doy
+        if source_max_doy == 366
+        else int(study_time[indices].dayofyear.max())
+        for year, indices in study_year_indices.items()
+    }
+    output_years = np.asarray(
+        [int(study_time[indices[0]].year) for indices in output_group_indices.values()],
         dtype=np.int64,
     )
-    study_to_ref = np.asarray(
+    bootstrap_years = np.asarray(list(dict.fromkeys(output_years)), dtype=np.int64)
+    year_group_starts, year_group_stops = _group_bounds_by_year(
+        output_years,
+        bootstrap_years,
+    )
+    year_max_doys = np.asarray(
+        [study_year_max_doy[year] for year in bootstrap_years],
+        dtype=np.int64,
+    )
+    year_to_ref = np.asarray(
         [
             int(np.where(ref_years == year)[0][0]) if year in ref_year_indices else -1
-            for year in study_years
+            for year in bootstrap_years
         ],
         dtype=np.int64,
     )
@@ -83,22 +95,24 @@ def compute_doy_percentile_bootstrap_count(
         index_year,
         index_pos,
         donor_aligned,
-        study_starts,
-        study_lengths,
-        study_max_doys,
-        study_to_ref,
+        output_starts,
+        output_lengths,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
         study_time.dayofyear.to_numpy(dtype=np.int64),
         float(threshold.value.coords["percentiles"].item()) / 100.0,
         float(threshold.interpolation.alpha),
         float(threshold.interpolation.beta),
         _operator_code(threshold.operator),
     )
-    data = result.reshape((len(study_years), *loaded.shape[1:]))
+    data = result.reshape((len(output_group_labels), *loaded.shape[1:]))
     out = xr.DataArray(
         data,
         dims=loaded.dims,
         coords={
-            "time": [np.datetime64(f"{year}-01-01") for year in study_years],
+            "time": output_group_labels,
             **{coord: loaded.coords[coord] for coord in loaded.dims if coord != "time"},
         },
         attrs={"units": "d", REFERENCE_PERIOD_ID: climatology_bounds},
@@ -150,92 +164,126 @@ if njit is not None:
         donor_aligned,
         study_starts,
         study_lengths,
-        study_max_doys,
-        study_to_ref,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
         study_doys,
         quantile,
         alpha,
         beta,
         op_code,
     ):
-        n_years = len(study_starts)
+        n_years = len(year_to_ref)
+        n_groups = len(study_starts)
         n_cells = flat_study.shape[1]
-        out = np.empty((n_years, n_cells), dtype=np.float64)
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
         n_ref_years = donor_aligned.shape[1]
         max_samples = sample_indices.shape[1]
         for flat_i in prange(n_years * n_cells):
             year_i = flat_i // n_cells
             cell = flat_i % n_cells
-            target_ref_i = study_to_ref[year_i]
-            max_target_doy = study_max_doys[year_i]
-            start = study_starts[year_i]
-            length = study_lengths[year_i]
+            target_ref_i = year_to_ref[year_i]
+            max_target_doy = year_max_doys[year_i]
+            group_start = year_group_starts[year_i]
+            group_stop = year_group_stops[year_i]
             if target_ref_i < 0:
-                q = np.empty(365, dtype=np.float64)
-                buf = np.empty(max_samples, dtype=np.float64)
-                for doy_i in range(365):
-                    q[doy_i] = _quantile_for_doy_cell(
+                q = _quantiles_for_cell(
+                    flat_ref,
+                    sample_indices,
+                    index_year,
+                    index_pos,
+                    donor_aligned,
+                    -1,
+                    -1,
+                    cell,
+                    max_samples,
+                    quantile,
+                    alpha,
+                    beta,
+                )
+                for group_i in range(group_start, group_stop):
+                    out[group_i, cell] = _count_exceedances(
+                        flat_study,
+                        q,
+                        study_doys,
+                        study_starts[group_i],
+                        study_lengths[group_i],
+                        cell,
+                        max_target_doy,
+                        op_code,
+                    )
+            else:
+                for group_i in range(group_start, group_stop):
+                    out[group_i, cell] = 0.0
+                donor_count = 0
+                for donor_i in range(n_ref_years):
+                    if donor_i == target_ref_i:
+                        continue
+                    q = _quantiles_for_cell(
                         flat_ref,
                         sample_indices,
                         index_year,
                         index_pos,
                         donor_aligned,
-                        -1,
-                        -1,
-                        doy_i,
+                        target_ref_i,
+                        donor_i,
                         cell,
-                        buf,
+                        max_samples,
                         quantile,
                         alpha,
                         beta,
                     )
-                out[year_i, cell] = _count_exceedances(
-                    flat_study,
-                    q,
-                    study_doys,
-                    start,
-                    length,
-                    cell,
-                    max_target_doy,
-                    op_code,
-                )
-            else:
-                donor_total = 0.0
-                donor_count = 0
-                for donor_i in range(n_ref_years):
-                    if donor_i == target_ref_i:
-                        continue
-                    q = np.empty(365, dtype=np.float64)
-                    buf = np.empty(max_samples, dtype=np.float64)
-                    for doy_i in range(365):
-                        q[doy_i] = _quantile_for_doy_cell(
-                            flat_ref,
-                            sample_indices,
-                            index_year,
-                            index_pos,
-                            donor_aligned,
-                            target_ref_i,
-                            donor_i,
-                            doy_i,
+                    for group_i in range(group_start, group_stop):
+                        out[group_i, cell] += _count_exceedances(
+                            flat_study,
+                            q,
+                            study_doys,
+                            study_starts[group_i],
+                            study_lengths[group_i],
                             cell,
-                            buf,
-                            quantile,
-                            alpha,
-                            beta,
+                            max_target_doy,
+                            op_code,
                         )
-                    donor_total += _count_exceedances(
-                        flat_study,
-                        q,
-                        study_doys,
-                        start,
-                        length,
-                        cell,
-                        max_target_doy,
-                        op_code,
-                    )
                     donor_count += 1
-                out[year_i, cell] = donor_total / donor_count
+                for group_i in range(group_start, group_stop):
+                    out[group_i, cell] /= donor_count
         return out
+
+    @njit(cache=True)
+    def _quantiles_for_cell(
+        flat_ref,
+        sample_indices,
+        index_year,
+        index_pos,
+        donor_aligned,
+        target_ref_i,
+        donor_i,
+        cell,
+        max_samples,
+        quantile,
+        alpha,
+        beta,
+    ):
+        q = np.empty(365, dtype=np.float64)
+        buf = np.empty(max_samples, dtype=np.float64)
+        for doy_i in range(365):
+            q[doy_i] = _quantile_for_doy_cell(
+                flat_ref,
+                sample_indices,
+                index_year,
+                index_pos,
+                donor_aligned,
+                target_ref_i,
+                donor_i,
+                doy_i,
+                cell,
+                buf,
+                quantile,
+                alpha,
+                beta,
+            )
+        return q
 
     @njit(cache=True)
     def _quantile_for_doy_cell(
@@ -375,6 +423,36 @@ else:
 
 def _indices_by_year(time: pd.DatetimeIndex) -> dict[int, np.ndarray]:
     return {int(year): np.where(time.year == year)[0] for year in np.unique(time.year)}
+
+
+def _indices_by_resample_group(
+    da: DataArray, freq: str
+) -> dict[np.datetime64, np.ndarray]:
+    groups = da.resample(time=freq).groups
+    out = {}
+    for label, indexer in groups.items():
+        if isinstance(indexer, slice):
+            start = 0 if indexer.start is None else indexer.start
+            stop = da.sizes["time"] if indexer.stop is None else indexer.stop
+            step = 1 if indexer.step is None else indexer.step
+            indices = np.arange(start, stop, step, dtype=np.int64)
+        else:
+            indices = np.asarray(indexer, dtype=np.int64)
+        out[np.datetime64(label)] = indices
+    return out
+
+
+def _group_bounds_by_year(
+    output_years: np.ndarray,
+    bootstrap_years: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    starts = np.empty(len(bootstrap_years), dtype=np.int64)
+    stops = np.empty(len(bootstrap_years), dtype=np.int64)
+    for i, year in enumerate(bootstrap_years):
+        group_indices = np.where(output_years == year)[0]
+        starts[i] = int(group_indices[0])
+        stops[i] = int(group_indices[-1]) + 1
+    return starts, stops
 
 
 def _rolling_sample_index_matrix(

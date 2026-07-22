@@ -4,7 +4,7 @@
  Development
 #############
 
-Here are some guidelines for those who which to contribute to icclim
+Here are some guidelines for those who wish to contribute to icclim
 development.
 
 .. toctree::
@@ -13,5 +13,6 @@ development.
 
    release_process
    ci
+   percentile_bootstrap
    contributing
    climpact_comparison_protocol
