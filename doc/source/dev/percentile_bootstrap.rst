@@ -19,6 +19,18 @@ The goal is reliability first: users should not have to guess a dask
 chunking strategy, and icclim should avoid both memory exhaustion and
 very large dask graphs.
 
+The fast path is specialised for percentile-based count indices. It
+does not call xclim's generic bootstrap decorator. Instead it:
+
+- tiles the spatial domain according to an explicit memory budget;
+- loads one tile at a time, avoiding a large dask bootstrap graph;
+- uses the already-prepared nominal percentile threshold for
+  non-overlapping years;
+- recomputes donor-year bootstrap thresholds only for years overlapping
+  the reference period;
+- reuses each yearly donor threshold across all output groups in that
+  year, so monthly output does not recompute thresholds twelve times.
+
 Fast path currently supports:
 
 - annual ``YS`` and monthly ``MS`` output periods;
@@ -46,9 +58,31 @@ most useful future extensions are likely:
 Performance notes
 =================
 
-Kraken benchmarks showed that the compiled annual path is about 10 times
-faster than the safe tiled path on a representative TG90p case, with
-bitwise-equivalent counts up to floating-point noise.
+Kraken benchmarks showed that the compiled annual path can be about 10
+times faster than the safe tiled fallback on a representative TG90p case,
+with bitwise-equivalent counts up to floating-point noise:
+
+- safe tiled fallback: about 1473 seconds;
+- production fast path: about 146 seconds;
+- maximum absolute difference: about ``5.7e-14``.
+
+Compared to the old xclim/dask graph path, performance is
+case-dependent when the old path succeeds. On the ACCESS-CM2 validation
+subset (65 years, 28 latitudes, 21 longitudes), the fast path was close
+to the legacy path in wall-clock time, but removed the multi-million-task
+dask graph:
+
+- annual ``TG90p``: legacy 204 seconds and 4,691,198 graph tasks; fast
+  212 seconds and 0 graph tasks; maximum absolute difference
+  ``8.6e-14``; MaxRSS about 4.4 GB;
+- monthly ``TG90p``: legacy 212 seconds and 4,696,205 graph tasks; fast
+  212 seconds and 0 graph tasks; maximum absolute difference
+  ``7.2e-15``; MaxRSS about 4.0 GB.
+
+So the robust statement is that the fast path bounds memory and avoids
+giant dask graphs. It is much faster than the reliable safe tiled
+fallback, but it is not guaranteed to beat the old graph path on cases
+where that graph path happens to complete.
 
 Further large speedups are more likely to come from reducing Python,
 xarray and dask preparation overhead than from micro-optimising the Numba
@@ -57,8 +91,8 @@ kernel. Promising areas:
 - avoid preparing percentile thresholds twice before the fast path;
 - load each spatial tile exactly once and keep unit-normalised values
   contiguous before entering the kernel;
-- profile monthly and seasonal cases separately, because output grouping
-  changes the amount of count work but not the bootstrap threshold work.
+- profile seasonal cases separately, because output grouping changes the
+  amount of count work but not the bootstrap threshold work.
 
 Validation rules
 ================
