@@ -86,6 +86,15 @@ case: about 247 seconds instead of about 155 seconds on the same ``rome``
 node. The retained strategy computes those nominal thresholds in the
 compiled path and reuses each yearly threshold across monthly groups.
 
+Seasonal validation on the same 65-year ACCESS-CM2 subset showed that
+anchored annual seasonal outputs match eager in-memory references exactly
+while keeping the fast path graph-free:
+
+- ``JJA`` ``TG90p``: eager reference 16 seconds; fast dask path 12
+  seconds; maximum absolute difference ``0``;
+- ``ONDJFM`` ``TG90p``: eager reference 22 seconds; fast dask path 22
+  seconds; maximum absolute difference ``0``.
+
 So the robust statement is that the fast path bounds memory and avoids
 giant dask graphs. It is much faster than the reliable safe tiled
 fallback, but it is not guaranteed to beat the old graph path on cases

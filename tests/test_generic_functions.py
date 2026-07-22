@@ -1,4 +1,5 @@
 import pytest
+import xarray as xr
 
 from icclim._core.climate_variable import ClimateVariable
 from icclim._core.constants import GROUP_BY_METHOD
@@ -15,6 +16,7 @@ from icclim._core.generic.functions import (
 from icclim._core.model.logical_link import LogicalLinkRegistry
 from icclim._core.model.standard_variable import StandardVariableRegistry
 from icclim.frequency import FrequencyRegistry
+from icclim.generic.registry import GenericIndicatorRegistry
 from icclim.threshold.factory import build_threshold
 from tests.testing_utils import stub_tas
 
@@ -50,6 +52,28 @@ def test_percentile() -> None:
         is_compared_to_reference=False,
     )
     assert result[0] == -5
+
+
+def test_missing_mask_supports_latest_xclim_constructor_style() -> None:
+    class NewStyleMissing:
+        def __init__(self, da, freq=None, src_timestep=None, **indexer):
+            self.da = da
+            self.freq = freq
+            self.src_timestep = src_timestep
+            self.indexer = indexer
+
+        def __call__(self):
+            return xr.zeros_like(self.da, dtype=bool)
+
+    tas = stub_tas()
+    mask = GenericIndicatorRegistry.CountOccurrences._compute_missing_mask(
+        NewStyleMissing,
+        tas,
+        "YS-JUN",
+        "D",
+        {"month": [6, 7, 8]},
+    )
+    assert not bool(mask.any())
 
 
 def test_average() -> None:
