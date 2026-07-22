@@ -1,8 +1,8 @@
 .. _dev_percentile_bootstrap:
 
-####################
- Percentile bootstrap
-####################
+#####################
+Percentile bootstrap
+#####################
 
 This note records the bootstrap optimisation state after icclim 7.1.4.
 It is meant for maintainers changing the percentile-based count indices.
@@ -83,7 +83,7 @@ dask graph:
 An intermediate experiment materialized the nominal percentile threshold
 for non-overlapping years before entering the kernel. It was exact, but
 large benchmarks showed a clear regression on the 65-year ACCESS-CM2
-case: about 247 seconds instead of about 157 seconds on the same ``rome``
+case: about 247 seconds instead of about 155 seconds on the same ``rome``
 node. The retained strategy computes those nominal thresholds in the
 compiled path and reuses each yearly threshold across monthly groups.
 
