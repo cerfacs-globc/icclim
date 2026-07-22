@@ -809,6 +809,7 @@ class TestIntegration:
         monkeypatch,
     ) -> None:
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
         tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
         tas[5:10] = 0
         tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
