@@ -69,6 +69,12 @@ def compute_doy_percentile_bootstrap_count(
         ref.sizes["time"],
         -1,
     )
+    nominal_threshold = _nominal_threshold(threshold)
+    nominal_source_doy_count = nominal_threshold.sizes["dayofyear"]
+    flat_nominal = np.asarray(
+        nominal_threshold.transpose("dayofyear", ...).data,
+        dtype=np.float64,
+    ).reshape(nominal_source_doy_count, -1)
     sample_indices = _rolling_sample_index_matrix(
         ref_time,
         window=threshold.doy_window_width,
@@ -81,6 +87,7 @@ def compute_doy_percentile_bootstrap_count(
     result = _bootstrap_count_kernel(
         flat_ref,
         flat,
+        flat_nominal,
         sample_indices,
         index_year,
         index_pos,
@@ -94,6 +101,7 @@ def compute_doy_percentile_bootstrap_count(
         float(threshold.interpolation.alpha),
         float(threshold.interpolation.beta),
         _operator_code(threshold.operator),
+        nominal_source_doy_count,
     )
     data = result.reshape((len(output_group_labels), *loaded.shape[1:]))
     out = xr.DataArray(
@@ -128,6 +136,15 @@ def _can_compute_fast_bootstrap(
     )
 
 
+def _nominal_threshold(
+    threshold: PercentileThreshold,
+) -> DataArray:
+    nominal = threshold.value
+    if "percentiles" in nominal.dims:
+        nominal = nominal.squeeze("percentiles", drop=True)
+    return nominal
+
+
 def _operator_code(operator: Operator | str) -> int:
     operand = operator.operand if isinstance(operator, Operator) else str(operator)
     return {">": 0, ">=": 1, "<": 2, "<=": 3}.get(operand, -1)
@@ -146,6 +163,7 @@ if njit is not None:
     def _bootstrap_count_kernel(
         flat_ref,
         flat_study,
+        flat_nominal,
         sample_indices,
         index_year,
         index_pos,
@@ -159,6 +177,7 @@ if njit is not None:
         alpha,
         beta,
         op_code,
+        nominal_source_doy_count,
     ):
         n_years = len(study_starts)
         n_cells = flat_study.shape[1]
@@ -173,33 +192,16 @@ if njit is not None:
             start = study_starts[year_i]
             length = study_lengths[year_i]
             if target_ref_i < 0:
-                q = np.empty(365, dtype=np.float64)
-                buf = np.empty(max_samples, dtype=np.float64)
-                for doy_i in range(365):
-                    q[doy_i] = _quantile_for_doy_cell(
-                        flat_ref,
-                        sample_indices,
-                        index_year,
-                        index_pos,
-                        donor_aligned,
-                        -1,
-                        -1,
-                        doy_i,
-                        cell,
-                        buf,
-                        quantile,
-                        alpha,
-                        beta,
-                    )
-                out[year_i, cell] = _count_exceedances(
+                out[year_i, cell] = _count_exceedances_with_nominal_threshold(
                     flat_study,
-                    q,
+                    flat_nominal,
                     study_doys,
                     start,
                     length,
                     cell,
                     max_target_doy,
                     op_code,
+                    nominal_source_doy_count,
                 )
             else:
                 donor_total = 0.0
@@ -238,6 +240,57 @@ if njit is not None:
                     donor_count += 1
                 out[year_i, cell] = donor_total / donor_count
         return out
+
+    @njit(cache=True)
+    def _count_exceedances_with_nominal_threshold(
+        flat_study,
+        flat_nominal,
+        study_doys,
+        start,
+        length,
+        cell,
+        max_target_doy,
+        op_code,
+        nominal_source_doy_count,
+    ):
+        count = 0.0
+        for offset in range(length):
+            doy = study_doys[start + offset]
+            value = flat_study[start + offset, cell]
+            threshold = _adjusted_nominal_threshold(
+                flat_nominal,
+                doy,
+                cell,
+                max_target_doy,
+                nominal_source_doy_count,
+            )
+            if _compare(value, threshold, op_code):
+                count += 1.0
+        return count
+
+    @njit(cache=True)
+    def _adjusted_nominal_threshold(
+        flat_nominal,
+        doy,
+        cell,
+        max_target_doy,
+        nominal_source_doy_count,
+    ):
+        if nominal_source_doy_count == max_target_doy:
+            return flat_nominal[doy - 1, cell]
+        position = (doy - 1.0) * (nominal_source_doy_count - 1.0) / (
+            max_target_doy - 1.0
+        )
+        lower = int(np.floor(position))
+        if lower >= nominal_source_doy_count - 1:
+            return flat_nominal[nominal_source_doy_count - 1, cell]
+        gamma = position - lower
+        left = flat_nominal[lower, cell]
+        right = flat_nominal[lower + 1, cell]
+        diff = right - left
+        if gamma >= 0.5:
+            return right - diff * (1.0 - gamma)
+        return left + diff * gamma
 
     @njit(cache=True)
     def _quantile_for_doy_cell(
