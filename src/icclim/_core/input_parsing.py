@@ -499,6 +499,7 @@ def build_studied_data(
     time_range: Sequence[datetime | str] | None,
     ignore_feb29th: bool,
     default_units: str | None,
+    standard_var: StandardVariable | None = None,
 ) -> DataArray:
     """
     Preprocesss the input data to select the period of interest.
@@ -515,6 +516,9 @@ def build_studied_data(
     default_units : str | None
         The default units to use for the data array if it is uniteless.
         If None and the data array is uniteless, "units" attribute remains unset.
+    standard_var : StandardVariable | None
+        Known standard variable for the data array. If unset, icclim guesses from
+        the data metadata.
 
     Returns
     -------
@@ -547,7 +551,7 @@ def build_studied_data(
         da = da.convert_calendar(CfCalendarRegistry.NO_LEAP.name)
     if da.attrs.get(UNITS_KEY, None) is None and default_units is not None:
         da.attrs[UNITS_KEY] = default_units
-    std_var = guess_standard_variable(da)
+    std_var = standard_var or guess_standard_variable(da)
     if (
         std_var is not None
         and std_var.default_units == "degree_Celsius"

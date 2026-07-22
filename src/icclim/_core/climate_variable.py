@@ -305,11 +305,18 @@ def build_climate_var(
         time_range,
         ignore_feb29th,
         standard_var.default_units if standard_var else None,
+        standard_var=standard_var,
     )
     if climate_var_thresh is not None:
+        threshold_prepare_data = _build_threshold_prepare_data(
+            original_data=study_ds[climate_var_name],
+            studied_data=studied_data,
+            ignore_feb29th=ignore_feb29th,
+            standard_var=standard_var,
+        )
         climate_var_thresh = _build_threshold(
             climate_var_thresh=climate_var_thresh,
-            original_data=study_ds[climate_var_name],
+            original_data=threshold_prepare_data,
             conversion_unit=studied_data.attrs[UNITS_KEY],
         )
     if "time" in studied_data.coords:
@@ -470,6 +477,23 @@ def _build_threshold(
         res.prepare(original_data)
     res.unit = conversion_unit
     return res
+
+
+def _build_threshold_prepare_data(
+    original_data: DataArray,
+    studied_data: DataArray,
+    ignore_feb29th: bool,
+    standard_var: StandardVariable | None,
+) -> DataArray:
+    if standard_var is None or standard_var.default_units != "degree_Celsius":
+        return original_data
+    return build_studied_data(
+        original_data,
+        time_range=None,
+        ignore_feb29th=ignore_feb29th,
+        default_units=studied_data.attrs.get(UNITS_KEY, None),
+        standard_var=standard_var,
+    )
 
 
 def _get_ref_period_slice(da: DataArray) -> slice:
