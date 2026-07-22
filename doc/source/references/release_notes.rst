@@ -3,6 +3,17 @@
 #################
 
 ******
+7.1.5
+******
+
+date: 2026-07-22
+
+
+-  [enh] Extend the compiled percentile bootstrap count path to monthly outputs, so day-of-year percentile count indices such as ``TG90p``, ``TX90p`` and ``TN90p`` can avoid multi-million-task dask graphs for both annual and monthly frequencies.
+-  [perf] Reuse each yearly bootstrap threshold across all output groups in the same year and avoid materializing nominal percentile thresholds, preserving the fast annual performance validated in ``v7.1.4``.
+-  [doc] Document the percentile bootstrap strategy, supported cases, validation rules and Kraken benchmark results for future maintainers.
+
+******
 7.1.4
 ******
 
