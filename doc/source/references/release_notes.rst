@@ -3,6 +3,17 @@
 #################
 
 ******
+7.1.6
+******
+
+date: 2026-07-22
+
+
+-  [enh] Extend the compiled percentile bootstrap count path to anchored annual seasonal outputs such as ``JJA`` and ``ONDJFM``.
+-  [fix] Support the latest ``xclim`` missing-value method API during seasonal post-processing.
+-  [doc] Add seasonal bootstrap validation results showing exact agreement against eager references on Kraken.
+
+******
 7.1.5
 ******
 
