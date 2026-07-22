@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from xclim.core.units import convert_units_to
 
 import icclim
 from icclim import __version__ as icclim_version
@@ -718,6 +719,42 @@ class TestIntegration:
         assert REFERENCE_PERIOD_ID not in res.TX90p.attrs
         # resample_doy add a day where 90th per is below tas
         assert res.TX90p.isel(time=0) == 6
+
+    def test_index_tx90p__temperature_percentiles_use_celsius_first_path(
+        self,
+    ) -> None:
+        tas_k = stub_tas(tas_value=27 + K2C)
+        tas_k = tas_k.astype("float32")
+        tas_k[5:10] = np.float32(0)
+        tas_c = convert_units_to(tas_k, "degree_Celsius", context="hydro")
+
+        common_kwargs = {
+            "index_name": "tx90p",
+            "doy_window_width": 1,
+            "time_range": ("2043-01-01", "2045-12-31"),
+            "base_period_time_range": ("2042-01-01", "2042-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "ms",
+            "save_thresholds": True,
+            "bootstrap": False,
+        }
+
+        from_kelvin = icclim.index(in_files=tas_k, **common_kwargs).load()
+        from_celsius = icclim.index(in_files=tas_c, **common_kwargs).load()
+        threshold_name = next(
+            name for name in from_kelvin.data_vars if name.endswith("_thresholds")
+        )
+
+        xr.testing.assert_identical(from_kelvin.TX90p, from_celsius.TX90p)
+        xr.testing.assert_allclose(
+            from_kelvin[threshold_name],
+            from_celsius[threshold_name],
+            rtol=0,
+            atol=0,
+        )
+        assert normalize_unit(from_kelvin[threshold_name].attrs[UNITS_KEY]) == (
+            normalize_unit("degree_Celsius")
+        )
 
     def test_index_tx90p__bootstrap_2_years(self) -> None:
         tas = stub_tas(tas_value=27 + K2C)
