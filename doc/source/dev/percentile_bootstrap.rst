@@ -24,8 +24,9 @@ does not call xclim's generic bootstrap decorator. Instead it:
 
 - tiles the spatial domain according to an explicit memory budget;
 - loads one tile at a time, avoiding a large dask bootstrap graph;
-- uses the already-prepared nominal percentile threshold for
-  non-overlapping years;
+- computes nominal thresholds inside the compiled path for
+  non-overlapping years, avoiding an expensive materialized xarray
+  threshold field;
 - recomputes donor-year bootstrap thresholds only for years overlapping
   the reference period;
 - reuses each yearly donor threshold across all output groups in that
@@ -78,6 +79,13 @@ dask graph:
 - monthly ``TG90p``: legacy 212 seconds and 4,696,205 graph tasks; fast
   212 seconds and 0 graph tasks; maximum absolute difference
   ``7.2e-15``; MaxRSS about 4.0 GB.
+
+An intermediate experiment materialized the nominal percentile threshold
+for non-overlapping years before entering the kernel. It was exact, but
+large benchmarks showed a clear regression on the 65-year ACCESS-CM2
+case: about 247 seconds instead of about 157 seconds on the same ``rome``
+node. The retained strategy computes those nominal thresholds in the
+compiled path and reuses each yearly threshold across monthly groups.
 
 So the robust statement is that the fast path bounds memory and avoids
 giant dask graphs. It is much faster than the reliable safe tiled
