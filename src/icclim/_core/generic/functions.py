@@ -70,7 +70,9 @@ if TYPE_CHECKING:
 
 _BOOTSTRAP_PROFILE: dict[str, float | int] = {}
 _DEFAULT_BOOTSTRAP_SAFE_TILE_MEMORY = "2GB"
+_DEFAULT_BOOTSTRAP_FAST_TILE_MEMORY = "2GB"
 _BOOTSTRAP_SAFE_MEMORY_FACTOR = 12
+_BOOTSTRAP_FAST_MEMORY_FACTOR = 4
 
 
 def reset_bootstrap_profile() -> None:
@@ -1283,6 +1285,14 @@ def _compute_safe_tiled_count_occurrences(
         resample_freq,
     )
     _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
+    optimized = _compute_fast_tiled_count_occurrences(
+        climate_var,
+        threshold,
+        resample_freq,
+        _get_fast_bootstrap_max_cells(climate_var.studied_data),
+    )
+    if optimized is not None:
+        return optimized
     while True:
         try:
             return _compute_safe_tiled_count_occurrences_with_max_cells(
@@ -1352,6 +1362,45 @@ def _compute_safe_tiled_count_occurrences_with_max_cells(
     return result
 
 
+def _compute_fast_tiled_count_occurrences(
+    climate_var: ClimateVariable,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+    max_cells: int,
+) -> DataArray | None:
+    if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
+        return None
+    if resample_freq.pandas_freq != "YS":
+        return None
+    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_count,
+    )
+
+    fast_start = perf_counter()
+    tile_results: list[DataArray] = []
+    for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
+        tile_study = climate_var.studied_data.isel(tile_indexers)
+        tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        tile_result = compute_doy_percentile_bootstrap_count(
+            tile_study,
+            tile_threshold,
+        )
+        if tile_result is None:
+            return None
+        tile_results.append(tile_result)
+        _profile_bootstrap_inc("bootstrap_fast_tile_count")
+    if len(tile_results) == 1:
+        result = tile_results[0]
+    else:
+        result = xr.combine_by_coords(
+            [tile.to_dataset(name="__icclim_bootstrap_tile") for tile in tile_results],
+            combine_attrs="override",
+        )["__icclim_bootstrap_tile"]
+    result.attrs.update(tile_results[-1].attrs)
+    _profile_bootstrap_add("bootstrap_fast_total_seconds", perf_counter() - fast_start)
+    return result
+
+
 def _should_use_safe_count_bootstrap(climate_var: ClimateVariable) -> bool:
     if climate_var.bootstrap is False:
         return False
@@ -1360,6 +1409,25 @@ def _should_use_safe_count_bootstrap(climate_var: ClimateVariable) -> bool:
     from xclim.core.utils import uses_dask  # noqa: PLC0415
 
     return uses_dask(climate_var.studied_data)
+
+
+def _get_fast_bootstrap_max_cells(study: DataArray) -> int:
+    if max_cells := os.environ.get("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS"):
+        return max(1, int(max_cells))
+    max_mem = _parse_byte_size(
+        os.environ.get(
+            "ICCLIM_BOOTSTRAP_FAST_TILE_MEMORY",
+            _DEFAULT_BOOTSTRAP_FAST_TILE_MEMORY,
+        )
+    )
+    itemsize = getattr(study.dtype, "itemsize", 8)
+    bytes_per_cell = max(1, study.sizes["time"]) * itemsize
+    bytes_per_cell *= _BOOTSTRAP_FAST_MEMORY_FACTOR
+    _profile_bootstrap_set("bootstrap_fast_tile_memory_bytes", max_mem)
+    _profile_bootstrap_set("bootstrap_fast_estimated_bytes_per_cell", bytes_per_cell)
+    max_cells = max(1, max_mem // bytes_per_cell)
+    _profile_bootstrap_set("bootstrap_fast_max_tile_cells", max_cells)
+    return max_cells
 
 
 def _get_safe_bootstrap_max_cells(
