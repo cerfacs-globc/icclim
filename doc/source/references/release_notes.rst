@@ -3,6 +3,18 @@
 #################
 
 ******
+7.1.4
+******
+
+date: 2026-07-22
+
+
+-  [enh] Speed up annual percentile bootstrap counts with a compiled rank-select path for day-of-year percentile count indices such as ``TG90p``, ``TX90p`` and ``TN90p``. Unsupported cases keep using the existing safe tiled bootstrap path.
+-  [enh] Add separate memory-based tiling controls for the compiled bootstrap path, while preserving the reliable xclim-based fallback and ``ICCLIM_BOOTSTRAP_MODE=safe`` escape hatch.
+-  [fix] Prepare temperature percentile thresholds from the full Celsius-normalized input series, so Kelvin input and explicitly Celsius input follow the same scientific path and produce identical saved thresholds.
+-  [maint] Update generated API documentation after the bootstrap reliability changes.
+
+******
 7.1.3
 ******
 
