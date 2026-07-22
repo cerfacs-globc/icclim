@@ -1370,7 +1370,7 @@ def _compute_fast_tiled_count_occurrences(
 ) -> DataArray | None:
     if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
         return None
-    if resample_freq.pandas_freq not in {"YS", "MS"}:
+    if not _is_fast_bootstrap_frequency(resample_freq.pandas_freq):
         return None
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
         compute_doy_percentile_bootstrap_count,
@@ -1400,6 +1400,10 @@ def _compute_fast_tiled_count_occurrences(
     result.attrs.update(tile_results[-1].attrs)
     _profile_bootstrap_add("bootstrap_fast_total_seconds", perf_counter() - fast_start)
     return result
+
+
+def _is_fast_bootstrap_frequency(freq: str) -> bool:
+    return freq in {"MS", "YS"} or freq.startswith("YS-")
 
 
 def _should_use_safe_count_bootstrap(climate_var: ClimateVariable) -> bool:

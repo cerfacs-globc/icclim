@@ -555,13 +555,16 @@ class GenericIndicator(Indicator):
         """
         from xclim.core.missing import MISSING_METHODS  # noqa: PLC0415
 
-        missing_class = MISSING_METHODS[self.missing]  # Get the class
-        missing_obj = missing_class()  # Instantiate with no args
+        missing_class = MISSING_METHODS[self.missing]
 
         # We flag periods according to the missing method. Skip variables without a time coordinate.
         miss = (
-            missing_obj(
-                da, freq=resample_freq, src_timestep=src_freq, **(indexer or {})
+            self._compute_missing_mask(
+                missing_class,
+                da,
+                resample_freq,
+                src_freq,
+                indexer or {},
             )
             for da in (in_data if isinstance(in_data, Sequence) else [in_data])
             if "time" in da.coords
@@ -587,6 +590,33 @@ class GenericIndicator(Indicator):
             mask = xr.where(mask.time == mask.time[-1], False, mask)
 
         return out_data.where(~mask)
+
+    def _compute_missing_mask(
+        self,
+        missing_class: type,
+        da: DataArray,
+        resample_freq: str | None,
+        src_freq: str | None,
+        indexer: dict[Any, Any],
+    ) -> DataArray:
+        missing_options = self.missing_options or {}
+        try:
+            missing_obj = missing_class(**missing_options)
+        except TypeError:
+            missing_obj = missing_class(
+                da,
+                freq=resample_freq,
+                src_timestep=src_freq,
+                **indexer,
+                **missing_options,
+            )
+            return missing_obj()
+        return missing_obj(
+            da,
+            freq=resample_freq,
+            src_timestep=src_freq,
+            **indexer,
+        )
 
 
 def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:

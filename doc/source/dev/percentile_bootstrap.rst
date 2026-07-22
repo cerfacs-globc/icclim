@@ -34,7 +34,8 @@ does not call xclim's generic bootstrap decorator. Instead it:
 
 Fast path currently supports:
 
-- annual ``YS`` and monthly ``MS`` output periods;
+- annual ``YS``, monthly ``MS`` and anchored annual ``YS-*`` seasonal
+  output periods;
 - single day-of-year percentile thresholds;
 - simple count operators: ``>``, ``>=``, ``<`` and ``<=``;
 - no ``threshold_min_value``;
@@ -47,8 +48,6 @@ Unsupported cases
 Unsupported cases intentionally fall back to the safe tiled path. The
 most useful future extensions are likely:
 
-- seasonal output periods, after validating that resample grouping and
-  donor-year substitution are scientifically coherent for seasons;
 - precipitation wet-day percentile thresholds using
   ``threshold_min_value``;
 - non-standard calendars, once cftime grouping and leap handling are
@@ -86,6 +85,15 @@ large benchmarks showed a clear regression on the 65-year ACCESS-CM2
 case: about 247 seconds instead of about 155 seconds on the same ``rome``
 node. The retained strategy computes those nominal thresholds in the
 compiled path and reuses each yearly threshold across monthly groups.
+
+Seasonal validation on the same 65-year ACCESS-CM2 subset showed that
+anchored annual seasonal outputs match eager in-memory references exactly
+while keeping the fast path graph-free:
+
+- ``JJA`` ``TG90p``: eager reference 16 seconds; fast dask path 12
+  seconds; maximum absolute difference ``0``;
+- ``ONDJFM`` ``TG90p``: eager reference 22 seconds; fast dask path 22
+  seconds; maximum absolute difference ``0``.
 
 So the robust statement is that the fast path bounds memory and avoids
 giant dask graphs. It is much faster than the reliable safe tiled
