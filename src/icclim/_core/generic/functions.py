@@ -1370,7 +1370,7 @@ def _compute_fast_tiled_count_occurrences(
 ) -> DataArray | None:
     if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
         return None
-    if resample_freq.pandas_freq != "YS":
+    if resample_freq.pandas_freq not in {"YS", "MS"}:
         return None
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
         compute_doy_percentile_bootstrap_count,
@@ -1384,6 +1384,7 @@ def _compute_fast_tiled_count_occurrences(
         tile_result = compute_doy_percentile_bootstrap_count(
             tile_study,
             tile_threshold,
+            resample_freq.pandas_freq,
         )
         if tile_result is None:
             return None
