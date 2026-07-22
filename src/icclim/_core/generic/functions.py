@@ -1283,6 +1283,14 @@ def _compute_safe_tiled_count_occurrences(
         resample_freq,
     )
     _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
+    optimized = _compute_fast_tiled_count_occurrences(
+        climate_var,
+        threshold,
+        resample_freq,
+        max_cells,
+    )
+    if optimized is not None:
+        return optimized
     while True:
         try:
             return _compute_safe_tiled_count_occurrences_with_max_cells(
@@ -1349,6 +1357,45 @@ def _compute_safe_tiled_count_occurrences_with_max_cells(
         "bootstrap_safe_total_seconds",
         perf_counter() - safe_start,
     )
+    return result
+
+
+def _compute_fast_tiled_count_occurrences(
+    climate_var: ClimateVariable,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+    max_cells: int,
+) -> DataArray | None:
+    if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
+        return None
+    if resample_freq.pandas_freq != "YS":
+        return None
+    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_count,
+    )
+
+    fast_start = perf_counter()
+    tile_results: list[DataArray] = []
+    for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
+        tile_study = climate_var.studied_data.isel(tile_indexers)
+        tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        tile_result = compute_doy_percentile_bootstrap_count(
+            tile_study,
+            tile_threshold,
+        )
+        if tile_result is None:
+            return None
+        tile_results.append(tile_result)
+        _profile_bootstrap_inc("bootstrap_fast_tile_count")
+    if len(tile_results) == 1:
+        result = tile_results[0]
+    else:
+        result = xr.combine_by_coords(
+            [tile.to_dataset(name="__icclim_bootstrap_tile") for tile in tile_results],
+            combine_attrs="override",
+        )["__icclim_bootstrap_tile"]
+    result.attrs.update(tile_results[-1].attrs)
+    _profile_bootstrap_add("bootstrap_fast_total_seconds", perf_counter() - fast_start)
     return result
 
 
