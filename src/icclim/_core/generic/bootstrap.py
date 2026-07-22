@@ -275,9 +275,7 @@ if njit is not None:
             return np.nan
         if n == 1:
             return buf[0]
-        virtual = n * quantile + (
-            alpha + quantile * (1.0 - alpha - beta)
-        ) - 1.0
+        virtual = n * quantile + (alpha + quantile * (1.0 - alpha - beta)) - 1.0
         if virtual >= n - 1:
             return _select_kth(buf, n, n - 1)
         if virtual < 0:
