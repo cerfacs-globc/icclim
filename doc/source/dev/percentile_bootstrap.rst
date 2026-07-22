@@ -34,7 +34,8 @@ does not call xclim's generic bootstrap decorator. Instead it:
 
 Fast path currently supports:
 
-- annual ``YS`` and monthly ``MS`` output periods;
+- annual ``YS``, monthly ``MS`` and anchored annual ``YS-*`` seasonal
+  output periods;
 - single day-of-year percentile thresholds;
 - simple count operators: ``>``, ``>=``, ``<`` and ``<=``;
 - no ``threshold_min_value``;
@@ -47,8 +48,6 @@ Unsupported cases
 Unsupported cases intentionally fall back to the safe tiled path. The
 most useful future extensions are likely:
 
-- seasonal output periods, after validating that resample grouping and
-  donor-year substitution are scientifically coherent for seasons;
 - precipitation wet-day percentile thresholds using
   ``threshold_min_value``;
 - non-standard calendars, once cftime grouping and leap handling are

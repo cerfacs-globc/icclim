@@ -866,6 +866,37 @@ class TestIntegration:
         assert profile["bootstrap_fast_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
+    @pytest.mark.parametrize("slice_mode", ["JJA", "ONDJFM"])
+    def test_index_tx90p__dask_bootstrap_uses_fast_tiled_seasonal_path(
+        self,
+        slice_mode,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
+        tas[160:165] = 0
+        tas[340:345] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "index_name": "tx90p",
+            "in_files": tas,
+            "doy_window_width": 1,
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "base_period_time_range": ("2042-01-01", "2043-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": slice_mode,
+        }
+
+        eager = icclim.index(**{**common_kwargs, "in_files": tas.compute()}).compute()
+        generic_functions.reset_bootstrap_profile()
+
+        default = icclim.index(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert profile["bootstrap_fast_tile_count"] == 4
+        xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
+
     def test_index_tx90p__safe_bootstrap_uses_memory_budget(self, monkeypatch) -> None:
         monkeypatch.delenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", raising=False)
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "safe")
