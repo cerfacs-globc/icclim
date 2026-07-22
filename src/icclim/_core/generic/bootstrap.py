@@ -46,7 +46,9 @@ def compute_doy_percentile_bootstrap_count(
     )
     source_max_doy = int(ref_time.dayofyear.max())
     study_year_max_doy = {
-        year: source_max_doy if source_max_doy == 366 else int(study_time[indices].dayofyear.max())
+        year: source_max_doy
+        if source_max_doy == 366
+        else int(study_time[indices].dayofyear.max())
         for year, indices in study_year_indices.items()
     }
     output_years = np.asarray(
@@ -295,8 +297,8 @@ if njit is not None:
     ):
         if nominal_source_doy_count == max_target_doy:
             return flat_nominal[doy - 1, cell]
-        position = (doy - 1.0) * (nominal_source_doy_count - 1.0) / (
-            max_target_doy - 1.0
+        position = (
+            (doy - 1.0) * (nominal_source_doy_count - 1.0) / (max_target_doy - 1.0)
         )
         lower = int(np.floor(position))
         if lower >= nominal_source_doy_count - 1:
@@ -449,7 +451,9 @@ def _indices_by_year(time: pd.DatetimeIndex) -> dict[int, np.ndarray]:
     return {int(year): np.where(time.year == year)[0] for year in np.unique(time.year)}
 
 
-def _indices_by_resample_group(da: DataArray, freq: str) -> dict[np.datetime64, np.ndarray]:
+def _indices_by_resample_group(
+    da: DataArray, freq: str
+) -> dict[np.datetime64, np.ndarray]:
     groups = da.resample(time=freq).groups
     out = {}
     for label, indexer in groups.items():
