@@ -170,7 +170,7 @@ def read_thresholds(
     reference_period: Sequence[dt.datetime | str] | None,
     only_leap_years: bool,
     interpolation: QuantileInterpolation,
-) -> Threshold | None | list[Threshold]:
+) -> Threshold | list[Threshold] | None:
     """
     Read the thresholds from the user index dictionary.
 

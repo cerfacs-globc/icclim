@@ -211,7 +211,7 @@ def _read_string_threshold(query: str) -> tuple[str, str | None, float]:
 
 
 def _build_quantity(
-    quantity: None | str | float | pint.Quantity,
+    quantity: str | float | pint.Quantity | None,
     default_unit: str | None,
 ) -> pint.Quantity | None:
     if quantity is None:
@@ -306,7 +306,7 @@ def _read_bounded_threshold(
 
 def _read_threshold_from_query(
     query: str,
-    threshold_min_value: None | str | float | pint.Quantity,
+    threshold_min_value: str | float | pint.Quantity | None,
     kwargs: dict,
 ) -> ThresholdBuilderInput:
     op_str, unit, value = _read_string_threshold(query)
@@ -403,7 +403,7 @@ def _is_per_dataset(threshold_var_name: str | None, value: ThresholdValueType) -
     return PercentileDataArray.is_compatible(thresh_da)
 
 
-def _has_per_unit(unit: str | None | Sequence[float], value: float) -> bool:
+def _has_per_unit(unit: str | Sequence[float] | None, value: float) -> bool:
     return isinstance(value, (float, Sequence)) and (
         unit in (DOY_PERCENTILE_UNIT, PERIOD_PERCENTILE_UNIT)
     )
