@@ -10,6 +10,9 @@ import pandas as pd
 import xarray as xr
 
 from icclim._core.constants import REFERENCE_PERIOD_ID
+from icclim._core.generic.bootstrap_capability import (
+    is_fast_doy_percentile_count_supported,
+)
 from icclim._core.model.operator import Operator
 
 if TYPE_CHECKING:
@@ -24,7 +27,7 @@ def compute_doy_percentile_bootstrap_count(
     freq: str,
 ) -> DataArray | None:
     """Compute percentile bootstrap counts without building a huge dask graph."""
-    if not _can_compute_fast_bootstrap(study, threshold):
+    if not _can_compute_fast_bootstrap(study, threshold, freq):
         return None
     loaded = study.load()
     climatology_bounds = threshold.climatology_bounds(loaded)
@@ -142,17 +145,9 @@ def compute_doy_percentile_bootstrap_count(
 def _can_compute_fast_bootstrap(
     study: DataArray,
     threshold: PercentileThreshold,
+    freq: str,
 ) -> bool:
-    time_index = study.indexes.get("time")
-    if not isinstance(time_index, pd.DatetimeIndex):
-        return False
-    return (
-        njit is not None
-        and not threshold.only_leap_years
-        and threshold.percentile_coord().size == 1
-        and threshold.threshold_min_value is None
-        and _operator_code(threshold.operator) >= 0
-    )
+    return is_fast_doy_percentile_count_supported(study, threshold, freq)
 
 
 def _threshold_min_value_in_reference_units(

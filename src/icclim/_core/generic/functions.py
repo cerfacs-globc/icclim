@@ -48,6 +48,10 @@ from icclim._core.constants import (
     UNITS_KEY,
 )
 from icclim._core.input_parsing import PercentileDataArray
+from icclim._core.generic.bootstrap_capability import (
+    BootstrapExecutionKind,
+    classify_doy_percentile_count_bootstrap,
+)
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import Operator, OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
@@ -68,7 +72,7 @@ if TYPE_CHECKING:
     from icclim._core.model.threshold import Threshold
 
 
-_BOOTSTRAP_PROFILE: dict[str, float | int] = {}
+_BOOTSTRAP_PROFILE: dict[str, float | int | str] = {}
 _DEFAULT_BOOTSTRAP_SAFE_TILE_MEMORY = "2GB"
 _DEFAULT_BOOTSTRAP_FAST_TILE_MEMORY = "2GB"
 _BOOTSTRAP_SAFE_MEMORY_FACTOR = 12
@@ -79,7 +83,7 @@ def reset_bootstrap_profile() -> None:
     _BOOTSTRAP_PROFILE.clear()
 
 
-def get_bootstrap_profile() -> dict[str, float | int]:
+def get_bootstrap_profile() -> dict[str, float | int | str]:
     return dict(_BOOTSTRAP_PROFILE)
 
 
@@ -92,6 +96,10 @@ def _profile_bootstrap_inc(name: str, count: int = 1) -> None:
 
 
 def _profile_bootstrap_set(name: str, value: float) -> None:
+    _BOOTSTRAP_PROFILE[name] = value
+
+
+def _profile_bootstrap_note(name: str, value: str) -> None:
     _BOOTSTRAP_PROFILE[name] = value
 
 
@@ -1271,11 +1279,26 @@ def _compute_safe_tiled_count_occurrences(
         or not threshold.is_doy_per_threshold
     ):
         return None
-    if not _should_use_safe_count_bootstrap(climate_var):
+
+    bootstrap_capability = classify_doy_percentile_count_bootstrap(
+        climate_var,
+        resample_freq,
+    )
+    _profile_bootstrap_note(
+        "bootstrap_count_execution_kind",
+        bootstrap_capability.execution_kind.value,
+    )
+    _profile_bootstrap_note(
+        "bootstrap_count_reason_code",
+        bootstrap_capability.reason_code,
+    )
+    _profile_bootstrap_note(
+        "bootstrap_count_family",
+        bootstrap_capability.family.value,
+    )
+    if not bootstrap_capability.bootstrap_required:
         return None
-    if not must_run_bootstrap(
-        climate_var.studied_data, threshold, climate_var.bootstrap
-    ):
+    if bootstrap_capability.execution_kind == BootstrapExecutionKind.LEGACY:
         return None
 
     safe_start = perf_counter()
@@ -1285,14 +1308,15 @@ def _compute_safe_tiled_count_occurrences(
         resample_freq,
     )
     _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
-    optimized = _compute_fast_tiled_count_occurrences(
-        climate_var,
-        threshold,
-        resample_freq,
-        _get_fast_bootstrap_max_cells(climate_var.studied_data),
-    )
-    if optimized is not None:
-        return optimized
+    if bootstrap_capability.uses_fast_path:
+        optimized = _compute_fast_tiled_count_occurrences(
+            climate_var,
+            threshold,
+            resample_freq,
+            _get_fast_bootstrap_max_cells(climate_var.studied_data),
+        )
+        if optimized is not None:
+            return optimized
     while True:
         try:
             return _compute_safe_tiled_count_occurrences_with_max_cells(
@@ -1368,10 +1392,6 @@ def _compute_fast_tiled_count_occurrences(
     resample_freq: Frequency,
     max_cells: int,
 ) -> DataArray | None:
-    if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
-        return None
-    if not _is_fast_bootstrap_frequency(resample_freq.pandas_freq):
-        return None
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
         compute_doy_percentile_bootstrap_count,
     )
@@ -1400,20 +1420,6 @@ def _compute_fast_tiled_count_occurrences(
     result.attrs.update(tile_results[-1].attrs)
     _profile_bootstrap_add("bootstrap_fast_total_seconds", perf_counter() - fast_start)
     return result
-
-
-def _is_fast_bootstrap_frequency(freq: str) -> bool:
-    return freq in {"MS", "YS"} or freq.startswith("YS-")
-
-
-def _should_use_safe_count_bootstrap(climate_var: ClimateVariable) -> bool:
-    if climate_var.bootstrap is False:
-        return False
-    if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "default":
-        return False
-    from xclim.core.utils import uses_dask  # noqa: PLC0415
-
-    return uses_dask(climate_var.studied_data)
 
 
 def _get_fast_bootstrap_max_cells(study: DataArray) -> int:
