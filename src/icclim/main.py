@@ -709,7 +709,7 @@ def _parse_threshold(
     if isinstance(threshold, Threshold):
         return threshold
     if isinstance(threshold, (str, dict)):
-        return _build_threshold(
+        return _build_request_threshold(
             threshold,
             doy_window_width=doy_window_width,
             reference_period=reference_period,
@@ -718,7 +718,7 @@ def _parse_threshold(
         )
     if isinstance(threshold, Sequence):
         return [
-            _build_threshold(
+            _build_request_threshold(
                 t,
                 doy_window_width=doy_window_width,
                 reference_period=reference_period,
@@ -1209,7 +1209,7 @@ def _build_history(
     )
 
 
-def _build_threshold(
+def _build_request_threshold(
     threshold: str | dict | Threshold,
     doy_window_width: int,
     reference_period: Sequence[dt.datetime | str] | None,

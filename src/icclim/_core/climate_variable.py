@@ -308,7 +308,7 @@ def build_climate_var(
             ignore_feb29th=ignore_feb29th,
             standard_var=standard_var,
         )
-        climate_var_thresh = _build_threshold(
+        climate_var_thresh = _prepare_climate_variable_threshold(
             climate_var_thresh=climate_var_thresh,
             original_data=threshold_prepare_data,
             conversion_unit=studied_data.attrs[UNITS_KEY],
@@ -475,7 +475,7 @@ def _build_reference_variable(
     )
 
 
-def _build_threshold(
+def _prepare_climate_variable_threshold(
     climate_var_thresh: str | Threshold | dict,
     original_data: DataArray,
     conversion_unit: str,

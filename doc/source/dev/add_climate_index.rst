@@ -176,8 +176,35 @@ Thresholds
 
 - ``src/icclim/threshold/factory.py``:
   :func:`build_threshold`
+- ``src/icclim/main.py``:
+  :func:`_build_request_threshold`
+- ``src/icclim/_core/climate_variable.py``:
+  :func:`_prepare_climate_variable_threshold`
 - ``src/icclim/_core/generic/threshold/percentile.py``:
   percentile-threshold behavior
+
+Threshold Construction Workflow
+-------------------------------
+
+When a contributor asks “where does this threshold really come from?”,
+follow this path:
+
+1. ``main.py`` injects request-wide percentile options such as
+   ``reference_period`` and ``interpolation``.
+2. ``threshold/factory.py`` decides whether the threshold comes from:
+   - one query string such as ``"> 30 degC"``;
+   - two thresholds plus a logical link;
+   - explicit components such as ``operator``, ``value`` and ``unit``.
+3. The factory turns that specification into one threshold family:
+   - :class:`~icclim._core.generic.threshold.basic.BasicThreshold`
+   - :class:`~icclim._core.generic.threshold.percentile.PercentileThreshold`
+   - :class:`~icclim._core.generic.threshold.bounded.BoundedThreshold`
+4. ``_core/climate_variable.py`` prepares the threshold with the studied
+   data when the threshold needs context before it can be used.
+
+This is a good place to keep code explicit. Threshold construction is
+part of the scientific workflow, so it should read as a sequence of
+decisions rather than a chain of thin translators.
 
 Reducers
 --------

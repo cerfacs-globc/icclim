@@ -155,7 +155,7 @@ def build_threshold(
         assert isinstance(bounded_t, BoundedThreshold)
 
     """
-    builder_input = _read_threshold_builder_input(
+    builder_input = _build_threshold_builder_input(
         query,
         operator,
         value,
@@ -166,7 +166,7 @@ def build_threshold(
         offset,
         **kwargs,
     )
-    return _instantiate_threshold(builder_input, original_value=value)
+    return _build_threshold_instance(builder_input, original_value=value)
 
 
 def _get_operator(query: str) -> tuple[Operator | None, str]:
@@ -230,7 +230,7 @@ def _build_quantity(
     raise NotImplementedError(msg)
 
 
-def _read_threshold_builder_input(
+def _build_threshold_builder_input(
     query: str | None = None,
     operator: Operator | str | None = None,
     value: ThresholdValueType = None,
@@ -241,33 +241,30 @@ def _read_threshold_builder_input(
     offset: str | float | pint.Quantity | None = None,
     **kwargs,
 ) -> ThresholdBuilderInput:
-    if query is not None and _must_read_query(query, operator, value, unit):
+    if query is not None and _is_query_only_threshold_request(query, operator, value, unit):
         if _is_bounded_threshold_query(query):
-            return _read_bounded_threshold_query(query)
-        return _read_threshold_from_query(query, threshold_min_value, kwargs)
+            return _build_bounded_threshold_input_from_query(query)
+        return _build_threshold_input_from_query(query, threshold_min_value, kwargs)
     if (
-        _must_read_bounded(operator, value, unit, thresholds, logical_link)
+        _is_threshold_list_request(operator, value, unit, thresholds, logical_link)
         and thresholds is not None
         and logical_link is not None
     ):
-        return _read_bounded_threshold(thresholds, logical_link)
+        return _build_bounded_threshold_input(thresholds, logical_link)
     if operator is not None:
-        if (op := OperatorRegistry.lookup_no_error(operator)) is None:
-            op = OperatorRegistry.REACH
-        res: ThresholdBuilderInput = {
-            "operator": op,
-            "unit": unit,
-            "value": value,
-            "threshold_min_value": _build_quantity(threshold_min_value, unit),
-            "offset": _build_quantity(offset, unit),
-        }
-        res.update(kwargs)  # type: ignore[typeddict-item]
-        return res
+        return _build_threshold_input_from_components(
+            operator=operator,
+            value=value,
+            unit=unit,
+            threshold_min_value=threshold_min_value,
+            offset=offset,
+            **kwargs,
+        )
     msg = "Could not read threshold"
     raise NotImplementedError(msg)
 
 
-def _instantiate_threshold(
+def _build_threshold_instance(
     builder_input: ThresholdBuilderInput,
     *,
     original_value: ThresholdValueType,
@@ -284,14 +281,14 @@ def _instantiate_threshold(
     raise NotImplementedError(msg)
 
 
-def _read_bounded_threshold(
+def _build_bounded_threshold_input(
     thresholds: Sequence[Threshold | str],
     logical_link: LogicalLink | str,
 ) -> ThresholdBuilderInput:
     acc: list[ThresholdBuilderInput | Threshold] = []
     for t in thresholds:
         if isinstance(t, str):
-            acc.append(_read_threshold_builder_input(t))
+            acc.append(_build_threshold_builder_input(t))
         elif isinstance(t, Threshold):
             acc.append(t)
         else:
@@ -312,7 +309,7 @@ def _read_bounded_threshold(
     }
 
 
-def _read_threshold_from_query(
+def _build_threshold_input_from_query(
     query: str,
     threshold_min_value: str | float | pint.Quantity | None,
     kwargs: dict,
@@ -331,7 +328,30 @@ def _read_threshold_from_query(
     return res
 
 
-def _must_read_query(
+def _build_threshold_input_from_components(
+    *,
+    operator: Operator | str,
+    value: ThresholdValueType,
+    unit: str | None,
+    threshold_min_value: str | float | pint.Quantity | None,
+    offset: str | float | pint.Quantity | None,
+    **kwargs,
+) -> ThresholdBuilderInput:
+    return {
+        "operator": _resolve_operator_or_default(operator),
+        "unit": unit,
+        "value": value,
+        "threshold_min_value": _build_quantity(threshold_min_value, unit),
+        "offset": _build_quantity(offset, unit),
+        **kwargs,
+    }
+
+
+def _resolve_operator_or_default(operator: Operator | str) -> Operator:
+    return OperatorRegistry.lookup_no_error(operator) or OperatorRegistry.REACH
+
+
+def _is_query_only_threshold_request(
     query: str,
     operator: Operator | str | None,
     value: ThresholdValueType | None,
@@ -342,7 +362,7 @@ def _must_read_query(
     )
 
 
-def _must_read_bounded(
+def _is_threshold_list_request(
     operator: Operator | str | None,
     value: ThresholdValueType,
     unit: str | None,
@@ -364,7 +384,7 @@ def _is_bounded_threshold_query(query: str) -> bool:
     )
 
 
-def _read_bounded_threshold_query(query: str) -> ThresholdBuilderInput:
+def _build_bounded_threshold_input_from_query(query: str) -> ThresholdBuilderInput:
     link = None
     split_word = None
     uppered = query.upper()
@@ -387,8 +407,8 @@ def _read_bounded_threshold_query(query: str) -> ThresholdBuilderInput:
     return {
         "initial_query": query,
         "thresholds": (
-            _read_threshold_builder_input(threshs[0]),
-            _read_threshold_builder_input(threshs[1]),
+            _build_threshold_builder_input(threshs[0]),
+            _build_threshold_builder_input(threshs[1]),
         ),
         "logical_link": link,
     }
