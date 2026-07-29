@@ -168,6 +168,7 @@ def _threshold_min_value_in_reference_units(
         return float(converted.magnitude)
     return float(converted)
 
+
 def _operator_code(operator: Operator | str) -> int:
     operand = operator.operand if isinstance(operator, Operator) else str(operator)
     return {">": 0, ">=": 1, "<": 2, "<=": 3}.get(operand, -1)
@@ -316,7 +317,9 @@ if njit is not None:
                 alpha,
                 beta,
             )
-            if not np.isnan(min_threshold) and (np.isnan(q_value) or q_value <= min_threshold):
+            if not np.isnan(min_threshold) and (
+                np.isnan(q_value) or q_value <= min_threshold
+            ):
                 q_value = min_threshold
             q[doy_i] = q_value
         return q
