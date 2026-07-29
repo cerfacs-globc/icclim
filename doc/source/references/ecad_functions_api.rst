@@ -10,7 +10,7 @@ stored in `_generated/_ecad.py`. Custom climate calculations should now
 be expressed with the generic index API rather than the deprecated
 ``user_index`` bridge.
 
-For example to use this new API with the index `su` you can do:
+For example, to use this API with the index `su` you can do:
 
 .. code:: python
 

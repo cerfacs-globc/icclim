@@ -71,7 +71,7 @@ Module Contents
                     Mandatory for a user index.
    :type var_name: str | list[str] | None
    :param slice_mode: Type of temporal aggregation:
-                      The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+                      The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
                       "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
                       (where season and month lists can be customized) or any valid pandas
                       frequency.
@@ -120,7 +120,7 @@ Module Contents
                                   #. to compute a reference period for indices such as difference_of_mean
                                   (a.k.a anomaly) if a single variable is given in input.
    :type base_period_time_range: list[datetime.datetime ] | list[str] | tuple[str, str] | None
-   :param doy_window_width: ``optional`` Window width used to aggreagte day of year values when computing
+   :param doy_window_width: ``optional`` Window width used to aggregate day-of-year values when computing
                             day of year percentiles (doy_per)
                             Default: 5 (5 days).
    :type doy_window_width: int

@@ -375,7 +375,7 @@ def index(
         Mandatory for the deprecated ``user_index`` bridge.
     slice_mode: FrequencyLike | Frequency
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -440,7 +440,7 @@ def index(
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
     doy_window_width: int
-        ``optional`` Window width used to aggreagte day of year values when computing
+        ``optional`` Window width used to aggregate day-of-year values when computing
         day of year percentiles (doy_per)
         Default: 5 (5 days).
     min_spell_length: int
@@ -1208,7 +1208,7 @@ def _compute_climate_index(
     if config.save_thresholds:
         result_ds = _merge_exported_thresholds(result_ds, config.climate_variables)
     history = _build_history(result_da, config, initial_history, climate_index)
-    return _add_ecad_index_metadata(
+    return _add_result_metadata(
         result_ds,
         climate_index,
         history,
@@ -1269,7 +1269,7 @@ def _merge_exported_thresholds(
     )
 
 
-def _add_ecad_index_metadata(
+def _add_result_metadata(
     result_ds: Dataset,
     computed_index: Indicator,
     history: str,
@@ -1302,7 +1302,7 @@ def _build_history(
     result_da: DataArray,
     config: IndexConfig,
     initial_history: str | None,
-    indice_computed: Indicator,
+    computed_index: Indicator,
 ) -> str:
     from icclim import __version__ as icclim_version  # noqa: PLC0415
 
@@ -1319,7 +1319,7 @@ def _build_history(
     return (
         f"{initial_history}\n"
         f" [{current_time}]"
-        f" Calculation of {indice_computed.name}"
+        f" Calculation of {computed_index.name}"
         f" index ({config.frequency.adjective})"
         f" - icclim version: {icclim_version}"
     )
