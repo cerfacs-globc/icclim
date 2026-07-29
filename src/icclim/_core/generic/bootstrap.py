@@ -27,10 +27,14 @@ def compute_doy_percentile_bootstrap_count(
     if not _can_compute_fast_bootstrap(study, threshold):
         return None
     loaded = study.load()
-    climatology_bounds = threshold.value.attrs["climatology_bounds"]
-    ref = loaded.sel(time=slice(*climatology_bounds))
-    study_time = pd.DatetimeIndex(loaded.time.values)
-    ref_time = pd.DatetimeIndex(ref.time.values)
+    climatology_bounds = threshold.climatology_bounds(loaded)
+    ref_raw = loaded.sel(time=slice(*climatology_bounds))
+    min_threshold = _threshold_min_value_in_reference_units(threshold, ref_raw)
+    ref_masked = ref_raw
+    if min_threshold is not None:
+        ref_masked = ref_raw.where(ref_raw >= min_threshold, np.nan)
+    study_time = loaded.indexes["time"]
+    ref_time = ref_raw.indexes["time"]
     ref_year_indices = _indices_by_year(ref_time)
     study_year_indices = _indices_by_year(study_time)
     ref_years = np.asarray(list(ref_year_indices), dtype=np.int64)
@@ -75,8 +79,18 @@ def compute_doy_percentile_bootstrap_count(
         loaded.sizes["time"],
         -1,
     )
-    flat_ref = np.asarray(ref.transpose("time", ...).data, dtype=np.float64).reshape(
-        ref.sizes["time"],
+    flat_ref_raw = np.asarray(
+        ref_raw.transpose("time", ...).data,
+        dtype=np.float64,
+    ).reshape(
+        ref_raw.sizes["time"],
+        -1,
+    )
+    flat_ref_masked = np.asarray(
+        ref_masked.transpose("time", ...).data,
+        dtype=np.float64,
+    ).reshape(
+        ref_masked.sizes["time"],
         -1,
     )
     sample_indices = _rolling_sample_index_matrix(
@@ -89,7 +103,8 @@ def compute_doy_percentile_bootstrap_count(
     )
     donor_aligned = _donor_alignment_matrix(ref_time, ref_year_indices)
     result = _bootstrap_count_kernel(
-        flat_ref,
+        flat_ref_raw,
+        flat_ref_masked,
         flat,
         sample_indices,
         index_year,
@@ -102,10 +117,11 @@ def compute_doy_percentile_bootstrap_count(
         year_max_doys,
         year_to_ref,
         study_time.dayofyear.to_numpy(dtype=np.int64),
-        float(threshold.value.coords["percentiles"].item()) / 100.0,
+        float(threshold.percentile_coord().item()) / 100.0,
         float(threshold.interpolation.alpha),
         float(threshold.interpolation.beta),
         _operator_code(threshold.operator),
+        np.nan if min_threshold is None else float(min_threshold),
     )
     data = result.reshape((len(output_group_labels), *loaded.shape[1:]))
     out = xr.DataArray(
@@ -120,25 +136,37 @@ def compute_doy_percentile_bootstrap_count(
     for coord in loaded.coords:
         if coord not in out.coords and "time" not in loaded[coord].dims:
             out = out.assign_coords({coord: loaded[coord]})
-    return out.assign_coords(percentiles=threshold.value.coords["percentiles"].item())
+    return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
 def _can_compute_fast_bootstrap(
     study: DataArray,
     threshold: PercentileThreshold,
 ) -> bool:
-    try:
-        pd.DatetimeIndex(study.time.values)
-    except (TypeError, ValueError):
+    time_index = study.indexes.get("time")
+    if not isinstance(time_index, pd.DatetimeIndex):
         return False
     return (
         njit is not None
-        and threshold.threshold_min_value is None
         and not threshold.only_leap_years
-        and threshold.value.coords["percentiles"].size == 1
+        and threshold.percentile_coord().size == 1
+        and threshold.threshold_min_value is None
         and _operator_code(threshold.operator) >= 0
     )
 
+
+def _threshold_min_value_in_reference_units(
+    threshold: PercentileThreshold,
+    ref: DataArray,
+) -> float | None:
+    if threshold.threshold_min_value is None:
+        return None
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+    converted = convert_units_to(threshold.threshold_min_value, ref, context="hydro")
+    if hasattr(converted, "magnitude"):
+        return float(converted.magnitude)
+    return float(converted)
 
 def _operator_code(operator: Operator | str) -> int:
     operand = operator.operand if isinstance(operator, Operator) else str(operator)
@@ -156,7 +184,8 @@ if njit is not None:
 
     @njit(parallel=True, cache=True)
     def _bootstrap_count_kernel(
-        flat_ref,
+        flat_ref_raw,
+        flat_ref_masked,
         flat_study,
         sample_indices,
         index_year,
@@ -173,6 +202,7 @@ if njit is not None:
         alpha,
         beta,
         op_code,
+        min_threshold,
     ):
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
@@ -189,7 +219,7 @@ if njit is not None:
             group_stop = year_group_stops[year_i]
             if target_ref_i < 0:
                 q = _quantiles_for_cell(
-                    flat_ref,
+                    flat_ref_masked,
                     sample_indices,
                     index_year,
                     index_pos,
@@ -201,6 +231,7 @@ if njit is not None:
                     quantile,
                     alpha,
                     beta,
+                    min_threshold,
                 )
                 for group_i in range(group_start, group_stop):
                     out[group_i, cell] = _count_exceedances(
@@ -221,7 +252,7 @@ if njit is not None:
                     if donor_i == target_ref_i:
                         continue
                     q = _quantiles_for_cell(
-                        flat_ref,
+                        flat_ref_raw,
                         sample_indices,
                         index_year,
                         index_pos,
@@ -233,6 +264,7 @@ if njit is not None:
                         quantile,
                         alpha,
                         beta,
+                        min_threshold,
                     )
                     for group_i in range(group_start, group_stop):
                         out[group_i, cell] += _count_exceedances(
@@ -264,11 +296,12 @@ if njit is not None:
         quantile,
         alpha,
         beta,
+        min_threshold,
     ):
         q = np.empty(365, dtype=np.float64)
         buf = np.empty(max_samples, dtype=np.float64)
         for doy_i in range(365):
-            q[doy_i] = _quantile_for_doy_cell(
+            q_value = _quantile_for_doy_cell(
                 flat_ref,
                 sample_indices,
                 index_year,
@@ -283,6 +316,9 @@ if njit is not None:
                 alpha,
                 beta,
             )
+            if not np.isnan(min_threshold) and (np.isnan(q_value) or q_value <= min_threshold):
+                q_value = min_threshold
+            q[doy_i] = q_value
         return q
 
     @njit(cache=True)

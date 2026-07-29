@@ -82,6 +82,8 @@ class PercentileThreshold(Threshold):
 
     _prepared_value: PercentileDataArray
     _initial_unit: str | None
+    _prepare_output_unit: str | None
+    _prepare_source_data: DataArray | None
 
     @property  # type: ignore[override]
     def unit(self) -> str | None:
@@ -90,7 +92,7 @@ class PercentileThreshold(Threshold):
         if self.is_ready:
             res = self._prepared_value.attrs.get(UNITS_KEY, None)
         else:
-            res = self._initial_unit
+            res = self._prepare_output_unit or self._initial_unit
         return res.replace("°C", "degC") if res else None
 
     @unit.setter
@@ -179,6 +181,8 @@ class PercentileThreshold(Threshold):
         self.doy_window_width = doy_window_width
         self.only_leap_years = only_leap_years
         self.interpolation = QuantileInterpolationRegistry.lookup(interpolation)
+        self._prepare_output_unit = None
+        self._prepare_source_data = None
         self.unit = unit
         self.is_doy_per_threshold = is_doy_per_threshold
 
@@ -224,6 +228,62 @@ class PercentileThreshold(Threshold):
             raise NotImplementedError(msg)
         self._prepared_value = prepared_data.chunk("auto")
         self.is_ready = True
+        if self._prepare_output_unit is not None:
+            self.unit = self._prepare_output_unit
+
+    def set_prepare_context(
+        self,
+        studied_data: DataArray,
+        conversion_unit: str | None,
+    ) -> None:
+        self._prepare_source_data = studied_data
+        self._prepare_output_unit = conversion_unit
+
+    def ensure_ready(self, comparison_data: DataArray | None = None) -> None:
+        if self.is_ready:
+            return
+        source = (
+            self._prepare_source_data
+            if self._prepare_source_data is not None
+            else comparison_data
+        )
+        if source is None:
+            msg = "PercentileThreshold cannot be prepared without source data."
+            raise RuntimeError(msg)
+        self.prepare(source)
+
+    def climatology_bounds(self, comparison_data: DataArray | None = None) -> list[str]:
+        if self.is_ready:
+            return self.value.attrs["climatology_bounds"]
+        source = (
+            self._prepare_source_data
+            if self._prepare_source_data is not None
+            else comparison_data
+        )
+        if source is None:
+            msg = "PercentileThreshold cannot infer climatology bounds without source data."
+            raise RuntimeError(msg)
+        reference = build_reference_da(
+            source,
+            cast("Sequence[str]", self.reference_period),
+            self.only_leap_years,
+            self.threshold_min_value,
+        )
+        from xclim.core.calendar import build_climatology_bounds  # noqa: PLC0415
+
+        return build_climatology_bounds(reference)
+
+    def percentile_coord(self) -> DataArray:
+        if self.is_ready:
+            return self.value.coords["percentiles"]
+        if self.initial_value is None:
+            msg = "PercentileThreshold must have a percentile value."
+            raise RuntimeError(msg)
+        return xr.DataArray(
+            self.initial_value,
+            dims=["percentiles"],
+            coords={"percentiles": self.initial_value},
+        )
 
     def __eq__(self, other: object) -> bool:
         """
@@ -301,9 +361,9 @@ class PercentileThreshold(Threshold):
         """
         src_freq = kwargs.get("src_freq")
         must_run_bootstrap = kwargs.get("must_run_bootstrap", False)
-        per_coord = self.value.coords["percentiles"]
+        per_coord = self.percentile_coord()
         templates = self._get_metadata_templates(per_coord)
-        climatology_bounds: list[str] = self.value.attrs.get("climatology_bounds", [])
+        climatology_bounds = self.climatology_bounds()
         conf: PercentileTemplateConfig = {
             "climatology_bounds": climatology_bounds,
             "doy_window_width": self.doy_window_width,
@@ -374,12 +434,15 @@ class PercentileThreshold(Threshold):
                 cast("str", kwargs.get("freq", "")),
                 bootstrap=kwargs.get("bootstrap", False),
             )
-        msg = (
-            "This PercentileThreshold is not ready. You must first call `.prepare`"
-            " with a `studied_data` parameter in order to prepare the threshold"
-            " for computation."
+        self.ensure_ready(comparison_data)
+        return self._per_compute(
+            comparison_data,
+            self.value,
+            op_func,
+            self.is_doy_per_threshold,
+            cast("str", kwargs.get("freq", "")),
+            bootstrap=kwargs.get("bootstrap", False),
         )
-        raise RuntimeError(msg)
 
     def _get_metadata_templates(self, per_coord: DataArray) -> ThresholdMetadata:
         if self.is_doy_per_threshold:

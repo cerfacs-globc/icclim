@@ -378,12 +378,12 @@ def must_run_bootstrap(
         return False
     if bootstrap is False:
         return False
-    reference = threshold.value
     time_index = da.indexes.get("time")
     if time_index is None:
         return False
     study_years = np.unique(time_index.year)
-    ref_idx = da.sel(time=_get_ref_period_slice(reference)).indexes.get("time")
+    ref_slice = _get_ref_period_slice_from_percentile_threshold(threshold, da)
+    ref_idx = da.sel(time=ref_slice).indexes.get("time")
     if ref_idx is None:
         return False
     overlapping_years = np.unique(ref_idx.year)
@@ -473,6 +473,9 @@ def _build_threshold(
     else:
         res = climate_var_thresh
 
+    if isinstance(res, PercentileThreshold) and not res.is_ready:
+        res.set_prepare_context(original_data, conversion_unit)
+        return res
     if res.prepare is not None and not res.is_ready:
         res.prepare(original_data)
     res.unit = conversion_unit
@@ -501,3 +504,10 @@ def _get_ref_period_slice(da: DataArray) -> slice:
         return slice(*bds)
     time_length = len(da.time)
     return slice(*da.time[0 :: time_length - 1].dt.strftime("%Y-%m-%d").to_numpy())
+
+
+def _get_ref_period_slice_from_percentile_threshold(
+    threshold: PercentileThreshold,
+    study_data: DataArray,
+) -> slice:
+    return slice(*threshold.climatology_bounds(study_data))

@@ -3,6 +3,18 @@
 #################
 
 ******
+7.1.7
+******
+
+date: 2026-07-29
+
+
+-  [perf] Defer percentile-threshold materialization until a bootstrap path actually needs the threshold field, reducing setup overhead for dask-backed day-of-year percentile count indices.
+-  [fix] Keep percentile bootstrap cases using ``threshold_min_value`` on the exact safe tiled path after Kraken validation showed the experimental fast path was not field-identical on real precipitation data.
+-  [fix] Keep ``cftime`` percentile bootstrap cases on the exact safe tiled path after Kraken validation found a remaining one-cell mismatch in the experimental fast path.
+-  [doc] Add maintainer notes for bootstrap architecture, readable implementation boundaries and the validated fast-path support matrix.
+
+******
 7.1.6
 ******
 
