@@ -79,6 +79,22 @@ SOURCE_CF_KEY = "source"
 NUMBER_OF_NOTNULL_VAR = "number_of_notnull"
 
 
+class NormalizedIndexRequest:
+    """Small container for deprecated-parameter normalization results."""
+
+    def __init__(
+        self,
+        index_name: str | GenericIndicator | StandardIndex | None,
+        user_index: UserIndexDict | None,
+        save_thresholds: bool,
+        doy_window_width: int,
+    ) -> None:
+        self.index_name = index_name
+        self.user_index = user_index
+        self.save_thresholds = save_thresholds
+        self.doy_window_width = doy_window_width
+
+
 def indices(
     index_group: Sequence[str] | str | IndexGroup | StandardIndex,
     *,
@@ -478,26 +494,19 @@ def index(
     61
     """
     _setup(callback, callback_percentage_start_value, logs_verbosity)
-    (
-        index_name,
-        user_index,
-        save_thresholds,
-        doy_window_width,
-    ) = _handle_deprecated_params(
-        index_name,
-        user_index,
-        save_thresholds,
-        indice_name,
-        transfer_limit_Mbytes,
-        user_indice,
-        save_percentile,
-        window_width,
-        doy_window_width,
-    )
-    del indice_name, transfer_limit_Mbytes, user_indice, save_percentile, window_width
-    config = _build_config(
-        in_files=in_files,
+    normalized_request = _normalize_index_request(
         index_name=index_name,
+        user_index=user_index,
+        save_thresholds=save_thresholds,
+        doy_window_width=doy_window_width,
+        indice_name=indice_name,
+        transfer_limit_mbytes=transfer_limit_Mbytes,
+        user_indice=user_indice,
+        save_percentile=save_percentile,
+        window_width=window_width,
+    )
+    config = _build_config_from_request(
+        in_files=in_files,
         var_name=var_name,
         slice_mode=slice_mode,
         time_range=time_range,
@@ -505,21 +514,31 @@ def index(
         callback=callback,
         base_period_time_range=base_period_time_range,
         bootstrap=bootstrap,
-        doy_window_width=doy_window_width,
         only_leap_years=only_leap_years,
         ignore_feb29th=ignore_Feb29th,
         interpolation=interpolation,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
-        user_index=user_index,
-        save_thresholds=save_thresholds,
         date_event=date_event,
         min_spell_length=min_spell_length,
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        normalized_request=normalized_request,
     )
+    result_ds = _run_index_workflow(config, out_file, callback_percentage_total, callback)
+    log.ending_message(time.process_time())
+    return result_ds
+
+
+def _run_index_workflow(
+    config: IndexConfig,
+    out_file: str | None,
+    callback_percentage_total: int,
+    callback: Callable[[int], None],
+) -> Dataset:
+    """Compute, optionally write, and finalize one climate-index request."""
     result_ds = _compute_climate_index(
         climate_index=config.indicator,
         config=config,
@@ -536,8 +555,58 @@ def index(
             out_file,
         )
     callback(callback_percentage_total)
-    log.ending_message(time.process_time())
     return result_ds
+
+
+def _build_config_from_request(
+    *,
+    in_files: InFileLike,
+    var_name: str | Sequence[str] | None,
+    slice_mode: FrequencyLike | Frequency,
+    time_range: Sequence[dt.datetime | str] | None,
+    threshold: str | Threshold | Sequence[str | Threshold] | None,
+    callback: Callable[[int], None],
+    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
+    bootstrap: bool | None,
+    only_leap_years: bool,
+    ignore_feb29th: bool,
+    interpolation: str | QuantileInterpolation,
+    out_unit: str | None,
+    netcdf_version: str | NetcdfVersion,
+    date_event: bool,
+    min_spell_length: int | None,
+    rolling_window_width: int | None,
+    sampling_method: SamplingMethodLike,
+    run_index: str | None,
+    allow_partial_seasons: bool | Literal["start", "end"],
+    normalized_request: NormalizedIndexRequest,
+) -> IndexConfig:
+    """Build an IndexConfig from a normalized user request."""
+    return _build_config(
+        in_files=in_files,
+        index_name=normalized_request.index_name,
+        var_name=var_name,
+        slice_mode=slice_mode,
+        time_range=time_range,
+        threshold=threshold,
+        callback=callback,
+        base_period_time_range=base_period_time_range,
+        bootstrap=bootstrap,
+        doy_window_width=normalized_request.doy_window_width,
+        only_leap_years=only_leap_years,
+        ignore_feb29th=ignore_feb29th,
+        interpolation=interpolation,
+        out_unit=out_unit,
+        netcdf_version=netcdf_version,
+        user_index=normalized_request.user_index,
+        save_thresholds=normalized_request.save_thresholds,
+        date_event=date_event,
+        min_spell_length=min_spell_length,
+        rolling_window_width=rolling_window_width,
+        sampling_method=sampling_method,
+        run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
+    )
 
 
 def _build_config(
@@ -871,17 +940,17 @@ def _write_output_file(
     )
 
 
-def _handle_deprecated_params(
+def _normalize_index_request(
     index_name: str | GenericIndicator | StandardIndex | None,
     user_index: UserIndexDict | None,
     save_thresholds: bool,
+    doy_window_width: int | None,
     indice_name: str | None,
     transfer_limit_mbytes: float | None,
     user_indice: UserIndexDict | None,
     save_percentile: bool | None,
     window_width: int | None,
-    doy_window_width: int | None,
-) -> tuple[str, UserIndexDict, bool, int]:
+) -> NormalizedIndexRequest:
     if indice_name is not None:
         log.deprecation_warning(old="indice_name", new="index_name")
         index_name = indice_name
@@ -896,11 +965,11 @@ def _handle_deprecated_params(
     if window_width is not None:
         log.deprecation_warning(old="window_width", new="doy_window_width")
         doy_window_width = window_width
-    return (  # type: ignore[return-value]
-        index_name,
-        user_index,
-        save_thresholds,
-        doy_window_width,
+    return NormalizedIndexRequest(
+        index_name=index_name,
+        user_index=user_index,
+        save_thresholds=save_thresholds,
+        doy_window_width=doy_window_width,
     )
 
 
