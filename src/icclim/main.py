@@ -685,7 +685,7 @@ def _build_config(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
 ) -> IndexConfig:
-    if user_index is not None and (index_name is None or isinstance(index_name, str)):
+    if _uses_user_index_recipe(user_index, index_name):
         return _build_user_index_config(
             user_index,
             in_files=in_files,
@@ -735,8 +735,17 @@ def _build_config(
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
         )
-    msg = "You must fill either index_name or user_indexto compute a climate index."
+    msg = "You must fill either index_name or user_index to compute a climate index."
     raise InvalidIcclimArgumentError(msg)
+
+
+def _uses_user_index_recipe(
+    user_index: UserIndexDict | None,
+    index_name: str | GenericIndicator | StandardIndex | None,
+) -> bool:
+    return user_index is not None and (
+        index_name is None or isinstance(index_name, str)
+    )
 
 
 def _get_reference_period(
