@@ -33,7 +33,6 @@ from icclim._core.constants import (
 )
 from icclim._core.generic.indicator import GenericIndicator
 from icclim._core.input_parsing import build_input_dict
-from icclim._core.legacy.user_index import parse
 from icclim._core.model.index_config import IndexConfig
 from icclim._core.model.index_group import IndexGroup, IndexGroupRegistry
 from icclim._core.model.logical_link import LogicalLinkRegistry
@@ -119,8 +118,8 @@ class ParsedIndicatorConfig:
         self.indicator_name = indicator_name
 
 
-class ParsedUserIndexConfig:
-    """Small container for user-index parsing results."""
+class ParsedLegacyUserIndexConfig:
+    """Small container for the deprecated user-index bridge."""
 
     def __init__(
         self,
@@ -327,8 +326,9 @@ def index(
     This is the main entry point for icclim.
 
     .. warning::
-       The ``user_index`` parameter is deprecated.
-       Please use the generic indices API instead.
+       The ``user_index`` parameter is deprecated, treated as a legacy
+       compatibility bridge, and will lose support in a future version.
+       New custom indices should use the generic index API instead.
 
     Parameters
     ----------
@@ -338,12 +338,12 @@ def index(
     index_name: str | StandardIndex
         Climate index name.
         For ECA&D index, case insensitive name used to lookup the index.
-        For user index, it's the name of the output variable.
+        For the deprecated ``user_index`` bridge, it's the name of the output variable.
     var_name: str | list[str] | None
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode: FrequencyLike | Frequency
         Type of temporal aggregation:
         The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
@@ -439,9 +439,10 @@ def index(
     netcdf_version: str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     user_index: UserIndexDict
-        ``optional`` A dictionary with parameters for user defined index.
-        **Deprecated**, use generic indices instead.
-        See :ref:`Custom indices`.
+        ``optional`` Legacy dictionary-based custom-index configuration.
+        **Deprecated** and kept only for backward compatibility.
+        New code should use the generic index API instead.
+        See :ref:`custom_indices_recipes` only to migrate old code.
         Ignored for ECA&D indices.
     save_thresholds: bool
         ``optional`` True if the thresholds should be saved within the resulting
@@ -685,8 +686,8 @@ def _build_config(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
 ) -> IndexConfig:
-    if _uses_user_index_recipe(user_index, index_name):
-        return _build_user_index_config(
+    if _uses_legacy_user_index_recipe(user_index, index_name):
+        return _build_legacy_user_index_config(
             user_index,
             in_files=in_files,
             index_name=index_name,
@@ -739,7 +740,7 @@ def _build_config(
     raise InvalidIcclimArgumentError(msg)
 
 
-def _uses_user_index_recipe(
+def _uses_legacy_user_index_recipe(
     user_index: UserIndexDict | None,
     index_name: str | GenericIndicator | StandardIndex | None,
 ) -> bool:
@@ -789,7 +790,7 @@ def _parse_threshold(
     return None
 
 
-def _build_user_index_config(
+def _build_legacy_user_index_config(
     user_index: UserIndexDict,
     in_files: InFileLike,
     index_name: str | None,
@@ -815,7 +816,7 @@ def _build_user_index_config(
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)  # type: ignore[arg-type]
-    user_index_config = _parse_user_index_config(
+    legacy_user_index_config = _parse_legacy_user_index_config(
         user_index=user_index,
         index_name=index_name,
         out_unit=out_unit,
@@ -828,11 +829,11 @@ def _build_user_index_config(
     climate_variables, is_compared_to_ref = _build_index_climate_variables(
         in_files=in_files,
         var_names=var_name,
-        threshold=user_index_config.parsed_threshold,
+        threshold=legacy_user_index_config.parsed_threshold,
         standard_index=None,
         ignore_feb29th=ignore_feb29th,
         time_range=time_range,
-        reference_period=user_index_config.reference_period,
+        reference_period=legacy_user_index_config.reference_period,
         bootstrap=bootstrap,
     )
     return _assemble_index_config(
@@ -840,20 +841,20 @@ def _build_user_index_config(
         frequency=sampling_frequency,
         save_thresholds=save_thresholds,
         min_spell_length=min_spell_length,
-        rolling_window_width=user_index_config.rolling_window_width,
-        out_unit=user_index_config.output_unit,
+        rolling_window_width=legacy_user_index_config.rolling_window_width,
+        out_unit=legacy_user_index_config.output_unit,
         netcdf_version=netcdf_version,
         interpolation=interpolation,
         callback=callback,
         is_compared_to_reference=is_compared_to_ref,
-        reference_period=user_index_config.reference_period,
-        indicator_name=user_index_config.indicator.name,
-        logical_link=user_index_config.logical_link,
-        coef=user_index_config.coef,
-        date_event=user_index_config.date_event,
+        reference_period=legacy_user_index_config.reference_period,
+        indicator_name=legacy_user_index_config.indicator.name,
+        logical_link=legacy_user_index_config.logical_link,
+        coef=legacy_user_index_config.coef,
+        date_event=legacy_user_index_config.date_event,
         sampling_method=sampling_method,
-        rename=user_index_config.rename,
-        indicator=user_index_config.indicator,
+        rename=legacy_user_index_config.rename,
+        indicator=legacy_user_index_config.indicator,
         reference=ICCLIM_REFERENCE,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
@@ -941,7 +942,7 @@ def _build_standard_index_config(
     )
 
 
-def _parse_user_index_config(
+def _parse_legacy_user_index_config(
     *,
     user_index: UserIndexDict,
     index_name: str | None,
@@ -951,8 +952,10 @@ def _parse_user_index_config(
     doy_window_width: int,
     only_leap_years: bool,
     interpolation: QuantileInterpolation,
-) -> ParsedUserIndexConfig:
-    return ParsedUserIndexConfig(
+) -> ParsedLegacyUserIndexConfig:
+    from icclim._core.legacy.user_index import parse  # noqa: PLC0415
+
+    return ParsedLegacyUserIndexConfig(
         indicator=parse.read_indicator(user_index),
         parsed_threshold=parse.read_thresholds(
             user_index,

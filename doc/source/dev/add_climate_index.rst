@@ -58,7 +58,8 @@ Start by answering these scientific questions:
 
 1. Is the new index already expressible as an existing generic
    indicator plus an existing threshold?
-2. Is it a standard named index, or only a generic composition?
+2. Is it a standard named index, or a generic composition built with the
+   modern generic API?
 3. Does it need percentile bootstrap?
 4. If it needs bootstrap, which family does it belong to?
    Count, filtered count, amount/fraction, spell, or compound?
@@ -66,6 +67,10 @@ Start by answering these scientific questions:
 If the index already maps cleanly to an existing generic indicator and
 threshold, prefer declaring it in a registry instead of adding new
 computation code.
+
+The deprecated ``user_index`` dictionary API is not the right extension
+point for new work. Treat it as a migration bridge for old code, not as
+part of the design center for new climate-index development.
 
 Common Cases
 ============
@@ -136,6 +141,20 @@ For percentile-bootstrap work, read the bootstrap architecture note
 first. It is easy to introduce a fast path that looks right on synthetic
 data but diverges on real overlap-year cases.
 
+Legacy user_index bridge
+------------------------
+
+The deprecated ``user_index`` API still exists for backward
+compatibility, but it should not guide new code structure.
+
+For contributors, that means:
+
+- do not add new scientific features only to the ``user_index`` bridge;
+- do not shape new internal APIs around old ``user_index`` constraints;
+- prefer generic-index examples and tests when documenting custom index
+  support;
+- keep legacy support isolated near compatibility boundaries.
+
 Where To Look
 =============
 
@@ -155,7 +174,7 @@ Configuration Assembly
 - ``src/icclim/main.py``:
   :class:`ParsedIndicatorConfig`
 - ``src/icclim/main.py``:
-  :class:`ParsedUserIndexConfig`
+  :class:`ParsedLegacyUserIndexConfig`
 - ``src/icclim/main.py``:
   :func:`_build_index_climate_variables`
 - ``src/icclim/main.py``:
@@ -163,9 +182,9 @@ Configuration Assembly
 - ``src/icclim/main.py``:
   :func:`_build_standard_index_config`
 - ``src/icclim/main.py``:
-  :func:`_build_user_index_config`
+  :func:`_build_legacy_user_index_config`
 - ``src/icclim/main.py``:
-  :func:`_parse_user_index_config`
+  :func:`_parse_legacy_user_index_config`
 
 Input Variables
 ---------------
