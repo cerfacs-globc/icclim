@@ -40,7 +40,7 @@ def _build_climate_variable(
     )
 
 
-def test_dask_day_of_year_percentile_count_uses_fast_path() -> None:
+def test_dask_day_of_year_percentile_count_uses_optimized_bootstrap() -> None:
     tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
     climate_var = _build_climate_variable(
         tas,
@@ -57,8 +57,8 @@ def test_dask_day_of_year_percentile_count_uses_fast_path() -> None:
     )
 
     assert decision.family == BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COUNT
-    assert decision.execution_kind == BootstrapExecutionKind.FAST
-    assert decision.reason_code == "fast_path_supported"
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
 
 
 def test_threshold_kind_classification_covers_basic_percentile_and_bounded() -> None:

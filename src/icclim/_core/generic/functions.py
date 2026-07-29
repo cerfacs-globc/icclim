@@ -1316,7 +1316,7 @@ def _compute_safe_tiled_count_occurrences(
         resample_freq,
     )
     _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
-    if bootstrap_capability.uses_fast_path:
+    if bootstrap_capability.uses_optimized_bootstrap:
         optimized = _compute_fast_tiled_count_occurrences(
             climate_var,
             threshold,
@@ -1417,7 +1417,7 @@ def _compute_fast_tiled_count_occurrences(
         if tile_result is None:
             return None
         tile_results.append(tile_result)
-        _profile_bootstrap_inc("bootstrap_fast_tile_count")
+        _profile_bootstrap_inc("bootstrap_optimized_tile_count")
     if len(tile_results) == 1:
         result = tile_results[0]
     else:
@@ -1426,7 +1426,10 @@ def _compute_fast_tiled_count_occurrences(
             combine_attrs="override",
         )["__icclim_bootstrap_tile"]
     result.attrs.update(tile_results[-1].attrs)
-    _profile_bootstrap_add("bootstrap_fast_total_seconds", perf_counter() - fast_start)
+    _profile_bootstrap_add(
+        "bootstrap_optimized_total_seconds",
+        perf_counter() - fast_start,
+    )
     return result
 
 
@@ -1442,10 +1445,13 @@ def _get_fast_bootstrap_max_cells(study: DataArray) -> int:
     itemsize = getattr(study.dtype, "itemsize", 8)
     bytes_per_cell = max(1, study.sizes["time"]) * itemsize
     bytes_per_cell *= _BOOTSTRAP_FAST_MEMORY_FACTOR
-    _profile_bootstrap_set("bootstrap_fast_tile_memory_bytes", max_mem)
-    _profile_bootstrap_set("bootstrap_fast_estimated_bytes_per_cell", bytes_per_cell)
+    _profile_bootstrap_set("bootstrap_optimized_tile_memory_bytes", max_mem)
+    _profile_bootstrap_set(
+        "bootstrap_optimized_estimated_bytes_per_cell",
+        bytes_per_cell,
+    )
     max_cells = max(1, max_mem // bytes_per_cell)
-    _profile_bootstrap_set("bootstrap_fast_max_tile_cells", max_cells)
+    _profile_bootstrap_set("bootstrap_optimized_max_tile_cells", max_cells)
     return max_cells
 
 

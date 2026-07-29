@@ -48,7 +48,7 @@ class BootstrapExecutionKind(StrEnum):
     NOT_REQUIRED = "not_required"
     REFERENCE_BOOTSTRAP = "reference_bootstrap"
     EXACT_TILED_BOOTSTRAP = "exact_tiled_bootstrap"
-    FAST = "fast"
+    OPTIMIZED_BOOTSTRAP = "optimized_bootstrap"
 
 
 @dataclass(frozen=True)
@@ -61,8 +61,8 @@ class BootstrapCapability:
     reason_code: str
 
     @property
-    def uses_fast_path(self) -> bool:
-        return self.execution_kind == BootstrapExecutionKind.FAST
+    def uses_optimized_bootstrap(self) -> bool:
+        return self.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
 
     @property
     def uses_exact_tiled_bootstrap(self) -> bool:
@@ -114,28 +114,28 @@ def classify_doy_percentile_count_bootstrap(
         )
     if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
         return _exact_tiled_bootstrap(family, "exact_tiled_bootstrap_mode_forced")
-    fast_path_blocker = _fast_count_path_blocker(
+    optimized_path_blocker = _optimized_count_path_blocker(
         climate_var.studied_data,
         threshold_spec,
         resample_frequency.pandas_freq,
     )
-    if fast_path_blocker is not None:
-        return _exact_tiled_bootstrap(family, fast_path_blocker)
+    if optimized_path_blocker is not None:
+        return _exact_tiled_bootstrap(family, optimized_path_blocker)
     return BootstrapCapability(
         family=family,
-        execution_kind=BootstrapExecutionKind.FAST,
+        execution_kind=BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP,
         bootstrap_required=True,
-        reason_code="fast_path_supported",
+        reason_code="optimized_bootstrap_supported",
     )
 
 
-def is_fast_doy_percentile_count_supported(
+def is_optimized_doy_percentile_count_supported(
     study: DataArray,
     threshold_spec: PercentileThreshold,
     output_frequency: str,
 ) -> bool:
-    """Return whether the compiled fast count path supports this case."""
-    return _fast_count_path_blocker(study, threshold_spec, output_frequency) is None
+    """Return whether the optimized count path supports this case."""
+    return _optimized_count_path_blocker(study, threshold_spec, output_frequency) is None
 
 
 def classify_threshold_kind(
@@ -194,16 +194,16 @@ def _exact_tiled_bootstrap(
     )
 
 
-def _is_fast_bootstrap_frequency(freq: str) -> bool:
+def _is_optimized_bootstrap_frequency(freq: str) -> bool:
     return freq in {"MS", "YS"} or freq.startswith("YS-")
 
 
-def _fast_count_path_blocker(
+def _optimized_count_path_blocker(
     study: DataArray,
     threshold_spec: PercentileThreshold,
     output_frequency: str,
 ) -> str | None:
-    """Return the fast-path blocker reason, or ``None`` when fast is supported."""
+    """Return the optimized-path blocker reason, or ``None`` when it is supported."""
     if threshold_spec.threshold_min_value is not None:
         return "threshold_min_value_requires_exact_tiled_bootstrap"
     if not isinstance(study.indexes.get("time"), pd.DatetimeIndex):
@@ -212,16 +212,16 @@ def _fast_count_path_blocker(
         return "only_leap_years_requires_exact_tiled_bootstrap"
     if threshold_spec.percentile_coord().size != 1:
         return "multiple_percentiles_require_exact_tiled_bootstrap"
-    if not _is_fast_bootstrap_frequency(output_frequency):
-        return "output_frequency_not_supported_by_fast_path"
+    if not _is_optimized_bootstrap_frequency(output_frequency):
+        return "output_frequency_not_supported_by_optimized_bootstrap"
     if _operator_code(threshold_spec.operator) < 0:
-        return "operator_not_supported_by_fast_path"
-    if not _numba_fast_path_is_available():
-        return "fast_path_unavailable"
+        return "operator_not_supported_by_optimized_bootstrap"
+    if not _optimized_bootstrap_is_available():
+        return "optimized_bootstrap_unavailable"
     return None
 
 
-def _numba_fast_path_is_available() -> bool:
+def _optimized_bootstrap_is_available() -> bool:
     try:
         from numba import njit  # noqa: PLC0415
     except Exception:  # noqa: BLE001

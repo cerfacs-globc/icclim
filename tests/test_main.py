@@ -832,12 +832,12 @@ class TestIntegration:
         profile = generic_functions.get_bootstrap_profile()
 
         assert not hasattr(default.TX90p.data, "__dask_graph__")
-        assert profile["bootstrap_count_execution_kind"] == "fast"
-        assert profile["bootstrap_count_reason_code"] == "fast_path_supported"
-        assert profile["bootstrap_fast_tile_count"] == 4
+        assert profile["bootstrap_count_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_count_reason_code"] == "optimized_bootstrap_supported"
+        assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
-    def test_index_tx90p__dask_bootstrap_uses_fast_tiled_monthly_path(
+    def test_index_tx90p__dask_bootstrap_uses_optimized_tiled_monthly_path(
         self,
         monkeypatch,
     ) -> None:
@@ -865,9 +865,9 @@ class TestIntegration:
         profile = generic_functions.get_bootstrap_profile()
 
         assert not hasattr(default.TX90p.data, "__dask_graph__")
-        assert profile["bootstrap_count_execution_kind"] == "fast"
-        assert profile["bootstrap_count_reason_code"] == "fast_path_supported"
-        assert profile["bootstrap_fast_tile_count"] == 4
+        assert profile["bootstrap_count_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_count_reason_code"] == "optimized_bootstrap_supported"
+        assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
     def test_count_occurrences__dask_wet_day_bootstrap_falls_back_to_safe_tiled_path(
@@ -916,11 +916,11 @@ class TestIntegration:
             profile["bootstrap_count_reason_code"]
             == "threshold_min_value_requires_exact_tiled_bootstrap"
         )
-        assert "bootstrap_fast_tile_count" not in profile
+        assert "bootstrap_optimized_tile_count" not in profile
         assert profile["bootstrap_safe_tile_count"] == 4
         xr.testing.assert_allclose(default.count_occurrences, legacy.count_occurrences)
 
-    def test_count_occurrences__fast_bootstrap_defers_threshold_materialization(
+    def test_count_occurrences__optimized_bootstrap_defers_threshold_materialization(
         self,
         monkeypatch,
     ) -> None:
@@ -948,7 +948,7 @@ class TestIntegration:
         assert not hasattr(res.count_occurrences.data, "__dask_graph__")
 
     @pytest.mark.parametrize("slice_mode", ["JJA", "ONDJFM"])
-    def test_index_tx90p__dask_bootstrap_uses_fast_tiled_seasonal_path(
+    def test_index_tx90p__dask_bootstrap_uses_optimized_tiled_seasonal_path(
         self,
         slice_mode,
         monkeypatch,
@@ -975,7 +975,7 @@ class TestIntegration:
         default = icclim.index(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert profile["bootstrap_fast_tile_count"] == 4
+        assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
 
     def test_index_tx90p__cftime_dask_bootstrap_falls_back_to_safe_tiled_path(
@@ -1008,7 +1008,7 @@ class TestIntegration:
             profile["bootstrap_count_reason_code"]
             == "calendar_requires_exact_tiled_bootstrap"
         )
-        assert "bootstrap_fast_tile_count" not in profile
+        assert "bootstrap_optimized_tile_count" not in profile
         assert profile["bootstrap_safe_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
 

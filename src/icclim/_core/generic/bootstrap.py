@@ -11,7 +11,7 @@ import xarray as xr
 
 from icclim._core.constants import REFERENCE_PERIOD_ID
 from icclim._core.generic.bootstrap_capability import (
-    is_fast_doy_percentile_count_supported,
+    is_optimized_doy_percentile_count_supported,
 )
 from icclim._core.model.operator import Operator
 
@@ -27,7 +27,7 @@ def compute_doy_percentile_bootstrap_count(
     freq: str,
 ) -> DataArray | None:
     """Compute percentile bootstrap counts without building a huge dask graph."""
-    if not _can_compute_fast_bootstrap(study, threshold, freq):
+    if not _can_compute_optimized_bootstrap(study, threshold, freq):
         return None
     loaded = study.load()
     climatology_bounds = threshold.climatology_bounds(loaded)
@@ -142,12 +142,12 @@ def compute_doy_percentile_bootstrap_count(
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
-def _can_compute_fast_bootstrap(
+def _can_compute_optimized_bootstrap(
     study: DataArray,
     threshold: PercentileThreshold,
     freq: str,
 ) -> bool:
-    return is_fast_doy_percentile_count_supported(study, threshold, freq)
+    return is_optimized_doy_percentile_count_supported(study, threshold, freq)
 
 
 def _threshold_min_value_in_reference_units(

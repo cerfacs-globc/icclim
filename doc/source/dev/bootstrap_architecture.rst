@@ -42,7 +42,7 @@ Use the following rules when extending bootstrap support:
 
 - Separate threshold generation from result aggregation.
 - Classify support by mathematical family, not by index short name.
-- Keep the safe tiled path as the semantic oracle for every new fast
+- Keep the safe tiled path as the semantic oracle for every new optimized
   implementation.
 - Prefer a small number of well-named helpers over large mixed-purpose
   functions.
@@ -83,7 +83,7 @@ Examples:
 
 The Kraken validation showed that this family cannot be treated as a
 minor variant of the plain count family. Its substitute-year semantics must
-be matched exactly before any compiled fast path is enabled.
+be matched exactly before any compiled optimized path is enabled.
 
 Percentile amount and fraction family
 -------------------------------------
@@ -144,7 +144,7 @@ classifier that answers four questions:
 
 1. Is bootstrap required?
 2. If it is required, which family does the index belong to?
-3. Can the fast implementation be used?
+3. Can the optimized implementation be used?
 4. If not, should icclim fall back to the safe tiled path or reject the
    request as unsupported?
 
@@ -174,7 +174,7 @@ boolean. For example, it should carry:
 - whether bootstrap is required;
 - the bootstrap family;
 - the chosen execution path:
-  ``fast``, ``exact_tiled_bootstrap``, ``unsupported``, ``not_required``;
+  ``optimized_bootstrap``, ``exact_tiled_bootstrap``, ``unsupported``, ``not_required``;
 - a short reason code for logs, tests and debugging.
 
 Reusable bootstrap primitives
@@ -308,7 +308,7 @@ Suggested split:
 - a capability module that classifies bootstrap requests;
 - a threshold engine module that computes bootstrapped thresholds;
 - a reducer module that turns daily masks into final outputs;
-- a dispatch layer that chooses ``fast`` or ``exact_tiled_bootstrap`` and wires
+- a dispatch layer that chooses ``optimized_bootstrap`` or ``exact_tiled_bootstrap`` and wires
   the pieces together.
 
 The important part is not the exact filenames. It is that the code
@@ -389,8 +389,8 @@ Tests as readability support
 - Prefer test names that explain the scientific case and the expected
   routing decision.
 - Where bootstrap dispatch matters, tests should state whether the case
-  is expected to use the fast path, safe fallback, or no bootstrap at
-  all.
+  is expected to use the optimized path, exact tiled bootstrap, or no
+  bootstrap at all.
 
 FAIR4RS implications
 ====================
@@ -477,7 +477,7 @@ small architecture where:
 - one classifier explains what path any generic index will take;
 - one threshold engine defines percentile bootstrap semantics;
 - several simple reducers reuse those semantics;
-- fast implementations can be added family by family without rewriting
+- optimized implementations can be added family by family without rewriting
   bootstrap logic.
 
 If the code reaches that shape, adding support for new climate indices
