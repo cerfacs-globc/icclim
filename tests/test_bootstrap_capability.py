@@ -65,15 +65,15 @@ def test_threshold_kind_classification_covers_basic_percentile_and_bounded() -> 
     assert classify_threshold_kind(None) == BootstrapThresholdKind.MISSING
     assert (
         classify_threshold_kind(build_threshold("> 20 degC"))
-        == BootstrapThresholdKind.BASIC
+        == BootstrapThresholdKind.BASIC_THRESHOLD
     )
     assert (
         classify_threshold_kind(build_threshold("> 90 doy_per"))
-        == BootstrapThresholdKind.DAY_OF_YEAR_PERCENTILE
+        == BootstrapThresholdKind.DAY_OF_YEAR_PERCENTILE_THRESHOLD
     )
     assert (
         classify_threshold_kind(build_threshold("> 90 period_per"))
-        == BootstrapThresholdKind.PERIOD_PERCENTILE
+        == BootstrapThresholdKind.PERIOD_PERCENTILE_THRESHOLD
     )
     assert (
         classify_threshold_kind(
@@ -82,7 +82,7 @@ def test_threshold_kind_classification_covers_basic_percentile_and_bounded() -> 
                 logical_link="and",
             )
         )
-        == BootstrapThresholdKind.BOUNDED
+        == BootstrapThresholdKind.COMPOUND_THRESHOLD
     )
 
 

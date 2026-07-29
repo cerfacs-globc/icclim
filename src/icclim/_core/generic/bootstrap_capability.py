@@ -1,4 +1,11 @@
-"""Bootstrap routing helpers for percentile-based indices."""
+"""Bootstrap routing helpers for percentile-based indices.
+
+This module classifies bootstrap requests from threshold specifications,
+not from prepared threshold fields or aligned daily threshold values.
+That distinction matters because later bootstrap families will reuse the
+same routing layer before any path decides how to materialize threshold
+data.
+"""
 
 from __future__ import annotations
 
@@ -18,13 +25,13 @@ from icclim.frequency import Frequency
 
 
 class BootstrapThresholdKind(StrEnum):
-    """Threshold shapes that matter for bootstrap routing."""
+    """Threshold specification shapes that matter for bootstrap routing."""
 
     MISSING = "missing"
-    BASIC = "basic"
-    DAY_OF_YEAR_PERCENTILE = "day_of_year_percentile"
-    PERIOD_PERCENTILE = "period_percentile"
-    BOUNDED = "bounded"
+    BASIC_THRESHOLD = "basic_threshold"
+    DAY_OF_YEAR_PERCENTILE_THRESHOLD = "day_of_year_percentile_threshold"
+    PERIOD_PERCENTILE_THRESHOLD = "period_percentile_threshold"
+    COMPOUND_THRESHOLD = "compound_threshold"
 
 
 class BootstrapComputationFamily(StrEnum):
@@ -71,28 +78,27 @@ def classify_doy_percentile_count_bootstrap(
     resample_frequency: Frequency,
 ) -> BootstrapCapability:
     """Classify the current bootstrap path for day-of-year percentile counts."""
-    threshold = climate_var.threshold
-    threshold_kind = classify_threshold_kind(threshold)
+    threshold_spec = climate_var.threshold
+    threshold_kind = classify_threshold_kind(threshold_spec)
     if threshold_kind == BootstrapThresholdKind.MISSING:
         return _not_required("missing_threshold")
-    if threshold_kind == BootstrapThresholdKind.BASIC:
+    if threshold_kind == BootstrapThresholdKind.BASIC_THRESHOLD:
         return _not_required("threshold_is_not_percentile")
-    if threshold_kind == BootstrapThresholdKind.BOUNDED:
+    if threshold_kind == BootstrapThresholdKind.COMPOUND_THRESHOLD:
         return _not_required("threshold_is_compound")
-    if threshold_kind == BootstrapThresholdKind.PERIOD_PERCENTILE:
+    if threshold_kind == BootstrapThresholdKind.PERIOD_PERCENTILE_THRESHOLD:
         return _not_required("threshold_is_not_day_of_year_percentile")
-    threshold = climate_var.threshold
-    assert isinstance(threshold, PercentileThreshold)
+    assert isinstance(threshold_spec, PercentileThreshold)
     if climate_var.bootstrap is False:
         return _not_required("bootstrap_disabled_by_user")
     if not must_run_bootstrap(
         climate_var.studied_data,
-        threshold,
+        threshold_spec,
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
 
-    family = _classify_count_family(threshold)
+    family = _classify_count_family(threshold_spec)
 
     from xclim.core.utils import uses_dask  # noqa: PLC0415
 
@@ -104,10 +110,10 @@ def classify_doy_percentile_count_bootstrap(
         return _safe_fallback(family, "safe_mode_forced")
     if not is_fast_doy_percentile_count_supported(
         climate_var.studied_data,
-        threshold,
+        threshold_spec,
         resample_frequency.pandas_freq,
     ):
-        if threshold.threshold_min_value is not None:
+        if threshold_spec.threshold_min_value is not None:
             return _safe_fallback(
                 family,
                 "threshold_min_value_requires_safe_fallback",
@@ -117,12 +123,12 @@ def classify_doy_percentile_count_bootstrap(
                 family,
                 "calendar_requires_safe_fallback",
             )
-        if threshold.only_leap_years:
+        if threshold_spec.only_leap_years:
             return _safe_fallback(
                 family,
                 "only_leap_years_requires_safe_fallback",
             )
-        if threshold.percentile_coord().size != 1:
+        if threshold_spec.percentile_coord().size != 1:
             return _safe_fallback(
                 family,
                 "multiple_percentiles_require_safe_fallback",
@@ -132,7 +138,7 @@ def classify_doy_percentile_count_bootstrap(
                 family,
                 "output_frequency_not_supported_by_fast_path",
             )
-        if _operator_code(threshold.operator) < 0:
+        if _operator_code(threshold_spec.operator) < 0:
             return _safe_fallback(
                 family,
                 "operator_not_supported_by_fast_path",
@@ -148,40 +154,40 @@ def classify_doy_percentile_count_bootstrap(
 
 def is_fast_doy_percentile_count_supported(
     study: DataArray,
-    threshold: PercentileThreshold,
+    threshold_spec: PercentileThreshold,
     output_frequency: str,
 ) -> bool:
     """Return whether the compiled fast count path supports this case."""
     return (
         _is_fast_bootstrap_frequency(output_frequency)
         and isinstance(study.indexes.get("time"), pd.DatetimeIndex)
-        and not threshold.only_leap_years
-        and threshold.percentile_coord().size == 1
-        and threshold.threshold_min_value is None
-        and _operator_code(threshold.operator) >= 0
+        and not threshold_spec.only_leap_years
+        and threshold_spec.percentile_coord().size == 1
+        and threshold_spec.threshold_min_value is None
+        and _operator_code(threshold_spec.operator) >= 0
         and _numba_fast_path_is_available()
     )
 
 
 def classify_threshold_kind(
-    threshold: Threshold | None,
+    threshold_spec: Threshold | None,
 ) -> BootstrapThresholdKind:
-    """Describe the structural shape of a threshold."""
-    if threshold is None:
+    """Describe the structural shape of a threshold specification."""
+    if threshold_spec is None:
         return BootstrapThresholdKind.MISSING
-    if isinstance(threshold, BoundedThreshold):
-        return BootstrapThresholdKind.BOUNDED
-    if not isinstance(threshold, PercentileThreshold):
-        return BootstrapThresholdKind.BASIC
-    if threshold.is_doy_per_threshold:
-        return BootstrapThresholdKind.DAY_OF_YEAR_PERCENTILE
-    return BootstrapThresholdKind.PERIOD_PERCENTILE
+    if isinstance(threshold_spec, BoundedThreshold):
+        return BootstrapThresholdKind.COMPOUND_THRESHOLD
+    if not isinstance(threshold_spec, PercentileThreshold):
+        return BootstrapThresholdKind.BASIC_THRESHOLD
+    if threshold_spec.is_doy_per_threshold:
+        return BootstrapThresholdKind.DAY_OF_YEAR_PERCENTILE_THRESHOLD
+    return BootstrapThresholdKind.PERIOD_PERCENTILE_THRESHOLD
 
 
 def _classify_count_family(
-    threshold: PercentileThreshold,
+    threshold_spec: PercentileThreshold,
 ) -> BootstrapComputationFamily:
-    if threshold.threshold_min_value is not None:
+    if threshold_spec.threshold_min_value is not None:
         return BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COUNT
     return BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COUNT
 
