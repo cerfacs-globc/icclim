@@ -31,7 +31,7 @@ class UserIndexDict(TypedDict, total=False):
 
     index_name: str
     calc_operation: CalcOperationLike | CalcOperation
-    logical_operation: str | None | Sequence[str]  # >= | <= | ...| ==
+    logical_operation: str | Sequence[str] | None  # >= | <= | ...| ==
     thresh: str | int | Sequence[str | int] | None
     extreme_mode: Literal["min", "max"] | None
 

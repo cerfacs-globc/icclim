@@ -149,6 +149,7 @@ ignore = [
   # -- Rules to add
   "PLR0913", # too many arguments in function, to add
   "PLR0915", # Too many statement, to add
+  "PLR0917", # Too many positional arguments, to add
   # -- True ignore
   "ISC001", # String concat on same line, Managed by ruff format
   "COM812", # No comma at the end, Managed by ruff format
