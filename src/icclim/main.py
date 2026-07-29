@@ -215,22 +215,19 @@ def indices(
 def _get_ecad_indices_of_group(
     query: Sequence[str] | str | IndexGroup | StandardIndex,
 ) -> list[StandardIndex]:
-    if query == IndexGroupRegistry.WILD_CARD_GROUP or (
-        isinstance(query, str)
-        and query.lower() == IndexGroupRegistry.WILD_CARD_GROUP.name
-    ):
+    if _is_wildcard_index_group_query(query):
         return EcadIndexRegistry.values()
     query_list = query if isinstance(query, (list, tuple)) else [query]
 
-    indices = _look_for_standard_indices(query_list)
+    indices = _find_named_standard_indices(query_list)
     if indices:
         return indices
 
-    indices = _look_for_variable_indices(query_list)
+    indices = _find_indices_matching_source_variables(query_list)
     if indices:
         return indices
 
-    indices = _look_for_index_groups(query_list)
+    indices = _find_indices_from_named_groups(query_list)
     if indices:
         return indices
 
@@ -238,7 +235,16 @@ def _get_ecad_indices_of_group(
     raise InvalidIcclimArgumentError(msg)
 
 
-def _look_for_standard_indices(query: Sequence[Any]) -> list[StandardIndex] | None:
+def _is_wildcard_index_group_query(
+    query: Sequence[str] | str | IndexGroup | StandardIndex,
+) -> bool:
+    return query == IndexGroupRegistry.WILD_CARD_GROUP or (
+        isinstance(query, str)
+        and query.lower() == IndexGroupRegistry.WILD_CARD_GROUP.name
+    )
+
+
+def _find_named_standard_indices(query: Sequence[Any]) -> list[StandardIndex] | None:
     indices = [EcadIndexRegistry.lookup_no_error(i) for i in query]
     res = [i for i in indices if i is not None]
     if len(res) == len(query):
@@ -246,26 +252,35 @@ def _look_for_standard_indices(query: Sequence[Any]) -> list[StandardIndex] | No
     return None
 
 
-def _look_for_variable_indices(query: Sequence[Any]) -> list[StandardIndex] | None:
+def _find_indices_matching_source_variables(
+    query: Sequence[Any],
+) -> list[StandardIndex] | None:
     indices = []
     for ecad_index in EcadIndexRegistry.values():
-        has_var = True
-        if ecad_index.input_variables is not None:
-            for var in ecad_index.input_variables:
-                is_query_in_aliases = (
-                    standard_var in var.aliases for standard_var in query
-                )
-                has_var &= any(is_query_in_aliases)
-        else:
-            has_var = False
-        if has_var:
+        if _matches_requested_source_variables(ecad_index, query):
             indices.append(ecad_index)
     if len(indices) >= len(query):
         return indices
     return None
 
 
-def _look_for_index_groups(query: Sequence[Any]) -> list[StandardIndex] | None:
+def _matches_requested_source_variables(
+    ecad_index: StandardIndex,
+    requested_variables: Sequence[Any],
+) -> bool:
+    if ecad_index.input_variables is None:
+        return False
+    for input_variable in ecad_index.input_variables:
+        matching_aliases = (
+            requested_variable in input_variable.aliases
+            for requested_variable in requested_variables
+        )
+        if not any(matching_aliases):
+            return False
+    return True
+
+
+def _find_indices_from_named_groups(query: Sequence[Any]) -> list[StandardIndex] | None:
     groups = [IndexGroupRegistry.lookup_no_error(i) for i in query]
     res = [i for i in groups if i is not None]
     if res:

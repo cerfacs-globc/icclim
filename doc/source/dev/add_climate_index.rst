@@ -165,6 +165,22 @@ Request Normalization
 
 - ``src/icclim/main.py``:
   :func:`_normalize_index_request`
+- ``src/icclim/main.py``:
+  :func:`_get_ecad_indices_of_group`
+
+Index Group Resolution
+----------------------
+
+When resolving ``icclim.indices(...)`` requests, ``main.py`` now checks
+the query in this order:
+
+1. wildcard request such as ``"all"``
+2. explicit standard-index names
+3. source-variable aliases such as ``tasmax``
+4. named index groups such as ``HEAT`` or ``SNOW``
+
+Keeping that order visible in code helps contributors understand why one
+query shape expands to a list of indices while another is rejected.
 
 Configuration Assembly
 ----------------------
