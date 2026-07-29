@@ -339,7 +339,7 @@ def index(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.

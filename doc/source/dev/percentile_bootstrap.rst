@@ -81,16 +81,16 @@ with bitwise-equivalent counts up to floating-point noise:
 - production fast path: about 146 seconds;
 - maximum absolute difference: about ``5.7e-14``.
 
-Compared to the old xclim/dask graph path, performance is
+Compared to the old reference bootstrap dask graph path, performance is
 case-dependent when the old path succeeds. On the ACCESS-CM2 validation
 subset (65 years, 28 latitudes, 21 longitudes), the fast path was close
-to the legacy path in wall-clock time, but removed the multi-million-task
+to the reference bootstrap path in wall-clock time, but removed the multi-million-task
 dask graph:
 
-- annual ``TG90p``: legacy 204 seconds and 4,691,198 graph tasks; fast
+- annual ``TG90p``: reference bootstrap 204 seconds and 4,691,198 graph tasks; fast
   212 seconds and 0 graph tasks; maximum absolute difference
   ``8.6e-14``; MaxRSS about 4.4 GB;
-- monthly ``TG90p``: legacy 212 seconds and 4,696,205 graph tasks; fast
+- monthly ``TG90p``: reference bootstrap 212 seconds and 4,696,205 graph tasks; fast
   212 seconds and 0 graph tasks; maximum absolute difference
   ``7.2e-15``; MaxRSS about 4.0 GB.
 

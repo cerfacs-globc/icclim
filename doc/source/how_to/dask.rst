@@ -602,7 +602,7 @@ Disk read and write analysis - Dashboard
    -  Expert diagnostics: ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` overrides the
       memory-derived tile size with an explicit maximum number of spatial cells
       per tile. ``ICCLIM_BOOTSTRAP_MODE=default`` disables the safe tiled path
-      and keeps the legacy dask graph path for comparison only.
+      and keeps the reference bootstrap dask graph path for comparison only.
 
 Worker chatterbox syndrome - Dashboard
 ======================================

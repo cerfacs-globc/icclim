@@ -131,7 +131,7 @@ def tav(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -248,7 +248,7 @@ def txav(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -365,7 +365,7 @@ def trav(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -500,7 +500,7 @@ def tx10(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -656,7 +656,7 @@ def tx90(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -812,7 +812,7 @@ def tn10(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -968,7 +968,7 @@ def tn90(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -1106,7 +1106,7 @@ def tnfd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -1226,7 +1226,7 @@ def txfd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -1346,7 +1346,7 @@ def sd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -1466,7 +1466,7 @@ def tx35(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -1586,7 +1586,7 @@ def tr(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -1708,7 +1708,7 @@ def txnd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -1840,7 +1840,7 @@ def tnht(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -1972,7 +1972,7 @@ def tnnd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -2104,7 +2104,7 @@ def tncwd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -2236,7 +2236,7 @@ def txhwd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -2366,7 +2366,7 @@ def hdd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -2486,7 +2486,7 @@ def cdd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -2606,7 +2606,7 @@ def pav(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -2723,7 +2723,7 @@ def pint(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -2843,7 +2843,7 @@ def rr(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -2960,7 +2960,7 @@ def rr1mm(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -3080,7 +3080,7 @@ def pn20mm(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -3200,7 +3200,7 @@ def pxcdd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -3320,7 +3320,7 @@ def pxcwd(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -3458,7 +3458,7 @@ def r99(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -3615,7 +3615,7 @@ def pfl90(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -3772,7 +3772,7 @@ def pq90(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -3929,7 +3929,7 @@ def pq99(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -4083,7 +4083,7 @@ def ffav(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
@@ -4219,7 +4219,7 @@ def ff98(
         strategy by trial and error. The safe path derives its spatial tile size from
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``), unless
         ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` is set as an expert override.
-        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the legacy
+        Set ``ICCLIM_BOOTSTRAP_MODE=default`` only for diagnostics to keep the reference bootstrap
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.

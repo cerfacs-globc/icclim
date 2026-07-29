@@ -132,7 +132,7 @@ def test_cftime_routes_to_safe_fallback() -> None:
     assert decision.reason_code == "calendar_requires_safe_fallback"
 
 
-def test_eager_input_uses_legacy_bootstrap_path() -> None:
+def test_eager_input_uses_reference_bootstrap_path() -> None:
     tas = stub_tas(27 + K2C)
     climate_var = _build_climate_variable(
         tas,
@@ -148,8 +148,8 @@ def test_eager_input_uses_legacy_bootstrap_path() -> None:
         FrequencyRegistry.YEAR,
     )
 
-    assert decision.execution_kind == BootstrapExecutionKind.LEGACY
-    assert decision.reason_code == "eager_input_uses_xclim_bootstrap"
+    assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
+    assert decision.reason_code == "eager_input_uses_reference_bootstrap_path"
 
 
 def test_bootstrap_disabled_by_user_is_not_required() -> None:

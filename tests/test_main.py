@@ -1042,7 +1042,9 @@ class TestIntegration:
         tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
         tas[5:10] = 0
         tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
-        original_compute_exceedance = generic_functions._compute_exceedance
+        original_compute_exceedance_mask = (
+            generic_functions._compute_exceedance_mask
+        )
 
         def fail_until_single_cell(*args, **kwargs):
             study = args[0]
@@ -1053,11 +1055,11 @@ class TestIntegration:
             if spatial_cells > 1:
                 msg = "simulated bootstrap tile memory pressure"
                 raise MemoryError(msg)
-            return original_compute_exceedance(*args, **kwargs)
+            return original_compute_exceedance_mask(*args, **kwargs)
 
         monkeypatch.setattr(
             generic_functions,
-            "_compute_exceedance",
+            "_compute_exceedance_mask",
             fail_until_single_cell,
         )
         generic_functions.reset_bootstrap_profile()

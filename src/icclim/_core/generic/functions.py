@@ -178,12 +178,14 @@ def count_occurrences(
         reducer_op = _count_occurrences_with_date
     else:
         reducer_op = partial(DataArrayResample.sum, dim="time")
-    merged_exceedances = _compute_exceedances(
+    combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq.pandas_freq,
         logical_link,
     )
-    result = reducer_op(merged_exceedances.resample(time=resample_freq.pandas_freq))
+    result = reducer_op(
+        combined_exceedance_mask.resample(time=resample_freq.pandas_freq)
+    )
     if to_percent:
         result = _to_percent(result, resample_freq)
         result.attrs[UNITS_KEY] = "%"
@@ -247,7 +249,7 @@ def max_consecutive_occurrence(
     >>> int(result.max_consecutive_occurrence.isel(time=0).values)
     365
     """
-    merged_exceedances = _compute_exceedances(
+    combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq.pandas_freq,
         logical_link,
@@ -255,7 +257,9 @@ def max_consecutive_occurrence(
     from xclim.indices import run_length  # noqa: PLC0415
 
     rle = run_length.rle(
-        merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
+        combined_exceedance_mask,
+        dim="time",
+        index=kwargs.get("run_index", "first"),
     )
     resampled = rle.resample(time=resample_freq.pandas_freq)
     if date_event:
@@ -301,7 +305,7 @@ def sum_of_spell_lengths(
     DataArray
         The sum of the lengths of all spells in the data.
     """
-    merged_exceedances = _compute_exceedances(
+    combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq.pandas_freq,
         logical_link,
@@ -309,7 +313,9 @@ def sum_of_spell_lengths(
     from xclim.indices import run_length  # noqa: PLC0415
 
     rle = run_length.rle(
-        merged_exceedances, dim="time", index=kwargs.get("run_index", "first")
+        combined_exceedance_mask,
+        dim="time",
+        index=kwargs.get("run_index", "first"),
     )
     cropped_rle = rle.where(rle >= min_spell_length, other=0)
     result = cropped_rle.resample(time=resample_freq.pandas_freq).sum(dim="time")
@@ -463,14 +469,16 @@ def fraction_of_total(
         )
     else:
         total = study.resample(time=resample_freq.pandas_freq).sum(dim="time")
-    ex_da = _compute_exceedance(
+    exceedance_mask = _compute_exceedance_mask(
         study=study,
         threshold=threshold,
         freq=resample_freq.pandas_freq,
         bootstrap=must_run_bootstrap(study, threshold, climate_vars[0].bootstrap),
     ).squeeze()
     over = (
-        study.where(ex_da, 0).resample(time=resample_freq.pandas_freq).sum(dim="time")
+        study.where(exceedance_mask, 0)
+        .resample(time=resample_freq.pandas_freq)
+        .sum(dim="time")
     )
     res = over / total
     if to_percent:
@@ -1247,20 +1255,20 @@ def _reduce_and_diff_of_resampled_x_by_groupedby_y(
     return diff_of_means
 
 
-def _compute_exceedance(
+def _compute_exceedance_mask(
     study: DataArray,
     threshold: Threshold,
     freq: str,  # used by @percentile_bootstrap (don't rename, it breaks bootstrap)
     bootstrap: bool,  # used by @percentile_bootstrap
 ) -> DataArray:
-    exceedances = threshold.compute(study, freq=freq, bootstrap=bootstrap)
+    exceedance_mask = threshold.compute(study, freq=freq, bootstrap=bootstrap)
     if bootstrap:
         climatology_bounds = getattr(threshold, "climatology_bounds", lambda *_: None)(
             study
         )
         if climatology_bounds is not None:
-            exceedances.attrs[REFERENCE_PERIOD_ID] = climatology_bounds
-    return exceedances
+            exceedance_mask.attrs[REFERENCE_PERIOD_ID] = climatology_bounds
+    return exceedance_mask
 
 
 def _compute_safe_tiled_count_occurrences(
@@ -1298,7 +1306,7 @@ def _compute_safe_tiled_count_occurrences(
     )
     if not bootstrap_capability.bootstrap_required:
         return None
-    if bootstrap_capability.execution_kind == BootstrapExecutionKind.LEGACY:
+    if bootstrap_capability.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP:
         return None
 
     safe_start = perf_counter()
@@ -1353,13 +1361,13 @@ def _compute_safe_tiled_count_occurrences_with_max_cells(
         tile_start = perf_counter()
         tile_study = climate_var.studied_data.isel(tile_indexers)
         tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
-        tile_exceedance = _compute_exceedance(
+        tile_exceedance_mask = _compute_exceedance_mask(
             tile_study,
             tile_threshold,
             freq=resample_freq.pandas_freq,
             bootstrap=True,
         )
-        tile_result = tile_exceedance.resample(time=resample_freq.pandas_freq).sum(
+        tile_result = tile_exceedance_mask.resample(time=resample_freq.pandas_freq).sum(
             dim="time"
         )
         if "percentiles" in tile_result.dims:
@@ -1655,13 +1663,13 @@ def _run_rolling_reducer(
 ) -> DataArray:
     study, threshold = get_single_var(climate_vars)
     if threshold:
-        exceedance = _compute_exceedance(
+        exceedance_mask = _compute_exceedance_mask(
             study=study,
             freq=resample_freq.pandas_freq,
             threshold=threshold,
             bootstrap=must_run_bootstrap(study, threshold, climate_vars[0].bootstrap),
         ).squeeze()
-        study = study.where(exceedance)
+        study = study.where(exceedance_mask)
     study = rolling_op(study.rolling(time=rolling_window_width))
     resampled = study.resample(time=resample_freq.pandas_freq)
     if date_event:
@@ -1708,13 +1716,13 @@ def _run_simple_reducer(
     """
     study, threshold = get_single_var(climate_vars)
     if threshold is not None:
-        exceedance = _compute_exceedance(
+        exceedance_mask = _compute_exceedance_mask(
             study=study,
             freq=resample_freq.pandas_freq,
             threshold=threshold,
             bootstrap=must_run_bootstrap(study, threshold, climate_vars[0].bootstrap),
         ).squeeze()
-        filtered_study = study.where(exceedance)
+        filtered_study = study.where(exceedance_mask)
     else:
         filtered_study = study
     if must_convert_rate and _is_rate(filtered_study):
@@ -1787,18 +1795,18 @@ def _rate_to_amount_for_daily_subseries(filtered_study: DataArray) -> DataArray:
     return converted.assign_coords(time=original_time)
 
 
-def _compute_exceedances(
+def _compute_combined_exceedance_mask(
     climate_vars: list[ClimateVariable],
     resample_freq: str,
     logical_link: LogicalLink,
 ) -> DataArray:
-    exceedances = []
+    exceedance_masks = []
     for climate_var in climate_vars:
         if climate_var.threshold is None:
             msg = "No threshold found"
             raise InvalidIcclimArgumentError(msg)
-        exceedances.append(
-            _compute_exceedance(
+        exceedance_masks.append(
+            _compute_exceedance_mask(
                 study=climate_var.studied_data,
                 threshold=climate_var.threshold,
                 freq=resample_freq,
@@ -1809,7 +1817,7 @@ def _compute_exceedances(
                 ),
             ).squeeze()
         )
-    return logical_link(exceedances)
+    return logical_link(exceedance_masks)
 
 
 def _get_thresholded_var(

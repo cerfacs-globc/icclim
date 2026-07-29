@@ -46,7 +46,7 @@ class BootstrapExecutionKind(StrEnum):
     """Concrete execution paths currently available inside icclim."""
 
     NOT_REQUIRED = "not_required"
-    LEGACY = "legacy"
+    REFERENCE_BOOTSTRAP = "reference_bootstrap"
     SAFE_FALLBACK = "safe_fallback"
     FAST = "fast"
 
@@ -69,8 +69,8 @@ class BootstrapCapability:
         return self.execution_kind == BootstrapExecutionKind.SAFE_FALLBACK
 
     @property
-    def uses_legacy_path(self) -> bool:
-        return self.execution_kind == BootstrapExecutionKind.LEGACY
+    def uses_reference_bootstrap_path(self) -> bool:
+        return self.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
 
 
 def classify_doy_percentile_count_bootstrap(
@@ -103,47 +103,24 @@ def classify_doy_percentile_count_bootstrap(
     from xclim.core.utils import uses_dask  # noqa: PLC0415
 
     if not uses_dask(climate_var.studied_data):
-        return _legacy(family, "eager_input_uses_xclim_bootstrap")
+        return _reference_bootstrap_path(
+            family,
+            "eager_input_uses_reference_bootstrap_path",
+        )
     if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "default":
-        return _legacy(family, "legacy_mode_forced")
+        return _reference_bootstrap_path(
+            family,
+            "reference_bootstrap_mode_forced",
+        )
     if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
         return _safe_fallback(family, "safe_mode_forced")
-    if not is_fast_doy_percentile_count_supported(
+    fast_path_blocker = _fast_count_path_blocker(
         climate_var.studied_data,
         threshold_spec,
         resample_frequency.pandas_freq,
-    ):
-        if threshold_spec.threshold_min_value is not None:
-            return _safe_fallback(
-                family,
-                "threshold_min_value_requires_safe_fallback",
-            )
-        if not isinstance(climate_var.studied_data.indexes.get("time"), pd.DatetimeIndex):
-            return _safe_fallback(
-                family,
-                "calendar_requires_safe_fallback",
-            )
-        if threshold_spec.only_leap_years:
-            return _safe_fallback(
-                family,
-                "only_leap_years_requires_safe_fallback",
-            )
-        if threshold_spec.percentile_coord().size != 1:
-            return _safe_fallback(
-                family,
-                "multiple_percentiles_require_safe_fallback",
-            )
-        if not _is_fast_bootstrap_frequency(resample_frequency.pandas_freq):
-            return _safe_fallback(
-                family,
-                "output_frequency_not_supported_by_fast_path",
-            )
-        if _operator_code(threshold_spec.operator) < 0:
-            return _safe_fallback(
-                family,
-                "operator_not_supported_by_fast_path",
-            )
-        return _safe_fallback(family, "fast_path_unavailable")
+    )
+    if fast_path_blocker is not None:
+        return _safe_fallback(family, fast_path_blocker)
     return BootstrapCapability(
         family=family,
         execution_kind=BootstrapExecutionKind.FAST,
@@ -158,15 +135,7 @@ def is_fast_doy_percentile_count_supported(
     output_frequency: str,
 ) -> bool:
     """Return whether the compiled fast count path supports this case."""
-    return (
-        _is_fast_bootstrap_frequency(output_frequency)
-        and isinstance(study.indexes.get("time"), pd.DatetimeIndex)
-        and not threshold_spec.only_leap_years
-        and threshold_spec.percentile_coord().size == 1
-        and threshold_spec.threshold_min_value is None
-        and _operator_code(threshold_spec.operator) >= 0
-        and _numba_fast_path_is_available()
-    )
+    return _fast_count_path_blocker(study, threshold_spec, output_frequency) is None
 
 
 def classify_threshold_kind(
@@ -201,13 +170,13 @@ def _not_required(reason_code: str) -> BootstrapCapability:
     )
 
 
-def _legacy(
+def _reference_bootstrap_path(
     family: BootstrapComputationFamily,
     reason_code: str,
 ) -> BootstrapCapability:
     return BootstrapCapability(
         family=family,
-        execution_kind=BootstrapExecutionKind.LEGACY,
+        execution_kind=BootstrapExecutionKind.REFERENCE_BOOTSTRAP,
         bootstrap_required=True,
         reason_code=reason_code,
     )
@@ -227,6 +196,29 @@ def _safe_fallback(
 
 def _is_fast_bootstrap_frequency(freq: str) -> bool:
     return freq in {"MS", "YS"} or freq.startswith("YS-")
+
+
+def _fast_count_path_blocker(
+    study: DataArray,
+    threshold_spec: PercentileThreshold,
+    output_frequency: str,
+) -> str | None:
+    """Return the fast-path blocker reason, or ``None`` when fast is supported."""
+    if threshold_spec.threshold_min_value is not None:
+        return "threshold_min_value_requires_safe_fallback"
+    if not isinstance(study.indexes.get("time"), pd.DatetimeIndex):
+        return "calendar_requires_safe_fallback"
+    if threshold_spec.only_leap_years:
+        return "only_leap_years_requires_safe_fallback"
+    if threshold_spec.percentile_coord().size != 1:
+        return "multiple_percentiles_require_safe_fallback"
+    if not _is_fast_bootstrap_frequency(output_frequency):
+        return "output_frequency_not_supported_by_fast_path"
+    if _operator_code(threshold_spec.operator) < 0:
+        return "operator_not_supported_by_fast_path"
+    if not _numba_fast_path_is_available():
+        return "fast_path_unavailable"
+    return None
 
 
 def _numba_fast_path_is_available() -> bool:
