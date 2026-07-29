@@ -288,18 +288,12 @@ def build_climate_var(
     ...     climate_var_name, climate_var_data, ignore_feb29th, time_range, standard_var
     ... )
     """
-    if isinstance(climate_var_data, dict):
-        study_ds = read_dataset(
-            climate_var_data["study"],
-            standard_var,
-            climate_var_name,
-        )
-        climate_var_thresh = climate_var_data.get("thresholds", None)
-    else:
-        study_ds = read_dataset(climate_var_data, standard_var, climate_var_name)
-        climate_var_thresh = None
-    if standard_var is None:
-        standard_var = guess_standard_variable(study_ds[climate_var_name])
+    study_ds, climate_var_thresh = _read_study_dataset_and_threshold(
+        climate_var_data,
+        standard_var,
+        climate_var_name,
+    )
+    standard_var = standard_var or guess_standard_variable(study_ds[climate_var_name])
     studied_data = build_studied_data(
         study_ds[climate_var_name],
         time_range,
@@ -319,9 +313,7 @@ def build_climate_var(
             original_data=threshold_prepare_data,
             conversion_unit=studied_data.attrs[UNITS_KEY],
         )
-    if "time" in studied_data.coords:
-        inferred_freq = xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY
-        studied_data.time.attrs["freq"] = inferred_freq
+    _set_source_frequency_metadata(studied_data)
     return ClimateVariable(
         name=climate_var_name,
         standard_var=standard_var,
@@ -338,6 +330,29 @@ def build_climate_var(
         ),
         bootstrap=bootstrap,
     )
+
+
+def _read_study_dataset_and_threshold(
+    climate_var_data: InFileDictionary | InFileBaseType,
+    standard_var: StandardVariable | None,
+    climate_var_name: str,
+) -> tuple[Dataset, Threshold | str | dict | None]:
+    if isinstance(climate_var_data, dict):
+        study_ds = read_dataset(
+            climate_var_data["study"],
+            standard_var,
+            climate_var_name,
+        )
+        return study_ds, climate_var_data.get("thresholds")
+    study_ds = read_dataset(climate_var_data, standard_var, climate_var_name)
+    return study_ds, None
+
+
+def _set_source_frequency_metadata(studied_data: DataArray) -> None:
+    if "time" not in studied_data.coords:
+        return
+    inferred_freq = xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY
+    studied_data.time.attrs["freq"] = inferred_freq
 
 
 def must_run_bootstrap(

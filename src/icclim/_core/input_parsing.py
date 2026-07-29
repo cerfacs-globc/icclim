@@ -531,46 +531,92 @@ def build_studied_data(
         If the given `time_range` is out of the dataset time period.
 
     """
-    if time_range is not None:
-        _check_time_range_pre_validity("time_range", time_range)
-        time_range = [get_date_to_iso_format(x) for x in time_range]
-        da = original_da.sel(time=slice(time_range[0], time_range[1]))
-        _check_time_range_post_validity(da, original_da, "time_range", time_range)
-        if len(da.time) == 0:
-            msg = (
-                f"The given `time_range` {time_range} is out of the dataset time"
-                f" period: {original_da.time.min().dt.floor('D').values}"
-                f" - {original_da.time.max().dt.floor('D').values}."
-            )
-            raise InvalidIcclimArgumentError(msg)
-    else:
-        da = original_da
-    if ignore_feb29th:
-        import xclim  # noqa: PLC0415
+    studied_data = _subset_to_requested_time_range(original_da, time_range)
+    studied_data = _drop_february_29_if_requested(studied_data, ignore_feb29th)
+    studied_data = _apply_default_units(studied_data, default_units)
+    standard_var = standard_var or guess_standard_variable(studied_data)
+    studied_data = _normalize_temperature_units(studied_data, standard_var)
+    studied_data = _normalize_amount_and_rate_units(studied_data, standard_var)
+    return studied_data.chunk("auto")
 
-        da = da.convert_calendar(CfCalendarRegistry.NO_LEAP.name)
-    if da.attrs.get(UNITS_KEY, None) is None and default_units is not None:
-        da.attrs[UNITS_KEY] = default_units
-    std_var = standard_var or guess_standard_variable(da)
-    if (
-        std_var is not None
-        and std_var.default_units == "degree_Celsius"
-        and da.attrs.get(UNITS_KEY) is not None
-        and da.attrs.get(UNITS_KEY) != "degree_Celsius"
-    ):
-        from xclim.core.units import convert_units_to  # noqa: PLC0415
 
-        da = convert_units_to(da, "degree_Celsius", context="hydro")
+def _subset_to_requested_time_range(
+    original_da: DataArray,
+    time_range: Sequence[datetime | str] | None,
+) -> DataArray:
+    if time_range is None:
+        return original_da
+    _check_time_range_pre_validity("time_range", time_range)
+    normalized_time_range = [get_date_to_iso_format(x) for x in time_range]
+    studied_data = original_da.sel(
+        time=slice(normalized_time_range[0], normalized_time_range[1])
+    )
+    _check_time_range_post_validity(
+        studied_data,
+        original_da,
+        "time_range",
+        normalized_time_range,
+    )
+    if len(studied_data.time) == 0:
+        msg = (
+            f"The given `time_range` {normalized_time_range} is out of the dataset time"
+            f" period: {original_da.time.min().dt.floor('D').values}"
+            f" - {original_da.time.max().dt.floor('D').values}."
+        )
+        raise InvalidIcclimArgumentError(msg)
+    return studied_data
+
+
+def _drop_february_29_if_requested(
+    studied_data: DataArray,
+    ignore_feb29th: bool,
+) -> DataArray:
+    if not ignore_feb29th:
+        return studied_data
     import xclim  # noqa: PLC0415
 
-    if is_precipitation_amount(da):
-        da = xclim.core.units.amount2rate(da)
-    elif std_var in [
+    return studied_data.convert_calendar(CfCalendarRegistry.NO_LEAP.name)
+
+
+def _apply_default_units(
+    studied_data: DataArray,
+    default_units: str | None,
+) -> DataArray:
+    if studied_data.attrs.get(UNITS_KEY) is None and default_units is not None:
+        studied_data.attrs[UNITS_KEY] = default_units
+    return studied_data
+
+
+def _normalize_temperature_units(
+    studied_data: DataArray,
+    standard_var: StandardVariable | None,
+) -> DataArray:
+    if (
+        standard_var is None
+        or standard_var.default_units != "degree_Celsius"
+        or studied_data.attrs.get(UNITS_KEY) is None
+        or studied_data.attrs.get(UNITS_KEY) == "degree_Celsius"
+    ):
+        return studied_data
+    from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+    return convert_units_to(studied_data, "degree_Celsius", context="hydro")
+
+
+def _normalize_amount_and_rate_units(
+    studied_data: DataArray,
+    standard_var: StandardVariable | None,
+) -> DataArray:
+    import xclim  # noqa: PLC0415
+
+    if is_precipitation_amount(studied_data):
+        return xclim.core.units.amount2rate(studied_data)
+    if standard_var in [
         StandardVariableRegistry.SND,
         StandardVariableRegistry.SNW,
-    ] and _is_rate(xclim.core.units.units2pint(da)):
-        da = xclim.core.units.rate2amount(da)
-    return da.chunk("auto")
+    ] and _is_rate(xclim.core.units.units2pint(studied_data)):
+        return xclim.core.units.rate2amount(studied_data)
+    return studied_data
 
 
 def get_name_of_first_var(ds: Dataset) -> str:
