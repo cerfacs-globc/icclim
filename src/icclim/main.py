@@ -85,12 +85,12 @@ class NormalizedIndexRequest:
     def __init__(
         self,
         index_name: str | GenericIndicator | StandardIndex | None,
-        user_index: UserIndexDict | None,
+        legacy_user_index: UserIndexDict | None,
         save_thresholds: bool,
         doy_window_width: int,
     ) -> None:
         self.index_name = index_name
-        self.user_index = user_index
+        self.legacy_user_index = legacy_user_index
         self.save_thresholds = save_thresholds
         self.doy_window_width = doy_window_width
 
@@ -650,7 +650,7 @@ def _build_config_from_request(
         interpolation=interpolation,
         out_unit=out_unit,
         netcdf_version=netcdf_version,
-        user_index=normalized_request.user_index,
+        legacy_user_index=normalized_request.legacy_user_index,
         save_thresholds=normalized_request.save_thresholds,
         date_event=date_event,
         min_spell_length=min_spell_length,
@@ -677,7 +677,7 @@ def _build_config(
     interpolation: str | QuantileInterpolation,
     out_unit: str | None,
     netcdf_version: str | NetcdfVersion,
-    user_index: UserIndexDict | None,
+    legacy_user_index: UserIndexDict | None,
     save_thresholds: bool,
     date_event: bool,
     min_spell_length: int | None,
@@ -686,9 +686,9 @@ def _build_config(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
 ) -> IndexConfig:
-    if _uses_legacy_user_index_recipe(user_index, index_name):
+    if _uses_legacy_user_index_recipe(legacy_user_index, index_name):
         return _build_legacy_user_index_config(
-            user_index,
+            legacy_user_index,
             in_files=in_files,
             index_name=index_name,
             var_name=var_name,
@@ -1125,7 +1125,7 @@ def _normalize_index_request(
         doy_window_width = window_width
     return NormalizedIndexRequest(
         index_name=index_name,
-        user_index=user_index,
+        legacy_user_index=user_index,
         save_thresholds=save_thresholds,
         doy_window_width=doy_window_width,
     )

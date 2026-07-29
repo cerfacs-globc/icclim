@@ -19,8 +19,7 @@ Module Contents
 
    User index dictionary.
 
-   This dictionary is used to describe how a user index should be setup to compute a
-   custom climate index.
-   The reccomended way to create a custom indices is now to use the
-   generic indices API.
+   This dictionary is part of the deprecated user_index compatibility path.
+   It remains documented so older code can be migrated, but new custom-index
+   work should use the generic indices API instead.
    See :ref:`generic_indices_recipes` for how to combine thresholds with generic

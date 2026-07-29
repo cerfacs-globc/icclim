@@ -432,7 +432,8 @@ percentage of days (``out_unit`` = "%").
  Custom indices
 ****************
 
-Custom indices are now described in their own chapter:
+The deprecated ``user_index`` API is described in its legacy migration
+chapter:
 :ref:`custom indices`
 
 .. _table_index_sourcevar_label:

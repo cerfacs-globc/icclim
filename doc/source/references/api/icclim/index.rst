@@ -146,8 +146,10 @@ Package Contents
    :type out_unit: str | None
    :param netcdf_version: ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
    :type netcdf_version: str | NetcdfVersion
-   :param user_index: ``optional`` A dictionary with parameters for user defined index.
-                      See :ref:`Custom indices`.
+   :param user_index: ``optional`` Legacy dictionary-based custom-index configuration.
+                      Deprecated and kept only for backward compatibility.
+                      See :ref:`custom indices` to migrate older code, and prefer
+                      :ref:`generic_indices_recipes` for new work.
                       Ignored for ECA&D indices.
    :type user_index: UserIndexDict
    :param save_thresholds: ``optional`` True if the thresholds should be saved within the resulting
