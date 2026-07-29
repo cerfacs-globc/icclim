@@ -17,8 +17,8 @@ Module Contents
 
    Logical link class to combine multiple threshold.
 
-   This is meant to be used with the old user_indices API.
-   It is now reccomended to use BoundedThreshold with generic indices instead.
+   This exists mainly for the deprecated user_index compatibility path.
+   New custom-index code should use BoundedThreshold with generic indices instead.
    See :ref:`generic_indices_recipes` for how to combine thresholds with generic
    indices.
 
