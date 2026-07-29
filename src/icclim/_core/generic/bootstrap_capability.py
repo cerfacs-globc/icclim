@@ -10,9 +10,21 @@ import pandas as pd
 from xarray import DataArray
 
 from icclim._core.climate_variable import ClimateVariable, must_run_bootstrap
+from icclim._core.generic.threshold.bounded import BoundedThreshold
+from icclim._core.model.threshold import Threshold
 from icclim._core.generic.threshold.percentile import PercentileThreshold
 from icclim._core.model.operator import Operator
 from icclim.frequency import Frequency
+
+
+class BootstrapThresholdKind(StrEnum):
+    """Threshold shapes that matter for bootstrap routing."""
+
+    MISSING = "missing"
+    BASIC = "basic"
+    DAY_OF_YEAR_PERCENTILE = "day_of_year_percentile"
+    PERIOD_PERCENTILE = "period_percentile"
+    BOUNDED = "bounded"
 
 
 class BootstrapComputationFamily(StrEnum):
@@ -60,12 +72,17 @@ def classify_doy_percentile_count_bootstrap(
 ) -> BootstrapCapability:
     """Classify the current bootstrap path for day-of-year percentile counts."""
     threshold = climate_var.threshold
-    if threshold is None:
+    threshold_kind = classify_threshold_kind(threshold)
+    if threshold_kind == BootstrapThresholdKind.MISSING:
         return _not_required("missing_threshold")
-    if not isinstance(threshold, PercentileThreshold):
+    if threshold_kind == BootstrapThresholdKind.BASIC:
         return _not_required("threshold_is_not_percentile")
-    if not threshold.is_doy_per_threshold:
+    if threshold_kind == BootstrapThresholdKind.BOUNDED:
+        return _not_required("threshold_is_compound")
+    if threshold_kind == BootstrapThresholdKind.PERIOD_PERCENTILE:
         return _not_required("threshold_is_not_day_of_year_percentile")
+    threshold = climate_var.threshold
+    assert isinstance(threshold, PercentileThreshold)
     if climate_var.bootstrap is False:
         return _not_required("bootstrap_disabled_by_user")
     if not must_run_bootstrap(
@@ -144,6 +161,21 @@ def is_fast_doy_percentile_count_supported(
         and _operator_code(threshold.operator) >= 0
         and _numba_fast_path_is_available()
     )
+
+
+def classify_threshold_kind(
+    threshold: Threshold | None,
+) -> BootstrapThresholdKind:
+    """Describe the structural shape of a threshold."""
+    if threshold is None:
+        return BootstrapThresholdKind.MISSING
+    if isinstance(threshold, BoundedThreshold):
+        return BootstrapThresholdKind.BOUNDED
+    if not isinstance(threshold, PercentileThreshold):
+        return BootstrapThresholdKind.BASIC
+    if threshold.is_doy_per_threshold:
+        return BootstrapThresholdKind.DAY_OF_YEAR_PERCENTILE
+    return BootstrapThresholdKind.PERIOD_PERCENTILE
 
 
 def _classify_count_family(

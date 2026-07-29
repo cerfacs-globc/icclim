@@ -6,6 +6,8 @@ from icclim._core.climate_variable import ClimateVariable
 from icclim._core.generic.bootstrap_capability import (
     BootstrapComputationFamily,
     BootstrapExecutionKind,
+    BootstrapThresholdKind,
+    classify_threshold_kind,
     classify_doy_percentile_count_bootstrap,
 )
 from icclim._core.model.standard_variable import StandardVariableRegistry
@@ -57,6 +59,31 @@ def test_dask_day_of_year_percentile_count_uses_fast_path() -> None:
     assert decision.family == BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COUNT
     assert decision.execution_kind == BootstrapExecutionKind.FAST
     assert decision.reason_code == "fast_path_supported"
+
+
+def test_threshold_kind_classification_covers_basic_percentile_and_bounded() -> None:
+    assert classify_threshold_kind(None) == BootstrapThresholdKind.MISSING
+    assert (
+        classify_threshold_kind(build_threshold("> 20 degC"))
+        == BootstrapThresholdKind.BASIC
+    )
+    assert (
+        classify_threshold_kind(build_threshold("> 90 doy_per"))
+        == BootstrapThresholdKind.DAY_OF_YEAR_PERCENTILE
+    )
+    assert (
+        classify_threshold_kind(build_threshold("> 90 period_per"))
+        == BootstrapThresholdKind.PERIOD_PERCENTILE
+    )
+    assert (
+        classify_threshold_kind(
+            build_threshold(
+                thresholds=["> 90 doy_per", "<= 30 degC"],
+                logical_link="and",
+            )
+        )
+        == BootstrapThresholdKind.BOUNDED
+    )
 
 
 def test_threshold_min_value_routes_to_safe_fallback() -> None:
@@ -144,3 +171,22 @@ def test_bootstrap_disabled_by_user_is_not_required() -> None:
 
     assert decision.execution_kind == BootstrapExecutionKind.NOT_REQUIRED
     assert decision.reason_code == "bootstrap_disabled_by_user"
+
+
+def test_bounded_threshold_is_not_routed_through_count_fast_path() -> None:
+    tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "thresholds": ["> 90 doy_per", "<= 30 degC"],
+            "logical_link": "and",
+        },
+    )
+
+    decision = classify_doy_percentile_count_bootstrap(
+        climate_var,
+        FrequencyRegistry.YEAR,
+    )
+
+    assert decision.execution_kind == BootstrapExecutionKind.NOT_REQUIRED
+    assert decision.reason_code == "threshold_is_compound"
