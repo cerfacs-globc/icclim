@@ -183,33 +183,47 @@ def indices(
     file, which will contain all the index results of this group.
     """
     indices = _get_ecad_indices_of_group(index_group)
-    out = None
-    if "out_file" in kwargs:
-        out = kwargs["out_file"]
-        del kwargs["out_file"]
+    out_file = kwargs.get("out_file")
+    index_kwargs = _build_indices_call_kwargs(kwargs)
     acc = []
-    for i in indices:
-        log.info("Computing index %s", i.short_name)
-        kwargs["index_name"] = i.short_name
+    for standard_index in indices:
+        log.info("Computing index %s", standard_index.short_name)
         try:
-            res = index(**kwargs)
-            res = _rename_coords(res, i.short_name)
+            res = index(
+                **_with_requested_index_name(index_kwargs, standard_index.short_name)
+            )
+            res = _rename_coords(res, standard_index.short_name)
             res = _drop_group_auxiliary_vars(res)
             acc.append(res)
         except Exception:
             if ignore_error:
-                warn(f"Could not compute {i.short_name}.", stacklevel=2)
+                warn(f"Could not compute {standard_index.short_name}.", stacklevel=2)
             else:
                 raise
     ds: Dataset = xr.merge(acc, compat="no_conflicts", join="outer")
-    if out is not None:
+    if out_file is not None:
         _write_output_file(
             result_ds=ds,
             input_time_encoding=ds.time.encoding,
-            netcdf_version=kwargs.get("netcdf_version", NetcdfVersionRegistry.NETCDF4),
-            file_path=out,
+            netcdf_version=index_kwargs.get(
+                "netcdf_version", NetcdfVersionRegistry.NETCDF4
+            ),
+            file_path=out_file,
         )
     return ds
+
+
+def _build_indices_call_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
+    index_kwargs = dict(kwargs)
+    index_kwargs.pop("out_file", None)
+    return index_kwargs
+
+
+def _with_requested_index_name(
+    kwargs: dict[str, Any],
+    index_name: str,
+) -> dict[str, Any]:
+    return {**kwargs, "index_name": index_name}
 
 
 def _get_ecad_indices_of_group(
