@@ -119,6 +119,33 @@ class ParsedIndicatorConfig:
         self.indicator_name = indicator_name
 
 
+class ParsedUserIndexConfig:
+    """Small container for user-index parsing results."""
+
+    def __init__(
+        self,
+        *,
+        indicator: Indicator,
+        parsed_threshold: Threshold | Sequence[Threshold] | None,
+        logical_link: LogicalLink,
+        coef: float | None,
+        date_event: bool,
+        rename: str,
+        output_unit: str | None,
+        rolling_window_width: int | None,
+        reference_period: tuple[str, str] | None,
+    ) -> None:
+        self.indicator = indicator
+        self.parsed_threshold = parsed_threshold
+        self.logical_link = logical_link
+        self.coef = coef
+        self.date_event = date_event
+        self.rename = rename
+        self.output_unit = output_unit
+        self.rolling_window_width = rolling_window_width
+        self.reference_period = reference_period
+
+
 def indices(
     index_group: Sequence[str] | str | IndexGroup | StandardIndex,
     *,
@@ -778,32 +805,25 @@ def _build_user_index_config(
     allow_partial_seasons: bool | Literal["start", "end"],
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
-    indicator = parse.read_indicator(user_index)
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)  # type: ignore[arg-type]
-    parsed_threshold = parse.read_thresholds(
-        user_index,
+    user_index_config = _parse_user_index_config(
+        user_index=user_index,
+        index_name=index_name,
+        out_unit=out_unit,
+        rolling_window_width=rolling_window_width,
+        base_period_time_range=base_period_time_range,
         doy_window_width=doy_window_width,
-        reference_period=base_period_time_range,
         only_leap_years=only_leap_years,
         interpolation=interpolation,
-    )
-    logical_link = parse.read_logical_link(user_index)
-    coef = parse.read_coef(user_index)
-    date_event = parse.read_date_event(user_index)
-    rename = index_name or user_index.get("index_name", None) or "user_index"
-    output_unit = out_unit
-    rolling_window_width = user_index.get("window_width", rolling_window_width)
-    reference_period = _get_reference_period(
-        user_index.get("ref_time_range", base_period_time_range)
     )
     climate_variables, is_compared_to_ref = _build_index_climate_variables(
         in_files=in_files,
         var_names=var_name,
-        threshold=parsed_threshold,
+        threshold=user_index_config.parsed_threshold,
         standard_index=None,
         ignore_feb29th=ignore_feb29th,
         time_range=time_range,
-        reference_period=reference_period,
+        reference_period=user_index_config.reference_period,
         bootstrap=bootstrap,
     )
     return _assemble_index_config(
@@ -811,20 +831,20 @@ def _build_user_index_config(
         frequency=sampling_frequency,
         save_thresholds=save_thresholds,
         min_spell_length=min_spell_length,
-        rolling_window_width=rolling_window_width,
-        out_unit=output_unit,
+        rolling_window_width=user_index_config.rolling_window_width,
+        out_unit=user_index_config.output_unit,
         netcdf_version=netcdf_version,
         interpolation=interpolation,
         callback=callback,
         is_compared_to_reference=is_compared_to_ref,
-        reference_period=reference_period,
-        indicator_name=indicator.name,
-        logical_link=logical_link,
-        coef=coef,
-        date_event=date_event,
+        reference_period=user_index_config.reference_period,
+        indicator_name=user_index_config.indicator.name,
+        logical_link=user_index_config.logical_link,
+        coef=user_index_config.coef,
+        date_event=user_index_config.date_event,
         sampling_method=sampling_method,
-        rename=rename,
-        indicator=indicator,
+        rename=user_index_config.rename,
+        indicator=user_index_config.indicator,
         reference=ICCLIM_REFERENCE,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
@@ -909,6 +929,38 @@ def _build_standard_index_config(
         reference=reference,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+    )
+
+
+def _parse_user_index_config(
+    *,
+    user_index: UserIndexDict,
+    index_name: str | None,
+    out_unit: str | None,
+    rolling_window_width: int | None,
+    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
+    doy_window_width: int,
+    only_leap_years: bool,
+    interpolation: QuantileInterpolation,
+) -> ParsedUserIndexConfig:
+    return ParsedUserIndexConfig(
+        indicator=parse.read_indicator(user_index),
+        parsed_threshold=parse.read_thresholds(
+            user_index,
+            doy_window_width=doy_window_width,
+            reference_period=base_period_time_range,
+            only_leap_years=only_leap_years,
+            interpolation=interpolation,
+        ),
+        logical_link=parse.read_logical_link(user_index),
+        coef=parse.read_coef(user_index),
+        date_event=parse.read_date_event(user_index),
+        rename=index_name or user_index.get("index_name", None) or "user_index",
+        output_unit=out_unit,
+        rolling_window_width=user_index.get("window_width", rolling_window_width),
+        reference_period=_get_reference_period(
+            user_index.get("ref_time_range", base_period_time_range)
+        ),
     )
 
 
