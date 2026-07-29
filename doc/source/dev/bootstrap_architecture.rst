@@ -60,7 +60,7 @@ Percentile count family
 
 This family covers indices where bootstrap means:
 
-- recompute a percentile threshold with donor-year substitution;
+- recompute a percentile threshold with substitute-year substitution;
 - compare daily values to that threshold;
 - aggregate the daily boolean mask as counts.
 
@@ -82,7 +82,7 @@ Examples:
 - generic percentile counts using ``threshold_min_value``.
 
 The Kraken validation showed that this family cannot be treated as a
-minor variant of the plain count family. Its donor-year semantics must
+minor variant of the plain count family. Its substitute-year semantics must
 be matched exactly before any compiled fast path is enabled.
 
 Percentile amount and fraction family
@@ -191,7 +191,7 @@ One helper should own:
 - extracting the reference-period subset;
 - converting units needed for percentile computation;
 - applying optional sample filtering such as ``threshold_min_value``;
-- exposing year and day lookup data used by donor-year logic.
+- exposing year and day lookup data used by substitute-year logic.
 
 Suggested names:
 
@@ -208,7 +208,7 @@ Bootstrap threshold generation
 
 One threshold engine should own:
 
-- donor-year substitution rules;
+- substitute-year substitution rules;
 - day-of-year percentile logic;
 - period percentile logic;
 - interpolation behavior;
@@ -221,7 +221,7 @@ Suggested helper responsibilities:
 
 - ``build_bootstrap_thresholds_for_year``
 - ``build_nominal_thresholds``
-- ``build_donor_thresholds``
+- ``build_substitute_thresholds``
 - ``align_thresholds_to_study_days``
 
 Daily exceedance mask construction
@@ -321,7 +321,7 @@ To keep the code understandable for humans:
 
 - prefer ``reference_sample`` over ``ref`` when the longer name makes
   the role clearer;
-- prefer ``target_year_index`` and ``donor_year_index`` over short loop
+- prefer ``target_year_index`` and ``substitute_year_index`` over short loop
   names that require reading several surrounding lines;
 - prefer ``study_day_of_year`` over ``study_doys`` in higher-level
   helpers, while compact local names are acceptable inside tight kernels;

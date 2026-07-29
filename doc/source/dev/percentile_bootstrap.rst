@@ -30,9 +30,9 @@ does not call xclim's generic bootstrap decorator. Instead it:
 - computes nominal thresholds inside the compiled path for
   non-overlapping years, avoiding an expensive materialized xarray
   threshold field;
-- recomputes donor-year bootstrap thresholds only for years overlapping
+- recomputes substitute-year bootstrap thresholds only for years overlapping
   the reference period;
-- reuses each yearly donor threshold across all output groups in that
+- reuses each yearly substitute threshold across all output groups in that
   year, so monthly output does not recompute thresholds twelve times.
 
 Fast path currently supports:
@@ -54,7 +54,7 @@ most useful future extensions are likely:
   precipitation counts; Kraken validation on July 29, 2026 showed that
   the experimental fast-path implementation was materially faster but
   not field-identical to the safe tiled reference, so support remains
-  disabled until donor-year bootstrap semantics are matched exactly;
+  disabled until substitute-year bootstrap semantics are matched exactly;
 - ``cftime`` calendars; Kraken validation on July 29, 2026 found a
   remaining one-cell mismatch on a Gregorian-like ``cftime`` case, so
   the release path keeps ``cftime`` on the exact safe tiled fallback
@@ -65,9 +65,9 @@ most useful future extensions are likely:
 For spell/run-length work, the likely direction is a two-stage design:
 
 - compute or bootstrap a daily exceedance mask first, reusing the
-  current donor-year percentile machinery;
-- run spell detection on the bootstrapped mask per donor year, then
-  aggregate spell metrics across donors rather than trying to reduce
+  current substitute-year percentile machinery;
+- run spell detection on the bootstrapped mask per substitute year, then
+  aggregate spell metrics across substitute years rather than trying to reduce
   spells to independent daily counts inside the current kernel.
 
 Performance notes
