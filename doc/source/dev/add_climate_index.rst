@@ -153,6 +153,8 @@ Configuration Assembly
 - ``src/icclim/main.py``:
   :func:`_build_config`
 - ``src/icclim/main.py``:
+  :class:`ParsedIndicatorConfig`
+- ``src/icclim/main.py``:
   :func:`_build_index_climate_variables`
 - ``src/icclim/main.py``:
   :func:`_assemble_index_config`

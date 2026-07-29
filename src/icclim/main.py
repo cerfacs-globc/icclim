@@ -96,6 +96,29 @@ class NormalizedIndexRequest:
         self.doy_window_width = doy_window_width
 
 
+class ParsedIndicatorConfig:
+    """Small container for standard or generic indicator selection results."""
+
+    def __init__(
+        self,
+        *,
+        standard_index: StandardIndex | None,
+        indicator: Indicator,
+        threshold: str | Threshold | Sequence[str | Threshold] | None,
+        rename: str | None,
+        output_unit: str | None,
+        reference: str,
+        indicator_name: str,
+    ) -> None:
+        self.standard_index = standard_index
+        self.indicator = indicator
+        self.threshold = threshold
+        self.rename = rename
+        self.output_unit = output_unit
+        self.reference = reference
+        self.indicator_name = indicator_name
+
+
 def indices(
     index_group: Sequence[str] | str | IndexGroup | StandardIndex,
     *,
@@ -838,17 +861,17 @@ def _build_standard_index_config(
     logical_link = LogicalLinkRegistry.LOGICAL_AND
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)  # type: ignore[arg-type]
     coef = None
-    indicator_info = _parse_indicator_config(index_name, out_unit, threshold)
-    standard_index = indicator_info["standard_index"]
-    indicator = indicator_info["indicator"]
-    threshold = indicator_info["threshold"]
-    rename = indicator_info["rename"]
-    output_unit = indicator_info["output_unit"]
-    reference = indicator_info["reference"]
-    indicator_name = indicator_info["indicator_name"]
+    indicator_config = _parse_indicator_config(index_name, out_unit, threshold)
+    standard_index = indicator_config.standard_index
+    indicator = indicator_config.indicator
+    threshold = indicator_config.threshold
+    rename = indicator_config.rename
+    output_unit = indicator_config.output_unit
+    reference = indicator_config.reference
+    indicator_name = indicator_config.indicator_name
     reference_period = _get_reference_period(base_period_time_range)
     parsed_threshold = _parse_threshold(
-        indicator_info["threshold"],
+        indicator_config.threshold,
         doy_window_width=doy_window_width,
         reference_period=reference_period,
         only_leap_years=only_leap_years,
@@ -1288,32 +1311,32 @@ def _parse_indicator_config(
     index_name: str | GenericIndicator | StandardIndex,
     out_unit: str | None,
     threshold: str | Threshold | Sequence[str | Threshold] | None,
-) -> dict[str, Any]:
+) -> ParsedIndicatorConfig:
     index = _parse_index_kind(index_name)
     if isinstance(index, StandardIndex):
         standard_index = index.clone()
         indicator = standard_index.indicator.clone()
-        return {
-            "standard_index": standard_index,
-            "indicator": indicator,
-            "threshold": threshold
-            if threshold is not None
-            else standard_index.threshold,
-            "rename": standard_index.short_name,
-            "output_unit": out_unit or standard_index.output_unit,
-            "reference": standard_index.reference,
-            "indicator_name": standard_index.short_name,
-        }
+        return ParsedIndicatorConfig(
+            standard_index=standard_index,
+            indicator=indicator,
+            threshold=(
+                threshold if threshold is not None else standard_index.threshold
+            ),
+            rename=standard_index.short_name,
+            output_unit=out_unit or standard_index.output_unit,
+            reference=standard_index.reference,
+            indicator_name=standard_index.short_name,
+        )
     if isinstance(index, GenericIndicator):
         indicator = index.clone()
-        return {
-            "standard_index": None,
-            "indicator": indicator,
-            "threshold": threshold,
-            "rename": None,
-            "output_unit": out_unit,
-            "reference": ICCLIM_REFERENCE,
-            "indicator_name": indicator.name,
-        }
+        return ParsedIndicatorConfig(
+            standard_index=None,
+            indicator=indicator,
+            threshold=threshold,
+            rename=None,
+            output_unit=out_unit,
+            reference=ICCLIM_REFERENCE,
+            indicator_name=indicator.name,
+        )
     err = f"Unknown index_name : `{index_name}`"
     raise InvalidIcclimArgumentError(err)
