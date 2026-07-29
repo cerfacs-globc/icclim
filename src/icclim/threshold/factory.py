@@ -155,7 +155,7 @@ def build_threshold(
         assert isinstance(bounded_t, BoundedThreshold)
 
     """
-    input_thresh = _read_input(
+    builder_input = _read_threshold_builder_input(
         query,
         operator,
         value,
@@ -166,16 +166,7 @@ def build_threshold(
         offset,
         **kwargs,
     )
-    if _must_build_per_threshold(input_thresh):
-        return PercentileThreshold(**input_thresh)  # type: ignore[arg-type]
-    if _must_build_basic_threshold(input_thresh):
-        return BasicThreshold(**input_thresh)  # type: ignore[arg-type]
-    if _must_build_bounded_threshold(input_thresh):
-        return BoundedThreshold(**input_thresh)  # type: ignore[arg-type]
-    if _must_build_per_grid_cell_threshold(input_thresh):
-        return BasicThreshold(**input_thresh)
-    msg = f"Threshold cannot be built from a {type(value)}"
-    raise NotImplementedError(msg)
+    return _instantiate_threshold(builder_input, original_value=value)
 
 
 def _get_operator(query: str) -> tuple[Operator | None, str]:
@@ -239,7 +230,7 @@ def _build_quantity(
     raise NotImplementedError(msg)
 
 
-def _read_input(
+def _read_threshold_builder_input(
     query: str | None = None,
     operator: Operator | str | None = None,
     value: ThresholdValueType = None,
@@ -276,6 +267,23 @@ def _read_input(
     raise NotImplementedError(msg)
 
 
+def _instantiate_threshold(
+    builder_input: ThresholdBuilderInput,
+    *,
+    original_value: ThresholdValueType,
+) -> BoundedThreshold | PercentileThreshold | BasicThreshold:
+    if _must_build_percentile_threshold(builder_input):
+        return PercentileThreshold(**builder_input)  # type: ignore[arg-type]
+    if _must_build_basic_threshold(builder_input):
+        return BasicThreshold(**builder_input)  # type: ignore[arg-type]
+    if _must_build_bounded_threshold(builder_input):
+        return BoundedThreshold(**builder_input)  # type: ignore[arg-type]
+    if _must_build_per_grid_cell_threshold(builder_input):
+        return BasicThreshold(**builder_input)
+    msg = f"Threshold cannot be built from a {type(original_value)}"
+    raise NotImplementedError(msg)
+
+
 def _read_bounded_threshold(
     thresholds: Sequence[Threshold | str],
     logical_link: LogicalLink | str,
@@ -283,7 +291,7 @@ def _read_bounded_threshold(
     acc: list[ThresholdBuilderInput | Threshold] = []
     for t in thresholds:
         if isinstance(t, str):
-            acc.append(_read_input(t))
+            acc.append(_read_threshold_builder_input(t))
         elif isinstance(t, Threshold):
             acc.append(t)
         else:
@@ -378,12 +386,15 @@ def _read_bounded_threshold_query(query: str) -> ThresholdBuilderInput:
         raise InvalidIcclimArgumentError(msg)
     return {
         "initial_query": query,
-        "thresholds": (_read_input(threshs[0]), _read_input(threshs[1])),
+        "thresholds": (
+            _read_threshold_builder_input(threshs[0]),
+            _read_threshold_builder_input(threshs[1]),
+        ),
         "logical_link": link,
     }
 
 
-def _must_build_per_threshold(builder_input: ThresholdBuilderInput) -> bool:
+def _must_build_percentile_threshold(builder_input: ThresholdBuilderInput) -> bool:
     value = builder_input.get("value")
     unit = builder_input.get("unit", None)
     var_name = builder_input.get("threshold_var_name", None)

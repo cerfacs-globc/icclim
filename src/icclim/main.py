@@ -67,6 +67,7 @@ if TYPE_CHECKING:
         InFileLike,
         SamplingMethodLike,
     )
+    from icclim._core.model.logical_link import LogicalLink
     from icclim._core.model.in_file_dictionary import InFileDictionary
     from icclim._core.model.indicator import Indicator
 
@@ -756,7 +757,7 @@ def _build_user_index_config(
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     indicator = parse.read_indicator(user_index)
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)  # type: ignore[arg-type]
-    threshold = parse.read_thresholds(
+    parsed_threshold = parse.read_thresholds(
         user_index,
         doy_window_width=doy_window_width,
         reference_period=base_period_time_range,
@@ -772,30 +773,24 @@ def _build_user_index_config(
     reference_period = _get_reference_period(
         user_index.get("ref_time_range", base_period_time_range)
     )
-    climate_vars_dict = build_input_dict(
+    climate_variables, is_compared_to_ref = _build_index_climate_variables(
         in_files=in_files,
         var_names=var_name,
-        threshold=threshold,
+        threshold=parsed_threshold,
         standard_index=None,
-    )
-    is_compared_to_ref = _must_add_reference_var(climate_vars_dict, reference_period)
-    climate_vars = build_climate_vars(
-        climate_vars_dict=climate_vars_dict,
         ignore_feb29th=ignore_feb29th,
         time_range=time_range,
-        base_period=reference_period,
-        standard_index=None,
-        is_compared_to_reference=is_compared_to_ref,
+        reference_period=reference_period,
         bootstrap=bootstrap,
     )
-    return IndexConfig(
-        save_thresholds=save_thresholds,
+    return _assemble_index_config(
+        climate_variables=climate_variables,
         frequency=sampling_frequency,
-        climate_variables=climate_vars,
+        save_thresholds=save_thresholds,
         min_spell_length=min_spell_length,
         rolling_window_width=rolling_window_width,
         out_unit=output_unit,
-        netcdf_version=NetcdfVersionRegistry.lookup(netcdf_version),
+        netcdf_version=netcdf_version,
         interpolation=interpolation,
         callback=callback,
         is_compared_to_reference=is_compared_to_ref,
@@ -852,40 +847,116 @@ def _build_standard_index_config(
     reference = indicator_info["reference"]
     indicator_name = indicator_info["indicator_name"]
     reference_period = _get_reference_period(base_period_time_range)
-    threshold = _parse_threshold(
-        threshold,
+    parsed_threshold = _parse_threshold(
+        indicator_info["threshold"],
         doy_window_width=doy_window_width,
         reference_period=reference_period,
         only_leap_years=only_leap_years,
         interpolation=interpolation,
     )
-    climate_vars_dict = build_input_dict(
+    climate_variables, is_compared_to_ref = _build_index_climate_variables(
         in_files=in_files,
         var_names=var_name,
+        threshold=parsed_threshold,
+        standard_index=standard_index,
+        ignore_feb29th=ignore_feb29th,
+        time_range=time_range,
+        reference_period=reference_period,
+        bootstrap=bootstrap,
+    )
+    return _assemble_index_config(
+        climate_variables=climate_variables,
+        frequency=sampling_frequency,
+        save_thresholds=save_thresholds,
+        min_spell_length=min_spell_length,
+        rolling_window_width=rolling_window_width,
+        out_unit=output_unit,
+        netcdf_version=netcdf_version,
+        interpolation=interpolation,
+        callback=callback,
+        is_compared_to_reference=is_compared_to_ref,
+        reference_period=reference_period,
+        indicator_name=indicator_name,
+        logical_link=logical_link,
+        coef=coef,
+        date_event=date_event,
+        sampling_method=sampling_method,
+        rename=rename,
+        indicator=indicator,
+        reference=reference,
+        run_index=run_index,
+        allow_partial_seasons=allow_partial_seasons,
+    )
+
+
+def _build_index_climate_variables(
+    *,
+    in_files: InFileLike,
+    var_names: str | Sequence[str] | None,
+    threshold: Threshold | Sequence[Threshold] | None,
+    standard_index: StandardIndex | None,
+    ignore_feb29th: bool,
+    time_range: Sequence[dt.datetime | str] | None,
+    reference_period: Sequence[str] | None,
+    bootstrap: bool | None,
+) -> tuple[list[ClimateVariable], bool]:
+    climate_vars_dict = build_input_dict(
+        in_files=in_files,
+        var_names=var_names,
         threshold=threshold,
         standard_index=standard_index,
     )
-    is_compared_to_ref = _must_add_reference_var(climate_vars_dict, reference_period)
-    climate_vars = build_climate_vars(
+    is_compared_to_reference = _must_add_reference_var(
+        climate_vars_dict,
+        reference_period,
+    )
+    climate_variables = build_climate_vars(
         climate_vars_dict=climate_vars_dict,
         ignore_feb29th=ignore_feb29th,
         time_range=time_range,
         base_period=reference_period,
         standard_index=standard_index,
-        is_compared_to_reference=is_compared_to_ref,
+        is_compared_to_reference=is_compared_to_reference,
         bootstrap=bootstrap,
     )
+    return climate_variables, is_compared_to_reference
+
+
+def _assemble_index_config(
+    *,
+    climate_variables: list[ClimateVariable],
+    frequency: Frequency,
+    save_thresholds: bool,
+    min_spell_length: int | None,
+    rolling_window_width: int | None,
+    out_unit: str | None,
+    netcdf_version: str | NetcdfVersion,
+    interpolation: QuantileInterpolation,
+    callback: Callable[[int], None],
+    is_compared_to_reference: bool,
+    reference_period: tuple[str, str] | None,
+    indicator_name: str,
+    logical_link: LogicalLink,
+    coef: float | None,
+    date_event: bool,
+    sampling_method: SamplingMethodLike,
+    rename: str | None,
+    indicator: Indicator,
+    reference: str,
+    run_index: str | None,
+    allow_partial_seasons: bool | Literal["start", "end"],
+) -> IndexConfig:
     return IndexConfig(
         save_thresholds=save_thresholds,
-        frequency=sampling_frequency,
-        climate_variables=climate_vars,
+        frequency=frequency,
+        climate_variables=climate_variables,
         min_spell_length=min_spell_length,
         rolling_window_width=rolling_window_width,
-        out_unit=output_unit,
+        out_unit=out_unit,
         netcdf_version=NetcdfVersionRegistry.lookup(netcdf_version),
         interpolation=interpolation,
         callback=callback,
-        is_compared_to_reference=is_compared_to_ref,
+        is_compared_to_reference=is_compared_to_reference,
         reference_period=reference_period,
         indicator_name=indicator_name,
         logical_link=logical_link,
