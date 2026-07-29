@@ -14,5 +14,6 @@ development.
    release_process
    ci
    percentile_bootstrap
+   bootstrap_architecture
    contributing
    climpact_comparison_protocol

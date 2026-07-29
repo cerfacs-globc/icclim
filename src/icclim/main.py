@@ -1073,7 +1073,10 @@ def _format_thresholds_for_export(climate_vars: list[ClimateVariable]) -> Datase
 
 
 def _format_threshold(cf_var: ClimateVariable) -> DataArray | None:
-    if cf_var.threshold is not None and cf_var.threshold.value is not None:
+    if cf_var.threshold is not None:
+        ensure_ready = getattr(cf_var.threshold, "ensure_ready", None)
+        if ensure_ready is not None:
+            ensure_ready(cf_var.studied_data)
         val = cf_var.threshold.value
         if isinstance(val, xr.DataArray):
             return val.rename(cf_var.name + "_thresholds").reindex()  # type: ignore[return-value]

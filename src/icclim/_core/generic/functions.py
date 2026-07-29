@@ -1247,8 +1247,8 @@ def _compute_exceedance(
 ) -> DataArray:
     exceedances = threshold.compute(study, freq=freq, bootstrap=bootstrap)
     if bootstrap:
-        climatology_bounds = getattr(threshold.value, "attrs", {}).get(
-            "climatology_bounds", None
+        climatology_bounds = getattr(threshold, "climatology_bounds", lambda *_: None)(
+            study
         )
         if climatology_bounds is not None:
             exceedances.attrs[REFERENCE_PERIOD_ID] = climatology_bounds
@@ -1463,7 +1463,7 @@ def _estimate_bootstrap_working_bytes_per_cell(
     threshold: PercentileThreshold,
     resample_freq: Frequency,
 ) -> int:
-    clim = threshold.value.attrs["climatology_bounds"]
+    clim = threshold.climatology_bounds(study)
     overlap_da = study.sel(time=slice(*clim))
     overlap_groups = overlap_da.resample(
         time=_get_bootstrap_freq(resample_freq.pandas_freq)
@@ -1542,6 +1542,15 @@ def _slice_threshold_for_tile(
     tile_indexers: dict[str, slice],
 ) -> PercentileThreshold:
     sliced = copy(threshold)
+    if not threshold.is_ready:
+        prepare_source = getattr(threshold, "_prepare_source_data", None)
+        prepare_unit = getattr(threshold, "_prepare_output_unit", None)
+        if prepare_source is not None:
+            sliced.set_prepare_context(
+                prepare_source.isel(tile_indexers),
+                prepare_unit,
+            )
+        return sliced
     value = threshold.value
     value_indexers = {
         dim: indexer for dim, indexer in tile_indexers.items() if dim in value.dims

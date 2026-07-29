@@ -22,6 +22,9 @@ very large dask graphs.
 The fast path is specialised for percentile-based count indices. It
 does not call xclim's generic bootstrap decorator. Instead it:
 
+- defers full percentile-threshold materialization until a path
+  actually needs the threshold field, such as ``save_thresholds`` or
+  the safe tiled fallback;
 - tiles the spatial domain according to an explicit memory budget;
 - loads one tile at a time, avoiding a large dask bootstrap graph;
 - computes nominal thresholds inside the compiled path for
@@ -38,7 +41,6 @@ Fast path currently supports:
   output periods;
 - single day-of-year percentile thresholds;
 - simple count operators: ``>``, ``>=``, ``<`` and ``<=``;
-- no ``threshold_min_value``;
 - no ``only_leap_years``;
 - pandas-compatible calendars.
 
@@ -48,12 +50,25 @@ Unsupported cases
 Unsupported cases intentionally fall back to the safe tiled path. The
 most useful future extensions are likely:
 
-- precipitation wet-day percentile thresholds using
-  ``threshold_min_value``;
-- non-standard calendars, once cftime grouping and leap handling are
-  explicitly tested;
+- percentile thresholds using ``threshold_min_value`` such as wet-day
+  precipitation counts; Kraken validation on July 29, 2026 showed that
+  the experimental fast-path implementation was materially faster but
+  not field-identical to the safe tiled reference, so support remains
+  disabled until donor-year bootstrap semantics are matched exactly;
+- ``cftime`` calendars; Kraken validation on July 29, 2026 found a
+  remaining one-cell mismatch on a Gregorian-like ``cftime`` case, so
+  the release path keeps ``cftime`` on the exact safe tiled fallback
+  until the fast-path semantics are field-identical;
 - spell/run-length indices, which likely need a different algorithm
   because the bootstrap cannot be reduced to independent daily counts.
+
+For spell/run-length work, the likely direction is a two-stage design:
+
+- compute or bootstrap a daily exceedance mask first, reusing the
+  current donor-year percentile machinery;
+- run spell detection on the bootstrapped mask per donor year, then
+  aggregate spell metrics across donors rather than trying to reduce
+  spells to independent daily counts inside the current kernel.
 
 Performance notes
 =================
@@ -104,7 +119,6 @@ Further large speedups are more likely to come from reducing Python,
 xarray and dask preparation overhead than from micro-optimising the Numba
 kernel. Promising areas:
 
-- avoid preparing percentile thresholds twice before the fast path;
 - load each spatial tile exactly once and keep unit-normalised values
   contiguous before entering the kernel;
 - profile seasonal cases separately, because output grouping changes the

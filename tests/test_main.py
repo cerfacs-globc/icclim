@@ -866,6 +866,78 @@ class TestIntegration:
         assert profile["bootstrap_fast_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
+    def test_count_occurrences__dask_wet_day_bootstrap_falls_back_to_safe_tiled_path(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        time = pd.date_range("2042-01-01", periods=365 * 5 + 1, freq="D")
+        pr = xr.DataArray(
+            np.full((len(time), 2, 2), 0.2, dtype=float),
+            dims=["time", "lat", "lon"],
+            coords={"time": time, "lat": [0, 1], "lon": [0, 1]},
+            attrs={UNITS_KEY: "mm/day"},
+            name="pr",
+        )
+        pr[5:10] = 20.0
+        pr[370:375] = 2.0
+        pr[735:740] = 5.0
+        pr[1100:1105] = 8.0
+        pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": pr,
+            "var_name": "pr",
+            "threshold": build_threshold(
+                "> 90 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        legacy = icclim.count_occurrences(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+        generic_functions.reset_bootstrap_profile()
+
+        default = icclim.count_occurrences(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert not hasattr(default.count_occurrences.data, "__dask_graph__")
+        assert "bootstrap_fast_tile_count" not in profile
+        assert profile["bootstrap_safe_tile_count"] == 4
+        xr.testing.assert_allclose(default.count_occurrences, legacy.count_occurrences)
+
+    def test_count_occurrences__fast_bootstrap_defers_threshold_materialization(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
+        tas[5:10] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        threshold = build_threshold(
+            "> 90 doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2043-12-31"),
+        )
+
+        res = icclim.count_occurrences(
+            in_files=tas,
+            var_name="tas",
+            threshold=threshold,
+            time_range=("2042-01-01", "2045-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="year",
+        )
+
+        assert not threshold.is_ready
+        assert not hasattr(res.count_occurrences.data, "__dask_graph__")
+
     @pytest.mark.parametrize("slice_mode", ["JJA", "ONDJFM"])
     def test_index_tx90p__dask_bootstrap_uses_fast_tiled_seasonal_path(
         self,
@@ -895,6 +967,35 @@ class TestIntegration:
         profile = generic_functions.get_bootstrap_profile()
 
         assert profile["bootstrap_fast_tile_count"] == 4
+        xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
+
+    def test_index_tx90p__cftime_dask_bootstrap_falls_back_to_safe_tiled_path(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=27 + K2C, use_cftime=True, lat_length=2, lon_length=2)
+        tas[5:10] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "index_name": "tx90p",
+            "in_files": tas,
+            "doy_window_width": 1,
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "base_period_time_range": ("2042-01-01", "2043-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        eager = icclim.index(**{**common_kwargs, "in_files": tas.compute()}).compute()
+        generic_functions.reset_bootstrap_profile()
+
+        default = icclim.index(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert "bootstrap_fast_tile_count" not in profile
+        assert profile["bootstrap_safe_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
 
     def test_index_tx90p__safe_bootstrap_uses_memory_budget(self, monkeypatch) -> None:
