@@ -31,12 +31,15 @@ The end-to-end path for one climate-index request is:
    :class:`~icclim._core.climate_variable.ClimateVariable` objects.
 4. The selected :class:`~icclim._core.model.indicator.Indicator`
    computes the result.
-5. Post-processing adds time bounds, threshold exports and metadata.
+5. Post-processing renames the result, adds time bounds when needed,
+   optionally exports thresholds, and adds metadata.
 
 In code, the main entry points are:
 
 - ``src/icclim/main.py``:
   :func:`icclim.index`
+- ``src/icclim/main.py``:
+  :func:`_run_index_workflow`
 - ``src/icclim/_core/model/index_config.py``:
   :class:`IndexConfig`
 - ``src/icclim/_core/climate_variable.py``:
@@ -150,6 +153,10 @@ Configuration Assembly
 - ``src/icclim/main.py``:
   :func:`_build_config`
 - ``src/icclim/main.py``:
+  :func:`_build_index_climate_variables`
+- ``src/icclim/main.py``:
+  :func:`_assemble_index_config`
+- ``src/icclim/main.py``:
   :func:`_build_standard_index_config`
 - ``src/icclim/main.py``:
   :func:`_build_user_index_config`
@@ -179,6 +186,14 @@ Reducers
   generic computation functions
 - ``src/icclim/generic/registry.py``:
   generic indicator declarations
+
+Result Post-Processing
+----------------------
+
+- ``src/icclim/main.py``:
+  :func:`_build_result_dataset`
+- ``src/icclim/frequency.py``:
+  time-bound updater helpers
 
 Bootstrap Routing
 -----------------

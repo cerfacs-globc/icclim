@@ -1086,13 +1086,53 @@ def _compute_climate_index(
     rename: str | None = None,
 ) -> Dataset:
     result_da = climate_index(config)
-    if rename:
-        result_da = result_da.rename(rename)
-    else:
-        result_da = result_da.rename(climate_index.name)
+    result_da = _rename_result_dataarray(result_da, climate_index, rename)
     result_da.attrs[UNITS_KEY] = _get_unit(config.out_unit, result_da)
-    if (
-        config.frequency.post_processing is not None
+    result_ds = _build_result_dataset(result_da, config.frequency, climate_index)
+    if config.save_thresholds:
+        result_ds = _merge_exported_thresholds(result_ds, config.climate_variables)
+    history = _build_history(result_da, config, initial_history, climate_index)
+    return _add_ecad_index_metadata(
+        result_ds,
+        climate_index,
+        history,
+        initial_source,
+        reference,
+    )
+
+
+def _rename_result_dataarray(
+    result_da: DataArray,
+    climate_index: Indicator,
+    rename: str | None,
+) -> DataArray:
+    if rename:
+        return result_da.rename(rename)
+    return result_da.rename(climate_index.name)
+
+
+def _build_result_dataset(
+    result_da: DataArray,
+    frequency: Frequency,
+    climate_index: Indicator,
+) -> Dataset:
+    if not _must_post_process_time_axis(result_da, frequency, climate_index):
+        return result_da.to_dataset()
+    processed_da, time_bounds = frequency.post_processing(result_da)
+    result_ds = processed_da.to_dataset()
+    if time_bounds is not None:
+        result_ds.coords["time_bounds"] = time_bounds
+        result_ds.time.attrs["bounds"] = "time_bounds"
+    return result_ds
+
+
+def _must_post_process_time_axis(
+    result_da: DataArray,
+    frequency: Frequency,
+    climate_index: Indicator,
+) -> bool:
+    return (
+        frequency.post_processing is not None
         and "time" in result_da.dims
         and not isinstance(
             climate_index,
@@ -1101,25 +1141,15 @@ def _compute_climate_index(
                 StandardizedPrecipitationIndex3,
             ),
         )
-    ):
-        resampled_da, time_bounds = config.frequency.post_processing(result_da)
-        result_ds = resampled_da.to_dataset()
-        if time_bounds is not None:
-            result_ds.coords["time_bounds"] = time_bounds
-            result_ds.time.attrs["bounds"] = "time_bounds"
-    else:
-        result_ds = result_da.to_dataset()
-    if config.save_thresholds:
-        result_ds = xr.merge(
-            [result_ds, _format_thresholds_for_export(config.climate_variables)],
-        )
-    history = _build_history(result_da, config, initial_history, climate_index)
-    return _add_ecad_index_metadata(
-        result_ds,
-        climate_index,
-        history,
-        initial_source,
-        reference,
+    )
+
+
+def _merge_exported_thresholds(
+    result_ds: Dataset,
+    climate_variables: list[ClimateVariable],
+) -> Dataset:
+    return xr.merge(
+        [result_ds, _format_thresholds_for_export(climate_variables)],
     )
 
 
