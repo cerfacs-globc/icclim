@@ -174,7 +174,7 @@ boolean. For example, it should carry:
 - whether bootstrap is required;
 - the bootstrap family;
 - the chosen execution path:
-  ``fast``, ``safe_fallback``, ``unsupported``, ``not_required``;
+  ``fast``, ``exact_tiled_bootstrap``, ``unsupported``, ``not_required``;
 - a short reason code for logs, tests and debugging.
 
 Reusable bootstrap primitives
@@ -308,7 +308,7 @@ Suggested split:
 - a capability module that classifies bootstrap requests;
 - a threshold engine module that computes bootstrapped thresholds;
 - a reducer module that turns daily masks into final outputs;
-- a dispatch layer that chooses ``fast`` or ``safe_fallback`` and wires
+- a dispatch layer that chooses ``fast`` or ``exact_tiled_bootstrap`` and wires
   the pieces together.
 
 The important part is not the exact filenames. It is that the code

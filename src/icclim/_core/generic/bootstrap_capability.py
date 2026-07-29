@@ -47,7 +47,7 @@ class BootstrapExecutionKind(StrEnum):
 
     NOT_REQUIRED = "not_required"
     REFERENCE_BOOTSTRAP = "reference_bootstrap"
-    SAFE_FALLBACK = "safe_fallback"
+    EXACT_TILED_BOOTSTRAP = "exact_tiled_bootstrap"
     FAST = "fast"
 
 
@@ -65,8 +65,8 @@ class BootstrapCapability:
         return self.execution_kind == BootstrapExecutionKind.FAST
 
     @property
-    def uses_safe_fallback(self) -> bool:
-        return self.execution_kind == BootstrapExecutionKind.SAFE_FALLBACK
+    def uses_exact_tiled_bootstrap(self) -> bool:
+        return self.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
 
     @property
     def uses_reference_bootstrap_path(self) -> bool:
@@ -113,14 +113,14 @@ def classify_doy_percentile_count_bootstrap(
             "reference_bootstrap_mode_forced",
         )
     if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
-        return _safe_fallback(family, "safe_mode_forced")
+        return _exact_tiled_bootstrap(family, "exact_tiled_bootstrap_mode_forced")
     fast_path_blocker = _fast_count_path_blocker(
         climate_var.studied_data,
         threshold_spec,
         resample_frequency.pandas_freq,
     )
     if fast_path_blocker is not None:
-        return _safe_fallback(family, fast_path_blocker)
+        return _exact_tiled_bootstrap(family, fast_path_blocker)
     return BootstrapCapability(
         family=family,
         execution_kind=BootstrapExecutionKind.FAST,
@@ -182,13 +182,13 @@ def _reference_bootstrap_path(
     )
 
 
-def _safe_fallback(
+def _exact_tiled_bootstrap(
     family: BootstrapComputationFamily,
     reason_code: str,
 ) -> BootstrapCapability:
     return BootstrapCapability(
         family=family,
-        execution_kind=BootstrapExecutionKind.SAFE_FALLBACK,
+        execution_kind=BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP,
         bootstrap_required=True,
         reason_code=reason_code,
     )
@@ -205,13 +205,13 @@ def _fast_count_path_blocker(
 ) -> str | None:
     """Return the fast-path blocker reason, or ``None`` when fast is supported."""
     if threshold_spec.threshold_min_value is not None:
-        return "threshold_min_value_requires_safe_fallback"
+        return "threshold_min_value_requires_exact_tiled_bootstrap"
     if not isinstance(study.indexes.get("time"), pd.DatetimeIndex):
-        return "calendar_requires_safe_fallback"
+        return "calendar_requires_exact_tiled_bootstrap"
     if threshold_spec.only_leap_years:
-        return "only_leap_years_requires_safe_fallback"
+        return "only_leap_years_requires_exact_tiled_bootstrap"
     if threshold_spec.percentile_coord().size != 1:
-        return "multiple_percentiles_require_safe_fallback"
+        return "multiple_percentiles_require_exact_tiled_bootstrap"
     if not _is_fast_bootstrap_frequency(output_frequency):
         return "output_frequency_not_supported_by_fast_path"
     if _operator_code(threshold_spec.operator) < 0:

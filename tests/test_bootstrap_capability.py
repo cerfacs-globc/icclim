@@ -86,7 +86,7 @@ def test_threshold_kind_classification_covers_basic_percentile_and_bounded() -> 
     )
 
 
-def test_threshold_min_value_routes_to_safe_fallback() -> None:
+def test_threshold_min_value_routes_to_exact_tiled_bootstrap() -> None:
     pr = stub_tas(5.0).rename("pr")
     pr.attrs["units"] = "mm/day"
     pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
@@ -108,11 +108,14 @@ def test_threshold_min_value_routes_to_safe_fallback() -> None:
         decision.family
         == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COUNT
     )
-    assert decision.execution_kind == BootstrapExecutionKind.SAFE_FALLBACK
-    assert decision.reason_code == "threshold_min_value_requires_safe_fallback"
+    assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
+    assert (
+        decision.reason_code
+        == "threshold_min_value_requires_exact_tiled_bootstrap"
+    )
 
 
-def test_cftime_routes_to_safe_fallback() -> None:
+def test_cftime_routes_to_exact_tiled_bootstrap() -> None:
     tas = stub_tas(27 + K2C, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
     climate_var = _build_climate_variable(
         tas,
@@ -128,8 +131,8 @@ def test_cftime_routes_to_safe_fallback() -> None:
         FrequencyRegistry.YEAR,
     )
 
-    assert decision.execution_kind == BootstrapExecutionKind.SAFE_FALLBACK
-    assert decision.reason_code == "calendar_requires_safe_fallback"
+    assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
+    assert decision.reason_code == "calendar_requires_exact_tiled_bootstrap"
 
 
 def test_eager_input_uses_reference_bootstrap_path() -> None:

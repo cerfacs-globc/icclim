@@ -911,10 +911,10 @@ class TestIntegration:
         profile = generic_functions.get_bootstrap_profile()
 
         assert not hasattr(default.count_occurrences.data, "__dask_graph__")
-        assert profile["bootstrap_count_execution_kind"] == "safe_fallback"
+        assert profile["bootstrap_count_execution_kind"] == "exact_tiled_bootstrap"
         assert (
             profile["bootstrap_count_reason_code"]
-            == "threshold_min_value_requires_safe_fallback"
+            == "threshold_min_value_requires_exact_tiled_bootstrap"
         )
         assert "bootstrap_fast_tile_count" not in profile
         assert profile["bootstrap_safe_tile_count"] == 4
@@ -1003,8 +1003,11 @@ class TestIntegration:
         default = icclim.index(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert profile["bootstrap_count_execution_kind"] == "safe_fallback"
-        assert profile["bootstrap_count_reason_code"] == "calendar_requires_safe_fallback"
+        assert profile["bootstrap_count_execution_kind"] == "exact_tiled_bootstrap"
+        assert (
+            profile["bootstrap_count_reason_code"]
+            == "calendar_requires_exact_tiled_bootstrap"
+        )
         assert "bootstrap_fast_tile_count" not in profile
         assert profile["bootstrap_safe_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
