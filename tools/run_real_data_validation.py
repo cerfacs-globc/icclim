@@ -126,7 +126,8 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
         )
     if workload == "generic_tas_count_date_event_monthly":
         # A smaller real-data subset keeps this generic date-event validation
-        # representative without turning the oracle run into an overnight job.
+        # representative without turning the trusted-baseline run into an
+        # overnight job.
         tas = _open_var(
             TAS_GLOB,
             "tas",
@@ -140,6 +141,48 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=DATE_EVENT_TIME_RANGE,
             slice_mode="month",
             date_event=True,
+        )
+    if workload == "generic_tas_bounded_count_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        percentile_threshold = icclim.build_threshold(
+            "> 90 doy_per",
+            reference_period=BASE_PERIOD,
+        )
+        return icclim.count_occurrences(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=[percentile_threshold, "<= 30 degC"],
+                logical_link="and",
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_pr_fraction_bootstrap_yearly":
+        pr = _open_var(PR_GLOB, "pr")
+        return icclim.fraction_of_total(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 95 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_tas_spell_bootstrap_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        return icclim.sum_of_spell_lengths(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+            min_spell_length=6,
         )
     if workload == "tg90p_save_thresholds_monthly":
         tas = _open_var(TAS_GLOB, "tas")
@@ -156,7 +199,7 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
         # Compound logical-link indices currently exercise xarray boolean
         # operations that behave differently on lazy arrays across versions.
         # Loading the subset keeps this as a real-data validation while making
-        # the oracle path executable.
+        # the trusted baseline executable on this workload.
         ds = _open_combined_dataset(eager=True)
         return icclim.index(
             index_name="CD",
@@ -168,8 +211,8 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
     if workload == "indices_mixed_yearly":
         ds = _open_combined_dataset(eager=True)
         # Keep the mixed multi-index validation on the tas+pr pair, but avoid
-        # compound logical-link indices here because the oracle release itself
-        # is currently blocked by an upstream xarray boolean-operation issue.
+        # compound logical-link indices here because the trusted baseline is
+        # currently blocked by an upstream xarray boolean-operation issue.
         return icclim.indices(
             index_group=["TG", "RR1", "PRCPTOT", "TG90p"],
             in_files=ds,

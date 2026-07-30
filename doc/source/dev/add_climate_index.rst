@@ -134,7 +134,7 @@ Instead:
 1. identify the bootstrap family;
 2. route the family explicitly in
    ``src/icclim/_core/generic/bootstrap_capability.py``;
-3. keep the exact tiled path as the semantic oracle;
+3. keep the exact tiled path as the reference bootstrap implementation;
 4. only enable the optimized path after exact validation.
 
 For percentile-bootstrap work, read the bootstrap architecture note
@@ -236,6 +236,9 @@ follow this path:
    - one query string such as ``"> 30 degC"``;
    - two thresholds plus a logical link;
    - explicit components such as ``operator``, ``value`` and ``unit``.
+   Shared percentile options such as ``reference_period`` are now
+   propagated to bounded-threshold children when the child threshold is a
+   percentile query string.
 3. The factory turns that specification into one threshold family:
    - :class:`~icclim._core.generic.threshold.basic.BasicThreshold`
    - :class:`~icclim._core.generic.threshold.percentile.PercentileThreshold`
@@ -322,7 +325,7 @@ Every new climate-index contribution should answer these tests:
 2. If it uses thresholds, are unit conversions correct?
 3. If it uses bootstrap, does routing pick the expected execution path?
 4. If bootstrap semantics changed, is the exact tiled path still the
-   oracle?
+   reference bootstrap implementation?
 5. If the change is performance-related, was it validated on real data
    rather than only synthetic arrays?
 

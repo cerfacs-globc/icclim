@@ -18,7 +18,7 @@ Design goals
 
 Bootstrap code should be:
 
-- exact with respect to the safe reference implementation;
+- exact with respect to the safe reference bootstrap implementation;
 - explicit about what is supported, what falls back, and what is still
   unsupported;
 - organized around a small number of reusable calculations rather than a
@@ -42,7 +42,7 @@ Use the following rules when extending bootstrap support:
 
 - Separate threshold generation from result aggregation.
 - Classify support by mathematical family, not by index short name.
-- Keep the safe tiled path as the semantic oracle for every new optimized
+- Keep the safe tiled path as the reference bootstrap implementation for every new optimized
   implementation.
 - Prefer a small number of well-named helpers over large mixed-purpose
   functions.
@@ -176,6 +176,17 @@ boolean. For example, it should carry:
 - the chosen execution path:
   ``optimized_bootstrap``, ``exact_tiled_bootstrap``, ``unsupported``, ``not_required``;
 - a short reason code for logs, tests and debugging.
+
+As of July 30, 2026, this classifier exists in
+``src/icclim/_core/generic/bootstrap_capability.py`` for the current
+generic indicator families:
+
+- day-of-year percentile count;
+- filtered day-of-year percentile count;
+- value aggregates such as ``fraction_of_total``;
+- spell reducers such as ``sum_of_spell_lengths``;
+- bounded percentile compositions that currently stay on the reference
+  bootstrap path.
 
 Reusable bootstrap primitives
 =============================

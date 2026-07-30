@@ -128,6 +128,21 @@ def test_build_bounded_threshold__from_args() -> None:
     assert t3.right_threshold.initial_value == [12]
 
 
+def test_build_bounded_threshold__propagates_shared_percentile_kwargs() -> None:
+    threshold = build_threshold(
+        thresholds=["> 12 doy_per", "<= 30 degC"],
+        logical_link="and",
+        reference_period=("2042-01-01", "2043-12-31"),
+        doy_window_width=7,
+    )
+
+    assert isinstance(threshold, BoundedThreshold)
+    assert isinstance(threshold.left_threshold, PercentileThreshold)
+    assert threshold.left_threshold.reference_period == ("2042-01-01", "2043-12-31")
+    assert threshold.left_threshold.doy_window_width == 7
+    assert isinstance(threshold.right_threshold, BasicThreshold)
+
+
 def test_basic_threshold_eq() -> None:
     a = build_threshold(">10degC")
     b = build_threshold(">10degC")

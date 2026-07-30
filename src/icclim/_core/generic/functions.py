@@ -50,6 +50,7 @@ from icclim._core.constants import (
 from icclim._core.generic.bootstrap_capability import (
     BootstrapExecutionKind,
     classify_doy_percentile_count_bootstrap,
+    classify_generic_indicator_bootstrap,
 )
 from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
@@ -156,6 +157,12 @@ def count_occurrences(
     >>> int(result.count_occurrences.isel(time=0).values)
     365
     """
+    _note_generic_bootstrap_capability(
+        indicator_name="count_occurrences",
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+        date_event=date_event,
+    )
     if len(climate_vars) == 1 and not date_event:
         safe_bootstrapped = _compute_safe_tiled_count_occurrences(
             climate_vars[0],
@@ -249,6 +256,11 @@ def max_consecutive_occurrence(
     >>> int(result.max_consecutive_occurrence.isel(time=0).values)
     365
     """
+    _note_generic_bootstrap_capability(
+        indicator_name="max_consecutive_occurrence",
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+    )
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq.pandas_freq,
@@ -305,6 +317,11 @@ def sum_of_spell_lengths(
     DataArray
         The sum of the lengths of all spells in the data.
     """
+    _note_generic_bootstrap_capability(
+        indicator_name="sum_of_spell_lengths",
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+    )
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq.pandas_freq,
@@ -448,6 +465,11 @@ def fraction_of_total(
     the units will be set to "%". Otherwise, the units will be set to the value of
     PART_OF_A_WHOLE_UNIT, which is 1.
     """
+    _note_generic_bootstrap_capability(
+        indicator_name="fraction_of_total",
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+    )
     study, threshold = get_single_var(climate_vars)
     if threshold is None:
         msg = "No threshold found"
@@ -1269,6 +1291,33 @@ def _compute_exceedance_mask(
         if climatology_bounds is not None:
             exceedance_mask.attrs[REFERENCE_PERIOD_ID] = climatology_bounds
     return exceedance_mask
+
+
+def _note_generic_bootstrap_capability(
+    *,
+    indicator_name: str,
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+    date_event: bool = False,
+) -> None:
+    capability = classify_generic_indicator_bootstrap(
+        indicator_name=indicator_name,
+        climate_vars=climate_vars,
+        resample_frequency=resample_freq,
+        date_event=date_event,
+    )
+    _profile_bootstrap_note(
+        "bootstrap_execution_kind",
+        capability.execution_kind.value,
+    )
+    _profile_bootstrap_note(
+        "bootstrap_reason_code",
+        capability.reason_code,
+    )
+    _profile_bootstrap_note(
+        "bootstrap_family",
+        capability.family.value,
+    )
 
 
 def _compute_safe_tiled_count_occurrences(  # noqa: C901

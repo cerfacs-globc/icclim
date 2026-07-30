@@ -187,6 +187,7 @@ ignore = [
   "PTH207", # Glob patterns match the input datasets already staged on Kraken.
   "PLC0415", # Repo-local imports are resolved after injecting the checked-out src path.
   "PLR0911", # Workload dispatch uses one explicit return per case.
+  "PLR0912", # Workload dispatch keeps one readable branch per validation case.
   "S110", # Warmup failures are intentionally ignored in the benchmarking harness.
   "S603", # Git subprocess calls use fixed local commands in the harness.
   "S607", # The harness intentionally relies on the environment's git executable.

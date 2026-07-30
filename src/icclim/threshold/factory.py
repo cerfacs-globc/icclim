@@ -252,7 +252,15 @@ def _build_threshold_builder_input(
         and thresholds is not None
         and logical_link is not None
     ):
-        return _build_bounded_threshold_input(thresholds, logical_link)
+        return _build_bounded_threshold_input(
+            thresholds,
+            logical_link,
+            _shared_bounded_threshold_builder_kwargs(
+                threshold_min_value=threshold_min_value,
+                offset=offset,
+                **kwargs,
+            ),
+        )
     if operator is not None:
         return _build_threshold_input_from_components(
             operator=operator,
@@ -286,11 +294,17 @@ def _build_threshold_instance(
 def _build_bounded_threshold_input(
     thresholds: Sequence[Threshold | str],
     logical_link: LogicalLink | str,
+    shared_child_kwargs: ThresholdBuilderInput,
 ) -> ThresholdBuilderInput:
     acc: list[ThresholdBuilderInput | Threshold] = []
     for t in thresholds:
         if isinstance(t, str):
-            acc.append(_build_threshold_builder_input(t))
+            acc.append(
+                _build_threshold_builder_input(
+                    t,
+                    **_bounded_child_builder_kwargs(t, shared_child_kwargs),
+                )
+            )
         elif isinstance(t, Threshold):
             acc.append(t)
         else:
@@ -309,6 +323,37 @@ def _build_bounded_threshold_input(
         ),
         "logical_link": logical_link,
     }
+
+
+def _shared_bounded_threshold_builder_kwargs(
+    threshold_min_value: str | float | pint.Quantity | None = None,
+    offset: str | float | pint.Quantity | None = None,
+    **kwargs,
+) -> ThresholdBuilderInput:
+    shared_keys = {
+        "reference_period",
+        "doy_window_width",
+        "only_leap_years",
+        "interpolation",
+    }
+    shared_kwargs = {key: value for key, value in kwargs.items() if key in shared_keys}
+    if threshold_min_value is not None:
+        shared_kwargs["threshold_min_value"] = threshold_min_value
+    if offset is not None:
+        shared_kwargs["offset"] = offset
+    return cast("ThresholdBuilderInput", shared_kwargs)
+
+
+def _bounded_child_builder_kwargs(
+    threshold_query: str,
+    shared_child_kwargs: ThresholdBuilderInput,
+) -> ThresholdBuilderInput:
+    if (
+        DOY_PERCENTILE_UNIT in threshold_query
+        or PERIOD_PERCENTILE_UNIT in threshold_query
+    ):
+        return shared_child_kwargs
+    return {}
 
 
 def _build_threshold_input_from_query(

@@ -51,6 +51,39 @@ class BootstrapComputationFamily(StrEnum):
     NOT_APPLICABLE = "not_applicable"
     DAY_OF_YEAR_PERCENTILE_COUNT = "day_of_year_percentile_count"
     FILTERED_DAY_OF_YEAR_PERCENTILE_COUNT = "filtered_day_of_year_percentile_count"
+    DAY_OF_YEAR_PERCENTILE_VALUE_AGGREGATE = "day_of_year_percentile_value_aggregate"
+    FILTERED_DAY_OF_YEAR_PERCENTILE_VALUE_AGGREGATE = (
+        "filtered_day_of_year_percentile_value_aggregate"
+    )
+    DAY_OF_YEAR_PERCENTILE_SPELL = "day_of_year_percentile_spell"
+    FILTERED_DAY_OF_YEAR_PERCENTILE_SPELL = "filtered_day_of_year_percentile_spell"
+    DAY_OF_YEAR_PERCENTILE_COMPOUND = "day_of_year_percentile_compound"
+    FILTERED_DAY_OF_YEAR_PERCENTILE_COMPOUND = (
+        "filtered_day_of_year_percentile_compound"
+    )
+
+
+class BootstrapReducerKind(StrEnum):
+    """Reducer families that affect bootstrap routing."""
+
+    NOT_APPLICABLE = "not_applicable"
+    COUNT = "count"
+    VALUE_AGGREGATE = "value_aggregate"
+    SPELL = "spell"
+
+
+@dataclass(frozen=True)
+class BootstrapThresholdInventory:
+    """Summarize bootstrap-relevant threshold facts for one computation."""
+
+    required_percentile_thresholds: tuple[PercentileThreshold, ...]
+    has_bounded_threshold: bool
+    has_filtered_percentile: bool
+    has_bootstrap_disabled_percentile: bool
+
+    @property
+    def bootstrap_required(self) -> bool:
+        return bool(self.required_percentile_thresholds)
 
 
 class BootstrapExecutionKind(StrEnum):
@@ -148,6 +181,49 @@ def _classify_required_count_bootstrap(
     )
 
 
+def classify_generic_indicator_bootstrap(
+    *,
+    indicator_name: str,
+    climate_vars: list[ClimateVariable],
+    resample_frequency: Frequency,
+    date_event: bool = False,
+) -> BootstrapCapability:
+    """Classify bootstrap routing for a generic indicator computation."""
+    inventory = _build_bootstrap_threshold_inventory(climate_vars)
+    if not inventory.bootstrap_required:
+        if inventory.has_bootstrap_disabled_percentile:
+            return _not_required("bootstrap_disabled_by_user")
+        return _not_required("bootstrap_not_required_for_indicator")
+
+    reducer_kind = _classify_bootstrap_reducer_kind(indicator_name)
+    if reducer_kind == BootstrapReducerKind.NOT_APPLICABLE:
+        return _not_required("indicator_has_no_bootstrap_family")
+
+    family = _classify_generic_bootstrap_family(
+        reducer_kind=reducer_kind,
+        inventory=inventory,
+    )
+    if _uses_specialized_count_routing(
+        reducer_kind=reducer_kind,
+        climate_vars=climate_vars,
+        date_event=date_event,
+        inventory=inventory,
+    ):
+        return classify_doy_percentile_count_bootstrap(
+            climate_var=climate_vars[0],
+            resample_frequency=resample_frequency,
+        )
+    return _reference_bootstrap_path(
+        family,
+        _reference_bootstrap_reason_code(
+            reducer_kind=reducer_kind,
+            climate_vars=climate_vars,
+            date_event=date_event,
+            inventory=inventory,
+        ),
+    )
+
+
 def is_optimized_doy_percentile_count_supported(
     study: DataArray,
     threshold_spec: PercentileThreshold,
@@ -180,6 +256,161 @@ def _classify_count_family(
     if threshold_spec.threshold_min_value is not None:
         return BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COUNT
     return BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COUNT
+
+
+def _classify_bootstrap_reducer_kind(
+    indicator_name: str,
+) -> BootstrapReducerKind:
+    if indicator_name == "count_occurrences":
+        return BootstrapReducerKind.COUNT
+    if indicator_name in {
+        "fraction_of_total",
+        "excess",
+        "deficit",
+        "maximum",
+        "minimum",
+        "average",
+        "sum",
+        "standard_deviation",
+        "max_of_rolling_sum",
+        "min_of_rolling_sum",
+        "max_of_rolling_average",
+        "min_of_rolling_average",
+    }:
+        return BootstrapReducerKind.VALUE_AGGREGATE
+    if indicator_name in {
+        "max_consecutive_occurrence",
+        "sum_of_spell_lengths",
+    }:
+        return BootstrapReducerKind.SPELL
+    return BootstrapReducerKind.NOT_APPLICABLE
+
+
+def _build_bootstrap_threshold_inventory(
+    climate_vars: list[ClimateVariable],
+) -> BootstrapThresholdInventory:
+    required_thresholds: list[PercentileThreshold] = []
+    has_bounded_threshold = False
+    has_filtered_percentile = False
+    has_bootstrap_disabled_percentile = False
+    for climate_var in climate_vars:
+        threshold_spec = climate_var.threshold
+        if threshold_spec is None:
+            continue
+        if isinstance(threshold_spec, BoundedThreshold):
+            has_bounded_threshold = True
+        for percentile_threshold in _iter_percentile_thresholds(threshold_spec):
+            if percentile_threshold.threshold_min_value is not None:
+                has_filtered_percentile = True
+            if must_run_bootstrap(
+                climate_var.studied_data,
+                percentile_threshold,
+                climate_var.bootstrap,
+            ):
+                required_thresholds.append(percentile_threshold)
+            elif climate_var.bootstrap is False and must_run_bootstrap(
+                climate_var.studied_data,
+                percentile_threshold,
+                bootstrap=None,
+            ):
+                has_bootstrap_disabled_percentile = True
+    return BootstrapThresholdInventory(
+        required_percentile_thresholds=tuple(required_thresholds),
+        has_bounded_threshold=has_bounded_threshold,
+        has_filtered_percentile=has_filtered_percentile,
+        has_bootstrap_disabled_percentile=has_bootstrap_disabled_percentile,
+    )
+
+
+def _iter_percentile_thresholds(
+    threshold_spec: Threshold,
+) -> tuple[PercentileThreshold, ...]:
+    if isinstance(threshold_spec, PercentileThreshold):
+        return (threshold_spec,)
+    if isinstance(threshold_spec, BoundedThreshold):
+        return (
+            *_iter_percentile_thresholds(threshold_spec.left_threshold),
+            *_iter_percentile_thresholds(threshold_spec.right_threshold),
+        )
+    return ()
+
+
+def _classify_generic_bootstrap_family(
+    *,
+    reducer_kind: BootstrapReducerKind,
+    inventory: BootstrapThresholdInventory,
+) -> BootstrapComputationFamily:
+    if inventory.has_bounded_threshold:
+        family_group = "compound"
+    elif reducer_kind == BootstrapReducerKind.COUNT:
+        family_group = "count"
+    elif reducer_kind == BootstrapReducerKind.VALUE_AGGREGATE:
+        family_group = "value_aggregate"
+    else:
+        family_group = "spell"
+    family_map = {
+        (False, "compound"): BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COMPOUND,
+        (
+            True,
+            "compound",
+        ): BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COMPOUND,
+        (False, "count"): BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COUNT,
+        (
+            True,
+            "count",
+        ): BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COUNT,
+        (
+            False,
+            "value_aggregate",
+        ): BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_VALUE_AGGREGATE,
+        (
+            True,
+            "value_aggregate",
+        ): BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_VALUE_AGGREGATE,
+        (False, "spell"): BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_SPELL,
+        (
+            True,
+            "spell",
+        ): BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_SPELL,
+    }
+    return family_map[(inventory.has_filtered_percentile, family_group)]
+
+
+def _uses_specialized_count_routing(
+    *,
+    reducer_kind: BootstrapReducerKind,
+    climate_vars: list[ClimateVariable],
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+) -> bool:
+    if reducer_kind != BootstrapReducerKind.COUNT:
+        return False
+    if date_event or len(climate_vars) != 1 or inventory.has_bounded_threshold:
+        return False
+    threshold_spec = climate_vars[0].threshold
+    return isinstance(threshold_spec, PercentileThreshold) and bool(
+        inventory.required_percentile_thresholds
+    )
+
+
+def _reference_bootstrap_reason_code(
+    *,
+    reducer_kind: BootstrapReducerKind,
+    climate_vars: list[ClimateVariable],
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+) -> str:
+    if inventory.has_bounded_threshold:
+        return "bounded_threshold_uses_reference_bootstrap_path"
+    if len(climate_vars) > 1:
+        return "multiple_climate_variables_use_reference_bootstrap_path"
+    if date_event:
+        return "date_event_uses_reference_bootstrap_path"
+    if reducer_kind == BootstrapReducerKind.VALUE_AGGREGATE:
+        return "value_aggregate_uses_reference_bootstrap_path"
+    if reducer_kind == BootstrapReducerKind.SPELL:
+        return "spell_uses_reference_bootstrap_path"
+    return "count_uses_reference_bootstrap_path"
 
 
 def _count_bootstrap_not_required_reason(
