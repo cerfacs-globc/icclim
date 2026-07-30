@@ -573,7 +573,6 @@ def _drop_february_29_if_requested(
 ) -> DataArray:
     if not ignore_feb29th:
         return studied_data
-    import xclim  # noqa: PLC0415
 
     return studied_data.convert_calendar(CfCalendarRegistry.NO_LEAP.name)
 

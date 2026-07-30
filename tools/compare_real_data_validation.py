@@ -49,7 +49,8 @@ def _compare_datasets(current_path: Path, baseline_path: Path) -> dict[str, obje
     shared_coords = sorted(set(current.coords) & set(baseline.coords))
 
     data_var_comparison = {
-        name: _compare_variable(current[name], baseline[name]) for name in shared_data_vars
+        name: _compare_variable(current[name], baseline[name])
+        for name in shared_data_vars
     }
     coord_comparison = {
         name: _compare_variable(current.coords[name], baseline.coords[name])

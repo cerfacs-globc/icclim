@@ -7,8 +7,8 @@ from icclim._core.generic.bootstrap_capability import (
     BootstrapComputationFamily,
     BootstrapExecutionKind,
     BootstrapThresholdKind,
-    classify_threshold_kind,
     classify_doy_percentile_count_bootstrap,
+    classify_threshold_kind,
 )
 from icclim._core.model.standard_variable import StandardVariableRegistry
 from icclim.frequency import FrequencyRegistry
@@ -109,10 +109,7 @@ def test_threshold_min_value_routes_to_exact_tiled_bootstrap() -> None:
         == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COUNT
     )
     assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
-    assert (
-        decision.reason_code
-        == "threshold_min_value_requires_exact_tiled_bootstrap"
-    )
+    assert decision.reason_code == "threshold_min_value_requires_exact_tiled_bootstrap"
 
 
 def test_cftime_routes_to_exact_tiled_bootstrap() -> None:

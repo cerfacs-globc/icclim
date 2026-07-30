@@ -1064,9 +1064,7 @@ class TestIntegration:
         tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
         tas[5:10] = 0
         tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
-        original_compute_exceedance_mask = (
-            generic_functions._compute_exceedance_mask
-        )
+        original_compute_exceedance_mask = generic_functions._compute_exceedance_mask
 
         def fail_until_single_cell(*args, **kwargs):
             study = args[0]

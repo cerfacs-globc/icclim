@@ -66,9 +66,9 @@ if TYPE_CHECKING:
         InFileLike,
         SamplingMethodLike,
     )
-    from icclim._core.model.logical_link import LogicalLink
     from icclim._core.model.in_file_dictionary import InFileDictionary
     from icclim._core.model.indicator import Indicator
+    from icclim._core.model.logical_link import LogicalLink
 
 SliceMode = Union[str, Sequence[str], "Frequency", "FrequencyLike"]
 
@@ -608,7 +608,9 @@ def index(
         allow_partial_seasons=allow_partial_seasons,
         normalized_request=normalized_request,
     )
-    result_ds = _run_index_workflow(config, out_file, callback_percentage_total, callback)
+    result_ds = _run_index_workflow(
+        config, out_file, callback_percentage_total, callback
+    )
     log.ending_message(time.process_time())
     return result_ds
 

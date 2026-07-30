@@ -27,13 +27,10 @@ CHUNKS = {"time": 365, "lat": 24, "lon": 32}
 
 def _git_rev_parse(repo: Path, ref: str) -> str | None:
     try:
-        return (
-            subprocess.check_output(
-                ["git", "-C", str(repo), "rev-parse", ref],
-                text=True,
-            )
-            .strip()
-        )
+        return subprocess.check_output(
+            ["git", "-C", str(repo), "rev-parse", ref],
+            text=True,
+        ).strip()
     except Exception:
         return None
 

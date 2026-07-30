@@ -47,11 +47,11 @@ from icclim._core.constants import (
     RESAMPLE_METHOD,
     UNITS_KEY,
 )
-from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.generic.bootstrap_capability import (
     BootstrapExecutionKind,
     classify_doy_percentile_count_bootstrap,
 )
+from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import Operator, OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
@@ -1306,7 +1306,10 @@ def _compute_safe_tiled_count_occurrences(
     )
     if not bootstrap_capability.bootstrap_required:
         return None
-    if bootstrap_capability.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP:
+    if (
+        bootstrap_capability.execution_kind
+        == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
+    ):
         return None
 
     safe_start = perf_counter()

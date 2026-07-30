@@ -241,7 +241,9 @@ def _build_threshold_builder_input(
     offset: str | float | pint.Quantity | None = None,
     **kwargs,
 ) -> ThresholdBuilderInput:
-    if query is not None and _is_query_only_threshold_request(query, operator, value, unit):
+    if query is not None and _is_query_only_threshold_request(
+        query, operator, value, unit
+    ):
         if _is_bounded_threshold_query(query):
             return _build_bounded_threshold_input_from_query(query)
         return _build_threshold_input_from_query(query, threshold_min_value, kwargs)

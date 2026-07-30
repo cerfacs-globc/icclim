@@ -18,9 +18,9 @@ from xarray import DataArray
 
 from icclim._core.climate_variable import ClimateVariable, must_run_bootstrap
 from icclim._core.generic.threshold.bounded import BoundedThreshold
-from icclim._core.model.threshold import Threshold
 from icclim._core.generic.threshold.percentile import PercentileThreshold
 from icclim._core.model.operator import Operator
+from icclim._core.model.threshold import Threshold
 from icclim.frequency import Frequency
 
 
@@ -135,7 +135,9 @@ def is_optimized_doy_percentile_count_supported(
     output_frequency: str,
 ) -> bool:
     """Return whether the optimized count path supports this case."""
-    return _optimized_count_path_blocker(study, threshold_spec, output_frequency) is None
+    return (
+        _optimized_count_path_blocker(study, threshold_spec, output_frequency) is None
+    )
 
 
 def classify_threshold_kind(

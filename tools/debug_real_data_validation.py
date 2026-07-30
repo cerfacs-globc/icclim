@@ -11,7 +11,9 @@ from pathlib import Path
 
 def _load_validation_module() -> object:
     script_path = Path(__file__).with_name("run_real_data_validation.py")
-    spec = importlib.util.spec_from_file_location("run_real_data_validation", script_path)
+    spec = importlib.util.spec_from_file_location(
+        "run_real_data_validation", script_path
+    )
     if spec is None or spec.loader is None:
         msg = f"Cannot load validation module from {script_path}"
         raise RuntimeError(msg)
@@ -36,6 +38,7 @@ def main() -> None:
     }
     try:
         import icclim  # noqa: PLC0415
+
         validation_module = _load_validation_module()
 
         validation_module._warmup(icclim)
