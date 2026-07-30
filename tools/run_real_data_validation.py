@@ -181,6 +181,16 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             slice_mode="year",
             ignore_error=False,
         )
+    if workload == "indices_mixed_with_cd_yearly":
+        ds = _open_combined_dataset(eager=True)
+        return icclim.indices(
+            index_group=["TG", "RR1", "PRCPTOT", "CD", "TG90p"],
+            in_files=ds,
+            time_range=TIME_RANGE,
+            base_period_time_range=BASE_PERIOD,
+            slice_mode="year",
+            ignore_error=False,
+        )
     msg = f"Unknown workload: {workload}"
     raise ValueError(msg)
 

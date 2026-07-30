@@ -217,6 +217,25 @@ class TestIntegration:
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.CD)
 
+    def test_index_cd_with_chunked_inputs(self) -> None:
+        ds = self.data.to_dataset(name="tas")
+        ds["tas"].attrs["cell_methods"] = "time: mean"
+        ds["tas"].attrs["standard_name"] = "air_temperature"
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs["cell_methods"] = "time: mean"
+        ds["pr"].attrs["standard_name"] = "precipitation_flux"
+        ds = ds.chunk({"time": 365, "lat": 1, "lon": 1})
+
+        res = icclim.index(
+            index_name="CD",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+        )
+
+        assert f"icclim version: {icclim_version}" in res.attrs["history"]
+        np.testing.assert_array_equal(0, res.CD.load())
+
     def test__preserve_initial_history(self) -> None:
         self.data.attrs["history"] = "pouet pouet cacahuête"
         res = icclim.su(in_files=self.data)
