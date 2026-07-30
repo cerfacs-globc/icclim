@@ -96,10 +96,10 @@ def tav(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -213,10 +213,10 @@ def txav(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -330,10 +330,10 @@ def trav(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -451,10 +451,10 @@ def tx10(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -607,10 +607,10 @@ def tx90(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -763,10 +763,10 @@ def tn10(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -919,10 +919,10 @@ def tn90(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -1071,10 +1071,10 @@ def tnfd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -1191,10 +1191,10 @@ def txfd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -1311,10 +1311,10 @@ def sd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -1431,10 +1431,10 @@ def tx35(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -1551,10 +1551,10 @@ def tr(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -1673,10 +1673,10 @@ def txnd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -1805,10 +1805,10 @@ def tnht(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -1937,10 +1937,10 @@ def tnnd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -2069,10 +2069,10 @@ def tncwd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -2201,10 +2201,10 @@ def txhwd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -2331,10 +2331,10 @@ def hdd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -2451,10 +2451,10 @@ def cdd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -2571,10 +2571,10 @@ def pav(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -2688,10 +2688,10 @@ def pint(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -2808,10 +2808,10 @@ def rr(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -2925,10 +2925,10 @@ def rr1mm(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -3045,10 +3045,10 @@ def pn20mm(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -3165,10 +3165,10 @@ def pxcdd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -3285,10 +3285,10 @@ def pxcwd(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -3409,10 +3409,10 @@ def r99(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -3566,10 +3566,10 @@ def pfl90(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -3723,10 +3723,10 @@ def pq90(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -3880,10 +3880,10 @@ def pq99(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -4034,10 +4034,10 @@ def ffav(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
@@ -4170,10 +4170,10 @@ def ff98(
         ``optional`` Target variable name to process corresponding to ``in_files``.
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
-        Mandatory for a user index.
+        Mandatory for the deprecated ``user_index`` bridge.
     slice_mode : FrequencyLike | Frequency, default="year"
         Type of temporal aggregation:
-        The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+        The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
         (where season and month lists can be customized) or any valid pandas
         frequency.
