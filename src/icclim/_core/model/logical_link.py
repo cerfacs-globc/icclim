@@ -6,6 +6,9 @@ import dataclasses
 from functools import reduce
 from typing import TYPE_CHECKING
 
+import numpy as np
+import xarray as xr
+
 from icclim._core.model.registry import Registry
 
 if TYPE_CHECKING:
@@ -40,17 +43,36 @@ class LogicalLinkRegistry(Registry[LogicalLink]):
 
     _item_class = LogicalLink
 
+    @staticmethod
+    def _combine_masks_with(
+        data_list: list[DataArray],
+        op: Callable[[object, object], object],
+    ) -> DataArray:
+        normalized_masks = [
+            data.fillna(False).astype(bool, copy=False) for data in data_list
+        ]
+        return reduce(
+            lambda left, right: xr.apply_ufunc(op, left, right, dask="allowed"),
+            normalized_masks,
+        )
+
     LOGICAL_OR = LogicalLink(
         name="or",
         standard_name="OR",
         long_name="OR",
         short_name="OR",
-        compute=lambda data_list: reduce(lambda x, y: x | y, data_list),
+        compute=lambda data_list: LogicalLinkRegistry._combine_masks_with(
+            data_list,
+            np.logical_or,
+        ),
     )
     LOGICAL_AND = LogicalLink(
         name="and",
         standard_name="AND",
         long_name="AND",
         short_name="AND",
-        compute=lambda data_list: reduce(lambda x, y: x & y, data_list),
+        compute=lambda data_list: LogicalLinkRegistry._combine_masks_with(
+            data_list,
+            np.logical_and,
+        ),
     )

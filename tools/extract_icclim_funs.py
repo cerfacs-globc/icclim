@@ -132,7 +132,7 @@ def main() -> None:
 # API generation functions
 # -----------------------
 def _generate_dcsc_api(file_path: Path) -> None:
-    from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
+    from icclim.dcsc.registry import DcscIndexRegistry
 
     dcsc_indices = DcscIndexRegistry.values()
     dcsc_index_names = [x.short_name for x in dcsc_indices]
@@ -150,7 +150,7 @@ def _generate_dcsc_api(file_path: Path) -> None:
 
 
 def _generate_generic_api(file_path: Path) -> None:
-    from icclim.generic.registry import GenericIndicatorRegistry  # noqa: PLC0415
+    from icclim.generic.registry import GenericIndicatorRegistry
 
     generic_indices = GenericIndicatorRegistry.values()
     generic_index_names = [x.name for x in generic_indices]
@@ -171,7 +171,7 @@ def _generate_generic_api(file_path: Path) -> None:
 
 
 def _generate_ecad_api(file_path: Path) -> None:
-    from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
+    from icclim.ecad.registry import EcadIndexRegistry
 
     ecad_indices = EcadIndexRegistry.values()
     ecad_index_names = [x.short_name for x in ecad_indices]
@@ -192,7 +192,7 @@ def _generate_ecad_api(file_path: Path) -> None:
 # Helper functions
 # -----------------------
 def _get_user_index_declaration() -> str:
-    from icclim import index as icclim_index  # noqa: PLC0415
+    from icclim import index as icclim_index
 
     icclim_index_args = dict(inspect.signature(icclim_index).parameters)
     pop_args = DEPRECATED_ARGS + UNNECESSARY_ARGS
@@ -232,7 +232,7 @@ def _get_standard_index_declaration(index: StandardIndex, registry: Registry) ->
 
 
 def _get_typical_index_declaration(index: StandardIndex, registry: Registry) -> str:
-    from icclim import index as icclim_index  # noqa: PLC0415
+    from icclim import index as icclim_index
 
     registry_class = (
         type(registry).__name__ if not isinstance(registry, type) else registry.__name__
@@ -289,7 +289,7 @@ def {index.short_name.lower()}(
 
 
 def _get_normal_based_declaration(index: StandardIndex, registry: Registry) -> str:
-    from icclim import index as icclim_index  # noqa: PLC0415
+    from icclim import index as icclim_index
 
     registry_class = (
         type(registry).__name__ if not isinstance(registry, type) else registry.__name__
@@ -394,7 +394,7 @@ def _can_have_reference_period(index: StandardIndex) -> bool:
 
 
 def _get_arguments(pop_args: list[str]) -> dict[str, inspect.Parameter]:
-    from icclim import index as icclim_index  # noqa: PLC0415
+    from icclim import index as icclim_index
 
     icclim_index_args = dict(inspect.signature(icclim_index).parameters)
     for pop_arg in pop_args:
@@ -433,8 +433,8 @@ def _get_generic_index_declaration(index: GenericIndicator) -> str:
     str
         Python code defining a function for the given generic index.
     """
-    from icclim import index as icclim_index  # noqa: PLC0415
-    from icclim.generic.registry import GenericIndicatorRegistry  # noqa: PLC0415
+    from icclim import index as icclim_index
+    from icclim.generic.registry import GenericIndicatorRegistry
 
     pop_args = copy.copy(GENERIC_POP_ARGS)
     if index is not GenericIndicatorRegistry.SumOfSpellLengths:
@@ -500,7 +500,7 @@ def _get_parameter_declaration(param: inspect.Parameter) -> str:
         # (this is a bit hacky but it should work for icclim's use case)
         # We expect something like Literal[start, end] or Literal['start', 'end']
         # We want Literal['start', 'end']
-        import re  # noqa: PLC0415
+        import re
 
         match = re.match(r"Literal\[(.*)\]", annotation)
         if match:
@@ -574,21 +574,21 @@ def _generate_doc(doc_path: Path, replacing_content: str) -> None:
 
 
 def _get_ecad_doc() -> str:
-    from icclim.ecad.registry import EcadIndexRegistry  # noqa: PLC0415
+    from icclim.ecad.registry import EcadIndexRegistry
 
     names = [x.short_name for x in EcadIndexRegistry.values()]
     return "\n".join(f"{TAB}{x.lower()}" for x in names) + "\n\n"
 
 
 def _get_dcsc_doc() -> str:
-    from icclim.dcsc.registry import DcscIndexRegistry  # noqa: PLC0415
+    from icclim.dcsc.registry import DcscIndexRegistry
 
     names = [x.short_name for x in DcscIndexRegistry.values()]
     return "\n".join(f"{TAB}{x.lower()}" for x in names) + "\n\n"
 
 
 def _get_generic_doc() -> str:
-    from icclim.generic.registry import GenericIndicatorRegistry  # noqa: PLC0415
+    from icclim.generic.registry import GenericIndicatorRegistry
 
     names = [x.name for x in GenericIndicatorRegistry.values()] + ["custom_index"]
     return "\n".join(f"{TAB}{x.lower()}" for x in names) + "\n\n"

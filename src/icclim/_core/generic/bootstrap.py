@@ -6,13 +6,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-import pandas as pd
 import xarray as xr
 
 from icclim._core.constants import REFERENCE_PERIOD_ID
+from icclim._core.generic.bootstrap_capability import (
+    is_optimized_doy_percentile_count_supported,
+)
 from icclim._core.model.operator import Operator
 
 if TYPE_CHECKING:
+    import pandas as pd
     from xarray import DataArray
 
     from icclim._core.generic.threshold.percentile import PercentileThreshold
@@ -24,7 +27,7 @@ def compute_doy_percentile_bootstrap_count(
     freq: str,
 ) -> DataArray | None:
     """Compute percentile bootstrap counts without building a huge dask graph."""
-    if not _can_compute_fast_bootstrap(study, threshold):
+    if not _can_compute_optimized_bootstrap(study, threshold, freq):
         return None
     loaded = study.load()
     climatology_bounds = threshold.climatology_bounds(loaded)
@@ -101,7 +104,7 @@ def compute_doy_percentile_bootstrap_count(
         ref_year_indices,
         len(ref_time),
     )
-    donor_aligned = _donor_alignment_matrix(ref_time, ref_year_indices)
+    substitute_aligned = _substitute_alignment_matrix(ref_time, ref_year_indices)
     result = _bootstrap_count_kernel(
         flat_ref_raw,
         flat_ref_masked,
@@ -109,7 +112,7 @@ def compute_doy_percentile_bootstrap_count(
         sample_indices,
         index_year,
         index_pos,
-        donor_aligned,
+        substitute_aligned,
         output_starts,
         output_lengths,
         year_group_starts,
@@ -139,20 +142,12 @@ def compute_doy_percentile_bootstrap_count(
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
-def _can_compute_fast_bootstrap(
+def _can_compute_optimized_bootstrap(
     study: DataArray,
     threshold: PercentileThreshold,
+    freq: str,
 ) -> bool:
-    time_index = study.indexes.get("time")
-    if not isinstance(time_index, pd.DatetimeIndex):
-        return False
-    return (
-        njit is not None
-        and not threshold.only_leap_years
-        and threshold.percentile_coord().size == 1
-        and threshold.threshold_min_value is None
-        and _operator_code(threshold.operator) >= 0
-    )
+    return is_optimized_doy_percentile_count_supported(study, threshold, freq)
 
 
 def _threshold_min_value_in_reference_units(
@@ -191,7 +186,7 @@ if njit is not None:
         sample_indices,
         index_year,
         index_pos,
-        donor_aligned,
+        substitute_aligned,
         study_starts,
         study_lengths,
         year_group_starts,
@@ -209,7 +204,7 @@ if njit is not None:
         n_groups = len(study_starts)
         n_cells = flat_study.shape[1]
         out = np.empty((n_groups, n_cells), dtype=np.float64)
-        n_ref_years = donor_aligned.shape[1]
+        n_ref_years = substitute_aligned.shape[1]
         max_samples = sample_indices.shape[1]
         for flat_i in prange(n_years * n_cells):
             year_i = flat_i // n_cells
@@ -224,7 +219,7 @@ if njit is not None:
                     sample_indices,
                     index_year,
                     index_pos,
-                    donor_aligned,
+                    substitute_aligned,
                     -1,
                     -1,
                     cell,
@@ -248,18 +243,18 @@ if njit is not None:
             else:
                 for group_i in range(group_start, group_stop):
                     out[group_i, cell] = 0.0
-                donor_count = 0
-                for donor_i in range(n_ref_years):
-                    if donor_i == target_ref_i:
+                substitute_count = 0
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
                         continue
                     q = _quantiles_for_cell(
                         flat_ref_raw,
                         sample_indices,
                         index_year,
                         index_pos,
-                        donor_aligned,
+                        substitute_aligned,
                         target_ref_i,
-                        donor_i,
+                        substitute_i,
                         cell,
                         max_samples,
                         quantile,
@@ -278,9 +273,9 @@ if njit is not None:
                             max_target_doy,
                             op_code,
                         )
-                    donor_count += 1
+                    substitute_count += 1
                 for group_i in range(group_start, group_stop):
-                    out[group_i, cell] /= donor_count
+                    out[group_i, cell] /= substitute_count
         return out
 
     @njit(cache=True)
@@ -289,9 +284,9 @@ if njit is not None:
         sample_indices,
         index_year,
         index_pos,
-        donor_aligned,
+        substitute_aligned,
         target_ref_i,
-        donor_i,
+        substitute_i,
         cell,
         max_samples,
         quantile,
@@ -307,9 +302,9 @@ if njit is not None:
                 sample_indices,
                 index_year,
                 index_pos,
-                donor_aligned,
+                substitute_aligned,
                 target_ref_i,
-                donor_i,
+                substitute_i,
                 doy_i,
                 cell,
                 buf,
@@ -330,9 +325,9 @@ if njit is not None:
         sample_indices,
         index_year,
         index_pos,
-        donor_aligned,
+        substitute_aligned,
         target_ref_i,
-        donor_i,
+        substitute_i,
         doy_i,
         cell,
         buf,
@@ -347,7 +342,9 @@ if njit is not None:
                 continue
             mapped_i = ref_i
             if target_ref_i >= 0 and index_year[ref_i] == target_ref_i:
-                mapped_i = donor_aligned[target_ref_i, donor_i, index_pos[ref_i]]
+                mapped_i = substitute_aligned[
+                    target_ref_i, substitute_i, index_pos[ref_i]
+                ]
             if mapped_i < 0:
                 continue
             value = flat_ref[mapped_i, cell]
@@ -527,7 +524,7 @@ def _ref_index_year_and_position(
     return index_year, index_pos
 
 
-def _donor_alignment_matrix(
+def _substitute_alignment_matrix(
     ref_time: pd.DatetimeIndex,
     ref_year_indices: dict[int, np.ndarray],
 ) -> np.ndarray:
@@ -538,37 +535,37 @@ def _donor_alignment_matrix(
     for target_i, target_year in enumerate(years):
         target_indices = ref_year_indices[target_year]
         target_time = ref_time[target_indices]
-        for donor_i, donor_year in enumerate(years):
-            donor_indices = ref_year_indices[donor_year]
-            aligned[target_i, donor_i, : len(target_indices)] = (
-                _donor_indices_aligned_to_target(
+        for substitute_i, substitute_year in enumerate(years):
+            substitute_indices = ref_year_indices[substitute_year]
+            aligned[target_i, substitute_i, : len(target_indices)] = (
+                _substitute_indices_aligned_to_target(
                     target_time,
-                    ref_time[donor_indices],
-                    donor_indices,
+                    ref_time[substitute_indices],
+                    substitute_indices,
                 )
             )
     return aligned
 
 
-def _donor_indices_aligned_to_target(
+def _substitute_indices_aligned_to_target(
     target_time: pd.DatetimeIndex,
-    donor_time: pd.DatetimeIndex,
-    donor_indices: np.ndarray,
+    substitute_time: pd.DatetimeIndex,
+    substitute_indices: np.ndarray,
 ) -> np.ndarray:
-    if len(target_time) == len(donor_time):
-        return donor_indices
-    donor_by_month_day = {
+    if len(target_time) == len(substitute_time):
+        return substitute_indices
+    substitute_by_month_day = {
         (int(month), int(day)): int(index)
         for month, day, index in zip(
-            donor_time.month,
-            donor_time.day,
-            donor_indices,
+            substitute_time.month,
+            substitute_time.day,
+            substitute_indices,
             strict=True,
         )
     }
     return np.asarray(
         [
-            donor_by_month_day.get((int(month), int(day)), -1)
+            substitute_by_month_day.get((int(month), int(day)), -1)
             for month, day in zip(target_time.month, target_time.day, strict=True)
         ],
         dtype=np.int64,

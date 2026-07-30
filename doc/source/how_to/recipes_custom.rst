@@ -1,14 +1,21 @@
 .. _custom_indices_recipes:
 
-########################
- User indices recipes
-########################
+########################################
+ Migrate Deprecated user_index Recipes
+########################################
 
 .. warning::
 
    The ``user_index`` API (also known as "User indices") is **deprecated**
    and will be removed in a future version.
    Please switch to the :ref:`generic_indices_recipes` API instead.
+
+This page is a migration aid for older code.
+For new tutorials, examples, and user-facing guidance, use
+:ref:`generic_indices_recipes` instead.
+
+Each legacy recipe below should be read together with its generic
+equivalent. The generic form is the recommended one.
 
 .. code:: python
 

@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 import xarray as xr
 
@@ -117,6 +118,28 @@ def test_count_occurrences() -> None:
     )
     # the first year has 365 days
     assert int(result.isel(time=0).values) == 365
+
+
+def test_logical_link_and_normalizes_chunked_numeric_masks() -> None:
+    left = xr.DataArray(
+        [[[1.0], [0.0]], [[1.0], [np.nan]]],
+        dims=["time", "lat", "lon"],
+        coords={"time": [0, 1], "lat": [0, 1], "lon": [0]},
+    ).chunk({"time": 1, "lat": 1, "lon": 1})
+    right = xr.DataArray(
+        [[[1.0], [1.0]], [[0.0], [1.0]]],
+        dims=["time", "lat", "lon"],
+        coords={"time": [0, 1], "lat": [0, 1], "lon": [0]},
+    ).chunk({"time": 1, "lat": 1, "lon": 1})
+
+    result = LogicalLinkRegistry.LOGICAL_AND.compute([left, right]).load()
+
+    expected = xr.DataArray(
+        [[[True], [False]], [[False], [False]]],
+        dims=["time", "lat", "lon"],
+        coords={"time": [0, 1], "lat": [0, 1], "lon": [0]},
+    )
+    xr.testing.assert_equal(result, expected)
 
 
 def test_generic_sum() -> None:

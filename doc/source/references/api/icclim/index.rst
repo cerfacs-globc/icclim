@@ -54,7 +54,7 @@ Package Contents
                     Mandatory for a user index.
    :type var_name: str | list[str] | None
    :param slice_mode: Type of temporal aggregation:
-                      The possibles values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
+                      The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
                       "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
                       (where season and month lists can be customized) or any valid pandas
                       frequency.
@@ -122,7 +122,7 @@ Package Contents
                      only a user-selected shortcut for fast exploratory assessment: it disables
                      the overlap correction and can bias percentile-based results.
    :type bootstrap: bool | None
-   :param doy_window_width: ``optional`` Window width used to aggreagte day of year values when computing
+   :param doy_window_width: ``optional`` Window width used to aggregate day-of-year values when computing
                             day of year percentiles (doy_per)
                             Default: 5 (5 days).
    :type doy_window_width: int
@@ -146,8 +146,10 @@ Package Contents
    :type out_unit: str | None
    :param netcdf_version: ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
    :type netcdf_version: str | NetcdfVersion
-   :param user_index: ``optional`` A dictionary with parameters for user defined index.
-                      See :ref:`Custom indices`.
+   :param user_index: ``optional`` Legacy dictionary-based custom-index configuration.
+                      Deprecated and kept only for backward compatibility.
+                      See :ref:`custom indices` to migrate older code, and prefer
+                      :ref:`generic_indices_recipes` for new work.
                       Ignored for ECA&D indices.
    :type user_index: UserIndexDict
    :param save_thresholds: ``optional`` True if the thresholds should be saved within the resulting

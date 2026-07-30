@@ -42,7 +42,7 @@ Use the following rules when extending bootstrap support:
 
 - Separate threshold generation from result aggregation.
 - Classify support by mathematical family, not by index short name.
-- Keep the safe tiled path as the semantic oracle for every new fast
+- Keep the safe tiled path as the semantic oracle for every new optimized
   implementation.
 - Prefer a small number of well-named helpers over large mixed-purpose
   functions.
@@ -60,7 +60,7 @@ Percentile count family
 
 This family covers indices where bootstrap means:
 
-- recompute a percentile threshold with donor-year substitution;
+- recompute a percentile threshold with substitute-year substitution;
 - compare daily values to that threshold;
 - aggregate the daily boolean mask as counts.
 
@@ -82,8 +82,8 @@ Examples:
 - generic percentile counts using ``threshold_min_value``.
 
 The Kraken validation showed that this family cannot be treated as a
-minor variant of the plain count family. Its donor-year semantics must
-be matched exactly before any compiled fast path is enabled.
+minor variant of the plain count family. Its substitute-year semantics must
+be matched exactly before any compiled optimized path is enabled.
 
 Percentile amount and fraction family
 -------------------------------------
@@ -144,7 +144,7 @@ classifier that answers four questions:
 
 1. Is bootstrap required?
 2. If it is required, which family does the index belong to?
-3. Can the fast implementation be used?
+3. Can the optimized implementation be used?
 4. If not, should icclim fall back to the safe tiled path or reject the
    request as unsupported?
 
@@ -174,7 +174,7 @@ boolean. For example, it should carry:
 - whether bootstrap is required;
 - the bootstrap family;
 - the chosen execution path:
-  ``fast``, ``safe_fallback``, ``unsupported``, ``not_required``;
+  ``optimized_bootstrap``, ``exact_tiled_bootstrap``, ``unsupported``, ``not_required``;
 - a short reason code for logs, tests and debugging.
 
 Reusable bootstrap primitives
@@ -191,7 +191,7 @@ One helper should own:
 - extracting the reference-period subset;
 - converting units needed for percentile computation;
 - applying optional sample filtering such as ``threshold_min_value``;
-- exposing year and day lookup data used by donor-year logic.
+- exposing year and day lookup data used by substitute-year logic.
 
 Suggested names:
 
@@ -208,7 +208,7 @@ Bootstrap threshold generation
 
 One threshold engine should own:
 
-- donor-year substitution rules;
+- substitute-year substitution rules;
 - day-of-year percentile logic;
 - period percentile logic;
 - interpolation behavior;
@@ -221,7 +221,7 @@ Suggested helper responsibilities:
 
 - ``build_bootstrap_thresholds_for_year``
 - ``build_nominal_thresholds``
-- ``build_donor_thresholds``
+- ``build_substitute_thresholds``
 - ``align_thresholds_to_study_days``
 
 Daily exceedance mask construction
@@ -308,7 +308,7 @@ Suggested split:
 - a capability module that classifies bootstrap requests;
 - a threshold engine module that computes bootstrapped thresholds;
 - a reducer module that turns daily masks into final outputs;
-- a dispatch layer that chooses ``fast`` or ``safe_fallback`` and wires
+- a dispatch layer that chooses ``optimized_bootstrap`` or ``exact_tiled_bootstrap`` and wires
   the pieces together.
 
 The important part is not the exact filenames. It is that the code
@@ -321,7 +321,7 @@ To keep the code understandable for humans:
 
 - prefer ``reference_sample`` over ``ref`` when the longer name makes
   the role clearer;
-- prefer ``target_year_index`` and ``donor_year_index`` over short loop
+- prefer ``target_year_index`` and ``substitute_year_index`` over short loop
   names that require reading several surrounding lines;
 - prefer ``study_day_of_year`` over ``study_doys`` in higher-level
   helpers, while compact local names are acceptable inside tight kernels;
@@ -389,8 +389,8 @@ Tests as readability support
 - Prefer test names that explain the scientific case and the expected
   routing decision.
 - Where bootstrap dispatch matters, tests should state whether the case
-  is expected to use the fast path, safe fallback, or no bootstrap at
-  all.
+  is expected to use the optimized path, exact tiled bootstrap, or no
+  bootstrap at all.
 
 FAIR4RS implications
 ====================
@@ -477,7 +477,7 @@ small architecture where:
 - one classifier explains what path any generic index will take;
 - one threshold engine defines percentile bootstrap semantics;
 - several simple reducers reuse those semantics;
-- fast implementations can be added family by family without rewriting
+- optimized implementations can be added family by family without rewriting
   bootstrap logic.
 
 If the code reaches that shape, adding support for new climate indices

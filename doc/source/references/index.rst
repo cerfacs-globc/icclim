@@ -20,7 +20,7 @@ mechanisms of icclim.
    dcsc_functions_api
    generic_functions_api
    thresholds
-    custom_indices (deprecated) <custom_indices>
+   Legacy user_index reference (deprecated) <custom_indices>
    output_metadata
    release_notes
    api/index

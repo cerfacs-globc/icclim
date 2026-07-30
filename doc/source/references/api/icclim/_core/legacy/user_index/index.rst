@@ -13,7 +13,8 @@
    flexible and have a better API.
    See :ref:`generic_indices_recipes` for more information on generic indices.
 
-   User indices are not deprecated but are not recommended for new code.
+   User indices are deprecated and kept only as a legacy compatibility bridge for
+   older code. New custom index work should use the generic API instead.
 
 
 

@@ -86,42 +86,15 @@ def get_seasonal_time_updater(
     """
 
     def add_time_bounds(da: DataArray) -> tuple[DataArray, DataArray]:
-        da_years = np.unique(da.time.dt.year)
-        time_bounds = []
-        new_time_axis = []
-        first_time = da.time.to_numpy()[0]
-        for year in da_years:
-            year_of_season_end = year + 1 if start_month > end_month else year
-            if isinstance(first_time, cftime.datetime):
-                start = cftime.datetime(
-                    year,
-                    start_month,
-                    start_day,
-                    calendar=first_time.calendar,
-                )
-                end = _get_end_date(
-                    use_cftime=True,
-                    year=year_of_season_end,
-                    month=end_month,
-                    day=end_day,
-                    calendar=first_time.calendar,
-                )
-            else:
-                start = pd.to_datetime(f"{year}-{start_month}-{start_day}")
-                end = _get_end_date(
-                    use_cftime=False,
-                    year=year_of_season_end,
-                    month=end_month,
-                    day=end_day,
-                )
-            new_time_axis.append(start + (end - start) / 2)
-            time_bounds.append([start, end])
-        da.coords["time"] = ("time", new_time_axis)
-        time_bounds_da = DataArray(
-            data=time_bounds,
-            dims=["time", "bounds"],
-            coords=[("time", da.time.to_numpy()), ("bounds", [0, 1])],
+        time_bounds = _build_seasonal_time_bounds(
+            da=da,
+            start_month=start_month,
+            end_month=end_month,
+            start_day=start_day,
+            end_day=end_day,
         )
+        da.coords["time"] = ("time", _time_midpoints(time_bounds))
+        time_bounds_da = _time_bounds_dataarray(da, time_bounds)
         return da, time_bounds_da
 
     return add_time_bounds
@@ -155,40 +128,132 @@ def get_time_bounds_updater(
     """
 
     def add_time_bounds(da: DataArray) -> tuple[DataArray, DataArray]:
-        # da should already be resampled to freq
-        if isinstance(da.indexes.get("time"), xr.CFTimeIndex):
-            offset = xr.coding.cftime_offsets.to_offset(freq)
-            starts = np.array(
-                [
-                    cftime.datetime(
-                        date.year,
-                        date.month,
-                        date.day,
-                        date.hour,
-                        date.minute,
-                        date.second,
-                        calendar=date.calendar,
-                    )
-                    for date in da.indexes.get("time")
-                ],
-            )
-            ends = starts + offset
-            ends = ends - timedelta(days=1)
-        else:
-            offset = pd.tseries.frequencies.to_offset(freq)
-            starts = pd.to_datetime(da.time.dt.floor("D"))
-            ends = starts + offset
-            ends = ends - pd.Timedelta(days=1)
-        # make time axis values be in the middle of the bounds
-        da["time"] = starts + (ends - starts) / 2
-        time_bounds_da = DataArray(
-            data=list(zip(starts, ends, strict=False)),
-            dims=["time", "bounds"],
-            coords=[("time", da.time.to_numpy()), ("bounds", [0, 1])],
-        )
+        time_bounds = _build_resampled_time_bounds(da, freq)
+        da["time"] = _time_midpoints(time_bounds)
+        time_bounds_da = _time_bounds_dataarray(da, time_bounds)
         return da, time_bounds_da
 
     return add_time_bounds
+
+
+def _build_seasonal_time_bounds(
+    da: DataArray,
+    start_month: int,
+    end_month: int,
+    start_day: int,
+    end_day: int | None,
+) -> list[list[cftime.datetime | pd.Timestamp]]:
+    da_years = np.unique(da.time.dt.year)
+    first_time = da.time.to_numpy()[0]
+    return [
+        _season_bounds_for_year(
+            year=year,
+            start_month=start_month,
+            end_month=end_month,
+            start_day=start_day,
+            end_day=end_day,
+            first_time=first_time,
+        )
+        for year in da_years
+    ]
+
+
+def _season_bounds_for_year(
+    *,
+    year: int,
+    start_month: int,
+    end_month: int,
+    start_day: int,
+    end_day: int | None,
+    first_time: cftime.datetime | pd.Timestamp | np.datetime64,
+) -> list[cftime.datetime | pd.Timestamp]:
+    year_of_season_end = year + 1 if start_month > end_month else year
+    if isinstance(first_time, cftime.datetime):
+        start = cftime.datetime(
+            year,
+            start_month,
+            start_day,
+            calendar=first_time.calendar,
+        )
+        end = _get_end_date(
+            use_cftime=True,
+            year=year_of_season_end,
+            month=end_month,
+            day=end_day,
+            calendar=first_time.calendar,
+        )
+        return [start, end]
+    start = pd.to_datetime(f"{year}-{start_month}-{start_day}")
+    end = _get_end_date(
+        use_cftime=False,
+        year=year_of_season_end,
+        month=end_month,
+        day=end_day,
+    )
+    return [start, end]
+
+
+def _build_resampled_time_bounds(
+    da: DataArray,
+    freq: str,
+) -> list[tuple[cftime.datetime | pd.Timestamp, cftime.datetime | pd.Timestamp]]:
+    if isinstance(da.indexes.get("time"), xr.CFTimeIndex):
+        starts, ends = _build_cftime_resampled_bounds(da, freq)
+    else:
+        starts, ends = _build_pandas_resampled_bounds(da, freq)
+    return list(zip(starts, ends, strict=False))
+
+
+def _build_cftime_resampled_bounds(
+    da: DataArray,
+    freq: str,
+) -> tuple[np.ndarray, np.ndarray]:
+    offset = xr.coding.cftime_offsets.to_offset(freq)
+    starts = np.array(
+        [
+            cftime.datetime(
+                date.year,
+                date.month,
+                date.day,
+                date.hour,
+                date.minute,
+                date.second,
+                calendar=date.calendar,
+            )
+            for date in da.indexes.get("time")
+        ],
+    )
+    ends = starts + offset
+    ends = ends - timedelta(days=1)
+    return starts, ends
+
+
+def _build_pandas_resampled_bounds(
+    da: DataArray,
+    freq: str,
+) -> tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
+    offset = pd.tseries.frequencies.to_offset(freq)
+    starts = pd.to_datetime(da.time.dt.floor("D"))
+    ends = starts + offset
+    ends = ends - pd.Timedelta(days=1)
+    return starts, ends
+
+
+def _time_midpoints(
+    time_bounds: Sequence[Sequence[cftime.datetime | pd.Timestamp]],
+) -> list[cftime.datetime | pd.Timestamp]:
+    return [start + (end - start) / 2 for start, end in time_bounds]
+
+
+def _time_bounds_dataarray(
+    da: DataArray,
+    time_bounds: Sequence[Sequence[cftime.datetime | pd.Timestamp]],
+) -> DataArray:
+    return DataArray(
+        data=list(time_bounds),
+        dims=["time", "bounds"],
+        coords=[("time", da.time.to_numpy()), ("bounds", [0, 1])],
+    )
 
 
 @dataclasses.dataclass

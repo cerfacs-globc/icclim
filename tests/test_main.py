@@ -217,6 +217,25 @@ class TestIntegration:
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         np.testing.assert_array_equal(0, res.CD)
 
+    def test_index_cd_with_chunked_inputs(self) -> None:
+        ds = self.data.to_dataset(name="tas")
+        ds["tas"].attrs["cell_methods"] = "time: mean"
+        ds["tas"].attrs["standard_name"] = "air_temperature"
+        ds["pr"] = self.data.copy(deep=True)
+        ds["pr"].attrs[UNITS_KEY] = "kg m-2 d-1"
+        ds["pr"].attrs["cell_methods"] = "time: mean"
+        ds["pr"].attrs["standard_name"] = "precipitation_flux"
+        ds = ds.chunk({"time": 365, "lat": 1, "lon": 1})
+
+        res = icclim.index(
+            index_name="CD",
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+        )
+
+        assert f"icclim version: {icclim_version}" in res.attrs["history"]
+        np.testing.assert_array_equal(0, res.CD.load())
+
     def test__preserve_initial_history(self) -> None:
         self.data.attrs["history"] = "pouet pouet cacahuête"
         res = icclim.su(in_files=self.data)
@@ -832,10 +851,12 @@ class TestIntegration:
         profile = generic_functions.get_bootstrap_profile()
 
         assert not hasattr(default.TX90p.data, "__dask_graph__")
-        assert profile["bootstrap_fast_tile_count"] == 4
+        assert profile["bootstrap_count_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_count_reason_code"] == "optimized_bootstrap_supported"
+        assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
-    def test_index_tx90p__dask_bootstrap_uses_fast_tiled_monthly_path(
+    def test_index_tx90p__dask_bootstrap_uses_optimized_tiled_monthly_path(
         self,
         monkeypatch,
     ) -> None:
@@ -863,7 +884,9 @@ class TestIntegration:
         profile = generic_functions.get_bootstrap_profile()
 
         assert not hasattr(default.TX90p.data, "__dask_graph__")
-        assert profile["bootstrap_fast_tile_count"] == 4
+        assert profile["bootstrap_count_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_count_reason_code"] == "optimized_bootstrap_supported"
+        assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
     def test_count_occurrences__dask_wet_day_bootstrap_falls_back_to_safe_tiled_path(
@@ -907,11 +930,16 @@ class TestIntegration:
         profile = generic_functions.get_bootstrap_profile()
 
         assert not hasattr(default.count_occurrences.data, "__dask_graph__")
-        assert "bootstrap_fast_tile_count" not in profile
+        assert profile["bootstrap_count_execution_kind"] == "exact_tiled_bootstrap"
+        assert (
+            profile["bootstrap_count_reason_code"]
+            == "threshold_min_value_requires_exact_tiled_bootstrap"
+        )
+        assert "bootstrap_optimized_tile_count" not in profile
         assert profile["bootstrap_safe_tile_count"] == 4
         xr.testing.assert_allclose(default.count_occurrences, legacy.count_occurrences)
 
-    def test_count_occurrences__fast_bootstrap_defers_threshold_materialization(
+    def test_count_occurrences__optimized_bootstrap_defers_threshold_materialization(
         self,
         monkeypatch,
     ) -> None:
@@ -939,7 +967,7 @@ class TestIntegration:
         assert not hasattr(res.count_occurrences.data, "__dask_graph__")
 
     @pytest.mark.parametrize("slice_mode", ["JJA", "ONDJFM"])
-    def test_index_tx90p__dask_bootstrap_uses_fast_tiled_seasonal_path(
+    def test_index_tx90p__dask_bootstrap_uses_optimized_tiled_seasonal_path(
         self,
         slice_mode,
         monkeypatch,
@@ -966,7 +994,7 @@ class TestIntegration:
         default = icclim.index(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert profile["bootstrap_fast_tile_count"] == 4
+        assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
 
     def test_index_tx90p__cftime_dask_bootstrap_falls_back_to_safe_tiled_path(
@@ -994,7 +1022,12 @@ class TestIntegration:
         default = icclim.index(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert "bootstrap_fast_tile_count" not in profile
+        assert profile["bootstrap_count_execution_kind"] == "exact_tiled_bootstrap"
+        assert (
+            profile["bootstrap_count_reason_code"]
+            == "calendar_requires_exact_tiled_bootstrap"
+        )
+        assert "bootstrap_optimized_tile_count" not in profile
         assert profile["bootstrap_safe_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
 
@@ -1031,7 +1064,7 @@ class TestIntegration:
         tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2)
         tas[5:10] = 0
         tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
-        original_compute_exceedance = generic_functions._compute_exceedance
+        original_compute_exceedance_mask = generic_functions._compute_exceedance_mask
 
         def fail_until_single_cell(*args, **kwargs):
             study = args[0]
@@ -1042,11 +1075,11 @@ class TestIntegration:
             if spatial_cells > 1:
                 msg = "simulated bootstrap tile memory pressure"
                 raise MemoryError(msg)
-            return original_compute_exceedance(*args, **kwargs)
+            return original_compute_exceedance_mask(*args, **kwargs)
 
         monkeypatch.setattr(
             generic_functions,
-            "_compute_exceedance",
+            "_compute_exceedance_mask",
             fail_until_single_cell,
         )
         generic_functions.reset_bootstrap_profile()

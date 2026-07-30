@@ -11,10 +11,56 @@
    Please use the :ref:`generic_functions_api` instead, which is more powerful
    and consistent with the rest of icclim.
 
-You can calculate custom climate indices by using the ``user_index``
-parameters. It is a configuration dictionary to describe how the index
-should be computed. In icclim documentation we usually call them custom
-indices or user indices.
+This page is kept to help migrate old code.
+It should not be used as a tutorial for new custom-index development.
+
+For new work:
+
+- use the :ref:`generic_indices_recipes` guide;
+- use :func:`icclim.build_threshold` to express threshold logic;
+- use generic reducers such as ``count_occurrences``, ``sum``,
+  ``average``, ``max_consecutive_occurrence`` and related functions.
+
+The old ``user_index`` parameter was a configuration dictionary used to
+describe how a custom index should be computed. It remains documented
+here only so older code can be translated to the generic API.
+
+Migration-first example
+=======================
+
+Legacy ``user_index`` intent:
+
+.. code:: python
+
+   # Count days when tasmin is below the 5th day-of-year percentile.
+   # This is legacy syntax and should not be used in new code.
+   user_index_dict = dict(
+       index_name="a_custom_csdi",
+       calc_operation="max_nb_consecutive_events",
+       logical_operation="<",
+       thresh="5p",
+       window_width=5,
+   )
+
+Recommended generic equivalent:
+
+.. code:: python
+
+   result = icclim.max_consecutive_occurrence(
+       in_files="netcdf_files/tasmin.nc",
+       var_name="tasmin",
+       threshold="< 5 doy_per",
+       slice_mode="YS",
+       base_period_time_range=[
+           datetime.datetime(1991, 1, 1),
+           datetime.datetime(1999, 12, 31),
+       ],
+       time_range=[
+           datetime.datetime(1991, 1, 1),
+           datetime.datetime(2010, 12, 31),
+       ],
+       out_file="custom_csdi_5.nc",
+   )
 
 .. code:: python
 
@@ -37,9 +83,8 @@ indices or user indices.
        out_file="custom_csdi_5.nc",
    )
 
-***************************
- ``user_index`` dictionary
-***************************
+Legacy ``user_index`` dictionary
+================================
 
 ``user_index`` is a dictionary with possible keys:
 

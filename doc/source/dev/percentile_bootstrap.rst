@@ -30,9 +30,9 @@ does not call xclim's generic bootstrap decorator. Instead it:
 - computes nominal thresholds inside the compiled path for
   non-overlapping years, avoiding an expensive materialized xarray
   threshold field;
-- recomputes donor-year bootstrap thresholds only for years overlapping
+- recomputes substitute-year bootstrap thresholds only for years overlapping
   the reference period;
-- reuses each yearly donor threshold across all output groups in that
+- reuses each yearly substitute threshold across all output groups in that
   year, so monthly output does not recompute thresholds twelve times.
 
 Fast path currently supports:
@@ -54,7 +54,7 @@ most useful future extensions are likely:
   precipitation counts; Kraken validation on July 29, 2026 showed that
   the experimental fast-path implementation was materially faster but
   not field-identical to the safe tiled reference, so support remains
-  disabled until donor-year bootstrap semantics are matched exactly;
+  disabled until substitute-year bootstrap semantics are matched exactly;
 - ``cftime`` calendars; Kraken validation on July 29, 2026 found a
   remaining one-cell mismatch on a Gregorian-like ``cftime`` case, so
   the release path keeps ``cftime`` on the exact safe tiled fallback
@@ -65,9 +65,9 @@ most useful future extensions are likely:
 For spell/run-length work, the likely direction is a two-stage design:
 
 - compute or bootstrap a daily exceedance mask first, reusing the
-  current donor-year percentile machinery;
-- run spell detection on the bootstrapped mask per donor year, then
-  aggregate spell metrics across donors rather than trying to reduce
+  current substitute-year percentile machinery;
+- run spell detection on the bootstrapped mask per substitute year, then
+  aggregate spell metrics across substitute years rather than trying to reduce
   spells to independent daily counts inside the current kernel.
 
 Performance notes
@@ -81,16 +81,16 @@ with bitwise-equivalent counts up to floating-point noise:
 - production fast path: about 146 seconds;
 - maximum absolute difference: about ``5.7e-14``.
 
-Compared to the old xclim/dask graph path, performance is
+Compared to the old reference bootstrap dask graph path, performance is
 case-dependent when the old path succeeds. On the ACCESS-CM2 validation
 subset (65 years, 28 latitudes, 21 longitudes), the fast path was close
-to the legacy path in wall-clock time, but removed the multi-million-task
+to the reference bootstrap path in wall-clock time, but removed the multi-million-task
 dask graph:
 
-- annual ``TG90p``: legacy 204 seconds and 4,691,198 graph tasks; fast
+- annual ``TG90p``: reference bootstrap 204 seconds and 4,691,198 graph tasks; fast
   212 seconds and 0 graph tasks; maximum absolute difference
   ``8.6e-14``; MaxRSS about 4.4 GB;
-- monthly ``TG90p``: legacy 212 seconds and 4,696,205 graph tasks; fast
+- monthly ``TG90p``: reference bootstrap 212 seconds and 4,696,205 graph tasks; fast
   212 seconds and 0 graph tasks; maximum absolute difference
   ``7.2e-15``; MaxRSS about 4.0 GB.
 
