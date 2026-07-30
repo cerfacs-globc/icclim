@@ -6,7 +6,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-import xarray as xr
 
 from icclim._core.constants import REFERENCE_PERIOD_ID
 from icclim._core.generic.bootstrap_capability import (
@@ -14,6 +13,7 @@ from icclim._core.generic.bootstrap_capability import (
 )
 from icclim._core.generic.bootstrap_primitives import (
     build_bootstrap_array_inputs,
+    build_bootstrap_output,
     build_bootstrap_reference_sample,
     build_bootstrap_temporal_indexing,
 )
@@ -69,28 +69,15 @@ def compute_doy_percentile_bootstrap_count(
             else float(reference_sample.threshold_floor_in_reference_units)
         ),
     )
-    data = result.reshape(
-        (len(temporal_indexing.output_group_labels), *array_inputs.spatial_shape)
+    out = build_bootstrap_output(
+        flat_result=result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units="d",
     )
-    out = xr.DataArray(
-        data,
-        dims=reference_sample.study.dims,
-        coords={
-            "time": temporal_indexing.output_group_labels,
-            **{
-                coord: reference_sample.study.coords[coord]
-                for coord in reference_sample.study.dims
-                if coord != "time"
-            },
-        },
-        attrs={
-            "units": "d",
-            REFERENCE_PERIOD_ID: reference_sample.climatology_bounds,
-        },
-    )
-    for coord in reference_sample.study.coords:
-        if coord not in out.coords and "time" not in reference_sample.study[coord].dims:
-            out = out.assign_coords({coord: reference_sample.study[coord]})
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 

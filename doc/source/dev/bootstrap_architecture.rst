@@ -221,6 +221,7 @@ tested helpers for:
 - ``build_bootstrap_reference_sample``;
 - ``build_bootstrap_temporal_indexing``;
 - ``build_bootstrap_array_inputs``.
+- ``build_bootstrap_output``.
 
 Those helpers keep the bootstrap preparation workflow readable in code:
 

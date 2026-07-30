@@ -68,6 +68,45 @@ class BootstrapArrayInputs:
     spatial_shape: tuple[int, ...]
 
 
+def build_bootstrap_output(
+    *,
+    flat_result: np.ndarray,
+    reference_sample: BootstrapReferenceSample,
+    temporal_indexing: BootstrapTemporalIndexing,
+    spatial_shape: tuple[int, ...],
+    units: str,
+) -> DataArray:
+    """Rebuild an xarray result from bootstrap kernel output."""
+    import xarray as xr  # noqa: PLC0415
+
+    data = flat_result.reshape(
+        (len(temporal_indexing.output_group_labels), *spatial_shape)
+    )
+    output = xr.DataArray(
+        data,
+        dims=reference_sample.study.dims,
+        coords={
+            "time": temporal_indexing.output_group_labels,
+            **{
+                coord: reference_sample.study.coords[coord]
+                for coord in reference_sample.study.dims
+                if coord != "time"
+            },
+        },
+        attrs={
+            "units": units,
+            "climatology_bounds": reference_sample.climatology_bounds,
+        },
+    )
+    for coord in reference_sample.study.coords:
+        if (
+            coord not in output.coords
+            and "time" not in reference_sample.study[coord].dims
+        ):
+            output = output.assign_coords({coord: reference_sample.study[coord]})
+    return output
+
+
 def build_bootstrap_reference_sample(
     study: DataArray,
     threshold: PercentileThreshold,

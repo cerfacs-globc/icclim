@@ -6,6 +6,7 @@ import xarray as xr
 
 from icclim._core.generic.bootstrap_primitives import (
     build_bootstrap_array_inputs,
+    build_bootstrap_output,
     build_bootstrap_reference_sample,
     build_bootstrap_temporal_indexing,
     substitute_indices_aligned_to_target,
@@ -90,3 +91,29 @@ def test_substitute_indices_aligned_to_target_marks_missing_february_29() -> Non
         aligned,
         np.asarray([10, -1, 11], dtype=np.int64),
     )
+
+
+def test_build_bootstrap_output_rebuilds_coordinates_and_attrs() -> None:
+    tas = stub_tas(lat_length=2, lon_length=1)
+    threshold = build_threshold("> 90 doy_per")
+    reference_sample = build_bootstrap_reference_sample(tas, threshold)
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        "YS",
+        doy_window_width=threshold.doy_window_width,
+    )
+    flat_result = np.zeros((len(temporal_indexing.output_group_labels), 2), dtype=float)
+
+    output = build_bootstrap_output(
+        flat_result=flat_result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=(2, 1),
+        units="d",
+    )
+
+    assert output.dims == ("time", "lat", "lon")
+    assert output.shape == (5, 2, 1)
+    assert output.attrs["units"] == "d"
+    assert output.attrs["climatology_bounds"] == ["2042-01-01", "2046-12-31"]
