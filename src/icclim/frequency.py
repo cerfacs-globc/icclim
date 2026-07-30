@@ -145,19 +145,17 @@ def _build_seasonal_time_bounds(
 ) -> list[list[cftime.datetime | pd.Timestamp]]:
     da_years = np.unique(da.time.dt.year)
     first_time = da.time.to_numpy()[0]
-    time_bounds = []
-    for year in da_years:
-        time_bounds.append(
-            _season_bounds_for_year(
-                year=year,
-                start_month=start_month,
-                end_month=end_month,
-                start_day=start_day,
-                end_day=end_day,
-                first_time=first_time,
-            )
+    return [
+        _season_bounds_for_year(
+            year=year,
+            start_month=start_month,
+            end_month=end_month,
+            start_day=start_day,
+            end_day=end_day,
+            first_time=first_time,
         )
-    return time_bounds
+        for year in da_years
+    ]
 
 
 def _season_bounds_for_year(

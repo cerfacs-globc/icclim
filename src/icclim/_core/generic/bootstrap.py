@@ -6,7 +6,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-import pandas as pd
 import xarray as xr
 
 from icclim._core.constants import REFERENCE_PERIOD_ID
@@ -16,6 +15,7 @@ from icclim._core.generic.bootstrap_capability import (
 from icclim._core.model.operator import Operator
 
 if TYPE_CHECKING:
+    import pandas as pd
     from xarray import DataArray
 
     from icclim._core.generic.threshold.percentile import PercentileThreshold

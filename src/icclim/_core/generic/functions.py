@@ -1271,7 +1271,7 @@ def _compute_exceedance_mask(
     return exceedance_mask
 
 
-def _compute_safe_tiled_count_occurrences(
+def _compute_safe_tiled_count_occurrences(  # noqa: C901
     climate_var: ClimateVariable,
     resample_freq: Frequency,
 ) -> DataArray | None:

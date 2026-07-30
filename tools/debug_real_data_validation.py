@@ -37,7 +37,7 @@ def main() -> None:
         "workload": args.workload,
     }
     try:
-        import icclim  # noqa: PLC0415
+        import icclim
 
         validation_module = _load_validation_module()
 
@@ -48,7 +48,7 @@ def main() -> None:
         payload["sizes"] = {name: int(size) for name, size in ds.sizes.items()}
         ds.load()
         payload["status"] = "completed"
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         payload["status"] = "failed"
         payload["error_type"] = type(exc).__name__
         payload["error_message"] = str(exc)

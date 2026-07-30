@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import xarray as xr
+from typing import TYPE_CHECKING
 
 from icclim._core.climate_variable import ClimateVariable
 from icclim._core.generic.bootstrap_capability import (
@@ -15,9 +15,12 @@ from icclim.frequency import FrequencyRegistry
 from icclim.threshold.factory import build_threshold
 from tests.testing_utils import K2C, stub_tas
 
+if TYPE_CHECKING:
+    from xarray import DataArray
+
 
 def _build_climate_variable(
-    studied_data: xr.DataArray,
+    studied_data: DataArray,
     threshold: str | dict | None,
     *,
     bootstrap: bool | None = None,

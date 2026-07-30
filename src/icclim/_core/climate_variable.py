@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     import jinja2
+    from xarray import Dataset
     from xarray.core.dataarray import DataArray
 
     from icclim._core.model.global_metadata import GlobalMetadata

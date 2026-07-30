@@ -269,10 +269,11 @@ def _find_named_standard_indices(query: Sequence[Any]) -> list[StandardIndex] | 
 def _find_indices_matching_source_variables(
     query: Sequence[Any],
 ) -> list[StandardIndex] | None:
-    indices = []
-    for ecad_index in EcadIndexRegistry.values():
-        if _matches_requested_source_variables(ecad_index, query):
-            indices.append(ecad_index)
+    indices = [
+        ecad_index
+        for ecad_index in EcadIndexRegistry.values()
+        if _matches_requested_source_variables(ecad_index, query)
+    ]
     if len(indices) >= len(query):
         return indices
     return None
@@ -735,7 +736,6 @@ def _build_config(
             out_unit=out_unit,
             netcdf_version=netcdf_version,
             save_thresholds=save_thresholds,
-            date_event=date_event,
             min_spell_length=min_spell_length,
             rolling_window_width=rolling_window_width,
             sampling_method=sampling_method,
@@ -838,7 +838,6 @@ def _build_legacy_user_index_config(
     out_unit: str | None,
     netcdf_version: str | NetcdfVersion,
     save_thresholds: bool,
-    date_event: bool,
     min_spell_length: int | None,
     rolling_window_width: int | None,
     sampling_method: SamplingMethodLike,

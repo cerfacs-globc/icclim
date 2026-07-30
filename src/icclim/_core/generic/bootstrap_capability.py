@@ -12,16 +12,20 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 import pandas as pd
-from xarray import DataArray
 
 from icclim._core.climate_variable import ClimateVariable, must_run_bootstrap
 from icclim._core.generic.threshold.bounded import BoundedThreshold
 from icclim._core.generic.threshold.percentile import PercentileThreshold
 from icclim._core.model.operator import Operator
-from icclim._core.model.threshold import Threshold
-from icclim.frequency import Frequency
+
+if TYPE_CHECKING:
+    from xarray import DataArray
+
+    from icclim._core.model.threshold import Threshold
+    from icclim.frequency import Frequency
 
 
 class BootstrapThresholdKind(StrEnum):
@@ -80,15 +84,11 @@ def classify_doy_percentile_count_bootstrap(
     """Classify the current bootstrap path for day-of-year percentile counts."""
     threshold_spec = climate_var.threshold
     threshold_kind = classify_threshold_kind(threshold_spec)
-    if threshold_kind == BootstrapThresholdKind.MISSING:
-        return _not_required("missing_threshold")
-    if threshold_kind == BootstrapThresholdKind.BASIC_THRESHOLD:
-        return _not_required("threshold_is_not_percentile")
-    if threshold_kind == BootstrapThresholdKind.COMPOUND_THRESHOLD:
-        return _not_required("threshold_is_compound")
-    if threshold_kind == BootstrapThresholdKind.PERIOD_PERCENTILE_THRESHOLD:
+    not_required_reason = _count_bootstrap_not_required_reason(threshold_kind)
+    if not_required_reason is not None:
+        return _not_required(not_required_reason)
+    if not isinstance(threshold_spec, PercentileThreshold):
         return _not_required("threshold_is_not_day_of_year_percentile")
-    assert isinstance(threshold_spec, PercentileThreshold)
     if climate_var.bootstrap is False:
         return _not_required("bootstrap_disabled_by_user")
     if not must_run_bootstrap(
@@ -97,12 +97,24 @@ def classify_doy_percentile_count_bootstrap(
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
+    return _classify_required_count_bootstrap(
+        family=_classify_count_family(threshold_spec),
+        study=climate_var.studied_data,
+        threshold_spec=threshold_spec,
+        output_frequency=resample_frequency.pandas_freq,
+    )
 
-    family = _classify_count_family(threshold_spec)
 
+def _classify_required_count_bootstrap(
+    *,
+    family: BootstrapComputationFamily,
+    study: DataArray,
+    threshold_spec: PercentileThreshold,
+    output_frequency: str,
+) -> BootstrapCapability:
     from xclim.core.utils import uses_dask  # noqa: PLC0415
 
-    if not uses_dask(climate_var.studied_data):
+    if not uses_dask(study):
         return _reference_bootstrap_path(
             family,
             "eager_input_uses_reference_bootstrap_path",
@@ -115,9 +127,9 @@ def classify_doy_percentile_count_bootstrap(
     if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "safe":
         return _exact_tiled_bootstrap(family, "exact_tiled_bootstrap_mode_forced")
     optimized_path_blocker = _optimized_count_path_blocker(
-        climate_var.studied_data,
+        study,
         threshold_spec,
-        resample_frequency.pandas_freq,
+        output_frequency,
     )
     if optimized_path_blocker is not None:
         return _exact_tiled_bootstrap(family, optimized_path_blocker)
@@ -163,6 +175,18 @@ def _classify_count_family(
     return BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COUNT
 
 
+def _count_bootstrap_not_required_reason(
+    threshold_kind: BootstrapThresholdKind,
+) -> str | None:
+    reasons = {
+        BootstrapThresholdKind.MISSING: "missing_threshold",
+        BootstrapThresholdKind.BASIC_THRESHOLD: "threshold_is_not_percentile",
+        BootstrapThresholdKind.COMPOUND_THRESHOLD: "threshold_is_compound",
+        BootstrapThresholdKind.PERIOD_PERCENTILE_THRESHOLD: "threshold_is_not_day_of_year_percentile",
+    }
+    return reasons.get(threshold_kind)
+
+
 def _not_required(reason_code: str) -> BootstrapCapability:
     return BootstrapCapability(
         family=BootstrapComputationFamily.NOT_APPLICABLE,
@@ -206,20 +230,39 @@ def _optimized_count_path_blocker(
     output_frequency: str,
 ) -> str | None:
     """Return the optimized-path blocker reason, or ``None`` when it is supported."""
-    if threshold_spec.threshold_min_value is not None:
-        return "threshold_min_value_requires_exact_tiled_bootstrap"
-    if not isinstance(study.indexes.get("time"), pd.DatetimeIndex):
-        return "calendar_requires_exact_tiled_bootstrap"
-    if threshold_spec.only_leap_years:
-        return "only_leap_years_requires_exact_tiled_bootstrap"
-    if threshold_spec.percentile_coord().size != 1:
-        return "multiple_percentiles_require_exact_tiled_bootstrap"
-    if not _is_optimized_bootstrap_frequency(output_frequency):
-        return "output_frequency_not_supported_by_optimized_bootstrap"
-    if _operator_code(threshold_spec.operator) < 0:
-        return "operator_not_supported_by_optimized_bootstrap"
-    if not _optimized_bootstrap_is_available():
-        return "optimized_bootstrap_unavailable"
+    blockers = [
+        (
+            threshold_spec.threshold_min_value is not None,
+            "threshold_min_value_requires_exact_tiled_bootstrap",
+        ),
+        (
+            not isinstance(study.indexes.get("time"), pd.DatetimeIndex),
+            "calendar_requires_exact_tiled_bootstrap",
+        ),
+        (
+            threshold_spec.only_leap_years,
+            "only_leap_years_requires_exact_tiled_bootstrap",
+        ),
+        (
+            threshold_spec.percentile_coord().size != 1,
+            "multiple_percentiles_require_exact_tiled_bootstrap",
+        ),
+        (
+            not _is_optimized_bootstrap_frequency(output_frequency),
+            "output_frequency_not_supported_by_optimized_bootstrap",
+        ),
+        (
+            _operator_code(threshold_spec.operator) < 0,
+            "operator_not_supported_by_optimized_bootstrap",
+        ),
+        (
+            not _optimized_bootstrap_is_available(),
+            "optimized_bootstrap_unavailable",
+        ),
+    ]
+    for is_blocked, reason_code in blockers:
+        if is_blocked:
+            return reason_code
     return None
 
 

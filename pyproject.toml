@@ -179,6 +179,21 @@ ignore = [
   "PLR2004", # Magic numbers are common in CLI scripts (argv length checks).
   "T201" # Path handling and comparison results are printed in scripts.
 ]
+"tools/*.py" = [
+  "ANN", # Validation helpers are operational scripts rather than library API.
+  "BLE001", # These scripts report failures as data rather than re-raising typed exceptions.
+  "C901", # Workload dispatch is intentionally centralized for validation.
+  "D", # Script modules do not need library-style docstrings.
+  "PTH207", # Glob patterns match the input datasets already staged on Kraken.
+  "PLC0415", # Repo-local imports are resolved after injecting the checked-out src path.
+  "PLR0911", # Workload dispatch uses one explicit return per case.
+  "S110", # Warmup failures are intentionally ignored in the benchmarking harness.
+  "S603", # Git subprocess calls use fixed local commands in the harness.
+  "S607", # The harness intentionally relies on the environment's git executable.
+  "SIM105", # Explicit try/except keeps the warmup intent obvious in scripts.
+  "SLF001", # Debug scripts intentionally call internal helpers from the validation harness.
+  "T201" # Validation scripts print JSON payloads for Slurm logs.
+]
 "src/icclim/_generated/*.py" = [
   "F821", # Allow placeholder names like _empty in generated API.
   "N803", # Allow non-lowercase argument names.
