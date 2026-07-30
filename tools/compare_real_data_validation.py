@@ -9,14 +9,17 @@ import xarray as xr
 
 
 def _compare_numeric(a: xr.DataArray, b: xr.DataArray) -> dict[str, object]:
-    diff = a - b
-    abs_diff = np.abs(diff.values)
-    changed = ~np.isclose(diff.values, 0.0, atol=1e-10, rtol=1e-10, equal_nan=True)
+    a_values = np.asarray(a.values)
+    b_values = np.asarray(b.values)
+    changed = ~np.isclose(a_values, b_values, atol=1e-10, rtol=1e-10, equal_nan=True)
+    diff = a_values - b_values
+    finite_diff = np.where(np.isfinite(diff), np.abs(diff), np.nan)
     return {
-        "max_abs_diff": float(np.nanmax(abs_diff)) if abs_diff.size else 0.0,
-        "mean_abs_diff": float(np.nanmean(abs_diff)) if abs_diff.size else 0.0,
+        "equal": bool(np.all(~changed)),
+        "max_abs_diff": float(np.nanmax(finite_diff)) if finite_diff.size else 0.0,
+        "mean_abs_diff": float(np.nanmean(finite_diff)) if finite_diff.size else 0.0,
         "changed_cells": int(np.count_nonzero(changed)),
-        "n_cells": int(diff.size),
+        "n_cells": int(a.size),
     }
 
 

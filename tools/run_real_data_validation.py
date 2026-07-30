@@ -16,9 +16,12 @@ PR_GLOB = "/scratch/globc/page/models/pr_day_ACCESS-CM2_historical_*.nc"
 TASMAX_GLOB = "/scratch/globc/page/models/tasmax_day_EC-Earth3_historical_*.nc"
 LAT_SLICE = slice(35.0, 70.0)
 LON_SLICE = slice(0.0, 40.0)
+DATE_EVENT_LAT_SLICE = slice(35.0, 55.0)
+DATE_EVENT_LON_SLICE = slice(0.0, 20.0)
 BASE_PERIOD = ("1961-01-01", "1990-12-31")
 TIME_RANGE = ("1950-01-01", "2014-12-31")
 TASMAX_TIME_RANGE = ("1986-01-01", "1999-12-31")
+DATE_EVENT_TIME_RANGE = ("1980-01-01", "2014-12-31")
 CHUNKS = {"time": 365, "lat": 24, "lon": 32}
 
 
@@ -35,18 +38,27 @@ def _git_rev_parse(repo: Path, ref: str) -> str | None:
         return None
 
 
-def _open_var(file_glob: str, var_name: str) -> xr.DataArray:
+def _open_var(
+    file_glob: str,
+    var_name: str,
+    *,
+    lat_slice: slice = LAT_SLICE,
+    lon_slice: slice = LON_SLICE,
+) -> xr.DataArray:
     files = sorted(glob.glob(file_glob))
     if not files:
         raise FileNotFoundError(file_glob)
     ds = xr.open_mfdataset(files, combine="by_coords", chunks=CHUNKS)
-    return ds[var_name].sel(lat=LAT_SLICE, lon=LON_SLICE)
+    return ds[var_name].sel(lat=lat_slice, lon=lon_slice)
 
 
-def _open_combined_dataset() -> xr.Dataset:
+def _open_combined_dataset(*, eager: bool = False) -> xr.Dataset:
     tas = _open_var(TAS_GLOB, "tas")
     pr = _open_var(PR_GLOB, "pr")
-    return xr.Dataset({"tas": tas, "pr": pr})
+    ds = xr.Dataset({"tas": tas, "pr": pr})
+    if eager:
+        ds = ds.load()
+    return ds
 
 
 def _warmup(icclim) -> None:
@@ -116,12 +128,19 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             slice_mode="year",
         )
     if workload == "generic_tas_count_date_event_monthly":
-        tas = _open_var(TAS_GLOB, "tas")
+        # A smaller real-data subset keeps this generic date-event validation
+        # representative without turning the oracle run into an overnight job.
+        tas = _open_var(
+            TAS_GLOB,
+            "tas",
+            lat_slice=DATE_EVENT_LAT_SLICE,
+            lon_slice=DATE_EVENT_LON_SLICE,
+        )
         return icclim.count_occurrences(
             in_files=tas,
             var_name="tas",
             threshold="> 25 degC",
-            time_range=TIME_RANGE,
+            time_range=DATE_EVENT_TIME_RANGE,
             slice_mode="month",
             date_event=True,
         )
@@ -137,7 +156,11 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             save_thresholds=True,
         )
     if workload == "combined_cd_yearly":
-        ds = _open_combined_dataset()
+        # Compound logical-link indices currently exercise xarray boolean
+        # operations that behave differently on lazy arrays across versions.
+        # Loading the subset keeps this as a real-data validation while making
+        # the oracle path executable.
+        ds = _open_combined_dataset(eager=True)
         return icclim.index(
             index_name="CD",
             in_files=ds,
@@ -146,7 +169,7 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             slice_mode="year",
         )
     if workload == "indices_mixed_yearly":
-        ds = _open_combined_dataset()
+        ds = _open_combined_dataset(eager=True)
         return icclim.indices(
             index_group=["TG", "RR1", "PRCPTOT", "CD", "TG90p"],
             in_files=ds,
