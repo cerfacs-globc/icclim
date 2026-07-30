@@ -271,6 +271,12 @@ useful intermediate step because it makes the scientific boundary
 visible in code before more bootstrap families reuse the same threshold
 generation semantics.
 
+As of Thursday, July 30, 2026, ``fraction_of_total`` is the first
+non-count consumer of this shared threshold generation layer. It still
+uses its own reducer, but it now reuses the same optimized substitute-
+year threshold series as the count family when the threshold is an
+unfiltered day-of-year percentile.
+
 Daily exceedance mask construction
 ----------------------------------
 
