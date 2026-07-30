@@ -18,7 +18,7 @@ Design goals
 
 Bootstrap code should be:
 
-- exact with respect to the safe reference implementation;
+- exact with respect to the safe reference bootstrap implementation;
 - explicit about what is supported, what falls back, and what is still
   unsupported;
 - organized around a small number of reusable calculations rather than a
@@ -42,7 +42,7 @@ Use the following rules when extending bootstrap support:
 
 - Separate threshold generation from result aggregation.
 - Classify support by mathematical family, not by index short name.
-- Keep the safe tiled path as the semantic oracle for every new optimized
+- Keep the safe tiled path as the reference bootstrap implementation for every new optimized
   implementation.
 - Prefer a small number of well-named helpers over large mixed-purpose
   functions.
