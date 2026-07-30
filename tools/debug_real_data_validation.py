@@ -1,11 +1,23 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import sys
 import time
 import traceback
 from pathlib import Path
+
+
+def _load_validation_module() -> object:
+    script_path = Path(__file__).with_name("run_real_data_validation.py")
+    spec = importlib.util.spec_from_file_location("run_real_data_validation", script_path)
+    if spec is None or spec.loader is None:
+        msg = f"Cannot load validation module from {script_path}"
+        raise RuntimeError(msg)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def main() -> None:
@@ -24,10 +36,10 @@ def main() -> None:
     }
     try:
         import icclim  # noqa: PLC0415
-        from tools.run_real_data_validation import _build_workload, _warmup  # noqa: PLC0415
+        validation_module = _load_validation_module()
 
-        _warmup(icclim)
-        ds = _build_workload(icclim, args.workload)
+        validation_module._warmup(icclim)
+        ds = validation_module._build_workload(icclim, args.workload)
         payload["data_vars"] = list(ds.data_vars)
         payload["coords"] = list(ds.coords)
         payload["sizes"] = {name: int(size) for name, size in ds.sizes.items()}

@@ -170,8 +170,11 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
         )
     if workload == "indices_mixed_yearly":
         ds = _open_combined_dataset(eager=True)
+        # Keep the mixed multi-index validation on the tas+pr pair, but avoid
+        # compound logical-link indices here because the oracle release itself
+        # is currently blocked by an upstream xarray boolean-operation issue.
         return icclim.indices(
-            index_group=["TG", "RR1", "PRCPTOT", "CD", "TG90p"],
+            index_group=["TG", "RR1", "PRCPTOT", "TG90p"],
             in_files=ds,
             time_range=TIME_RANGE,
             base_period_time_range=BASE_PERIOD,
