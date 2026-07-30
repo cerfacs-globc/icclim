@@ -81,6 +81,59 @@ def compute_doy_percentile_bootstrap_count(
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
+def compute_doy_percentile_bootstrap_exceedance_sum(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> DataArray | None:
+    """Compute bootstrap sums of exceedance-day values with the optimized path."""
+    if not _can_compute_optimized_bootstrap(study, threshold, freq):
+        return None
+    reference_sample = build_bootstrap_reference_sample(study, threshold)
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        freq,
+        doy_window_width=threshold.doy_window_width,
+    )
+    array_inputs = build_bootstrap_array_inputs(reference_sample)
+    result = _bootstrap_sum_kernel(
+        array_inputs.flat_reference_raw,
+        array_inputs.flat_reference_filtered,
+        array_inputs.flat_study,
+        temporal_indexing.sample_indices_by_day_of_year,
+        temporal_indexing.reference_index_year,
+        temporal_indexing.reference_index_position,
+        temporal_indexing.substitute_alignment,
+        temporal_indexing.output_starts,
+        temporal_indexing.output_lengths,
+        temporal_indexing.year_group_starts,
+        temporal_indexing.year_group_stops,
+        temporal_indexing.year_max_day_of_years,
+        temporal_indexing.year_to_reference_index,
+        temporal_indexing.study_day_of_years,
+        float(threshold.percentile_coord().item()) / 100.0,
+        float(threshold.interpolation.alpha),
+        float(threshold.interpolation.beta),
+        _operator_code(threshold.operator),
+        (
+            np.nan
+            if reference_sample.threshold_floor_in_reference_units is None
+            else float(reference_sample.threshold_floor_in_reference_units)
+        ),
+    )
+    out = build_bootstrap_output(
+        flat_result=result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units=reference_sample.study.attrs.get("units", ""),
+    )
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
+    return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
 def _can_compute_optimized_bootstrap(
     study: DataArray,
     threshold: PercentileThreshold,
@@ -190,6 +243,115 @@ if njit is not None:
                         min_threshold,
                     )
                     _accumulate_count_groups_for_cell(
+                        out,
+                        flat_study,
+                        thresholds,
+                        study_doys,
+                        study_starts,
+                        study_lengths,
+                        group_start,
+                        group_stop,
+                        cell,
+                        year_max_doys[year_i],
+                        op_code,
+                    )
+                    substitute_count += 1
+                _average_count_groups_for_cell(
+                    out,
+                    group_start,
+                    group_stop,
+                    cell,
+                    substitute_count,
+                )
+        return out
+
+    @njit(parallel=True, cache=True)
+    def _bootstrap_sum_kernel(
+        flat_ref_raw,
+        flat_ref_masked,
+        flat_study,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        study_starts,
+        study_lengths,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
+        study_doys,
+        quantile,
+        alpha,
+        beta,
+        op_code,
+        min_threshold,
+    ):
+        """Compute yearly bootstrap exceedance sums from shared thresholds."""
+        n_years = len(year_to_ref)
+        n_groups = len(study_starts)
+        n_cells = flat_study.shape[1]
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
+        n_ref_years = substitute_aligned.shape[1]
+        max_samples = sample_indices.shape[1]
+        for flat_i in prange(n_years * n_cells):
+            year_i = flat_i // n_cells
+            cell = flat_i % n_cells
+            target_ref_i = year_to_ref[year_i]
+            group_start = year_group_starts[year_i]
+            group_stop = year_group_stops[year_i]
+            if target_ref_i < 0:
+                thresholds = _build_bootstrap_threshold_series_for_cell(
+                    flat_ref_masked,
+                    sample_indices,
+                    index_year,
+                    index_pos,
+                    substitute_aligned,
+                    -1,
+                    -1,
+                    cell,
+                    max_samples,
+                    quantile,
+                    alpha,
+                    beta,
+                    min_threshold,
+                )
+                _write_sum_groups_for_cell(
+                    out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+            else:
+                for group_i in range(group_start, group_stop):
+                    out[group_i, cell] = 0.0
+                substitute_count = 0
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    thresholds = _build_bootstrap_threshold_series_for_cell(
+                        flat_ref_raw,
+                        sample_indices,
+                        index_year,
+                        index_pos,
+                        substitute_aligned,
+                        target_ref_i,
+                        substitute_i,
+                        cell,
+                        max_samples,
+                        quantile,
+                        alpha,
+                        beta,
+                        min_threshold,
+                    )
+                    _accumulate_sum_groups_for_cell(
                         out,
                         flat_study,
                         thresholds,
@@ -362,6 +524,26 @@ if njit is not None:
         return count
 
     @njit(cache=True)
+    def _sum_exceedances(
+        flat_study,
+        thresholds,
+        study_doys,
+        start,
+        length,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        total = 0.0
+        for offset in range(length):
+            doy = study_doys[start + offset]
+            threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
+            value = flat_study[start + offset, cell]
+            if _compare(value, threshold, op_code):
+                total += value
+        return total
+
+    @njit(cache=True)
     def _write_count_groups_for_cell(
         out,
         flat_study,
@@ -414,6 +596,58 @@ if njit is not None:
             )
 
     @njit(cache=True)
+    def _write_sum_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] = _sum_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _accumulate_sum_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] += _sum_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
     def _average_count_groups_for_cell(
         out,
         group_start,
@@ -451,4 +685,7 @@ if njit is not None:
 else:
 
     def _bootstrap_count_kernel(*args, **kwargs):  # noqa: ARG001
+        return None
+
+    def _bootstrap_sum_kernel(*args, **kwargs):  # noqa: ARG001
         return None

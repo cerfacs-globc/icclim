@@ -1399,6 +1399,47 @@ class TestIntegration:
         assert res.fraction_of_total.isel(time=1) == 100
         assert res.fraction_of_total.attrs[UNITS_KEY] == "%"
 
+    def test_fraction_of_total__dask_percentile_bootstrap_uses_optimized_path(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2).rename("tas")
+        tas[5:10] = 0
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": tas,
+            "var_name": "tas",
+            "index_name": "fraction_of_total",
+            "threshold": build_threshold(
+                "> 90 doy_per",
+                doy_window_width=1,
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        reference = icclim.index(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+        generic_functions.reset_bootstrap_profile()
+
+        optimized = icclim.index(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert not hasattr(optimized.fraction_of_total.data, "__dask_graph__")
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_reason_code"] == "optimized_bootstrap_supported"
+        assert profile["bootstrap_family"] == "day_of_year_percentile_value_aggregate"
+        assert profile["bootstrap_optimized_tile_count"] == 4
+        xr.testing.assert_allclose(
+            optimized.fraction_of_total,
+            reference.fraction_of_total,
+        )
+
     def test_std(self) -> None:
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
         res = icclim.index(

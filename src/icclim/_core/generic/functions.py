@@ -48,6 +48,7 @@ from icclim._core.constants import (
     UNITS_KEY,
 )
 from icclim._core.generic.bootstrap_capability import (
+    BootstrapCapability,
     BootstrapExecutionKind,
     classify_doy_percentile_count_bootstrap,
     classify_generic_indicator_bootstrap,
@@ -465,7 +466,7 @@ def fraction_of_total(
     the units will be set to "%". Otherwise, the units will be set to the value of
     PART_OF_A_WHOLE_UNIT, which is 1.
     """
-    _note_generic_bootstrap_capability(
+    bootstrap_capability = _note_generic_bootstrap_capability(
         indicator_name="fraction_of_total",
         climate_vars=climate_vars,
         resample_freq=resample_freq,
@@ -474,6 +475,31 @@ def fraction_of_total(
     if threshold is None:
         msg = "No threshold found"
         raise InvalidIcclimArgumentError(msg)
+    if (
+        bootstrap_capability.uses_optimized_bootstrap
+        and threshold.threshold_min_value is None
+    ):
+        optimized_over = _compute_fast_tiled_bootstrap_exceedance_sum(
+            climate_vars[0],
+            threshold,
+            resample_freq,
+            _get_fast_bootstrap_max_cells(study),
+        )
+        if optimized_over is not None:
+            total = (
+                study.resample(time=resample_freq.pandas_freq).sum(dim="time").load()
+            )
+            res = optimized_over / total
+            if REFERENCE_PERIOD_ID in optimized_over.attrs:
+                res.attrs[REFERENCE_PERIOD_ID] = optimized_over.attrs[
+                    REFERENCE_PERIOD_ID
+                ]
+            if to_percent:
+                res = res * 100
+                res.attrs[UNITS_KEY] = "%"
+            else:
+                res.attrs[UNITS_KEY] = PART_OF_A_WHOLE_UNIT
+            return res
     if threshold.threshold_min_value is not None:
         min_val = threshold.threshold_min_value
         from xclim.core.units import convert_units_to  # noqa: PLC0415
@@ -1299,7 +1325,7 @@ def _note_generic_bootstrap_capability(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     date_event: bool = False,
-) -> None:
+) -> BootstrapCapability:
     capability = classify_generic_indicator_bootstrap(
         indicator_name=indicator_name,
         climate_vars=climate_vars,
@@ -1318,6 +1344,7 @@ def _note_generic_bootstrap_capability(
         "bootstrap_family",
         capability.family.value,
     )
+    return capability
 
 
 def _compute_safe_tiled_count_occurrences(  # noqa: C901
@@ -1481,6 +1508,45 @@ def _compute_fast_tiled_count_occurrences(
     _profile_bootstrap_add(
         "bootstrap_optimized_total_seconds",
         perf_counter() - fast_start,
+    )
+    return result
+
+
+def _compute_fast_tiled_bootstrap_exceedance_sum(
+    climate_var: ClimateVariable,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+    max_cells: int,
+) -> DataArray | None:
+    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_exceedance_sum,
+    )
+
+    optimized_start = perf_counter()
+    tile_results: list[DataArray] = []
+    for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
+        tile_study = climate_var.studied_data.isel(tile_indexers)
+        tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        tile_result = compute_doy_percentile_bootstrap_exceedance_sum(
+            tile_study,
+            tile_threshold,
+            resample_freq.pandas_freq,
+        )
+        if tile_result is None:
+            return None
+        tile_results.append(tile_result)
+        _profile_bootstrap_inc("bootstrap_optimized_tile_count")
+    if len(tile_results) == 1:
+        result = tile_results[0]
+    else:
+        result = xr.combine_by_coords(
+            [tile.to_dataset(name="__icclim_bootstrap_tile") for tile in tile_results],
+            combine_attrs="override",
+        )["__icclim_bootstrap_tile"]
+    result.attrs.update(tile_results[-1].attrs)
+    _profile_bootstrap_add(
+        "bootstrap_optimized_total_seconds",
+        perf_counter() - optimized_start,
     )
     return result
 
