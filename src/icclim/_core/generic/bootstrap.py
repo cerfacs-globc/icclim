@@ -25,6 +25,9 @@ if TYPE_CHECKING:
     from icclim._core.generic.threshold.percentile import PercentileThreshold
 
 
+NON_LEAP_YEAR_DAY_COUNT = 365
+
+
 def compute_doy_percentile_bootstrap_count(
     study: DataArray,
     threshold: PercentileThreshold,
@@ -135,6 +138,7 @@ if njit is not None:
         op_code,
         min_threshold,
     ):
+        """Compute yearly bootstrap counts from threshold generation plus counting."""
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
         n_cells = flat_study.shape[1]
@@ -145,11 +149,10 @@ if njit is not None:
             year_i = flat_i // n_cells
             cell = flat_i % n_cells
             target_ref_i = year_to_ref[year_i]
-            max_target_doy = year_max_doys[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
             if target_ref_i < 0:
-                q = _quantiles_for_cell(
+                thresholds = _build_bootstrap_threshold_series_for_cell(
                     flat_ref_masked,
                     sample_indices,
                     index_year,
@@ -164,17 +167,19 @@ if njit is not None:
                     beta,
                     min_threshold,
                 )
-                for group_i in range(group_start, group_stop):
-                    out[group_i, cell] = _count_exceedances(
-                        flat_study,
-                        q,
-                        study_doys,
-                        study_starts[group_i],
-                        study_lengths[group_i],
-                        cell,
-                        max_target_doy,
-                        op_code,
-                    )
+                _write_count_groups_for_cell(
+                    out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
             else:
                 for group_i in range(group_start, group_stop):
                     out[group_i, cell] = 0.0
@@ -182,7 +187,7 @@ if njit is not None:
                 for substitute_i in range(n_ref_years):
                     if substitute_i == target_ref_i:
                         continue
-                    q = _quantiles_for_cell(
+                    thresholds = _build_bootstrap_threshold_series_for_cell(
                         flat_ref_raw,
                         sample_indices,
                         index_year,
@@ -197,24 +202,31 @@ if njit is not None:
                         beta,
                         min_threshold,
                     )
-                    for group_i in range(group_start, group_stop):
-                        out[group_i, cell] += _count_exceedances(
-                            flat_study,
-                            q,
-                            study_doys,
-                            study_starts[group_i],
-                            study_lengths[group_i],
-                            cell,
-                            max_target_doy,
-                            op_code,
-                        )
+                    _accumulate_count_groups_for_cell(
+                        out,
+                        flat_study,
+                        thresholds,
+                        study_doys,
+                        study_starts,
+                        study_lengths,
+                        group_start,
+                        group_stop,
+                        cell,
+                        year_max_doys[year_i],
+                        op_code,
+                    )
                     substitute_count += 1
-                for group_i in range(group_start, group_stop):
-                    out[group_i, cell] /= substitute_count
+                _average_count_groups_for_cell(
+                    out,
+                    group_start,
+                    group_stop,
+                    cell,
+                    substitute_count,
+                )
         return out
 
     @njit(cache=True)
-    def _quantiles_for_cell(
+    def _build_bootstrap_threshold_series_for_cell(
         flat_ref,
         sample_indices,
         index_year,
@@ -229,10 +241,10 @@ if njit is not None:
         beta,
         min_threshold,
     ):
-        q = np.empty(365, dtype=np.float64)
+        thresholds = np.empty(NON_LEAP_YEAR_DAY_COUNT, dtype=np.float64)
         buf = np.empty(max_samples, dtype=np.float64)
-        for doy_i in range(365):
-            q_value = _quantile_for_doy_cell(
+        for doy_i in range(NON_LEAP_YEAR_DAY_COUNT):
+            threshold_value = _quantile_for_doy_cell(
                 flat_ref,
                 sample_indices,
                 index_year,
@@ -248,11 +260,11 @@ if njit is not None:
                 beta,
             )
             if not np.isnan(min_threshold) and (
-                np.isnan(q_value) or q_value <= min_threshold
+                np.isnan(threshold_value) or threshold_value <= min_threshold
             ):
-                q_value = min_threshold
-            q[doy_i] = q_value
-        return q
+                threshold_value = min_threshold
+            thresholds[doy_i] = threshold_value
+        return thresholds
 
     @njit(cache=True)
     def _quantile_for_doy_cell(
@@ -345,7 +357,7 @@ if njit is not None:
     @njit(cache=True)
     def _count_exceedances(
         flat_study,
-        q,
+        thresholds,
         study_doys,
         start,
         length,
@@ -356,11 +368,74 @@ if njit is not None:
         count = 0.0
         for offset in range(length):
             doy = study_doys[start + offset]
-            threshold = _adjusted_threshold(q, doy, max_target_doy)
+            threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
             value = flat_study[start + offset, cell]
             if _compare(value, threshold, op_code):
                 count += 1.0
         return count
+
+    @njit(cache=True)
+    def _write_count_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] = _count_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _accumulate_count_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] += _count_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _average_count_groups_for_cell(
+        out,
+        group_start,
+        group_stop,
+        cell,
+        substitute_count,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] /= substitute_count
 
     @njit(cache=True)
     def _compare(value, threshold, op_code):
@@ -373,18 +448,18 @@ if njit is not None:
         return value <= threshold
 
     @njit(cache=True)
-    def _adjusted_threshold(q, doy, max_target_doy):
-        if max_target_doy == 365:
-            return q[doy - 1]
+    def _adjusted_threshold(thresholds, doy, max_target_doy):
+        if max_target_doy == NON_LEAP_YEAR_DAY_COUNT:
+            return thresholds[doy - 1]
         position = (doy - 1.0) * 364.0 / 365.0
         lower = int(np.floor(position))
         if lower >= 364:
-            return q[364]
+            return thresholds[364]
         gamma = position - lower
-        diff = q[lower + 1] - q[lower]
+        diff = thresholds[lower + 1] - thresholds[lower]
         if gamma >= 0.5:
-            return q[lower + 1] - diff * (1.0 - gamma)
-        return q[lower] + diff * gamma
+            return thresholds[lower + 1] - diff * (1.0 - gamma)
+        return thresholds[lower] + diff * gamma
 
 else:
 

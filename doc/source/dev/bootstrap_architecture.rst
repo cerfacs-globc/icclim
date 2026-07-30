@@ -255,6 +255,21 @@ Suggested helper responsibilities:
 - ``build_substitute_thresholds``
 - ``align_thresholds_to_study_days``
 
+As of July 30, 2026, the optimized day-of-year percentile count path
+now follows this separation inside
+``src/icclim/_core/generic/bootstrap.py``:
+
+- ``_build_bootstrap_threshold_series_for_cell`` computes one
+  substitute-aware threshold series;
+- ``_write_count_groups_for_cell`` and
+  ``_accumulate_count_groups_for_cell`` apply the count reducer to that
+  threshold series.
+
+This is still specific to the current count implementation, but it is a
+useful intermediate step because it makes the scientific boundary
+visible in code before more bootstrap families reuse the same threshold
+generation semantics.
+
 Daily exceedance mask construction
 ----------------------------------
 
