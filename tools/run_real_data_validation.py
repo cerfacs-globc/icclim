@@ -143,14 +143,14 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
         )
     if workload == "generic_tas_bounded_count_yearly":
         tas = _open_var(TAS_GLOB, "tas")
-        percentile_threshold = icclim.threshold.build_threshold(
+        percentile_threshold = icclim.build_threshold(
             "> 90 doy_per",
             reference_period=BASE_PERIOD,
         )
         return icclim.count_occurrences(
             in_files=tas,
             var_name="tas",
-            threshold=icclim.threshold.build_threshold(
+            threshold=icclim.build_threshold(
                 thresholds=[percentile_threshold, "<= 30 degC"],
                 logical_link="and",
             ),
@@ -162,7 +162,7 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
         return icclim.fraction_of_total(
             in_files=pr,
             var_name="pr",
-            threshold=icclim.threshold.build_threshold(
+            threshold=icclim.build_threshold(
                 "> 95 doy_per",
                 threshold_min_value="1 mm/day",
                 reference_period=BASE_PERIOD,
@@ -175,7 +175,7 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
         return icclim.sum_of_spell_lengths(
             in_files=tas,
             var_name="tas",
-            threshold=icclim.threshold.build_threshold(
+            threshold=icclim.build_threshold(
                 "> 90 doy_per",
                 reference_period=BASE_PERIOD,
             ),
