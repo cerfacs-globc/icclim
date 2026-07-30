@@ -383,19 +383,21 @@ def must_run_bootstrap(
     # TODO @bzah: Don't run bootstrap when not on extreme percentile
     #       (run only below 20? 10? and above 80? 90?)
     # https://github.com/cerfacs-globc/icclim/issues/289
-    if (
-        threshold is None
-        or not isinstance(threshold, PercentileThreshold)
-        or (
-            isinstance(threshold, PercentileThreshold)
-            and not threshold.is_doy_per_threshold
+    if threshold is None:
+        return False
+    from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
+
+    if isinstance(threshold, BoundedThreshold):
+        child_thresholds = (
+            threshold.left_threshold,
+            threshold.right_threshold,
         )
-    ):
+        return any(
+            must_run_bootstrap(da, child, bootstrap) for child in child_thresholds
+        )
+    if not _is_day_of_year_percentile_threshold(threshold):
         return False
-    if bootstrap is False:
-        return False
-    time_index = da.indexes.get("time")
-    if time_index is None:
+    if bootstrap is False or (time_index := da.indexes.get("time")) is None:
         return False
     study_years = np.unique(time_index.year)
     ref_slice = _get_ref_period_slice_from_percentile_threshold(threshold, da)
@@ -404,6 +406,12 @@ def must_run_bootstrap(
         return False
     overlapping_years = np.unique(ref_idx.year)
     return 1 < len(overlapping_years) < len(study_years)
+
+
+def _is_day_of_year_percentile_threshold(
+    threshold: Threshold,
+) -> bool:
+    return isinstance(threshold, PercentileThreshold) and threshold.is_doy_per_threshold
 
 
 def _standard_index_needs_ref(
@@ -481,6 +489,8 @@ def _prepare_climate_variable_threshold(
     original_data: DataArray,
     conversion_unit: str,
 ) -> Threshold:
+    from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
+
     res: Threshold
     if isinstance(climate_var_thresh, str):
         res = build_threshold(climate_var_thresh)
@@ -489,6 +499,18 @@ def _prepare_climate_variable_threshold(
     else:
         res = climate_var_thresh
 
+    if isinstance(res, BoundedThreshold):
+        res.left_threshold = _prepare_climate_variable_threshold(
+            res.left_threshold,
+            original_data,
+            conversion_unit,
+        )
+        res.right_threshold = _prepare_climate_variable_threshold(
+            res.right_threshold,
+            original_data,
+            conversion_unit,
+        )
+        return res
     if isinstance(res, PercentileThreshold) and not res.is_ready:
         res.set_prepare_context(original_data, conversion_unit)
         return res

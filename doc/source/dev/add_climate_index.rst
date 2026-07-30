@@ -236,6 +236,9 @@ follow this path:
    - one query string such as ``"> 30 degC"``;
    - two thresholds plus a logical link;
    - explicit components such as ``operator``, ``value`` and ``unit``.
+   Shared percentile options such as ``reference_period`` are now
+   propagated to bounded-threshold children when the child threshold is a
+   percentile query string.
 3. The factory turns that specification into one threshold family:
    - :class:`~icclim._core.generic.threshold.basic.BasicThreshold`
    - :class:`~icclim._core.generic.threshold.percentile.PercentileThreshold`

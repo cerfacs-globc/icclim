@@ -177,6 +177,17 @@ boolean. For example, it should carry:
   ``optimized_bootstrap``, ``exact_tiled_bootstrap``, ``unsupported``, ``not_required``;
 - a short reason code for logs, tests and debugging.
 
+As of July 30, 2026, this classifier exists in
+``src/icclim/_core/generic/bootstrap_capability.py`` for the current
+generic indicator families:
+
+- day-of-year percentile count;
+- filtered day-of-year percentile count;
+- value aggregates such as ``fraction_of_total``;
+- spell reducers such as ``sum_of_spell_lengths``;
+- bounded percentile compositions that currently stay on the reference
+  bootstrap path.
+
 Reusable bootstrap primitives
 =============================
 
