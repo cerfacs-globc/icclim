@@ -214,6 +214,26 @@ Suggested names:
 Avoid short names such as ``ref2`` or ``idx_map`` when the longer name
 removes ambiguity.
 
+As of July 30, 2026, this layer now starts to exist in
+``src/icclim/_core/generic/bootstrap_primitives.py`` with explicit,
+tested helpers for:
+
+- ``build_bootstrap_reference_sample``;
+- ``build_bootstrap_temporal_indexing``;
+- ``build_bootstrap_array_inputs``.
+
+Those helpers keep the bootstrap preparation workflow readable in code:
+
+1. prepare the reference-period sample;
+2. prepare year and resampling indexes;
+3. prepare flattened arrays for an optimized kernel;
+4. run the family-specific kernel;
+5. rebuild xarray outputs.
+
+That is still only a first step. Threshold generation itself is not yet
+fully extracted into a reusable engine, but the preparation phases now
+have a stable home and direct unit tests.
+
 Bootstrap threshold generation
 ------------------------------
 
