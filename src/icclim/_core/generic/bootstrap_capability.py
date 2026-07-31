@@ -172,10 +172,7 @@ def classify_doy_percentile_value_aggregate_bootstrap(
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
-    if (
-        threshold_spec.threshold_min_value is not None
-        and indicator_name == "average"
-    ):
+    if threshold_spec.threshold_min_value is not None and indicator_name == "average":
         return _exact_tiled_bootstrap(
             family=_classify_value_aggregate_family(threshold_spec),
             reason_code="filtered_average_requires_exact_tiled_bootstrap",
