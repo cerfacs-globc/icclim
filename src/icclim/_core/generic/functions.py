@@ -22,6 +22,7 @@ import os
 import warnings
 from collections.abc import Callable
 from copy import copy
+from dataclasses import replace
 from functools import partial
 from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
@@ -51,6 +52,7 @@ from icclim._core.generic.bootstrap_capability import (
     BootstrapCapability,
     BootstrapExecutionKind,
     classify_doy_percentile_count_bootstrap,
+    classify_doy_percentile_spell_bootstrap,
     classify_generic_indicator_bootstrap,
 )
 from icclim._core.input_parsing import PercentileDataArray
@@ -257,11 +259,37 @@ def max_consecutive_occurrence(
     >>> int(result.max_consecutive_occurrence.isel(time=0).values)
     365
     """
-    _note_generic_bootstrap_capability(
+    bootstrap_capability = _note_generic_bootstrap_capability(
         indicator_name="max_consecutive_occurrence",
         climate_vars=climate_vars,
         resample_freq=resample_freq,
+        date_event=date_event,
     )
+    if len(climate_vars) == 1 and not date_event:
+        bootstrap_spell_mask = _compute_bootstrap_spell_mask(
+            climate_vars[0],
+            resample_freq,
+            bootstrap_capability=bootstrap_capability,
+        )
+        if bootstrap_spell_mask is not None:
+            from xclim.indices import run_length  # noqa: PLC0415
+
+            spell_run_lengths = run_length.rle(
+                bootstrap_spell_mask,
+                dim="time",
+                index=kwargs.get("run_index", "first"),
+            )
+            result = spell_run_lengths.resample(time=resample_freq.pandas_freq).max(
+                dim="time"
+            )
+            result = _transpose_like_study(result, climate_vars[0].studied_data)
+            freq = check_freq(climate_vars[0].studied_data, dim="time")
+            return _safe_to_agg_units(
+                result,
+                climate_vars[0].studied_data,
+                "count",
+                deffreq=freq,
+            )
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq.pandas_freq,
@@ -318,11 +346,40 @@ def sum_of_spell_lengths(
     DataArray
         The sum of the lengths of all spells in the data.
     """
-    _note_generic_bootstrap_capability(
+    bootstrap_capability = _note_generic_bootstrap_capability(
         indicator_name="sum_of_spell_lengths",
         climate_vars=climate_vars,
         resample_freq=resample_freq,
     )
+    if len(climate_vars) == 1:
+        bootstrap_spell_mask = _compute_bootstrap_spell_mask(
+            climate_vars[0],
+            resample_freq,
+            bootstrap_capability=bootstrap_capability,
+        )
+        if bootstrap_spell_mask is not None:
+            from xclim.indices import run_length  # noqa: PLC0415
+
+            spell_run_lengths = run_length.rle(
+                bootstrap_spell_mask,
+                dim="time",
+                index=kwargs.get("run_index", "first"),
+            )
+            cropped_run_lengths = spell_run_lengths.where(
+                spell_run_lengths >= min_spell_length,
+                other=0,
+            )
+            result = cropped_run_lengths.resample(time=resample_freq.pandas_freq).sum(
+                dim="time"
+            )
+            result = _transpose_like_study(result, climate_vars[0].studied_data)
+            freq = check_freq(climate_vars[0].studied_data, dim="time")
+            return _safe_to_agg_units(
+                result,
+                climate_vars[0].studied_data,
+                "count",
+                deffreq=freq,
+            )
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq.pandas_freq,
@@ -1629,6 +1686,156 @@ def _compute_fast_tiled_bootstrap_reducer(
     return result
 
 
+def _compute_bootstrap_spell_mask(
+    climate_var: ClimateVariable,
+    resample_freq: Frequency,
+    *,
+    bootstrap_capability: BootstrapCapability,
+) -> DataArray | None:
+    if not bootstrap_capability.bootstrap_required:
+        return None
+    if bootstrap_capability.uses_optimized_bootstrap:
+        return _compute_fast_tiled_bootstrap_spell_mask(
+            climate_var,
+            resample_freq,
+            _get_fast_bootstrap_max_cells(climate_var.studied_data),
+        )
+    if bootstrap_capability.uses_exact_tiled_bootstrap:
+        return _compute_exact_tiled_bootstrap_spell_mask(
+            climate_var,
+            resample_freq,
+        )
+    return None
+
+
+def _compute_fast_tiled_bootstrap_spell_mask(
+    climate_var: ClimateVariable,
+    resample_freq: Frequency,
+    max_cells: int,
+) -> DataArray | None:
+    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_union_exceedance_mask,
+    )
+
+    optimized_start = perf_counter()
+    tile_results: list[DataArray] = []
+    threshold = climate_var.threshold
+    if threshold is None:
+        return None
+    for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
+        tile_study = climate_var.studied_data.isel(tile_indexers)
+        tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        tile_result = compute_doy_percentile_bootstrap_union_exceedance_mask(
+            tile_study,
+            tile_threshold,
+            resample_freq.pandas_freq,
+        )
+        if tile_result is None:
+            return None
+        tile_results.append(tile_result)
+        _profile_bootstrap_inc("bootstrap_optimized_tile_count")
+    if len(tile_results) == 1:
+        result = tile_results[0]
+    else:
+        result = xr.combine_by_coords(
+            [tile.to_dataset(name="__icclim_bootstrap_tile") for tile in tile_results],
+            combine_attrs="override",
+        )["__icclim_bootstrap_tile"]
+    result.attrs.update(tile_results[-1].attrs)
+    _profile_bootstrap_add(
+        "bootstrap_optimized_total_seconds",
+        perf_counter() - optimized_start,
+    )
+    result = result.transpose(*climate_var.studied_data.dims)
+    if "percentiles" in result.dims:
+        result = result.squeeze("percentiles")
+    if all(
+        climate_var.studied_data.sizes[dim] == 1
+        for dim in climate_var.studied_data.dims
+        if dim != "time"
+    ):
+        result = result.squeeze(drop=False)
+    return result
+
+
+def _compute_exact_tiled_bootstrap_spell_mask(
+    climate_var: ClimateVariable,
+    resample_freq: Frequency,
+) -> DataArray | None:
+    threshold = climate_var.threshold
+    if threshold is None:
+        return None
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if (
+        not isinstance(threshold, PercentileThreshold)
+        or not threshold.is_doy_per_threshold
+    ):
+        return None
+
+    spell_capability = classify_doy_percentile_spell_bootstrap(climate_var)
+    if (
+        not spell_capability.bootstrap_required
+        or spell_capability.execution_kind
+        != BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
+    ):
+        return None
+
+    exact_tiled_start = perf_counter()
+    max_cells = _get_safe_bootstrap_max_cells(
+        climate_var.studied_data,
+        threshold,
+        resample_freq,
+    )
+    _profile_bootstrap_set("bootstrap_safe_max_tile_cells", max_cells)
+    tile_results: list[DataArray] = []
+    for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
+        tile_start = perf_counter()
+        tile_study = climate_var.studied_data.isel(tile_indexers).load()
+        tile_climate_var = _slice_climate_var_for_tile(
+            climate_var,
+            tile_indexers,
+            tile_study=tile_study,
+        )
+        tile_exceedance_mask = _compute_exceedance_mask(
+            study=tile_climate_var.studied_data,
+            threshold=tile_climate_var.threshold,
+            freq=resample_freq.pandas_freq,
+            bootstrap=True,
+        )
+        if "percentiles" in tile_exceedance_mask.dims:
+            tile_exceedance_mask = tile_exceedance_mask.squeeze("percentiles")
+        tile_results.append(tile_exceedance_mask.load())
+        _profile_bootstrap_inc("bootstrap_safe_tile_count")
+        _profile_bootstrap_add(
+            "bootstrap_safe_tile_seconds",
+            perf_counter() - tile_start,
+        )
+
+    if len(tile_results) == 1:
+        result = tile_results[0]
+    else:
+        result = xr.combine_by_coords(
+            [tile.to_dataset(name="__icclim_bootstrap_tile") for tile in tile_results],
+            combine_attrs="override",
+        )["__icclim_bootstrap_tile"]
+    result.attrs.update(tile_results[-1].attrs)
+    result = result.transpose(*climate_var.studied_data.dims)
+    if all(
+        climate_var.studied_data.sizes[dim] == 1
+        for dim in climate_var.studied_data.dims
+        if dim != "time"
+    ):
+        result = result.squeeze(drop=False)
+    _profile_bootstrap_add(
+        "bootstrap_safe_total_seconds",
+        perf_counter() - exact_tiled_start,
+    )
+    return result
+
+
 def _get_fast_bootstrap_max_cells(study: DataArray) -> int:
     if max_cells := os.environ.get("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS"):
         return max(1, int(max_cells))
@@ -1774,6 +1981,41 @@ def _slice_threshold_for_tile(
     if value_indexers:
         sliced._prepared_value = value.isel(value_indexers)  # noqa: SLF001
     return sliced
+
+
+def _slice_climate_var_for_tile(
+    climate_var: ClimateVariable,
+    tile_indexers: dict[str, slice],
+    *,
+    tile_study: DataArray | None = None,
+) -> ClimateVariable:
+    if tile_study is None:
+        tile_study = climate_var.studied_data.isel(tile_indexers)
+    threshold = climate_var.threshold
+    if threshold is None:
+        sliced_threshold = None
+    else:
+        from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+            PercentileThreshold,
+        )
+
+        if not isinstance(threshold, PercentileThreshold):
+            msg = "Exact tiled spell bootstrap currently supports one percentile threshold"
+            raise NotImplementedError(msg)
+        sliced_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        if not sliced_threshold.is_ready:
+            prepare_unit = getattr(sliced_threshold, "_prepare_output_unit", None)
+            sliced_threshold.set_prepare_context(tile_study, prepare_unit)
+    return replace(
+        climate_var,
+        studied_data=tile_study,
+        threshold=sliced_threshold,
+    )
+
+
+def _transpose_like_study(result: DataArray, study: DataArray) -> DataArray:
+    ordered_dims = tuple(dim for dim in study.dims if dim in result.dims)
+    return result.transpose(*ordered_dims)
 
 
 def _is_memory_like_bootstrap_error(err: BaseException) -> bool:

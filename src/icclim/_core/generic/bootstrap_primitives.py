@@ -43,6 +43,8 @@ class BootstrapTemporalIndexing:
     study_year_indices: dict[int, np.ndarray]
     output_group_indices: dict[np.datetime64, np.ndarray]
     output_group_labels: list[np.datetime64]
+    study_year_starts: np.ndarray
+    study_year_lengths: np.ndarray
     output_starts: np.ndarray
     output_lengths: np.ndarray
     output_years: np.ndarray
@@ -180,6 +182,19 @@ def build_bootstrap_temporal_indexing(
     reference_years = np.asarray(list(reference_year_indices), dtype=np.int64)
     output_group_indices = indices_by_resample_group(study, freq)
     output_group_labels = list(output_group_indices)
+    output_years = np.asarray(
+        [int(study_time[indices[0]].year) for indices in output_group_indices.values()],
+        dtype=np.int64,
+    )
+    bootstrap_years = np.asarray(list(dict.fromkeys(output_years)), dtype=np.int64)
+    study_year_starts = np.asarray(
+        [study_year_indices[year][0] for year in bootstrap_years],
+        dtype=np.int64,
+    )
+    study_year_lengths = np.asarray(
+        [len(study_year_indices[year]) for year in bootstrap_years],
+        dtype=np.int64,
+    )
     output_starts = np.asarray(
         [indices[0] for indices in output_group_indices.values()],
         dtype=np.int64,
@@ -195,11 +210,6 @@ def build_bootstrap_temporal_indexing(
         else int(study_time[indices].dayofyear.max())
         for year, indices in study_year_indices.items()
     }
-    output_years = np.asarray(
-        [int(study_time[indices[0]].year) for indices in output_group_indices.values()],
-        dtype=np.int64,
-    )
-    bootstrap_years = np.asarray(list(dict.fromkeys(output_years)), dtype=np.int64)
     year_group_starts, year_group_stops = group_bounds_by_year(
         output_years,
         bootstrap_years,
@@ -234,6 +244,8 @@ def build_bootstrap_temporal_indexing(
         study_year_indices=study_year_indices,
         output_group_indices=output_group_indices,
         output_group_labels=output_group_labels,
+        study_year_starts=study_year_starts,
+        study_year_lengths=study_year_lengths,
         output_starts=output_starts,
         output_lengths=output_lengths,
         output_years=output_years,

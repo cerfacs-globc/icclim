@@ -172,6 +172,7 @@ def _workload_notes(workload: str) -> str:
         "generic_tas_spell_bootstrap_yearly": (
             "spell reducer; raw v7.1.7 differs from current and master"
         ),
+        "wsdi_yearly": "standard warm-spell duration index",
         "generic_tas_count_date_event_monthly": "date_event count control path",
     }
     return notes.get(workload, "")
