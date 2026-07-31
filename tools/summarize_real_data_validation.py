@@ -47,6 +47,9 @@ def _parse_compare_file(path: Path) -> ComparisonSummary:
         elif remainder.startswith("v717-bounded-hotfix-"):
             baseline_label = "v717"
             workload = remainder.removeprefix("v717-bounded-hotfix-")
+        elif remainder.startswith("baseline717-"):
+            baseline_label = "v717"
+            workload = remainder.removeprefix("baseline717-")
         elif remainder.startswith("master-"):
             baseline_label = "master"
             workload = remainder.removeprefix("master-")
