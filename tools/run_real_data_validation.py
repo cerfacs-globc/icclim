@@ -183,6 +183,18 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=TIME_RANGE,
             slice_mode="year",
         )
+    if workload == "generic_tas_sum_bootstrap_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        return icclim.sum(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "generic_tas_spell_bootstrap_yearly":
         tas = _open_var(TAS_GLOB, "tas")
         return icclim.sum_of_spell_lengths(

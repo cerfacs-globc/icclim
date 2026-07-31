@@ -731,6 +731,26 @@ def generic_sum(
     >>> int(result["sum"].isel(time=0).values)
     730
     """
+    bootstrap_capability = _note_generic_bootstrap_capability(
+        indicator_name="sum",
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+    )
+    study, threshold = get_single_var(climate_vars)
+    if (
+        threshold is not None
+        and bootstrap_capability.uses_optimized_bootstrap
+        and threshold.threshold_min_value is None
+        and not _is_rate(study)
+    ):
+        optimized_sum = _compute_fast_tiled_bootstrap_exceedance_sum(
+            climate_vars[0],
+            threshold,
+            resample_freq,
+            _get_fast_bootstrap_max_cells(study),
+        )
+        if optimized_sum is not None:
+            return optimized_sum
     return _run_simple_reducer(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
