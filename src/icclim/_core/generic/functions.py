@@ -190,7 +190,7 @@ def count_occurrences(
         reducer_op = partial(DataArrayResample.sum, dim="time")
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
-        resample_freq.pandas_freq,
+        resample_freq,
         logical_link,
     )
     result = reducer_op(
@@ -292,7 +292,7 @@ def max_consecutive_occurrence(
             )
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
-        resample_freq.pandas_freq,
+        resample_freq,
         logical_link,
     )
     from xclim.indices import run_length  # noqa: PLC0415
@@ -382,7 +382,7 @@ def sum_of_spell_lengths(
             )
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
-        resample_freq.pandas_freq,
+        resample_freq,
         logical_link,
     )
     from xclim.indices import run_length  # noqa: PLC0415
@@ -2241,7 +2241,7 @@ def _rate_to_amount_for_daily_subseries(filtered_study: DataArray) -> DataArray:
 
 def _compute_combined_exceedance_mask(
     climate_vars: list[ClimateVariable],
-    resample_freq: str,
+    resample_freq: Frequency,
     logical_link: LogicalLink,
 ) -> DataArray:
     exceedance_masks = []
@@ -2250,18 +2250,74 @@ def _compute_combined_exceedance_mask(
             msg = "No threshold found"
             raise InvalidIcclimArgumentError(msg)
         exceedance_masks.append(
-            _compute_exceedance_mask(
-                study=climate_var.studied_data,
+            _compute_threshold_exceedance_mask(
+                climate_var=climate_var,
                 threshold=climate_var.threshold,
-                freq=resample_freq,
-                bootstrap=must_run_bootstrap(
-                    climate_var.studied_data,
-                    climate_var.threshold,
-                    climate_var.bootstrap,
-                ),
+                resample_freq=resample_freq,
             ).squeeze()
         )
     return logical_link(exceedance_masks)
+
+
+def _compute_threshold_exceedance_mask(
+    *,
+    climate_var: ClimateVariable,
+    threshold: Threshold,
+    resample_freq: Frequency,
+) -> DataArray:
+    from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if isinstance(threshold, BoundedThreshold):
+        left_mask = _compute_threshold_exceedance_mask(
+            climate_var=replace(climate_var, threshold=threshold.left_threshold),
+            threshold=threshold.left_threshold,
+            resample_freq=resample_freq,
+        )
+        right_mask = _compute_threshold_exceedance_mask(
+            climate_var=replace(climate_var, threshold=threshold.right_threshold),
+            threshold=threshold.right_threshold,
+            resample_freq=resample_freq,
+        )
+        return _transpose_like_study(
+            threshold.logical_link.compute([left_mask.squeeze(), right_mask.squeeze()]),
+            climate_var.studied_data,
+        )
+
+    bootstrap_required = must_run_bootstrap(
+        climate_var.studied_data,
+        threshold,
+        climate_var.bootstrap,
+    )
+    if isinstance(threshold, PercentileThreshold) and threshold.is_doy_per_threshold:
+        leaf_climate_var = replace(climate_var, threshold=threshold)
+        capability = classify_doy_percentile_spell_bootstrap(
+            leaf_climate_var,
+            resample_freq,
+        )
+        if capability.uses_optimized_bootstrap:
+            optimized_mask = _compute_fast_tiled_bootstrap_spell_mask(
+                leaf_climate_var,
+                resample_freq,
+                _get_fast_bootstrap_max_cells(climate_var.studied_data),
+            )
+            if optimized_mask is not None:
+                return optimized_mask
+        if capability.uses_exact_tiled_bootstrap:
+            exact_mask = _compute_exact_tiled_bootstrap_spell_mask(
+                leaf_climate_var,
+                resample_freq,
+            )
+            if exact_mask is not None:
+                return exact_mask
+    return _compute_exceedance_mask(
+        study=climate_var.studied_data,
+        threshold=threshold,
+        freq=resample_freq.pandas_freq,
+        bootstrap=bootstrap_required,
+    )
 
 
 def _get_thresholded_var(

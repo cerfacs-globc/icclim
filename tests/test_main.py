@@ -1090,7 +1090,7 @@ class TestIntegration:
             reference.average,
         )
 
-    def test_count_occurrences__bounded_percentile_bootstrap_uses_reference_path(
+    def test_count_occurrences__bounded_percentile_bootstrap_uses_compound_path(
         self,
         monkeypatch,
     ) -> None:
@@ -1120,10 +1120,10 @@ class TestIntegration:
         default = icclim.count_occurrences(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert profile["bootstrap_execution_kind"] == "reference_bootstrap"
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
         assert (
             profile["bootstrap_reason_code"]
-            == "bounded_threshold_uses_reference_bootstrap_path"
+            == "optimized_compound_bootstrap_supported"
         )
         assert profile["bootstrap_family"] == "day_of_year_percentile_compound"
         xr.testing.assert_allclose(
