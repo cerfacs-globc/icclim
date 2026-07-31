@@ -113,7 +113,9 @@ def test_threshold_min_value_routes_to_exact_tiled_bootstrap() -> None:
         == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COUNT
     )
     assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
-    assert decision.reason_code == "threshold_min_value_requires_exact_tiled_bootstrap"
+    assert (
+        decision.reason_code == "threshold_min_value_requires_exact_tiled_bootstrap"
+    )
 
 
 def test_cftime_routes_to_exact_tiled_bootstrap() -> None:
@@ -196,7 +198,7 @@ def test_bounded_threshold_is_not_routed_through_count_fast_path() -> None:
     assert decision.reason_code == "threshold_is_compound"
 
 
-def test_generic_filtered_fraction_of_total_routes_to_reference_bootstrap() -> None:
+def test_generic_filtered_fraction_of_total_routes_to_optimized_bootstrap() -> None:
     pr = stub_tas(5.0).rename("pr")
     pr.attrs["units"] = "mm/day"
     pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
@@ -219,8 +221,8 @@ def test_generic_filtered_fraction_of_total_routes_to_reference_bootstrap() -> N
         decision.family
         == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_VALUE_AGGREGATE
     )
-    assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
-    assert decision.reason_code == "value_aggregate_uses_reference_bootstrap_path"
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
 
 
 def test_generic_fraction_of_total_routes_to_optimized_bootstrap() -> None:

@@ -137,6 +137,11 @@ def classify_doy_percentile_count_bootstrap(
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
+    if threshold_spec.threshold_min_value is not None:
+        return _exact_tiled_bootstrap(
+            family=_classify_count_family(threshold_spec),
+            reason_code="threshold_min_value_requires_exact_tiled_bootstrap",
+        )
     return _classify_required_optimized_percentile_bootstrap(
         family=_classify_count_family(threshold_spec),
         study=climate_var.studied_data,
@@ -146,6 +151,8 @@ def classify_doy_percentile_count_bootstrap(
 
 
 def classify_doy_percentile_value_aggregate_bootstrap(
+    *,
+    indicator_name: str,
     climate_var: ClimateVariable,
     resample_frequency: Frequency,
 ) -> BootstrapCapability:
@@ -165,6 +172,14 @@ def classify_doy_percentile_value_aggregate_bootstrap(
         climate_var.bootstrap,
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
+    if (
+        threshold_spec.threshold_min_value is not None
+        and indicator_name == "average"
+    ):
+        return _exact_tiled_bootstrap(
+            family=_classify_value_aggregate_family(threshold_spec),
+            reason_code="filtered_average_requires_exact_tiled_bootstrap",
+        )
     return _classify_required_optimized_percentile_bootstrap(
         family=_classify_value_aggregate_family(threshold_spec),
         study=climate_var.studied_data,
@@ -249,6 +264,7 @@ def classify_generic_indicator_bootstrap(
         inventory=inventory,
     ):
         return classify_doy_percentile_value_aggregate_bootstrap(
+            indicator_name=indicator_name,
             climate_var=climate_vars[0],
             resample_frequency=resample_frequency,
         )
@@ -454,12 +470,7 @@ def _uses_specialized_value_aggregate_routing(
         return False
     if reducer_kind != BootstrapReducerKind.VALUE_AGGREGATE:
         return False
-    if (
-        date_event
-        or len(climate_vars) != 1
-        or inventory.has_bounded_threshold
-        or inventory.has_filtered_percentile
-    ):
+    if date_event or len(climate_vars) != 1 or inventory.has_bounded_threshold:
         return False
     threshold_spec = climate_vars[0].threshold
     return isinstance(threshold_spec, PercentileThreshold) and bool(
@@ -543,10 +554,6 @@ def _optimized_count_path_blocker(
 ) -> str | None:
     """Return the optimized-path blocker reason, or ``None`` when it is supported."""
     blockers = [
-        (
-            threshold_spec.threshold_min_value is not None,
-            "threshold_min_value_requires_exact_tiled_bootstrap",
-        ),
         (
             not isinstance(study.indexes.get("time"), pd.DatetimeIndex),
             "calendar_requires_exact_tiled_bootstrap",

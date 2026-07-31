@@ -475,10 +475,7 @@ def fraction_of_total(
     if threshold is None:
         msg = "No threshold found"
         raise InvalidIcclimArgumentError(msg)
-    if (
-        bootstrap_capability.uses_optimized_bootstrap
-        and threshold.threshold_min_value is None
-    ):
+    if bootstrap_capability.uses_optimized_bootstrap:
         optimized_fraction = _compute_fast_tiled_bootstrap_fraction_of_total(
             climate_vars[0],
             threshold,
@@ -681,11 +678,7 @@ def average(
         resample_freq=resample_freq,
     )
     study, threshold = get_single_var(climate_vars)
-    if (
-        threshold is not None
-        and bootstrap_capability.uses_optimized_bootstrap
-        and threshold.threshold_min_value is None
-    ):
+    if threshold is not None and bootstrap_capability.uses_optimized_bootstrap:
         optimized_average = _compute_fast_tiled_bootstrap_exceedance_average(
             climate_vars[0],
             threshold,
@@ -752,7 +745,6 @@ def generic_sum(
     if (
         threshold is not None
         and bootstrap_capability.uses_optimized_bootstrap
-        and threshold.threshold_min_value is None
         and not _is_rate(study)
     ):
         optimized_sum = _compute_fast_tiled_bootstrap_exceedance_sum(

@@ -353,6 +353,9 @@ if njit is not None:
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
+            overlap_reference = (
+                flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
+            )
             if target_ref_i < 0:
                 thresholds = _build_bootstrap_threshold_series_for_cell(
                     flat_ref_masked,
@@ -390,7 +393,7 @@ if njit is not None:
                     if substitute_i == target_ref_i:
                         continue
                     thresholds = _build_bootstrap_threshold_series_for_cell(
-                        flat_ref_raw,
+                        overlap_reference,
                         sample_indices,
                         index_year,
                         index_pos,
@@ -462,6 +465,9 @@ if njit is not None:
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
+            overlap_reference = (
+                flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
+            )
             if target_ref_i < 0:
                 thresholds = _build_float32_bootstrap_threshold_series_for_cell(
                     _build_bootstrap_threshold_series_for_cell(
@@ -500,7 +506,7 @@ if njit is not None:
                         continue
                     thresholds = _build_float32_bootstrap_threshold_series_for_cell(
                         _build_bootstrap_threshold_series_for_cell(
-                            flat_ref_raw,
+                            overlap_reference,
                             sample_indices,
                             index_year,
                             index_pos,
@@ -570,6 +576,9 @@ if njit is not None:
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
+            overlap_reference = (
+                flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
+            )
             if target_ref_i < 0:
                 thresholds = _build_float32_bootstrap_threshold_series_for_cell(
                     _build_bootstrap_threshold_series_for_cell(
@@ -608,7 +617,7 @@ if njit is not None:
                         continue
                     thresholds = _build_float32_bootstrap_threshold_series_for_cell(
                         _build_bootstrap_threshold_series_for_cell(
-                            flat_ref_raw,
+                            overlap_reference,
                             sample_indices,
                             index_year,
                             index_pos,
@@ -678,6 +687,9 @@ if njit is not None:
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
+            overlap_reference = (
+                flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
+            )
             if target_ref_i < 0:
                 thresholds = _build_float32_bootstrap_threshold_series_for_cell(
                     _build_bootstrap_threshold_series_for_cell(
@@ -716,7 +728,7 @@ if njit is not None:
                         continue
                     thresholds = _build_float32_bootstrap_threshold_series_for_cell(
                         _build_bootstrap_threshold_series_for_cell(
-                            flat_ref_raw,
+                            overlap_reference,
                             sample_indices,
                             index_year,
                             index_pos,
@@ -786,6 +798,9 @@ if njit is not None:
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
+            overlap_reference = (
+                flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
+            )
             if target_ref_i < 0:
                 thresholds = _build_float32_bootstrap_threshold_series_for_cell(
                     _build_bootstrap_threshold_series_for_cell(
@@ -816,6 +831,7 @@ if njit is not None:
                     cell,
                     year_max_doys[year_i],
                     op_code,
+                    min_threshold,
                 )
             else:
                 union_thresholds = _initialize_union_threshold_series(op_code)
@@ -824,7 +840,7 @@ if njit is not None:
                         continue
                     thresholds = _build_float32_bootstrap_threshold_series_for_cell(
                         _build_bootstrap_threshold_series_for_cell(
-                            flat_ref_raw,
+                            overlap_reference,
                             sample_indices,
                             index_year,
                             index_pos,
@@ -856,6 +872,7 @@ if njit is not None:
                     cell,
                     year_max_doys[year_i],
                     op_code,
+                    min_threshold,
                 )
         return out
 
@@ -1062,6 +1079,7 @@ if njit is not None:
         cell,
         max_target_doy,
         op_code,
+        min_threshold,
     ):
         exceedance_total = np.float32(0.0)
         total = np.float32(0.0)
@@ -1069,7 +1087,8 @@ if njit is not None:
             doy = study_doys[start + offset]
             threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
             value = flat_study[start + offset, cell]
-            total = np.float32(total + np.float32(value))
+            if np.isnan(min_threshold) or _compare(value, min_threshold, op_code):
+                total = np.float32(total + np.float32(value))
             if _compare(value, threshold, op_code):
                 exceedance_total = np.float32(exceedance_total + np.float32(value))
         if total == np.float32(0.0):
@@ -1225,6 +1244,7 @@ if njit is not None:
         cell,
         max_target_doy,
         op_code,
+        min_threshold,
     ):
         for group_i in range(group_start, group_stop):
             out[group_i, cell] = _fraction_of_total(
@@ -1236,6 +1256,7 @@ if njit is not None:
                 cell,
                 max_target_doy,
                 op_code,
+                min_threshold,
             )
 
     @njit(cache=True)

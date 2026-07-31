@@ -148,6 +148,15 @@ def _workload_notes(workload: str) -> str:
         "generic_pr_fraction_bootstrap_yearly": (
             "filtered value aggregate; wet-day style threshold_min_value"
         ),
+        "generic_pr_count_bootstrap_yearly": (
+            "filtered count; wet-day style threshold_min_value"
+        ),
+        "generic_pr_sum_bootstrap_yearly": (
+            "filtered value aggregate; wet-day style threshold_min_value"
+        ),
+        "generic_pr_average_bootstrap_yearly": (
+            "filtered value aggregate; wet-day style threshold_min_value"
+        ),
         "generic_tas_fraction_bootstrap_yearly": (
             "unfiltered value aggregate; optimized fraction_of_total candidate"
         ),
