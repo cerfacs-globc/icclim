@@ -271,7 +271,7 @@ useful intermediate step because it makes the scientific boundary
 visible in code before more bootstrap families reuse the same threshold
 generation semantics.
 
-As of Friday, July 31, 2026, three non-count consumers of this shared
+As of Friday, July 31, 2026, three unfiltered non-count consumers of this shared
 threshold generation layer are validated on Kraken real data:
 
 - ``fraction_of_total`` for unfiltered day-of-year percentile bootstrap;
@@ -280,6 +280,20 @@ threshold generation layer are validated on Kraken real data:
 
 Those reducers are exact against the trusted baselines on real data.
 They currently define the validated optimized value-aggregate boundary.
+
+The same validation round also established the current filtered
+``threshold_min_value`` boundary on Kraken real data:
+
+- filtered day-of-year percentile ``count_occurrences`` is exact through
+  the exact tiled bootstrap path;
+- filtered day-of-year percentile ``average`` is exact through the exact
+  tiled bootstrap path;
+- filtered day-of-year percentile ``sum`` is exact through the optimized
+  path;
+- filtered ``fraction_of_total`` is exact through the optimized path.
+
+So filtered precipitation-style bootstrap support is no longer all-or-nothing.
+The validated boundary is now reducer-specific.
 
 The same validation round also showed that ``average`` cannot be
 derived naively from ``optimized_sum / optimized_count``. A first

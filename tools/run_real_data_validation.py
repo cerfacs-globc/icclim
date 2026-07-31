@@ -171,6 +171,45 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=TIME_RANGE,
             slice_mode="year",
         )
+    if workload == "generic_pr_count_bootstrap_yearly":
+        pr = _open_var(PR_GLOB, "pr")
+        return icclim.count_occurrences(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 95 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_pr_sum_bootstrap_yearly":
+        pr = _open_var(PR_GLOB, "pr")
+        return icclim.sum(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 95 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_pr_average_bootstrap_yearly":
+        pr = _open_var(PR_GLOB, "pr")
+        return icclim.average(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 95 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "generic_tas_fraction_bootstrap_yearly":
         tas = _open_var(TAS_GLOB, "tas")
         return icclim.fraction_of_total(

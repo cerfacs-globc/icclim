@@ -889,7 +889,7 @@ class TestIntegration:
         assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
-    def test_count_occurrences__dask_wet_day_bootstrap_falls_back_to_safe_tiled_path(
+    def test_count_occurrences__dask_wet_day_bootstrap_uses_exact_tiled_path(
         self,
         monkeypatch,
     ) -> None:
@@ -935,9 +935,160 @@ class TestIntegration:
             profile["bootstrap_count_reason_code"]
             == "threshold_min_value_requires_exact_tiled_bootstrap"
         )
-        assert "bootstrap_optimized_tile_count" not in profile
-        assert profile["bootstrap_safe_tile_count"] == 4
+        assert (
+            profile["bootstrap_count_family"] == "filtered_day_of_year_percentile_count"
+        )
         xr.testing.assert_allclose(default.count_occurrences, legacy.count_occurrences)
+
+    def test_fraction_of_total__filtered_optimized_bootstrap_matches_reference_on_overlap_years(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        time = pd.date_range("2042-01-01", periods=365 * 5 + 1, freq="D")
+        pr = xr.DataArray(
+            np.full((len(time), 1, 1), 0.2, dtype=float),
+            dims=["time", "lat", "lon"],
+            coords={"time": time, "lat": [0], "lon": [0]},
+            attrs={UNITS_KEY: "mm/day"},
+            name="pr",
+        )
+        pr.loc[{"time": slice("2042-01-01", "2042-12-31")}] = 0.5
+        pr.loc[{"time": slice("2043-01-01", "2043-12-31")}] = 3.0
+        pr.loc[{"time": "2042-07-15"}] = 6.0
+        pr.loc[{"time": "2043-07-15"}] = 6.0
+        pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": pr,
+            "var_name": "pr",
+            "index_name": "fraction_of_total",
+            "threshold": build_threshold(
+                "> 90 doy_per",
+                threshold_min_value="1 mm/day",
+                doy_window_width=1,
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        reference = icclim.index(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+        generic_functions.reset_bootstrap_profile()
+
+        optimized = icclim.index(**common_kwargs).compute()
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_reason_code"] == "optimized_bootstrap_supported"
+        assert (
+            profile["bootstrap_family"]
+            == "filtered_day_of_year_percentile_value_aggregate"
+        )
+        xr.testing.assert_allclose(
+            optimized.fraction_of_total,
+            reference.fraction_of_total,
+        )
+
+    def test_sum__filtered_optimized_bootstrap_matches_reference_on_overlap_years(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        time = pd.date_range("2042-01-01", periods=365 * 5 + 1, freq="D")
+        pr = xr.DataArray(
+            np.full((len(time), 1, 1), 0.2, dtype=float),
+            dims=["time", "lat", "lon"],
+            coords={"time": time, "lat": [0], "lon": [0]},
+            attrs={UNITS_KEY: "mm/day"},
+            name="pr",
+        )
+        pr.loc[{"time": slice("2042-01-01", "2042-12-31")}] = 0.5
+        pr.loc[{"time": slice("2043-01-01", "2043-12-31")}] = 3.0
+        pr.loc[{"time": "2042-07-15"}] = 6.0
+        pr.loc[{"time": "2043-07-15"}] = 6.0
+        pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": pr,
+            "var_name": "pr",
+            "index_name": "sum",
+            "threshold": build_threshold(
+                "> 90 doy_per",
+                threshold_min_value="1 mm/day",
+                doy_window_width=1,
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        reference = icclim.index(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+
+        optimized = icclim.index(**common_kwargs).compute()
+
+        xr.testing.assert_allclose(
+            optimized["sum"],
+            reference["sum"],
+        )
+
+    def test_average__filtered_exact_tiled_bootstrap_matches_reference_on_overlap_years(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        time = pd.date_range("2042-01-01", periods=365 * 5 + 1, freq="D")
+        pr = xr.DataArray(
+            np.full((len(time), 1, 1), 0.2, dtype=float),
+            dims=["time", "lat", "lon"],
+            coords={"time": time, "lat": [0], "lon": [0]},
+            attrs={UNITS_KEY: "mm/day"},
+            name="pr",
+        )
+        pr.loc[{"time": slice("2042-01-01", "2042-12-31")}] = 0.5
+        pr.loc[{"time": slice("2043-01-01", "2043-12-31")}] = 3.0
+        pr.loc[{"time": "2042-07-15"}] = 6.0
+        pr.loc[{"time": "2043-07-15"}] = 6.0
+        pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": pr,
+            "var_name": "pr",
+            "index_name": "average",
+            "threshold": build_threshold(
+                "> 90 doy_per",
+                threshold_min_value="1 mm/day",
+                doy_window_width=1,
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        reference = icclim.index(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+
+        generic_functions.reset_bootstrap_profile()
+        exact = icclim.index(**common_kwargs).compute()
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert profile["bootstrap_execution_kind"] == "exact_tiled_bootstrap"
+        assert (
+            profile["bootstrap_reason_code"]
+            == "filtered_average_requires_exact_tiled_bootstrap"
+        )
+        xr.testing.assert_allclose(
+            exact.average,
+            reference.average,
+        )
 
     def test_count_occurrences__bounded_percentile_bootstrap_uses_reference_path(
         self,

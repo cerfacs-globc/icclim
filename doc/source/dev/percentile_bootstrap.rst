@@ -50,11 +50,12 @@ Unsupported cases
 Unsupported cases intentionally fall back to the safe tiled path. The
 most useful future extensions are likely:
 
-- percentile thresholds using ``threshold_min_value`` such as wet-day
-  precipitation counts; Kraken validation on July 29, 2026 showed that
-  the experimental fast-path implementation was materially faster but
-  not field-identical to the safe tiled reference, so support remains
-  disabled until substitute-year bootstrap semantics are matched exactly;
+- additional ``threshold_min_value`` reducers. As of Friday, July 31, 2026,
+  wet-day style support is now split by reducer after Kraken validation:
+
+  ``count_occurrences`` and ``average`` stay on the exact tiled bootstrap path,
+  while ``sum`` and ``fraction_of_total`` are field-identical on the optimized
+  path;
 - ``cftime`` calendars; Kraken validation on July 29, 2026 found a
   remaining one-cell mismatch on a Gregorian-like ``cftime`` case, so
   the release path keeps ``cftime`` on the exact safe tiled fallback

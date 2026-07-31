@@ -47,6 +47,9 @@ def _parse_compare_file(path: Path) -> ComparisonSummary:
         elif remainder.startswith("v717-bounded-hotfix-"):
             baseline_label = "v717"
             workload = remainder.removeprefix("v717-bounded-hotfix-")
+        elif remainder.startswith("baseline717-"):
+            baseline_label = "v717"
+            workload = remainder.removeprefix("baseline717-")
         elif remainder.startswith("master-"):
             baseline_label = "master"
             workload = remainder.removeprefix("master-")
@@ -146,6 +149,15 @@ def _workload_notes(workload: str) -> str:
             " hotfix, and v7.1.7 also needs logical-link hotfix"
         ),
         "generic_pr_fraction_bootstrap_yearly": (
+            "filtered value aggregate; wet-day style threshold_min_value"
+        ),
+        "generic_pr_count_bootstrap_yearly": (
+            "filtered count; wet-day style threshold_min_value"
+        ),
+        "generic_pr_sum_bootstrap_yearly": (
+            "filtered value aggregate; wet-day style threshold_min_value"
+        ),
+        "generic_pr_average_bootstrap_yearly": (
             "filtered value aggregate; wet-day style threshold_min_value"
         ),
         "generic_tas_fraction_bootstrap_yearly": (
