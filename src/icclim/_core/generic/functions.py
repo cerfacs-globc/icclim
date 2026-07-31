@@ -1542,12 +1542,28 @@ def _compute_fast_tiled_bootstrap_exceedance_sum(
         compute_doy_percentile_bootstrap_exceedance_sum,
     )
 
+    return _compute_fast_tiled_bootstrap_reducer(
+        climate_var,
+        reducer=compute_doy_percentile_bootstrap_exceedance_sum,
+        threshold=threshold,
+        resample_freq=resample_freq,
+        max_cells=max_cells,
+    )
+
+
+def _compute_fast_tiled_bootstrap_reducer(
+    climate_var: ClimateVariable,
+    reducer: Callable[[DataArray, PercentileThreshold, str], DataArray | None],
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+    max_cells: int,
+) -> DataArray | None:
     optimized_start = perf_counter()
     tile_results: list[DataArray] = []
     for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
         tile_study = climate_var.studied_data.isel(tile_indexers)
         tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
-        tile_result = compute_doy_percentile_bootstrap_exceedance_sum(
+        tile_result = reducer(
             tile_study,
             tile_threshold,
             resample_freq.pandas_freq,
