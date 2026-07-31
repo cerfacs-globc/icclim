@@ -110,6 +110,12 @@ Examples:
 - generic spell or consecutive-event indicators using percentile
   thresholds.
 
+As of Friday, July 31, 2026, simple one-threshold day-of-year
+percentile spell reducers now have a compiled optimized union-mask
+bootstrap implementation validated against ``master`` on Kraken.
+Filtered and more complex spell cases still need a separate fallback or
+future extension, so this family remains only partially specialized.
+
 Percentile compound family
 --------------------------
 

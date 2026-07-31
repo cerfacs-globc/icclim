@@ -259,6 +259,16 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             slice_mode="year",
             min_spell_length=6,
         )
+    if workload == "wsdi_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        return icclim.index(
+            index_name="WSDI",
+            in_files=tas,
+            var_name="tas",
+            base_period_time_range=BASE_PERIOD,
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "tg90p_save_thresholds_monthly":
         tas = _open_var(TAS_GLOB, "tas")
         return icclim.index(

@@ -60,10 +60,14 @@ most useful future extensions are likely:
   remaining one-cell mismatch on a Gregorian-like ``cftime`` case, so
   the release path keeps ``cftime`` on the exact safe tiled fallback
   until the fast-path semantics are field-identical;
-- spell/run-length indices, which likely need a different algorithm
-  because the bootstrap cannot be reduced to independent daily counts.
+- spell/run-length extension beyond the simple day-of-year percentile
+  case. As of Friday, July 31, 2026, simple one-threshold day-of-year
+  percentile spell reducers such as ``sum_of_spell_lengths`` now use an
+  optimized compiled union-mask path after Kraken validation against
+  ``master``. More complex spell cases still fall back.
 
-For spell/run-length work, the likely direction is a two-stage design:
+For future spell/run-length optimization work, the likely direction is a
+two-stage design:
 
 - compute or bootstrap a daily exceedance mask first, reusing the
   current substitute-year percentile machinery;

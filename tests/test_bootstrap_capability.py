@@ -248,7 +248,7 @@ def test_generic_fraction_of_total_routes_to_optimized_bootstrap() -> None:
     assert decision.reason_code == "optimized_bootstrap_supported"
 
 
-def test_generic_spell_routes_to_reference_bootstrap() -> None:
+def test_generic_spell_routes_to_optimized_bootstrap() -> None:
     tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
     climate_var = _build_climate_variable(
         tas,
@@ -266,8 +266,8 @@ def test_generic_spell_routes_to_reference_bootstrap() -> None:
     )
 
     assert decision.family == BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_SPELL
-    assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
-    assert decision.reason_code == "spell_uses_reference_bootstrap_path"
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
 
 
 def test_bounded_threshold_bootstrap_routes_to_reference_path() -> None:

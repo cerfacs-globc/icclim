@@ -1756,6 +1756,84 @@ class TestIntegration:
             reference.average,
         )
 
+    def test_sum_of_spell_lengths__dask_percentile_bootstrap_uses_optimized_path(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=2, lon_length=2).rename("tas")
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": tas,
+            "var_name": "tas",
+            "index_name": "sum_of_spell_lengths",
+            "threshold": build_threshold(
+                "> 90 doy_per",
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+            "min_spell_length": 6,
+        }
+
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        reference = icclim.index(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+        generic_functions.reset_bootstrap_profile()
+
+        optimized = icclim.index(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert not hasattr(optimized.sum_of_spell_lengths.data, "__dask_graph__")
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_reason_code"] == "optimized_bootstrap_supported"
+        assert profile["bootstrap_family"] == "day_of_year_percentile_spell"
+        assert profile["bootstrap_optimized_tile_count"] == 4
+        xr.testing.assert_allclose(
+            optimized.sum_of_spell_lengths,
+            reference.sum_of_spell_lengths,
+        )
+
+    def test_sum_of_spell_lengths__optimized_bootstrap_matches_reference_on_overlap_years(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=1, lon_length=1).rename("tas")
+        tas.loc[{"time": slice("2042-01-01", "2042-12-31")}] = 26 + K2C
+        tas.loc[{"time": slice("2043-01-01", "2043-12-31")}] = 30 + K2C
+        tas.loc[{"time": slice("2042-07-10", "2042-07-16")}] = 28 + K2C
+        tas.loc[{"time": slice("2043-07-10", "2043-07-16")}] = 28 + K2C
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": tas,
+            "var_name": "tas",
+            "index_name": "sum_of_spell_lengths",
+            "threshold": build_threshold(
+                "> 90 doy_per",
+                doy_window_width=1,
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+            "min_spell_length": 6,
+        }
+
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        reference = icclim.index(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+
+        optimized = icclim.index(**common_kwargs).compute()
+
+        xr.testing.assert_allclose(
+            optimized.sum_of_spell_lengths,
+            reference.sum_of_spell_lengths,
+        )
+
     def test_std(self) -> None:
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
         res = icclim.index(
