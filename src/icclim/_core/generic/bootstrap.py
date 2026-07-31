@@ -6,19 +6,26 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-import xarray as xr
 
 from icclim._core.constants import REFERENCE_PERIOD_ID
 from icclim._core.generic.bootstrap_capability import (
     is_optimized_doy_percentile_count_supported,
 )
+from icclim._core.generic.bootstrap_primitives import (
+    build_bootstrap_array_inputs,
+    build_bootstrap_output,
+    build_bootstrap_reference_sample,
+    build_bootstrap_temporal_indexing,
+)
 from icclim._core.model.operator import Operator
 
 if TYPE_CHECKING:
-    import pandas as pd
     from xarray import DataArray
 
     from icclim._core.generic.threshold.percentile import PercentileThreshold
+
+
+NON_LEAP_YEAR_DAY_COUNT = 365
 
 
 def compute_doy_percentile_bootstrap_count(
@@ -29,116 +36,263 @@ def compute_doy_percentile_bootstrap_count(
     """Compute percentile bootstrap counts without building a huge dask graph."""
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
         return None
-    loaded = study.load()
-    climatology_bounds = threshold.climatology_bounds(loaded)
-    ref_raw = loaded.sel(time=slice(*climatology_bounds))
-    min_threshold = _threshold_min_value_in_reference_units(threshold, ref_raw)
-    ref_masked = ref_raw
-    if min_threshold is not None:
-        ref_masked = ref_raw.where(ref_raw >= min_threshold, np.nan)
-    study_time = loaded.indexes["time"]
-    ref_time = ref_raw.indexes["time"]
-    ref_year_indices = _indices_by_year(ref_time)
-    study_year_indices = _indices_by_year(study_time)
-    ref_years = np.asarray(list(ref_year_indices), dtype=np.int64)
-    output_group_indices = _indices_by_resample_group(loaded, freq)
-    output_group_labels = list(output_group_indices)
-    output_starts = np.asarray(
-        [indices[0] for indices in output_group_indices.values()],
-        dtype=np.int64,
+    reference_sample = build_bootstrap_reference_sample(study, threshold)
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        freq,
+        doy_window_width=threshold.doy_window_width,
     )
-    output_lengths = np.asarray(
-        [len(indices) for indices in output_group_indices.values()],
-        dtype=np.int64,
-    )
-    source_max_doy = int(ref_time.dayofyear.max())
-    study_year_max_doy = {
-        year: source_max_doy
-        if source_max_doy == 366
-        else int(study_time[indices].dayofyear.max())
-        for year, indices in study_year_indices.items()
-    }
-    output_years = np.asarray(
-        [int(study_time[indices[0]].year) for indices in output_group_indices.values()],
-        dtype=np.int64,
-    )
-    bootstrap_years = np.asarray(list(dict.fromkeys(output_years)), dtype=np.int64)
-    year_group_starts, year_group_stops = _group_bounds_by_year(
-        output_years,
-        bootstrap_years,
-    )
-    year_max_doys = np.asarray(
-        [study_year_max_doy[year] for year in bootstrap_years],
-        dtype=np.int64,
-    )
-    year_to_ref = np.asarray(
-        [
-            int(np.where(ref_years == year)[0][0]) if year in ref_year_indices else -1
-            for year in bootstrap_years
-        ],
-        dtype=np.int64,
-    )
-    flat = np.asarray(loaded.transpose("time", ...).data, dtype=np.float64).reshape(
-        loaded.sizes["time"],
-        -1,
-    )
-    flat_ref_raw = np.asarray(
-        ref_raw.transpose("time", ...).data,
-        dtype=np.float64,
-    ).reshape(
-        ref_raw.sizes["time"],
-        -1,
-    )
-    flat_ref_masked = np.asarray(
-        ref_masked.transpose("time", ...).data,
-        dtype=np.float64,
-    ).reshape(
-        ref_masked.sizes["time"],
-        -1,
-    )
-    sample_indices = _rolling_sample_index_matrix(
-        ref_time,
-        window=threshold.doy_window_width,
-    )
-    index_year, index_pos = _ref_index_year_and_position(
-        ref_year_indices,
-        len(ref_time),
-    )
-    substitute_aligned = _substitute_alignment_matrix(ref_time, ref_year_indices)
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
     result = _bootstrap_count_kernel(
-        flat_ref_raw,
-        flat_ref_masked,
-        flat,
-        sample_indices,
-        index_year,
-        index_pos,
-        substitute_aligned,
-        output_starts,
-        output_lengths,
-        year_group_starts,
-        year_group_stops,
-        year_max_doys,
-        year_to_ref,
-        study_time.dayofyear.to_numpy(dtype=np.int64),
+        array_inputs.flat_reference_raw,
+        array_inputs.flat_reference_filtered,
+        array_inputs.flat_study,
+        temporal_indexing.sample_indices_by_day_of_year,
+        temporal_indexing.reference_index_year,
+        temporal_indexing.reference_index_position,
+        temporal_indexing.substitute_alignment,
+        temporal_indexing.output_starts,
+        temporal_indexing.output_lengths,
+        temporal_indexing.year_group_starts,
+        temporal_indexing.year_group_stops,
+        temporal_indexing.year_max_day_of_years,
+        temporal_indexing.year_to_reference_index,
+        temporal_indexing.study_day_of_years,
         float(threshold.percentile_coord().item()) / 100.0,
         float(threshold.interpolation.alpha),
         float(threshold.interpolation.beta),
         _operator_code(threshold.operator),
-        np.nan if min_threshold is None else float(min_threshold),
+        (
+            np.nan
+            if reference_sample.threshold_floor_in_reference_units is None
+            else float(reference_sample.threshold_floor_in_reference_units)
+        ),
     )
-    data = result.reshape((len(output_group_labels), *loaded.shape[1:]))
-    out = xr.DataArray(
-        data,
-        dims=loaded.dims,
-        coords={
-            "time": output_group_labels,
-            **{coord: loaded.coords[coord] for coord in loaded.dims if coord != "time"},
-        },
-        attrs={"units": "d", REFERENCE_PERIOD_ID: climatology_bounds},
+    out = build_bootstrap_output(
+        flat_result=result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units="d",
     )
-    for coord in loaded.coords:
-        if coord not in out.coords and "time" not in loaded[coord].dims:
-            out = out.assign_coords({coord: loaded[coord]})
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
+    return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
+def compute_doy_percentile_bootstrap_exceedance_sum(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> DataArray | None:
+    """Compute bootstrap sums of exceedance-day values with the optimized path."""
+    if not _can_compute_optimized_bootstrap(study, threshold, freq):
+        return None
+    reference_sample = build_bootstrap_reference_sample(study, threshold)
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        freq,
+        doy_window_width=threshold.doy_window_width,
+    )
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    result = _bootstrap_sum_kernel(
+        array_inputs.flat_reference_raw,
+        array_inputs.flat_reference_filtered,
+        array_inputs.flat_study,
+        temporal_indexing.sample_indices_by_day_of_year,
+        temporal_indexing.reference_index_year,
+        temporal_indexing.reference_index_position,
+        temporal_indexing.substitute_alignment,
+        temporal_indexing.output_starts,
+        temporal_indexing.output_lengths,
+        temporal_indexing.year_group_starts,
+        temporal_indexing.year_group_stops,
+        temporal_indexing.year_max_day_of_years,
+        temporal_indexing.year_to_reference_index,
+        temporal_indexing.study_day_of_years,
+        float(threshold.percentile_coord().item()) / 100.0,
+        float(threshold.interpolation.alpha),
+        float(threshold.interpolation.beta),
+        _operator_code(threshold.operator),
+        (
+            np.nan
+            if reference_sample.threshold_floor_in_reference_units is None
+            else float(reference_sample.threshold_floor_in_reference_units)
+        ),
+    )
+    out = build_bootstrap_output(
+        flat_result=result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units=reference_sample.study.attrs.get("units", ""),
+    )
+    out = out.astype(reference_sample.study.dtype)
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
+    return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
+def compute_doy_percentile_bootstrap_union_exceedance_count(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> DataArray | None:
+    """Count union exceedance days for thresholded bootstrap mean reducers."""
+    if not _can_compute_optimized_bootstrap(study, threshold, freq):
+        return None
+    reference_sample = build_bootstrap_reference_sample(study, threshold)
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        freq,
+        doy_window_width=threshold.doy_window_width,
+    )
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    result = _bootstrap_union_count_kernel(
+        array_inputs.flat_reference_raw,
+        array_inputs.flat_reference_filtered,
+        array_inputs.flat_study,
+        temporal_indexing.sample_indices_by_day_of_year,
+        temporal_indexing.reference_index_year,
+        temporal_indexing.reference_index_position,
+        temporal_indexing.substitute_alignment,
+        temporal_indexing.output_starts,
+        temporal_indexing.output_lengths,
+        temporal_indexing.year_group_starts,
+        temporal_indexing.year_group_stops,
+        temporal_indexing.year_max_day_of_years,
+        temporal_indexing.year_to_reference_index,
+        temporal_indexing.study_day_of_years,
+        float(threshold.percentile_coord().item()) / 100.0,
+        float(threshold.interpolation.alpha),
+        float(threshold.interpolation.beta),
+        _operator_code(threshold.operator),
+        (
+            np.nan
+            if reference_sample.threshold_floor_in_reference_units is None
+            else float(reference_sample.threshold_floor_in_reference_units)
+        ),
+    )
+    out = build_bootstrap_output(
+        flat_result=result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units="d",
+    )
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
+    return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
+def compute_doy_percentile_bootstrap_exceedance_average(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> DataArray | None:
+    """Compute bootstrap averages of exceedance-day values with the optimized path."""
+    if not _can_compute_optimized_bootstrap(study, threshold, freq):
+        return None
+    reference_sample = build_bootstrap_reference_sample(study, threshold)
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        freq,
+        doy_window_width=threshold.doy_window_width,
+    )
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    result = _bootstrap_average_kernel(
+        array_inputs.flat_reference_raw,
+        array_inputs.flat_reference_filtered,
+        array_inputs.flat_study,
+        temporal_indexing.sample_indices_by_day_of_year,
+        temporal_indexing.reference_index_year,
+        temporal_indexing.reference_index_position,
+        temporal_indexing.substitute_alignment,
+        temporal_indexing.output_starts,
+        temporal_indexing.output_lengths,
+        temporal_indexing.year_group_starts,
+        temporal_indexing.year_group_stops,
+        temporal_indexing.year_max_day_of_years,
+        temporal_indexing.year_to_reference_index,
+        temporal_indexing.study_day_of_years,
+        float(threshold.percentile_coord().item()) / 100.0,
+        float(threshold.interpolation.alpha),
+        float(threshold.interpolation.beta),
+        _operator_code(threshold.operator),
+        (
+            np.nan
+            if reference_sample.threshold_floor_in_reference_units is None
+            else float(reference_sample.threshold_floor_in_reference_units)
+        ),
+    )
+    out = build_bootstrap_output(
+        flat_result=result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units=reference_sample.study.attrs.get("units", ""),
+    )
+    out = out.astype(reference_sample.study.dtype)
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
+    return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
+def compute_doy_percentile_bootstrap_fraction_of_total(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> DataArray | None:
+    """Compute bootstrap fractions of total with the optimized path."""
+    if not _can_compute_optimized_bootstrap(study, threshold, freq):
+        return None
+    reference_sample = build_bootstrap_reference_sample(study, threshold)
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        freq,
+        doy_window_width=threshold.doy_window_width,
+    )
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    result = _bootstrap_fraction_kernel(
+        array_inputs.flat_reference_raw,
+        array_inputs.flat_reference_filtered,
+        array_inputs.flat_study,
+        temporal_indexing.sample_indices_by_day_of_year,
+        temporal_indexing.reference_index_year,
+        temporal_indexing.reference_index_position,
+        temporal_indexing.substitute_alignment,
+        temporal_indexing.output_starts,
+        temporal_indexing.output_lengths,
+        temporal_indexing.year_group_starts,
+        temporal_indexing.year_group_stops,
+        temporal_indexing.year_max_day_of_years,
+        temporal_indexing.year_to_reference_index,
+        temporal_indexing.study_day_of_years,
+        float(threshold.percentile_coord().item()) / 100.0,
+        float(threshold.interpolation.alpha),
+        float(threshold.interpolation.beta),
+        _operator_code(threshold.operator),
+        (
+            np.nan
+            if reference_sample.threshold_floor_in_reference_units is None
+            else float(reference_sample.threshold_floor_in_reference_units)
+        ),
+    )
+    out = build_bootstrap_output(
+        flat_result=result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units="1",
+    )
+    out = out.astype(reference_sample.study.dtype)
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
@@ -148,20 +302,6 @@ def _can_compute_optimized_bootstrap(
     freq: str,
 ) -> bool:
     return is_optimized_doy_percentile_count_supported(study, threshold, freq)
-
-
-def _threshold_min_value_in_reference_units(
-    threshold: PercentileThreshold,
-    ref: DataArray,
-) -> float | None:
-    if threshold.threshold_min_value is None:
-        return None
-    from xclim.core.units import convert_units_to  # noqa: PLC0415
-
-    converted = convert_units_to(threshold.threshold_min_value, ref, context="hydro")
-    if hasattr(converted, "magnitude"):
-        return float(converted.magnitude)
-    return float(converted)
 
 
 def _operator_code(operator: Operator | str) -> int:
@@ -200,6 +340,7 @@ if njit is not None:
         op_code,
         min_threshold,
     ):
+        """Compute yearly bootstrap counts from threshold generation plus counting."""
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
         n_cells = flat_study.shape[1]
@@ -210,11 +351,10 @@ if njit is not None:
             year_i = flat_i // n_cells
             cell = flat_i % n_cells
             target_ref_i = year_to_ref[year_i]
-            max_target_doy = year_max_doys[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
             if target_ref_i < 0:
-                q = _quantiles_for_cell(
+                thresholds = _build_bootstrap_threshold_series_for_cell(
                     flat_ref_masked,
                     sample_indices,
                     index_year,
@@ -229,17 +369,19 @@ if njit is not None:
                     beta,
                     min_threshold,
                 )
-                for group_i in range(group_start, group_stop):
-                    out[group_i, cell] = _count_exceedances(
-                        flat_study,
-                        q,
-                        study_doys,
-                        study_starts[group_i],
-                        study_lengths[group_i],
-                        cell,
-                        max_target_doy,
-                        op_code,
-                    )
+                _write_count_groups_for_cell(
+                    out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
             else:
                 for group_i in range(group_start, group_stop):
                     out[group_i, cell] = 0.0
@@ -247,7 +389,7 @@ if njit is not None:
                 for substitute_i in range(n_ref_years):
                     if substitute_i == target_ref_i:
                         continue
-                    q = _quantiles_for_cell(
+                    thresholds = _build_bootstrap_threshold_series_for_cell(
                         flat_ref_raw,
                         sample_indices,
                         index_year,
@@ -262,24 +404,463 @@ if njit is not None:
                         beta,
                         min_threshold,
                     )
-                    for group_i in range(group_start, group_stop):
-                        out[group_i, cell] += _count_exceedances(
-                            flat_study,
-                            q,
-                            study_doys,
-                            study_starts[group_i],
-                            study_lengths[group_i],
-                            cell,
-                            max_target_doy,
-                            op_code,
-                        )
+                    _accumulate_count_groups_for_cell(
+                        out,
+                        flat_study,
+                        thresholds,
+                        study_doys,
+                        study_starts,
+                        study_lengths,
+                        group_start,
+                        group_stop,
+                        cell,
+                        year_max_doys[year_i],
+                        op_code,
+                    )
                     substitute_count += 1
-                for group_i in range(group_start, group_stop):
-                    out[group_i, cell] /= substitute_count
+                _average_count_groups_for_cell(
+                    out,
+                    group_start,
+                    group_stop,
+                    cell,
+                    substitute_count,
+                )
+        return out
+
+    @njit(parallel=True, cache=True)
+    def _bootstrap_sum_kernel(
+        flat_ref_raw,
+        flat_ref_masked,
+        flat_study,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        study_starts,
+        study_lengths,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
+        study_doys,
+        quantile,
+        alpha,
+        beta,
+        op_code,
+        min_threshold,
+    ):
+        """Compute yearly bootstrap exceedance sums from shared thresholds."""
+        n_years = len(year_to_ref)
+        n_groups = len(study_starts)
+        n_cells = flat_study.shape[1]
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
+        n_ref_years = substitute_aligned.shape[1]
+        max_samples = sample_indices.shape[1]
+        for flat_i in prange(n_years * n_cells):
+            year_i = flat_i // n_cells
+            cell = flat_i % n_cells
+            target_ref_i = year_to_ref[year_i]
+            group_start = year_group_starts[year_i]
+            group_stop = year_group_stops[year_i]
+            if target_ref_i < 0:
+                thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                    _build_bootstrap_threshold_series_for_cell(
+                        flat_ref_masked,
+                        sample_indices,
+                        index_year,
+                        index_pos,
+                        substitute_aligned,
+                        -1,
+                        -1,
+                        cell,
+                        max_samples,
+                        quantile,
+                        alpha,
+                        beta,
+                        min_threshold,
+                    )
+                )
+                _write_sum_groups_for_cell(
+                    out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+            else:
+                union_thresholds = _initialize_union_threshold_series(op_code)
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                        _build_bootstrap_threshold_series_for_cell(
+                            flat_ref_raw,
+                            sample_indices,
+                            index_year,
+                            index_pos,
+                            substitute_aligned,
+                            target_ref_i,
+                            substitute_i,
+                            cell,
+                            max_samples,
+                            quantile,
+                            alpha,
+                            beta,
+                            min_threshold,
+                        )
+                    )
+                    _update_union_threshold_series(
+                        union_thresholds,
+                        thresholds,
+                        op_code,
+                    )
+                _write_sum_groups_for_cell(
+                    out,
+                    flat_study,
+                    union_thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+        return out
+
+    @njit(parallel=True, cache=True)
+    def _bootstrap_union_count_kernel(
+        flat_ref_raw,
+        flat_ref_masked,
+        flat_study,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        study_starts,
+        study_lengths,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
+        study_doys,
+        quantile,
+        alpha,
+        beta,
+        op_code,
+        min_threshold,
+    ):
+        """Count union exceedance days from shared bootstrap thresholds."""
+        n_years = len(year_to_ref)
+        n_groups = len(study_starts)
+        n_cells = flat_study.shape[1]
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
+        n_ref_years = substitute_aligned.shape[1]
+        max_samples = sample_indices.shape[1]
+        for flat_i in prange(n_years * n_cells):
+            year_i = flat_i // n_cells
+            cell = flat_i % n_cells
+            target_ref_i = year_to_ref[year_i]
+            group_start = year_group_starts[year_i]
+            group_stop = year_group_stops[year_i]
+            if target_ref_i < 0:
+                thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                    _build_bootstrap_threshold_series_for_cell(
+                        flat_ref_masked,
+                        sample_indices,
+                        index_year,
+                        index_pos,
+                        substitute_aligned,
+                        -1,
+                        -1,
+                        cell,
+                        max_samples,
+                        quantile,
+                        alpha,
+                        beta,
+                        min_threshold,
+                    )
+                )
+                _write_count_groups_for_cell(
+                    out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+            else:
+                union_thresholds = _initialize_union_threshold_series(op_code)
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                        _build_bootstrap_threshold_series_for_cell(
+                            flat_ref_raw,
+                            sample_indices,
+                            index_year,
+                            index_pos,
+                            substitute_aligned,
+                            target_ref_i,
+                            substitute_i,
+                            cell,
+                            max_samples,
+                            quantile,
+                            alpha,
+                            beta,
+                            min_threshold,
+                        )
+                    )
+                    _update_union_threshold_series(
+                        union_thresholds,
+                        thresholds,
+                        op_code,
+                    )
+                _write_count_groups_for_cell(
+                    out,
+                    flat_study,
+                    union_thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+        return out
+
+    @njit(parallel=True, cache=True)
+    def _bootstrap_average_kernel(
+        flat_ref_raw,
+        flat_ref_masked,
+        flat_study,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        study_starts,
+        study_lengths,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
+        study_doys,
+        quantile,
+        alpha,
+        beta,
+        op_code,
+        min_threshold,
+    ):
+        """Compute yearly bootstrap exceedance averages from shared thresholds."""
+        n_years = len(year_to_ref)
+        n_groups = len(study_starts)
+        n_cells = flat_study.shape[1]
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
+        n_ref_years = substitute_aligned.shape[1]
+        max_samples = sample_indices.shape[1]
+        for flat_i in prange(n_years * n_cells):
+            year_i = flat_i // n_cells
+            cell = flat_i % n_cells
+            target_ref_i = year_to_ref[year_i]
+            group_start = year_group_starts[year_i]
+            group_stop = year_group_stops[year_i]
+            if target_ref_i < 0:
+                thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                    _build_bootstrap_threshold_series_for_cell(
+                        flat_ref_masked,
+                        sample_indices,
+                        index_year,
+                        index_pos,
+                        substitute_aligned,
+                        -1,
+                        -1,
+                        cell,
+                        max_samples,
+                        quantile,
+                        alpha,
+                        beta,
+                        min_threshold,
+                    )
+                )
+                _write_average_groups_for_cell(
+                    out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+            else:
+                union_thresholds = _initialize_union_threshold_series(op_code)
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                        _build_bootstrap_threshold_series_for_cell(
+                            flat_ref_raw,
+                            sample_indices,
+                            index_year,
+                            index_pos,
+                            substitute_aligned,
+                            target_ref_i,
+                            substitute_i,
+                            cell,
+                            max_samples,
+                            quantile,
+                            alpha,
+                            beta,
+                            min_threshold,
+                        )
+                    )
+                    _update_union_threshold_series(
+                        union_thresholds,
+                        thresholds,
+                        op_code,
+                    )
+                _write_average_groups_for_cell(
+                    out,
+                    flat_study,
+                    union_thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+        return out
+
+    @njit(parallel=True, cache=True)
+    def _bootstrap_fraction_kernel(
+        flat_ref_raw,
+        flat_ref_masked,
+        flat_study,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        study_starts,
+        study_lengths,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
+        study_doys,
+        quantile,
+        alpha,
+        beta,
+        op_code,
+        min_threshold,
+    ):
+        """Compute yearly bootstrap fractions of total from shared thresholds."""
+        n_years = len(year_to_ref)
+        n_groups = len(study_starts)
+        n_cells = flat_study.shape[1]
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
+        n_ref_years = substitute_aligned.shape[1]
+        max_samples = sample_indices.shape[1]
+        for flat_i in prange(n_years * n_cells):
+            year_i = flat_i // n_cells
+            cell = flat_i % n_cells
+            target_ref_i = year_to_ref[year_i]
+            group_start = year_group_starts[year_i]
+            group_stop = year_group_stops[year_i]
+            if target_ref_i < 0:
+                thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                    _build_bootstrap_threshold_series_for_cell(
+                        flat_ref_masked,
+                        sample_indices,
+                        index_year,
+                        index_pos,
+                        substitute_aligned,
+                        -1,
+                        -1,
+                        cell,
+                        max_samples,
+                        quantile,
+                        alpha,
+                        beta,
+                        min_threshold,
+                    )
+                )
+                _write_fraction_groups_for_cell(
+                    out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
+            else:
+                union_thresholds = _initialize_union_threshold_series(op_code)
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                        _build_bootstrap_threshold_series_for_cell(
+                            flat_ref_raw,
+                            sample_indices,
+                            index_year,
+                            index_pos,
+                            substitute_aligned,
+                            target_ref_i,
+                            substitute_i,
+                            cell,
+                            max_samples,
+                            quantile,
+                            alpha,
+                            beta,
+                            min_threshold,
+                        )
+                    )
+                    _update_union_threshold_series(
+                        union_thresholds,
+                        thresholds,
+                        op_code,
+                    )
+                _write_fraction_groups_for_cell(
+                    out,
+                    flat_study,
+                    union_thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
         return out
 
     @njit(cache=True)
-    def _quantiles_for_cell(
+    def _build_bootstrap_threshold_series_for_cell(
         flat_ref,
         sample_indices,
         index_year,
@@ -294,10 +875,10 @@ if njit is not None:
         beta,
         min_threshold,
     ):
-        q = np.empty(365, dtype=np.float64)
+        thresholds = np.empty(NON_LEAP_YEAR_DAY_COUNT, dtype=np.float64)
         buf = np.empty(max_samples, dtype=np.float64)
-        for doy_i in range(365):
-            q_value = _quantile_for_doy_cell(
+        for doy_i in range(NON_LEAP_YEAR_DAY_COUNT):
+            threshold_value = _quantile_for_doy_cell(
                 flat_ref,
                 sample_indices,
                 index_year,
@@ -313,11 +894,11 @@ if njit is not None:
                 beta,
             )
             if not np.isnan(min_threshold) and (
-                np.isnan(q_value) or q_value <= min_threshold
+                np.isnan(threshold_value) or threshold_value <= min_threshold
             ):
-                q_value = min_threshold
-            q[doy_i] = q_value
-        return q
+                threshold_value = min_threshold
+            thresholds[doy_i] = threshold_value
+        return thresholds
 
     @njit(cache=True)
     def _quantile_for_doy_cell(
@@ -410,7 +991,7 @@ if njit is not None:
     @njit(cache=True)
     def _count_exceedances(
         flat_study,
-        q,
+        thresholds,
         study_doys,
         start,
         length,
@@ -421,11 +1002,278 @@ if njit is not None:
         count = 0.0
         for offset in range(length):
             doy = study_doys[start + offset]
-            threshold = _adjusted_threshold(q, doy, max_target_doy)
+            threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
             value = flat_study[start + offset, cell]
             if _compare(value, threshold, op_code):
                 count += 1.0
         return count
+
+    @njit(cache=True)
+    def _sum_exceedances(
+        flat_study,
+        thresholds,
+        study_doys,
+        start,
+        length,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        total = np.float32(0.0)
+        for offset in range(length):
+            doy = study_doys[start + offset]
+            threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
+            value = flat_study[start + offset, cell]
+            if _compare(value, threshold, op_code):
+                total = np.float32(total + np.float32(value))
+        return float(total)
+
+    @njit(cache=True)
+    def _average_exceedances(
+        flat_study,
+        thresholds,
+        study_doys,
+        start,
+        length,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        total = np.float32(0.0)
+        count = 0.0
+        for offset in range(length):
+            doy = study_doys[start + offset]
+            threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
+            value = flat_study[start + offset, cell]
+            if _compare(value, threshold, op_code):
+                total = np.float32(total + np.float32(value))
+                count += 1.0
+        if count == 0.0:
+            return np.nan
+        return float(np.float32(total / np.float32(count)))
+
+    @njit(cache=True)
+    def _fraction_of_total(
+        flat_study,
+        thresholds,
+        study_doys,
+        start,
+        length,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        exceedance_total = np.float32(0.0)
+        total = np.float32(0.0)
+        for offset in range(length):
+            doy = study_doys[start + offset]
+            threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
+            value = flat_study[start + offset, cell]
+            total = np.float32(total + np.float32(value))
+            if _compare(value, threshold, op_code):
+                exceedance_total = np.float32(exceedance_total + np.float32(value))
+        if total == np.float32(0.0):
+            return np.nan
+        return float(np.float32(exceedance_total / total))
+
+    @njit(cache=True)
+    def _initialize_union_threshold_series(op_code):
+        if op_code in (0, 1):
+            return np.full(
+                NON_LEAP_YEAR_DAY_COUNT, np.float32(np.inf), dtype=np.float32
+            )
+        return np.full(
+            NON_LEAP_YEAR_DAY_COUNT,
+            np.float32(-np.inf),
+            dtype=np.float32,
+        )
+
+    @njit(cache=True)
+    def _build_float32_bootstrap_threshold_series_for_cell(thresholds):
+        converted = np.empty(NON_LEAP_YEAR_DAY_COUNT, dtype=np.float32)
+        for day_i in range(NON_LEAP_YEAR_DAY_COUNT):
+            converted[day_i] = np.float32(thresholds[day_i])
+        return converted
+
+    @njit(cache=True)
+    def _update_union_threshold_series(union_thresholds, thresholds, op_code):
+        for day_i in range(NON_LEAP_YEAR_DAY_COUNT):
+            threshold_value = thresholds[day_i]
+            if np.isnan(threshold_value):
+                continue
+            current_value = union_thresholds[day_i]
+            if op_code in (0, 1):
+                if threshold_value < current_value:
+                    union_thresholds[day_i] = threshold_value
+            elif threshold_value > current_value:
+                union_thresholds[day_i] = threshold_value
+
+    @njit(cache=True)
+    def _write_count_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] = _count_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _accumulate_count_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] += _count_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _write_sum_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] = _sum_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _write_average_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] = _average_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _write_fraction_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] = _fraction_of_total(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _accumulate_sum_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] += _sum_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _average_count_groups_for_cell(
+        out,
+        group_start,
+        group_stop,
+        cell,
+        substitute_count,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] /= substitute_count
 
     @njit(cache=True)
     def _compare(value, threshold, op_code):
@@ -438,135 +1286,32 @@ if njit is not None:
         return value <= threshold
 
     @njit(cache=True)
-    def _adjusted_threshold(q, doy, max_target_doy):
-        if max_target_doy == 365:
-            return q[doy - 1]
+    def _adjusted_threshold(thresholds, doy, max_target_doy):
+        if max_target_doy == NON_LEAP_YEAR_DAY_COUNT:
+            return thresholds[doy - 1]
         position = (doy - 1.0) * 364.0 / 365.0
         lower = int(np.floor(position))
         if lower >= 364:
-            return q[364]
+            return thresholds[364]
         gamma = position - lower
-        diff = q[lower + 1] - q[lower]
+        diff = thresholds[lower + 1] - thresholds[lower]
         if gamma >= 0.5:
-            return q[lower + 1] - diff * (1.0 - gamma)
-        return q[lower] + diff * gamma
+            return thresholds[lower + 1] - diff * (1.0 - gamma)
+        return thresholds[lower] + diff * gamma
 
 else:
 
     def _bootstrap_count_kernel(*args, **kwargs):  # noqa: ARG001
         return None
 
+    def _bootstrap_sum_kernel(*args, **kwargs):  # noqa: ARG001
+        return None
 
-def _indices_by_year(time: pd.DatetimeIndex) -> dict[int, np.ndarray]:
-    return {int(year): np.where(time.year == year)[0] for year in np.unique(time.year)}
+    def _bootstrap_union_count_kernel(*args, **kwargs):  # noqa: ARG001
+        return None
 
+    def _bootstrap_average_kernel(*args, **kwargs):  # noqa: ARG001
+        return None
 
-def _indices_by_resample_group(
-    da: DataArray, freq: str
-) -> dict[np.datetime64, np.ndarray]:
-    groups = da.resample(time=freq).groups
-    out = {}
-    for label, indexer in groups.items():
-        if isinstance(indexer, slice):
-            start = 0 if indexer.start is None else indexer.start
-            stop = da.sizes["time"] if indexer.stop is None else indexer.stop
-            step = 1 if indexer.step is None else indexer.step
-            indices = np.arange(start, stop, step, dtype=np.int64)
-        else:
-            indices = np.asarray(indexer, dtype=np.int64)
-        out[np.datetime64(label)] = indices
-    return out
-
-
-def _group_bounds_by_year(
-    output_years: np.ndarray,
-    bootstrap_years: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray]:
-    starts = np.empty(len(bootstrap_years), dtype=np.int64)
-    stops = np.empty(len(bootstrap_years), dtype=np.int64)
-    for i, year in enumerate(bootstrap_years):
-        group_indices = np.where(output_years == year)[0]
-        starts[i] = int(group_indices[0])
-        stops[i] = int(group_indices[-1]) + 1
-    return starts, stops
-
-
-def _rolling_sample_index_matrix(
-    time: pd.DatetimeIndex,
-    *,
-    window: int,
-) -> np.ndarray:
-    half_window = window // 2
-    sample_indices: dict[int, list[int]] = {doy: [] for doy in range(1, 366)}
-    doys = time.dayofyear.to_numpy()
-    for center, doy in enumerate(doys):
-        if doy == 366:
-            continue
-        start = max(0, center - half_window)
-        stop = min(len(time), center + half_window + 1)
-        sample_indices[int(doy)].extend(range(start, stop))
-    max_samples = max(len(indices) for indices in sample_indices.values())
-    matrix = np.full((365, max_samples), -1, dtype=np.int64)
-    for doy, indices in sample_indices.items():
-        matrix[doy - 1, : len(indices)] = indices
-    return matrix
-
-
-def _ref_index_year_and_position(
-    ref_year_indices: dict[int, np.ndarray],
-    n_ref_time: int,
-) -> tuple[np.ndarray, np.ndarray]:
-    index_year = np.full(n_ref_time, -1, dtype=np.int64)
-    index_pos = np.full(n_ref_time, -1, dtype=np.int64)
-    for year_index, indices in enumerate(ref_year_indices.values()):
-        index_year[indices] = year_index
-        index_pos[indices] = np.arange(len(indices), dtype=np.int64)
-    return index_year, index_pos
-
-
-def _substitute_alignment_matrix(
-    ref_time: pd.DatetimeIndex,
-    ref_year_indices: dict[int, np.ndarray],
-) -> np.ndarray:
-    max_year_len = max(len(indices) for indices in ref_year_indices.values())
-    n_years = len(ref_year_indices)
-    aligned = np.full((n_years, n_years, max_year_len), -1, dtype=np.int64)
-    years = list(ref_year_indices)
-    for target_i, target_year in enumerate(years):
-        target_indices = ref_year_indices[target_year]
-        target_time = ref_time[target_indices]
-        for substitute_i, substitute_year in enumerate(years):
-            substitute_indices = ref_year_indices[substitute_year]
-            aligned[target_i, substitute_i, : len(target_indices)] = (
-                _substitute_indices_aligned_to_target(
-                    target_time,
-                    ref_time[substitute_indices],
-                    substitute_indices,
-                )
-            )
-    return aligned
-
-
-def _substitute_indices_aligned_to_target(
-    target_time: pd.DatetimeIndex,
-    substitute_time: pd.DatetimeIndex,
-    substitute_indices: np.ndarray,
-) -> np.ndarray:
-    if len(target_time) == len(substitute_time):
-        return substitute_indices
-    substitute_by_month_day = {
-        (int(month), int(day)): int(index)
-        for month, day, index in zip(
-            substitute_time.month,
-            substitute_time.day,
-            substitute_indices,
-            strict=True,
-        )
-    }
-    return np.asarray(
-        [
-            substitute_by_month_day.get((int(month), int(day)), -1)
-            for month, day in zip(target_time.month, target_time.day, strict=True)
-        ],
-        dtype=np.int64,
-    )
+    def _bootstrap_fraction_kernel(*args, **kwargs):  # noqa: ARG001
+        return None

@@ -214,6 +214,27 @@ Suggested names:
 Avoid short names such as ``ref2`` or ``idx_map`` when the longer name
 removes ambiguity.
 
+As of July 30, 2026, this layer now starts to exist in
+``src/icclim/_core/generic/bootstrap_primitives.py`` with explicit,
+tested helpers for:
+
+- ``build_bootstrap_reference_sample``;
+- ``build_bootstrap_temporal_indexing``;
+- ``build_bootstrap_array_inputs``.
+- ``build_bootstrap_output``.
+
+Those helpers keep the bootstrap preparation workflow readable in code:
+
+1. prepare the reference-period sample;
+2. prepare year and resampling indexes;
+3. prepare flattened arrays for an optimized kernel;
+4. run the family-specific kernel;
+5. rebuild xarray outputs.
+
+That is still only a first step. Threshold generation itself is not yet
+fully extracted into a reusable engine, but the preparation phases now
+have a stable home and direct unit tests.
+
 Bootstrap threshold generation
 ------------------------------
 
@@ -234,6 +255,40 @@ Suggested helper responsibilities:
 - ``build_nominal_thresholds``
 - ``build_substitute_thresholds``
 - ``align_thresholds_to_study_days``
+
+As of July 30, 2026, the optimized day-of-year percentile count path
+now follows this separation inside
+``src/icclim/_core/generic/bootstrap.py``:
+
+- ``_build_bootstrap_threshold_series_for_cell`` computes one
+  substitute-aware threshold series;
+- ``_write_count_groups_for_cell`` and
+  ``_accumulate_count_groups_for_cell`` apply the count reducer to that
+  threshold series.
+
+This is still specific to the current count implementation, but it is a
+useful intermediate step because it makes the scientific boundary
+visible in code before more bootstrap families reuse the same threshold
+generation semantics.
+
+As of Friday, July 31, 2026, three non-count consumers of this shared
+threshold generation layer are validated on Kraken real data:
+
+- ``fraction_of_total`` for unfiltered day-of-year percentile bootstrap;
+- generic ``sum`` for unfiltered day-of-year percentile bootstrap.
+- ``average`` for unfiltered day-of-year percentile bootstrap.
+
+Those reducers are exact against the trusted baselines on real data.
+They currently define the validated optimized value-aggregate boundary.
+
+The same validation round also showed that ``average`` cannot be
+derived naively from ``optimized_sum / optimized_count``. A first
+dedicated mean kernel also remained non-identical on Kraken. The
+validated optimized implementation instead uses:
+
+- optimized union exceedance sums;
+- optimized union exceedance-day counts;
+- final output casting aligned with the trusted baseline dtype.
 
 Daily exceedance mask construction
 ----------------------------------

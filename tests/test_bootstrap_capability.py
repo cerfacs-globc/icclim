@@ -196,7 +196,7 @@ def test_bounded_threshold_is_not_routed_through_count_fast_path() -> None:
     assert decision.reason_code == "threshold_is_compound"
 
 
-def test_generic_fraction_of_total_routes_to_reference_bootstrap() -> None:
+def test_generic_filtered_fraction_of_total_routes_to_reference_bootstrap() -> None:
     pr = stub_tas(5.0).rename("pr")
     pr.attrs["units"] = "mm/day"
     pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
@@ -221,6 +221,31 @@ def test_generic_fraction_of_total_routes_to_reference_bootstrap() -> None:
     )
     assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
     assert decision.reason_code == "value_aggregate_uses_reference_bootstrap_path"
+
+
+def test_generic_fraction_of_total_routes_to_optimized_bootstrap() -> None:
+    tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "query": "> 90 doy_per",
+            "doy_window_width": 1,
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="fraction_of_total",
+        climate_vars=[climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert (
+        decision.family
+        == BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_VALUE_AGGREGATE
+    )
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
 
 
 def test_generic_spell_routes_to_reference_bootstrap() -> None:
