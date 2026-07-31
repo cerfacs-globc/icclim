@@ -154,6 +154,9 @@ def _workload_notes(workload: str) -> str:
         "generic_tas_sum_bootstrap_yearly": (
             "unfiltered value aggregate; optimized sum candidate"
         ),
+        "generic_tas_average_bootstrap_yearly": (
+            "unfiltered value aggregate; optimized average candidate"
+        ),
         "generic_tas_spell_bootstrap_yearly": (
             "spell reducer; raw v7.1.7 differs from current and master"
         ),

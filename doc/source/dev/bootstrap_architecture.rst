@@ -271,20 +271,24 @@ useful intermediate step because it makes the scientific boundary
 visible in code before more bootstrap families reuse the same threshold
 generation semantics.
 
-As of Friday, July 31, 2026, two non-count consumers of this shared
+As of Friday, July 31, 2026, three non-count consumers of this shared
 threshold generation layer are validated on Kraken real data:
 
 - ``fraction_of_total`` for unfiltered day-of-year percentile bootstrap;
 - generic ``sum`` for unfiltered day-of-year percentile bootstrap.
+- ``average`` for unfiltered day-of-year percentile bootstrap.
 
-Those two reducers are exact against the trusted baselines on real data.
+Those reducers are exact against the trusted baselines on real data.
 They currently define the validated optimized value-aggregate boundary.
 
 The same validation round also showed that ``average`` cannot be
 derived naively from ``optimized_sum / optimized_count``. A first
-dedicated mean kernel also remained non-identical on Kraken, so
-``average`` stays on the reference bootstrap implementation until its
-substitute-year semantics are matched exactly.
+dedicated mean kernel also remained non-identical on Kraken. The
+validated optimized implementation instead uses:
+
+- optimized union exceedance sums;
+- optimized union exceedance-day counts;
+- final output casting aligned with the trusted baseline dtype.
 
 Daily exceedance mask construction
 ----------------------------------

@@ -450,7 +450,7 @@ def _uses_specialized_value_aggregate_routing(
     date_event: bool,
     inventory: BootstrapThresholdInventory,
 ) -> bool:
-    if indicator_name not in {"fraction_of_total", "sum"}:
+    if indicator_name not in {"average", "fraction_of_total", "sum"}:
         return False
     if reducer_kind != BootstrapReducerKind.VALUE_AGGREGATE:
         return False

@@ -682,6 +682,33 @@ def average(
     >>> round(float(result.average.isel(time=0).values), 2)
     20.0
     """
+    bootstrap_capability = _note_generic_bootstrap_capability(
+        indicator_name="average",
+        climate_vars=climate_vars,
+        resample_freq=resample_freq,
+    )
+    study, threshold = get_single_var(climate_vars)
+    if (
+        threshold is not None
+        and bootstrap_capability.uses_optimized_bootstrap
+        and threshold.threshold_min_value is None
+    ):
+        optimized_sum = _compute_fast_tiled_bootstrap_exceedance_sum(
+            climate_vars[0],
+            threshold,
+            resample_freq,
+            _get_fast_bootstrap_max_cells(study),
+        )
+        optimized_count = _compute_fast_tiled_bootstrap_union_exceedance_count(
+            climate_vars[0],
+            threshold,
+            resample_freq,
+            _get_fast_bootstrap_max_cells(study),
+        )
+        if optimized_sum is not None and optimized_count is not None:
+            return (optimized_sum / optimized_count.where(optimized_count != 0)).astype(
+                study.dtype,
+            )
     return _run_simple_reducer(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
@@ -1545,6 +1572,25 @@ def _compute_fast_tiled_bootstrap_exceedance_sum(
     return _compute_fast_tiled_bootstrap_reducer(
         climate_var,
         reducer=compute_doy_percentile_bootstrap_exceedance_sum,
+        threshold=threshold,
+        resample_freq=resample_freq,
+        max_cells=max_cells,
+    )
+
+
+def _compute_fast_tiled_bootstrap_union_exceedance_count(
+    climate_var: ClimateVariable,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+    max_cells: int,
+) -> DataArray | None:
+    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_union_exceedance_count,
+    )
+
+    return _compute_fast_tiled_bootstrap_reducer(
+        climate_var,
+        reducer=compute_doy_percentile_bootstrap_union_exceedance_count,
         threshold=threshold,
         resample_freq=resample_freq,
         max_cells=max_cells,
