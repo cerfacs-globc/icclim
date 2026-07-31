@@ -479,21 +479,14 @@ def fraction_of_total(
         bootstrap_capability.uses_optimized_bootstrap
         and threshold.threshold_min_value is None
     ):
-        optimized_over = _compute_fast_tiled_bootstrap_exceedance_sum(
+        optimized_fraction = _compute_fast_tiled_bootstrap_fraction_of_total(
             climate_vars[0],
             threshold,
             resample_freq,
             _get_fast_bootstrap_max_cells(study),
         )
-        if optimized_over is not None:
-            total = (
-                study.resample(time=resample_freq.pandas_freq).sum(dim="time").load()
-            )
-            res = optimized_over / total
-            if REFERENCE_PERIOD_ID in optimized_over.attrs:
-                res.attrs[REFERENCE_PERIOD_ID] = optimized_over.attrs[
-                    REFERENCE_PERIOD_ID
-                ]
+        if optimized_fraction is not None:
+            res = optimized_fraction
             if to_percent:
                 res = res * 100
                 res.attrs[UNITS_KEY] = "%"
@@ -693,22 +686,14 @@ def average(
         and bootstrap_capability.uses_optimized_bootstrap
         and threshold.threshold_min_value is None
     ):
-        optimized_sum = _compute_fast_tiled_bootstrap_exceedance_sum(
+        optimized_average = _compute_fast_tiled_bootstrap_exceedance_average(
             climate_vars[0],
             threshold,
             resample_freq,
             _get_fast_bootstrap_max_cells(study),
         )
-        optimized_count = _compute_fast_tiled_bootstrap_union_exceedance_count(
-            climate_vars[0],
-            threshold,
-            resample_freq,
-            _get_fast_bootstrap_max_cells(study),
-        )
-        if optimized_sum is not None and optimized_count is not None:
-            return (optimized_sum / optimized_count.where(optimized_count != 0)).astype(
-                study.dtype,
-            )
+        if optimized_average is not None:
+            return optimized_average
     return _run_simple_reducer(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
@@ -1578,19 +1563,38 @@ def _compute_fast_tiled_bootstrap_exceedance_sum(
     )
 
 
-def _compute_fast_tiled_bootstrap_union_exceedance_count(
+def _compute_fast_tiled_bootstrap_exceedance_average(
     climate_var: ClimateVariable,
     threshold: PercentileThreshold,
     resample_freq: Frequency,
     max_cells: int,
 ) -> DataArray | None:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
-        compute_doy_percentile_bootstrap_union_exceedance_count,
+        compute_doy_percentile_bootstrap_exceedance_average,
     )
 
     return _compute_fast_tiled_bootstrap_reducer(
         climate_var,
-        reducer=compute_doy_percentile_bootstrap_union_exceedance_count,
+        reducer=compute_doy_percentile_bootstrap_exceedance_average,
+        threshold=threshold,
+        resample_freq=resample_freq,
+        max_cells=max_cells,
+    )
+
+
+def _compute_fast_tiled_bootstrap_fraction_of_total(
+    climate_var: ClimateVariable,
+    threshold: PercentileThreshold,
+    resample_freq: Frequency,
+    max_cells: int,
+) -> DataArray | None:
+    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_fraction_of_total,
+    )
+
+    return _compute_fast_tiled_bootstrap_reducer(
+        climate_var,
+        reducer=compute_doy_percentile_bootstrap_fraction_of_total,
         threshold=threshold,
         resample_freq=resample_freq,
         max_cells=max_cells,
