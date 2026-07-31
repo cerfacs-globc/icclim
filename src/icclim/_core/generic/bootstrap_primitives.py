@@ -136,6 +136,8 @@ def build_bootstrap_reference_sample(
 
 def build_bootstrap_array_inputs(
     reference_sample: BootstrapReferenceSample,
+    *,
+    dtype: np.dtype = np.float64,
 ) -> BootstrapArrayInputs:
     """Build flattened arrays consumed by optimized bootstrap kernels."""
     study = reference_sample.study.transpose("time", ...)
@@ -144,17 +146,17 @@ def build_bootstrap_array_inputs(
         "time", ...
     )
     return BootstrapArrayInputs(
-        flat_study=np.asarray(study.data, dtype=np.float64).reshape(
+        flat_study=np.asarray(study.data, dtype=dtype).reshape(
             study.sizes["time"],
             -1,
         ),
-        flat_reference_raw=np.asarray(reference_raw.data, dtype=np.float64).reshape(
+        flat_reference_raw=np.asarray(reference_raw.data, dtype=dtype).reshape(
             reference_raw.sizes["time"],
             -1,
         ),
         flat_reference_filtered=np.asarray(
             reference_filtered.data,
-            dtype=np.float64,
+            dtype=dtype,
         ).reshape(
             reference_filtered.sizes["time"],
             -1,

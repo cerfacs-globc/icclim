@@ -1440,6 +1440,43 @@ class TestIntegration:
             reference.fraction_of_total,
         )
 
+    def test_fraction_of_total__optimized_bootstrap_matches_reference_on_overlap_years(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=27 + K2C, lat_length=1, lon_length=1).rename("tas")
+        tas.loc[{"time": slice("2042-01-01", "2042-12-31")}] = 26 + K2C
+        tas.loc[{"time": slice("2043-01-01", "2043-12-31")}] = 30 + K2C
+        tas.loc[{"time": "2042-07-15"}] = 28 + K2C
+        tas.loc[{"time": "2043-07-15"}] = 28 + K2C
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": tas,
+            "var_name": "tas",
+            "index_name": "fraction_of_total",
+            "threshold": build_threshold(
+                "> 90 doy_per",
+                doy_window_width=1,
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+        reference = icclim.index(**common_kwargs).compute()
+        monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+
+        optimized = icclim.index(**common_kwargs).compute()
+
+        xr.testing.assert_allclose(
+            optimized.fraction_of_total,
+            reference.fraction_of_total,
+        )
+
     def test_std(self) -> None:
         tas = stub_tas(tas_value=25 + K2C).rename("tas")
         res = icclim.index(

@@ -43,7 +43,7 @@ def compute_doy_percentile_bootstrap_count(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample)
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
     result = _bootstrap_count_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -96,7 +96,7 @@ def compute_doy_percentile_bootstrap_exceedance_sum(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample)
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
     result = _bootstrap_sum_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -129,6 +129,7 @@ def compute_doy_percentile_bootstrap_exceedance_sum(
         spatial_shape=array_inputs.spatial_shape,
         units=reference_sample.study.attrs.get("units", ""),
     )
+    out = out.astype(reference_sample.study.dtype)
     out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
     del out.attrs["climatology_bounds"]
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
@@ -301,20 +302,22 @@ if njit is not None:
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
             if target_ref_i < 0:
-                thresholds = _build_bootstrap_threshold_series_for_cell(
-                    flat_ref_masked,
-                    sample_indices,
-                    index_year,
-                    index_pos,
-                    substitute_aligned,
-                    -1,
-                    -1,
-                    cell,
-                    max_samples,
-                    quantile,
-                    alpha,
-                    beta,
-                    min_threshold,
+                thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                    _build_bootstrap_threshold_series_for_cell(
+                        flat_ref_masked,
+                        sample_indices,
+                        index_year,
+                        index_pos,
+                        substitute_aligned,
+                        -1,
+                        -1,
+                        cell,
+                        max_samples,
+                        quantile,
+                        alpha,
+                        beta,
+                        min_threshold,
+                    )
                 )
                 _write_sum_groups_for_cell(
                     out,
@@ -330,47 +333,44 @@ if njit is not None:
                     op_code,
                 )
             else:
-                for group_i in range(group_start, group_stop):
-                    out[group_i, cell] = 0.0
-                substitute_count = 0
+                union_thresholds = _initialize_union_threshold_series(op_code)
                 for substitute_i in range(n_ref_years):
                     if substitute_i == target_ref_i:
                         continue
-                    thresholds = _build_bootstrap_threshold_series_for_cell(
-                        flat_ref_raw,
-                        sample_indices,
-                        index_year,
-                        index_pos,
-                        substitute_aligned,
-                        target_ref_i,
-                        substitute_i,
-                        cell,
-                        max_samples,
-                        quantile,
-                        alpha,
-                        beta,
-                        min_threshold,
+                    thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                        _build_bootstrap_threshold_series_for_cell(
+                            flat_ref_raw,
+                            sample_indices,
+                            index_year,
+                            index_pos,
+                            substitute_aligned,
+                            target_ref_i,
+                            substitute_i,
+                            cell,
+                            max_samples,
+                            quantile,
+                            alpha,
+                            beta,
+                            min_threshold,
+                        )
                     )
-                    _accumulate_sum_groups_for_cell(
-                        out,
-                        flat_study,
+                    _update_union_threshold_series(
+                        union_thresholds,
                         thresholds,
-                        study_doys,
-                        study_starts,
-                        study_lengths,
-                        group_start,
-                        group_stop,
-                        cell,
-                        year_max_doys[year_i],
                         op_code,
                     )
-                    substitute_count += 1
-                _average_count_groups_for_cell(
+                _write_sum_groups_for_cell(
                     out,
+                    flat_study,
+                    union_thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
                     group_start,
                     group_stop,
                     cell,
-                    substitute_count,
+                    year_max_doys[year_i],
+                    op_code,
                 )
         return out
 
@@ -534,14 +534,46 @@ if njit is not None:
         max_target_doy,
         op_code,
     ):
-        total = 0.0
+        total = np.float32(0.0)
         for offset in range(length):
             doy = study_doys[start + offset]
             threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
             value = flat_study[start + offset, cell]
             if _compare(value, threshold, op_code):
-                total += value
-        return total
+                total = np.float32(total + np.float32(value))
+        return float(total)
+
+    @njit(cache=True)
+    def _initialize_union_threshold_series(op_code):
+        if op_code in (0, 1):
+            return np.full(
+                NON_LEAP_YEAR_DAY_COUNT, np.float32(np.inf), dtype=np.float32
+            )
+        return np.full(
+            NON_LEAP_YEAR_DAY_COUNT,
+            np.float32(-np.inf),
+            dtype=np.float32,
+        )
+
+    @njit(cache=True)
+    def _build_float32_bootstrap_threshold_series_for_cell(thresholds):
+        converted = np.empty(NON_LEAP_YEAR_DAY_COUNT, dtype=np.float32)
+        for day_i in range(NON_LEAP_YEAR_DAY_COUNT):
+            converted[day_i] = np.float32(thresholds[day_i])
+        return converted
+
+    @njit(cache=True)
+    def _update_union_threshold_series(union_thresholds, thresholds, op_code):
+        for day_i in range(NON_LEAP_YEAR_DAY_COUNT):
+            threshold_value = thresholds[day_i]
+            if np.isnan(threshold_value):
+                continue
+            current_value = union_thresholds[day_i]
+            if op_code in (0, 1):
+                if threshold_value < current_value:
+                    union_thresholds[day_i] = threshold_value
+            elif threshold_value > current_value:
+                union_thresholds[day_i] = threshold_value
 
     @njit(cache=True)
     def _write_count_groups_for_cell(
