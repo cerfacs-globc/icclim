@@ -288,11 +288,11 @@ def test_bounded_threshold_bootstrap_routes_to_reference_path() -> None:
     )
 
     assert decision.family == BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COMPOUND
-    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
-    assert decision.reason_code == "optimized_compound_bootstrap_supported"
+    assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
+    assert decision.reason_code == "bounded_threshold_uses_reference_bootstrap_path"
 
 
-def test_multi_variable_percentile_count_is_classified_as_compound() -> None:
+def test_multi_variable_percentile_count_routes_to_exact_tiled_compound_path() -> None:
     tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
     pr = stub_tas(5.0).rename("pr")
     pr.attrs["units"] = "mm/day"
@@ -323,7 +323,10 @@ def test_multi_variable_percentile_count_is_classified_as_compound() -> None:
         resample_frequency=FrequencyRegistry.YEAR,
     )
 
-    assert decision.family == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COMPOUND
+    assert (
+        decision.family
+        == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COMPOUND
+    )
     assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
     assert decision.reason_code == "compound_leaf_requires_exact_tiled_bootstrap"
 

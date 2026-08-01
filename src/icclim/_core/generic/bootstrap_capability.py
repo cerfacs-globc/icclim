@@ -594,6 +594,8 @@ def _uses_specialized_compound_count_routing(
 ) -> bool:
     if reducer_kind != BootstrapReducerKind.COUNT or date_event:
         return False
+    if len(climate_vars) <= 1:
+        return False
     return inventory.bootstrap_required and (
         inventory.has_bounded_threshold or inventory.threshold_count > 1
     )
@@ -606,7 +608,9 @@ def _reference_bootstrap_reason_code(
     date_event: bool,
     inventory: BootstrapThresholdInventory,
 ) -> str:
-    if inventory.has_bounded_threshold or inventory.threshold_count > 1:
+    if inventory.has_bounded_threshold:
+        return "bounded_threshold_uses_reference_bootstrap_path"
+    if inventory.threshold_count > 1:
         return "compound_bootstrap_uses_reference_bootstrap_path"
     if len(climate_vars) > 1:
         return "multiple_climate_variables_use_reference_bootstrap_path"
