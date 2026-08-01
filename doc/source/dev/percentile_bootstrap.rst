@@ -65,6 +65,12 @@ most useful future extensions are likely:
   percentile spell reducers such as ``sum_of_spell_lengths`` now use an
   optimized compiled union-mask path after Kraken validation against
   ``master``. More complex spell cases still fall back.
+- compound percentile counts beyond the currently validated split. As of
+  Saturday, August 1, 2026, multi-variable compound counts such as
+  ``CD`` can reuse bootstrap leaf masks and stay field-identical to the
+  fresh ``master`` baseline on Kraken real data. Single-variable bounded
+  thresholds still stay on the reference bootstrap path because the
+  leaf-mask route was exact but slower there.
 
 For future spell/run-length optimization work, the likely direction is a
 two-stage design:
