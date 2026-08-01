@@ -35,10 +35,17 @@ def _parse_summary_file(path: Path) -> RunSummary:
     )
 
 
+def _remove_suffix(text: str, suffix: str) -> str:
+    if text.endswith(suffix):
+        return text[: -len(suffix)]
+    return text
+
+
 def _parse_compare_file(path: Path) -> ComparisonSummary:
     payload = json.loads(path.read_text())
-    filename = path.name.removesuffix(".compare.json")
+    filename = _remove_suffix(path.name, ".compare.json")
     current_prefix = "current-vs-"
+    current_debug_prefix = "current-debug-vs-"
     if filename.startswith(current_prefix):
         remainder = filename.removeprefix(current_prefix)
         if remainder.startswith("master-bounded-hotfix-"):
@@ -60,6 +67,15 @@ def _parse_compare_file(path: Path) -> ComparisonSummary:
             msg = f"Unsupported compare filename: {path.name}"
             raise ValueError(msg)
         current_label = "current"
+    elif filename.startswith(current_debug_prefix):
+        remainder = filename.removeprefix(current_debug_prefix)
+        if remainder.startswith("master-debug-"):
+            baseline_label = "master-debug"
+            workload = remainder.removeprefix("master-debug-")
+        else:
+            msg = f"Unsupported compare filename: {path.name}"
+            raise ValueError(msg)
+        current_label = "current-debug"
     elif filename.startswith("master-vs-v717-"):
         current_label = "master"
         baseline_label = "v717"
@@ -174,6 +190,10 @@ def _workload_notes(workload: str) -> str:
         ),
         "wsdi_yearly": "standard warm-spell duration index",
         "generic_tas_count_date_event_monthly": "date_event count control path",
+        "combined_cd_yearly": (
+            "compound tas+pr count; combines specialized leaf masks through"
+            " logical-link composition"
+        ),
     }
     return notes.get(workload, "")
 

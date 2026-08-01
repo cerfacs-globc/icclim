@@ -292,6 +292,45 @@ def test_bounded_threshold_bootstrap_routes_to_reference_path() -> None:
     assert decision.reason_code == "bounded_threshold_uses_reference_bootstrap_path"
 
 
+def test_multi_variable_percentile_count_routes_to_exact_tiled_compound_path() -> None:
+    tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+    pr = stub_tas(5.0).rename("pr")
+    pr.attrs["units"] = "mm/day"
+    pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
+    tas_climate_var = _build_climate_variable(
+        tas,
+        {
+            "query": "> 90 doy_per",
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+    pr_climate_var = ClimateVariable(
+        name="pr",
+        standard_var=StandardVariableRegistry.PR,
+        studied_data=pr,
+        threshold=build_threshold(
+            "> 90 doy_per",
+            threshold_min_value="1 mm/day",
+            reference_period=("2042-01-01", "2043-12-31"),
+        ),
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="count_occurrences",
+        climate_vars=[tas_climate_var, pr_climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert (
+        decision.family
+        == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COMPOUND
+    )
+    assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
+    assert decision.reason_code == "compound_leaf_requires_exact_tiled_bootstrap"
+
+
 def test_bounded_threshold_recursively_requires_bootstrap() -> None:
     tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
     threshold = build_threshold(
