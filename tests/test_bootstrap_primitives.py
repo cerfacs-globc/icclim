@@ -5,7 +5,6 @@ import pandas as pd
 import xarray as xr
 
 from icclim._core.generic.bootstrap_primitives import (
-    PREFERRED_BOOTSTRAP_CHUNKS,
     build_bootstrap_array_inputs,
     build_bootstrap_output,
     build_bootstrap_reference_sample,
@@ -118,24 +117,3 @@ def test_build_bootstrap_output_rebuilds_coordinates_and_attrs() -> None:
     assert output.shape == (5, 2, 1)
     assert output.attrs["units"] == "d"
     assert output.attrs["climatology_bounds"] == ["2042-01-01", "2046-12-31"]
-
-
-def test_build_bootstrap_reference_sample_rechunks_dask_inputs() -> None:
-    tas = stub_tas(27.0, lat_length=30, lon_length=40).chunk(
-        {"time": 730, "lat": 7, "lon": 9}
-    )
-    threshold = build_threshold("> 90 doy_per")
-
-    reference_sample = build_bootstrap_reference_sample(tas, threshold)
-
-    assert reference_sample.study.chunks is None
-    dask_view = tas.chunk(
-        {
-            "time": PREFERRED_BOOTSTRAP_CHUNKS["time"],
-            "lat": PREFERRED_BOOTSTRAP_CHUNKS["lat"],
-            "lon": PREFERRED_BOOTSTRAP_CHUNKS["lon"],
-        }
-    )
-    assert dask_view.chunks[0][0] == PREFERRED_BOOTSTRAP_CHUNKS["time"]
-    assert dask_view.chunks[1][0] == PREFERRED_BOOTSTRAP_CHUNKS["lat"]
-    assert dask_view.chunks[2][0] == PREFERRED_BOOTSTRAP_CHUNKS["lon"]

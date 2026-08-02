@@ -22,11 +22,6 @@ if TYPE_CHECKING:
 
 
 LEAP_YEAR_DAY_COUNT = 366
-PREFERRED_BOOTSTRAP_CHUNKS = {
-    "time": 365,
-    "lat": 24,
-    "lon": 32,
-}
 
 
 @dataclass(frozen=True)
@@ -128,7 +123,7 @@ def build_bootstrap_reference_sample(
     threshold: PercentileThreshold,
 ) -> BootstrapReferenceSample:
     """Load and prepare the reference-period sample for bootstrap."""
-    loaded_study = _normalize_bootstrap_chunks(study).load()
+    loaded_study = study.load()
     climatology_bounds = threshold.climatology_bounds(loaded_study)
     reference_sample = loaded_study.sel(time=slice(*climatology_bounds))
     threshold_floor = _threshold_min_value_in_reference_units(
@@ -148,32 +143,6 @@ def build_bootstrap_reference_sample(
         filtered_reference_sample=filtered_reference_sample,
         threshold_floor_in_reference_units=threshold_floor,
     )
-
-
-def _normalize_bootstrap_chunks(study: DataArray) -> DataArray:
-    """Rechunk dask-backed study data to a stable bootstrap-friendly layout."""
-    if not hasattr(study.data, "chunks"):
-        return study
-    rechunk_spec = {
-        dim: min(size, PREFERRED_BOOTSTRAP_CHUNKS[dim])
-        for dim, size in study.sizes.items()
-        if dim in PREFERRED_BOOTSTRAP_CHUNKS
-    }
-    if not rechunk_spec:
-        return study
-    current_chunks = {
-        dim: tuple(chunks)
-        for dim, chunks in zip(study.dims, study.chunks, strict=False)
-    }
-    target_chunks = {
-        dim: chunk_size
-        for dim, chunk_size in rechunk_spec.items()
-        if current_chunks.get(dim) != (chunk_size,) * (study.sizes[dim] // chunk_size)
-        or study.sizes[dim] % chunk_size != 0
-    }
-    if not target_chunks:
-        return study
-    return study.chunk(target_chunks)
 
 
 def build_bootstrap_array_inputs(
