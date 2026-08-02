@@ -176,6 +176,22 @@ def _workload_notes(workload: str) -> str:
             "bounded scalar-guard fraction_of_total; dedicated compiled path"
             " validated on Kraken real data"
         ),
+        "generic_tas_bounded_or_count_yearly": (
+            "bounded scalar-guard count with OR composition; dedicated compiled"
+            " path validated on Kraken real data"
+        ),
+        "generic_tas_bounded_or_average_yearly": (
+            "bounded scalar-guard average with OR composition; dedicated"
+            " compiled path validated on Kraken real data"
+        ),
+        "generic_tas_bounded_or_sum_yearly": (
+            "bounded scalar-guard sum with OR composition; dedicated compiled"
+            " path validated on Kraken real data"
+        ),
+        "generic_tas_bounded_or_fraction_yearly": (
+            "bounded scalar-guard fraction_of_total with OR composition;"
+            " dedicated compiled path validated on Kraken real data"
+        ),
         "generic_pr_fraction_bootstrap_yearly": (
             "filtered value aggregate; wet-day style threshold_min_value"
         ),

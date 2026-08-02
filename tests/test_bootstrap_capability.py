@@ -314,6 +314,28 @@ def test_bounded_value_aggregate_bootstrap_routes_to_optimized_path() -> None:
     assert decision.reason_code == "optimized_scalar_bounded_bootstrap_supported"
 
 
+def test_bounded_or_count_bootstrap_routes_to_optimized_path() -> None:
+    tas = stub_tas(32 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "thresholds": ["> 90 doy_per", "<= 10 degC"],
+            "logical_link": "or",
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="count_occurrences",
+        climate_vars=[climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert decision.family == BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COMPOUND
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_scalar_bounded_bootstrap_supported"
+
+
 def test_multi_variable_percentile_count_routes_to_exact_tiled_compound_path() -> None:
     tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
     pr = stub_tas(5.0).rename("pr")

@@ -134,7 +134,8 @@ practical cases:
   the best available leaf path for each variable before applying the
   logical link;
 - single-variable bounded scalar guards such as
-  ``> 90 doy_per AND <= 30 degC`` now use a dedicated compiled path for
+  ``> 90 doy_per AND <= 30 degC`` or
+  ``> 90 doy_per OR <= 10 degC`` now use a dedicated compiled path for
   ``count_occurrences``, ``average``, ``sum`` and
   ``fraction_of_total``. Kraken real-data validation against a trusted
   ``master`` baseline was exact and faster for all four reducers.
@@ -205,7 +206,7 @@ generic indicator families:
 - spell reducers such as ``sum_of_spell_lengths``;
 - multi-variable compound counts that can combine bootstrap leaf masks;
 - bounded single-variable percentile compositions with one day-of-year
-  percentile leaf and one scalar guard joined by ``AND``.
+  percentile leaf and one scalar guard joined by ``AND`` or ``OR``.
 
 Reusable bootstrap primitives
 =============================

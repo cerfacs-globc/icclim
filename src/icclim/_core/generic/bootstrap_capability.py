@@ -26,6 +26,7 @@ from icclim._core.model.operator import Operator
 if TYPE_CHECKING:
     from xarray import DataArray
 
+    from icclim._core.model.logical_link import LogicalLink
     from icclim._core.model.threshold import Threshold
     from icclim.frequency import Frequency
 
@@ -928,10 +929,10 @@ def supports_optimized_scalar_bounded_percentile_bootstrap(
 def get_optimized_scalar_bounded_percentile_leaf(
     threshold_spec: Threshold | None,
 ) -> PercentileThreshold | None:
-    leaves = _extract_scalar_bounded_threshold_leaves(threshold_spec)
-    if leaves is None:
+    scalar_bounded_spec = get_optimized_scalar_bounded_bootstrap_spec(threshold_spec)
+    if scalar_bounded_spec is None:
         return None
-    percentile_threshold, _ = leaves
+    percentile_threshold, _, _ = scalar_bounded_spec
     if not percentile_threshold.is_doy_per_threshold:
         return None
     if percentile_threshold.threshold_min_value is not None:
@@ -939,12 +940,29 @@ def get_optimized_scalar_bounded_percentile_leaf(
     return percentile_threshold
 
 
+def get_optimized_scalar_bounded_bootstrap_spec(
+    threshold_spec: Threshold | None,
+) -> tuple[PercentileThreshold, BasicThreshold, LogicalLink] | None:
+    scalar_bounded_spec = _extract_scalar_bounded_threshold_leaves(threshold_spec)
+    if scalar_bounded_spec is None:
+        return None
+    percentile_threshold, _, _ = scalar_bounded_spec
+    if not percentile_threshold.is_doy_per_threshold:
+        return None
+    if percentile_threshold.threshold_min_value is not None:
+        return None
+    return scalar_bounded_spec
+
+
 def _extract_scalar_bounded_threshold_leaves(
     threshold_spec: Threshold | None,
-) -> tuple[PercentileThreshold, BasicThreshold] | None:
+) -> tuple[PercentileThreshold, BasicThreshold, LogicalLink] | None:
     if not isinstance(threshold_spec, BoundedThreshold):
         return None
-    if threshold_spec.logical_link != LogicalLinkRegistry.LOGICAL_AND:
+    if threshold_spec.logical_link not in (
+        LogicalLinkRegistry.LOGICAL_AND,
+        LogicalLinkRegistry.LOGICAL_OR,
+    ):
         return None
     left_threshold = threshold_spec.left_threshold
     right_threshold = threshold_spec.right_threshold
@@ -964,7 +982,7 @@ def _extract_scalar_bounded_threshold_leaves(
         return None
     if _operator_code(basic_threshold.operator) < 0:
         return None
-    return percentile_threshold, basic_threshold
+    return percentile_threshold, basic_threshold, threshold_spec.logical_link
 
 
 def _count_bootstrap_not_required_reason(

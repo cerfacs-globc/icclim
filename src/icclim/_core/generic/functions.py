@@ -54,7 +54,7 @@ from icclim._core.generic.bootstrap_capability import (
     classify_doy_percentile_count_bootstrap,
     classify_doy_percentile_spell_bootstrap,
     classify_generic_indicator_bootstrap,
-    get_optimized_scalar_bounded_percentile_leaf,
+    get_optimized_scalar_bounded_bootstrap_spec,
 )
 from icclim._core.input_parsing import PercentileDataArray
 from icclim._core.model.cf_calendar import CfCalendarRegistry
@@ -86,27 +86,32 @@ _BOOTSTRAP_FAST_MEMORY_FACTOR = 4
 
 def _get_scalar_bounded_bootstrap_spec(
     threshold: Threshold | None,
-) -> tuple[PercentileThreshold, float, int] | None:
-    from icclim._core.generic.threshold.basic import BasicThreshold  # noqa: PLC0415
-    from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
-
-    percentile_threshold = get_optimized_scalar_bounded_percentile_leaf(threshold)
-    if percentile_threshold is None or not isinstance(threshold, BoundedThreshold):
+) -> tuple[PercentileThreshold, float, int, int] | None:
+    scalar_bounded_spec = get_optimized_scalar_bounded_bootstrap_spec(threshold)
+    if scalar_bounded_spec is None:
         return None
-    basic_threshold = threshold.right_threshold
-    if not isinstance(basic_threshold, BasicThreshold):
-        basic_threshold = threshold.left_threshold
-    if not isinstance(basic_threshold, BasicThreshold) or basic_threshold.value is None:
-        return None
+    percentile_threshold, basic_threshold, logical_link = scalar_bounded_spec
     operator_code = _bootstrap_operator_code(basic_threshold.operator)
     if operator_code < 0:
         return None
-    return percentile_threshold, float(basic_threshold.value.item()), operator_code
+    logical_link_code = _bootstrap_logical_link_code(logical_link.name)
+    if logical_link_code < 0:
+        return None
+    return (
+        percentile_threshold,
+        float(basic_threshold.value.item()),
+        operator_code,
+        logical_link_code,
+    )
 
 
 def _bootstrap_operator_code(operator: Operator | str) -> int:
     operand = operator.operand if isinstance(operator, Operator) else str(operator)
     return {">": 0, ">=": 1, "<": 2, "<=": 3}.get(operand, -1)
+
+
+def _bootstrap_logical_link_code(logical_link: str) -> int:
+    return {"and": 0, "or": 1}.get(logical_link.lower(), -1)
 
 
 def reset_bootstrap_profile() -> None:
@@ -196,7 +201,12 @@ def count_occurrences(
         study, threshold = get_single_var(climate_vars)
         bounded_spec = _get_scalar_bounded_bootstrap_spec(threshold)
         if bounded_spec is not None:
-            percentile_threshold, scalar_bound, scalar_op_code = bounded_spec
+            (
+                percentile_threshold,
+                scalar_bound,
+                scalar_op_code,
+                logical_link_code,
+            ) = bounded_spec
             optimized_bounded_count = (
                 _compute_fast_tiled_scalar_bounded_bootstrap_count(
                     climate_vars[0],
@@ -204,6 +214,7 @@ def count_occurrences(
                     resample_freq,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                     _get_fast_bootstrap_max_cells(study),
                 )
             )
@@ -792,7 +803,12 @@ def average(
         and bounded_spec is not None
         and bootstrap_capability.uses_optimized_bootstrap
     ):
-        percentile_threshold, scalar_bound, scalar_op_code = bounded_spec
+        (
+            percentile_threshold,
+            scalar_bound,
+            scalar_op_code,
+            logical_link_code,
+        ) = bounded_spec
         optimized_average = (
             _compute_fast_tiled_scalar_bounded_bootstrap_exceedance_average(
                 climate_vars[0],
@@ -800,6 +816,7 @@ def average(
                 resample_freq,
                 scalar_bound,
                 scalar_op_code,
+                logical_link_code,
                 _get_fast_bootstrap_max_cells(study),
             )
         )
@@ -884,13 +901,19 @@ def generic_sum(
         and bootstrap_capability.uses_optimized_bootstrap
         and not _is_rate(study)
     ):
-        percentile_threshold, scalar_bound, scalar_op_code = bounded_spec
+        (
+            percentile_threshold,
+            scalar_bound,
+            scalar_op_code,
+            logical_link_code,
+        ) = bounded_spec
         optimized_sum = _compute_fast_tiled_scalar_bounded_bootstrap_exceedance_sum(
             climate_vars[0],
             percentile_threshold,
             resample_freq,
             scalar_bound,
             scalar_op_code,
+            logical_link_code,
             _get_fast_bootstrap_max_cells(study),
         )
         if optimized_sum is not None:
@@ -930,13 +953,19 @@ def _compute_optimized_fraction_of_total(
         return None
     bounded_spec = _get_scalar_bounded_bootstrap_spec(threshold)
     if bounded_spec is not None:
-        percentile_threshold, scalar_bound, scalar_op_code = bounded_spec
+        (
+            percentile_threshold,
+            scalar_bound,
+            scalar_op_code,
+            logical_link_code,
+        ) = bounded_spec
         return _compute_fast_tiled_scalar_bounded_bootstrap_fraction_of_total(
             climate_var,
             percentile_threshold,
             resample_freq,
             scalar_bound,
             scalar_op_code,
+            logical_link_code,
             _get_fast_bootstrap_max_cells(study),
         )
     from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
@@ -1763,6 +1792,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_count(
     resample_freq: Frequency,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
     max_cells: int,
 ) -> DataArray | None:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
@@ -1776,6 +1806,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_count(
         resample_freq=resample_freq,
         scalar_bound=scalar_bound,
         scalar_op_code=scalar_op_code,
+        logical_link_code=logical_link_code,
         max_cells=max_cells,
     )
 
@@ -1805,6 +1836,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_exceedance_average(
     resample_freq: Frequency,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
     max_cells: int,
 ) -> DataArray | None:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
@@ -1818,6 +1850,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_exceedance_average(
         resample_freq=resample_freq,
         scalar_bound=scalar_bound,
         scalar_op_code=scalar_op_code,
+        logical_link_code=logical_link_code,
         max_cells=max_cells,
     )
 
@@ -1847,6 +1880,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_exceedance_sum(
     resample_freq: Frequency,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
     max_cells: int,
 ) -> DataArray | None:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
@@ -1860,6 +1894,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_exceedance_sum(
         resample_freq=resample_freq,
         scalar_bound=scalar_bound,
         scalar_op_code=scalar_op_code,
+        logical_link_code=logical_link_code,
         max_cells=max_cells,
     )
 
@@ -1870,6 +1905,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_fraction_of_total(
     resample_freq: Frequency,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
     max_cells: int,
 ) -> DataArray | None:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
@@ -1883,6 +1919,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_fraction_of_total(
         resample_freq=resample_freq,
         scalar_bound=scalar_bound,
         scalar_op_code=scalar_op_code,
+        logical_link_code=logical_link_code,
         max_cells=max_cells,
     )
 
@@ -1926,12 +1963,13 @@ def _compute_fast_tiled_bootstrap_reducer(
 def _compute_fast_tiled_scalar_bounded_bootstrap_reducer(
     climate_var: ClimateVariable,
     reducer: Callable[
-        [DataArray, PercentileThreshold, str, float, int], DataArray | None
+        [DataArray, PercentileThreshold, str, float, int, int], DataArray | None
     ],
     threshold: PercentileThreshold,
     resample_freq: Frequency,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
     max_cells: int,
 ) -> DataArray | None:
     optimized_start = perf_counter()
@@ -1945,6 +1983,7 @@ def _compute_fast_tiled_scalar_bounded_bootstrap_reducer(
             resample_freq.pandas_freq,
             scalar_bound,
             scalar_op_code,
+            logical_link_code,
         )
         if tile_result is None:
             return None
