@@ -208,6 +208,14 @@ def _workload_notes(workload: str) -> str:
             "same-variable compound percentile fraction_of_total; composed"
             " from bootstrap leaf masks on Kraken real data"
         ),
+        "generic_tas_compound_percentile_or_count_yearly": (
+            "same-variable compound percentile OR count; composed from"
+            " bootstrap leaf masks on Kraken real data"
+        ),
+        "generic_tas_compound_percentile_or_fraction_yearly": (
+            "same-variable compound percentile OR fraction_of_total;"
+            " composed from bootstrap leaf masks on Kraken real data"
+        ),
         "generic_pr_fraction_bootstrap_yearly": (
             "filtered value aggregate; wet-day style threshold_min_value"
         ),
