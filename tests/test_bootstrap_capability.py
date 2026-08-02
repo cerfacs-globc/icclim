@@ -270,7 +270,7 @@ def test_generic_spell_routes_to_optimized_bootstrap() -> None:
     assert decision.reason_code == "optimized_bootstrap_supported"
 
 
-def test_bounded_threshold_bootstrap_routes_to_reference_path() -> None:
+def test_bounded_count_bootstrap_routes_to_optimized_path() -> None:
     tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
     climate_var = _build_climate_variable(
         tas,
@@ -288,8 +288,30 @@ def test_bounded_threshold_bootstrap_routes_to_reference_path() -> None:
     )
 
     assert decision.family == BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COMPOUND
-    assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
-    assert decision.reason_code == "bounded_threshold_uses_reference_bootstrap_path"
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_scalar_bounded_bootstrap_supported"
+
+
+def test_bounded_value_aggregate_bootstrap_routes_to_optimized_path() -> None:
+    tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "thresholds": ["> 90 doy_per", "<= 30 degC"],
+            "logical_link": "and",
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="average",
+        climate_vars=[climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert decision.family == BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COMPOUND
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_scalar_bounded_bootstrap_supported"
 
 
 def test_multi_variable_percentile_count_routes_to_exact_tiled_compound_path() -> None:

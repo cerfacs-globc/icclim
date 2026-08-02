@@ -127,15 +127,17 @@ Examples:
 - ``CD``, ``CW``, ``WD``, ``WW``;
 - generic multi-threshold percentile compositions.
 
-As of Saturday, August 1, 2026, compound count routing is split into two
+As of Sunday, August 2, 2026, compound count routing is split into two
 practical cases:
 
 - multi-variable compound counts can combine bootstrap leaf masks, using
   the best available leaf path for each variable before applying the
   logical link;
-- single-variable bounded thresholds still stay on the reference
-  bootstrap path because the leaf-mask route was exact but slower on
-  Kraken real-data validation.
+- single-variable bounded scalar guards such as
+  ``> 90 doy_per AND <= 30 degC`` now use a dedicated compiled path for
+  ``count_occurrences``, ``average``, ``sum`` and
+  ``fraction_of_total``. Kraken real-data validation against a trusted
+  ``master`` baseline was exact and faster for all four reducers.
 
 Non-bootstrap family
 --------------------
@@ -202,8 +204,8 @@ generic indicator families:
 - value aggregates such as ``fraction_of_total``;
 - spell reducers such as ``sum_of_spell_lengths``;
 - multi-variable compound counts that can combine bootstrap leaf masks;
-- bounded single-variable percentile compositions that currently stay on
-  the reference bootstrap path.
+- bounded single-variable percentile compositions with one day-of-year
+  percentile leaf and one scalar guard joined by ``AND``.
 
 Reusable bootstrap primitives
 =============================

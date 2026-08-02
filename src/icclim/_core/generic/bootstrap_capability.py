@@ -17,8 +17,10 @@ from typing import TYPE_CHECKING
 import pandas as pd
 
 from icclim._core.climate_variable import ClimateVariable, must_run_bootstrap
+from icclim._core.generic.threshold.basic import BasicThreshold
 from icclim._core.generic.threshold.bounded import BoundedThreshold
 from icclim._core.generic.threshold.percentile import PercentileThreshold
+from icclim._core.model.logical_link import LogicalLinkRegistry
 from icclim._core.model.operator import Operator
 
 if TYPE_CHECKING:
@@ -300,6 +302,38 @@ def classify_generic_indicator_bootstrap(
         reducer_kind=reducer_kind,
         inventory=inventory,
     )
+    specialized_capability = _classify_specialized_generic_bootstrap(
+        indicator_name=indicator_name,
+        climate_vars=climate_vars,
+        resample_frequency=resample_frequency,
+        date_event=date_event,
+        inventory=inventory,
+        reducer_kind=reducer_kind,
+        family=family,
+    )
+    if specialized_capability is not None:
+        return specialized_capability
+    return _reference_bootstrap_path(
+        family,
+        _reference_bootstrap_reason_code(
+            reducer_kind=reducer_kind,
+            climate_vars=climate_vars,
+            date_event=date_event,
+            inventory=inventory,
+        ),
+    )
+
+
+def _classify_specialized_generic_bootstrap(
+    *,
+    indicator_name: str,
+    climate_vars: list[ClimateVariable],
+    resample_frequency: Frequency,
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+    reducer_kind: BootstrapReducerKind,
+    family: BootstrapComputationFamily,
+) -> BootstrapCapability | None:
     specialized_capability = None
     if _uses_specialized_count_routing(
         reducer_kind=reducer_kind,
@@ -333,6 +367,19 @@ def classify_generic_indicator_bootstrap(
             climate_var=climate_vars[0],
             resample_frequency=resample_frequency,
         )
+    elif _uses_specialized_scalar_bounded_routing(
+        indicator_name=indicator_name,
+        reducer_kind=reducer_kind,
+        climate_vars=climate_vars,
+        date_event=date_event,
+        inventory=inventory,
+    ):
+        specialized_capability = classify_scalar_bounded_bootstrap(
+            climate_var=climate_vars[0],
+            resample_frequency=resample_frequency,
+            family=family,
+            indicator_name=indicator_name,
+        )
     elif _uses_specialized_compound_count_routing(
         reducer_kind=reducer_kind,
         climate_vars=climate_vars,
@@ -344,17 +391,19 @@ def classify_generic_indicator_bootstrap(
             resample_frequency=resample_frequency,
             inventory=inventory,
         )
-    if specialized_capability is not None:
-        return specialized_capability
-    return _reference_bootstrap_path(
-        family,
-        _reference_bootstrap_reason_code(
-            reducer_kind=reducer_kind,
+    elif _uses_specialized_compound_value_aggregate_routing(
+        indicator_name=indicator_name,
+        reducer_kind=reducer_kind,
+        climate_vars=climate_vars,
+        date_event=date_event,
+        inventory=inventory,
+    ):
+        specialized_capability = classify_compound_value_aggregate_bootstrap(
             climate_vars=climate_vars,
-            date_event=date_event,
+            resample_frequency=resample_frequency,
             inventory=inventory,
-        ),
-    )
+        )
+    return specialized_capability
 
 
 def is_optimized_doy_percentile_count_supported(
@@ -584,6 +633,29 @@ def _uses_specialized_spell_routing(
     )
 
 
+def _uses_specialized_scalar_bounded_routing(
+    *,
+    indicator_name: str,
+    reducer_kind: BootstrapReducerKind,
+    climate_vars: list[ClimateVariable],
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+) -> bool:
+    if date_event or len(climate_vars) != 1 or not inventory.has_bounded_threshold:
+        return False
+    if reducer_kind == BootstrapReducerKind.COUNT:
+        return supports_optimized_scalar_bounded_percentile_bootstrap(
+            climate_vars[0].threshold
+        )
+    if reducer_kind == BootstrapReducerKind.VALUE_AGGREGATE:
+        if indicator_name not in {"average", "fraction_of_total", "sum"}:
+            return False
+        return supports_optimized_scalar_bounded_percentile_bootstrap(
+            climate_vars[0].threshold
+        )
+    return False
+
+
 def _uses_specialized_compound_count_routing(
     *,
     reducer_kind: BootstrapReducerKind,
@@ -600,6 +672,25 @@ def _uses_specialized_compound_count_routing(
     )
 
 
+def _uses_specialized_compound_value_aggregate_routing(
+    *,
+    indicator_name: str,
+    reducer_kind: BootstrapReducerKind,
+    climate_vars: list[ClimateVariable],
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+) -> bool:
+    if indicator_name not in {"average", "fraction_of_total", "sum"}:
+        return False
+    if reducer_kind != BootstrapReducerKind.VALUE_AGGREGATE or date_event:
+        return False
+    if len(climate_vars) != 1:
+        return False
+    return inventory.bootstrap_required and (
+        inventory.has_bounded_threshold or inventory.threshold_count > 1
+    )
+
+
 def _reference_bootstrap_reason_code(
     *,
     reducer_kind: BootstrapReducerKind,
@@ -607,6 +698,29 @@ def _reference_bootstrap_reason_code(
     date_event: bool,
     inventory: BootstrapThresholdInventory,
 ) -> str:
+    compound_reason = _compound_reference_bootstrap_reason(
+        climate_vars=climate_vars,
+        date_event=date_event,
+        inventory=inventory,
+    )
+    if compound_reason is not None:
+        return compound_reason
+    reducer_reason = {
+        BootstrapReducerKind.VALUE_AGGREGATE: "value_aggregate_uses_reference_bootstrap_path",
+        BootstrapReducerKind.SPELL: "spell_uses_reference_bootstrap_path",
+    }
+    return reducer_reason.get(
+        reducer_kind,
+        "count_uses_reference_bootstrap_path",
+    )
+
+
+def _compound_reference_bootstrap_reason(
+    *,
+    climate_vars: list[ClimateVariable],
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+) -> str | None:
     if inventory.has_bounded_threshold:
         return "bounded_threshold_uses_reference_bootstrap_path"
     if inventory.threshold_count > 1:
@@ -615,11 +729,7 @@ def _reference_bootstrap_reason_code(
         return "multiple_climate_variables_use_reference_bootstrap_path"
     if date_event:
         return "date_event_uses_reference_bootstrap_path"
-    if reducer_kind == BootstrapReducerKind.VALUE_AGGREGATE:
-        return "value_aggregate_uses_reference_bootstrap_path"
-    if reducer_kind == BootstrapReducerKind.SPELL:
-        return "spell_uses_reference_bootstrap_path"
-    return "count_uses_reference_bootstrap_path"
+    return None
 
 
 def classify_compound_count_bootstrap(
@@ -635,7 +745,7 @@ def classify_compound_count_bootstrap(
     leaf_capabilities = [
         leaf_capability
         for climate_var in climate_vars
-        for leaf_capability in _iter_compound_count_leaf_capabilities(
+        for leaf_capability in _iter_compound_leaf_mask_capabilities(
             climate_var=climate_var,
             threshold_spec=climate_var.threshold,
             resample_frequency=resample_frequency,
@@ -670,7 +780,102 @@ def classify_compound_count_bootstrap(
     )
 
 
-def _iter_compound_count_leaf_capabilities(
+def classify_compound_value_aggregate_bootstrap(
+    *,
+    climate_vars: list[ClimateVariable],
+    resample_frequency: Frequency,
+    inventory: BootstrapThresholdInventory,
+) -> BootstrapCapability:
+    family = _classify_generic_bootstrap_family(
+        reducer_kind=BootstrapReducerKind.VALUE_AGGREGATE,
+        inventory=inventory,
+    )
+    leaf_capabilities = [
+        leaf_capability
+        for climate_var in climate_vars
+        for leaf_capability in _iter_compound_leaf_mask_capabilities(
+            climate_var=climate_var,
+            threshold_spec=climate_var.threshold,
+            resample_frequency=resample_frequency,
+        )
+    ]
+    if not leaf_capabilities:
+        return _reference_bootstrap_path(
+            family,
+            "compound_value_aggregate_uses_reference_bootstrap_path",
+        )
+    if any(
+        leaf_capability.uses_reference_bootstrap_path
+        for leaf_capability in leaf_capabilities
+    ):
+        return _reference_bootstrap_path(
+            family,
+            "compound_value_aggregate_leaf_requires_reference_bootstrap_path",
+        )
+    if any(
+        leaf_capability.uses_exact_tiled_bootstrap
+        for leaf_capability in leaf_capabilities
+    ):
+        return _exact_tiled_bootstrap(
+            family,
+            "compound_value_aggregate_leaf_requires_exact_tiled_bootstrap",
+        )
+    return BootstrapCapability(
+        family=family,
+        execution_kind=BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP,
+        bootstrap_required=True,
+        reason_code="optimized_compound_value_aggregate_bootstrap_supported",
+    )
+
+
+def classify_scalar_bounded_bootstrap(
+    *,
+    climate_var: ClimateVariable,
+    resample_frequency: Frequency,
+    family: BootstrapComputationFamily,
+    indicator_name: str,
+) -> BootstrapCapability:
+    percentile_threshold = get_optimized_scalar_bounded_percentile_leaf(
+        climate_var.threshold
+    )
+    if percentile_threshold is None:
+        return _reference_bootstrap_path(
+            family,
+            "bounded_threshold_uses_reference_bootstrap_path",
+        )
+    if climate_var.bootstrap is False:
+        return _not_required("bootstrap_disabled_by_user")
+    if not must_run_bootstrap(
+        climate_var.studied_data,
+        percentile_threshold,
+        climate_var.bootstrap,
+    ):
+        return _not_required("bootstrap_not_needed_for_overlap")
+    if (
+        percentile_threshold.threshold_min_value is not None
+        and indicator_name == "average"
+    ):
+        return _exact_tiled_bootstrap(
+            family,
+            "filtered_average_requires_exact_tiled_bootstrap",
+        )
+    capability = _classify_required_optimized_percentile_bootstrap(
+        family=family,
+        study=climate_var.studied_data,
+        threshold_spec=percentile_threshold,
+        output_frequency=resample_frequency.pandas_freq,
+    )
+    if capability.uses_optimized_bootstrap:
+        return BootstrapCapability(
+            family=family,
+            execution_kind=BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP,
+            bootstrap_required=True,
+            reason_code="optimized_scalar_bounded_bootstrap_supported",
+        )
+    return capability
+
+
+def _iter_compound_leaf_mask_capabilities(
     *,
     climate_var: ClimateVariable,
     threshold_spec: Threshold | None,
@@ -680,12 +885,12 @@ def _iter_compound_count_leaf_capabilities(
         return ()
     if isinstance(threshold_spec, BoundedThreshold):
         return (
-            *_iter_compound_count_leaf_capabilities(
+            *_iter_compound_leaf_mask_capabilities(
                 climate_var=climate_var,
                 threshold_spec=threshold_spec.left_threshold,
                 resample_frequency=resample_frequency,
             ),
-            *_iter_compound_count_leaf_capabilities(
+            *_iter_compound_leaf_mask_capabilities(
                 climate_var=climate_var,
                 threshold_spec=threshold_spec.right_threshold,
                 resample_frequency=resample_frequency,
@@ -712,6 +917,54 @@ def _iter_compound_count_leaf_capabilities(
             resample_frequency=resample_frequency,
         ),
     )
+
+
+def supports_optimized_scalar_bounded_percentile_bootstrap(
+    threshold_spec: Threshold | None,
+) -> bool:
+    return get_optimized_scalar_bounded_percentile_leaf(threshold_spec) is not None
+
+
+def get_optimized_scalar_bounded_percentile_leaf(
+    threshold_spec: Threshold | None,
+) -> PercentileThreshold | None:
+    leaves = _extract_scalar_bounded_threshold_leaves(threshold_spec)
+    if leaves is None:
+        return None
+    percentile_threshold, _ = leaves
+    if not percentile_threshold.is_doy_per_threshold:
+        return None
+    if percentile_threshold.threshold_min_value is not None:
+        return None
+    return percentile_threshold
+
+
+def _extract_scalar_bounded_threshold_leaves(
+    threshold_spec: Threshold | None,
+) -> tuple[PercentileThreshold, BasicThreshold] | None:
+    if not isinstance(threshold_spec, BoundedThreshold):
+        return None
+    if threshold_spec.logical_link != LogicalLinkRegistry.LOGICAL_AND:
+        return None
+    left_threshold = threshold_spec.left_threshold
+    right_threshold = threshold_spec.right_threshold
+    if isinstance(left_threshold, PercentileThreshold) and isinstance(
+        right_threshold, BasicThreshold
+    ):
+        percentile_threshold = left_threshold
+        basic_threshold = right_threshold
+    elif isinstance(left_threshold, BasicThreshold) and isinstance(
+        right_threshold, PercentileThreshold
+    ):
+        percentile_threshold = right_threshold
+        basic_threshold = left_threshold
+    else:
+        return None
+    if basic_threshold.value is None or basic_threshold.value.ndim != 0:
+        return None
+    if _operator_code(basic_threshold.operator) < 0:
+        return None
+    return percentile_threshold, basic_threshold
 
 
 def _count_bootstrap_not_required_reason(
