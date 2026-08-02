@@ -139,3 +139,12 @@ def test_build_bootstrap_reference_sample_rechunks_dask_inputs() -> None:
     assert dask_view.chunks[0][0] == PREFERRED_BOOTSTRAP_CHUNKS["time"]
     assert dask_view.chunks[1][0] == PREFERRED_BOOTSTRAP_CHUNKS["lat"]
     assert dask_view.chunks[2][0] == PREFERRED_BOOTSTRAP_CHUNKS["lon"]
+
+
+def test_build_bootstrap_reference_sample_preserves_data_when_loaded_by_slabs() -> None:
+    tas = stub_tas(lat_length=2, lon_length=2).chunk({"time": 730, "lat": 1, "lon": 1})
+    threshold = build_threshold("> 90 doy_per")
+
+    reference_sample = build_bootstrap_reference_sample(tas, threshold)
+
+    xr.testing.assert_equal(reference_sample.study, tas.transpose("time", ...).load())

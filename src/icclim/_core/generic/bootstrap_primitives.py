@@ -119,7 +119,7 @@ def build_bootstrap_reference_sample(
     threshold: PercentileThreshold,
 ) -> BootstrapReferenceSample:
     """Load and prepare the reference-period sample for bootstrap."""
-    loaded_study = _normalize_bootstrap_chunks(study).load()
+    loaded_study = _materialize_bootstrap_study(study)
     climatology_bounds = threshold.climatology_bounds(loaded_study)
     reference_sample = loaded_study.sel(time=slice(*climatology_bounds))
     threshold_floor = _threshold_min_value_in_reference_units(
@@ -165,6 +165,24 @@ def _normalize_bootstrap_chunks(study: DataArray) -> DataArray:
     if not target_chunks:
         return study
     return study.chunk(target_chunks)
+
+
+def _materialize_bootstrap_study(study: DataArray) -> DataArray:
+    """Load study data through stable time slabs instead of one large dask graph."""
+    if not hasattr(study.data, "chunks"):
+        return study.load()
+    normalized = _normalize_bootstrap_chunks(study).transpose("time", ...)
+    time_block = min(
+        normalized.sizes["time"],
+        PREFERRED_BOOTSTRAP_CHUNKS["time"],
+    )
+    blocks: list[np.ndarray] = []
+    for start in range(0, normalized.sizes["time"], time_block):
+        stop = min(normalized.sizes["time"], start + time_block)
+        block = normalized.isel(time=slice(start, stop)).load()
+        blocks.append(np.asarray(block.data))
+    loaded = np.concatenate(blocks, axis=0)
+    return normalized.copy(data=loaded)
 
 
 def build_bootstrap_array_inputs(
