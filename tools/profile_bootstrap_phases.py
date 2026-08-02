@@ -37,6 +37,42 @@ def _open_var(
 
 def _build_workload(icclim, workload: str, *, chunks: dict[str, int]) -> xr.Dataset:
     tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+    if workload == "generic_tas_compound_percentile_or_count_yearly":
+        return icclim.count_occurrences(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=["> 95 doy_per", "<= 10 doy_per"],
+                logical_link="or",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_tas_compound_percentile_or_average_yearly":
+        return icclim.average(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=["> 95 doy_per", "<= 10 doy_per"],
+                logical_link="or",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_tas_compound_percentile_or_sum_yearly":
+        return icclim.sum(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=["> 95 doy_per", "<= 10 doy_per"],
+                logical_link="or",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "generic_tas_compound_percentile_or_fraction_yearly":
         return icclim.fraction_of_total(
             in_files=tas,
