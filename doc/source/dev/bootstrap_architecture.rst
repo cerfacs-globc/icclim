@@ -324,6 +324,12 @@ validated optimized implementation instead uses:
 - optimized union exceedance-day counts;
 - final output casting aligned with the trusted baseline dtype.
 
+The same compound leaf-mask architecture also supports percentile-tail
+unions such as ``> 95 doy_per OR <= 10 doy_per``. Those OR shapes stay
+in the compound family, but they reuse the same bootstrap leaf-mask
+combination strategy as the already validated percentile-interval
+workloads.
+
 Daily exceedance mask construction
 ----------------------------------
 
