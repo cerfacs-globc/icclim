@@ -22,7 +22,8 @@ BASE_PERIOD = ("1961-01-01", "1990-12-31")
 TIME_RANGE = ("1950-01-01", "2014-12-31")
 TASMAX_TIME_RANGE = ("1986-01-01", "1999-12-31")
 DATE_EVENT_TIME_RANGE = ("1980-01-01", "2014-12-31")
-CHUNKS = {"time": 365, "lat": 24, "lon": 32}
+DEFAULT_CHUNKS = {"time": 365, "lat": 24, "lon": 32}
+ALT_CHUNKS = {"time": 730, "lat": 7, "lon": 9}
 
 
 def _git_rev_parse(repo: Path, ref: str) -> str | None:
@@ -41,17 +42,22 @@ def _open_var(
     *,
     lat_slice: slice = LAT_SLICE,
     lon_slice: slice = LON_SLICE,
+    chunks: dict[str, int] = DEFAULT_CHUNKS,
 ) -> xr.DataArray:
     files = sorted(glob.glob(file_glob))
     if not files:
         raise FileNotFoundError(file_glob)
-    ds = xr.open_mfdataset(files, combine="by_coords", chunks=CHUNKS)
+    ds = xr.open_mfdataset(files, combine="by_coords", chunks=chunks)
     return ds[var_name].sel(lat=lat_slice, lon=lon_slice)
 
 
-def _open_combined_dataset(*, eager: bool = False) -> xr.Dataset:
-    tas = _open_var(TAS_GLOB, "tas")
-    pr = _open_var(PR_GLOB, "pr")
+def _open_combined_dataset(
+    *,
+    eager: bool = False,
+    chunks: dict[str, int] = DEFAULT_CHUNKS,
+) -> xr.Dataset:
+    tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+    pr = _open_var(PR_GLOB, "pr", chunks=chunks)
     ds = xr.Dataset({"tas": tas, "pr": pr})
     if eager:
         ds = ds.load()
@@ -78,7 +84,12 @@ def _warmup(icclim) -> None:
         pass
 
 
-def _build_workload(icclim, workload: str) -> xr.Dataset:
+def _build_workload(
+    icclim,
+    workload: str,
+    *,
+    chunks: dict[str, int],
+) -> xr.Dataset:
     if workload == "tg_monthly":
         tas = _open_var(TAS_GLOB, "tas")
         return icclim.index(
@@ -299,7 +310,7 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             slice_mode="year",
         )
     if workload == "generic_tas_compound_percentile_or_count_yearly":
-        tas = _open_var(TAS_GLOB, "tas")
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
         return icclim.count_occurrences(
             in_files=tas,
             var_name="tas",
@@ -311,8 +322,34 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=TIME_RANGE,
             slice_mode="year",
         )
+    if workload == "generic_tas_compound_percentile_or_average_yearly":
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+        return icclim.average(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=["> 95 doy_per", "<= 10 doy_per"],
+                logical_link="or",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_tas_compound_percentile_or_sum_yearly":
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+        return icclim.sum(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=["> 95 doy_per", "<= 10 doy_per"],
+                logical_link="or",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "generic_tas_compound_percentile_or_fraction_yearly":
-        tas = _open_var(TAS_GLOB, "tas")
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
         return icclim.fraction_of_total(
             in_files=tas,
             var_name="tas",
@@ -413,7 +450,7 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             slice_mode="year",
         )
     if workload == "generic_tas_spell_bootstrap_yearly":
-        tas = _open_var(TAS_GLOB, "tas")
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
         return icclim.sum_of_spell_lengths(
             in_files=tas,
             var_name="tas",
@@ -426,9 +463,19 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             min_spell_length=6,
         )
     if workload == "wsdi_yearly":
-        tas = _open_var(TAS_GLOB, "tas")
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
         return icclim.index(
             index_name="WSDI",
+            in_files=tas,
+            var_name="tas",
+            base_period_time_range=BASE_PERIOD,
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "csdi_yearly":
+        tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+        return icclim.index(
+            index_name="CSDI",
             in_files=tas,
             var_name="tas",
             base_period_time_range=BASE_PERIOD,
@@ -508,6 +555,11 @@ def main() -> None:
     parser.add_argument("--workload", required=True)
     parser.add_argument("--label", required=True)
     parser.add_argument("--out-dir", required=True)
+    parser.add_argument(
+        "--chunk-profile",
+        choices=("default", "alt"),
+        default="default",
+    )
     args = parser.parse_args()
 
     repo = Path(args.repo).resolve()
@@ -517,9 +569,14 @@ def main() -> None:
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    chunk_profile = DEFAULT_CHUNKS if args.chunk_profile == "default" else ALT_CHUNKS
     _warmup(icclim)
     start = time.perf_counter()
-    ds = _build_workload(icclim, args.workload).load()
+    ds = _build_workload(
+        icclim,
+        args.workload,
+        chunks=chunk_profile,
+    ).load()
     duration = time.perf_counter() - start
 
     result_nc = out_dir / f"{args.label}-{args.workload}.result.nc"
@@ -533,6 +590,7 @@ def main() -> None:
         "head_commit": _git_rev_parse(repo, "HEAD"),
         "icclim_version": icclim.__version__,
         "duration_seconds": duration,
+        "chunk_profile": args.chunk_profile,
         "output_path": str(result_nc),
         "dataset": _dataset_summary(ds),
     }

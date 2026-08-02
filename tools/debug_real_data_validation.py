@@ -42,7 +42,11 @@ def main() -> None:
         validation_module = _load_validation_module()
 
         validation_module._warmup(icclim)
-        ds = validation_module._build_workload(icclim, args.workload)
+        ds = validation_module._build_workload(
+            icclim,
+            args.workload,
+            chunks=validation_module.DEFAULT_CHUNKS,
+        )
         payload["data_vars"] = list(ds.data_vars)
         payload["coords"] = list(ds.coords)
         payload["sizes"] = {name: int(size) for name, size in ds.sizes.items()}
