@@ -364,6 +364,13 @@ in the compound family, but they reuse the same bootstrap component-mask
 combination strategy as the already validated percentile-interval
 workloads.
 
+For broader regression coverage, the real-data validation harness should
+also be able to rerun the same workload under a materially different
+chunk layout. As of Sunday, August 2, 2026, that means validation is no
+longer only about trusted-baseline equality; it also needs chunk-profile
+checks for representative spell, compound, and value-aggregate
+workloads.
+
 Daily exceedance mask construction
 ----------------------------------
 

@@ -2521,3 +2521,83 @@ class TestIntegration:
         rh = icclim.rh(in_files=humidity, slice_mode="month").RH.compute()
         # THEN
         np.testing.assert_almost_equal(rh.isel(time=0), 10)
+
+    @pytest.mark.parametrize("subdaily_freq", ["1h", "3h", "6h"])
+    def test_tg__subdaily_synthetic_matches_daily_input(
+        self, subdaily_freq: str
+    ) -> None:
+        daily = stub_tas(tas_value=300.15).isel(time=slice(0, 4))
+        steps_per_day = int(pd.Timedelta("1D") / pd.Timedelta(subdaily_freq))
+        subdaily_time = pd.date_range(
+            "2042-01-01",
+            periods=steps_per_day * daily.sizes["time"],
+            freq=subdaily_freq,
+        )
+        subdaily_values = np.repeat(daily.values, steps_per_day, axis=0)
+        subdaily = xr.DataArray(
+            subdaily_values,
+            coords={"time": subdaily_time, "lat": daily.lat, "lon": daily.lon},
+            dims=daily.dims,
+            attrs=daily.attrs,
+            name=daily.name,
+        )
+
+        res = icclim.index(
+            index_name="TG",
+            in_files=subdaily,
+            slice_mode="day",
+            out_file=self.OUTPUT_FILE,
+        )
+
+        np.testing.assert_allclose(
+            res.TG.values.ravel(),
+            np.full(daily.sizes["time"], 27.0),
+        )
+        tb = res.time_bounds.astype("datetime64[ns]")
+        assert pd.Timestamp(tb.isel(time=0, bounds=0).item()) == pd.Timestamp(
+            "2042-01-01 00:00:00"
+        )
+        assert pd.Timestamp(tb.isel(time=0, bounds=1).item()) == pd.Timestamp(
+            "2042-01-01 00:00:00"
+        )
+
+    @pytest.mark.parametrize("subdaily_freq", ["1h", "3h", "6h"])
+    def test_tx90p__subdaily_input_matches_daily_result(
+        self, subdaily_freq: str
+    ) -> None:
+        daily = stub_tas(tas_value=27 + K2C).isel(time=slice(0, 365 * 3))
+        steps_per_day = int(pd.Timedelta("1D") / pd.Timedelta(subdaily_freq))
+        subdaily_time = pd.date_range(
+            "2042-01-01",
+            periods=steps_per_day * daily.sizes["time"],
+            freq=subdaily_freq,
+        )
+        subdaily_values = np.repeat(daily.values, steps_per_day, axis=0)
+        subdaily = xr.DataArray(
+            subdaily_values,
+            coords={"time": subdaily_time, "lat": daily.lat, "lon": daily.lon},
+            dims=daily.dims,
+            attrs=daily.attrs,
+            name=daily.name,
+        )
+
+        daily_res = icclim.index(
+            index_name="tx90p",
+            in_files=daily,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2044-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="month",
+        )
+        subdaily_res = icclim.index(
+            index_name="tx90p",
+            in_files=subdaily,
+            doy_window_width=1,
+            time_range=("2042-01-01", "2044-12-31"),
+            base_period_time_range=("2042-01-01", "2043-12-31"),
+            out_file=self.OUTPUT_FILE,
+            slice_mode="month",
+        )
+
+        np.testing.assert_allclose(subdaily_res.TX90p.values, daily_res.TX90p.values)

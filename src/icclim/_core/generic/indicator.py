@@ -22,6 +22,7 @@ from icclim._core.generic.functions import check_freq
 from icclim._core.generic.generic_templates import INDICATORS_TEMPLATES_EN
 from icclim._core.model.indicator import Indicator
 from icclim.exception import InvalidIcclimArgumentError
+from icclim.frequency import canonicalize_frequency
 
 logger = logging.getLogger(__name__)
 
@@ -760,6 +761,7 @@ def _check_cf(climate_vars: list[ClimateVariable]) -> None:
 def _check_data(climate_vars: list, src_freq: str) -> None:
     if src_freq is None:
         return
+    expected_freq = canonicalize_frequency(src_freq)
     for climate_var in climate_vars:
         da = climate_var.studied_data
         if (
@@ -767,11 +769,11 @@ def _check_data(climate_vars: list, src_freq: str) -> None:
             and da.time.ndim == 1
             and len(da.time) > MIN_LEN_FOR_FREQ_INFERENCE
         ):
-            inferred_freq = check_freq(da, dim="time", strict=True)
-            if inferred_freq != src_freq:
+            inferred_freq = canonicalize_frequency(check_freq(da, dim="time", strict=True))
+            if inferred_freq != expected_freq:
                 msg = (
                     f"[icclim] Frequency mismatch for variable '{climate_var.name}': "
-                    f"expected '{src_freq}', inferred '{inferred_freq}'"
+                    f"expected '{expected_freq}', inferred '{inferred_freq}'"
                 )
                 raise InvalidIcclimArgumentError(msg)
 

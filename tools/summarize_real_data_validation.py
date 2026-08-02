@@ -80,6 +80,10 @@ def _parse_compare_file(path: Path) -> ComparisonSummary:
         current_label = "master"
         baseline_label = "v717"
         workload = filename.removeprefix("master-vs-v717-")
+    elif filename.startswith("default-vs-alt-"):
+        current_label = "default"
+        baseline_label = "alt"
+        workload = filename.removeprefix("default-vs-alt-")
     else:
         msg = f"Unsupported compare filename: {path.name}"
         raise ValueError(msg)
@@ -212,6 +216,14 @@ def _workload_notes(workload: str) -> str:
             "same-variable compound percentile OR count; composed from"
             " bootstrap leaf masks on representative real data"
         ),
+        "generic_tas_compound_percentile_or_average_yearly": (
+            "same-variable compound percentile OR average; composed from"
+            " bootstrap leaf masks on representative real data"
+        ),
+        "generic_tas_compound_percentile_or_sum_yearly": (
+            "same-variable compound percentile OR sum; composed from"
+            " bootstrap leaf masks on representative real data"
+        ),
         "generic_tas_compound_percentile_or_fraction_yearly": (
             "same-variable compound percentile OR fraction_of_total;"
             " composed from bootstrap leaf masks on representative real data"
@@ -255,6 +267,8 @@ def _workload_notes(workload: str) -> str:
         "tx90p_cftime_monthly": (
             "Gregorian-like cftime monthly validation on real tas values"
         ),
+        "csdi_yearly": "standard cold-spell duration index",
+        "csdi_yearly": "standard cold-spell duration index",
         "generic_tas_count_date_event_monthly": "date_event count control path",
         "combined_cd_yearly": (
             "compound tas+pr count; combines specialized leaf masks through"
@@ -362,18 +376,58 @@ def _build_performance_table(
     return "\n".join(lines)
 
 
+def _build_chunk_profile_table(
+    workloads: list[str],
+    comparisons: dict[tuple[str, str, str], ComparisonSummary],
+    runs: dict[tuple[str, str], RunSummary],
+) -> str:
+    lines = [
+        "| Workload | Default vs alt | Changed cells | Max abs diff | Default (s) | Alt (s) | Delta alt vs default | Notes |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |",
+    ]
+    for workload in workloads:
+        comparison = comparisons.get(("default", "alt", workload))
+        if comparison is None:
+            continue
+        default_run = runs.get(("default", workload))
+        alt_run = runs.get(("alt", workload))
+        status = _format_validation_status(comparison)
+        default_s = default_run.duration_seconds if default_run is not None else None
+        alt_s = alt_run.duration_seconds if alt_run is not None else None
+        lines.append(
+            "| "
+            + " | ".join(
+                [
+                    workload,
+                    status[0],
+                    status[1],
+                    status[2],
+                    _format_seconds(default_s),
+                    _format_seconds(alt_s),
+                    _format_percent_change(alt_s, default_s),
+                    _workload_notes(workload),
+                ]
+            )
+            + " |"
+        )
+    return "\n".join(lines)
+
+
 def _build_summary_document(result_dir: Path, expected_workloads: list[str]) -> str:
     runs = _load_run_summaries(result_dir)
     comparisons = _load_compare_summaries(result_dir)
     workloads = sorted({workload for _, workload in runs} | set(expected_workloads))
     validation_table = _build_validation_table(workloads, comparisons)
     performance_table = _build_performance_table(workloads, runs)
+    chunk_profile_table = _build_chunk_profile_table(workloads, comparisons, runs)
     return (
         "# Real-data bootstrap validation summary\n\n"
         "## Validation\n\n"
         f"{validation_table}\n\n"
         "## Performance\n\n"
-        f"{performance_table}"
+        f"{performance_table}\n\n"
+        "## Chunk-profile invariance\n\n"
+        f"{chunk_profile_table}"
     )
 
 
