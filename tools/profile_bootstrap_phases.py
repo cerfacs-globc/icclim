@@ -186,7 +186,16 @@ def main() -> None:
     started = time.perf_counter()
     with (
         _timed_patch(primitives_module, "_normalize_bootstrap_chunks", phase_stats),
-        _timed_patch(bootstrap_module, "build_bootstrap_reference_sample", phase_stats),
+        _timed_patch(
+            primitives_module,
+            "build_bootstrap_reference_sample",
+            phase_stats,
+        ),
+        _timed_patch(
+            primitives_module,
+            "build_bootstrap_prepared_inputs",
+            phase_stats,
+        ),
         _timed_patch(
             bootstrap_module, "build_bootstrap_temporal_indexing", phase_stats
         ),
