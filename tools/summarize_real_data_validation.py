@@ -161,8 +161,20 @@ def _format_validation_status(
 def _workload_notes(workload: str) -> str:
     notes = {
         "generic_tas_bounded_count_yearly": (
-            "bounded percentile count; raw older baselines need recursive-threshold"
-            " hotfix, and v7.1.7 also needs logical-link hotfix"
+            "bounded scalar-guard count; dedicated compiled path validated"
+            " on Kraken real data"
+        ),
+        "generic_tas_bounded_average_yearly": (
+            "bounded scalar-guard average; dedicated compiled path validated"
+            " on Kraken real data"
+        ),
+        "generic_tas_bounded_sum_yearly": (
+            "bounded scalar-guard sum; dedicated compiled path validated"
+            " on Kraken real data"
+        ),
+        "generic_tas_bounded_fraction_yearly": (
+            "bounded scalar-guard fraction_of_total; dedicated compiled path"
+            " validated on Kraken real data"
         ),
         "generic_pr_fraction_bootstrap_yearly": (
             "filtered value aggregate; wet-day style threshold_min_value"

@@ -158,6 +158,54 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=TIME_RANGE,
             slice_mode="year",
         )
+    if workload == "generic_tas_bounded_average_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        percentile_threshold = icclim.build_threshold(
+            "> 90 doy_per",
+            reference_period=BASE_PERIOD,
+        )
+        return icclim.average(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=[percentile_threshold, "<= 30 degC"],
+                logical_link="and",
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_tas_bounded_sum_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        percentile_threshold = icclim.build_threshold(
+            "> 90 doy_per",
+            reference_period=BASE_PERIOD,
+        )
+        return icclim.sum(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=[percentile_threshold, "<= 30 degC"],
+                logical_link="and",
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_tas_bounded_fraction_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        percentile_threshold = icclim.build_threshold(
+            "> 90 doy_per",
+            reference_period=BASE_PERIOD,
+        )
+        return icclim.fraction_of_total(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=[percentile_threshold, "<= 30 degC"],
+                logical_link="and",
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "generic_pr_fraction_bootstrap_yearly":
         pr = _open_var(PR_GLOB, "pr")
         return icclim.fraction_of_total(
