@@ -75,6 +75,15 @@ class BootstrapArrayInputs:
     spatial_shape: tuple[int, ...]
 
 
+@dataclass(frozen=True)
+class BootstrapPreparedInputs:
+    """Prepared bootstrap arrays and indexes shared across reducers."""
+
+    reference_sample: BootstrapReferenceSample
+    temporal_indexing: BootstrapTemporalIndexing
+    array_inputs: BootstrapArrayInputs
+
+
 def build_bootstrap_output(
     *,
     flat_result: np.ndarray,
@@ -213,6 +222,29 @@ def build_bootstrap_array_inputs(
             -1,
         ),
         spatial_shape=study.shape[1:],
+    )
+
+
+def build_bootstrap_prepared_inputs(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+    *,
+    dtype: np.dtype = np.float32,
+) -> BootstrapPreparedInputs:
+    """Build the reusable study arrays and indexes for optimized bootstrap."""
+    reference_sample = build_bootstrap_reference_sample(study, threshold)
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        freq,
+        doy_window_width=threshold.doy_window_width,
+    )
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=dtype)
+    return BootstrapPreparedInputs(
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        array_inputs=array_inputs,
     )
 
 
