@@ -666,7 +666,7 @@ def _uses_specialized_compound_count_routing(
 ) -> bool:
     if reducer_kind != BootstrapReducerKind.COUNT or date_event:
         return False
-    if len(climate_vars) <= 1:
+    if len(climate_vars) == 0:
         return False
     return inventory.bootstrap_required and (
         inventory.has_bounded_threshold or inventory.threshold_count > 1

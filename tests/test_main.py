@@ -1396,6 +1396,159 @@ class TestIntegration:
             eager.fraction_of_total,
         )
 
+    def test_count_occurrences__compound_percentile_bootstrap_uses_optimized_path(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=32 + K2C, lat_length=2, lon_length=2)
+        tas[5:10] = 290.15
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": tas,
+            "var_name": "tas",
+            "threshold": build_threshold(
+                thresholds=["> 90 doy_per", "<= 95 doy_per"],
+                logical_link="and",
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        eager = icclim.count_occurrences(
+            **{**common_kwargs, "in_files": tas.compute()}
+        ).compute()
+        generic_functions.reset_bootstrap_profile()
+
+        default = icclim.count_occurrences(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert (
+            profile["bootstrap_reason_code"] == "optimized_compound_bootstrap_supported"
+        )
+        assert profile["bootstrap_family"] == "day_of_year_percentile_compound"
+        xr.testing.assert_allclose(
+            default.count_occurrences.load(),
+            eager.count_occurrences,
+        )
+
+    def test_average__compound_percentile_bootstrap_uses_optimized_path(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=32 + K2C, lat_length=2, lon_length=2)
+        tas[5:10] = 290.15
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": tas,
+            "var_name": "tas",
+            "threshold": build_threshold(
+                thresholds=["> 90 doy_per", "<= 95 doy_per"],
+                logical_link="and",
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        eager = icclim.average(**{**common_kwargs, "in_files": tas.compute()}).compute()
+        generic_functions.reset_bootstrap_profile()
+
+        default = icclim.average(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert (
+            profile["bootstrap_reason_code"]
+            == "optimized_compound_value_aggregate_bootstrap_supported"
+        )
+        assert profile["bootstrap_family"] == "day_of_year_percentile_compound"
+        xr.testing.assert_allclose(default.average.load(), eager.average)
+
+    def test_sum__compound_percentile_bootstrap_uses_optimized_path(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=32 + K2C, lat_length=2, lon_length=2)
+        tas[5:10] = 290.15
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": tas,
+            "var_name": "tas",
+            "threshold": build_threshold(
+                thresholds=["> 90 doy_per", "<= 95 doy_per"],
+                logical_link="and",
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        eager = icclim.sum(**{**common_kwargs, "in_files": tas.compute()}).compute()
+        generic_functions.reset_bootstrap_profile()
+
+        default = icclim.sum(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert (
+            profile["bootstrap_reason_code"]
+            == "optimized_compound_value_aggregate_bootstrap_supported"
+        )
+        assert profile["bootstrap_family"] == "day_of_year_percentile_compound"
+        xr.testing.assert_allclose(default["sum"].load(), eager["sum"])
+
+    def test_fraction_of_total__compound_percentile_bootstrap_uses_optimized_path(
+        self,
+        monkeypatch,
+    ) -> None:
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+        monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+        tas = stub_tas(tas_value=32 + K2C, lat_length=2, lon_length=2)
+        tas[5:10] = 290.15
+        tas = tas.chunk({"time": 365, "lat": 1, "lon": 1})
+        common_kwargs = {
+            "in_files": tas,
+            "var_name": "tas",
+            "threshold": build_threshold(
+                thresholds=["> 90 doy_per", "<= 95 doy_per"],
+                logical_link="and",
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            "time_range": ("2042-01-01", "2045-12-31"),
+            "out_file": self.OUTPUT_FILE,
+            "slice_mode": "year",
+        }
+
+        eager = icclim.fraction_of_total(
+            **{**common_kwargs, "in_files": tas.compute()}
+        ).compute()
+        generic_functions.reset_bootstrap_profile()
+
+        default = icclim.fraction_of_total(**common_kwargs)
+        profile = generic_functions.get_bootstrap_profile()
+
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert (
+            profile["bootstrap_reason_code"]
+            == "optimized_compound_value_aggregate_bootstrap_supported"
+        )
+        assert profile["bootstrap_family"] == "day_of_year_percentile_compound"
+        xr.testing.assert_allclose(
+            default.fraction_of_total.load(),
+            eager.fraction_of_total,
+        )
+
     def test_count_occurrences__optimized_bootstrap_defers_threshold_materialization(
         self,
         monkeypatch,

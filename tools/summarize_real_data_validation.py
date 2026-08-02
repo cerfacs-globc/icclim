@@ -192,6 +192,22 @@ def _workload_notes(workload: str) -> str:
             "bounded scalar-guard fraction_of_total with OR composition;"
             " dedicated compiled path validated on Kraken real data"
         ),
+        "generic_tas_compound_percentile_count_yearly": (
+            "same-variable compound percentile count; composed from bootstrap"
+            " leaf masks on Kraken real data"
+        ),
+        "generic_tas_compound_percentile_average_yearly": (
+            "same-variable compound percentile average; composed from bootstrap"
+            " leaf masks on Kraken real data"
+        ),
+        "generic_tas_compound_percentile_sum_yearly": (
+            "same-variable compound percentile sum; composed from bootstrap"
+            " leaf masks on Kraken real data"
+        ),
+        "generic_tas_compound_percentile_fraction_yearly": (
+            "same-variable compound percentile fraction_of_total; composed"
+            " from bootstrap leaf masks on Kraken real data"
+        ),
         "generic_pr_fraction_bootstrap_yearly": (
             "filtered value aggregate; wet-day style threshold_min_value"
         ),
