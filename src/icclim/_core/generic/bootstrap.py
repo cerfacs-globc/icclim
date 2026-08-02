@@ -355,6 +355,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_count(
     freq: str,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
 ) -> DataArray | None:
     """Compute bounded bootstrap counts for one percentile and one scalar guard."""
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
@@ -393,6 +394,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_count(
         ),
         np.float32(scalar_bound),
         scalar_op_code,
+        logical_link_code,
     )
     out = build_bootstrap_output(
         flat_result=result,
@@ -412,6 +414,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_exceedance_sum(
     freq: str,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
 ) -> DataArray | None:
     """Compute bounded bootstrap sums for one percentile and one scalar guard."""
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
@@ -450,6 +453,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_exceedance_sum(
         ),
         np.float32(scalar_bound),
         scalar_op_code,
+        logical_link_code,
     )
     out = build_bootstrap_output(
         flat_result=result,
@@ -470,6 +474,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_exceedance_average(
     freq: str,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
 ) -> DataArray | None:
     """Compute bounded bootstrap averages for one percentile and one scalar guard."""
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
@@ -508,6 +513,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_exceedance_average(
         ),
         np.float32(scalar_bound),
         scalar_op_code,
+        logical_link_code,
     )
     out = build_bootstrap_output(
         flat_result=result,
@@ -528,6 +534,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_fraction_of_total(
     freq: str,
     scalar_bound: float,
     scalar_op_code: int,
+    logical_link_code: int,
 ) -> DataArray | None:
     """Compute bounded bootstrap fractions for one percentile and one scalar guard."""
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
@@ -566,6 +573,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_fraction_of_total(
         ),
         np.float32(scalar_bound),
         scalar_op_code,
+        logical_link_code,
     )
     out = build_bootstrap_output(
         flat_result=result,
@@ -1279,6 +1287,7 @@ if njit is not None:
         min_threshold,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
@@ -1327,6 +1336,7 @@ if njit is not None:
                     op_code,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                 )
             else:
                 union_thresholds = _initialize_union_threshold_series(op_code)
@@ -1369,6 +1379,7 @@ if njit is not None:
                     op_code,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                 )
         return out
 
@@ -1395,6 +1406,7 @@ if njit is not None:
         min_threshold,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
@@ -1443,6 +1455,7 @@ if njit is not None:
                     op_code,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                 )
             else:
                 union_thresholds = _initialize_union_threshold_series(op_code)
@@ -1485,6 +1498,7 @@ if njit is not None:
                     op_code,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                 )
         return out
 
@@ -1511,6 +1525,7 @@ if njit is not None:
         min_threshold,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
@@ -1559,6 +1574,7 @@ if njit is not None:
                     op_code,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                 )
             else:
                 union_thresholds = _initialize_union_threshold_series(op_code)
@@ -1601,6 +1617,7 @@ if njit is not None:
                     op_code,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                 )
         return out
 
@@ -1627,6 +1644,7 @@ if njit is not None:
         min_threshold,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
@@ -1675,6 +1693,7 @@ if njit is not None:
                     op_code,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                 )
             else:
                 union_thresholds = _initialize_union_threshold_series(op_code)
@@ -1717,6 +1736,7 @@ if njit is not None:
                     op_code,
                     scalar_bound,
                     scalar_op_code,
+                    logical_link_code,
                 )
         return out
 
@@ -1881,14 +1901,17 @@ if njit is not None:
         op_code,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         count = 0.0
         for offset in range(length):
             doy = study_doys[start + offset]
             threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
             value = flat_study[start + offset, cell]
-            if _compare(value, threshold, op_code) and _compare(
-                value, scalar_bound, scalar_op_code
+            if _combine_logical_matches(
+                _compare(value, threshold, op_code),
+                _compare(value, scalar_bound, scalar_op_code),
+                logical_link_code,
             ):
                 count += 1.0
         return count
@@ -1925,14 +1948,17 @@ if njit is not None:
         op_code,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         total = np.float32(0.0)
         for offset in range(length):
             doy = study_doys[start + offset]
             threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
             value = flat_study[start + offset, cell]
-            if _compare(value, threshold, op_code) and _compare(
-                value, scalar_bound, scalar_op_code
+            if _combine_logical_matches(
+                _compare(value, threshold, op_code),
+                _compare(value, scalar_bound, scalar_op_code),
+                logical_link_code,
             ):
                 total = np.float32(total + np.float32(value))
         return float(total)
@@ -1973,6 +1999,7 @@ if njit is not None:
         op_code,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         total = np.float32(0.0)
         count = 0.0
@@ -1980,8 +2007,10 @@ if njit is not None:
             doy = study_doys[start + offset]
             threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
             value = flat_study[start + offset, cell]
-            if _compare(value, threshold, op_code) and _compare(
-                value, scalar_bound, scalar_op_code
+            if _combine_logical_matches(
+                _compare(value, threshold, op_code),
+                _compare(value, scalar_bound, scalar_op_code),
+                logical_link_code,
             ):
                 total = np.float32(total + np.float32(value))
                 count += 1.0
@@ -2027,6 +2056,7 @@ if njit is not None:
         op_code,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         exceedance_total = np.float32(0.0)
         total = np.float32(0.0)
@@ -2035,8 +2065,10 @@ if njit is not None:
             threshold = _adjusted_threshold(thresholds, doy, max_target_doy)
             value = flat_study[start + offset, cell]
             total = np.float32(total + np.float32(value))
-            if _compare(value, threshold, op_code) and _compare(
-                value, scalar_bound, scalar_op_code
+            if _combine_logical_matches(
+                _compare(value, threshold, op_code),
+                _compare(value, scalar_bound, scalar_op_code),
+                logical_link_code,
             ):
                 exceedance_total = np.float32(exceedance_total + np.float32(value))
         if total == np.float32(0.0):
@@ -2116,6 +2148,7 @@ if njit is not None:
         op_code,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         for group_i in range(group_start, group_stop):
             out[group_i, cell] = _count_bounded_exceedances(
@@ -2129,6 +2162,7 @@ if njit is not None:
                 op_code,
                 scalar_bound,
                 scalar_op_code,
+                logical_link_code,
             )
 
     @njit(cache=True)
@@ -2198,6 +2232,7 @@ if njit is not None:
         op_code,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         for group_i in range(group_start, group_stop):
             out[group_i, cell] = _sum_bounded_exceedances(
@@ -2211,6 +2246,7 @@ if njit is not None:
                 op_code,
                 scalar_bound,
                 scalar_op_code,
+                logical_link_code,
             )
 
     @njit(cache=True)
@@ -2254,6 +2290,7 @@ if njit is not None:
         op_code,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         for group_i in range(group_start, group_stop):
             out[group_i, cell] = _average_bounded_exceedances(
@@ -2267,6 +2304,7 @@ if njit is not None:
                 op_code,
                 scalar_bound,
                 scalar_op_code,
+                logical_link_code,
             )
 
     @njit(cache=True)
@@ -2312,6 +2350,7 @@ if njit is not None:
         op_code,
         scalar_bound,
         scalar_op_code,
+        logical_link_code,
     ):
         for group_i in range(group_start, group_stop):
             out[group_i, cell] = _bounded_fraction_of_total(
@@ -2325,6 +2364,7 @@ if njit is not None:
                 op_code,
                 scalar_bound,
                 scalar_op_code,
+                logical_link_code,
             )
 
     @njit(cache=True)
@@ -2392,6 +2432,12 @@ if njit is not None:
         if op_code == 2:
             return value < threshold
         return value <= threshold
+
+    @njit(cache=True)
+    def _combine_logical_matches(left_match, right_match, logical_link_code):
+        if logical_link_code == 0:
+            return left_match and right_match
+        return left_match or right_match
 
     @njit(cache=True)
     def _adjusted_threshold(thresholds, doy, max_target_doy):

@@ -72,7 +72,8 @@ most useful future extensions are likely:
     leaf masks and stay field-identical to the fresh ``master``
     baseline on Kraken real data;
   - single-variable bounded scalar guards such as
-    ``> 90 doy_per AND <= 30 degC`` now use a dedicated compiled path
+    ``> 90 doy_per AND <= 30 degC`` or
+    ``> 90 doy_per OR <= 10 degC`` now use a dedicated compiled path
     and are field-identical on Kraken real data for
     ``count_occurrences``, ``average``, ``sum`` and
     ``fraction_of_total``.
