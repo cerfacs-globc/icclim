@@ -159,6 +159,19 @@ def _timed_patch(module: Any, attr: str, stats: dict[str, dict[str, float]]):
         setattr(module, attr, original)
 
 
+@contextmanager
+def _timed_patch_if_present(
+    module: Any,
+    attr: str,
+    stats: dict[str, dict[str, float]],
+):
+    if not hasattr(module, attr):
+        yield
+        return
+    with _timed_patch(module, attr, stats):
+        yield
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", required=True)
@@ -185,7 +198,11 @@ def main() -> None:
 
     started = time.perf_counter()
     with (
-        _timed_patch(primitives_module, "_normalize_bootstrap_chunks", phase_stats),
+        _timed_patch_if_present(
+            primitives_module,
+            "_normalize_bootstrap_chunks",
+            phase_stats,
+        ),
         _timed_patch(
             primitives_module,
             "build_bootstrap_reference_sample",
