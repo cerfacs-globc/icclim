@@ -633,6 +633,7 @@ def fraction_of_total(
         climate_var=climate_vars[0],
         threshold=threshold,
         resample_freq=resample_freq,
+        prepared_inputs_cache={},
     ).squeeze()
     over = (
         study.where(exceedance_mask, 0)
@@ -2508,6 +2509,7 @@ def _run_simple_reducer(
             climate_var=climate_vars[0],
             threshold=threshold,
             resample_freq=resample_freq,
+            prepared_inputs_cache={},
         ).squeeze()
         filtered_study = study.where(exceedance_mask)
     else:
