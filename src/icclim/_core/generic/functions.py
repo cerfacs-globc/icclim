@@ -28,6 +28,7 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Any, cast
 from warnings import warn
 
+import numpy as np
 import xarray as xr
 from numpy import abs as np_abs
 from numpy import diff as np_diff
@@ -66,12 +67,12 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from datetime import timedelta
 
-    import numpy as np
     from pint import Quantity
     from xarray.computation.rolling import DataArrayRolling
     from xarray.core.groupby import DataArrayGroupBy
 
     from icclim._core.climate_variable import ClimateVariable
+    from icclim._core.generic.bootstrap_primitives import BootstrapPreparedInputs
     from icclim._core.generic.threshold.percentile import PercentileThreshold
     from icclim._core.model.logical_link import LogicalLink
     from icclim._core.model.threshold import Threshold
@@ -611,6 +612,11 @@ def fraction_of_total(
             optimized_fraction,
             to_percent=to_percent,
         )
+    study = _materialize_study_for_optimized_compound_value_aggregate(
+        study=study,
+        threshold=threshold,
+        bootstrap_capability=bootstrap_capability,
+    )
     if threshold.threshold_min_value is not None:
         min_val = threshold.threshold_min_value
         from xclim.core.units import convert_units_to  # noqa: PLC0415
@@ -632,6 +638,7 @@ def fraction_of_total(
         climate_var=climate_vars[0],
         threshold=threshold,
         resample_freq=resample_freq,
+        prepared_inputs_cache={},
     ).squeeze()
     over = (
         study.where(exceedance_mask, 0)
@@ -835,6 +842,24 @@ def average(
         )
         if optimized_average is not None:
             return optimized_average
+    stabilized_study = _materialize_study_for_optimized_compound_value_aggregate(
+        study=study,
+        threshold=threshold,
+        bootstrap_capability=bootstrap_capability,
+    )
+    if stabilized_study is not study and threshold is not None:
+        exceedance_mask = _compute_threshold_exceedance_mask(
+            climate_var=climate_vars[0],
+            threshold=threshold,
+            resample_freq=resample_freq,
+            prepared_inputs_cache={},
+        ).squeeze()
+        return DataArrayResample.mean(
+            stabilized_study.where(exceedance_mask).resample(
+                time=resample_freq.pandas_freq
+            ),
+            dim="time",
+        )
     return _run_simple_reducer(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
@@ -932,6 +957,24 @@ def generic_sum(
         )
         if optimized_sum is not None:
             return optimized_sum
+    stabilized_study = _materialize_study_for_optimized_compound_value_aggregate(
+        study=study,
+        threshold=threshold,
+        bootstrap_capability=bootstrap_capability,
+    )
+    if stabilized_study is not study and threshold is not None and not _is_rate(study):
+        exceedance_mask = _compute_threshold_exceedance_mask(
+            climate_var=climate_vars[0],
+            threshold=threshold,
+            resample_freq=resample_freq,
+            prepared_inputs_cache={},
+        ).squeeze()
+        return DataArrayResample.sum(
+            stabilized_study.where(exceedance_mask).resample(
+                time=resample_freq.pandas_freq
+            ),
+            dim="time",
+        )
     return _run_simple_reducer(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
@@ -980,6 +1023,28 @@ def _compute_optimized_fraction_of_total(
         resample_freq,
         _get_fast_bootstrap_max_cells(study),
     )
+
+
+def _materialize_study_for_optimized_compound_value_aggregate(
+    *,
+    study: DataArray,
+    threshold: Threshold | None,
+    bootstrap_capability: BootstrapCapability,
+) -> DataArray:
+    if (
+        not bootstrap_capability.uses_optimized_bootstrap
+        or bootstrap_capability.reason_code
+        != "optimized_compound_value_aggregate_bootstrap_supported"
+    ):
+        return study
+    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+        _materialize_bootstrap_study,
+    )
+    from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
+
+    if not isinstance(threshold, BoundedThreshold):
+        return study
+    return _materialize_bootstrap_study(study, prefer_file_reopen=True)
 
 
 def _format_fraction_of_total_result(
@@ -2030,9 +2095,14 @@ def _compute_fast_tiled_bootstrap_spell_mask(
     climate_var: ClimateVariable,
     resample_freq: Frequency,
     max_cells: int,
+    *,
+    prepared_inputs_cache: dict[tuple, BootstrapPreparedInputs] | None = None,
 ) -> DataArray | None:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
         compute_doy_percentile_bootstrap_union_exceedance_mask,
+    )
+    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+        build_bootstrap_prepared_inputs,
     )
 
     optimized_start = perf_counter()
@@ -2043,10 +2113,28 @@ def _compute_fast_tiled_bootstrap_spell_mask(
     for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
         tile_study = climate_var.studied_data.isel(tile_indexers)
         tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+        prepared_inputs = None
+        if prepared_inputs_cache is not None:
+            cache_key = _bootstrap_tile_preparation_cache_key(
+                tile_indexers,
+                tile_threshold,
+                resample_freq.pandas_freq,
+            )
+            prepared_inputs = prepared_inputs_cache.get(cache_key)
+            if prepared_inputs is None:
+                prepared_inputs = build_bootstrap_prepared_inputs(
+                    tile_study,
+                    tile_threshold,
+                    resample_freq.pandas_freq,
+                    dtype=np.float32,
+                    prefer_file_reopen=True,
+                )
+                prepared_inputs_cache[cache_key] = prepared_inputs
         tile_result = compute_doy_percentile_bootstrap_union_exceedance_mask(
             tile_study,
             tile_threshold,
             resample_freq.pandas_freq,
+            prepared_inputs=prepared_inputs,
         )
         if tile_result is None:
             return None
@@ -2485,6 +2573,7 @@ def _run_simple_reducer(
             climate_var=climate_vars[0],
             threshold=threshold,
             resample_freq=resample_freq,
+            prepared_inputs_cache={},
         ).squeeze()
         filtered_study = study.where(exceedance_mask)
     else:
@@ -2574,6 +2663,7 @@ def _compute_combined_exceedance_mask(
                 climate_var=climate_var,
                 threshold=climate_var.threshold,
                 resample_freq=resample_freq,
+                prepared_inputs_cache={},
             ).squeeze()
         )
     return logical_link(exceedance_masks)
@@ -2584,6 +2674,7 @@ def _compute_threshold_exceedance_mask(
     climate_var: ClimateVariable,
     threshold: Threshold,
     resample_freq: Frequency,
+    prepared_inputs_cache: dict[tuple, BootstrapPreparedInputs] | None = None,
 ) -> DataArray:
     from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
     from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
@@ -2595,11 +2686,13 @@ def _compute_threshold_exceedance_mask(
             climate_var=replace(climate_var, threshold=threshold.left_threshold),
             threshold=threshold.left_threshold,
             resample_freq=resample_freq,
+            prepared_inputs_cache=prepared_inputs_cache,
         )
         right_mask = _compute_threshold_exceedance_mask(
             climate_var=replace(climate_var, threshold=threshold.right_threshold),
             threshold=threshold.right_threshold,
             resample_freq=resample_freq,
+            prepared_inputs_cache=prepared_inputs_cache,
         )
         return _transpose_like_study(
             threshold.logical_link.compute([left_mask.squeeze(), right_mask.squeeze()]),
@@ -2622,6 +2715,7 @@ def _compute_threshold_exceedance_mask(
                 leaf_climate_var,
                 resample_freq,
                 _get_fast_bootstrap_max_cells(climate_var.studied_data),
+                prepared_inputs_cache=prepared_inputs_cache,
             )
             if optimized_mask is not None:
                 return optimized_mask
@@ -2637,6 +2731,38 @@ def _compute_threshold_exceedance_mask(
         threshold=threshold,
         freq=resample_freq.pandas_freq,
         bootstrap=bootstrap_required,
+    )
+
+
+def _bootstrap_tile_preparation_cache_key(
+    tile_indexers: dict[str, slice | int],
+    threshold: Threshold,
+    freq: str,
+) -> tuple:
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if not isinstance(threshold, PercentileThreshold):
+        return (freq, tuple(sorted(tile_indexers.items())))
+    normalized_indexers = tuple(
+        (
+            dim,
+            indexer
+            if isinstance(indexer, int)
+            else (indexer.start, indexer.stop, indexer.step),
+        )
+        for dim, indexer in sorted(tile_indexers.items())
+    )
+    return (
+        freq,
+        normalized_indexers,
+        threshold.reference_period,
+        threshold.doy_window_width,
+        None
+        if threshold.threshold_min_value is None
+        else str(threshold.threshold_min_value),
+        threshold.only_leap_years,
     )
 
 

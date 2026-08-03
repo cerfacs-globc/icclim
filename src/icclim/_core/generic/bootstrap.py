@@ -12,8 +12,10 @@ from icclim._core.generic.bootstrap_capability import (
     is_optimized_doy_percentile_count_supported,
 )
 from icclim._core.generic.bootstrap_primitives import (
+    BootstrapPreparedInputs,
     build_bootstrap_array_inputs,
     build_bootstrap_output,
+    build_bootstrap_prepared_inputs,
     build_bootstrap_reference_sample,
     build_bootstrap_temporal_indexing,
 )
@@ -192,20 +194,24 @@ def compute_doy_percentile_bootstrap_union_exceedance_mask(
     study: DataArray,
     threshold: PercentileThreshold,
     freq: str,
+    *,
+    prepared_inputs: BootstrapPreparedInputs | None = None,
 ) -> DataArray | None:
     """Compute the daily union exceedance mask for spell-style bootstrap reducers."""
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
         return None
     import xarray as xr  # noqa: PLC0415
 
-    reference_sample = build_bootstrap_reference_sample(study, threshold)
-    temporal_indexing = build_bootstrap_temporal_indexing(
-        reference_sample.study,
-        reference_sample.reference_sample,
-        freq,
-        doy_window_width=threshold.doy_window_width,
-    )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    if prepared_inputs is None:
+        prepared_inputs = build_bootstrap_prepared_inputs(
+            study,
+            threshold,
+            freq,
+            dtype=np.float32,
+        )
+    reference_sample = prepared_inputs.reference_sample
+    temporal_indexing = prepared_inputs.temporal_indexing
+    array_inputs = prepared_inputs.array_inputs
     flat_result = _bootstrap_union_mask_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,

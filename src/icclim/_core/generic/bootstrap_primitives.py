@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 
 LEAP_YEAR_DAY_COUNT = 366
+PREFERRED_BOOTSTRAP_TIME_LOAD_BLOCK = 365
 
 
 @dataclass(frozen=True)
@@ -70,6 +71,15 @@ class BootstrapArrayInputs:
     spatial_shape: tuple[int, ...]
 
 
+@dataclass(frozen=True)
+class BootstrapPreparedInputs:
+    """Prepared bootstrap arrays and indexes shared across reducers."""
+
+    reference_sample: BootstrapReferenceSample
+    temporal_indexing: BootstrapTemporalIndexing
+    array_inputs: BootstrapArrayInputs
+
+
 def build_bootstrap_output(
     *,
     flat_result: np.ndarray,
@@ -112,9 +122,14 @@ def build_bootstrap_output(
 def build_bootstrap_reference_sample(
     study: DataArray,
     threshold: PercentileThreshold,
+    *,
+    prefer_file_reopen: bool = False,
 ) -> BootstrapReferenceSample:
     """Load and prepare the reference-period sample for bootstrap."""
-    loaded_study = study.load()
+    loaded_study = _materialize_bootstrap_study(
+        study,
+        prefer_file_reopen=prefer_file_reopen,
+    )
     climatology_bounds = threshold.climatology_bounds(loaded_study)
     reference_sample = loaded_study.sel(time=slice(*climatology_bounds))
     threshold_floor = _threshold_min_value_in_reference_units(
@@ -134,6 +149,124 @@ def build_bootstrap_reference_sample(
         filtered_reference_sample=filtered_reference_sample,
         threshold_floor_in_reference_units=threshold_floor,
     )
+
+
+def _materialize_bootstrap_study(
+    study: DataArray,
+    *,
+    prefer_file_reopen: bool = False,
+) -> DataArray:
+    """Load study data through a stable internal bootstrap layout."""
+    normalized = study.transpose("time", ...)
+    if not prefer_file_reopen or not hasattr(normalized.data, "chunks"):
+        return normalized.load()
+    reopened = _reopen_file_backed_study(normalized)
+    if reopened is not None:
+        return reopened.load()
+    return normalized.load()
+
+
+def _block_slices(
+    *,
+    size: int,
+    preferred_block_size: int,
+) -> list[slice]:
+    block_size = min(size, preferred_block_size)
+    return [
+        slice(start, min(size, start + block_size))
+        for start in range(0, size, block_size)
+    ]
+
+
+def _preferred_spatial_block_sizes(study: DataArray) -> dict[str, int]:
+    preferred_chunks = study.encoding.get("preferred_chunks")
+    if not isinstance(preferred_chunks, dict):
+        return {}
+    return {
+        dim: min(study.sizes[dim], int(preferred_chunks[dim]))
+        for dim in study.dims
+        if dim != "time" and dim in preferred_chunks
+    }
+
+
+def _reopen_file_backed_study(study: DataArray) -> DataArray | None:
+    source_files, variable_name = _file_backed_bootstrap_sources(study)
+    if not source_files or variable_name is None:
+        return None
+    import xarray as xr  # noqa: PLC0415
+
+    reopened = xr.open_mfdataset(
+        source_files,
+        combine="by_coords",
+        chunks=_bootstrap_reopen_chunks(study),
+    )[variable_name]
+    selection = _selection_for_reopened_study(reopened, study)
+    if selection:
+        reopened = reopened.sel(selection)
+    reopened = reopened.transpose(*study.dims)
+    reopened.attrs = dict(study.attrs)
+    return reopened
+
+
+def _bootstrap_reopen_chunks(study: DataArray) -> dict[str, int]:
+    chunks = {"time": min(study.sizes["time"], PREFERRED_BOOTSTRAP_TIME_LOAD_BLOCK)}
+    chunks.update(_preferred_spatial_block_sizes(study))
+    return chunks
+
+
+def _selection_for_reopened_study(
+    reopened: DataArray,
+    study: DataArray,
+) -> dict[str, object]:
+    selection: dict[str, object] = {}
+    for dim in study.dims:
+        if dim not in reopened.dims:
+            continue
+        if dim == "time":
+            if study.sizes["time"] == reopened.sizes["time"]:
+                continue
+            selection[dim] = slice(study[dim].values[0], study[dim].values[-1])
+            continue
+        selection[dim] = study.indexes[dim]
+    return selection
+
+
+def _file_backed_bootstrap_sources(
+    study: DataArray,
+) -> tuple[list[str], str | None]:
+    dask_graph = getattr(getattr(study, "data", None), "dask", None)
+    if dask_graph is None:
+        return [], None
+    source_files: list[str] = []
+    variable_name: str | None = None
+    for layer_name, layer in dask_graph.layers.items():
+        if not layer_name.startswith("original-open_dataset-"):
+            continue
+        _, layer_value = next(iter(layer.items()))
+        wrapper = _unwrap_file_backed_array_wrapper(layer_value)
+        if wrapper is None or not hasattr(wrapper, "datastore"):
+            return [], None
+        file_path = getattr(wrapper.datastore, "_filename", None)
+        current_variable_name = getattr(wrapper, "variable_name", None)
+        if file_path is None or current_variable_name is None:
+            return [], None
+        if variable_name is None:
+            variable_name = str(current_variable_name)
+        elif variable_name != str(current_variable_name):
+            return [], None
+        source_files.append(str(file_path))
+    return source_files, variable_name
+
+
+def _unwrap_file_backed_array_wrapper(obj: object) -> object | None:
+    current = obj
+    for _ in range(12):
+        if hasattr(current, "datastore") and hasattr(current, "variable_name"):
+            return current
+        if not hasattr(current, "array"):
+            break
+        current = current.array
+    return None
 
 
 def build_bootstrap_array_inputs(
@@ -164,6 +297,34 @@ def build_bootstrap_array_inputs(
             -1,
         ),
         spatial_shape=study.shape[1:],
+    )
+
+
+def build_bootstrap_prepared_inputs(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+    *,
+    dtype: np.dtype = np.float32,
+    prefer_file_reopen: bool = False,
+) -> BootstrapPreparedInputs:
+    """Build the reusable study arrays and indexes for optimized bootstrap."""
+    reference_sample = build_bootstrap_reference_sample(
+        study,
+        threshold,
+        prefer_file_reopen=prefer_file_reopen,
+    )
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        freq,
+        doy_window_width=threshold.doy_window_width,
+    )
+    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=dtype)
+    return BootstrapPreparedInputs(
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        array_inputs=array_inputs,
     )
 
 

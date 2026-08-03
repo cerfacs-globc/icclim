@@ -4,10 +4,13 @@ import xarray as xr
 
 from icclim._core.climate_variable import ClimateVariable
 from icclim._core.constants import GROUP_BY_METHOD
+from icclim._core.generic import bootstrap_primitives
 from icclim._core.generic.functions import (
+    _compute_threshold_exceedance_mask,
     _safe_to_agg_units,
     average,
     count_occurrences,
+    fraction_of_total,
     generic_sum,
     max_consecutive_occurrence,
     maximum,
@@ -194,3 +197,148 @@ def test_safe_to_agg_units_drops_unsupported_kwargs(
         "op": "count",
         "dim": "time",
     }
+
+
+def test_compound_percentile_threshold_reuses_prepared_bootstrap_inputs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = stub_tas(27.0, lat_length=2, lon_length=2).chunk(
+        {"time": 365, "lat": 1, "lon": 1}
+    )
+    threshold = build_threshold(
+        thresholds=["> 95 doy_per", "<= 10 doy_per"],
+        logical_link="or",
+        reference_period=("2042-01-01", "2043-12-31"),
+    )
+    climate_var = ClimateVariable(
+        name="tas",
+        standard_var=StandardVariableRegistry.TAS,
+        studied_data=tas,
+        threshold=threshold,
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+    build_calls = {"count": 0}
+
+    original_builder = bootstrap_primitives.build_bootstrap_prepared_inputs
+
+    def counted_builder(*args, **kwargs):
+        build_calls["count"] += 1
+        return original_builder(*args, **kwargs)
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+    monkeypatch.setattr(
+        bootstrap_primitives,
+        "build_bootstrap_prepared_inputs",
+        counted_builder,
+    )
+
+    mask = _compute_threshold_exceedance_mask(
+        climate_var=climate_var,
+        threshold=threshold,
+        resample_freq=FrequencyRegistry.YEAR,
+        prepared_inputs_cache={},
+    )
+
+    assert mask is not None
+    assert build_calls["count"] == 4
+
+
+def test_fraction_of_total_reuses_prepared_bootstrap_inputs_for_compound_threshold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = stub_tas(27.0, lat_length=2, lon_length=2).chunk(
+        {"time": 365, "lat": 1, "lon": 1}
+    )
+    threshold = build_threshold(
+        thresholds=["> 95 doy_per", "<= 10 doy_per"],
+        logical_link="or",
+        reference_period=("2042-01-01", "2043-12-31"),
+    )
+    climate_var = ClimateVariable(
+        name="tas",
+        standard_var=StandardVariableRegistry.TAS,
+        studied_data=tas,
+        threshold=threshold,
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+    build_calls = {"count": 0}
+
+    original_builder = bootstrap_primitives.build_bootstrap_prepared_inputs
+
+    def counted_builder(*args, **kwargs):
+        build_calls["count"] += 1
+        return original_builder(*args, **kwargs)
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+    monkeypatch.setattr(
+        bootstrap_primitives,
+        "build_bootstrap_prepared_inputs",
+        counted_builder,
+    )
+
+    result = fraction_of_total(
+        climate_vars=[climate_var],
+        resample_freq=FrequencyRegistry.YEAR,
+        to_percent=False,
+    )
+
+    assert result is not None
+    assert build_calls["count"] == 4
+
+
+@pytest.mark.parametrize(
+    ("reducer", "kwargs"),
+    [
+        (average, {}),
+        (generic_sum, {}),
+        (fraction_of_total, {"to_percent": False}),
+    ],
+)
+def test_compound_value_aggregate_materializes_stable_study(
+    monkeypatch: pytest.MonkeyPatch,
+    reducer,
+    kwargs: dict[str, object],
+) -> None:
+    tas = stub_tas(27.0, lat_length=2, lon_length=2).chunk(
+        {"time": 365, "lat": 1, "lon": 1}
+    )
+    threshold = build_threshold(
+        thresholds=["> 95 doy_per", "<= 10 doy_per"],
+        logical_link="or",
+        reference_period=("2042-01-01", "2043-12-31"),
+    )
+    climate_var = ClimateVariable(
+        name="tas",
+        standard_var=StandardVariableRegistry.TAS,
+        studied_data=tas,
+        threshold=threshold,
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+    materialize_calls = {"count": 0, "prefer_file_reopen": []}
+
+    original_materialize = bootstrap_primitives._materialize_bootstrap_study
+
+    def counted_materialize(study, *, prefer_file_reopen=False):
+        materialize_calls["count"] += 1
+        materialize_calls["prefer_file_reopen"].append(prefer_file_reopen)
+        return original_materialize(study, prefer_file_reopen=prefer_file_reopen)
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+    monkeypatch.setattr(
+        bootstrap_primitives,
+        "_materialize_bootstrap_study",
+        counted_materialize,
+    )
+
+    result = reducer(
+        climate_vars=[climate_var],
+        resample_freq=FrequencyRegistry.YEAR,
+        **kwargs,
+    )
+
+    assert result is not None
+    assert materialize_calls["count"] >= 1
+    assert True in materialize_calls["prefer_file_reopen"]
