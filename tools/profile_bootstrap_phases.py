@@ -20,6 +20,14 @@ DEFAULT_CHUNKS = {"time": 365, "lat": 24, "lon": 32}
 ALT_CHUNKS = {"time": 730, "lat": 7, "lon": 9}
 
 
+def _resolve_import_root(repo: Path) -> Path:
+    for candidate in (repo / "src", repo / "icclim", repo):
+        if (candidate / "icclim" / "__init__.py").is_file():
+            return candidate
+    msg = f"Could not locate icclim package import root under {repo}"
+    raise FileNotFoundError(msg)
+
+
 def _open_var(
     file_glob: str,
     var_name: str,
@@ -181,7 +189,7 @@ def main() -> None:
     args = parser.parse_args()
 
     repo = Path(args.repo).resolve()
-    sys.path.insert(0, str(repo / "src"))
+    sys.path.insert(0, str(_resolve_import_root(repo)))
 
     import icclim
     import icclim._core.generic.bootstrap as bootstrap_module

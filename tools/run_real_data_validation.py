@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import glob
 import json
+import os
 import subprocess
 import sys
 import time
@@ -23,6 +24,22 @@ TIME_RANGE = ("1950-01-01", "2014-12-31")
 TASMAX_TIME_RANGE = ("1986-01-01", "1999-12-31")
 DATE_EVENT_TIME_RANGE = ("1980-01-01", "2014-12-31")
 CHUNKS = {"time": 365, "lat": 24, "lon": 32}
+ALT_CHUNKS = {"time": 730, "lat": 7, "lon": 9}
+
+
+def _selected_chunks() -> dict[str, int]:
+    profile = os.environ.get("ICCLIM_REAL_DATA_CHUNK_PROFILE", "default")
+    if profile == "alt":
+        return ALT_CHUNKS
+    return CHUNKS
+
+
+def _resolve_import_root(repo: Path) -> Path:
+    for candidate in (repo / "src", repo / "icclim", repo):
+        if (candidate / "icclim" / "__init__.py").is_file():
+            return candidate
+    msg = f"Could not locate icclim package import root under {repo}"
+    raise FileNotFoundError(msg)
 
 
 def _git_rev_parse(repo: Path, ref: str) -> str | None:
@@ -45,7 +62,7 @@ def _open_var(
     files = sorted(glob.glob(file_glob))
     if not files:
         raise FileNotFoundError(file_glob)
-    ds = xr.open_mfdataset(files, combine="by_coords", chunks=CHUNKS)
+    ds = xr.open_mfdataset(files, combine="by_coords", chunks=_selected_chunks())
     return ds[var_name].sel(lat=lat_slice, lon=lon_slice)
 
 
@@ -311,6 +328,32 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=TIME_RANGE,
             slice_mode="year",
         )
+    if workload == "generic_tas_compound_percentile_or_average_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        return icclim.average(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=["> 95 doy_per", "<= 10 doy_per"],
+                logical_link="or",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_tas_compound_percentile_or_sum_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        return icclim.sum(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                thresholds=["> 95 doy_per", "<= 10 doy_per"],
+                logical_link="or",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "generic_tas_compound_percentile_or_fraction_yearly":
         tas = _open_var(TAS_GLOB, "tas")
         return icclim.fraction_of_total(
@@ -435,6 +478,16 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=TIME_RANGE,
             slice_mode="year",
         )
+    if workload == "csdi_yearly":
+        tas = _open_var(TAS_GLOB, "tas")
+        return icclim.index(
+            index_name="CSDI",
+            in_files=tas,
+            var_name="tas",
+            base_period_time_range=BASE_PERIOD,
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "tg90p_save_thresholds_monthly":
         tas = _open_var(TAS_GLOB, "tas")
         return icclim.index(
@@ -511,7 +564,7 @@ def main() -> None:
     args = parser.parse_args()
 
     repo = Path(args.repo).resolve()
-    sys.path.insert(0, str(repo / "src"))
+    sys.path.insert(0, str(_resolve_import_root(repo)))
     import icclim
 
     out_dir = Path(args.out_dir)

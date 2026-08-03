@@ -140,6 +140,28 @@ practical cases:
   ``fraction_of_total``. Kraken real-data validation against a trusted
   ``master`` baseline was exact and faster for all four reducers.
 
+As of Monday, August 3, 2026, same-variable compound percentile
+``OR`` value aggregates such as
+``> 95 doy_per OR <= 10 doy_per`` are now also robust to materially
+different chunk layouts. Kraken validation showed exact outputs between
+the default and alternate chunk profiles for:
+
+- ``count_occurrences``;
+- ``average``;
+- ``sum``;
+- ``fraction_of_total``.
+
+The same chunk-robustness validation also remained exact for the simple
+optimized percentile spell family:
+
+- generic spell bootstrap;
+- ``WSDI``;
+- ``CSDI``.
+
+This matters for maintainability as much as for speed. Optimized
+bootstrap support is not complete until it stays both exact and
+performance-stable under different chunk layouts that users may provide.
+
 Non-bootstrap family
 --------------------
 
@@ -254,6 +276,15 @@ Those helpers keep the bootstrap preparation workflow readable in code:
 That is still only a first step. Threshold generation itself is not yet
 fully extracted into a reusable engine, but the preparation phases now
 have a stable home and direct unit tests.
+
+The same module now also contains the stable-study materialization
+helper used by the validated chunk-robust optimized paths. It is kept as
+an explicit bootstrap primitive so maintainers can reason separately
+about:
+
+- threshold-generation preparation;
+- study-data materialization;
+- reducer-specific aggregation.
 
 Bootstrap threshold generation
 ------------------------------

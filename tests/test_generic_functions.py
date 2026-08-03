@@ -286,3 +286,59 @@ def test_fraction_of_total_reuses_prepared_bootstrap_inputs_for_compound_thresho
 
     assert result is not None
     assert build_calls["count"] == 4
+
+
+@pytest.mark.parametrize(
+    ("reducer", "kwargs"),
+    [
+        (average, {}),
+        (generic_sum, {}),
+        (fraction_of_total, {"to_percent": False}),
+    ],
+)
+def test_compound_value_aggregate_materializes_stable_study(
+    monkeypatch: pytest.MonkeyPatch,
+    reducer,
+    kwargs: dict[str, object],
+) -> None:
+    tas = stub_tas(27.0, lat_length=2, lon_length=2).chunk(
+        {"time": 365, "lat": 1, "lon": 1}
+    )
+    threshold = build_threshold(
+        thresholds=["> 95 doy_per", "<= 10 doy_per"],
+        logical_link="or",
+        reference_period=("2042-01-01", "2043-12-31"),
+    )
+    climate_var = ClimateVariable(
+        name="tas",
+        standard_var=StandardVariableRegistry.TAS,
+        studied_data=tas,
+        threshold=threshold,
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+    materialize_calls = {"count": 0, "prefer_file_reopen": []}
+
+    original_materialize = bootstrap_primitives._materialize_bootstrap_study
+
+    def counted_materialize(study, *, prefer_file_reopen=False):
+        materialize_calls["count"] += 1
+        materialize_calls["prefer_file_reopen"].append(prefer_file_reopen)
+        return original_materialize(study, prefer_file_reopen=prefer_file_reopen)
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+    monkeypatch.setattr(
+        bootstrap_primitives,
+        "_materialize_bootstrap_study",
+        counted_materialize,
+    )
+
+    result = reducer(
+        climate_vars=[climate_var],
+        resample_freq=FrequencyRegistry.YEAR,
+        **kwargs,
+    )
+
+    assert result is not None
+    assert materialize_calls["count"] >= 1
+    assert True in materialize_calls["prefer_file_reopen"]

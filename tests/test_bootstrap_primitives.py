@@ -5,6 +5,9 @@ import pandas as pd
 import xarray as xr
 
 from icclim._core.generic.bootstrap_primitives import (
+    _block_slices,
+    _materialize_bootstrap_study,
+    _preferred_spatial_block_sizes,
     build_bootstrap_array_inputs,
     build_bootstrap_output,
     build_bootstrap_reference_sample,
@@ -117,3 +120,26 @@ def test_build_bootstrap_output_rebuilds_coordinates_and_attrs() -> None:
     assert output.shape == (5, 2, 1)
     assert output.attrs["units"] == "d"
     assert output.attrs["climatology_bounds"] == ["2042-01-01", "2046-12-31"]
+
+
+def test_materialize_bootstrap_study_loads_chunked_spatial_tiles_exactly() -> None:
+    tas = stub_tas(lat_length=3, lon_length=5).chunk({"time": 2, "lat": 1, "lon": 2})
+
+    materialized = _materialize_bootstrap_study(tas)
+
+    xr.testing.assert_identical(materialized, tas.transpose("time", ...).load())
+
+
+def test_block_slices_covers_full_axis() -> None:
+    block_slices = _block_slices(size=5, preferred_block_size=2)
+
+    assert block_slices == [slice(0, 2), slice(2, 4), slice(4, 5)]
+
+
+def test_preferred_spatial_block_sizes_uses_backend_hints() -> None:
+    tas = stub_tas(lat_length=3, lon_length=5)
+    tas.encoding["preferred_chunks"] = {"lat": 10, "lon": 2}
+
+    block_sizes = _preferred_spatial_block_sizes(tas)
+
+    assert block_sizes == {"lat": 3, "lon": 2}
