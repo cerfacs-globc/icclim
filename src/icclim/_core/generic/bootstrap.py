@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
+from xarray.coding.cftimeindex import CFTimeIndex
 
 from icclim._core.constants import REFERENCE_PERIOD_ID
 from icclim._core.generic.bootstrap_capability import (
@@ -30,6 +31,13 @@ if TYPE_CHECKING:
 NON_LEAP_YEAR_DAY_COUNT = 365
 
 
+def _bootstrap_array_dtype(study: DataArray) -> np.dtype:
+    time_index = study.indexes["time"]
+    if isinstance(time_index, CFTimeIndex):
+        return np.float64
+    return np.float32
+
+
 def compute_doy_percentile_bootstrap_count(
     study: DataArray,
     threshold: PercentileThreshold,
@@ -45,7 +53,10 @@ def compute_doy_percentile_bootstrap_count(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    array_inputs = build_bootstrap_array_inputs(
+        reference_sample,
+        dtype=_bootstrap_array_dtype(reference_sample.study),
+    )
     result = _bootstrap_count_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -87,18 +98,22 @@ def compute_doy_percentile_bootstrap_exceedance_sum(
     study: DataArray,
     threshold: PercentileThreshold,
     freq: str,
+    *,
+    prepared_inputs: BootstrapPreparedInputs | None = None,
 ) -> DataArray | None:
     """Compute bootstrap sums of exceedance-day values with the optimized path."""
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
         return None
-    reference_sample = build_bootstrap_reference_sample(study, threshold)
-    temporal_indexing = build_bootstrap_temporal_indexing(
-        reference_sample.study,
-        reference_sample.reference_sample,
-        freq,
-        doy_window_width=threshold.doy_window_width,
-    )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    if prepared_inputs is None:
+        prepared_inputs = build_bootstrap_prepared_inputs(
+            study,
+            threshold,
+            freq,
+            dtype=_bootstrap_array_dtype(study),
+        )
+    reference_sample = prepared_inputs.reference_sample
+    temporal_indexing = prepared_inputs.temporal_indexing
+    array_inputs = prepared_inputs.array_inputs
     result = _bootstrap_sum_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -141,18 +156,22 @@ def compute_doy_percentile_bootstrap_union_exceedance_count(
     study: DataArray,
     threshold: PercentileThreshold,
     freq: str,
+    *,
+    prepared_inputs: BootstrapPreparedInputs | None = None,
 ) -> DataArray | None:
     """Count union exceedance days for thresholded bootstrap mean reducers."""
     if not _can_compute_optimized_bootstrap(study, threshold, freq):
         return None
-    reference_sample = build_bootstrap_reference_sample(study, threshold)
-    temporal_indexing = build_bootstrap_temporal_indexing(
-        reference_sample.study,
-        reference_sample.reference_sample,
-        freq,
-        doy_window_width=threshold.doy_window_width,
-    )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    if prepared_inputs is None:
+        prepared_inputs = build_bootstrap_prepared_inputs(
+            study,
+            threshold,
+            freq,
+            dtype=_bootstrap_array_dtype(study),
+        )
+    reference_sample = prepared_inputs.reference_sample
+    temporal_indexing = prepared_inputs.temporal_indexing
+    array_inputs = prepared_inputs.array_inputs
     result = _bootstrap_union_count_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -207,7 +226,7 @@ def compute_doy_percentile_bootstrap_union_exceedance_mask(
             study,
             threshold,
             freq,
-            dtype=np.float32,
+            dtype=_bootstrap_array_dtype(study),
         )
     reference_sample = prepared_inputs.reference_sample
     temporal_indexing = prepared_inputs.temporal_indexing
@@ -262,7 +281,10 @@ def compute_doy_percentile_bootstrap_exceedance_average(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    array_inputs = build_bootstrap_array_inputs(
+        reference_sample,
+        dtype=_bootstrap_array_dtype(reference_sample.study),
+    )
     result = _bootstrap_average_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -316,7 +338,10 @@ def compute_doy_percentile_bootstrap_fraction_of_total(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    array_inputs = build_bootstrap_array_inputs(
+        reference_sample,
+        dtype=_bootstrap_array_dtype(reference_sample.study),
+    )
     result = _bootstrap_fraction_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -373,7 +398,10 @@ def compute_doy_percentile_scalar_bounded_bootstrap_count(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    array_inputs = build_bootstrap_array_inputs(
+        reference_sample,
+        dtype=_bootstrap_array_dtype(reference_sample.study),
+    )
     result = _bootstrap_bounded_count_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -432,7 +460,10 @@ def compute_doy_percentile_scalar_bounded_bootstrap_exceedance_sum(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    array_inputs = build_bootstrap_array_inputs(
+        reference_sample,
+        dtype=_bootstrap_array_dtype(reference_sample.study),
+    )
     result = _bootstrap_bounded_sum_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -492,7 +523,10 @@ def compute_doy_percentile_scalar_bounded_bootstrap_exceedance_average(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    array_inputs = build_bootstrap_array_inputs(
+        reference_sample,
+        dtype=_bootstrap_array_dtype(reference_sample.study),
+    )
     result = _bootstrap_bounded_average_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -552,7 +586,10 @@ def compute_doy_percentile_scalar_bounded_bootstrap_fraction_of_total(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
-    array_inputs = build_bootstrap_array_inputs(reference_sample, dtype=np.float32)
+    array_inputs = build_bootstrap_array_inputs(
+        reference_sample,
+        dtype=_bootstrap_array_dtype(reference_sample.study),
+    )
     result = _bootstrap_bounded_fraction_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
@@ -1116,45 +1153,91 @@ if njit is not None:
                     op_code,
                 )
             else:
-                union_thresholds = _initialize_union_threshold_series(op_code)
-                for substitute_i in range(n_ref_years):
-                    if substitute_i == target_ref_i:
-                        continue
-                    thresholds = _build_float32_bootstrap_threshold_series_for_cell(
-                        _build_bootstrap_threshold_series_for_cell(
-                            overlap_reference,
-                            sample_indices,
-                            index_year,
-                            index_pos,
-                            substitute_aligned,
-                            target_ref_i,
-                            substitute_i,
-                            cell,
-                            max_samples,
-                            quantile,
-                            alpha,
-                            beta,
-                            min_threshold,
+                if np.isnan(min_threshold):
+                    union_thresholds = _initialize_union_threshold_series(op_code)
+                    for substitute_i in range(n_ref_years):
+                        if substitute_i == target_ref_i:
+                            continue
+                        thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                            _build_bootstrap_threshold_series_for_cell(
+                                overlap_reference,
+                                sample_indices,
+                                index_year,
+                                index_pos,
+                                substitute_aligned,
+                                target_ref_i,
+                                substitute_i,
+                                cell,
+                                max_samples,
+                                quantile,
+                                alpha,
+                                beta,
+                                min_threshold,
+                            )
                         )
-                    )
-                    _update_union_threshold_series(
+                        _update_union_threshold_series(
+                            union_thresholds,
+                            thresholds,
+                            op_code,
+                        )
+                    _write_average_groups_for_cell(
+                        out,
+                        flat_study,
                         union_thresholds,
-                        thresholds,
+                        study_doys,
+                        study_starts,
+                        study_lengths,
+                        group_start,
+                        group_stop,
+                        cell,
+                        year_max_doys[year_i],
                         op_code,
                     )
-                _write_average_groups_for_cell(
-                    out,
-                    flat_study,
-                    union_thresholds,
-                    study_doys,
-                    study_starts,
-                    study_lengths,
-                    group_start,
-                    group_stop,
-                    cell,
-                    year_max_doys[year_i],
-                    op_code,
-                )
+                else:
+                    for group_i in range(group_start, group_stop):
+                        out[group_i, cell] = 0.0
+                    substitute_count = 0
+                    for substitute_i in range(n_ref_years):
+                        if substitute_i == target_ref_i:
+                            continue
+                        thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                            _build_bootstrap_threshold_series_for_cell(
+                                overlap_reference,
+                                sample_indices,
+                                index_year,
+                                index_pos,
+                                substitute_aligned,
+                                target_ref_i,
+                                substitute_i,
+                                cell,
+                                max_samples,
+                                quantile,
+                                alpha,
+                                beta,
+                                min_threshold,
+                            )
+                        )
+                        _accumulate_average_groups_for_cell(
+                            out,
+                            flat_study,
+                            thresholds,
+                            study_doys,
+                            study_starts,
+                            study_lengths,
+                            group_start,
+                            group_stop,
+                            cell,
+                            year_max_doys[year_i],
+                            op_code,
+                        )
+                        substitute_count += 1
+                    _average_count_groups_for_cell(
+                        out,
+                        group_start,
+                        group_stop,
+                        cell,
+                        substitute_count,
+                    )
         return out
 
     @njit(parallel=True, cache=True)
@@ -2408,6 +2491,32 @@ if njit is not None:
     ):
         for group_i in range(group_start, group_stop):
             out[group_i, cell] += _sum_exceedances(
+                flat_study,
+                thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
+                max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _accumulate_average_groups_for_cell(
+        out,
+        flat_study,
+        thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        max_target_doy,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] += _average_exceedances(
                 flat_study,
                 thresholds,
                 study_doys,
