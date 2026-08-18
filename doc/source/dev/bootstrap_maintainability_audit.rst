@@ -1,15 +1,15 @@
-.. _dev_code_audit_since_abel:
+.. _dev_bootstrap_maintainability_audit:
 
-#####################################
-Code audit since Abel's last commits
-#####################################
+###############################
+Bootstrap maintainability audit
+###############################
 
 This note records a maintainability audit of the codebase after the
-bootstrap work merged between July 29 and August 3, 2026.
+bootstrap work merged between Tuesday, July 29, 2026 and Monday, August
+3, 2026.
 
-The audit uses Abel Aoun's last commit period as a historical boundary,
-but it is not an author-based judgement. The goal is to assess the
-current code against the rules maintainers agreed on:
+The goal is to assess the current code against the rules maintainers
+agreed on:
 
 - scientific workflow must stay visible in code;
 - naming must prefer climate and research-software semantics over
@@ -32,7 +32,7 @@ The audit considers:
   ``feature/bootstrap-chunk-performance`` on Monday, August 3, 2026;
 - workflow and readability concerns raised during the recent bootstrap
   work;
-- both older architect-led patterns and newer AI-era changes.
+- patterns that make the scientific workflow easier or harder to follow.
 
 The audit does **not** assume:
 
@@ -195,11 +195,11 @@ Rule going forward:
 - when modifying them, prefer explicit phase helpers over expanding
   existing mixed-purpose builders.
 
-What this audit says about older architect-led patterns
-=======================================================
+What this audit says about older design patterns
+================================================
 
-Some older design choices were technically solid, but not always ideal
-for scientific workflow clarity or FAIR4RS.
+Some existing design choices were technically solid, but not always
+ideal for scientific workflow clarity or FAIR4RS.
 
 Examples of patterns to avoid repeating:
 

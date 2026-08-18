@@ -42,8 +42,8 @@ Use the following rules when extending bootstrap support:
 
 - Separate threshold generation from result aggregation.
 - Classify support by mathematical family, not by index short name.
-- Keep the safe tiled path as the reference bootstrap implementation for every new optimized
-  implementation.
+- Keep the exact tiled bootstrap path as the reference bootstrap
+  implementation for every new optimized implementation.
 - Prefer a small number of well-named helpers over large mixed-purpose
   functions.
 - Make routing decisions explicit in one place rather than scattering
@@ -130,8 +130,8 @@ Examples:
 As of Sunday, August 2, 2026, compound count routing is split into two
 practical cases:
 
-- multi-variable compound counts can combine bootstrap leaf masks, using
-  the best available leaf path for each variable before applying the
+- multi-variable compound counts can combine bootstrap component masks,
+  using the best available component path for each variable before applying the
   logical link;
 - single-variable bounded scalar guards such as
   ``> 90 doy_per AND <= 30 degC`` or
@@ -186,8 +186,8 @@ classifier that answers four questions:
 1. Is bootstrap required?
 2. If it is required, which family does the index belong to?
 3. Can the optimized implementation be used?
-4. If not, should icclim fall back to the safe tiled path or reject the
-   request as unsupported?
+4. If not, should icclim fall back to the exact tiled bootstrap path or
+   reject the request as unsupported?
 
 The classifier should use explicit fields rather than index names:
 
@@ -226,9 +226,9 @@ generic indicator families:
 - filtered day-of-year percentile count;
 - value aggregates such as ``fraction_of_total``;
 - spell reducers such as ``sum_of_spell_lengths``;
-- multi-variable compound counts that can combine bootstrap leaf masks;
+- multi-variable compound counts that can combine bootstrap component masks;
 - bounded single-variable percentile compositions with one day-of-year
-  percentile leaf and one scalar guard joined by ``AND`` or ``OR``.
+  percentile component and one scalar guard joined by ``AND`` or ``OR``.
 
 Reusable bootstrap primitives
 =============================
@@ -355,9 +355,9 @@ validated optimized implementation instead uses:
 - optimized union exceedance-day counts;
 - final output casting aligned with the trusted baseline dtype.
 
-The same compound leaf-mask architecture also supports percentile-tail
+The same compound component-mask architecture also supports percentile-tail
 unions such as ``> 95 doy_per OR <= 10 doy_per``. Those OR shapes stay
-in the compound family, but they reuse the same bootstrap leaf-mask
+in the compound family, but they reuse the same bootstrap component-mask
 combination strategy as the already validated percentile-interval
 workloads.
 
@@ -601,7 +601,7 @@ The best coverage-per-effort order is:
 
 At each step:
 
-- compare against the safe tiled reference path;
+- compare against the exact tiled reference path;
 - validate on real data, not only synthetic examples;
 - record both performance and field equality;
 - widen dispatch only after Kraken validation is exact.

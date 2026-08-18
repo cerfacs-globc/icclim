@@ -14,7 +14,7 @@ development.
    release_process
    ci
    add_climate_index
-   code_audit_since_abel
+   bootstrap_maintainability_audit
    percentile_bootstrap
    bootstrap_architecture
    contributing
