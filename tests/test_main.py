@@ -1077,7 +1077,7 @@ class TestIntegration:
         monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
 
         generic_functions.reset_bootstrap_profile()
-        exact = icclim.index(**common_kwargs).compute()
+        optimized = icclim.index(**common_kwargs).compute()
         profile = generic_functions.get_bootstrap_profile()
 
         assert profile["bootstrap_execution_kind"] == "exact_tiled_bootstrap"
@@ -1086,7 +1086,7 @@ class TestIntegration:
             == "filtered_average_requires_exact_tiled_bootstrap"
         )
         xr.testing.assert_allclose(
-            exact.average,
+            optimized.average,
             reference.average,
         )
 

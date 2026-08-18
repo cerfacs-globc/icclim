@@ -42,8 +42,8 @@ class BootstrapTemporalIndexing:
 
     reference_year_indices: dict[int, np.ndarray]
     study_year_indices: dict[int, np.ndarray]
-    output_group_indices: dict[np.datetime64, np.ndarray]
-    output_group_labels: list[np.datetime64]
+    output_group_indices: dict[object, np.ndarray]
+    output_group_labels: list[object]
     study_year_starts: np.ndarray
     study_year_lengths: np.ndarray
     output_starts: np.ndarray
@@ -148,6 +148,18 @@ def build_bootstrap_reference_sample(
         reference_sample=reference_sample,
         filtered_reference_sample=filtered_reference_sample,
         threshold_floor_in_reference_units=threshold_floor,
+    )
+
+
+def materialize_bootstrap_study(
+    study: DataArray,
+    *,
+    prefer_file_reopen: bool = False,
+) -> DataArray:
+    """Load study data through the internal bootstrap materialization path."""
+    return _materialize_bootstrap_study(
+        study,
+        prefer_file_reopen=prefer_file_reopen,
     )
 
 
@@ -415,7 +427,7 @@ def build_bootstrap_temporal_indexing(
         year_group_stops=year_group_stops,
         year_max_day_of_years=year_max_day_of_years,
         year_to_reference_index=year_to_reference_index,
-        study_day_of_years=study_time.dayofyear.to_numpy(dtype=np.int64),
+        study_day_of_years=np.asarray(study_time.dayofyear, dtype=np.int64),
         sample_indices_by_day_of_year=sample_indices_by_day_of_year,
         reference_index_year=reference_index_year,
         reference_index_position=reference_index_position,
@@ -423,16 +435,16 @@ def build_bootstrap_temporal_indexing(
     )
 
 
-def indices_by_year(time: pd.DatetimeIndex) -> dict[int, np.ndarray]:
+def indices_by_year(time) -> dict[int, np.ndarray]:
     return {int(year): np.where(time.year == year)[0] for year in np.unique(time.year)}
 
 
 def indices_by_resample_group(
     da: DataArray,
     freq: str,
-) -> dict[np.datetime64, np.ndarray]:
+) -> dict[object, np.ndarray]:
     groups = da.resample(time=freq).groups
-    out: dict[np.datetime64, np.ndarray] = {}
+    out: dict[object, np.ndarray] = {}
     for label, indexer in groups.items():
         if isinstance(indexer, slice):
             start = 0 if indexer.start is None else indexer.start
@@ -441,7 +453,7 @@ def indices_by_resample_group(
             indices = np.arange(start, stop, step, dtype=np.int64)
         else:
             indices = np.asarray(indexer, dtype=np.int64)
-        out[np.datetime64(label)] = indices
+        out[label] = indices
     return out
 
 
@@ -459,13 +471,13 @@ def group_bounds_by_year(
 
 
 def rolling_sample_index_matrix(
-    time: pd.DatetimeIndex,
+    time,
     *,
     window: int,
 ) -> np.ndarray:
     half_window = window // 2
     sample_indices: dict[int, list[int]] = {doy: [] for doy in range(1, 366)}
-    day_of_years = time.dayofyear.to_numpy()
+    day_of_years = np.asarray(time.dayofyear, dtype=np.int64)
     for center, day_of_year in enumerate(day_of_years):
         if day_of_year == LEAP_YEAR_DAY_COUNT:
             continue
@@ -492,7 +504,7 @@ def ref_index_year_and_position(
 
 
 def substitute_alignment_matrix(
-    reference_time: pd.DatetimeIndex,
+    reference_time,
     reference_year_indices: dict[int, np.ndarray],
 ) -> np.ndarray:
     max_year_length = max(len(indices) for indices in reference_year_indices.values())
@@ -515,8 +527,8 @@ def substitute_alignment_matrix(
 
 
 def substitute_indices_aligned_to_target(
-    target_time: pd.DatetimeIndex,
-    substitute_time: pd.DatetimeIndex,
+    target_time,
+    substitute_time,
     substitute_indices: np.ndarray,
 ) -> np.ndarray:
     if len(target_time) == len(substitute_time):

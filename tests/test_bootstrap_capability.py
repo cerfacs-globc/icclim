@@ -223,6 +223,33 @@ def test_generic_filtered_fraction_of_total_routes_to_optimized_bootstrap() -> N
     assert decision.reason_code == "optimized_bootstrap_supported"
 
 
+def test_generic_filtered_average_routes_to_exact_tiled_bootstrap() -> None:
+    pr = stub_tas(5.0).rename("pr")
+    pr.attrs["units"] = "mm/day"
+    pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        pr,
+        {
+            "query": "> 90 doy_per",
+            "threshold_min_value": "1 mm/day",
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="average",
+        climate_vars=[climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert (
+        decision.family
+        == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_VALUE_AGGREGATE
+    )
+    assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
+    assert decision.reason_code == "filtered_average_requires_exact_tiled_bootstrap"
+
+
 def test_generic_fraction_of_total_routes_to_optimized_bootstrap() -> None:
     tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
     climate_var = _build_climate_variable(
