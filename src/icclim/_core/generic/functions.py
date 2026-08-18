@@ -2812,14 +2812,14 @@ def _compute_threshold_exceedance_mask(
         climate_var.bootstrap,
     )
     if isinstance(threshold, PercentileThreshold) and threshold.is_doy_per_threshold:
-        leaf_climate_var = replace(climate_var, threshold=threshold)
+        component_climate_var = replace(climate_var, threshold=threshold)
         capability = classify_doy_percentile_spell_bootstrap(
-            leaf_climate_var,
+            component_climate_var,
             resample_freq,
         )
         if capability.uses_optimized_bootstrap:
             optimized_mask = _compute_fast_tiled_bootstrap_spell_mask(
-                leaf_climate_var,
+                component_climate_var,
                 resample_freq,
                 _get_fast_bootstrap_max_cells(climate_var.studied_data),
                 prepared_inputs_cache=prepared_inputs_cache,
@@ -2828,7 +2828,7 @@ def _compute_threshold_exceedance_mask(
                 return optimized_mask
         if capability.uses_exact_tiled_bootstrap:
             exact_mask = _compute_exact_tiled_bootstrap_spell_mask(
-                leaf_climate_var,
+                component_climate_var,
                 resample_freq,
             )
             if exact_mask is not None:

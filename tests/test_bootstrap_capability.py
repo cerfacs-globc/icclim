@@ -421,7 +421,7 @@ def test_multi_variable_percentile_count_routes_to_exact_tiled_compound_path() -
         == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COMPOUND
     )
     assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
-    assert decision.reason_code == "compound_leaf_requires_exact_tiled_bootstrap"
+    assert decision.reason_code == "compound_component_requires_exact_tiled_bootstrap"
 
 
 def test_bounded_threshold_recursively_requires_bootstrap() -> None:
