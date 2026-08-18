@@ -228,6 +228,16 @@ def _workload_notes(workload: str) -> str:
         "generic_pr_average_bootstrap_yearly": (
             "filtered value aggregate; wet-day style threshold_min_value"
         ),
+        "generic_pr_average_bootstrap_monthly": (
+            "filtered value aggregate monthly; wet-day style threshold_min_value"
+        ),
+        "generic_pr_average_bootstrap_dry_yearly": (
+            "filtered value aggregate on a drier regional subset; wet-day style"
+            " threshold_min_value"
+        ),
+        "generic_pr_average_bootstrap_99_yearly": (
+            "filtered value aggregate with a rarer 99th-percentile threshold"
+        ),
         "generic_tas_fraction_bootstrap_yearly": (
             "unfiltered value aggregate; optimized fraction_of_total candidate"
         ),
@@ -241,6 +251,12 @@ def _workload_notes(workload: str) -> str:
             "spell reducer; raw v7.1.7 differs from current and master"
         ),
         "wsdi_yearly": "standard warm-spell duration index",
+        "tx90p_cftime_yearly": (
+            "Gregorian-like cftime validation on real tas values"
+        ),
+        "tx90p_cftime_monthly": (
+            "Gregorian-like cftime monthly validation on real tas values"
+        ),
         "generic_tas_count_date_event_monthly": "date_event count control path",
         "combined_cd_yearly": (
             "compound tas+pr count; combines specialized leaf masks through"

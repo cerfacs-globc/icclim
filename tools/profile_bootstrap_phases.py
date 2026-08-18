@@ -1,19 +1,24 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import sys
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from typing import Any
 
+import cftime
 import numpy as np
 import xarray as xr
 
 TAS_GLOB = "/scratch/globc/page/models/tas_day_ACCESS-CM2_historical_*.nc"
+PR_GLOB = "/scratch/globc/page/models/pr_day_ACCESS-CM2_historical_*.nc"
 LAT_SLICE = slice(35.0, 70.0)
 LON_SLICE = slice(0.0, 40.0)
+DRY_PR_LAT_SLICE = slice(35.0, 45.0)
+DRY_PR_LON_SLICE = slice(0.0, 30.0)
 BASE_PERIOD = ("1961-01-01", "1990-12-31")
 TIME_RANGE = ("1950-01-01", "2014-12-31")
 DEFAULT_CHUNKS = {"time": 365, "lat": 24, "lon": 32}
@@ -43,8 +48,41 @@ def _open_var(
     return ds[var_name].sel(lat=LAT_SLICE, lon=LON_SLICE)
 
 
+def _as_cftime_gregorian(da: xr.DataArray) -> xr.DataArray:
+    time_values = da.indexes["time"]
+    cftime_time = [
+        cftime.DatetimeGregorian(
+            int(ts.year),
+            int(ts.month),
+            int(ts.day),
+            int(getattr(ts, "hour", 0)),
+            int(getattr(ts, "minute", 0)),
+            int(getattr(ts, "second", 0)),
+        )
+        for ts in time_values
+    ]
+    return da.assign_coords(time=cftime_time)
+
+
 def _build_workload(icclim, workload: str, *, chunks: dict[str, int]) -> xr.Dataset:
     tas = _open_var(TAS_GLOB, "tas", chunks=chunks)
+    if workload == "generic_pr_average_bootstrap_yearly":
+        pr = _open_var(
+            PR_GLOB,
+            "pr",
+            chunks=chunks,
+        ).sel(lat=DRY_PR_LAT_SLICE, lon=DRY_PR_LON_SLICE)
+        return icclim.average(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 95 doy_per",
+                reference_period=BASE_PERIOD,
+                threshold_min_value="1 mm/day",
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "generic_tas_compound_percentile_or_count_yearly":
         return icclim.count_occurrences(
             in_files=tas,
@@ -123,6 +161,26 @@ def _build_workload(icclim, workload: str, *, chunks: dict[str, int]) -> xr.Data
             time_range=TIME_RANGE,
             slice_mode="year",
         )
+    if workload == "tx90p_cftime_yearly":
+        tas = _as_cftime_gregorian(tas)
+        return icclim.index(
+            index_name="TX90p",
+            in_files=tas,
+            var_name="tas",
+            base_period_time_range=BASE_PERIOD,
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "tx90p_cftime_monthly":
+        tas = _as_cftime_gregorian(tas)
+        return icclim.index(
+            index_name="TX90p",
+            in_files=tas,
+            var_name="tas",
+            base_period_time_range=BASE_PERIOD,
+            time_range=TIME_RANGE,
+            slice_mode="month",
+        )
     msg = f"Unsupported workload: {workload}"
     raise ValueError(msg)
 
@@ -192,12 +250,21 @@ def main() -> None:
     sys.path.insert(0, str(_resolve_import_root(repo)))
 
     import icclim
-    import icclim._core.generic.bootstrap as bootstrap_module
-    import icclim._core.generic.bootstrap_primitives as primitives_module
-    from icclim._core.generic.functions import (
-        get_bootstrap_profile,
-        reset_bootstrap_profile,
-    )
+    bootstrap_module = None
+    primitives_module = None
+    functions_module = importlib.import_module("icclim._core.generic.functions")
+    try:
+        bootstrap_module = importlib.import_module("icclim._core.generic.bootstrap")
+    except ModuleNotFoundError:
+        pass
+    try:
+        primitives_module = importlib.import_module(
+            "icclim._core.generic.bootstrap_primitives"
+        )
+    except ModuleNotFoundError:
+        pass
+    get_bootstrap_profile = getattr(functions_module, "get_bootstrap_profile", lambda: {})
+    reset_bootstrap_profile = getattr(functions_module, "reset_bootstrap_profile", lambda: None)
 
     chunk_profile = DEFAULT_CHUNKS if args.chunk_profile == "default" else ALT_CHUNKS
     phase_stats: dict[str, dict[str, float]] = {}
@@ -207,24 +274,65 @@ def main() -> None:
     started = time.perf_counter()
     with (
         _timed_patch_if_present(
+            functions_module,
+            "_compute_threshold_exceedance_mask",
+            phase_stats,
+        ),
+        _timed_patch_if_present(
+            functions_module,
+            "_compute_exceedance_mask",
+            phase_stats,
+        ),
+        _timed_patch_if_present(
+            functions_module,
+            "_compute_safe_tiled_count_occurrences",
+            phase_stats,
+        ),
+        _timed_patch_if_present(
+            functions_module,
+            "_compute_safe_tiled_count_occurrences_with_max_cells",
+            phase_stats,
+        ),
+        _timed_patch_if_present(
+            functions_module,
+            "_compute_exact_tiled_bootstrap_spell_mask",
+            phase_stats,
+        ),
+        _timed_patch_if_present(
+            functions_module,
+            "_compute_fast_tiled_count_occurrences",
+            phase_stats,
+        ),
+        _timed_patch_if_present(
             primitives_module,
             "_normalize_bootstrap_chunks",
             phase_stats,
-        ),
-        _timed_patch(
+        ) if primitives_module is not None else nullcontext(),
+        _timed_patch_if_present(
             primitives_module,
             "build_bootstrap_reference_sample",
             phase_stats,
-        ),
-        _timed_patch(
+        ) if primitives_module is not None else nullcontext(),
+        _timed_patch_if_present(
             primitives_module,
             "build_bootstrap_prepared_inputs",
             phase_stats,
-        ),
-        _timed_patch(
-            bootstrap_module, "build_bootstrap_temporal_indexing", phase_stats
-        ),
-        _timed_patch(bootstrap_module, "build_bootstrap_array_inputs", phase_stats),
+        ) if primitives_module is not None else nullcontext(),
+        _timed_patch_if_present(
+            bootstrap_module,
+            "compute_doy_percentile_bootstrap_count",
+            phase_stats,
+        ) if bootstrap_module is not None else nullcontext(),
+        _timed_patch_if_present(
+            bootstrap_module,
+            "build_bootstrap_temporal_indexing",
+            phase_stats,
+        ) if bootstrap_module is not None else nullcontext(),
+        _timed_patch_if_present(
+            bootstrap_module,
+            "build_bootstrap_array_inputs",
+            phase_stats,
+        ) if bootstrap_module is not None else nullcontext(),
     ):
         ds = _build_workload(icclim, args.workload, chunks=chunk_profile).load()
     elapsed = time.perf_counter() - started
