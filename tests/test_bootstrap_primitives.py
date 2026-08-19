@@ -86,6 +86,29 @@ def test_build_bootstrap_temporal_indexing_tracks_years_and_groups() -> None:
     assert temporal_indexing.substitute_alignment.shape[:2] == (5, 5)
 
 
+def test_build_bootstrap_temporal_indexing_supports_cftime_groups() -> None:
+    tas = stub_tas(use_cftime=True)
+    threshold = build_threshold("> 90 doy_per")
+    reference_sample = build_bootstrap_reference_sample(tas, threshold)
+
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        "MS",
+        doy_window_width=threshold.doy_window_width,
+    )
+
+    np.testing.assert_array_equal(
+        temporal_indexing.bootstrap_years,
+        np.asarray([2042, 2043, 2044, 2045, 2046]),
+    )
+    assert len(temporal_indexing.output_group_labels) == 60
+    assert temporal_indexing.sample_indices_by_day_of_year.shape[0] == 365
+    assert temporal_indexing.reference_index_year.shape == (tas.sizes["time"],)
+    assert temporal_indexing.reference_index_position.shape == (tas.sizes["time"],)
+    assert temporal_indexing.substitute_alignment.shape[:2] == (5, 5)
+
+
 def test_build_bootstrap_array_inputs_flattens_study_and_reference() -> None:
     tas = stub_tas(lat_length=2, lon_length=3)
     threshold = build_threshold("> 90 doy_per")
@@ -409,6 +432,47 @@ def test_numba_python_union_mask_kernel_matches_wrapper_output() -> None:
         kernel_result,
         wrapper_result.values.reshape(kernel_result.shape),
     )
+
+
+def test_numba_python_count_kernel_matches_constant_cftime_monthly_counts() -> None:
+    tas = stub_tas(300.0, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
+    threshold = build_threshold(">= 90 doy_per")
+    prepared = build_bootstrap_prepared_inputs(tas, threshold, "MS", dtype=np.float64)
+    ref = prepared.reference_sample
+    idx = prepared.temporal_indexing
+    arr = prepared.array_inputs
+    min_threshold = (
+        np.nan
+        if ref.threshold_floor_in_reference_units is None
+        else float(ref.threshold_floor_in_reference_units)
+    )
+
+    kernel_result = _bootstrap_count_kernel.py_func(
+        arr.flat_reference_raw,
+        arr.flat_reference_filtered,
+        arr.flat_study,
+        idx.sample_indices_by_day_of_year,
+        idx.reference_index_year,
+        idx.reference_index_position,
+        idx.substitute_alignment,
+        idx.output_starts,
+        idx.output_lengths,
+        idx.year_group_starts,
+        idx.year_group_stops,
+        idx.year_max_day_of_years,
+        idx.year_to_reference_index,
+        idx.study_day_of_years,
+        float(threshold.percentile_coord().item()) / 100.0,
+        float(threshold.interpolation.alpha),
+        float(threshold.interpolation.beta),
+        1,
+        min_threshold,
+    )
+
+    expected = tas.resample(time="MS").count(dim="time").values.reshape(
+        kernel_result.shape
+    )
+    np.testing.assert_allclose(kernel_result, expected)
 
 
 @pytest.mark.parametrize(

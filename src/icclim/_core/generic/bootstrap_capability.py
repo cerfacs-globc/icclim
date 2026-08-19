@@ -151,6 +151,9 @@ def classify_doy_percentile_count_bootstrap(
         study=climate_var.studied_data,
         threshold_spec=threshold_spec,
         output_frequency=resample_frequency.pandas_freq,
+        allow_experimental_cftime=_experimental_cftime_count_bootstrap_enabled(
+            climate_var.studied_data
+        ),
     )
 
 
@@ -233,6 +236,7 @@ def _classify_required_optimized_percentile_bootstrap(
     study: DataArray,
     threshold_spec: PercentileThreshold,
     output_frequency: str,
+    allow_experimental_cftime: bool = False,
 ) -> BootstrapCapability:
     from xclim.core.utils import uses_dask  # noqa: PLC0415
 
@@ -252,6 +256,7 @@ def _classify_required_optimized_percentile_bootstrap(
         study,
         threshold_spec,
         output_frequency,
+        allow_experimental_cftime=allow_experimental_cftime,
     )
     if optimized_path_blocker is not None:
         return _exact_tiled_bootstrap(family, optimized_path_blocker)
@@ -1043,11 +1048,16 @@ def _optimized_count_path_blocker(
     study: DataArray,
     threshold_spec: PercentileThreshold,
     output_frequency: str,
+    *,
+    allow_experimental_cftime: bool = False,
 ) -> str | None:
     """Return the optimized-path blocker reason, or ``None`` when it is supported."""
     blockers = [
         (
-            not isinstance(study.indexes.get("time"), pd.DatetimeIndex),
+            not _optimized_bootstrap_calendar_supported(
+                study,
+                allow_experimental_cftime=allow_experimental_cftime,
+            ),
             "calendar_requires_exact_tiled_bootstrap",
         ),
         (
@@ -1075,6 +1085,28 @@ def _optimized_count_path_blocker(
         if is_blocked:
             return reason_code
     return None
+
+
+def _optimized_bootstrap_calendar_supported(
+    study: DataArray,
+    *,
+    allow_experimental_cftime: bool,
+) -> bool:
+    if isinstance(study.indexes.get("time"), pd.DatetimeIndex):
+        return True
+    if not allow_experimental_cftime:
+        return False
+    from xarray.coding.cftimeindex import CFTimeIndex  # noqa: PLC0415
+
+    return isinstance(study.indexes.get("time"), CFTimeIndex)
+
+
+def _experimental_cftime_count_bootstrap_enabled(study: DataArray) -> bool:
+    if os.environ.get("ICCLIM_EXPERIMENTAL_CFTIME_COUNT_BOOTSTRAP") != "1":
+        return False
+    from xarray.coding.cftimeindex import CFTimeIndex  # noqa: PLC0415
+
+    return isinstance(study.indexes.get("time"), CFTimeIndex)
 
 
 def _optimized_bootstrap_is_available() -> bool:
