@@ -9,7 +9,7 @@
 set -euo pipefail
 
 PYTHON_BIN=/scratch/globc/page/.conda/envs/icclimv7/bin/python
-SCRIPT=/scratch/globc/page/icclim-bench/run_real_data_validation.py
+SCRIPT="$REPO_PATH/tools/run_real_data_validation.py"
 
 mkdir -p "$OUT_DIR"
 cd "$OUT_DIR"
