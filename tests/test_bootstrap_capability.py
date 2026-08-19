@@ -159,6 +159,29 @@ def test_cftime_count_routing_does_not_depend_on_unrelated_env(
     assert decision.reason_code == "optimized_bootstrap_supported"
 
 
+def test_cftime_count_can_opt_into_experimental_optimized_bootstrap(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("ICCLIM_EXPERIMENTAL_CFTIME_COUNT_BOOTSTRAP", "1")
+    tas = stub_tas(27 + K2C, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "query": "> 90 doy_per",
+            "doy_window_width": 1,
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_doy_percentile_count_bootstrap(
+        climate_var,
+        FrequencyRegistry.YEAR,
+    )
+
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
+
+
 def test_eager_input_uses_reference_bootstrap_path() -> None:
     tas = stub_tas(27 + K2C)
     climate_var = _build_climate_variable(
