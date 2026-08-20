@@ -207,6 +207,44 @@ Observed result:
 That upgrades the phase-2 status from “external proof of concept” to
 “internal prototype with regression coverage”.
 
+## First benchmark result
+
+On Thursday, August 20, 2026, a dedicated benchmark helper was added:
+
+- [tools/benchmark_cftime_count_prototypes.py](/Users/page/src/icclim/icclim/tools/benchmark_cftime_count_prototypes.py)
+
+This benchmark compares:
+
+- the current compiled count path; and
+- the library-internal threshold-bank prototype
+
+on synthetic `cftime` workloads with the validated `65`-year study and
+`30`-year reference shape.
+
+First timing snapshots on the `reference_overlap_shift` monthly case:
+
+- `1 x 1`
+  - current compiled path: `1.396s`
+  - threshold-bank prototype: `0.865s`
+  - prototype is about `1.61x` faster
+- `8 x 8`
+  - current compiled path: `2.561s`
+  - threshold-bank prototype: `28.144s`
+  - prototype is about `11x` slower
+
+Interpretation:
+
+- the banked algorithm shape can reduce repeated threshold work;
+- but the current Python-level reduction loop is not viable beyond tiny
+  spatial shapes;
+- so the only sensible continuation for this branch is a compiled or
+  partially compiled banked reduction, not more Python-level tuning.
+
+This result also sharpens the alternative:
+
+- if a compiled banked reduction remains awkward or memory-bound, the next
+  serious route is the deeper exact order-statistics redesign.
+
 ## Short version
 
 Phase 2 should start by measuring threshold-bank viability and only then choose
