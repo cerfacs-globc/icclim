@@ -238,6 +238,62 @@ def compute_doy_percentile_bootstrap_count_threshold_bank_prototype(
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
+def compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> DataArray | None:
+    """Prototype a compiled per-target threshold-bank exact count path."""
+    if not _can_compute_threshold_bank_bootstrap_count(study, threshold, freq):
+        return None
+    if _bootstrap_count_threshold_bank_kernel is None:
+        return None
+    prepared_inputs = build_bootstrap_prepared_inputs(
+        study,
+        threshold,
+        freq,
+        dtype=np.float64,
+    )
+    reference_sample = prepared_inputs.reference_sample
+    temporal_indexing = prepared_inputs.temporal_indexing
+    array_inputs = prepared_inputs.array_inputs
+    result = _bootstrap_count_threshold_bank_kernel(
+        array_inputs.flat_reference_raw,
+        array_inputs.flat_reference_filtered,
+        array_inputs.flat_study,
+        temporal_indexing.sample_indices_by_day_of_year,
+        temporal_indexing.reference_index_year,
+        temporal_indexing.reference_index_position,
+        temporal_indexing.substitute_alignment,
+        temporal_indexing.output_starts,
+        temporal_indexing.output_lengths,
+        temporal_indexing.year_group_starts,
+        temporal_indexing.year_group_stops,
+        temporal_indexing.year_max_day_of_years,
+        temporal_indexing.year_to_reference_index,
+        temporal_indexing.study_day_of_years,
+        float(threshold.percentile_coord().item()) / 100.0,
+        float(threshold.interpolation.alpha),
+        float(threshold.interpolation.beta),
+        _operator_code(threshold.operator),
+        (
+            np.nan
+            if reference_sample.threshold_floor_in_reference_units is None
+            else float(reference_sample.threshold_floor_in_reference_units)
+        ),
+    )
+    out = build_bootstrap_output(
+        flat_result=result,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units="d",
+    )
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
+    return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
 def compute_doy_percentile_bootstrap_exceedance_sum(
     study: DataArray,
     threshold: PercentileThreshold,
@@ -906,6 +962,128 @@ if njit is not None:
                         out,
                         flat_study,
                         thresholds,
+                        study_doys,
+                        study_starts,
+                        study_lengths,
+                        group_start,
+                        group_stop,
+                        cell,
+                        year_max_doys[year_i],
+                        op_code,
+                    )
+                    substitute_count += 1
+                _average_count_groups_for_cell(
+                    out,
+                    group_start,
+                    group_stop,
+                    cell,
+                    substitute_count,
+                )
+        return out
+
+    @njit(parallel=True, cache=True)
+    def _bootstrap_count_threshold_bank_kernel(
+        flat_ref_raw,
+        flat_ref_masked,
+        flat_study,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        study_starts,
+        study_lengths,
+        year_group_starts,
+        year_group_stops,
+        year_max_doys,
+        year_to_ref,
+        study_doys,
+        quantile,
+        alpha,
+        beta,
+        op_code,
+        min_threshold,
+    ):
+        """Prototype compiled count reduction using a per-target threshold bank."""
+        n_years = len(year_to_ref)
+        n_groups = len(study_starts)
+        n_cells = flat_study.shape[1]
+        n_ref_years = substitute_aligned.shape[1]
+        max_samples = sample_indices.shape[1]
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
+        for cell in prange(n_cells):
+            nominal_thresholds = _build_bootstrap_threshold_series_for_cell(
+                flat_ref_masked,
+                sample_indices,
+                index_year,
+                index_pos,
+                substitute_aligned,
+                -1,
+                -1,
+                cell,
+                max_samples,
+                quantile,
+                alpha,
+                beta,
+                min_threshold,
+            )
+            overlap_reference = (
+                flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
+            )
+            threshold_bank = np.full(
+                (n_ref_years, n_ref_years, NON_LEAP_YEAR_DAY_COUNT),
+                np.nan,
+                dtype=np.float64,
+            )
+            for target_ref_i in range(n_ref_years):
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    threshold_bank[target_ref_i, substitute_i, :] = (
+                        _build_bootstrap_threshold_series_for_cell(
+                            overlap_reference,
+                            sample_indices,
+                            index_year,
+                            index_pos,
+                            substitute_aligned,
+                            target_ref_i,
+                            substitute_i,
+                            cell,
+                            max_samples,
+                            quantile,
+                            alpha,
+                            beta,
+                            min_threshold,
+                        )
+                    )
+            for year_i in range(n_years):
+                target_ref_i = year_to_ref[year_i]
+                group_start = year_group_starts[year_i]
+                group_stop = year_group_stops[year_i]
+                if target_ref_i < 0:
+                    _write_count_groups_for_cell(
+                        out,
+                        flat_study,
+                        nominal_thresholds,
+                        study_doys,
+                        study_starts,
+                        study_lengths,
+                        group_start,
+                        group_stop,
+                        cell,
+                        year_max_doys[year_i],
+                        op_code,
+                    )
+                    continue
+                for group_i in range(group_start, group_stop):
+                    out[group_i, cell] = 0.0
+                substitute_count = 0
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    _accumulate_count_groups_for_cell(
+                        out,
+                        flat_study,
+                        threshold_bank[target_ref_i, substitute_i, :],
                         study_doys,
                         study_starts,
                         study_lengths,
@@ -2732,6 +2910,8 @@ else:
 
     def _bootstrap_count_kernel(*args, **kwargs):  # noqa: ARG001
         return None
+
+    _bootstrap_count_threshold_bank_kernel = None
 
     def _bootstrap_sum_kernel(*args, **kwargs):  # noqa: ARG001
         return None

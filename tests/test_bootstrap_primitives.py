@@ -20,6 +20,7 @@ from icclim._core.generic.bootstrap import (
     _bootstrap_union_count_kernel,
     _bootstrap_union_mask_kernel,
     compute_doy_percentile_bootstrap_count,
+    compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype,
     compute_doy_percentile_bootstrap_count_threshold_bank_prototype,
     compute_doy_percentile_bootstrap_exceedance_average,
     compute_doy_percentile_bootstrap_exceedance_sum,
@@ -550,6 +551,35 @@ def test_threshold_bank_prototype_matches_forced_compiled_cftime_counts(
     with _force_compiled_cftime_count():
         current = compute_doy_percentile_bootstrap_count(tas, threshold, freq)
     prototype = compute_doy_percentile_bootstrap_count_threshold_bank_prototype(
+        tas,
+        threshold,
+        freq,
+    )
+
+    assert current is not None
+    assert prototype is not None
+    xr.testing.assert_allclose(current, prototype)
+
+
+@pytest.mark.parametrize(
+    "case_name",
+    ["constant", "leap_day_cold_spike", "reference_overlap_shift"],
+)
+@pytest.mark.parametrize("freq", ["MS", "YS"])
+def test_compiled_threshold_bank_prototype_matches_forced_compiled_cftime_counts(
+    case_name: str,
+    freq: str,
+) -> None:
+    tas = _build_cftime_overlap_case(case_name)
+    threshold = build_threshold(
+        "> 90 doy_per",
+        doy_window_width=1,
+        reference_period=("2042-01-01", "2044-12-31"),
+    )
+
+    with _force_compiled_cftime_count():
+        current = compute_doy_percentile_bootstrap_count(tas, threshold, freq)
+    prototype = compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype(
         tas,
         threshold,
         freq,

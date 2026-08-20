@@ -245,6 +245,43 @@ This result also sharpens the alternative:
 - if a compiled banked reduction remains awkward or memory-bound, the next
   serious route is the deeper exact order-statistics redesign.
 
+## Compiled banked benchmark result
+
+On Thursday, August 20, 2026, the banked branch advanced again with:
+
+- `compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype`
+  in [src/icclim/_core/generic/bootstrap.py](/Users/page/src/icclim/icclim/src/icclim/_core/generic/bootstrap.py)
+
+This keeps the banked algorithm internal and non-routed, but removes the
+Python-level reduction bottleneck from the previous prototype.
+
+Focused synthetic coverage remained exact:
+
+- `14 passed` in the expanded prototype/cftime test selection;
+- no synthetic mismatch against the forced current compiled count path.
+
+Benchmark result on `reference_overlap_shift`, monthly (`MS`), with
+`65` study years and `30` reference years:
+
+- `8 x 8`
+  - current compiled path: `3.854s`
+  - Python threshold-bank prototype: `29.101s`
+  - compiled threshold-bank prototype: `1.306s`
+  - compiled banked path is about `2.95x` faster than the current compiled path
+- `16 x 16`
+  - current compiled path: `6.524s`
+  - Python threshold-bank prototype: `120.296s`
+  - compiled threshold-bank prototype: `4.004s`
+  - compiled banked path is about `1.63x` faster than the current compiled path
+
+This changes the phase-2 decision materially:
+
+- the banked branch is no longer only a semantic match;
+- it now has concrete speed evidence beyond toy size;
+- the main next step should be a real-data comparison of the compiled banked
+  branch against the current compiled count route, still behind a non-runtime
+  or opt-in path.
+
 ## Short version
 
 Phase 2 should start by measuring threshold-bank viability and only then choose

@@ -117,10 +117,14 @@ class BenchmarkResult:
     study_year_count: int
     reference_year_count: int
     current_seconds: float
-    prototype_seconds: float
-    speed_ratio_current_over_prototype: float
+    python_prototype_seconds: float
+    compiled_prototype_seconds: float
+    speed_ratio_current_over_python: float
+    speed_ratio_current_over_compiled: float
     changed_cells: int
     max_abs_diff: float
+    compiled_changed_cells: int
+    compiled_max_abs_diff: float
 
 
 def _benchmark_one(
@@ -136,6 +140,7 @@ def _benchmark_one(
 ) -> BenchmarkResult:
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
         compute_doy_percentile_bootstrap_count,
+        compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype,
         compute_doy_percentile_bootstrap_count_threshold_bank_prototype,
     )
 
@@ -163,18 +168,47 @@ def _benchmark_one(
         threshold,
         freq,
     )
-    prototype_seconds = perf_counter() - prototype_start
+    python_prototype_seconds = perf_counter() - prototype_start
     if prototype is None:
         msg = f"Threshold-bank prototype returned None for case={case_name} freq={freq}"
         raise RuntimeError(msg)
     prototype = prototype.load()
 
+    compiled_start = perf_counter()
+    compiled_prototype = (
+        compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype(
+            tas,
+            threshold,
+            freq,
+        )
+    )
+    compiled_prototype_seconds = perf_counter() - compiled_start
+    if compiled_prototype is None:
+        msg = (
+            "Compiled threshold-bank prototype returned None for "
+            f"case={case_name} freq={freq}"
+        )
+        raise RuntimeError(msg)
+    compiled_prototype = compiled_prototype.load()
+
     diff = np.abs(np.asarray(current.values) - np.asarray(prototype.values))
     changed_cells = int(np.count_nonzero(diff > 1.0e-9))
     max_abs_diff = float(np.nanmax(diff)) if diff.size else 0.0
-    speed_ratio = (
-        current_seconds / prototype_seconds
-        if prototype_seconds > 0.0
+    compiled_diff = np.abs(
+        np.asarray(current.values) - np.asarray(compiled_prototype.values)
+    )
+    compiled_changed_cells = int(np.count_nonzero(compiled_diff > 1.0e-9))
+    compiled_max_abs_diff = (
+        float(np.nanmax(compiled_diff)) if compiled_diff.size else 0.0
+    )
+    speed_ratio_current_over_python = (
+        current_seconds / python_prototype_seconds
+        if python_prototype_seconds > 0.0
+        else float("inf")
+    )
+    speed_ratio_current_over_compiled = (
+        current_seconds / compiled_prototype_seconds
+        if compiled_prototype_seconds > 0.0
         else float("inf")
     )
     return BenchmarkResult(
@@ -185,10 +219,14 @@ def _benchmark_one(
         study_year_count=study_year_count,
         reference_year_count=reference_year_count,
         current_seconds=current_seconds,
-        prototype_seconds=prototype_seconds,
-        speed_ratio_current_over_prototype=speed_ratio,
+        python_prototype_seconds=python_prototype_seconds,
+        compiled_prototype_seconds=compiled_prototype_seconds,
+        speed_ratio_current_over_python=speed_ratio_current_over_python,
+        speed_ratio_current_over_compiled=speed_ratio_current_over_compiled,
         changed_cells=changed_cells,
         max_abs_diff=max_abs_diff,
+        compiled_changed_cells=compiled_changed_cells,
+        compiled_max_abs_diff=compiled_max_abs_diff,
     )
 
 
