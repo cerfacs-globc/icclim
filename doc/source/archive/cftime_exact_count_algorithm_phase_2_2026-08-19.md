@@ -170,6 +170,43 @@ The next implementation candidate should be:
    a non-runtime or opt-in path;
 3. only then compare it against the current compiled count route on real data.
 
+## Second prototype step
+
+On Thursday, August 20, 2026, the per-target bank shape moved from a standalone
+tool into a library-internal prototype entrypoint:
+
+- `compute_doy_percentile_bootstrap_count_threshold_bank_prototype`
+  in [src/icclim/_core/generic/bootstrap.py](/Users/page/src/icclim/icclim/src/icclim/_core/generic/bootstrap.py)
+
+This is still not used by runtime routing. Its purpose is narrower:
+
+- make the candidate algorithm callable from normal tests;
+- keep the prototype close to the real bootstrap primitives and metadata path;
+- verify that the banked count reduction stays aligned with the current
+  compiled count implementation.
+
+Targeted synthetic tests now cover:
+
+- `constant`
+- `leap_day_cold_spike`
+- `reference_overlap_shift`
+
+for both:
+
+- `MS`
+- `YS`
+
+and compare the library-internal prototype against the forced compiled count
+path.
+
+Observed result:
+
+- `8 passed` in the focused prototype/cftime test selection;
+- all synthetic comparisons remained exact.
+
+That upgrades the phase-2 status from “external proof of concept” to
+“internal prototype with regression coverage”.
+
 ## Short version
 
 Phase 2 should start by measuring threshold-bank viability and only then choose

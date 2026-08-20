@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+
+import cftime
 import numpy as np
 import pandas as pd
 import pytest
@@ -17,6 +20,7 @@ from icclim._core.generic.bootstrap import (
     _bootstrap_union_count_kernel,
     _bootstrap_union_mask_kernel,
     compute_doy_percentile_bootstrap_count,
+    compute_doy_percentile_bootstrap_count_threshold_bank_prototype,
     compute_doy_percentile_bootstrap_exceedance_average,
     compute_doy_percentile_bootstrap_exceedance_sum,
     compute_doy_percentile_bootstrap_fraction_of_total,
@@ -40,6 +44,58 @@ from icclim._core.generic.bootstrap_primitives import (
 )
 from icclim.threshold.factory import build_threshold
 from tests.testing_utils import stub_pr, stub_tas
+
+
+@contextmanager
+def _force_compiled_cftime_count():
+    from icclim._core.generic import bootstrap as bootstrap_module
+
+    original = bootstrap_module.is_optimized_doy_percentile_count_supported
+    bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
+    try:
+        yield
+    finally:
+        bootstrap_module.is_optimized_doy_percentile_count_supported = original
+
+
+def _build_cftime_overlap_case(case_name: str) -> xr.DataArray:
+    time = xr.date_range(
+        "2042-01-01",
+        periods=365 * 5 + 1,
+        freq="D",
+        use_cftime=True,
+    )
+    tas = xr.DataArray(
+        np.full((len(time), 1, 1), 300.0, dtype=np.float64),
+        dims=["time", "lat", "lon"],
+        coords={"time": time, "lat": [0.0], "lon": [0.0]},
+        attrs={"units": "K"},
+        name="tas",
+    )
+    if case_name == "constant":
+        return tas.chunk({"time": 365, "lat": 1, "lon": 1})
+    if case_name == "leap_day_cold_spike":
+        for timestamp in (
+            cftime.DatetimeGregorian(2044, 2, 28),
+            cftime.DatetimeGregorian(2044, 2, 29),
+            cftime.DatetimeGregorian(2044, 3, 1),
+        ):
+            tas.loc[{"time": timestamp}] = 250.0
+        return tas.chunk({"time": 365, "lat": 1, "lon": 1})
+    if case_name == "reference_overlap_shift":
+        def _timestamp(year: int, month: int, day: int) -> object:
+            return time[(time.year == year) & (time.month == month) & (time.day == day)][
+                0
+            ]
+
+        tas.loc[{"time": _timestamp(2042, 2, 28)}] = 305.0
+        tas.loc[{"time": _timestamp(2043, 2, 28)}] = 295.0
+        tas.loc[{"time": _timestamp(2044, 2, 29)}] = 285.0
+        tas.loc[{"time": _timestamp(2045, 2, 28)}] = 310.0
+        tas.loc[{"time": _timestamp(2045, 3, 1)}] = 280.0
+        return tas.chunk({"time": 365, "lat": 1, "lon": 1})
+    msg = f"Unsupported case: {case_name}"
+    raise ValueError(msg)
 
 
 def test_build_bootstrap_reference_sample_applies_threshold_floor() -> None:
@@ -473,6 +529,35 @@ def test_numba_python_count_kernel_matches_constant_cftime_monthly_counts() -> N
         kernel_result.shape
     )
     np.testing.assert_allclose(kernel_result, expected)
+
+
+@pytest.mark.parametrize(
+    "case_name",
+    ["constant", "leap_day_cold_spike", "reference_overlap_shift"],
+)
+@pytest.mark.parametrize("freq", ["MS", "YS"])
+def test_threshold_bank_prototype_matches_forced_compiled_cftime_counts(
+    case_name: str,
+    freq: str,
+) -> None:
+    tas = _build_cftime_overlap_case(case_name)
+    threshold = build_threshold(
+        "> 90 doy_per",
+        doy_window_width=1,
+        reference_period=("2042-01-01", "2044-12-31"),
+    )
+
+    with _force_compiled_cftime_count():
+        current = compute_doy_percentile_bootstrap_count(tas, threshold, freq)
+    prototype = compute_doy_percentile_bootstrap_count_threshold_bank_prototype(
+        tas,
+        threshold,
+        freq,
+    )
+
+    assert current is not None
+    assert prototype is not None
+    xr.testing.assert_allclose(current, prototype)
 
 
 @pytest.mark.parametrize(

@@ -94,6 +94,150 @@ def compute_doy_percentile_bootstrap_count(
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
+def compute_doy_percentile_bootstrap_count_threshold_bank_prototype(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> DataArray | None:
+    """Prototype a per-target threshold-bank exact count path.
+
+    This helper is intentionally not wired into runtime routing. It exists to
+    validate a candidate exact algorithm shape for `cftime` bootstrap counts.
+    """
+    if not _can_compute_threshold_bank_bootstrap_count(study, threshold, freq):
+        return None
+    threshold_builder = getattr(
+        _build_bootstrap_threshold_series_for_cell,
+        "py_func",
+        None,
+    )
+    count_exceedances = getattr(_count_exceedances, "py_func", None)
+    if threshold_builder is None or count_exceedances is None:
+        return None
+    prepared_inputs = build_bootstrap_prepared_inputs(
+        study,
+        threshold,
+        freq,
+        dtype=np.float64,
+    )
+    reference_sample = prepared_inputs.reference_sample
+    temporal_indexing = prepared_inputs.temporal_indexing
+    array_inputs = prepared_inputs.array_inputs
+    min_threshold = (
+        np.nan
+        if reference_sample.threshold_floor_in_reference_units is None
+        else float(reference_sample.threshold_floor_in_reference_units)
+    )
+    quantile = float(threshold.percentile_coord().item()) / 100.0
+    alpha = float(threshold.interpolation.alpha)
+    beta = float(threshold.interpolation.beta)
+    op_code = _operator_code(threshold.operator)
+    max_samples = temporal_indexing.sample_indices_by_day_of_year.shape[1]
+    n_reference_years = temporal_indexing.substitute_alignment.shape[1]
+    n_cells = array_inputs.flat_study.shape[1]
+    output = np.empty(
+        (len(temporal_indexing.output_group_labels), n_cells),
+        dtype=np.float64,
+    )
+    overlap_reference = (
+        array_inputs.flat_reference_filtered
+        if not np.isnan(min_threshold)
+        else array_inputs.flat_reference_raw
+    )
+    nominal_thresholds_by_cell = [
+        threshold_builder(
+            array_inputs.flat_reference_filtered,
+            temporal_indexing.sample_indices_by_day_of_year,
+            temporal_indexing.reference_index_year,
+            temporal_indexing.reference_index_position,
+            temporal_indexing.substitute_alignment,
+            -1,
+            -1,
+            cell,
+            max_samples,
+            quantile,
+            alpha,
+            beta,
+            min_threshold,
+        )
+        for cell in range(n_cells)
+    ]
+    threshold_bank = np.full(
+        (n_reference_years, n_reference_years, NON_LEAP_YEAR_DAY_COUNT, n_cells),
+        np.nan,
+        dtype=np.float64,
+    )
+    for target_ref_i in range(n_reference_years):
+        for substitute_i in range(n_reference_years):
+            if substitute_i == target_ref_i:
+                continue
+            for cell in range(n_cells):
+                threshold_bank[target_ref_i, substitute_i, :, cell] = threshold_builder(
+                    overlap_reference,
+                    temporal_indexing.sample_indices_by_day_of_year,
+                    temporal_indexing.reference_index_year,
+                    temporal_indexing.reference_index_position,
+                    temporal_indexing.substitute_alignment,
+                    target_ref_i,
+                    substitute_i,
+                    cell,
+                    max_samples,
+                    quantile,
+                    alpha,
+                    beta,
+                    min_threshold,
+                )
+    for year_i, target_ref_i in enumerate(temporal_indexing.year_to_reference_index):
+        group_start = temporal_indexing.year_group_starts[year_i]
+        group_stop = temporal_indexing.year_group_stops[year_i]
+        for cell in range(n_cells):
+            if target_ref_i < 0:
+                thresholds = nominal_thresholds_by_cell[cell]
+                for group_i in range(group_start, group_stop):
+                    output[group_i, cell] = count_exceedances(
+                        array_inputs.flat_study,
+                        thresholds,
+                        temporal_indexing.study_day_of_years,
+                        temporal_indexing.output_starts[group_i],
+                        temporal_indexing.output_lengths[group_i],
+                        cell,
+                        temporal_indexing.year_max_day_of_years[year_i],
+                        op_code,
+                    )
+                continue
+            for group_i in range(group_start, group_stop):
+                output[group_i, cell] = 0.0
+            substitute_count = 0
+            for substitute_i in range(n_reference_years):
+                if substitute_i == target_ref_i:
+                    continue
+                thresholds = threshold_bank[target_ref_i, substitute_i, :, cell]
+                for group_i in range(group_start, group_stop):
+                    output[group_i, cell] += count_exceedances(
+                        array_inputs.flat_study,
+                        thresholds,
+                        temporal_indexing.study_day_of_years,
+                        temporal_indexing.output_starts[group_i],
+                        temporal_indexing.output_lengths[group_i],
+                        cell,
+                        temporal_indexing.year_max_day_of_years[year_i],
+                        op_code,
+                    )
+                substitute_count += 1
+            for group_i in range(group_start, group_stop):
+                output[group_i, cell] /= substitute_count
+    out = build_bootstrap_output(
+        flat_result=output,
+        reference_sample=reference_sample,
+        temporal_indexing=temporal_indexing,
+        spatial_shape=array_inputs.spatial_shape,
+        units="d",
+    )
+    out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    del out.attrs["climatology_bounds"]
+    return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
 def compute_doy_percentile_bootstrap_exceedance_sum(
     study: DataArray,
     threshold: PercentileThreshold,
@@ -637,6 +781,22 @@ def _can_compute_optimized_bootstrap(
     freq: str,
 ) -> bool:
     return is_optimized_doy_percentile_count_supported(study, threshold, freq)
+
+
+def _can_compute_threshold_bank_bootstrap_count(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> bool:
+    if _can_compute_optimized_bootstrap(study, threshold, freq):
+        return True
+    time_index = study.indexes["time"]
+    return (
+        isinstance(time_index, CFTimeIndex)
+        and threshold.is_doy_per_threshold
+        and threshold.threshold_min_value is None
+        and threshold.percentile_coord().size == 1
+    )
 
 
 def _operator_code(operator: Operator | str) -> int:
