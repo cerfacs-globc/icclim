@@ -3,15 +3,11 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict, dataclass
+from pathlib import Path
+import sys
 
 import numpy as np
 import xarray as xr
-
-from icclim._core.constants import UNITS_KEY
-from icclim._core.generic.bootstrap_primitives import (
-    build_bootstrap_prepared_inputs,
-)
-from icclim.threshold.factory import build_threshold
 
 NON_LEAP_DAY_COUNT = 365
 
@@ -41,6 +37,14 @@ class CountAlgorithmAnalysis:
     estimates: list[ThresholdBankEstimate]
 
 
+def _resolve_import_root(repo: Path) -> Path:
+    for candidate in (repo / "src", repo):
+        if (candidate / "icclim" / "__init__.py").is_file():
+            return candidate
+    msg = f"Could not locate icclim import root under {repo}"
+    raise FileNotFoundError(msg)
+
+
 def _build_synthetic_cftime_tas(
     *,
     start_year: int,
@@ -68,7 +72,7 @@ def _build_synthetic_cftime_tas(
             "lat": np.arange(lat_length),
             "lon": np.arange(lon_length),
         },
-        attrs={UNITS_KEY: "K"},
+        attrs={"units": "K"},
         name="tas",
     )
 
@@ -101,6 +105,11 @@ def analyze_count_algorithm(
     lon_length: int,
     freq: str,
 ) -> CountAlgorithmAnalysis:
+    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+        build_bootstrap_prepared_inputs,
+    )
+    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+
     tas = _build_synthetic_cftime_tas(
         start_year=start_year,
         study_year_count=study_year_count,
@@ -177,6 +186,7 @@ def _as_json_ready(analysis: CountAlgorithmAnalysis) -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--repo", default=Path(__file__).resolve().parents[1])
     parser.add_argument("--start-year", type=int, default=1950)
     parser.add_argument("--study-years", type=int, default=65)
     parser.add_argument("--reference-start-year", type=int, default=1961)
@@ -185,6 +195,9 @@ def main() -> None:
     parser.add_argument("--lon-length", type=int, default=21)
     parser.add_argument("--freq", default="MS")
     args = parser.parse_args()
+
+    repo = Path(args.repo).resolve()
+    sys.path.insert(0, str(_resolve_import_root(repo)))
 
     analysis = analyze_count_algorithm(
         start_year=args.start_year,
