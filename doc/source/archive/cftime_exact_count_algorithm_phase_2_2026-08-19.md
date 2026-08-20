@@ -125,6 +125,51 @@ Only proceed to runtime prototyping if the measurements show at least one of:
 - a per-target threshold bank fits comfortably inside the intended tile memory;
 - an order-statistics redesign is clearly justified by the rebuild counts.
 
+## First prototype result
+
+The first non-runtime prototype was added in:
+
+- [tools/prototype_cftime_exact_count_threshold_bank.py](/Users/page/src/icclim/icclim/tools/prototype_cftime_exact_count_threshold_bank.py)
+
+This prototype does **not** change library behavior. It:
+
+1. builds nominal threshold series once per cell;
+2. builds a per-target threshold bank for overlap years;
+3. replays the count reduction from that bank;
+4. compares the result with the current compiled count path.
+
+On Thursday, August 20, 2026, it matched exactly on all synthetic
+`cftime` fixtures already used in earlier validation:
+
+- `constant`
+- `leap_day_cold_spike`
+- `reference_overlap_shift`
+
+for both:
+
+- monthly output (`MS`)
+- yearly output (`YS`)
+
+Observed result on every case/frequency pair:
+
+- `changed_cells = 0`
+- `max_abs_diff = 0.0`
+
+That does **not** prove the algorithm is ready for runtime integration, but it
+does remove one important uncertainty:
+
+- the per-target threshold-bank shape is compatible with current exact count
+  semantics on leap-sensitive synthetic cases.
+
+## Updated phase-2 decision
+
+The next implementation candidate should be:
+
+1. keep the current routing unchanged;
+2. prototype a compiled or partially compiled per-target bank evaluator behind
+   a non-runtime or opt-in path;
+3. only then compare it against the current compiled count route on real data.
+
 ## Short version
 
 Phase 2 should start by measuring threshold-bank viability and only then choose
