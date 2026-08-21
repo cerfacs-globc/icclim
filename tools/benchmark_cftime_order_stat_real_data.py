@@ -354,15 +354,25 @@ def _benchmark_one(
     )
 
 
+def _parse_shape(shape: str) -> tuple[int, int]:
+    try:
+        lat_length_str, lon_length_str = shape.lower().split("x", maxsplit=1)
+        lat_length = int(lat_length_str)
+        lon_length = int(lon_length_str)
+    except Exception as exc:
+        msg = f"Invalid shape {shape!r}. Expected format like '1x1' or '2x2'."
+        raise ValueError(msg) from exc
+    if lat_length <= 0 or lon_length <= 0:
+        msg = f"Shape lengths must be positive, got {shape!r}."
+        raise ValueError(msg)
+    return lat_length, lon_length
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo", required=True)
     parser.add_argument("--freq", choices=("MS", "YS", "both"), default="both")
-    parser.add_argument(
-        "--shape",
-        choices=("1x1", "4x4", "8x8"),
-        default="4x4",
-    )
+    parser.add_argument("--shape", default="4x4")
     args = parser.parse_args()
 
     repo = Path(args.repo).resolve()
@@ -370,7 +380,7 @@ def main() -> None:
 
     validation_module = _load_validation_module()
     frequencies = ("MS", "YS") if args.freq == "both" else (args.freq,)
-    lat_length, lon_length = map(int, args.shape.split("x"))
+    lat_length, lon_length = _parse_shape(args.shape)
     payload: dict[str, object] = {
         "repo": str(repo),
         "shape": args.shape,
