@@ -869,6 +869,257 @@ except Exception:  # noqa: BLE001
 
 if njit is not None:
 
+    @njit(cache=True)
+    def _fill_sorted_nominal_values(
+        flat_ref,
+        sample_indices,
+        doy_i,
+        cell,
+        base_buf,
+    ):
+        n = 0
+        for sample_i in range(sample_indices.shape[1]):
+            ref_i = sample_indices[doy_i, sample_i]
+            if ref_i < 0:
+                continue
+            value = flat_ref[ref_i, cell]
+            if not np.isnan(value):
+                base_buf[n] = value
+                n += 1
+        if n > 1:
+            base_buf[:n].sort()
+        return n
+
+    @njit(cache=True)
+    def _fill_sorted_removed_values(
+        flat_ref,
+        sample_indices,
+        index_year,
+        doy_i,
+        cell,
+        target_ref_i,
+        removed_buf,
+    ):
+        if target_ref_i < 0:
+            return 0
+        n = 0
+        for sample_i in range(sample_indices.shape[1]):
+            ref_i = sample_indices[doy_i, sample_i]
+            if ref_i < 0 or index_year[ref_i] != target_ref_i:
+                continue
+            value = flat_ref[ref_i, cell]
+            if not np.isnan(value):
+                removed_buf[n] = value
+                n += 1
+        if n > 1:
+            removed_buf[:n].sort()
+        return n
+
+    @njit(cache=True)
+    def _fill_sorted_inserted_values(
+        flat_ref,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        doy_i,
+        cell,
+        target_ref_i,
+        substitute_i,
+        inserted_buf,
+    ):
+        if target_ref_i < 0 or substitute_i < 0:
+            return 0
+        n = 0
+        for sample_i in range(sample_indices.shape[1]):
+            ref_i = sample_indices[doy_i, sample_i]
+            if ref_i < 0 or index_year[ref_i] != target_ref_i:
+                continue
+            mapped_i = substitute_aligned[target_ref_i, substitute_i, index_pos[ref_i]]
+            if mapped_i < 0:
+                continue
+            value = flat_ref[mapped_i, cell]
+            if not np.isnan(value):
+                inserted_buf[n] = value
+                n += 1
+        if n > 1:
+            inserted_buf[:n].sort()
+        return n
+
+    @njit(cache=True)
+    def _value_at_adjusted_rank(
+        base_buf,
+        base_n,
+        removed_buf,
+        removed_n,
+        inserted_buf,
+        inserted_n,
+        rank,
+    ):
+        base_i = 0
+        removed_i = 0
+        inserted_i = 0
+        current_rank = -1
+        while True:
+            while (
+                base_i < base_n
+                and removed_i < removed_n
+                and base_buf[base_i] == removed_buf[removed_i]
+            ):
+                base_i += 1
+                removed_i += 1
+            has_base = base_i < base_n
+            has_inserted = inserted_i < inserted_n
+            if not has_base and not has_inserted:
+                return np.nan
+            if has_inserted and (not has_base or inserted_buf[inserted_i] <= base_buf[base_i]):
+                value = inserted_buf[inserted_i]
+                inserted_i += 1
+            else:
+                value = base_buf[base_i]
+                base_i += 1
+            current_rank += 1
+            if current_rank == rank:
+                return value
+
+    @njit(cache=True)
+    def _method8_adjusted_quantile(
+        base_buf,
+        base_n,
+        removed_buf,
+        removed_n,
+        inserted_buf,
+        inserted_n,
+        quantile,
+        alpha,
+        beta,
+    ):
+        n = base_n - removed_n + inserted_n
+        if n <= 0:
+            return np.nan
+        if n == 1:
+            return _value_at_adjusted_rank(
+                base_buf,
+                base_n,
+                removed_buf,
+                removed_n,
+                inserted_buf,
+                inserted_n,
+                0,
+            )
+        virtual = n * quantile + (alpha + quantile * (1.0 - alpha - beta)) - 1.0
+        if virtual >= n - 1:
+            return _value_at_adjusted_rank(
+                base_buf,
+                base_n,
+                removed_buf,
+                removed_n,
+                inserted_buf,
+                inserted_n,
+                n - 1,
+            )
+        if virtual < 0.0:
+            return _value_at_adjusted_rank(
+                base_buf,
+                base_n,
+                removed_buf,
+                removed_n,
+                inserted_buf,
+                inserted_n,
+                0,
+            )
+        previous = int(np.floor(virtual))
+        gamma = virtual - previous
+        left = _value_at_adjusted_rank(
+            base_buf,
+            base_n,
+            removed_buf,
+            removed_n,
+            inserted_buf,
+            inserted_n,
+            previous,
+        )
+        right = _value_at_adjusted_rank(
+            base_buf,
+            base_n,
+            removed_buf,
+            removed_n,
+            inserted_buf,
+            inserted_n,
+            previous + 1,
+        )
+        diff = right - left
+        if gamma >= 0.5:
+            return right - diff * (1.0 - gamma)
+        return left + diff * gamma
+
+    @njit(cache=True)
+    def _build_order_stat_threshold_series_for_cell(
+        flat_ref,
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+        target_ref_i,
+        substitute_i,
+        cell,
+        quantile,
+        alpha,
+        beta,
+        min_threshold,
+        max_samples,
+    ):
+        thresholds = np.empty(NON_LEAP_YEAR_DAY_COUNT, dtype=np.float64)
+        base_buf = np.empty(max_samples, dtype=np.float64)
+        removed_buf = np.empty(max_samples, dtype=np.float64)
+        inserted_buf = np.empty(max_samples, dtype=np.float64)
+        for doy_i in range(NON_LEAP_YEAR_DAY_COUNT):
+            base_n = _fill_sorted_nominal_values(
+                flat_ref,
+                sample_indices,
+                doy_i,
+                cell,
+                base_buf,
+            )
+            removed_n = _fill_sorted_removed_values(
+                flat_ref,
+                sample_indices,
+                index_year,
+                doy_i,
+                cell,
+                target_ref_i,
+                removed_buf,
+            )
+            inserted_n = _fill_sorted_inserted_values(
+                flat_ref,
+                sample_indices,
+                index_year,
+                index_pos,
+                substitute_aligned,
+                doy_i,
+                cell,
+                target_ref_i,
+                substitute_i,
+                inserted_buf,
+            )
+            threshold_value = _method8_adjusted_quantile(
+                base_buf,
+                base_n,
+                removed_buf,
+                removed_n,
+                inserted_buf,
+                inserted_n,
+                quantile,
+                alpha,
+                beta,
+            )
+            if not np.isnan(min_threshold) and (
+                np.isnan(threshold_value) or threshold_value <= min_threshold
+            ):
+                threshold_value = min_threshold
+            thresholds[doy_i] = threshold_value
+        return thresholds
+
     @njit(parallel=True, cache=True)
     def _bootstrap_count_kernel(
         flat_ref_raw,
@@ -891,24 +1142,22 @@ if njit is not None:
         op_code,
         min_threshold,
     ):
-        """Compute yearly bootstrap counts from threshold generation plus counting."""
+        """Compute yearly bootstrap counts with the compiled order-stat route."""
         n_years = len(year_to_ref)
         n_groups = len(study_starts)
         n_cells = flat_study.shape[1]
-        out = np.empty((n_groups, n_cells), dtype=np.float64)
         n_ref_years = substitute_aligned.shape[1]
         max_samples = sample_indices.shape[1]
+        out = np.empty((n_groups, n_cells), dtype=np.float64)
+        overlap_reference = flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
         for flat_i in prange(n_years * n_cells):
             year_i = flat_i // n_cells
             cell = flat_i % n_cells
             target_ref_i = year_to_ref[year_i]
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
-            overlap_reference = (
-                flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
-            )
             if target_ref_i < 0:
-                thresholds = _build_bootstrap_threshold_series_for_cell(
+                thresholds = _build_order_stat_threshold_series_for_cell(
                     flat_ref_masked,
                     sample_indices,
                     index_year,
@@ -917,11 +1166,11 @@ if njit is not None:
                     -1,
                     -1,
                     cell,
-                    max_samples,
                     quantile,
                     alpha,
                     beta,
                     min_threshold,
+                    max_samples,
                 )
                 _write_count_groups_for_cell(
                     out,
@@ -936,49 +1185,49 @@ if njit is not None:
                     year_max_doys[year_i],
                     op_code,
                 )
-            else:
-                for group_i in range(group_start, group_stop):
-                    out[group_i, cell] = 0.0
-                substitute_count = 0
-                for substitute_i in range(n_ref_years):
-                    if substitute_i == target_ref_i:
-                        continue
-                    thresholds = _build_bootstrap_threshold_series_for_cell(
-                        overlap_reference,
-                        sample_indices,
-                        index_year,
-                        index_pos,
-                        substitute_aligned,
-                        target_ref_i,
-                        substitute_i,
-                        cell,
-                        max_samples,
-                        quantile,
-                        alpha,
-                        beta,
-                        min_threshold,
-                    )
-                    _accumulate_count_groups_for_cell(
-                        out,
-                        flat_study,
-                        thresholds,
-                        study_doys,
-                        study_starts,
-                        study_lengths,
-                        group_start,
-                        group_stop,
-                        cell,
-                        year_max_doys[year_i],
-                        op_code,
-                    )
-                    substitute_count += 1
-                _average_count_groups_for_cell(
+                continue
+            for group_i in range(group_start, group_stop):
+                out[group_i, cell] = 0.0
+            substitute_count = 0
+            for substitute_i in range(n_ref_years):
+                if substitute_i == target_ref_i:
+                    continue
+                thresholds = _build_order_stat_threshold_series_for_cell(
+                    overlap_reference,
+                    sample_indices,
+                    index_year,
+                    index_pos,
+                    substitute_aligned,
+                    target_ref_i,
+                    substitute_i,
+                    cell,
+                    quantile,
+                    alpha,
+                    beta,
+                    min_threshold,
+                    max_samples,
+                )
+                _accumulate_count_groups_for_cell(
                     out,
+                    flat_study,
+                    thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
                     group_start,
                     group_stop,
                     cell,
-                    substitute_count,
+                    year_max_doys[year_i],
+                    op_code,
                 )
+                substitute_count += 1
+            _average_count_groups_for_cell(
+                out,
+                group_start,
+                group_stop,
+                cell,
+                substitute_count,
+            )
         return out
 
     @njit(parallel=True, cache=True)

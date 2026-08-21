@@ -151,9 +151,7 @@ def classify_doy_percentile_count_bootstrap(
         study=climate_var.studied_data,
         threshold_spec=threshold_spec,
         output_frequency=resample_frequency.pandas_freq,
-        allow_experimental_cftime=_experimental_cftime_count_bootstrap_enabled(
-            climate_var.studied_data
-        ),
+        allow_experimental_cftime=True,
     )
 
 
@@ -424,7 +422,13 @@ def is_optimized_doy_percentile_count_supported(
 ) -> bool:
     """Return whether the optimized count path supports this case."""
     return (
-        _optimized_count_path_blocker(study, threshold_spec, output_frequency) is None
+        _optimized_count_path_blocker(
+            study,
+            threshold_spec,
+            output_frequency,
+            allow_experimental_cftime=True,
+        )
+        is None
     )
 
 
@@ -1095,14 +1099,6 @@ def _optimized_bootstrap_calendar_supported(
     if isinstance(study.indexes.get("time"), pd.DatetimeIndex):
         return True
     if not allow_experimental_cftime:
-        return False
-    from xarray.coding.cftimeindex import CFTimeIndex  # noqa: PLC0415
-
-    return isinstance(study.indexes.get("time"), CFTimeIndex)
-
-
-def _experimental_cftime_count_bootstrap_enabled(study: DataArray) -> bool:
-    if os.environ.get("ICCLIM_EXPERIMENTAL_CFTIME_COUNT_BOOTSTRAP") != "1":
         return False
     from xarray.coding.cftimeindex import CFTimeIndex  # noqa: PLC0415
 
