@@ -4,11 +4,15 @@ import inspect
 import json
 from types import ModuleType, SimpleNamespace
 
+import numpy as np
 import pytest
 import xarray as xr
 
 from icclim._core.constants import NEEDS_NORMAL, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
+from tools import prototype_cftime_exact_order_stat_quantile as order_quantile_tools
+from tools import prototype_cftime_exact_order_stat_count as order_count_tools
 from tools import compare_real_data_validation as compare_tools
+from tools import analyze_cftime_exact_order_stat_design as order_stat_tools
 from tools import debug_real_data_validation as debug_tools
 from tools import extract_icclim_funs as extract_tools
 from tools import update_logo_version as logo_tools
@@ -42,6 +46,94 @@ def test_compare_variable_reports_shape_or_dim_mismatch() -> None:
     )
     assert shape_mismatch["equal"] is False
     assert "shape differ" in shape_mismatch["reason"]
+
+
+def test_order_stat_replacement_summary_counts_target_and_substitute_slots() -> None:
+    sample_indices = np.asarray(
+        [
+            [0, 2, 4, -1],
+            [1, 3, 5, -1],
+        ],
+        dtype=np.int64,
+    )
+    index_year = np.asarray([0, 0, 1, 1, 2, 2], dtype=np.int64)
+    index_pos = np.asarray([0, 1, 0, 1, 0, 1], dtype=np.int64)
+    substitute_aligned = np.full((3, 3, 2), -1, dtype=np.int64)
+    substitute_aligned[0, 1, :] = np.asarray([2, 3])
+    substitute_aligned[0, 2, :] = np.asarray([4, -1])
+    substitute_aligned[1, 0, :] = np.asarray([0, 1])
+    substitute_aligned[1, 2, :] = np.asarray([4, 5])
+    substitute_aligned[2, 0, :] = np.asarray([0, -1])
+    substitute_aligned[2, 1, :] = np.asarray([2, 3])
+
+    summary = order_stat_tools._summarize_replacement_structure(
+        sample_indices,
+        index_year,
+        index_pos,
+        substitute_aligned,
+    )
+
+    assert summary.max_samples_per_doy == 3
+    assert summary.min_samples_per_doy == 3
+    assert summary.max_target_year_slots_per_doy == 1
+    assert summary.min_target_year_slots_per_doy == 1
+    assert summary.max_effective_substitute_slots_per_doy == 1
+    assert summary.min_effective_substitute_slots_per_doy == 0
+
+
+def test_order_stat_quantile_matches_simple_adjusted_multiset() -> None:
+    base_sorted = np.asarray([1.0, 2.0, 2.0, 5.0], dtype=np.float64)
+    removed_sorted = np.asarray([2.0], dtype=np.float64)
+    inserted_sorted = np.asarray([3.0], dtype=np.float64)
+
+    quantile = order_quantile_tools._method8_quantile_from_adjusted_sorted(
+        base_sorted,
+        removed_sorted,
+        inserted_sorted,
+        0.5,
+        1.0 / 3.0,
+        1.0 / 3.0,
+    )
+
+    np.testing.assert_allclose(quantile, 2.5)
+
+
+@pytest.mark.parametrize(
+    ("case_name", "freq"),
+    [
+        ("constant", "MS"),
+        ("leap_day_cold_spike", "MS"),
+        ("reference_overlap_shift", "YS"),
+    ],
+)
+def test_order_stat_threshold_series_prototype_matches_current_builder(
+    case_name: str,
+    freq: str,
+) -> None:
+    comparison = order_quantile_tools.compare_order_stat_threshold_series(
+        case_name,
+        freq,
+    )
+
+    assert comparison.changed_doys == 0
+    assert comparison.max_abs_diff == 0.0
+
+
+@pytest.mark.parametrize(
+    ("case_name", "freq"),
+    [
+        ("constant", "MS"),
+        ("leap_day_cold_spike", "YS"),
+    ],
+)
+def test_order_stat_count_prototype_matches_current_output(
+    case_name: str,
+    freq: str,
+) -> None:
+    comparison = order_count_tools.compare_count_prototypes(case_name, freq)
+
+    assert comparison.changed_cells == 0
+    assert comparison.max_abs_diff == 0.0
 
 
 def test_compare_datasets_collects_shared_vars_and_attrs(tmp_path: Path) -> None:
