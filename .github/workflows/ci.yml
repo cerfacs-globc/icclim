@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install build tools
-        run: pip install --upgrade pip "flit<4"
+        run: pip install --upgrade pip "flit==3.12.0" "flit_core==3.12.0"
       - name: Install icclim and dev requirements (dev, test and doc)
         run: flit install --deps develop
       - name: call fun extractor
@@ -70,7 +70,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install build tools
-        run: pip install --upgrade pip "flit<4"
+        run: pip install --upgrade pip "flit==3.12.0" "flit_core==3.12.0"
       - name: Install icclim and dev requirements (dev, test and doc)
         run: flit install --deps develop
       - name: Build coverage file
@@ -127,7 +127,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install build tools
-        run: pip install --upgrade pip "flit<4"
+        run: pip install --upgrade pip "flit==3.12.0" "flit_core==3.12.0"
       - name: Install icclim and dev requirements (dev, test and doc)
         run: flit install --deps develop
       - name: Generate logos
