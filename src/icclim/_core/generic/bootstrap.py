@@ -57,10 +57,15 @@ def compute_doy_percentile_bootstrap_count(
         reference_sample,
         dtype=_bootstrap_array_dtype(reference_sample.study),
     )
+    flat_nominal_thresholds = _build_nominal_full_thresholds(
+        study=reference_sample.study,
+        threshold=threshold,
+    )
     result = _bootstrap_count_kernel(
         array_inputs.flat_reference_raw,
         array_inputs.flat_reference_filtered,
         array_inputs.flat_study,
+        flat_nominal_thresholds,
         temporal_indexing.sample_indices_by_day_of_year,
         temporal_indexing.reference_index_year,
         temporal_indexing.reference_index_position,
@@ -92,6 +97,28 @@ def compute_doy_percentile_bootstrap_count(
     out.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
     del out.attrs["climatology_bounds"]
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
+def _build_nominal_full_thresholds(
+    study: DataArray,
+    threshold: PercentileThreshold,
+) -> np.ndarray:
+    time_index = study.indexes["time"]
+    if not isinstance(time_index, CFTimeIndex):
+        return np.empty((0, 0), dtype=np.float64)
+    if study.time.dt.dayofyear.max().item() != 366:
+        return np.empty((0, 0), dtype=np.float64)
+    threshold.ensure_ready(study)
+    nominal_threshold = threshold.value
+    if int(nominal_threshold.dayofyear.max()) != 366:
+        return np.empty((0, 0), dtype=np.float64)
+    if "percentiles" in nominal_threshold.dims:
+        nominal_threshold = nominal_threshold.squeeze("percentiles")
+    nominal_threshold = nominal_threshold.transpose("dayofyear", ...)
+    return np.asarray(nominal_threshold.data, dtype=np.float64).reshape(
+        nominal_threshold.sizes["dayofyear"],
+        -1,
+    )
 
 
 def compute_doy_percentile_bootstrap_count_threshold_bank_prototype(
@@ -1125,6 +1152,7 @@ if njit is not None:
         flat_ref_raw,
         flat_ref_masked,
         flat_study,
+        flat_nominal_thresholds,
         sample_indices,
         index_year,
         index_pos,
@@ -1157,6 +1185,26 @@ if njit is not None:
             group_start = year_group_starts[year_i]
             group_stop = year_group_stops[year_i]
             if target_ref_i < 0:
+                if (
+                    year_max_doys[year_i] == 366
+                    and flat_nominal_thresholds.shape[0] == 366
+                ):
+                    # Reuse the prepared 366-day threshold field directly for
+                    # non-reference leap years so count comparisons match the
+                    # public threshold workflow exactly.
+                    _write_count_groups_for_cell_with_full_thresholds(
+                        out,
+                        flat_study,
+                        flat_nominal_thresholds,
+                        study_doys,
+                        study_starts,
+                        study_lengths,
+                        group_start,
+                        group_stop,
+                        cell,
+                        op_code,
+                    )
+                    continue
                 thresholds = _build_order_stat_threshold_series_for_cell(
                     flat_ref_masked,
                     sample_indices,
@@ -2566,6 +2614,25 @@ if njit is not None:
         return count
 
     @njit(cache=True)
+    def _count_exceedances_with_full_thresholds(
+        flat_study,
+        flat_thresholds,
+        study_doys,
+        start,
+        length,
+        cell,
+        op_code,
+    ):
+        count = 0.0
+        for offset in range(length):
+            doy = study_doys[start + offset]
+            threshold = flat_thresholds[doy - 1, cell]
+            value = flat_study[start + offset, cell]
+            if _compare(value, threshold, op_code):
+                count += 1.0
+        return count
+
+    @njit(cache=True)
     def _count_bounded_exceedances(
         flat_study,
         thresholds,
@@ -2806,6 +2873,30 @@ if njit is not None:
                 study_lengths[group_i],
                 cell,
                 max_target_doy,
+                op_code,
+            )
+
+    @njit(cache=True)
+    def _write_count_groups_for_cell_with_full_thresholds(
+        out,
+        flat_study,
+        flat_thresholds,
+        study_doys,
+        study_starts,
+        study_lengths,
+        group_start,
+        group_stop,
+        cell,
+        op_code,
+    ):
+        for group_i in range(group_start, group_stop):
+            out[group_i, cell] = _count_exceedances_with_full_thresholds(
+                flat_study,
+                flat_thresholds,
+                study_doys,
+                study_starts[group_i],
+                study_lengths[group_i],
+                cell,
                 op_code,
             )
 

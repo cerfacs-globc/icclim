@@ -116,7 +116,7 @@ def test_threshold_min_value_routes_to_exact_tiled_bootstrap() -> None:
     assert decision.reason_code == "threshold_min_value_requires_exact_tiled_bootstrap"
 
 
-def test_cftime_routes_to_exact_tiled_bootstrap() -> None:
+def test_cftime_count_routes_to_optimized_bootstrap() -> None:
     tas = stub_tas(27 + K2C, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
     climate_var = _build_climate_variable(
         tas,
@@ -132,11 +132,11 @@ def test_cftime_routes_to_exact_tiled_bootstrap() -> None:
         FrequencyRegistry.YEAR,
     )
 
-    assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
-    assert decision.reason_code == "calendar_requires_exact_tiled_bootstrap"
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
 
 
-def test_cftime_count_can_opt_into_experimental_optimized_bootstrap(
+def test_cftime_count_routing_does_not_depend_on_unrelated_env(
     monkeypatch,
 ) -> None:
     monkeypatch.setenv("ICCLIM_EXPERIMENTAL_CFTIME_COUNT_BOOTSTRAP", "1")

@@ -1646,7 +1646,7 @@ class TestIntegration:
         assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
 
-    def test_index_tx90p__cftime_dask_bootstrap_uses_optimized_tiled_path(
+    def test_index_tx90p__cftime_dask_bootstrap_uses_optimized_path(
         self,
         monkeypatch,
     ) -> None:

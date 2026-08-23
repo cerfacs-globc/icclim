@@ -508,6 +508,7 @@ def test_numba_python_count_kernel_matches_constant_cftime_monthly_counts() -> N
         arr.flat_reference_raw,
         arr.flat_reference_filtered,
         arr.flat_study,
+        np.empty((0, 0), dtype=np.float64),
         idx.sample_indices_by_day_of_year,
         idx.reference_index_year,
         idx.reference_index_position,
@@ -530,6 +531,39 @@ def test_numba_python_count_kernel_matches_constant_cftime_monthly_counts() -> N
         kernel_result.shape
     )
     np.testing.assert_allclose(kernel_result, expected)
+
+
+def test_count_kernel_uses_full_nominal_thresholds_for_leap_non_reference_year() -> None:
+    kernel_result = _bootstrap_count_kernel.py_func(
+        np.zeros((1, 1), dtype=np.float64),
+        np.zeros((1, 1), dtype=np.float64),
+        np.asarray([[0.5]], dtype=np.float64),
+        np.vstack(
+            [
+                np.full((336, 1), 0.0, dtype=np.float64),
+                np.asarray([[0.5]], dtype=np.float64),
+                np.full((29, 1), 0.0, dtype=np.float64),
+            ]
+        ),
+        np.full((365, 1), -1, dtype=np.int64),
+        np.zeros(1, dtype=np.int64),
+        np.zeros(1, dtype=np.int64),
+        np.zeros((1, 1, 1), dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([1], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([1], dtype=np.int64),
+        np.asarray([366], dtype=np.int64),
+        np.asarray([-1], dtype=np.int64),
+        np.asarray([337], dtype=np.int64),
+        0.9,
+        1.0 / 3.0,
+        1.0 / 3.0,
+        0,
+        np.nan,
+    )
+
+    np.testing.assert_allclose(kernel_result, np.asarray([[0.0]]))
 
 
 @pytest.mark.parametrize(
