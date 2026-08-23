@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
+
+import cftime
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
 
+from icclim._core.generic import bootstrap as bootstrap_module
 from icclim._core.generic.bootstrap import (
     _bootstrap_average_kernel,
     _bootstrap_bounded_average_kernel,
@@ -16,7 +20,10 @@ from icclim._core.generic.bootstrap import (
     _bootstrap_sum_kernel,
     _bootstrap_union_count_kernel,
     _bootstrap_union_mask_kernel,
+    _build_nominal_full_thresholds,
     compute_doy_percentile_bootstrap_count,
+    compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype,
+    compute_doy_percentile_bootstrap_count_threshold_bank_prototype,
     compute_doy_percentile_bootstrap_exceedance_average,
     compute_doy_percentile_bootstrap_exceedance_sum,
     compute_doy_percentile_bootstrap_fraction_of_total,
@@ -40,6 +47,57 @@ from icclim._core.generic.bootstrap_primitives import (
 )
 from icclim.threshold.factory import build_threshold
 from tests.testing_utils import stub_pr, stub_tas
+
+
+@contextmanager
+def _force_compiled_cftime_count():
+    original = bootstrap_module.is_optimized_doy_percentile_count_supported
+    bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
+    try:
+        yield
+    finally:
+        bootstrap_module.is_optimized_doy_percentile_count_supported = original
+
+
+def _build_cftime_overlap_case(case_name: str) -> xr.DataArray:
+    time = xr.date_range(
+        "2042-01-01",
+        periods=365 * 5 + 1,
+        freq="D",
+        use_cftime=True,
+    )
+    tas = xr.DataArray(
+        np.full((len(time), 1, 1), 300.0, dtype=np.float64),
+        dims=["time", "lat", "lon"],
+        coords={"time": time, "lat": [0.0], "lon": [0.0]},
+        attrs={"units": "K"},
+        name="tas",
+    )
+    if case_name == "constant":
+        return tas.chunk({"time": 365, "lat": 1, "lon": 1})
+    if case_name == "leap_day_cold_spike":
+        for timestamp in (
+            cftime.DatetimeGregorian(2044, 2, 28),
+            cftime.DatetimeGregorian(2044, 2, 29),
+            cftime.DatetimeGregorian(2044, 3, 1),
+        ):
+            tas.loc[{"time": timestamp}] = 250.0
+        return tas.chunk({"time": 365, "lat": 1, "lon": 1})
+    if case_name == "reference_overlap_shift":
+
+        def _timestamp(year: int, month: int, day: int) -> object:
+            return time[
+                (time.year == year) & (time.month == month) & (time.day == day)
+            ][0]
+
+        tas.loc[{"time": _timestamp(2042, 2, 28)}] = 305.0
+        tas.loc[{"time": _timestamp(2043, 2, 28)}] = 295.0
+        tas.loc[{"time": _timestamp(2044, 2, 29)}] = 285.0
+        tas.loc[{"time": _timestamp(2045, 2, 28)}] = 310.0
+        tas.loc[{"time": _timestamp(2045, 3, 1)}] = 280.0
+        return tas.chunk({"time": 365, "lat": 1, "lon": 1})
+    msg = f"Unsupported case: {case_name}"
+    raise ValueError(msg)
 
 
 def test_build_bootstrap_reference_sample_applies_threshold_floor() -> None:
@@ -80,6 +138,29 @@ def test_build_bootstrap_temporal_indexing_tracks_years_and_groups() -> None:
         temporal_indexing.year_to_reference_index,
         np.asarray([0, 1, 2, 3, 4]),
     )
+    assert temporal_indexing.sample_indices_by_day_of_year.shape[0] == 365
+    assert temporal_indexing.reference_index_year.shape == (tas.sizes["time"],)
+    assert temporal_indexing.reference_index_position.shape == (tas.sizes["time"],)
+    assert temporal_indexing.substitute_alignment.shape[:2] == (5, 5)
+
+
+def test_build_bootstrap_temporal_indexing_supports_cftime_groups() -> None:
+    tas = stub_tas(use_cftime=True)
+    threshold = build_threshold("> 90 doy_per")
+    reference_sample = build_bootstrap_reference_sample(tas, threshold)
+
+    temporal_indexing = build_bootstrap_temporal_indexing(
+        reference_sample.study,
+        reference_sample.reference_sample,
+        "MS",
+        doy_window_width=threshold.doy_window_width,
+    )
+
+    np.testing.assert_array_equal(
+        temporal_indexing.bootstrap_years,
+        np.asarray([2042, 2043, 2044, 2045, 2046]),
+    )
+    assert len(temporal_indexing.output_group_labels) == 60
     assert temporal_indexing.sample_indices_by_day_of_year.shape[0] == 365
     assert temporal_indexing.reference_index_year.shape == (tas.sizes["time"],)
     assert temporal_indexing.reference_index_position.shape == (tas.sizes["time"],)
@@ -333,6 +414,13 @@ def _kernel_common_args(
     return args, ref.study
 
 
+def _count_kernel_args(tas: xr.DataArray, threshold) -> tuple[tuple, xr.DataArray]:
+    args, study = _kernel_common_args(tas, threshold)
+    nominal_thresholds = _build_nominal_full_thresholds(study, threshold)
+    count_args = (args[0], args[1], args[2], nominal_thresholds, *args[3:])
+    return count_args, study
+
+
 @pytest.mark.parametrize(
     ("kernel", "wrapper"),
     [
@@ -355,7 +443,10 @@ def _kernel_common_args(
 def test_numba_python_kernels_match_wrapper_outputs(kernel, wrapper) -> None:
     tas = stub_tas(300.0).chunk({"time": 365, "lat": 1, "lon": 1})
     threshold = build_threshold(">= 90 doy_per")
-    args, _study = _kernel_common_args(tas, threshold)
+    if kernel is _bootstrap_count_kernel:
+        args, _study = _count_kernel_args(tas, threshold)
+    else:
+        args, _study = _kernel_common_args(tas, threshold)
 
     kernel_result = kernel.py_func(*args)
     wrapper_result = wrapper(tas, threshold, "YS")
@@ -409,6 +500,143 @@ def test_numba_python_union_mask_kernel_matches_wrapper_output() -> None:
         kernel_result,
         wrapper_result.values.reshape(kernel_result.shape),
     )
+
+
+def test_numba_python_count_kernel_matches_constant_cftime_monthly_counts() -> None:
+    tas = stub_tas(300.0, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
+    threshold = build_threshold(">= 90 doy_per")
+    prepared = build_bootstrap_prepared_inputs(tas, threshold, "MS", dtype=np.float64)
+    ref = prepared.reference_sample
+    idx = prepared.temporal_indexing
+    arr = prepared.array_inputs
+    min_threshold = (
+        np.nan
+        if ref.threshold_floor_in_reference_units is None
+        else float(ref.threshold_floor_in_reference_units)
+    )
+
+    kernel_result = _bootstrap_count_kernel.py_func(
+        arr.flat_reference_raw,
+        arr.flat_reference_filtered,
+        arr.flat_study,
+        np.empty((0, 0), dtype=np.float64),
+        idx.sample_indices_by_day_of_year,
+        idx.reference_index_year,
+        idx.reference_index_position,
+        idx.substitute_alignment,
+        idx.output_starts,
+        idx.output_lengths,
+        idx.year_group_starts,
+        idx.year_group_stops,
+        idx.year_max_day_of_years,
+        idx.year_to_reference_index,
+        idx.study_day_of_years,
+        float(threshold.percentile_coord().item()) / 100.0,
+        float(threshold.interpolation.alpha),
+        float(threshold.interpolation.beta),
+        1,
+        min_threshold,
+    )
+
+    expected = (
+        tas.resample(time="MS").count(dim="time").values.reshape(kernel_result.shape)
+    )
+    np.testing.assert_allclose(kernel_result, expected)
+
+
+def test_count_kernel_uses_full_nominal_thresholds_for_leap_non_reference_year() -> (
+    None
+):
+    kernel_result = _bootstrap_count_kernel.py_func(
+        np.zeros((1, 1), dtype=np.float64),
+        np.zeros((1, 1), dtype=np.float64),
+        np.asarray([[0.5]], dtype=np.float64),
+        np.vstack(
+            [
+                np.full((336, 1), 0.0, dtype=np.float64),
+                np.asarray([[0.5]], dtype=np.float64),
+                np.full((29, 1), 0.0, dtype=np.float64),
+            ]
+        ),
+        np.full((365, 1), -1, dtype=np.int64),
+        np.zeros(1, dtype=np.int64),
+        np.zeros(1, dtype=np.int64),
+        np.zeros((1, 1, 1), dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([1], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([1], dtype=np.int64),
+        np.asarray([366], dtype=np.int64),
+        np.asarray([-1], dtype=np.int64),
+        np.asarray([337], dtype=np.int64),
+        0.9,
+        1.0 / 3.0,
+        1.0 / 3.0,
+        0,
+        np.nan,
+    )
+
+    np.testing.assert_allclose(kernel_result, np.asarray([[0.0]]))
+
+
+@pytest.mark.parametrize(
+    "case_name",
+    ["constant", "leap_day_cold_spike", "reference_overlap_shift"],
+)
+@pytest.mark.parametrize("freq", ["MS", "YS"])
+def test_threshold_bank_prototype_matches_forced_compiled_cftime_counts(
+    case_name: str,
+    freq: str,
+) -> None:
+    tas = _build_cftime_overlap_case(case_name)
+    threshold = build_threshold(
+        "> 90 doy_per",
+        doy_window_width=1,
+        reference_period=("2042-01-01", "2044-12-31"),
+    )
+
+    with _force_compiled_cftime_count():
+        current = compute_doy_percentile_bootstrap_count(tas, threshold, freq)
+    prototype = compute_doy_percentile_bootstrap_count_threshold_bank_prototype(
+        tas,
+        threshold,
+        freq,
+    )
+
+    assert current is not None
+    assert prototype is not None
+    xr.testing.assert_allclose(current, prototype)
+
+
+@pytest.mark.parametrize(
+    "case_name",
+    ["constant", "leap_day_cold_spike", "reference_overlap_shift"],
+)
+@pytest.mark.parametrize("freq", ["MS", "YS"])
+def test_compiled_threshold_bank_prototype_matches_forced_compiled_cftime_counts(
+    case_name: str,
+    freq: str,
+) -> None:
+    tas = _build_cftime_overlap_case(case_name)
+    threshold = build_threshold(
+        "> 90 doy_per",
+        doy_window_width=1,
+        reference_period=("2042-01-01", "2044-12-31"),
+    )
+
+    with _force_compiled_cftime_count():
+        current = compute_doy_percentile_bootstrap_count(tas, threshold, freq)
+    prototype = (
+        compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype(
+            tas,
+            threshold,
+            freq,
+        )
+    )
+
+    assert current is not None
+    assert prototype is not None
+    xr.testing.assert_allclose(current, prototype)
 
 
 @pytest.mark.parametrize(

@@ -171,6 +171,15 @@ def test_summarize_notes_cover_new_compound_workloads() -> None:
     assert "bootstrap leaf masks" in note
 
 
+def test_summarize_notes_cover_new_cftime_and_filtered_average_workloads() -> None:
+    assert "cftime monthly" in summarize_real_data_validation._workload_notes(
+        "tx90p_cftime_monthly"
+    )
+    assert "drier regional subset" in summarize_real_data_validation._workload_notes(
+        "generic_pr_average_bootstrap_dry_yearly"
+    )
+
+
 class _FakeIcclim:
     def __init__(self) -> None:
         self.calls: list[tuple[str, dict]] = []
@@ -252,6 +261,9 @@ class _FakeIcclim:
         ("generic_pr_count_bootstrap_yearly", "count_occurrences", "threshold"),
         ("generic_pr_sum_bootstrap_yearly", "sum", "threshold"),
         ("generic_pr_average_bootstrap_yearly", "average", "threshold"),
+        ("generic_pr_average_bootstrap_monthly", "average", "threshold"),
+        ("generic_pr_average_bootstrap_dry_yearly", "average", "threshold"),
+        ("generic_pr_average_bootstrap_99_yearly", "average", "threshold"),
         ("generic_tas_fraction_bootstrap_yearly", "fraction_of_total", "threshold"),
         ("generic_tas_sum_bootstrap_yearly", "sum", "threshold"),
         ("generic_tas_average_bootstrap_yearly", "average", "threshold"),
@@ -263,6 +275,8 @@ class _FakeIcclim:
         ("wsdi_yearly", "index", "index_name"),
         ("csdi_yearly", "index", "index_name"),
         ("tg90p_save_thresholds_monthly", "index", "save_thresholds"),
+        ("tx90p_cftime_yearly", "index", "index_name"),
+        ("tx90p_cftime_monthly", "index", "index_name"),
         ("combined_cd_yearly", "index", "index_name"),
         ("indices_mixed_yearly", "indices", "index_group"),
         ("indices_mixed_with_cd_yearly", "indices", "index_group"),
@@ -285,11 +299,31 @@ def test_run_real_data_validation_build_workload_routes_expected_call(
         "_open_combined_dataset",
         lambda *args, **kwargs: {"source": "combined", "kwargs": kwargs},
     )
+    monkeypatch.setattr(
+        run_real_data_validation,
+        "_as_cftime_gregorian",
+        lambda da: da,
+    )
 
     result = run_real_data_validation._build_workload(fake, workload)
 
     assert result["method"] == expected_method
     assert expected_key in result["kwargs"]
+
+
+def test_run_real_data_validation_converts_time_to_cftime_gregorian() -> None:
+    time = xr.date_range("2000-01-01", periods=3, freq="D")
+    tas = xr.DataArray(
+        [1.0, 2.0, 3.0],
+        dims=["time"],
+        coords={"time": time},
+        name="tas",
+    )
+
+    converted = run_real_data_validation._as_cftime_gregorian(tas)
+
+    assert converted.time.dtype == object
+    assert converted.indexes["time"][0].calendar == "standard"
 
 
 def test_summarize_format_helpers_cover_pending_and_numeric_paths() -> None:

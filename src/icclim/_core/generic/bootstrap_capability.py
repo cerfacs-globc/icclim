@@ -151,10 +151,11 @@ def classify_doy_percentile_count_bootstrap(
         study=climate_var.studied_data,
         threshold_spec=threshold_spec,
         output_frequency=resample_frequency.pandas_freq,
+        allow_experimental_cftime=True,
     )
 
 
-def classify_doy_percentile_value_aggregate_bootstrap(
+def classify_doy_percentile_value_aggregate_bootstrap(  # noqa: PLR0911
     *,
     indicator_name: str,
     climate_var: ClimateVariable,
@@ -177,6 +178,11 @@ def classify_doy_percentile_value_aggregate_bootstrap(
     ):
         return _not_required("bootstrap_not_needed_for_overlap")
     if threshold_spec.threshold_min_value is not None and indicator_name == "average":
+        if os.environ.get("ICCLIM_BOOTSTRAP_MODE") == "default":
+            return _reference_bootstrap_path(
+                _classify_value_aggregate_family(threshold_spec),
+                "reference_bootstrap_mode_forced",
+            )
         return _exact_tiled_bootstrap(
             family=_classify_value_aggregate_family(threshold_spec),
             reason_code="filtered_average_requires_exact_tiled_bootstrap",
@@ -228,6 +234,7 @@ def _classify_required_optimized_percentile_bootstrap(
     study: DataArray,
     threshold_spec: PercentileThreshold,
     output_frequency: str,
+    allow_experimental_cftime: bool = False,
 ) -> BootstrapCapability:
     from xclim.core.utils import uses_dask  # noqa: PLC0415
 
@@ -247,6 +254,7 @@ def _classify_required_optimized_percentile_bootstrap(
         study,
         threshold_spec,
         output_frequency,
+        allow_experimental_cftime=allow_experimental_cftime,
     )
     if optimized_path_blocker is not None:
         return _exact_tiled_bootstrap(family, optimized_path_blocker)
@@ -414,7 +422,13 @@ def is_optimized_doy_percentile_count_supported(
 ) -> bool:
     """Return whether the optimized count path supports this case."""
     return (
-        _optimized_count_path_blocker(study, threshold_spec, output_frequency) is None
+        _optimized_count_path_blocker(
+            study,
+            threshold_spec,
+            output_frequency,
+            allow_experimental_cftime=True,
+        )
+        is None
     )
 
 
@@ -743,35 +757,35 @@ def classify_compound_count_bootstrap(
         reducer_kind=BootstrapReducerKind.COUNT,
         inventory=inventory,
     )
-    leaf_capabilities = [
-        leaf_capability
+    component_capabilities = [
+        component_capability
         for climate_var in climate_vars
-        for leaf_capability in _iter_compound_leaf_mask_capabilities(
+        for component_capability in _iter_compound_component_bootstrap_capabilities(
             climate_var=climate_var,
             threshold_spec=climate_var.threshold,
             resample_frequency=resample_frequency,
         )
     ]
-    if not leaf_capabilities:
+    if not component_capabilities:
         return _reference_bootstrap_path(
             family,
             "compound_bootstrap_uses_reference_bootstrap_path",
         )
     if any(
-        leaf_capability.uses_reference_bootstrap_path
-        for leaf_capability in leaf_capabilities
+        component_capability.uses_reference_bootstrap_path
+        for component_capability in component_capabilities
     ):
         return _reference_bootstrap_path(
             family,
-            "compound_leaf_requires_reference_bootstrap_path",
+            "compound_component_requires_reference_bootstrap_path",
         )
     if any(
-        leaf_capability.uses_exact_tiled_bootstrap
-        for leaf_capability in leaf_capabilities
+        component_capability.uses_exact_tiled_bootstrap
+        for component_capability in component_capabilities
     ):
         return _exact_tiled_bootstrap(
             family,
-            "compound_leaf_requires_exact_tiled_bootstrap",
+            "compound_component_requires_exact_tiled_bootstrap",
         )
     return BootstrapCapability(
         family=family,
@@ -791,35 +805,35 @@ def classify_compound_value_aggregate_bootstrap(
         reducer_kind=BootstrapReducerKind.VALUE_AGGREGATE,
         inventory=inventory,
     )
-    leaf_capabilities = [
-        leaf_capability
+    component_capabilities = [
+        component_capability
         for climate_var in climate_vars
-        for leaf_capability in _iter_compound_leaf_mask_capabilities(
+        for component_capability in _iter_compound_component_bootstrap_capabilities(
             climate_var=climate_var,
             threshold_spec=climate_var.threshold,
             resample_frequency=resample_frequency,
         )
     ]
-    if not leaf_capabilities:
+    if not component_capabilities:
         return _reference_bootstrap_path(
             family,
             "compound_value_aggregate_uses_reference_bootstrap_path",
         )
     if any(
-        leaf_capability.uses_reference_bootstrap_path
-        for leaf_capability in leaf_capabilities
+        component_capability.uses_reference_bootstrap_path
+        for component_capability in component_capabilities
     ):
         return _reference_bootstrap_path(
             family,
-            "compound_value_aggregate_leaf_requires_reference_bootstrap_path",
+            "compound_value_aggregate_component_requires_reference_bootstrap_path",
         )
     if any(
-        leaf_capability.uses_exact_tiled_bootstrap
-        for leaf_capability in leaf_capabilities
+        component_capability.uses_exact_tiled_bootstrap
+        for component_capability in component_capabilities
     ):
         return _exact_tiled_bootstrap(
             family,
-            "compound_value_aggregate_leaf_requires_exact_tiled_bootstrap",
+            "compound_value_aggregate_component_requires_exact_tiled_bootstrap",
         )
     return BootstrapCapability(
         family=family,
@@ -836,7 +850,7 @@ def classify_scalar_bounded_bootstrap(
     family: BootstrapComputationFamily,
     indicator_name: str,
 ) -> BootstrapCapability:
-    percentile_threshold = get_optimized_scalar_bounded_percentile_leaf(
+    percentile_threshold = get_optimized_scalar_bounded_percentile_component(
         climate_var.threshold
     )
     if percentile_threshold is None:
@@ -876,7 +890,7 @@ def classify_scalar_bounded_bootstrap(
     return capability
 
 
-def _iter_compound_leaf_mask_capabilities(
+def _iter_compound_component_bootstrap_capabilities(
     *,
     climate_var: ClimateVariable,
     threshold_spec: Threshold | None,
@@ -886,12 +900,12 @@ def _iter_compound_leaf_mask_capabilities(
         return ()
     if isinstance(threshold_spec, BoundedThreshold):
         return (
-            *_iter_compound_leaf_mask_capabilities(
+            *_iter_compound_component_bootstrap_capabilities(
                 climate_var=climate_var,
                 threshold_spec=threshold_spec.left_threshold,
                 resample_frequency=resample_frequency,
             ),
-            *_iter_compound_leaf_mask_capabilities(
+            *_iter_compound_component_bootstrap_capabilities(
                 climate_var=climate_var,
                 threshold_spec=threshold_spec.right_threshold,
                 resample_frequency=resample_frequency,
@@ -923,10 +937,10 @@ def _iter_compound_leaf_mask_capabilities(
 def supports_optimized_scalar_bounded_percentile_bootstrap(
     threshold_spec: Threshold | None,
 ) -> bool:
-    return get_optimized_scalar_bounded_percentile_leaf(threshold_spec) is not None
+    return get_optimized_scalar_bounded_percentile_component(threshold_spec) is not None
 
 
-def get_optimized_scalar_bounded_percentile_leaf(
+def get_optimized_scalar_bounded_percentile_component(
     threshold_spec: Threshold | None,
 ) -> PercentileThreshold | None:
     scalar_bounded_spec = get_optimized_scalar_bounded_bootstrap_spec(threshold_spec)
@@ -1038,11 +1052,16 @@ def _optimized_count_path_blocker(
     study: DataArray,
     threshold_spec: PercentileThreshold,
     output_frequency: str,
+    *,
+    allow_experimental_cftime: bool = False,
 ) -> str | None:
     """Return the optimized-path blocker reason, or ``None`` when it is supported."""
     blockers = [
         (
-            not isinstance(study.indexes.get("time"), pd.DatetimeIndex),
+            not _optimized_bootstrap_calendar_supported(
+                study,
+                allow_experimental_cftime=allow_experimental_cftime,
+            ),
             "calendar_requires_exact_tiled_bootstrap",
         ),
         (
@@ -1070,6 +1089,20 @@ def _optimized_count_path_blocker(
         if is_blocked:
             return reason_code
     return None
+
+
+def _optimized_bootstrap_calendar_supported(
+    study: DataArray,
+    *,
+    allow_experimental_cftime: bool,
+) -> bool:
+    if isinstance(study.indexes.get("time"), pd.DatetimeIndex):
+        return True
+    if not allow_experimental_cftime:
+        return False
+    from xarray.coding.cftimeindex import CFTimeIndex  # noqa: PLC0415
+
+    return isinstance(study.indexes.get("time"), CFTimeIndex)
 
 
 def _optimized_bootstrap_is_available() -> bool:

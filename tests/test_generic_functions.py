@@ -5,6 +5,12 @@ import xarray as xr
 from icclim._core.climate_variable import ClimateVariable
 from icclim._core.constants import GROUP_BY_METHOD
 from icclim._core.generic import bootstrap_primitives
+from icclim._core.generic import functions as generic_functions_module
+from icclim._core.generic.bootstrap_capability import (
+    BootstrapCapability,
+    BootstrapComputationFamily,
+    BootstrapExecutionKind,
+)
 from icclim._core.generic.functions import (
     _compute_threshold_exceedance_mask,
     _safe_to_agg_units,
@@ -16,6 +22,7 @@ from icclim._core.generic.functions import (
     maximum,
     minimum,
     percentile,
+    sum_of_spell_lengths,
 )
 from icclim._core.model.logical_link import LogicalLinkRegistry
 from icclim._core.model.standard_variable import StandardVariableRegistry
@@ -342,3 +349,120 @@ def test_compound_value_aggregate_materializes_stable_study(
     assert result is not None
     assert materialize_calls["count"] >= 1
     assert True in materialize_calls["prefer_file_reopen"]
+
+
+def test_spell_bootstrap_materializes_stable_study_without_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = stub_tas(27.0, lat_length=2, lon_length=2).chunk(
+        {"time": 365, "lat": 1, "lon": 1}
+    )
+    threshold = build_threshold(
+        "> 95 doy_per",
+        reference_period=("2042-01-01", "2043-12-31"),
+    )
+    climate_var = ClimateVariable(
+        name="tas",
+        standard_var=StandardVariableRegistry.TAS,
+        studied_data=tas,
+        threshold=threshold,
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+    materialize_calls = {"count": 0, "prefer_file_reopen": []}
+
+    original_materialize = bootstrap_primitives._materialize_bootstrap_study
+
+    def counted_materialize(study, *, prefer_file_reopen=False):
+        materialize_calls["count"] += 1
+        materialize_calls["prefer_file_reopen"].append(prefer_file_reopen)
+        return original_materialize(study, prefer_file_reopen=prefer_file_reopen)
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_FAST_TILE_CELLS", "1")
+    monkeypatch.setattr(
+        bootstrap_primitives,
+        "_materialize_bootstrap_study",
+        counted_materialize,
+    )
+
+    result = sum_of_spell_lengths(
+        climate_vars=[climate_var],
+        resample_freq=FrequencyRegistry.YEAR,
+        logical_link=LogicalLinkRegistry.LOGICAL_AND,
+        min_spell_length=6,
+    )
+
+    assert result is not None
+    assert materialize_calls["count"] >= 1
+    assert True in materialize_calls["prefer_file_reopen"]
+
+
+@pytest.mark.parametrize(
+    "reducer",
+    [average, generic_sum, fraction_of_total],
+)
+def test_compound_value_aggregate_uses_stabilized_study_for_mask(
+    monkeypatch: pytest.MonkeyPatch,
+    reducer,
+) -> None:
+    tas = stub_tas(27.0, lat_length=2, lon_length=2).chunk(
+        {"time": 365, "lat": 1, "lon": 1}
+    )
+    threshold = build_threshold(
+        thresholds=["> 95 doy_per", "<= 10 doy_per"],
+        logical_link="or",
+        reference_period=("2042-01-01", "2043-12-31"),
+    )
+    climate_var = ClimateVariable(
+        name="tas",
+        standard_var=StandardVariableRegistry.TAS,
+        studied_data=tas,
+        threshold=threshold,
+        source_frequency=FrequencyRegistry.DAY,
+        global_metadata={},
+    )
+    stabilized = tas.copy()
+    stabilized.attrs = dict(tas.attrs)
+    seen = {"study": None}
+
+    monkeypatch.setattr(
+        generic_functions_module,
+        "_note_generic_bootstrap_capability",
+        lambda **kwargs: BootstrapCapability(
+            family=BootstrapComputationFamily.DAY_OF_YEAR_PERCENTILE_COMPOUND,
+            execution_kind=BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP,
+            bootstrap_required=True,
+            reason_code="optimized_compound_value_aggregate_bootstrap_supported",
+        ),
+    )
+    monkeypatch.setattr(
+        generic_functions_module,
+        "_materialize_study_for_optimized_compound_value_aggregate",
+        lambda **kwargs: stabilized,
+    )
+
+    def fake_threshold_exceedance_mask(
+        *,
+        climate_var,
+        threshold,
+        resample_freq,
+        prepared_inputs_cache=None,
+    ):
+        seen["study"] = climate_var.studied_data
+        return xr.ones_like(stabilized, dtype=bool)
+
+    monkeypatch.setattr(
+        generic_functions_module,
+        "_compute_threshold_exceedance_mask",
+        fake_threshold_exceedance_mask,
+    )
+
+    kwargs = {"to_percent": False} if reducer is fraction_of_total else {}
+    result = reducer(
+        climate_vars=[climate_var],
+        resample_freq=FrequencyRegistry.YEAR,
+        **kwargs,
+    )
+
+    assert result is not None
+    assert seen["study"] is stabilized

@@ -1077,7 +1077,7 @@ class TestIntegration:
         monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
 
         generic_functions.reset_bootstrap_profile()
-        exact = icclim.index(**common_kwargs).compute()
+        optimized = icclim.index(**common_kwargs).compute()
         profile = generic_functions.get_bootstrap_profile()
 
         assert profile["bootstrap_execution_kind"] == "exact_tiled_bootstrap"
@@ -1086,7 +1086,7 @@ class TestIntegration:
             == "filtered_average_requires_exact_tiled_bootstrap"
         )
         xr.testing.assert_allclose(
-            exact.average,
+            optimized.average,
             reference.average,
         )
 
@@ -1646,7 +1646,7 @@ class TestIntegration:
         assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
 
-    def test_index_tx90p__cftime_dask_bootstrap_falls_back_to_safe_tiled_path(
+    def test_index_tx90p__cftime_dask_bootstrap_uses_optimized_path(
         self,
         monkeypatch,
     ) -> None:
@@ -1671,13 +1671,10 @@ class TestIntegration:
         default = icclim.index(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert profile["bootstrap_count_execution_kind"] == "exact_tiled_bootstrap"
-        assert (
-            profile["bootstrap_count_reason_code"]
-            == "calendar_requires_exact_tiled_bootstrap"
-        )
-        assert "bootstrap_optimized_tile_count" not in profile
-        assert profile["bootstrap_safe_tile_count"] == 4
+        assert profile["bootstrap_count_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_count_reason_code"] == "optimized_bootstrap_supported"
+        assert profile["bootstrap_optimized_tile_count"] == 4
+        assert "bootstrap_safe_tile_count" not in profile
         xr.testing.assert_allclose(default.TX90p.load(), eager.TX90p)
 
     def test_index_tx90p__safe_bootstrap_uses_memory_budget(self, monkeypatch) -> None:

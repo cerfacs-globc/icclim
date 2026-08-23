@@ -9,6 +9,7 @@ import sys
 import time
 from pathlib import Path
 
+import cftime
 import numpy as np
 import xarray as xr
 
@@ -19,6 +20,8 @@ LAT_SLICE = slice(35.0, 70.0)
 LON_SLICE = slice(0.0, 40.0)
 DATE_EVENT_LAT_SLICE = slice(35.0, 55.0)
 DATE_EVENT_LON_SLICE = slice(0.0, 20.0)
+DRY_PR_LAT_SLICE = slice(35.0, 45.0)
+DRY_PR_LON_SLICE = slice(0.0, 30.0)
 BASE_PERIOD = ("1961-01-01", "1990-12-31")
 TIME_RANGE = ("1950-01-01", "2014-12-31")
 TASMAX_TIME_RANGE = ("1986-01-01", "1999-12-31")
@@ -93,6 +96,22 @@ def _warmup(icclim) -> None:
         ).load()
     except Exception:
         pass
+
+
+def _as_cftime_gregorian(da: xr.DataArray) -> xr.DataArray:
+    time_values = da.indexes["time"]
+    cftime_time = [
+        cftime.DatetimeGregorian(
+            int(ts.year),
+            int(ts.month),
+            int(ts.day),
+            int(getattr(ts, "hour", 0)),
+            int(getattr(ts, "minute", 0)),
+            int(getattr(ts, "second", 0)),
+        )
+        for ts in time_values
+    ]
+    return da.assign_coords(time=cftime_time)
 
 
 def _build_workload(icclim, workload: str) -> xr.Dataset:
@@ -419,6 +438,50 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=TIME_RANGE,
             slice_mode="year",
         )
+    if workload == "generic_pr_average_bootstrap_monthly":
+        pr = _open_var(PR_GLOB, "pr")
+        return icclim.average(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 95 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month",
+        )
+    if workload == "generic_pr_average_bootstrap_dry_yearly":
+        pr = _open_var(
+            PR_GLOB,
+            "pr",
+            lat_slice=DRY_PR_LAT_SLICE,
+            lon_slice=DRY_PR_LON_SLICE,
+        )
+        return icclim.average(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 95 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "generic_pr_average_bootstrap_99_yearly":
+        pr = _open_var(PR_GLOB, "pr")
+        return icclim.average(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 99 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
     if workload == "generic_tas_fraction_bootstrap_yearly":
         tas = _open_var(TAS_GLOB, "tas")
         return icclim.fraction_of_total(
@@ -498,6 +561,26 @@ def _build_workload(icclim, workload: str) -> xr.Dataset:
             time_range=TIME_RANGE,
             slice_mode="MS",
             save_thresholds=True,
+        )
+    if workload == "tx90p_cftime_yearly":
+        tas = _as_cftime_gregorian(_open_var(TAS_GLOB, "tas"))
+        return icclim.index(
+            index_name="TX90p",
+            in_files=tas,
+            var_name="tas",
+            base_period_time_range=BASE_PERIOD,
+            time_range=TIME_RANGE,
+            slice_mode="year",
+        )
+    if workload == "tx90p_cftime_monthly":
+        tas = _as_cftime_gregorian(_open_var(TAS_GLOB, "tas"))
+        return icclim.index(
+            index_name="TX90p",
+            in_files=tas,
+            var_name="tas",
+            base_period_time_range=BASE_PERIOD,
+            time_range=TIME_RANGE,
+            slice_mode="month",
         )
     if workload == "combined_cd_yearly":
         # Compound logical-link indices currently exercise xarray boolean

@@ -14,6 +14,7 @@ development.
    release_process
    ci
    add_climate_index
+   bootstrap_maintainability_audit
    percentile_bootstrap
    bootstrap_architecture
    contributing

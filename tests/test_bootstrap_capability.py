@@ -116,7 +116,7 @@ def test_threshold_min_value_routes_to_exact_tiled_bootstrap() -> None:
     assert decision.reason_code == "threshold_min_value_requires_exact_tiled_bootstrap"
 
 
-def test_cftime_routes_to_exact_tiled_bootstrap() -> None:
+def test_cftime_count_routes_to_optimized_bootstrap() -> None:
     tas = stub_tas(27 + K2C, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
     climate_var = _build_climate_variable(
         tas,
@@ -132,8 +132,31 @@ def test_cftime_routes_to_exact_tiled_bootstrap() -> None:
         FrequencyRegistry.YEAR,
     )
 
-    assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
-    assert decision.reason_code == "calendar_requires_exact_tiled_bootstrap"
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
+
+
+def test_cftime_count_routing_does_not_depend_on_unrelated_env(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("ICCLIM_EXPERIMENTAL_CFTIME_COUNT_BOOTSTRAP", "1")
+    tas = stub_tas(27 + K2C, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "query": "> 90 doy_per",
+            "doy_window_width": 1,
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_doy_percentile_count_bootstrap(
+        climate_var,
+        FrequencyRegistry.YEAR,
+    )
+
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
 
 
 def test_eager_input_uses_reference_bootstrap_path() -> None:
@@ -221,6 +244,33 @@ def test_generic_filtered_fraction_of_total_routes_to_optimized_bootstrap() -> N
     )
     assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
     assert decision.reason_code == "optimized_bootstrap_supported"
+
+
+def test_generic_filtered_average_routes_to_exact_tiled_bootstrap() -> None:
+    pr = stub_tas(5.0).rename("pr")
+    pr.attrs["units"] = "mm/day"
+    pr = pr.chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        pr,
+        {
+            "query": "> 90 doy_per",
+            "threshold_min_value": "1 mm/day",
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="average",
+        climate_vars=[climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert (
+        decision.family
+        == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_VALUE_AGGREGATE
+    )
+    assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
+    assert decision.reason_code == "filtered_average_requires_exact_tiled_bootstrap"
 
 
 def test_generic_fraction_of_total_routes_to_optimized_bootstrap() -> None:
@@ -394,7 +444,7 @@ def test_multi_variable_percentile_count_routes_to_exact_tiled_compound_path() -
         == BootstrapComputationFamily.FILTERED_DAY_OF_YEAR_PERCENTILE_COMPOUND
     )
     assert decision.execution_kind == BootstrapExecutionKind.EXACT_TILED_BOOTSTRAP
-    assert decision.reason_code == "compound_leaf_requires_exact_tiled_bootstrap"
+    assert decision.reason_code == "compound_component_requires_exact_tiled_bootstrap"
 
 
 def test_bounded_threshold_recursively_requires_bootstrap() -> None:

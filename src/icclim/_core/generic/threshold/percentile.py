@@ -486,7 +486,10 @@ class PercentileThreshold(Threshold):
                 threshold_value = resample_doy(per, da)
             else:
                 threshold_value = per
-            return op(da, threshold_value)
+            result = op(da, threshold_value)
+            if "units" not in result.attrs and "units" in da.attrs:
+                result.attrs["units"] = da.attrs["units"]
+            return result
 
         return __per_compute(
             comparison_data,

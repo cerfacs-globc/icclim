@@ -12,8 +12,8 @@ Current strategy
 
 For dask-backed percentile count indices with bootstrap enabled, icclim
 first tries a compiled fast path. If the case is unsupported, or if the
-user sets ``ICCLIM_BOOTSTRAP_MODE=safe``, icclim falls back to the safe
-tiled xclim path.
+user sets ``ICCLIM_BOOTSTRAP_MODE=safe``, icclim falls back to the exact
+tiled bootstrap path.
 
 The goal is reliability first: users should not have to guess a dask
 chunking strategy, and icclim should avoid both memory exhaustion and
@@ -24,7 +24,7 @@ does not call xclim's generic bootstrap decorator. Instead it:
 
 - defers full percentile-threshold materialization until a path
   actually needs the threshold field, such as ``save_thresholds`` or
-  the safe tiled fallback;
+  the exact tiled fallback;
 - tiles the spatial domain according to an explicit memory budget;
 - loads one tile at a time, avoiding a large dask bootstrap graph;
 - computes nominal thresholds inside the compiled path for
@@ -47,7 +47,8 @@ Fast path currently supports:
 Unsupported cases
 =================
 
-Unsupported cases intentionally fall back to the safe tiled path. The
+Unsupported cases intentionally fall back to the exact tiled bootstrap
+path. The
 most useful future extensions are likely:
 
 - additional ``threshold_min_value`` reducers. As of Friday, July 31, 2026,
@@ -56,10 +57,11 @@ most useful future extensions are likely:
   ``count_occurrences`` and ``average`` stay on the exact tiled bootstrap path,
   while ``sum`` and ``fraction_of_total`` are field-identical on the optimized
   path;
-- ``cftime`` calendars; Kraken validation on July 29, 2026 found a
-  remaining one-cell mismatch on a Gregorian-like ``cftime`` case, so
-  the release path keeps ``cftime`` on the exact safe tiled fallback
-  until the fast-path semantics are field-identical;
+- ``cftime`` calendars; the release path keeps Gregorian-like and other
+  ``cftime`` inputs on the exact tiled bootstrap path. As of Tuesday,
+  August 18, 2026, Kraken real-data validation and deep profiling
+  confirmed that this exact route remains correct, but no field-identical
+  optimized ``cftime`` route has been retained;
 - spell/run-length extension beyond the simple day-of-year percentile
   case. As of Friday, July 31, 2026, simple one-threshold day-of-year
   percentile spell reducers such as ``sum_of_spell_lengths`` now use an
@@ -69,7 +71,7 @@ most useful future extensions are likely:
   Sunday, August 2, 2026:
 
   - multi-variable compound counts such as ``CD`` can reuse bootstrap
-    leaf masks and stay field-identical to the fresh ``master``
+    component masks and stay field-identical to the fresh ``master``
     baseline on Kraken real data;
   - single-variable bounded scalar guards such as
     ``> 90 doy_per AND <= 30 degC`` or
@@ -91,10 +93,10 @@ Performance notes
 =================
 
 Kraken benchmarks showed that the compiled annual path can be about 10
-times faster than the safe tiled fallback on a representative TG90p case,
+times faster than the exact tiled fallback on a representative TG90p case,
 with bitwise-equivalent counts up to floating-point noise:
 
-- safe tiled fallback: about 1473 seconds;
+- exact tiled fallback: about 1473 seconds;
 - production fast path: about 146 seconds;
 - maximum absolute difference: about ``5.7e-14``.
 
@@ -128,7 +130,7 @@ while keeping the fast path graph-free:
   seconds; maximum absolute difference ``0``.
 
 So the robust statement is that the fast path bounds memory and avoids
-giant dask graphs. It is much faster than the reliable safe tiled
+giant dask graphs. It is much faster than the reliable exact tiled
 fallback, but it is not guaranteed to beat the old graph path on cases
 where that graph path happens to complete.
 
