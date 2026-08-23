@@ -5,7 +5,7 @@ Bootstrap architecture
 ######################
 
 This note describes a maintainable design for percentile bootstrap work
-after the July 29, 2026 Kraken validation round.
+after the July 2026 validation and refactoring round.
 
 It complements :ref:`dev_percentile_bootstrap`, which records the
 current production behavior and benchmark results. This document is
@@ -81,7 +81,8 @@ Examples:
 - ``R75p``, ``R95p``, ``R99p``;
 - generic percentile counts using ``threshold_min_value``.
 
-The Kraken validation showed that this family cannot be treated as a
+Validation on representative real datasets showed that this family
+cannot be treated as a
 minor variant of the plain count family. Its substitute-year semantics must
 be matched exactly before any compiled optimized path is enabled.
 
@@ -112,7 +113,8 @@ Examples:
 
 As of Friday, July 31, 2026, simple one-threshold day-of-year
 percentile spell reducers now have a compiled optimized union-mask
-bootstrap implementation validated against ``master`` on Kraken.
+bootstrap implementation validated against the trusted reference path on
+representative real datasets.
 Filtered and more complex spell cases still need a separate fallback or
 future extension, so this family remains only partially specialized.
 
@@ -137,13 +139,13 @@ practical cases:
   ``> 90 doy_per AND <= 30 degC`` or
   ``> 90 doy_per OR <= 10 degC`` now use a dedicated compiled path for
   ``count_occurrences``, ``average``, ``sum`` and
-  ``fraction_of_total``. Kraken real-data validation against a trusted
-  ``master`` baseline was exact and faster for all four reducers.
+  ``fraction_of_total``. Real-data validation against the trusted
+  reference path was exact and faster for all four reducers.
 
 As of Monday, August 3, 2026, same-variable compound percentile
 ``OR`` value aggregates such as
 ``> 95 doy_per OR <= 10 doy_per`` are now also robust to materially
-different chunk layouts. Kraken validation showed exact outputs between
+different chunk layouts. Validation showed exact outputs between
 the default and alternate chunk profiles for:
 
 - ``count_occurrences``;
@@ -323,7 +325,7 @@ visible in code before more bootstrap families reuse the same threshold
 generation semantics.
 
 As of Friday, July 31, 2026, three unfiltered non-count consumers of this shared
-threshold generation layer are validated on Kraken real data:
+threshold generation layer are validated on representative real data:
 
 - ``fraction_of_total`` for unfiltered day-of-year percentile bootstrap;
 - generic ``sum`` for unfiltered day-of-year percentile bootstrap.
@@ -333,7 +335,7 @@ Those reducers are exact against the trusted baselines on real data.
 They currently define the validated optimized value-aggregate boundary.
 
 The same validation round also established the current filtered
-``threshold_min_value`` boundary on Kraken real data:
+``threshold_min_value`` boundary on representative real data:
 
 - filtered day-of-year percentile ``count_occurrences`` is exact through
   the exact tiled bootstrap path;
@@ -348,7 +350,8 @@ The validated boundary is now reducer-specific.
 
 The same validation round also showed that ``average`` cannot be
 derived naively from ``optimized_sum / optimized_count``. A first
-dedicated mean kernel also remained non-identical on Kraken. The
+dedicated mean kernel also remained non-identical in real-data
+validation. The
 validated optimized implementation instead uses:
 
 - optimized union exceedance sums;
@@ -552,10 +555,11 @@ modules, with stable names and maintainer notes.
 Accessible
 ----------
 
-The code should be understandable without hidden tribal knowledge.
+The code should be understandable without relying on undocumented
+project context.
 Docstrings, developer notes and descriptive function names make the
-implementation accessible to contributors who did not write the original
-feature.
+implementation accessible to contributors who were not involved in the
+original implementation work.
 
 Interoperable
 -------------
@@ -604,7 +608,8 @@ At each step:
 - compare against the exact tiled reference path;
 - validate on real data, not only synthetic examples;
 - record both performance and field equality;
-- widen dispatch only after Kraken validation is exact.
+- widen dispatch only after exact real-data validation against the
+  trusted reference path.
 
 What success looks like
 =======================

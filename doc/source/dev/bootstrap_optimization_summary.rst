@@ -7,8 +7,23 @@ Bootstrap optimization summary
 This note summarizes the recent bootstrap optimization work. It
 complements the more detailed maintainability and architecture notes.
 
-What changed
-============
+Scope
+=====
+
+This note covers the bootstrap work merged after the original
+graph-heavy day-of-year percentile bootstrap route became difficult to
+run reliably on large dask-backed datasets.
+
+It is meant to answer four maintainer questions:
+
+- what changed in the runtime path;
+- which algorithm families are now optimized, exact or still routed to
+  fallback paths;
+- how the exact ``cftime`` count redesign was integrated;
+- what validation evidence supports the retained implementation.
+
+Initial state
+=============
 
 Before this work, percentile bootstrap mainly relied on the generic
 ``xclim`` reference bootstrap path. That route is scientifically sound,
@@ -28,22 +43,117 @@ The goal was not to change bootstrap semantics. The goal was to keep the
 same scientific result while making production runs more robust on real
 data.
 
-Method
-======
+Main implementation changes
+===========================
 
-The retained optimized route focuses on the mathematically simple
-families first:
+The retained work is not one single kernel change. It is a set of
+related changes around routing, shared preparation steps and family
+specific reducers.
 
-- day-of-year percentile counts;
-- supported value aggregates built from the same exceedance-mask logic;
-- validated simple spell and compound extensions.
+1. Explicit bootstrap routing
+-----------------------------
 
-The implementation separates three concerns that had previously been
-more entangled:
+Bootstrap support is now classified explicitly from threshold and
+reducer properties before the runtime path is chosen.
 
-- bootstrap routing and support classification;
-- threshold and temporal-index preparation;
-- compiled daily-mask or count kernels.
+This routing distinguishes:
+
+- bootstrap not required;
+- optimized compiled bootstrap;
+- exact tiled bootstrap fallback;
+- reference bootstrap path for eager or diagnostic cases.
+
+This prevents family-specific eligibility checks from being spread
+through reducers.
+
+2. Shared bootstrap preparation
+-------------------------------
+
+The optimized implementation now separates reusable bootstrap
+preparation from reducer-specific logic.
+
+The shared preparation layer now handles:
+
+- reference-period extraction;
+- optional threshold-floor filtering;
+- day-of-year sampling indexes;
+- reference-year and substitute-year alignment;
+- flattened array preparation for compiled kernels.
+
+That work is concentrated in ``bootstrap_primitives.py`` instead of
+being rebuilt independently inside each reducer path.
+
+3. Optimized count path for supported pandas-backed workloads
+-------------------------------------------------------------
+
+For supported day-of-year percentile count workloads, the runtime path
+now avoids the large xarray or dask bootstrap graph.
+
+The retained count path:
+
+- prepares study and reference arrays once per tile;
+- computes nominal non-overlap thresholds inside the compiled route;
+- recomputes overlap substitute thresholds only where bootstrap is
+  required;
+- reuses threshold work across monthly groups inside the same year.
+
+4. Extended optimized families built from the same threshold semantics
+----------------------------------------------------------------------
+
+The same threshold generation semantics are now reused for selected
+additional families:
+
+- selected value aggregates;
+- selected spell reducers;
+- selected compound count shapes;
+- selected bounded single-variable compositions.
+
+Those families were retained only where full-field validation stayed
+exact against the trusted reference path.
+
+5. Exact compiled ``cftime`` count redesign
+-------------------------------------------
+
+The ``cftime`` count work did not stop at keeping the old exact tiled
+route. A new exact compiled route was designed and integrated for the
+supported day-of-year percentile count family.
+
+The retained redesign uses order-statistics reasoning instead of
+rebuilding a full bootstrap sample for every overlap substitution.
+
+For one cell and one day of year, the compiled route now works from:
+
+- a nominal sorted sample for the reference day-of-year window;
+- the values removed when the target reference year is excluded;
+- the substitute-aligned values inserted in its place.
+
+The exact method-8 percentile is then recovered from the adjusted sample
+through rank-based queries on those three value sets.
+
+In practice this means:
+
+- exact percentile semantics are preserved;
+- leap-aware substitute alignment stays explicit;
+- overlap-year work is reduced compared with the earlier exact
+  reconstruction route;
+- supported ``cftime`` count workloads now use a retained compiled path
+  rather than staying on the older exact tiled fallback.
+
+Retained production boundary
+============================
+
+The retained optimized route focuses on the mathematically simpler
+families first and widens only where exact validation is established.
+
+In production today:
+
+- supported day-of-year percentile counts use the compiled count path;
+- supported ``cftime`` day-of-year percentile counts use the exact
+  compiled order-statistics count path;
+- selected value aggregates reuse the same threshold semantics;
+- selected spell reducers use the validated compiled union-mask route;
+- selected compound families reuse component-mask composition;
+- unsupported cases still fall back to exact tiled or reference paths.
 
 This separation keeps the workflow readable in climate-index terms:
 prepare the reference sample, prepare temporal indexing, compute
@@ -56,45 +166,43 @@ Validation and results
 Validation was done against exact reference behavior, not summary
 statistics alone.
 
-The retained rule is:
+The retained validation rule is:
 
 - compare the full field against the exact reference path;
 - report maximum absolute difference and tolerance exceedances;
 - check dimensions, coordinates and attributes;
 - review wall-clock time and memory on real workloads.
 
-The current production conclusion is:
+Validation covered:
 
-- the optimized dask-backed bootstrap path removes the giant reference
-  bootstrap graph on supported cases;
-- it is much faster than the exact tiled fallback on those same cases;
-- it is not guaranteed to beat the old graph-heavy reference path in
-  every environment when that older path happens to complete cleanly;
-- unsupported or not yet trusted cases still fall back to an exact
-  route.
+- synthetic overlap fixtures, including leap-sensitive cases;
+- full-field real-data count validation;
+- monthly, yearly and anchored seasonal output groups where supported;
+- alternate chunk-profile checks for optimized families that depend on
+  chunk robustness;
+- focused runtime tests for routing and kernel behavior.
 
-Current scope
-=============
+The production conclusion is:
 
-The bootstrap campaign is effectively complete for the current retained
-approach.
+- supported compiled paths remove the giant reference bootstrap graph;
+- those paths are much faster than the exact tiled fallback on the same
+  supported workloads;
+- field equality is the release criterion, not average similarity;
+- unsupported or not yet trusted cases remain on exact fallback paths.
 
-What is in production today:
+What remains out of scope
+=========================
 
-- optimized routing for supported day-of-year percentile count cases;
-- exact compiled order-statistics routing for supported day-of-year
-  percentile count cases on ``cftime`` calendars;
-- validated extensions for selected value aggregates, spell reducers and
-  compound count shapes;
-- exact tiled fallback for cases that are not yet retained on the
-  optimized route.
+The following areas are not yet retained as optimized production
+families:
 
-What remains outside the retained production scope:
-
-- broader filtered or complex spell families not yet validated for
-  production use;
-- broader ``cftime`` bootstrap families beyond the supported count path;
-- any future work whose exactness is not demonstrated against the
+- broader filtered percentile families beyond the validated reducer
+  split;
+- broader ``cftime`` bootstrap families beyond supported count
+  workloads;
+- more complex spell families that need separate reducer semantics after
+  thresholding;
+- any future route whose exactness is not demonstrated against the
   reference implementation.
 
 Impact on xclim bootstrap code

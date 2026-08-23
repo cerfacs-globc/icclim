@@ -112,8 +112,8 @@ The recent developer notes are a meaningful improvement:
 Why this matters:
 
 - maintainers can now find the intended support boundary;
-- workflow and implementation intent are less dependent on tribal
-  knowledge;
+- workflow and implementation intent are less dependent on
+  undocumented project context;
 - this is directly helpful for FAIR4RS reuse and onboarding.
 
 Validation tooling
@@ -325,7 +325,7 @@ bootstrap work while reducing the risk of architectural drift.
    If a new optimized family or fallback rule is added, update the
    maintainer notes in the same branch.
 
-5. Keep trusted-baseline Kraken validation as the release gate for
+5. Keep trusted-baseline real-data validation as the release gate for
    meaningful bootstrap changes.
    Unit tests are necessary, but not sufficient, for this part of the
    codebase.

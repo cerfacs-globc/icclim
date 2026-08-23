@@ -55,7 +55,8 @@ path. The
 most useful future extensions are likely:
 
 - additional ``threshold_min_value`` reducers. As of Friday, July 31, 2026,
-  wet-day style support is now split by reducer after Kraken validation:
+  wet-day style support is now split by reducer after exact real-data
+  validation:
 
   ``count_occurrences`` and ``average`` stay on the exact tiled bootstrap path,
   while ``sum`` and ``fraction_of_total`` are field-identical on the optimized
@@ -68,18 +69,19 @@ most useful future extensions are likely:
 - spell/run-length extension beyond the simple day-of-year percentile
   case. As of Friday, July 31, 2026, simple one-threshold day-of-year
   percentile spell reducers such as ``sum_of_spell_lengths`` now use an
-  optimized compiled union-mask path after Kraken validation against
-  ``master``. More complex spell cases still fall back.
+  optimized compiled union-mask path after exact real-data validation
+  against the trusted reference path. More complex spell cases still
+  fall back.
 - compound percentile shapes beyond the currently validated split. As of
   Sunday, August 2, 2026:
 
   - multi-variable compound counts such as ``CD`` can reuse bootstrap
-    component masks and stay field-identical to the fresh ``master``
-    baseline on Kraken real data;
+    component masks and stay field-identical to the trusted reference
+    path on representative real datasets;
   - single-variable bounded scalar guards such as
     ``> 90 doy_per AND <= 30 degC`` or
     ``> 90 doy_per OR <= 10 degC`` now use a dedicated compiled path
-    and are field-identical on Kraken real data for
+    and are field-identical on representative real datasets for
     ``count_occurrences``, ``average``, ``sum`` and
     ``fraction_of_total``.
 
@@ -95,9 +97,10 @@ two-stage design:
 Performance notes
 =================
 
-Kraken benchmarks showed that the compiled annual path can be about 10
-times faster than the exact tiled fallback on a representative TG90p case,
-with bitwise-equivalent counts up to floating-point noise:
+Benchmarks on representative real workloads showed that the compiled
+annual path can be about 10 times faster than the exact tiled fallback
+on a representative TG90p case, with bitwise-equivalent counts up to
+floating-point noise:
 
 - exact tiled fallback: about 1473 seconds;
 - production fast path: about 146 seconds;
