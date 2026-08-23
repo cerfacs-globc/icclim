@@ -3,6 +3,18 @@
 #################
 
 ******
+7.1.9
+******
+
+date: 2026-08-23
+
+
+-  [fix] Pin workflow-installed ``flit`` to a 3.x release so PyPI publish jobs do not emit the unsupported ``Import-Name`` metadata field.
+-  [enh] Restore the optimized exact bootstrap route for ``cftime`` day-of-year percentile count indices after integrating the compiled order-stat count path into the public routing.
+-  [fix] Preserve exact leap-year behavior for non-reference ``cftime`` study years by reusing the prepared 366-day nominal threshold field where needed.
+-  [doc] Add real-data Kraken validation and exact-count redesign archive notes for the ``cftime`` bootstrap workflow.
+
+******
 7.1.8
 ******
 
