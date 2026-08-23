@@ -10,6 +10,7 @@ import xarray as xr
 
 from icclim._core.generic import bootstrap as bootstrap_module
 from icclim._core.generic.bootstrap import (
+    _build_nominal_full_thresholds,
     _bootstrap_average_kernel,
     _bootstrap_bounded_average_kernel,
     _bootstrap_bounded_count_kernel,
