@@ -217,6 +217,176 @@ decision-grade because they are dominated by Python-level execution and local
 warmup effects. At this stage they should be read only as a semantic check,
 not as a performance conclusion.
 
+## Python-level real-data validation
+
+This phase also adds:
+
+- [tools/benchmark_cftime_order_stat_real_data.py](/Users/page/src/icclim/icclim/tools/benchmark_cftime_order_stat_real_data.py)
+
+This benchmark compares three exact routes on real data:
+
+- the current compiled count route;
+- the compiled threshold-bank prototype;
+- the Python-level order-statistics redesign prototype.
+
+Validated on Friday, August 21, 2026, on the real-data `TX90p` study used in
+the earlier threshold-bank checks:
+
+- `1 x 1` monthly (`MS`) and yearly (`YS`);
+- `2 x 2` monthly (`MS`) and yearly (`YS`).
+
+Observed exactness result on every validated shape and frequency:
+
+- `changed_cells_vs_current = 0`
+- `max_abs_diff_vs_current = 0.0`
+
+Observed timing snapshots:
+
+- `1 x 1`, `MS`:
+  - current compiled: about `42.92s`;
+  - compiled threshold-bank: about `24.33s`;
+  - Python-level order-statistics: about `152.94s`.
+- `1 x 1`, `YS`:
+  - current compiled: about `24.24s`;
+  - compiled threshold-bank: about `24.24s`;
+  - Python-level order-statistics: about `152.74s`.
+- `2 x 2`, `MS`:
+  - current compiled: about `37.94s`;
+  - compiled threshold-bank: about `26.80s`;
+  - Python-level order-statistics: about `605.45s`.
+- `2 x 2`, `YS`:
+  - current compiled: about `37.91s`;
+  - compiled threshold-bank: about `26.45s`;
+  - Python-level order-statistics: about `617.97s`.
+
+This closes the semantic question for the redesign on real data:
+
+- the order-statistics route is exact on the validated real-data subsets;
+- but the Python-level prototype is far too slow to be a production candidate.
+
+So from this point onward, performance conclusions only matter for a compiled
+order-statistics implementation.
+
+## First compiled order-statistics benchmark
+
+This phase also adds:
+
+- [tools/benchmark_cftime_order_stat_compiled.py](/Users/page/src/icclim/icclim/tools/benchmark_cftime_order_stat_compiled.py)
+- [tools/benchmark_cftime_order_stat_compiled_real_data.py](/Users/page/src/icclim/icclim/tools/benchmark_cftime_order_stat_compiled_real_data.py)
+
+The first tool keeps the redesigned route fully inside a benchmark-oriented
+Numba kernel so the question becomes narrower:
+
+- if the order-statistics redesign is compiled, does it still preserve exact
+  results;
+- and does it start to recover the expected performance gain?
+
+Validated locally on Friday, August 21, 2026:
+
+- synthetic `constant`, monthly (`MS`), `1 x 1`:
+  - `changed_cells_vs_current = 0`;
+  - current compiled: about `1.64s`;
+  - compiled threshold-bank: about `0.47s`;
+  - compiled order-statistics: about `2.26s`.
+- synthetic `reference_overlap_shift`, monthly (`MS`), `1 x 1`:
+  - `changed_cells_vs_current = 0`;
+  - current compiled: about `1.29s`;
+  - compiled threshold-bank: about `0.46s`;
+  - compiled order-statistics: about `1.25s`.
+- synthetic `reference_overlap_shift`, monthly (`MS`), `4 x 4`:
+  - `changed_cells_vs_current = 0`;
+  - current compiled: about `1.54s`;
+  - compiled threshold-bank: about `0.57s`;
+  - compiled order-statistics: about `1.54s`.
+
+These local snapshots show the expected shift:
+
+- the compiled order-statistics redesign stays exact;
+- and on the overlap-heavy synthetic case it is already roughly on par with
+  the current compiled route.
+
+## First compiled real-data result
+
+On Friday, August 21, 2026, the compiled real-data benchmark was first
+validated on `1 x 1`:
+
+- monthly (`MS`):
+  - `changed_cells_vs_current = 0`;
+  - `max_abs_diff_vs_current = 0.0`;
+  - current compiled: about `42.92s`;
+  - compiled threshold-bank: about `24.24s`;
+  - compiled order-statistics: about `8.15s`.
+- yearly (`YS`):
+  - `changed_cells_vs_current = 0`;
+  - `max_abs_diff_vs_current = 0.0`;
+  - current compiled: about `24.24s`;
+  - compiled threshold-bank: about `24.11s`;
+  - compiled order-statistics: about `5.64s`.
+
+This is the first result in the whole redesign campaign that materially
+changes the outlook:
+
+- the compiled order-statistics redesign is exact on real data;
+- it is about `5.26x` faster than the current compiled route on `1 x 1` monthly;
+- it is about `4.30x` faster than the current compiled route on `1 x 1` yearly;
+- it is also materially faster than the compiled threshold-bank prototype on
+  the same real-data slice.
+
+That means this new phase is no longer just a design exercise. It has already
+produced one compiled exact real-data route that looks genuinely promising.
+
+## Compiled real-data scaling check
+
+The next real-data check on Friday, August 21, 2026, extended the same
+compiled benchmark to `2 x 2`:
+
+- monthly (`MS`):
+  - `changed_cells_vs_current = 0`;
+  - `max_abs_diff_vs_current = 0.0`;
+  - current compiled: about `38.74s`;
+  - compiled threshold-bank: about `26.09s`;
+  - compiled order-statistics: about `14.85s`.
+- yearly (`YS`):
+  - `changed_cells_vs_current = 0`;
+  - `max_abs_diff_vs_current = 0.0`;
+  - current compiled: about `38.74s`;
+  - compiled threshold-bank: about `25.81s`;
+  - compiled order-statistics: about `15.05s`.
+
+So the real-data picture now holds on both validated subset sizes:
+
+- `1 x 1`, monthly (`MS`): compiled order-statistics is about `5.26x` faster
+  than the current compiled route;
+- `1 x 1`, yearly (`YS`): about `4.30x` faster;
+- `2 x 2`, monthly (`MS`): about `2.61x` faster;
+- `2 x 2`, yearly (`YS`): about `2.57x` faster.
+
+It also still stays ahead of the compiled threshold-bank route on all four
+validated real-data cases.
+
+## Phase-3 conclusion
+
+This phase started as a redesign study for a different exact `cftime`
+bootstrap-count algorithm. It now has three progressively stronger results:
+
+1. the order-statistics redesign is exact on synthetic overlap and leap cases;
+2. it is exact on real-data `1 x 1` and `2 x 2` subsets;
+3. once compiled, it is materially faster than both:
+   - the current compiled route;
+   - the compiled threshold-bank prototype
+   on the validated real-data subsets.
+
+So the honest conclusion at the end of this phase is no longer the earlier
+"the redesign is valid but not yet competitive" position.
+
+It is now:
+
+- a new exact `cftime` bootstrap-count algorithm has been designed;
+- its compiled prototype is already performance-promising on real data;
+- the next phase should focus on turning that compiled prototype into a clean
+  production implementation inside the runtime path, while preserving the
+  exact validated semantics.
+
 ## Expected benefits
 
 - exact semantics stay tied to the existing method-8 definition;

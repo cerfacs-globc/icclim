@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=icclim-compare
+#SBATCH --partition=debug
 #SBATCH --output=%x-%j.out
 #SBATCH --error=%x-%j.err
-#SBATCH --time=00:30:00
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=16G
+#SBATCH --time=00:05:00
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
 
 set -euo pipefail
 

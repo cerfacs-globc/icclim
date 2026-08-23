@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=icclim-realval-debug
+#SBATCH --partition=debug
 #SBATCH --output=%x-%j.out
 #SBATCH --error=%x-%j.err
-#SBATCH --time=00:30:00
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
+#SBATCH --time=00:10:00
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4G
 
 set -euo pipefail
 

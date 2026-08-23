@@ -1,10 +1,11 @@
 #!/bin/bash
 #SBATCH --job-name=icclim-realval
+#SBATCH --partition=miniprod
 #SBATCH --output=%x-%j.out
 #SBATCH --error=%x-%j.err
 #SBATCH --time=02:00:00
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=64G
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
 
 set -euo pipefail
 
