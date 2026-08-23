@@ -59,10 +59,10 @@ class PercentileThreshold(Threshold):
       ``doy_window_width`` parameter to control the time axis window of aggregation.
       The resulting `value` is a DataArray with a "dayofyear" dimension ranging from
       0 to 365 with one value per day of the year.
-    * "period percentiles" (unit: "period_per"). They are usually used for liquide
+    * "period percentiles" (unit: "period_per"). They are usually used for liquid
       precipitation indices such as the ECAD :ref:`r75p <ecad_functions_api>`
       or even :ref:`r75ptot <ecad_functions_api>`.
-      These percentiles are computed per grid cell on the period ranged by
+      These percentiles are computed per grid cell over the period defined by
       ``reference_period``.
       The resulting ``value`` is a DataArray with per grid cell values and no time axis.
 

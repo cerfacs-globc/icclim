@@ -208,20 +208,20 @@ https://docs.dask.org/en/stable/scheduling.html#local-threads
 
 |  This can work on most cases for small to medium datasets and may
    yield the best performances.
-|  However some percentiles based temperature indices (T_90p and T_10p
+|  However some percentile-based temperature indices (T_90p and T_10p
    families) may use a lot of memory even on medium datasets.
 |  This memory footprint is caused by the bootstrapping of percentiles,
    an algorithm used to correct statistical biases.
-|  This bootstrapping use a Monte Carlo simulation, which inherently use
+|  This bootstrapping uses a Monte Carlo simulation, which inherently uses
    a lot of resources.
 |  The longer the bootstrap period is, the more resources are necessary.
    The bootstrap period is the overlapping years between the period
    where percentile are computed (a.k.a "in base") and the period where
    the climate index is computed (a.k.a "out of base").
-|  For dask-backed percentile count indices, icclim automatically uses bounded
-   spatial tiles when bootstrap is needed. This reliability path may be slower,
-   but it avoids leaving users with a very large Dask graph that may never
-   finish.
+|  For dask-backed percentile count indices, icclim first tries a compiled
+   bootstrap path that avoids building a very large Dask graph. When the case is
+   outside that support boundary, icclim automatically falls back to bounded
+   spatial tiles for an exact bootstrap computation.
 
 .. note::
 
@@ -518,7 +518,7 @@ Internal re-chunking
 |  First, because of the rolling window used to retrieve all values of
    each day, the analysed data is multiplied by window size (usually by
    5).
-|  Then, on temperatures indices such as Tx90p, we compute percentiles
+|  Then, for temperature indices such as Tx90p, we compute percentiles
    for each day of year (doy).
 |  This means we must read almost all chunks of time dimension.
 |  To avoid consuming all RAM at once with these, icclim/xclim
@@ -582,17 +582,18 @@ Disk read and write analysis - Dashboard
 
    -  Don't instantiate multiple client with different configurations,
       put everything in the same Client constructor call.
-   -  Beware, as of icclim 5.0.0, the bootstrapping of percentiles is
-      known to produce **a lot** of i/o.
+   -  Beware that percentile bootstrap can still produce **a lot** of i/o on
+      large overlapping reference and study periods.
    -  This bootstrap is scientifically important when percentile thresholds are
       computed on a reference period that overlaps the study period, especially
       for ETCCDI-style percentile-based extreme indices such as the 10th and
       90th percentile temperature indices. For dask-backed percentile count
-      indices, icclim automatically uses a tiled reliability path to avoid one
-      huge bootstrap graph. If the exact overlap treatment is still
-      operationally impossible, a user may explicitly choose ``bootstrap=False``
-      only for fast exploratory assessment. This disables the overlap correction,
-      so percentile-based results can be scientifically biased and should not be
+      indices, icclim first tries a compiled path and otherwise falls back to an
+      exact tiled path, so users do not need to manage a huge bootstrap graph
+      themselves. If the exact overlap treatment is still operationally
+      impossible, a user may explicitly choose ``bootstrap=False`` only for fast
+      exploratory assessment. This disables the overlap correction, so
+      percentile-based results can be scientifically biased and should not be
       treated as the corrected final result.
    -  Expert configuration: lower
       ``ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY`` (default: ``2GB``) to reduce peak
@@ -601,8 +602,9 @@ Disk read and write analysis - Dashboard
       to keep less bootstrap working data in memory.
    -  Expert diagnostics: ``ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS`` overrides the
       memory-derived tile size with an explicit maximum number of spatial cells
-      per tile. ``ICCLIM_BOOTSTRAP_MODE=default`` disables the safe tiled path
-      and keeps the reference bootstrap dask graph path for comparison only.
+      per tile. ``ICCLIM_BOOTSTRAP_MODE=safe`` forces the exact tiled path.
+      ``ICCLIM_BOOTSTRAP_MODE=default`` keeps the older reference bootstrap
+      graph path for diagnostics and comparison only.
 
 Worker chatterbox syndrome - Dashboard
 ======================================

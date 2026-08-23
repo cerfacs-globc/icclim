@@ -3,7 +3,7 @@
 ############################
 
 Within the `IS-ENES <https://is.enes.org/>`_ project, jupyter notebooks
-were written to show real life scenarios of icclim usage. The are stored
+were written to show real-life icclim workflows. They are stored
 within their `own repository
 <https://gitlab.com/is-enes-cdi-c4i/notebooks/-/tree/master>`_.
 
@@ -13,7 +13,7 @@ within their `own repository
 -  `Number of Summer Days
    <https://gitlab.com/is-enes-cdi-c4i/notebooks/-/blob/master/C4I_Summer_days._Calculate__subset_and_plot.ipynb>`_
 
--  `Percentage of days when Tmax > 90th percentil (TX90p)
+-  `Percentage of days when Tmax > 90th percentile (TX90p)
    <https://gitlab.com/is-enes-cdi-c4i/notebooks/-/blob/master/C4I_TX90p._Calculate__subset_and_plot.ipynb>`_
 
 -  `Averaged surface temperature anomaly and the same for precipitation

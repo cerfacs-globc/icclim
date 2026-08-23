@@ -162,59 +162,59 @@ def _workload_notes(workload: str) -> str:
     notes = {
         "generic_tas_bounded_count_yearly": (
             "bounded scalar-guard count; dedicated compiled path validated"
-            " on Kraken real data"
+            " on representative real data"
         ),
         "generic_tas_bounded_average_yearly": (
             "bounded scalar-guard average; dedicated compiled path validated"
-            " on Kraken real data"
+            " on representative real data"
         ),
         "generic_tas_bounded_sum_yearly": (
             "bounded scalar-guard sum; dedicated compiled path validated"
-            " on Kraken real data"
+            " on representative real data"
         ),
         "generic_tas_bounded_fraction_yearly": (
             "bounded scalar-guard fraction_of_total; dedicated compiled path"
-            " validated on Kraken real data"
+            " validated on representative real data"
         ),
         "generic_tas_bounded_or_count_yearly": (
             "bounded scalar-guard count with OR composition; dedicated compiled"
-            " path validated on Kraken real data"
+            " path validated on representative real data"
         ),
         "generic_tas_bounded_or_average_yearly": (
             "bounded scalar-guard average with OR composition; dedicated"
-            " compiled path validated on Kraken real data"
+            " compiled path validated on representative real data"
         ),
         "generic_tas_bounded_or_sum_yearly": (
             "bounded scalar-guard sum with OR composition; dedicated compiled"
-            " path validated on Kraken real data"
+            " path validated on representative real data"
         ),
         "generic_tas_bounded_or_fraction_yearly": (
             "bounded scalar-guard fraction_of_total with OR composition;"
-            " dedicated compiled path validated on Kraken real data"
+            " dedicated compiled path validated on representative real data"
         ),
         "generic_tas_compound_percentile_count_yearly": (
             "same-variable compound percentile count; composed from bootstrap"
-            " leaf masks on Kraken real data"
+            " leaf masks on representative real data"
         ),
         "generic_tas_compound_percentile_average_yearly": (
             "same-variable compound percentile average; composed from bootstrap"
-            " leaf masks on Kraken real data"
+            " leaf masks on representative real data"
         ),
         "generic_tas_compound_percentile_sum_yearly": (
             "same-variable compound percentile sum; composed from bootstrap"
-            " leaf masks on Kraken real data"
+            " leaf masks on representative real data"
         ),
         "generic_tas_compound_percentile_fraction_yearly": (
             "same-variable compound percentile fraction_of_total; composed"
-            " from bootstrap leaf masks on Kraken real data"
+            " from bootstrap leaf masks on representative real data"
         ),
         "generic_tas_compound_percentile_or_count_yearly": (
             "same-variable compound percentile OR count; composed from"
-            " bootstrap leaf masks on Kraken real data"
+            " bootstrap leaf masks on representative real data"
         ),
         "generic_tas_compound_percentile_or_fraction_yearly": (
             "same-variable compound percentile OR fraction_of_total;"
-            " composed from bootstrap leaf masks on Kraken real data"
+            " composed from bootstrap leaf masks on representative real data"
         ),
         "generic_pr_fraction_bootstrap_yearly": (
             "filtered value aggregate; wet-day style threshold_min_value"
