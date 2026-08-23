@@ -1,3 +1,5 @@
+# ruff: noqa: N806, PLR2004, PLW0603, RUF059
+
 from __future__ import annotations
 
 import argparse

@@ -10,7 +10,7 @@ These helpers keep bootstrap workflow steps visible in domain language:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 import numpy as np
 
@@ -18,6 +18,17 @@ if TYPE_CHECKING:
     from xarray import DataArray
 
     from icclim._core.generic.threshold.percentile import PercentileThreshold
+
+
+class BootstrapTimeAxis(Protocol):
+    year: np.ndarray
+    dayofyear: np.ndarray
+    month: np.ndarray
+    day: np.ndarray
+
+    def __len__(self) -> int: ...
+
+    def __getitem__(self, key: object) -> BootstrapTimeAxis: ...
 
 
 LEAP_YEAR_DAY_COUNT = 366
@@ -434,7 +445,7 @@ def build_bootstrap_temporal_indexing(
     )
 
 
-def indices_by_year(time) -> dict[int, np.ndarray]:
+def indices_by_year(time: BootstrapTimeAxis) -> dict[int, np.ndarray]:
     return {int(year): np.where(time.year == year)[0] for year in np.unique(time.year)}
 
 
@@ -470,7 +481,7 @@ def group_bounds_by_year(
 
 
 def rolling_sample_index_matrix(
-    time,
+    time: BootstrapTimeAxis,
     *,
     window: int,
 ) -> np.ndarray:
@@ -503,7 +514,7 @@ def ref_index_year_and_position(
 
 
 def substitute_alignment_matrix(
-    reference_time,
+    reference_time: BootstrapTimeAxis,
     reference_year_indices: dict[int, np.ndarray],
 ) -> np.ndarray:
     max_year_length = max(len(indices) for indices in reference_year_indices.values())
@@ -526,8 +537,8 @@ def substitute_alignment_matrix(
 
 
 def substitute_indices_aligned_to_target(
-    target_time,
-    substitute_time,
+    target_time: BootstrapTimeAxis,
+    substitute_time: BootstrapTimeAxis,
     substitute_indices: np.ndarray,
 ) -> np.ndarray:
     if len(target_time) == len(substitute_time):

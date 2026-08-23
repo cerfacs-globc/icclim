@@ -121,7 +121,7 @@ def _build_nominal_full_thresholds(
     )
 
 
-def compute_doy_percentile_bootstrap_count_threshold_bank_prototype(
+def compute_doy_percentile_bootstrap_count_threshold_bank_prototype(  # noqa: C901, PLR0912
     study: DataArray,
     threshold: PercentileThreshold,
     freq: str,

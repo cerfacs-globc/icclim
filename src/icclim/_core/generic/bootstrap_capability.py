@@ -155,7 +155,7 @@ def classify_doy_percentile_count_bootstrap(
     )
 
 
-def classify_doy_percentile_value_aggregate_bootstrap(
+def classify_doy_percentile_value_aggregate_bootstrap(  # noqa: PLR0911
     *,
     indicator_name: str,
     climate_var: ClimateVariable,

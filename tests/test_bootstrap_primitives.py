@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
+from icclim._core.generic import bootstrap as bootstrap_module
 from icclim._core.generic.bootstrap import (
     _bootstrap_average_kernel,
     _bootstrap_bounded_average_kernel,
@@ -49,8 +50,6 @@ from tests.testing_utils import stub_pr, stub_tas
 
 @contextmanager
 def _force_compiled_cftime_count():
-    from icclim._core.generic import bootstrap as bootstrap_module
-
     original = bootstrap_module.is_optimized_doy_percentile_count_supported
     bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
     try:
