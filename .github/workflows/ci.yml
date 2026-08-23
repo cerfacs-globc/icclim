@@ -13,6 +13,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  workflows: write
 
 jobs:
   # lint is handled by pre-commit ci conf
