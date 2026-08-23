@@ -2,6 +2,18 @@
  Release history
 #################
 
+*******
+7.1.10
+*******
+
+date: 2026-08-23
+
+
+-  [fix] Pin workflow-installed ``flit`` and ``flit_core`` to the same ``3.12.0`` release so PyPI publish jobs build with a compatible toolchain and avoid the failed ``v7.1.9`` release path.
+-  [enh] Restore the optimized exact bootstrap route for ``cftime`` day-of-year percentile count indices after integrating the compiled order-stat count path into the public routing.
+-  [fix] Preserve exact leap-year behavior for non-reference ``cftime`` study years by reusing the prepared 366-day nominal threshold field where needed.
+-  [doc] Add real-data Kraken validation and exact-count redesign archive notes for the ``cftime`` bootstrap workflow.
+
 ******
 7.1.9
 ******
