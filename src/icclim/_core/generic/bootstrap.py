@@ -1812,24 +1812,25 @@ if njit is not None:
                             beta,
                             min_threshold,
                         )
-                        _update_union_threshold_series(
-                            union_thresholds,
-                            thresholds,
-                            op_code,
-                        )
-                    _write_average_groups_for_cell(
-                        out,
-                        flat_study,
+                    )
+                    _update_union_threshold_series(
                         union_thresholds,
-                        study_doys,
-                        study_starts,
-                        study_lengths,
-                        group_start,
-                        group_stop,
-                        cell,
-                        year_max_doys[year_i],
+                        thresholds,
                         op_code,
                     )
+                _write_average_groups_for_cell(
+                    out,
+                    flat_study,
+                    union_thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
             else:
                 for group_i in range(group_start, group_stop):
                     out[group_i, cell] = 0.0
