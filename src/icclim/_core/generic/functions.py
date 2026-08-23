@@ -58,6 +58,7 @@ from icclim._core.generic.bootstrap_capability import (
     get_optimized_scalar_bounded_bootstrap_spec,
 )
 from icclim._core.input_parsing import PercentileDataArray
+from icclim.frequency import FrequencyRegistry
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import Operator, OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
@@ -1818,8 +1819,48 @@ def _compute_fast_tiled_count_occurrences(
     from icclim._core.generic.bootstrap import (  # noqa: PLC0415
         compute_doy_percentile_bootstrap_count,
     )
+    from xarray.coding.cftimeindex import CFTimeIndex  # noqa: PLC0415
 
     fast_start = perf_counter()
+    if (
+        isinstance(climate_var.studied_data.indexes["time"], CFTimeIndex)
+        and resample_freq.pandas_freq != "D"
+    ):
+        tile_results: list[DataArray] = []
+        for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
+            tile_start = perf_counter()
+            tile_study = climate_var.studied_data.isel(tile_indexers)
+            tile_threshold = _slice_threshold_for_tile(threshold, tile_indexers)
+            daily_start = perf_counter()
+            daily_tile = compute_doy_percentile_bootstrap_count(
+                tile_study,
+                tile_threshold,
+                FrequencyRegistry.DAY.pandas_freq,
+            )
+            if daily_tile is None:
+                return None
+            tile_result = daily_tile.resample(time=resample_freq.pandas_freq).sum(
+                dim="time"
+            )
+            tile_result.attrs.update(daily_tile.attrs)
+            tile_results.append(tile_result)
+            _profile_bootstrap_inc("bootstrap_optimized_tile_count")
+        if len(tile_results) == 1:
+            result = tile_results[0]
+        else:
+            result = xr.combine_by_coords(
+                [
+                    tile.to_dataset(name="__icclim_bootstrap_tile")
+                    for tile in tile_results
+                ],
+                combine_attrs="override",
+            )["__icclim_bootstrap_tile"]
+        result.attrs.update(tile_results[-1].attrs)
+        _profile_bootstrap_add(
+            "bootstrap_optimized_total_seconds",
+            perf_counter() - fast_start,
+        )
+        return result
     tile_results: list[DataArray] = []
     for tile_indexers in _iter_spatial_tiles(climate_var.studied_data, max_cells):
         tile_study = climate_var.studied_data.isel(tile_indexers)
@@ -2229,7 +2270,6 @@ def _compute_fast_tiled_bootstrap_spell_mask(
     ):
         result = result.squeeze(drop=False)
     return result
-
 
 def _compute_exact_tiled_bootstrap_spell_mask(
     climate_var: ClimateVariable,
