@@ -4,8 +4,9 @@
 Percentile bootstrap
 #####################
 
-This note records the bootstrap optimisation state after icclim 7.1.4.
-It is meant for maintainers changing the percentile-based count indices.
+This note records the current bootstrap optimization state for
+percentile-based indices. It is meant for maintainers changing the
+runtime bootstrap paths and their support boundaries.
 
 Current strategy
 ================
@@ -19,8 +20,8 @@ The goal is reliability first: users should not have to guess a dask
 chunking strategy, and icclim should avoid both memory exhaustion and
 very large dask graphs.
 
-The fast path is specialised for percentile-based count indices. It
-does not call xclim's generic bootstrap decorator. Instead it:
+The retained compiled path does not call xclim's generic bootstrap
+decorator. Instead it:
 
 - defers full percentile-threshold materialization until a path
   actually needs the threshold field, such as ``save_thresholds`` or
@@ -45,14 +46,24 @@ Fast path currently supports:
 - pandas-compatible calendars;
 - supported day-of-year percentile count workloads on ``cftime``
   calendars through the exact compiled order-statistics route validated
-  against the reference implementation.
+  against the reference implementation;
+- validated spell reducers that reuse the compiled union-mask route;
+- validated compound count workloads that reuse component-mask
+  composition;
+- validated same-variable bounded scalar guards such as
+  ``> 90 doy_per AND <= 30 degC`` or
+  ``> 90 doy_per OR <= 10 degC`` for ``count_occurrences``,
+  ``average``, ``sum`` and ``fraction_of_total``;
+- validated same-variable percentile combinations such as
+  ``> 95 doy_per OR <= 10 doy_per`` for ``count_occurrences``,
+  ``average``, ``sum`` and ``fraction_of_total``.
 
 Unsupported cases
 =================
 
-Unsupported cases intentionally fall back to the exact tiled bootstrap
-path. The
-most useful future extensions are likely:
+Cases outside the retained support boundary intentionally fall back to
+the exact tiled bootstrap path or the reference path, depending on the
+family. The most useful future extensions are likely:
 
 - additional ``threshold_min_value`` reducers. As of Friday, July 31, 2026,
   wet-day style support is now split by reducer after exact real-data
@@ -66,24 +77,13 @@ most useful future extensions are likely:
   percentile counts through the exact compiled order-statistics kernel,
   but spell, filtered and broader value-aggregate cases still need their
   own validated route;
-- spell/run-length extension beyond the simple day-of-year percentile
-  case. As of Friday, July 31, 2026, simple one-threshold day-of-year
-  percentile spell reducers such as ``sum_of_spell_lengths`` now use an
-  optimized compiled union-mask path after exact real-data validation
-  against the trusted reference path. More complex spell cases still
-  fall back.
-- compound percentile shapes beyond the currently validated split. As of
-  Sunday, August 2, 2026:
-
-  - multi-variable compound counts such as ``CD`` can reuse bootstrap
-    component masks and stay field-identical to the trusted reference
-    path on representative real datasets;
-  - single-variable bounded scalar guards such as
-    ``> 90 doy_per AND <= 30 degC`` or
-    ``> 90 doy_per OR <= 10 degC`` now use a dedicated compiled path
-    and are field-identical on representative real datasets for
-    ``count_occurrences``, ``average``, ``sum`` and
-    ``fraction_of_total``.
+- spell/run-length extension beyond the currently validated simple
+  day-of-year percentile cases;
+- broader compound percentile shapes beyond the currently validated
+  multi-variable component-mask cases, bounded scalar guards and
+  same-variable percentile combinations;
+- additional reducer families that still need their own exact support
+  boundary analysis.
 
 For future spell/run-length optimization work, the likely direction is a
 two-stage design:
