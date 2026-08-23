@@ -20,7 +20,9 @@ def _resolve_import_root(repo: Path) -> Path:
     raise FileNotFoundError(msg)
 
 
-def _build_time_coord(start_year: int, study_year_count: int) -> list[cftime.DatetimeGregorian]:
+def _build_time_coord(
+    start_year: int, study_year_count: int
+) -> list[cftime.DatetimeGregorian]:
     end_year = start_year + study_year_count - 1
     time = xr.date_range(
         f"{start_year}-01-01",
@@ -56,7 +58,9 @@ def _build_case(
         name="tas",
     )
     if case_name == "constant":
-        return tas.chunk({"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)})
+        return tas.chunk(
+            {"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)}
+        )
     if case_name == "leap_day_cold_spike":
         for timestamp in (
             cftime.DatetimeGregorian(2044, 2, 28),
@@ -65,7 +69,9 @@ def _build_case(
         ):
             if timestamp in tas.indexes["time"]:
                 tas.loc[{"time": timestamp}] = 250.0
-        return tas.chunk({"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)})
+        return tas.chunk(
+            {"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)}
+        )
     if case_name == "reference_overlap_shift":
         for year, month, day, value in (
             (2042, 2, 28, 305.0),
@@ -77,13 +83,15 @@ def _build_case(
             timestamp = cftime.DatetimeGregorian(year, month, day)
             if timestamp in tas.indexes["time"]:
                 tas.loc[{"time": timestamp}] = value
-        return tas.chunk({"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)})
+        return tas.chunk(
+            {"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)}
+        )
     msg = f"Unsupported case: {case_name}"
     raise ValueError(msg)
 
 
 def _build_threshold(reference_start_year: int, reference_year_count: int):
-    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+    from icclim.threshold.factory import build_threshold
 
     reference_end_year = reference_start_year + reference_year_count - 1
     return build_threshold(
@@ -98,7 +106,7 @@ def _build_threshold(reference_start_year: int, reference_year_count: int):
 
 @contextmanager
 def _force_compiled_cftime_count():
-    from icclim._core.generic import bootstrap as bootstrap_module  # noqa: PLC0415
+    from icclim._core.generic import bootstrap as bootstrap_module
 
     original = bootstrap_module.is_optimized_doy_percentile_count_supported
     bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
@@ -138,7 +146,7 @@ def _benchmark_one(
     lat_length: int,
     lon_length: int,
 ) -> BenchmarkResult:
-    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
         compute_doy_percentile_bootstrap_count,
         compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype,
         compute_doy_percentile_bootstrap_count_threshold_bank_prototype,

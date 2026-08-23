@@ -60,7 +60,9 @@ def _build_case(
         name="tas",
     )
     if case_name == "constant":
-        return tas.chunk({"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)})
+        return tas.chunk(
+            {"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)}
+        )
     if case_name == "leap_day_cold_spike":
         for timestamp in (
             cftime.DatetimeGregorian(2044, 2, 28),
@@ -69,7 +71,9 @@ def _build_case(
         ):
             if timestamp in tas.indexes["time"]:
                 tas.loc[{"time": timestamp}] = 250.0
-        return tas.chunk({"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)})
+        return tas.chunk(
+            {"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)}
+        )
     if case_name == "reference_overlap_shift":
         for year, month, day, value in (
             (2042, 2, 28, 305.0),
@@ -81,13 +85,15 @@ def _build_case(
             timestamp = cftime.DatetimeGregorian(year, month, day)
             if timestamp in tas.indexes["time"]:
                 tas.loc[{"time": timestamp}] = value
-        return tas.chunk({"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)})
+        return tas.chunk(
+            {"time": 365, "lat": max(1, lat_length), "lon": max(1, lon_length)}
+        )
     msg = f"Unsupported case: {case_name}"
     raise ValueError(msg)
 
 
 def _build_threshold(reference_start_year: int, reference_year_count: int):
-    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+    from icclim.threshold.factory import build_threshold
 
     reference_end_year = reference_start_year + reference_year_count - 1
     return build_threshold(
@@ -102,7 +108,7 @@ def _build_threshold(reference_start_year: int, reference_year_count: int):
 
 @contextmanager
 def _force_compiled_cftime_count():
-    from icclim._core.generic import bootstrap as bootstrap_module  # noqa: PLC0415
+    from icclim._core.generic import bootstrap as bootstrap_module
 
     original = bootstrap_module.is_optimized_doy_percentile_count_supported
     bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
@@ -215,7 +221,9 @@ def _build_compiled_order_stat_kernel():
         return n
 
     @njit(cache=True)
-    def _value_at_adjusted_rank(base_buf, base_n, removed_buf, removed_n, inserted_buf, inserted_n, rank):
+    def _value_at_adjusted_rank(
+        base_buf, base_n, removed_buf, removed_n, inserted_buf, inserted_n, rank
+    ):
         base_i = 0
         removed_i = 0
         inserted_i = 0
@@ -232,7 +240,9 @@ def _build_compiled_order_stat_kernel():
             has_inserted = inserted_i < inserted_n
             if not has_base and not has_inserted:
                 return np.nan
-            if has_inserted and (not has_base or inserted_buf[inserted_i] <= base_buf[base_i]):
+            if has_inserted and (
+                not has_base or inserted_buf[inserted_i] <= base_buf[base_i]
+            ):
                 value = inserted_buf[inserted_i]
                 inserted_i += 1
             else:
@@ -546,7 +556,7 @@ def _compute_compiled_order_stat(
     lat_length: int,
     lon_length: int,
 ) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap_primitives import (
         build_bootstrap_output,
         build_bootstrap_prepared_inputs,
     )
@@ -626,7 +636,9 @@ def _compute_current(
     lat_length: int,
     lon_length: int,
 ) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap import compute_doy_percentile_bootstrap_count  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
+        compute_doy_percentile_bootstrap_count,
+    )
 
     tas = _build_case(
         case_name,
@@ -657,7 +669,7 @@ def _compute_compiled_bank(
     lat_length: int,
     lon_length: int,
 ) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
         compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype,
     )
 

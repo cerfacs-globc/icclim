@@ -65,7 +65,7 @@ def _build_case(case_name: str) -> xr.DataArray:
 
 
 def _build_threshold():
-    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+    from icclim.threshold.factory import build_threshold
 
     return build_threshold(
         "> 90 doy_per",
@@ -76,7 +76,7 @@ def _build_threshold():
 
 @contextmanager
 def _force_compiled_cftime_count():
-    from icclim._core.generic import bootstrap as bootstrap_module  # noqa: PLC0415
+    from icclim._core.generic import bootstrap as bootstrap_module
 
     original = bootstrap_module.is_optimized_doy_percentile_count_supported
     bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
@@ -97,7 +97,7 @@ class PrototypeMetrics:
 
 
 def _compute_current_compiled(case_name: str, freq: str) -> xr.DataArray:
-    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
         compute_doy_percentile_bootstrap_count,
     )
 
@@ -119,11 +119,11 @@ def _compute_threshold_bank_prototype(
     case_name: str,
     freq: str,
 ) -> tuple[xr.DataArray, PrototypeMetrics]:
-    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
         _build_bootstrap_threshold_series_for_cell,
         _count_exceedances,
     )
-    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap_primitives import (
         build_bootstrap_output,
         build_bootstrap_prepared_inputs,
     )

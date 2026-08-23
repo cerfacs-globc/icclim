@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    import pandas as pd
     from xarray import DataArray
 
     from icclim._core.generic.threshold.percentile import PercentileThreshold

@@ -84,10 +84,11 @@ def _build_cftime_overlap_case(case_name: str) -> xr.DataArray:
             tas.loc[{"time": timestamp}] = 250.0
         return tas.chunk({"time": 365, "lat": 1, "lon": 1})
     if case_name == "reference_overlap_shift":
+
         def _timestamp(year: int, month: int, day: int) -> object:
-            return time[(time.year == year) & (time.month == month) & (time.day == day)][
-                0
-            ]
+            return time[
+                (time.year == year) & (time.month == month) & (time.day == day)
+            ][0]
 
         tas.loc[{"time": _timestamp(2042, 2, 28)}] = 305.0
         tas.loc[{"time": _timestamp(2043, 2, 28)}] = 295.0
@@ -527,13 +528,15 @@ def test_numba_python_count_kernel_matches_constant_cftime_monthly_counts() -> N
         min_threshold,
     )
 
-    expected = tas.resample(time="MS").count(dim="time").values.reshape(
-        kernel_result.shape
+    expected = (
+        tas.resample(time="MS").count(dim="time").values.reshape(kernel_result.shape)
     )
     np.testing.assert_allclose(kernel_result, expected)
 
 
-def test_count_kernel_uses_full_nominal_thresholds_for_leap_non_reference_year() -> None:
+def test_count_kernel_uses_full_nominal_thresholds_for_leap_non_reference_year() -> (
+    None
+):
     kernel_result = _bootstrap_count_kernel.py_func(
         np.zeros((1, 1), dtype=np.float64),
         np.zeros((1, 1), dtype=np.float64),
@@ -613,10 +616,12 @@ def test_compiled_threshold_bank_prototype_matches_forced_compiled_cftime_counts
 
     with _force_compiled_cftime_count():
         current = compute_doy_percentile_bootstrap_count(tas, threshold, freq)
-    prototype = compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype(
-        tas,
-        threshold,
-        freq,
+    prototype = (
+        compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype(
+            tas,
+            threshold,
+            freq,
+        )
     )
 
     assert current is not None

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
-import sys
 
 import numpy as np
 import xarray as xr
@@ -105,10 +105,10 @@ def analyze_count_algorithm(
     lon_length: int,
     freq: str,
 ) -> CountAlgorithmAnalysis:
-    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap_primitives import (
         build_bootstrap_prepared_inputs,
     )
-    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+    from icclim.threshold.factory import build_threshold
 
     tas = _build_synthetic_cftime_tas(
         start_year=start_year,
@@ -136,9 +136,7 @@ def analyze_count_algorithm(
     non_overlap_year_count = len(indexing.bootstrap_years) - overlap_year_count
     nominal_series_per_cell = 1
     overlap_series_per_cell = overlap_year_count * (reference_year_count - 1)
-    current_threshold_series_per_cell = (
-        non_overlap_year_count + overlap_series_per_cell
-    )
+    current_threshold_series_per_cell = non_overlap_year_count + overlap_series_per_cell
     full_bank_series_per_cell = nominal_series_per_cell + overlap_series_per_cell
     per_target_bank_series_per_cell = max(1, reference_year_count - 1)
     estimates = [

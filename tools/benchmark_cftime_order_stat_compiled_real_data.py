@@ -12,7 +12,6 @@ from time import perf_counter
 import numpy as np
 import xarray as xr
 
-
 LAT_VALUE = 51.875
 LON_VALUE = 30.9375
 BASE_PERIOD = ("1961-01-01", "1990-12-31")
@@ -58,7 +57,7 @@ def _load_compiled_tool():
 
 
 def _build_threshold():
-    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+    from icclim.threshold.factory import build_threshold
 
     return build_threshold(
         "> 90 doy_per",
@@ -69,7 +68,7 @@ def _build_threshold():
 
 @contextmanager
 def _force_compiled_cftime_count():
-    from icclim._core.generic import bootstrap as bootstrap_module  # noqa: PLC0415
+    from icclim._core.generic import bootstrap as bootstrap_module
 
     original = bootstrap_module.is_optimized_doy_percentile_count_supported
     bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
@@ -131,7 +130,9 @@ def _subset_centered_on_point(
     )
 
 
-def _open_real_subset(validation_module, *, lat_length: int, lon_length: int) -> xr.DataArray:
+def _open_real_subset(
+    validation_module, *, lat_length: int, lon_length: int
+) -> xr.DataArray:
     tas = validation_module._open_var(validation_module.TAS_GLOB, "tas")
     tas = validation_module._as_cftime_gregorian(tas)
     tas = tas.sel(time=slice(*TIME_RANGE))
@@ -161,7 +162,9 @@ def _compare(a: xr.DataArray, b: xr.DataArray) -> tuple[int, float]:
 
 
 def _compute_current(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap import compute_doy_percentile_bootstrap_count  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
+        compute_doy_percentile_bootstrap_count,
+    )
 
     threshold = _build_threshold()
     start = perf_counter()
@@ -175,7 +178,7 @@ def _compute_current(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, float]
 
 
 def _compute_compiled_bank(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
         compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype,
     )
 
@@ -197,7 +200,7 @@ def _compute_compiled_order_stat(
     tas: xr.DataArray,
     freq: str,
 ) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap_primitives import (
         build_bootstrap_output,
         build_bootstrap_prepared_inputs,
     )
@@ -282,9 +285,11 @@ def _benchmark_one(
         current,
         compiled_order_stat,
     )
-    compiled_bank_changed_cells_vs_current, compiled_bank_max_abs_diff_vs_current = _compare(
-        current,
-        compiled_bank,
+    compiled_bank_changed_cells_vs_current, compiled_bank_max_abs_diff_vs_current = (
+        _compare(
+            current,
+            compiled_bank,
+        )
     )
     return RealDataCompiledBenchmark(
         freq=freq,

@@ -120,8 +120,12 @@ def _summarize_replacement_structure(
         effective_substitute_slots,
         dtype=np.int64,
     )
-    max_samples_per_doy = int(sample_count_per_doy.max()) if sample_count_per_doy.size else 0
-    min_samples_per_doy = int(sample_count_per_doy.min()) if sample_count_per_doy.size else 0
+    max_samples_per_doy = (
+        int(sample_count_per_doy.max()) if sample_count_per_doy.size else 0
+    )
+    min_samples_per_doy = (
+        int(sample_count_per_doy.min()) if sample_count_per_doy.size else 0
+    )
     max_target_year_slots_per_doy = (
         int(non_zero_target_slots.max()) if non_zero_target_slots.size else 0
     )
@@ -163,10 +167,10 @@ def analyze_order_stat_design(
     lon_length: int,
     freq: str,
 ) -> OrderStatDesignAnalysis:
-    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap_primitives import (
         build_bootstrap_prepared_inputs,
     )
-    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+    from icclim.threshold.factory import build_threshold
 
     tas = _build_synthetic_cftime_tas(
         start_year=start_year,

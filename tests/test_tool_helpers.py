@@ -9,12 +9,12 @@ import pytest
 import xarray as xr
 
 from icclim._core.constants import NEEDS_NORMAL, QUANTILE_BASED, REFERENCE_PERIOD_INDEX
-from tools import prototype_cftime_exact_order_stat_quantile as order_quantile_tools
-from tools import prototype_cftime_exact_order_stat_count as order_count_tools
-from tools import compare_real_data_validation as compare_tools
 from tools import analyze_cftime_exact_order_stat_design as order_stat_tools
+from tools import compare_real_data_validation as compare_tools
 from tools import debug_real_data_validation as debug_tools
 from tools import extract_icclim_funs as extract_tools
+from tools import prototype_cftime_exact_order_stat_count as order_count_tools
+from tools import prototype_cftime_exact_order_stat_quantile as order_quantile_tools
 from tools import update_logo_version as logo_tools
 
 

@@ -12,7 +12,6 @@ from time import perf_counter
 import numpy as np
 import xarray as xr
 
-
 LAT_VALUE = 51.875
 LON_VALUE = 30.9375
 BASE_PERIOD = ("1961-01-01", "1990-12-31")
@@ -43,7 +42,9 @@ def _load_validation_module():
 
 
 def _load_quantile_tool():
-    script_path = Path(__file__).with_name("prototype_cftime_exact_order_stat_quantile.py")
+    script_path = Path(__file__).with_name(
+        "prototype_cftime_exact_order_stat_quantile.py"
+    )
     spec = importlib.util.spec_from_file_location(
         "prototype_cftime_exact_order_stat_quantile",
         script_path,
@@ -58,7 +59,7 @@ def _load_quantile_tool():
 
 
 def _build_threshold():
-    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+    from icclim.threshold.factory import build_threshold
 
     return build_threshold(
         "> 90 doy_per",
@@ -69,7 +70,7 @@ def _build_threshold():
 
 @contextmanager
 def _force_compiled_cftime_count():
-    from icclim._core.generic import bootstrap as bootstrap_module  # noqa: PLC0415
+    from icclim._core.generic import bootstrap as bootstrap_module
 
     original = bootstrap_module.is_optimized_doy_percentile_count_supported
     bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
@@ -153,7 +154,9 @@ def _compare(a: xr.DataArray, b: xr.DataArray) -> tuple[int, float]:
 
 
 def _compute_current(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap import compute_doy_percentile_bootstrap_count  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
+        compute_doy_percentile_bootstrap_count,
+    )
 
     threshold = _build_threshold()
     start = perf_counter()
@@ -167,7 +170,7 @@ def _compute_current(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, float]
 
 
 def _compute_compiled_bank(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
         compute_doy_percentile_bootstrap_count_threshold_bank_compiled_prototype,
     )
 
@@ -186,8 +189,8 @@ def _compute_compiled_bank(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, 
 
 
 def _compute_order_stat(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, float]:
-    from icclim._core.generic.bootstrap import _count_exceedances  # noqa: PLC0415
-    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import _count_exceedances
+    from icclim._core.generic.bootstrap_primitives import (
         build_bootstrap_output,
         build_bootstrap_prepared_inputs,
     )
@@ -268,19 +271,21 @@ def _compute_order_stat(tas: xr.DataArray, freq: str) -> tuple[xr.DataArray, flo
             for substitute_i in range(n_ref_years):
                 if substitute_i == target_ref_i:
                     continue
-                thresholds, _, _ = quantile_tool._build_order_stat_threshold_series_for_cell(
-                    flat_ref,
-                    idx.sample_indices_by_day_of_year,
-                    idx.reference_index_year,
-                    idx.reference_index_position,
-                    idx.substitute_alignment,
-                    target_ref_i,
-                    substitute_i,
-                    cell,
-                    quantile,
-                    alpha,
-                    beta,
-                    min_threshold,
+                thresholds, _, _ = (
+                    quantile_tool._build_order_stat_threshold_series_for_cell(
+                        flat_ref,
+                        idx.sample_indices_by_day_of_year,
+                        idx.reference_index_year,
+                        idx.reference_index_position,
+                        idx.substitute_alignment,
+                        target_ref_i,
+                        substitute_i,
+                        cell,
+                        quantile,
+                        alpha,
+                        beta,
+                        min_threshold,
+                    )
                 )
                 for group_i in range(group_start, group_stop):
                     out[group_i, cell] += count_exceedances(
@@ -325,9 +330,11 @@ def _benchmark_one(
     order_stat, order_stat_seconds = _compute_order_stat(tas, freq)
     compiled_bank, compiled_bank_seconds = _compute_compiled_bank(tas, freq)
     changed_cells_vs_current, max_abs_diff_vs_current = _compare(current, order_stat)
-    compiled_bank_changed_cells_vs_current, compiled_bank_max_abs_diff_vs_current = _compare(
-        current,
-        compiled_bank,
+    compiled_bank_changed_cells_vs_current, compiled_bank_max_abs_diff_vs_current = (
+        _compare(
+            current,
+            compiled_bank,
+        )
     )
     return RealDataBenchmark(
         label=label,

@@ -999,7 +999,9 @@ if njit is not None:
             has_inserted = inserted_i < inserted_n
             if not has_base and not has_inserted:
                 return np.nan
-            if has_inserted and (not has_base or inserted_buf[inserted_i] <= base_buf[base_i]):
+            if has_inserted and (
+                not has_base or inserted_buf[inserted_i] <= base_buf[base_i]
+            ):
                 value = inserted_buf[inserted_i]
                 inserted_i += 1
             else:
@@ -1177,7 +1179,9 @@ if njit is not None:
         n_ref_years = substitute_aligned.shape[1]
         max_samples = sample_indices.shape[1]
         out = np.empty((n_groups, n_cells), dtype=np.float64)
-        overlap_reference = flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
+        overlap_reference = (
+            flat_ref_masked if not np.isnan(min_threshold) else flat_ref_raw
+        )
         for flat_i in prange(n_years * n_cells):
             year_i = flat_i // n_cells
             cell = flat_i % n_cells
@@ -1787,38 +1791,74 @@ if njit is not None:
                     year_max_doys[year_i],
                     op_code,
                 )
+            elif np.isnan(min_threshold):
+                union_thresholds = _initialize_union_threshold_series(op_code)
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                        _build_bootstrap_threshold_series_for_cell(
+                            overlap_reference,
+                            sample_indices,
+                            index_year,
+                            index_pos,
+                            substitute_aligned,
+                            target_ref_i,
+                            substitute_i,
+                            cell,
+                            max_samples,
+                            quantile,
+                            alpha,
+                            beta,
+                            min_threshold,
+                        )
+                    )
+                    _update_union_threshold_series(
+                        union_thresholds,
+                        thresholds,
+                        op_code,
+                    )
+                _write_average_groups_for_cell(
+                    out,
+                    flat_study,
+                    union_thresholds,
+                    study_doys,
+                    study_starts,
+                    study_lengths,
+                    group_start,
+                    group_stop,
+                    cell,
+                    year_max_doys[year_i],
+                    op_code,
+                )
             else:
-                if np.isnan(min_threshold):
-                    union_thresholds = _initialize_union_threshold_series(op_code)
-                    for substitute_i in range(n_ref_years):
-                        if substitute_i == target_ref_i:
-                            continue
-                        thresholds = _build_float32_bootstrap_threshold_series_for_cell(
-                            _build_bootstrap_threshold_series_for_cell(
-                                overlap_reference,
-                                sample_indices,
-                                index_year,
-                                index_pos,
-                                substitute_aligned,
-                                target_ref_i,
-                                substitute_i,
-                                cell,
-                                max_samples,
-                                quantile,
-                                alpha,
-                                beta,
-                                min_threshold,
-                            )
+                for group_i in range(group_start, group_stop):
+                    out[group_i, cell] = 0.0
+                substitute_count = 0
+                for substitute_i in range(n_ref_years):
+                    if substitute_i == target_ref_i:
+                        continue
+                    thresholds = _build_float32_bootstrap_threshold_series_for_cell(
+                        _build_bootstrap_threshold_series_for_cell(
+                            overlap_reference,
+                            sample_indices,
+                            index_year,
+                            index_pos,
+                            substitute_aligned,
+                            target_ref_i,
+                            substitute_i,
+                            cell,
+                            max_samples,
+                            quantile,
+                            alpha,
+                            beta,
+                            min_threshold,
                         )
-                        _update_union_threshold_series(
-                            union_thresholds,
-                            thresholds,
-                            op_code,
-                        )
-                    _write_average_groups_for_cell(
+                    )
+                    _accumulate_average_groups_for_cell(
                         out,
                         flat_study,
-                        union_thresholds,
+                        thresholds,
                         study_doys,
                         study_starts,
                         study_lengths,
@@ -1828,51 +1868,14 @@ if njit is not None:
                         year_max_doys[year_i],
                         op_code,
                     )
-                else:
-                    for group_i in range(group_start, group_stop):
-                        out[group_i, cell] = 0.0
-                    substitute_count = 0
-                    for substitute_i in range(n_ref_years):
-                        if substitute_i == target_ref_i:
-                            continue
-                        thresholds = _build_float32_bootstrap_threshold_series_for_cell(
-                            _build_bootstrap_threshold_series_for_cell(
-                                overlap_reference,
-                                sample_indices,
-                                index_year,
-                                index_pos,
-                                substitute_aligned,
-                                target_ref_i,
-                                substitute_i,
-                                cell,
-                                max_samples,
-                                quantile,
-                                alpha,
-                                beta,
-                                min_threshold,
-                            )
-                        )
-                        _accumulate_average_groups_for_cell(
-                            out,
-                            flat_study,
-                            thresholds,
-                            study_doys,
-                            study_starts,
-                            study_lengths,
-                            group_start,
-                            group_stop,
-                            cell,
-                            year_max_doys[year_i],
-                            op_code,
-                        )
-                        substitute_count += 1
-                    _average_count_groups_for_cell(
-                        out,
-                        group_start,
-                        group_stop,
-                        cell,
-                        substitute_count,
-                    )
+                    substitute_count += 1
+                _average_count_groups_for_cell(
+                    out,
+                    group_start,
+                    group_stop,
+                    cell,
+                    substitute_count,
+                )
         return out
 
     @njit(parallel=True, cache=True)

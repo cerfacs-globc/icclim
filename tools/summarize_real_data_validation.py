@@ -251,9 +251,7 @@ def _workload_notes(workload: str) -> str:
             "spell reducer; raw v7.1.7 differs from current and master"
         ),
         "wsdi_yearly": "standard warm-spell duration index",
-        "tx90p_cftime_yearly": (
-            "Gregorian-like cftime validation on real tas values"
-        ),
+        "tx90p_cftime_yearly": ("Gregorian-like cftime validation on real tas values"),
         "tx90p_cftime_monthly": (
             "Gregorian-like cftime monthly validation on real tas values"
         ),

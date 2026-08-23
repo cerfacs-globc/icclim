@@ -250,6 +250,7 @@ def main() -> None:
     sys.path.insert(0, str(_resolve_import_root(repo)))
 
     import icclim
+
     bootstrap_module = None
     primitives_module = None
     functions_module = importlib.import_module("icclim._core.generic.functions")
@@ -263,8 +264,10 @@ def main() -> None:
         )
     except ModuleNotFoundError:
         pass
-    get_bootstrap_profile = getattr(functions_module, "get_bootstrap_profile", lambda: {})
-    reset_bootstrap_profile = getattr(functions_module, "reset_bootstrap_profile", lambda: None)
+    get_bootstrap_profile = getattr(functions_module, "get_bootstrap_profile", dict)
+    reset_bootstrap_profile = getattr(
+        functions_module, "reset_bootstrap_profile", lambda: None
+    )
 
     chunk_profile = DEFAULT_CHUNKS if args.chunk_profile == "default" else ALT_CHUNKS
     phase_stats: dict[str, dict[str, float]] = {}
@@ -307,32 +310,44 @@ def main() -> None:
             primitives_module,
             "_normalize_bootstrap_chunks",
             phase_stats,
-        ) if primitives_module is not None else nullcontext(),
+        )
+        if primitives_module is not None
+        else nullcontext(),
         _timed_patch_if_present(
             primitives_module,
             "build_bootstrap_reference_sample",
             phase_stats,
-        ) if primitives_module is not None else nullcontext(),
+        )
+        if primitives_module is not None
+        else nullcontext(),
         _timed_patch_if_present(
             primitives_module,
             "build_bootstrap_prepared_inputs",
             phase_stats,
-        ) if primitives_module is not None else nullcontext(),
+        )
+        if primitives_module is not None
+        else nullcontext(),
         _timed_patch_if_present(
             bootstrap_module,
             "compute_doy_percentile_bootstrap_count",
             phase_stats,
-        ) if bootstrap_module is not None else nullcontext(),
+        )
+        if bootstrap_module is not None
+        else nullcontext(),
         _timed_patch_if_present(
             bootstrap_module,
             "build_bootstrap_temporal_indexing",
             phase_stats,
-        ) if bootstrap_module is not None else nullcontext(),
+        )
+        if bootstrap_module is not None
+        else nullcontext(),
         _timed_patch_if_present(
             bootstrap_module,
             "build_bootstrap_array_inputs",
             phase_stats,
-        ) if bootstrap_module is not None else nullcontext(),
+        )
+        if bootstrap_module is not None
+        else nullcontext(),
     ):
         ds = _build_workload(icclim, args.workload, chunks=chunk_profile).load()
     elapsed = time.perf_counter() - started

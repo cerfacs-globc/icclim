@@ -68,7 +68,7 @@ def _build_case(case_name: str) -> xr.DataArray:
 
 
 def _build_threshold():
-    from icclim.threshold.factory import build_threshold  # noqa: PLC0415
+    from icclim.threshold.factory import build_threshold
 
     return build_threshold(
         "> 90 doy_per",
@@ -79,7 +79,7 @@ def _build_threshold():
 
 @contextmanager
 def _force_compiled_cftime_count():
-    from icclim._core.generic import bootstrap as bootstrap_module  # noqa: PLC0415
+    from icclim._core.generic import bootstrap as bootstrap_module
 
     original = bootstrap_module.is_optimized_doy_percentile_count_supported
     bootstrap_module.is_optimized_doy_percentile_count_supported = lambda *_: True
@@ -198,12 +198,16 @@ def _value_at_adjusted_rank(
     inserted_i = 0
     current_rank = -1
     while True:
-        base_i, removed_i = _skip_removed(base_sorted, removed_sorted, base_i, removed_i)
+        base_i, removed_i = _skip_removed(
+            base_sorted, removed_sorted, base_i, removed_i
+        )
         has_base = base_i < len(base_sorted)
         has_inserted = inserted_i < len(inserted_sorted)
         if not has_base and not has_inserted:
             raise IndexError(rank)
-        if has_inserted and (not has_base or inserted_sorted[inserted_i] <= base_sorted[base_i]):
+        if has_inserted and (
+            not has_base or inserted_sorted[inserted_i] <= base_sorted[base_i]
+        ):
             value = inserted_sorted[inserted_i]
             inserted_i += 1
         else:
@@ -229,12 +233,16 @@ def _method8_quantile_from_adjusted_sorted(
         return _value_at_adjusted_rank(base_sorted, removed_sorted, inserted_sorted, 0)
     virtual = n * quantile + (alpha + quantile * (1.0 - alpha - beta)) - 1.0
     if virtual >= n - 1:
-        return _value_at_adjusted_rank(base_sorted, removed_sorted, inserted_sorted, n - 1)
+        return _value_at_adjusted_rank(
+            base_sorted, removed_sorted, inserted_sorted, n - 1
+        )
     if virtual < 0:
         return _value_at_adjusted_rank(base_sorted, removed_sorted, inserted_sorted, 0)
     previous = int(math.floor(virtual))
     gamma = virtual - previous
-    left = _value_at_adjusted_rank(base_sorted, removed_sorted, inserted_sorted, previous)
+    left = _value_at_adjusted_rank(
+        base_sorted, removed_sorted, inserted_sorted, previous
+    )
     right = _value_at_adjusted_rank(
         base_sorted,
         removed_sorted,
@@ -265,7 +273,9 @@ def _build_order_stat_threshold_series_for_cell(
     removed_sizes = np.zeros(NON_LEAP_DAY_COUNT, dtype=np.int64)
     inserted_sizes = np.zeros(NON_LEAP_DAY_COUNT, dtype=np.int64)
     for doy_i in range(NON_LEAP_DAY_COUNT):
-        base_sorted = _nominal_sorted_sample_for_cell(flat_ref, sample_indices, doy_i, cell)
+        base_sorted = _nominal_sorted_sample_for_cell(
+            flat_ref, sample_indices, doy_i, cell
+        )
         removed_sorted = _removed_values_for_target(
             base_sorted,
             flat_ref,
@@ -308,10 +318,10 @@ def compare_order_stat_threshold_series(
     case_name: str,
     freq: str,
 ) -> ThresholdSeriesComparison:
-    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap import (
         _build_bootstrap_threshold_series_for_cell,
     )
-    from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+    from icclim._core.generic.bootstrap_primitives import (
         build_bootstrap_prepared_inputs,
     )
 
@@ -336,7 +346,11 @@ def compare_order_stat_threshold_series(
     beta = float(threshold.interpolation.beta)
     build_thresholds = _build_bootstrap_threshold_series_for_cell.py_func
     n_ref_years = idx.substitute_alignment.shape[1]
-    flat_ref = arr.flat_reference_filtered if not np.isnan(min_threshold) else arr.flat_reference_raw
+    flat_ref = (
+        arr.flat_reference_filtered
+        if not np.isnan(min_threshold)
+        else arr.flat_reference_raw
+    )
     changed_doys = 0
     max_abs_diff = 0.0
     nominal_changed_doys = 0
@@ -362,25 +376,29 @@ def compare_order_stat_threshold_series(
         beta,
         min_threshold,
     )
-    nominal_prototype, removed_sizes, inserted_sizes = _build_order_stat_threshold_series_for_cell(
-        flat_ref,
-        idx.sample_indices_by_day_of_year,
-        idx.reference_index_year,
-        idx.reference_index_position,
-        idx.substitute_alignment,
-        -1,
-        -1,
-        0,
-        quantile,
-        alpha,
-        beta,
-        min_threshold,
+    nominal_prototype, removed_sizes, inserted_sizes = (
+        _build_order_stat_threshold_series_for_cell(
+            flat_ref,
+            idx.sample_indices_by_day_of_year,
+            idx.reference_index_year,
+            idx.reference_index_position,
+            idx.substitute_alignment,
+            -1,
+            -1,
+            0,
+            quantile,
+            alpha,
+            beta,
+            min_threshold,
+        )
     )
     nominal_diff = np.abs(nominal_current - nominal_prototype)
     nominal_changed = int(np.count_nonzero(nominal_diff > 1.0e-9))
     changed_doys += nominal_changed
     nominal_changed_doys += nominal_changed
-    max_abs_diff = max(max_abs_diff, float(np.nanmax(nominal_diff)) if nominal_diff.size else 0.0)
+    max_abs_diff = max(
+        max_abs_diff, float(np.nanmax(nominal_diff)) if nominal_diff.size else 0.0
+    )
     max_removed_values = max(max_removed_values, int(removed_sizes.max(initial=0)))
     max_inserted_values = max(max_inserted_values, int(inserted_sizes.max(initial=0)))
     removed_total += int(removed_sizes.sum())
@@ -406,27 +424,35 @@ def compare_order_stat_threshold_series(
                 beta,
                 min_threshold,
             )
-            prototype, removed_sizes, inserted_sizes = _build_order_stat_threshold_series_for_cell(
-                flat_ref,
-                idx.sample_indices_by_day_of_year,
-                idx.reference_index_year,
-                idx.reference_index_position,
-                idx.substitute_alignment,
-                target_ref_i,
-                substitute_i,
-                0,
-                quantile,
-                alpha,
-                beta,
-                min_threshold,
+            prototype, removed_sizes, inserted_sizes = (
+                _build_order_stat_threshold_series_for_cell(
+                    flat_ref,
+                    idx.sample_indices_by_day_of_year,
+                    idx.reference_index_year,
+                    idx.reference_index_position,
+                    idx.substitute_alignment,
+                    target_ref_i,
+                    substitute_i,
+                    0,
+                    quantile,
+                    alpha,
+                    beta,
+                    min_threshold,
+                )
             )
             diff = np.abs(current - prototype)
             overlap_changed = int(np.count_nonzero(diff > 1.0e-9))
             changed_doys += overlap_changed
             overlap_changed_doys += overlap_changed
-            max_abs_diff = max(max_abs_diff, float(np.nanmax(diff)) if diff.size else 0.0)
-            max_removed_values = max(max_removed_values, int(removed_sizes.max(initial=0)))
-            max_inserted_values = max(max_inserted_values, int(inserted_sizes.max(initial=0)))
+            max_abs_diff = max(
+                max_abs_diff, float(np.nanmax(diff)) if diff.size else 0.0
+            )
+            max_removed_values = max(
+                max_removed_values, int(removed_sizes.max(initial=0))
+            )
+            max_inserted_values = max(
+                max_inserted_values, int(inserted_sizes.max(initial=0))
+            )
             removed_total += int(removed_sizes.sum())
             inserted_total += int(inserted_sizes.sum())
             compared_series += 1
@@ -472,7 +498,9 @@ def main() -> None:
     for case_name in case_names:
         case_payload: dict[str, object] = {}
         for freq in frequencies:
-            case_payload[freq] = asdict(compare_order_stat_threshold_series(case_name, freq))
+            case_payload[freq] = asdict(
+                compare_order_stat_threshold_series(case_name, freq)
+            )
         payload["cases"][case_name] = case_payload
     print(json.dumps(payload, indent=2, sort_keys=True))
 
