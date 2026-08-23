@@ -4,9 +4,8 @@
 Bootstrap optimization summary
 ##############################
 
-This note is the short human-readable summary of the recent bootstrap
-optimization work. It complements the more detailed maintainability and
-architecture notes.
+This note summarizes the recent bootstrap optimization work. It
+complements the more detailed maintainability and architecture notes.
 
 What changed
 ============
@@ -83,6 +82,8 @@ approach.
 What is in production today:
 
 - optimized routing for supported day-of-year percentile count cases;
+- exact compiled order-statistics routing for supported day-of-year
+  percentile count cases on ``cftime`` calendars;
 - validated extensions for selected value aggregates, spell reducers and
   compound count shapes;
 - exact tiled fallback for cases that are not yet retained on the
@@ -90,9 +91,9 @@ What is in production today:
 
 What remains outside the retained production scope:
 
-- a new exact optimized ``cftime`` bootstrap-count algorithm;
 - broader filtered or complex spell families not yet validated for
   production use;
+- broader ``cftime`` bootstrap families beyond the supported count path;
 - any future work whose exactness is not demonstrated against the
   reference implementation.
 
@@ -120,9 +121,9 @@ That means the impact on the bootstrap code originally implemented in
   dask robustness, equivalent work would need to be designed in
   ``xclim`` rather than assumed to come from icclim automatically.
 
-So the practical reading is simple: icclim has specialized part of the
-execution strategy, but it has not invalidated the scientific bootstrap
-definition inherited from ``xclim``.
+icclim has specialized part of the execution strategy, but it has not
+invalidated the scientific bootstrap definition inherited from
+``xclim``.
 
 Recommended next work
 =====================
@@ -134,6 +135,9 @@ finish bootstrap branch cleanup, documentation cleanup and any remaining
 production-ready tests around the retained implementation.
 
 Second track:
-if further meaningful speedup is required for exact ``cftime`` count
-workloads, start a new algorithm-design phase rather than adding more
-small tuning patches to the current route.
+extend the same exact compiled ``cftime`` approach only when a new
+family is ready for full validation. For supported day-of-year
+percentile count workloads, the order-statistics redesign is already the
+retained production path. Further work should focus on broader family
+coverage or materially different algorithmic opportunities, not on small
+tuning patches to the current route.

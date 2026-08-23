@@ -16,8 +16,8 @@
    `icclim.dcsc.registry.DcscIndexRegistry` registry definitions.
    The parameters  of the functions are specialized to each index but are all taken from
    `icclim.main.index` general function.
-   In other words, the DCSC indices in `icclim.dcsc` module are specializations of
-   `icclim.main.index` for DCSC indices.
+   The DCSC indices exposed by `icclim.dcsc` are specialized entry points built
+   from `icclim.main.index` for DCSC indices.
 
 
 

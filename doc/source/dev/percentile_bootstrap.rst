@@ -42,7 +42,10 @@ Fast path currently supports:
 - single day-of-year percentile thresholds;
 - simple count operators: ``>``, ``>=``, ``<`` and ``<=``;
 - no ``only_leap_years``;
-- pandas-compatible calendars.
+- pandas-compatible calendars;
+- supported day-of-year percentile count workloads on ``cftime``
+  calendars through the exact compiled order-statistics route validated
+  against the reference implementation.
 
 Unsupported cases
 =================
@@ -57,11 +60,11 @@ most useful future extensions are likely:
   ``count_occurrences`` and ``average`` stay on the exact tiled bootstrap path,
   while ``sum`` and ``fraction_of_total`` are field-identical on the optimized
   path;
-- ``cftime`` calendars; the release path keeps Gregorian-like and other
-  ``cftime`` inputs on the exact tiled bootstrap path. As of Tuesday,
-  August 18, 2026, Kraken real-data validation and deep profiling
-  confirmed that this exact route remains correct, but no field-identical
-  optimized ``cftime`` route has been retained;
+- broader ``cftime`` families beyond supported count workloads. The
+  retained ``cftime`` production path now covers supported day-of-year
+  percentile counts through the exact compiled order-statistics kernel,
+  but spell, filtered and broader value-aggregate cases still need their
+  own validated route;
 - spell/run-length extension beyond the simple day-of-year percentile
   case. As of Friday, July 31, 2026, simple one-threshold day-of-year
   percentile spell reducers such as ``sum_of_spell_lengths`` now use an

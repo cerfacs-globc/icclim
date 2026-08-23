@@ -274,8 +274,8 @@ Bootstrap Routing
 - ``src/icclim/_core/generic/bootstrap.py``:
   optimized count-family implementation
 
-Human-Readable Code Rules
-=========================
+FAIR4RS In Practice
+===================
 
 When adding or refactoring an index, prefer code that explains the
 scientific workflow directly.
@@ -298,8 +298,8 @@ Avoid:
 - mixing bootstrap policy with flattening, reshaping and tile sizing in
   the same helper unless the function is very small.
 
-FAIR4RS In Practice
-===================
+Code Clarity Rules
+==================
 
 For this part of icclim, FAIR4RS means:
 

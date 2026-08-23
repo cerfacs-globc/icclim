@@ -8,8 +8,8 @@ They can be computed on any dataset and make use of the `Threshold` interface
 to enable the creation of personalized indices.
 The parameters of the functions are specialized to each index but are all taken from
 `icclim.main.index` general function.
-In other words, the generic indices in `icclim.generic` package are specializations
-of `icclim.main.index` for ECAD indices.
+The generic indices exposed by `icclim.generic` are specialized entry points
+built from `icclim.main.index` for generic indicator definitions.
 
 Examples
 --------
