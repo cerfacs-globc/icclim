@@ -30,6 +30,17 @@ Before this work, percentile bootstrap mainly relied on the generic
 but on large dask-backed workloads it can build very large task graphs
 and become difficult to run reliably on real datasets.
 
+The main bottlenecks in that earlier state were:
+
+- the bootstrap calculation was expressed through a large xarray and
+  dask graph rather than a small compiled inner loop;
+- time and threshold preparation work was repeated across overlap years
+  and output groups;
+- monthly output could trigger repeated threshold work inside the same
+  year;
+- fallback exact routes were reliable, but much slower on the same
+  workloads.
+
 icclim now uses explicit bootstrap routing:
 
 - use an optimized compiled path when the case is well understood and
@@ -97,6 +108,18 @@ The retained count path:
   required;
 - reuses threshold work across monthly groups inside the same year.
 
+This works because the scientific operation is still the same:
+
+- build the reference day-of-year sample;
+- replace one overlapping reference year by each substitute year;
+- evaluate the percentile threshold for that adjusted sample;
+- count exceedance days against that threshold.
+
+The optimization changes how this is executed, not what is computed.
+Preparation is made explicit once, the repeated inner work is moved into
+compiled kernels, and threshold work is reused wherever the bootstrap
+definition allows reuse.
+
 4. Extended optimized families built from the same threshold semantics
 ----------------------------------------------------------------------
 
@@ -138,6 +161,19 @@ In practice this means:
   reconstruction route;
 - supported ``cftime`` count workloads now use a retained compiled path
   rather than staying on the older exact tiled fallback.
+
+This works because one overlap substitution changes only a small part of
+the day-of-year sample. The compiled order-statistics route therefore
+does not rebuild the full sample buffer for every
+``(target_reference_year, substitute_year, day_of_year)`` combination.
+It recovers the exact method-8 percentile from:
+
+- the base sorted sample;
+- the values removed with the target year;
+- the values inserted from the substitute year.
+
+That reduces repeated overlap-year work while keeping the same
+percentile semantics.
 
 Retained production boundary
 ============================
@@ -181,6 +217,38 @@ Validation covered:
 - alternate chunk-profile checks for optimized families that depend on
   chunk robustness;
 - focused runtime tests for routing and kernel behavior.
+
+Representative benchmark figures already established in the retained
+notes are:
+
+- annual TG90p against the exact tiled fallback: about 1473 seconds for
+  the fallback versus about 146 seconds for the production fast path,
+  with maximum absolute difference about ``5.7e-14``;
+- annual TG90p against the older reference bootstrap graph on the
+  ACCESS-CM2 validation subset: 204 seconds and 4,691,198 graph tasks
+  for the reference path versus 212 seconds and 0 graph tasks for the
+  retained fast path, with maximum absolute difference ``8.6e-14`` and
+  MaxRSS about 4.4 GB;
+- monthly TG90p on the same subset: 212 seconds and 4,696,205 graph
+  tasks for the reference path versus 212 seconds and 0 graph tasks for
+  the retained fast path, with maximum absolute difference ``7.2e-15``
+  and MaxRSS about 4.0 GB;
+- anchored seasonal TG90p on the same subset: JJA 16 seconds eager
+  reference versus 12 seconds fast dask path, and ONDJFM 22 seconds
+  eager reference versus 22 seconds fast dask path, both with maximum
+  absolute difference ``0``;
+- a discarded intermediate strategy that materialized nominal
+  non-overlap thresholds took about 247 seconds instead of about 155
+  seconds on the same 65-year ACCESS-CM2 case, so that route was not
+  retained.
+
+For the exact compiled ``cftime`` order-statistics redesign, the
+validated phase-3 note records that the compiled prototype was exact on
+synthetic overlap and leap cases, exact on real-data ``1 x 1`` and
+``2 x 2`` subsets, and faster than both the earlier compiled route and
+the compiled threshold-bank prototype on those validated subsets. The
+subset speedups recorded there were about ``4.30x`` for ``1 x 1`` yearly,
+``2.61x`` for ``2 x 2`` monthly, and ``2.57x`` for ``2 x 2`` yearly.
 
 The production conclusion is:
 
