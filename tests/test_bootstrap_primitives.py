@@ -10,6 +10,7 @@ import xarray as xr
 
 from icclim._core.generic import bootstrap as bootstrap_module
 from icclim._core.generic.bootstrap import (
+    _build_nominal_full_thresholds,
     _bootstrap_average_kernel,
     _bootstrap_bounded_average_kernel,
     _bootstrap_bounded_count_kernel,
@@ -413,6 +414,13 @@ def _kernel_common_args(
     return args, ref.study
 
 
+def _count_kernel_args(tas: xr.DataArray, threshold) -> tuple[tuple, xr.DataArray]:
+    args, study = _kernel_common_args(tas, threshold)
+    nominal_thresholds = _build_nominal_full_thresholds(study, threshold)
+    count_args = (args[0], args[1], args[2], nominal_thresholds, *args[3:])
+    return count_args, study
+
+
 @pytest.mark.parametrize(
     ("kernel", "wrapper"),
     [
@@ -435,7 +443,10 @@ def _kernel_common_args(
 def test_numba_python_kernels_match_wrapper_outputs(kernel, wrapper) -> None:
     tas = stub_tas(300.0).chunk({"time": 365, "lat": 1, "lon": 1})
     threshold = build_threshold(">= 90 doy_per")
-    args, _study = _kernel_common_args(tas, threshold)
+    if kernel is _bootstrap_count_kernel:
+        args, _study = _count_kernel_args(tas, threshold)
+    else:
+        args, _study = _kernel_common_args(tas, threshold)
 
     kernel_result = kernel.py_func(*args)
     wrapper_result = wrapper(tas, threshold, "YS")
