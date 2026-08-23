@@ -120,6 +120,46 @@ Preparation is made explicit once, the repeated inner work is moved into
 compiled kernels, and threshold work is reused wherever the bootstrap
 definition allows reuse.
 
+Why not a simple embarrassingly parallel bootstrap
+--------------------------------------------------
+
+At first sight, overlap-year bootstrap looks embarrassingly parallel:
+with a 30-year reference period, one might expect to run about 30
+independent substitute-year calculations and average them.
+
+That approach was not retained for the production path because the main
+cost is not only the final reduction across substitute years. The heavy
+part is rebuilding the bootstrap threshold inputs and percentile samples
+for each substitute year, each output group and each spatial chunk.
+
+In practice, a naive parallel implementation would:
+
+- duplicate the same study and reference preparation many times;
+- rebuild nearly identical day-of-year samples for each substitute year;
+- multiply dask task counts and scheduler overhead;
+- increase memory pressure because many similar intermediate arrays exist
+  at the same time;
+- repeat monthly threshold work twelve times inside the same year unless
+  extra reuse is introduced.
+
+That is why the earlier graph-heavy route scaled poorly even though the
+bootstrap definition itself can be written as independent substitute
+calculations.
+
+The retained implementation therefore optimizes shared work first:
+
+- prepare indexing and flattened arrays once per tile;
+- reuse nominal threshold information for non-overlap years;
+- reuse overlap threshold work across groups in the same year;
+- in the exact compiled ``cftime`` route, update only the part of the
+  sample that changes between substitute years instead of rebuilding the
+  full sample buffer every time.
+
+So the key point is: the bootstrap outputs are mathematically separable
+across substitute years, but the expensive data preparation is highly
+shared. The retained optimization targets that shared preparation cost
+rather than treating each substitute year as a fully independent job.
+
 4. Extended optimized families built from the same threshold semantics
 ----------------------------------------------------------------------
 
