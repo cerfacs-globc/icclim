@@ -268,7 +268,6 @@ def _workload_notes(workload: str) -> str:
             "Gregorian-like cftime monthly validation on real tas values"
         ),
         "csdi_yearly": "standard cold-spell duration index",
-        "csdi_yearly": "standard cold-spell duration index",
         "generic_tas_count_date_event_monthly": "date_event count control path",
         "combined_cd_yearly": (
             "compound tas+pr count; combines specialized leaf masks through"
