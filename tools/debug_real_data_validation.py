@@ -42,10 +42,14 @@ def main() -> None:
         validation_module = _load_validation_module()
 
         validation_module._warmup(icclim)
+        build_kwargs = {}
+        default_chunks = getattr(validation_module, "DEFAULT_CHUNKS", None)
+        if default_chunks is not None:
+            build_kwargs["chunks"] = default_chunks
         ds = validation_module._build_workload(
             icclim,
             args.workload,
-            chunks=validation_module.DEFAULT_CHUNKS,
+            **build_kwargs,
         )
         payload["data_vars"] = list(ds.data_vars)
         payload["coords"] = list(ds.coords)
