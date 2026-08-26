@@ -10,7 +10,6 @@ import xarray as xr
 
 from icclim._core.generic import bootstrap as bootstrap_module
 from icclim._core.generic.bootstrap import (
-    _build_nominal_full_thresholds,
     _bootstrap_average_kernel,
     _bootstrap_bounded_average_kernel,
     _bootstrap_bounded_count_kernel,
@@ -539,8 +538,8 @@ def test_numba_python_count_kernel_matches_constant_cftime_monthly_counts() -> N
         min_threshold,
     )
 
-    expected = tas.resample(time="MS").count(dim="time").values.reshape(
-        kernel_result.shape
+    expected = (
+        tas.resample(time="MS").count(dim="time").values.reshape(kernel_result.shape)
     )
     np.testing.assert_allclose(kernel_result, expected)
 
@@ -638,6 +637,8 @@ def test_compiled_threshold_bank_prototype_matches_forced_compiled_cftime_counts
     assert current is not None
     assert prototype is not None
     xr.testing.assert_allclose(current, prototype)
+
+
 @pytest.mark.parametrize(
     ("kernel", "wrapper"),
     [

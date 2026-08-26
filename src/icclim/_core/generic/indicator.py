@@ -769,7 +769,9 @@ def _check_data(climate_vars: list, src_freq: str) -> None:
             and da.time.ndim == 1
             and len(da.time) > MIN_LEN_FOR_FREQ_INFERENCE
         ):
-            inferred_freq = canonicalize_frequency(check_freq(da, dim="time", strict=True))
+            inferred_freq = canonicalize_frequency(
+                check_freq(da, dim="time", strict=True)
+            )
             if inferred_freq != expected_freq:
                 msg = (
                     f"[icclim] Frequency mismatch for variable '{climate_var.name}': "

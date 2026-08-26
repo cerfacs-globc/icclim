@@ -1103,6 +1103,8 @@ def _optimized_bootstrap_calendar_supported(
     from xarray.coding.cftimeindex import CFTimeIndex  # noqa: PLC0415
 
     return isinstance(study.indexes.get("time"), CFTimeIndex)
+
+
 def _optimized_bootstrap_is_available() -> bool:
     try:
         from numba import njit  # noqa: PLC0415

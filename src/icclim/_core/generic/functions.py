@@ -58,7 +58,6 @@ from icclim._core.generic.bootstrap_capability import (
     get_optimized_scalar_bounded_bootstrap_spec,
 )
 from icclim._core.input_parsing import PercentileDataArray
-from icclim.frequency import FrequencyRegistry
 from icclim._core.model.cf_calendar import CfCalendarRegistry
 from icclim._core.model.operator import Operator, OperatorRegistry
 from icclim.exception import InvalidIcclimArgumentError
@@ -2230,6 +2229,7 @@ def _compute_fast_tiled_bootstrap_spell_mask(
     ):
         result = result.squeeze(drop=False)
     return result
+
 
 def _compute_exact_tiled_bootstrap_spell_mask(
     climate_var: ClimateVariable,

@@ -208,7 +208,9 @@ def describe_threshold(threshold: Threshold | Any) -> dict[str, Any] | None:
         ),
         "value": _serialize_threshold_value(_threshold_value_for_provenance(threshold)),
         "doy_window_width": getattr(threshold, "doy_window_width", None),
-        "reference_period": list(reference_period) if reference_period is not None else None,
+        "reference_period": list(reference_period)
+        if reference_period is not None
+        else None,
         "interpolation": interpolation.__class__.__name__
         if interpolation is not None
         else None,
@@ -242,7 +244,8 @@ def collect_resolved_parameters(
         "output_variables": list(result_ds.data_vars),
         "climate_variables_count": len(climate_variables),
         "calendars": [
-            _calendar_name(climate_var.studied_data) for climate_var in climate_variables
+            _calendar_name(climate_var.studied_data)
+            for climate_var in climate_variables
         ],
     }
     if config is not None:
@@ -335,11 +338,15 @@ def describe_bootstrap(
     bootstrap_requested = any(
         climate_var.bootstrap is not None for climate_var in climate_variables
     )
-    bootstrap_enabled = any(_threshold_requires_bootstrap(threshold) for threshold in thresholds)
+    bootstrap_enabled = any(
+        _threshold_requires_bootstrap(threshold) for threshold in thresholds
+    )
     description: dict[str, Any] = {
         "requested": bootstrap_requested,
         "threshold_requires_bootstrap": bootstrap_enabled,
-        "threshold_kinds": [_threshold_kind_value(threshold) for threshold in thresholds],
+        "threshold_kinds": [
+            _threshold_kind_value(threshold) for threshold in thresholds
+        ],
     }
     capability = _classify_bootstrap_capability(config, climate_variables)
     if capability is not None:
@@ -491,10 +498,7 @@ def _json_ready(value: Any) -> Any:
     if isinstance(value, Path):
         return str(value)
     if isinstance(value, dict):
-        return {
-            str(key): _json_ready(item)
-            for key, item in value.items()
-        }
+        return {str(key): _json_ready(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
         return [_json_ready(item) for item in value]
     return str(value)

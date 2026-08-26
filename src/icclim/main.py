@@ -193,14 +193,18 @@ def indices(
             log.info("Computing index %s", standard_index.short_name)
             try:
                 res = index(
-                    **_with_requested_index_name(index_kwargs, standard_index.short_name)
+                    **_with_requested_index_name(
+                        index_kwargs, standard_index.short_name
+                    )
                 )
                 res = _rename_coords(res, standard_index.short_name)
                 res = _drop_group_auxiliary_vars(res)
                 acc.append(res)
             except Exception:
                 if ignore_error:
-                    warn(f"Could not compute {standard_index.short_name}.", stacklevel=2)
+                    warn(
+                        f"Could not compute {standard_index.short_name}.", stacklevel=2
+                    )
                 else:
                     raise
         ds: Dataset = xr.merge(acc, compat="no_conflicts", join="outer")
@@ -216,7 +220,9 @@ def indices(
                     "kwargs": _build_provenance_user_parameters(kwargs),
                 },
                 resolved_overrides={
-                    "requested_indices": [standard_index.short_name for standard_index in indices],
+                    "requested_indices": [
+                        standard_index.short_name for standard_index in indices
+                    ],
                 },
                 captured_warnings=captured_warnings,
             )
@@ -781,11 +787,10 @@ def _serialize_provenance_value(value: Any) -> Any:
         return [_serialize_provenance_value(item) for item in value]
     if isinstance(value, dict):
         return {
-            str(key): _serialize_provenance_value(item)
-            for key, item in value.items()
+            str(key): _serialize_provenance_value(item) for key, item in value.items()
         }
     if hasattr(value, "name"):
-        return getattr(value, "name")
+        return value.name
     return str(value)
 
 

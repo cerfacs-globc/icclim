@@ -184,7 +184,10 @@ class TestIntegration:
         assert payload["schema_version"] == 1
         assert payload["software"]["icclim"] == icclim_version
         assert payload["resolved_parameters"]["indicator_name"] == "SU"
-        assert payload["resolved_parameters"]["bootstrap"]["execution_kind"] == "not_required"
+        assert (
+            payload["resolved_parameters"]["bootstrap"]["execution_kind"]
+            == "not_required"
+        )
         assert payload["user_parameters"]["slice_mode"] == "year"
         assert payload["outputs"]["netcdf_file"]["exists"] is True
         assert payload["outputs"]["netcdf_file"]["size_bytes"] > 0

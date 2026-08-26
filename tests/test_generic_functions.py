@@ -4,8 +4,8 @@ import xarray as xr
 
 from icclim._core.climate_variable import ClimateVariable
 from icclim._core.constants import GROUP_BY_METHOD
-from icclim._core.generic import functions as generic_functions_module
 from icclim._core.generic import bootstrap_primitives
+from icclim._core.generic import functions as generic_functions_module
 from icclim._core.generic.bootstrap_capability import (
     BootstrapCapability,
     BootstrapComputationFamily,
