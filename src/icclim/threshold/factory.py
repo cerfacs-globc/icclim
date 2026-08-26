@@ -83,7 +83,7 @@ def build_threshold(
         The threshold value(s), default to None.
         It can be:
         * a simple scalar threshold
-        * a percentile that will be computed per-grid cell (in combinaison with `unit`)
+        * a percentile that will be computed per-grid cell (in combination with `unit`)
         * per-grid cell thresholds defined by a DataArray, a Dataset or a string path to
         a netcdf/zarr.
         * a sequence of scalars, the indicator will then be computed for each value and

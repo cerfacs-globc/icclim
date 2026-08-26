@@ -53,6 +53,48 @@ SEASON_ERR_MSG = (
 RUN_INDEXER = "run_indexer"
 
 
+def canonicalize_frequency(freq: str) -> str:
+    """Return a normalized pandas/xarray frequency string when possible."""
+    if "H" in freq:
+        freq = freq.replace("H", "h")
+    try:
+        return cast("str", to_offset(freq).freqstr)
+    except ValueError:
+        return freq
+
+
+def infer_input_frequency(da: DataArray, dim: str = "time") -> str | None:
+    """Infer the input frequency of a time axis using attrs as a fallback."""
+    time_coord = da.coords.get(dim)
+    if time_coord is None:
+        return None
+    inferred = xr.infer_freq(da[dim])
+    if inferred is not None:
+        return canonicalize_frequency(inferred)
+    attr_freq = time_coord.attrs.get("freq", None)
+    if isinstance(attr_freq, str):
+        return canonicalize_frequency(attr_freq)
+    return None
+
+
+def is_subdaily_frequency(freq: str | Frequency) -> bool:
+    """Return whether a frequency is finer than one day."""
+    from xclim.core.calendar import compare_offsets  # noqa: PLC0415
+
+    query = freq.pandas_freq if isinstance(freq, Frequency) else freq
+    query = canonicalize_frequency(query)
+    return compare_offsets(query, "<", "D")
+
+
+def is_daily_frequency(freq: str | Frequency) -> bool:
+    """Return whether a frequency corresponds to one day."""
+    from xclim.core.calendar import compare_offsets  # noqa: PLC0415
+
+    query = freq.pandas_freq if isinstance(freq, Frequency) else freq
+    query = canonicalize_frequency(query)
+    return compare_offsets(query, "==", "D")
+
+
 def get_seasonal_time_updater(
     start_month: int,
     end_month: int,
@@ -208,7 +250,8 @@ def _build_cftime_resampled_bounds(
     da: DataArray,
     freq: str,
 ) -> tuple[np.ndarray, np.ndarray]:
-    offset = xr.coding.cftime_offsets.to_offset(freq)
+    normalized_freq = canonicalize_frequency(freq)
+    offset = xr.coding.cftime_offsets.to_offset(normalized_freq)
     starts = np.array(
         [
             cftime.datetime(
@@ -224,7 +267,8 @@ def _build_cftime_resampled_bounds(
         ],
     )
     ends = starts + offset
-    ends = ends - timedelta(days=1)
+    if not is_subdaily_frequency(normalized_freq):
+        ends = ends - timedelta(days=1)
     return starts, ends
 
 
@@ -232,10 +276,15 @@ def _build_pandas_resampled_bounds(
     da: DataArray,
     freq: str,
 ) -> tuple[pd.DatetimeIndex, pd.DatetimeIndex]:
-    offset = pd.tseries.frequencies.to_offset(freq)
-    starts = pd.to_datetime(da.time.dt.floor("D"))
+    normalized_freq = canonicalize_frequency(freq)
+    offset = pd.tseries.frequencies.to_offset(normalized_freq)
+    if is_subdaily_frequency(normalized_freq):
+        starts = pd.to_datetime(da.time.to_numpy())
+    else:
+        starts = pd.to_datetime(da.time.dt.floor("D"))
     ends = starts + offset
-    ends = ends - pd.Timedelta(days=1)
+    if not is_subdaily_frequency(normalized_freq):
+        ends = ends - pd.Timedelta(days=1)
     return starts, ends
 
 
@@ -341,11 +390,11 @@ class FrequencyRegistry(Registry[Frequency]):
     """Does not resample"""
 
     HOUR = Frequency(
-        pandas_freq="H",
-        accepted_values=["hour", "h", "hourly"],
+        pandas_freq="h",
+        accepted_values=["hour", "h", "H", "hourly"],
         adjective="hourly",
         indexer=None,
-        post_processing=get_time_bounds_updater("H"),
+        post_processing=get_time_bounds_updater("h"),
         units="hours",
         long_name="hour",
         group_by_key="time.hour",
@@ -569,6 +618,7 @@ def _get_frequency_from_string(query: str) -> Frequency:
         ):
             return freq
     # else assumes it's a pandas frequency (such as "W" or "3MS")
+    query = canonicalize_frequency(query)
     try:
         to_offset(query)  # no-op, used to check if it's a valid pandas freq
     except ValueError as exc:

@@ -456,11 +456,11 @@ proper variable in the given input to compute an index.
 +------------------------------------------------------------+---------------------------------------------+
 | DTR, ETR, vDTR                                             | daily maximum + daily minimum temperature   |
 +------------------------------------------------------------+---------------------------------------------+
-| PRCPTOT, RR1, SDII, CWD, CDD, R10mm, R20mm, RX1day,        | daily precipitation flux (liquide phase)    |
+| PRCPTOT, RR1, SDII, CWD, CDD, R10mm, R20mm, RX1day,        | daily precipitation flux (liquid phase)     |
 | RX5day, R75p, R75pTOT, R95p, R95pTOT, R99p, R99pTOT        |                                             |
 +------------------------------------------------------------+---------------------------------------------+
 | SD, SD1, SD5cm, SD50cm                                     | daily snowfall flux (solid phase)           |
 +------------------------------------------------------------+---------------------------------------------+
 | CD, CW, WD, WW                                             | daily mean temperature + daily              |
-|                                                            | precipitation flux (liquide phase)          |
+|                                                            | precipitation flux (liquid phase)           |
 +------------------------------------------------------------+---------------------------------------------+

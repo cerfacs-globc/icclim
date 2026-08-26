@@ -20,13 +20,16 @@ From sources:
 Compatibility
 -------------
 
-icclim is designed to be highly compatible across the Python scientific ecosystem:
+icclim is designed to stay compatible with the standard Python scientific stack:
 
 - **Python**: Supports **Python 3.10 and above**.
-- **Backward Compatibility**: Supports older stable versions (e.g., ``numpy>=1.21``, ``xarray>=2022.6``, ``xclim>=0.45``).
-- **Bleeding Edge**: Fully verified and recommended to run on the latest major versions, including **Zarr 3.x**, **Pandas 3.x**, and **Xarray 2026.x**.
+- **Core dependencies**: Minimum supported versions are declared in ``pyproject.toml``
+  (for example ``numpy>=1.21``, ``xarray>=2022.6``, ``xclim>=0.45``).
+- **Recent stacks**: Continuous integration tracks current supported Python
+  versions and the maintained dependency range.
 
-For production environments, we recommend keeping your dependencies updated to their latest stable releases to benefit from the latest optimizations and features.
+For production environments, prefer current stable dependency releases within
+the supported range.
 
 How to use icclim
 -----------------

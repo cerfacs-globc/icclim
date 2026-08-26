@@ -179,7 +179,7 @@ calc_operation key
          computed for each calendar day, using *the bootstrapping
          procedure*.
 
-      -  If 'p' (precipitation variable), percentile threshold are
+      -  If 'p' (precipitation variable), percentile thresholds are
          calculated for whole set of values corresponding to wet days
          (i.e. days with daily precipitation amount >= 1.0 mm) in base
          period.

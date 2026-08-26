@@ -20,7 +20,8 @@ def test_run_real_data_validation_selected_chunks_switches_with_env(
 ) -> None:
     monkeypatch.delenv("ICCLIM_REAL_DATA_CHUNK_PROFILE", raising=False)
     assert (
-        run_real_data_validation._selected_chunks() == run_real_data_validation.CHUNKS
+        run_real_data_validation._selected_chunks()
+        == run_real_data_validation.DEFAULT_CHUNKS
     )
 
     monkeypatch.setenv("ICCLIM_REAL_DATA_CHUNK_PROFILE", "alt")
@@ -102,7 +103,11 @@ def test_run_real_data_validation_build_workload_rejects_unknown(
         lambda *args, **kwargs: None,
     )
     with pytest.raises(ValueError, match="Unknown workload"):
-        run_real_data_validation._build_workload(object(), "unknown_workload")
+        run_real_data_validation._build_workload(
+            object(),
+            "unknown_workload",
+            chunks=run_real_data_validation.DEFAULT_CHUNKS,
+        )
 
 
 def test_summarize_parse_compare_file_supports_current_vs_master(
@@ -305,7 +310,11 @@ def test_run_real_data_validation_build_workload_routes_expected_call(
         lambda da: da,
     )
 
-    result = run_real_data_validation._build_workload(fake, workload)
+    result = run_real_data_validation._build_workload(
+        fake,
+        workload,
+        chunks=run_real_data_validation.DEFAULT_CHUNKS,
+    )
 
     assert result["method"] == expected_method
     assert expected_key in result["kwargs"]
@@ -569,7 +578,7 @@ def test_run_real_data_validation_main_writes_summary(
     monkeypatch.setattr(
         run_real_data_validation,
         "_build_workload",
-        lambda icclim, workload: result_ds,
+        lambda icclim, workload, *, chunks: result_ds,
     )
     monkeypatch.setattr(
         run_real_data_validation,
@@ -598,6 +607,7 @@ def test_run_real_data_validation_main_writes_summary(
     assert payload["label"] == "current"
     assert payload["workload"] == "wsdi_yearly"
     assert payload["head_commit"] == "deadbeef"
+    assert payload["chunk_profile"] == "default"
 
 
 def test_profile_main_writes_profile_json(

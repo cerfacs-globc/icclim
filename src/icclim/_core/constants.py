@@ -65,7 +65,7 @@ EN_FREQ_MAPPING = {
     "MS": "month(s)", "M": "month(s)",
     "W": "week(s)",
     "D": "day(s)",
-    "H": "hour(s)",
+    "H": "hour(s)", "h": "hour(s)",
     "JAN": "January starting", "FEB": "February starting", "MAR": "March starting", "APR": "April starting", "MAY": "May starting", "JUN": "June starting", "JUL": "July starting", "AUG": "August starting", "SEP": "September starting", "OCT": "October starting", "NOV": "November starting", "DEC": "December starting",
     # Arguments to "indexer"
     "DJF": "wintry", "MAM": "springlong", "JJA": "summery", "SON": "autumnal",
@@ -79,7 +79,7 @@ FREQ_DELTA_MAPPING = {
     "MS": (1, "M" ), "M": (1, "M" ),
     "W": (7, "D" ),
     "D": (1, "D" ),
-    "H": (1, "H" ),
+    "H": (1, "H" ), "h": (1, "h" ),
 }
 
 # Special CF unit

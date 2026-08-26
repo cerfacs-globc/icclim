@@ -17,6 +17,8 @@ Read this together with:
 - :ref:`dev_bootstrap_architecture` for percentile-bootstrap families;
 - :ref:`dev_percentile_bootstrap` for the current production bootstrap
   boundary;
+- :ref:`dev_provenance_plan` for output provenance and reproducibility
+  metadata;
 - :ref:`generic_indices_recipes` for the public generic-index API.
 
 Workflow Overview
@@ -32,7 +34,32 @@ The end-to-end path for one climate-index request is:
 4. The selected :class:`~icclim._core.model.indicator.Indicator`
    computes the result.
 5. Post-processing renames the result, adds time bounds when needed,
-   optionally exports thresholds, and adds metadata.
+   optionally exports thresholds, adds metadata, and writes provenance
+   sidecars when an output file is requested.
+
+FAIR4RS In Practice
+===================
+
+``icclim`` development now treats FAIR4RS-oriented practices as part of
+the implementation workflow, not as a later documentation task.
+
+For contributors, that means:
+
+- keep the scientific workflow visible in code and in developer notes;
+- prefer explicit configuration objects and stable metadata over hidden
+  side effects;
+- preserve enough output metadata that another research developer can
+  understand what was run and why;
+- when writing outputs, treat provenance as part of the artifact, not as
+  optional console logging.
+
+In practice, that currently means:
+
+- standard CF-style NetCDF metadata remains in the output dataset;
+- ``out_file`` writes also produce a ``.prov.json`` sidecar;
+- compact provenance pointers are embedded in NetCDF global attributes;
+- developer-facing architecture notes should explain scientific routing
+  and support boundaries explicitly.
 
 In code, the main entry points are:
 
@@ -141,6 +168,22 @@ For percentile-bootstrap work, read the bootstrap architecture note
 first. It is easy to introduce a fast path that looks right on synthetic
 data but diverges on real overlap-year cases.
 
+Case 4: extend output provenance
+--------------------------------
+
+If new workflow decisions materially affect scientific interpretation or
+reproducibility, update provenance together with the feature.
+
+Typical examples:
+
+- a new threshold family;
+- new bootstrap routing decisions;
+- new calendar-handling branches;
+- new output artifacts or sidecar files.
+
+Do not leave these decisions implicit in code alone if they can affect
+later interpretation of the output.
+
 Legacy user_index bridge
 ------------------------
 
@@ -201,6 +244,8 @@ Configuration Assembly
   :func:`_build_legacy_user_index_config`
 - ``src/icclim/main.py``:
   :func:`_parse_legacy_user_index_config`
+- ``src/icclim/provenance.py``:
+  output provenance helpers
 
 Input Variables
 ---------------
@@ -274,8 +319,8 @@ Bootstrap Routing
 - ``src/icclim/_core/generic/bootstrap.py``:
   optimized count-family implementation
 
-Human-Readable Code Rules
-=========================
+FAIR4RS In Practice
+===================
 
 When adding or refactoring an index, prefer code that explains the
 scientific workflow directly.
@@ -298,8 +343,8 @@ Avoid:
 - mixing bootstrap policy with flattening, reshaping and tile sizing in
   the same helper unless the function is very small.
 
-FAIR4RS In Practice
-===================
+Code Clarity Rules
+==================
 
 For this part of icclim, FAIR4RS means:
 
