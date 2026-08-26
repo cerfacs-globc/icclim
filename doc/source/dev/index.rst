@@ -14,6 +14,8 @@ development.
    release_process
    ci
    add_climate_index
+   provenance_implementation_plan
+   provenance_integration
    bootstrap_optimization_summary
    bootstrap_maintainability_audit
    percentile_bootstrap

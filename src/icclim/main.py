@@ -17,11 +17,12 @@ import time
 from collections.abc import Callable, Sequence
 from functools import reduce
 from typing import TYPE_CHECKING, Any, Literal, Union
-from warnings import warn
+from warnings import catch_warnings, simplefilter, warn
 
 import numpy as np
 import xarray as xr
 
+from icclim import provenance
 from icclim._core.climate_variable import (
     ClimateVariable,
     build_climate_vars,
@@ -182,35 +183,55 @@ def indices(
     If ``output_file`` is part of kwargs, the result is written in a single netCDF
     file, which will contain all the index results of this group.
     """
-    indices = _get_ecad_indices_of_group(index_group)
-    out_file = kwargs.get("out_file")
-    index_kwargs = _build_indices_call_kwargs(kwargs)
-    acc = []
-    for standard_index in indices:
-        log.info("Computing index %s", standard_index.short_name)
-        try:
-            res = index(
-                **_with_requested_index_name(index_kwargs, standard_index.short_name)
+    with catch_warnings(record=True) as captured_warnings:
+        simplefilter("always")
+        indices = _get_ecad_indices_of_group(index_group)
+        out_file = kwargs.get("out_file")
+        index_kwargs = _build_indices_call_kwargs(kwargs)
+        acc = []
+        for standard_index in indices:
+            log.info("Computing index %s", standard_index.short_name)
+            try:
+                res = index(
+                    **_with_requested_index_name(index_kwargs, standard_index.short_name)
+                )
+                res = _rename_coords(res, standard_index.short_name)
+                res = _drop_group_auxiliary_vars(res)
+                acc.append(res)
+            except Exception:
+                if ignore_error:
+                    warn(f"Could not compute {standard_index.short_name}.", stacklevel=2)
+                else:
+                    raise
+        ds: Dataset = xr.merge(acc, compat="no_conflicts", join="outer")
+        if out_file is not None:
+            bundle = provenance.build_output_provenance(
+                config=None,
+                result_ds=ds,
+                out_file=out_file,
+                entrypoint="icclim.indices",
+                user_parameters={
+                    "index_group": index_group,
+                    "ignore_error": ignore_error,
+                    "kwargs": _build_provenance_user_parameters(kwargs),
+                },
+                resolved_overrides={
+                    "requested_indices": [standard_index.short_name for standard_index in indices],
+                },
+                captured_warnings=captured_warnings,
             )
-            res = _rename_coords(res, standard_index.short_name)
-            res = _drop_group_auxiliary_vars(res)
-            acc.append(res)
-        except Exception:
-            if ignore_error:
-                warn(f"Could not compute {standard_index.short_name}.", stacklevel=2)
-            else:
-                raise
-    ds: Dataset = xr.merge(acc, compat="no_conflicts", join="outer")
-    if out_file is not None:
-        _write_output_file(
-            result_ds=ds,
-            input_time_encoding=ds.time.encoding,
-            netcdf_version=index_kwargs.get(
-                "netcdf_version", NetcdfVersionRegistry.NETCDF4
-            ),
-            file_path=out_file,
-        )
-    return ds
+            provenance.add_provenance_attrs(ds, bundle)
+            _write_output_file(
+                result_ds=ds,
+                input_time_encoding=ds.time.encoding,
+                netcdf_version=index_kwargs.get(
+                    "netcdf_version", NetcdfVersionRegistry.NETCDF4
+                ),
+                file_path=out_file,
+            )
+            bundle = provenance.finalize_written_output_provenance(out_file, bundle)
+            provenance.write_provenance_json(out_file, bundle)
+        return ds
 
 
 def _build_indices_call_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -575,45 +596,77 @@ def index(
     >>> int(result["SU"].values[-1])
     61
     """
-    _setup(callback, callback_percentage_start_value, logs_verbosity)
-    normalized_request = _normalize_index_request(
-        index_name=index_name,
-        user_index=user_index,
-        save_thresholds=save_thresholds,
-        doy_window_width=doy_window_width,
-        indice_name=indice_name,
-        transfer_limit_mbytes=transfer_limit_Mbytes,
-        user_indice=user_indice,
-        save_percentile=save_percentile,
-        window_width=window_width,
-    )
-    config = _build_config_from_request(
-        in_files=in_files,
-        var_name=var_name,
-        slice_mode=slice_mode,
-        time_range=time_range,
-        threshold=threshold,
-        callback=callback,
-        base_period_time_range=base_period_time_range,
-        bootstrap=bootstrap,
-        only_leap_years=only_leap_years,
-        ignore_feb29th=ignore_Feb29th,
-        interpolation=interpolation,
-        out_unit=out_unit,
-        netcdf_version=netcdf_version,
-        date_event=date_event,
-        min_spell_length=min_spell_length,
-        rolling_window_width=rolling_window_width,
-        sampling_method=sampling_method,
-        run_index=run_index,
-        allow_partial_seasons=allow_partial_seasons,
-        normalized_request=normalized_request,
-    )
-    result_ds = _run_index_workflow(
-        config, out_file, callback_percentage_total, callback
-    )
-    log.ending_message(time.process_time())
-    return result_ds
+    with catch_warnings(record=True) as captured_warnings:
+        simplefilter("always")
+        _setup(callback, callback_percentage_start_value, logs_verbosity)
+        normalized_request = _normalize_index_request(
+            index_name=index_name,
+            user_index=user_index,
+            save_thresholds=save_thresholds,
+            doy_window_width=doy_window_width,
+            indice_name=indice_name,
+            transfer_limit_mbytes=transfer_limit_Mbytes,
+            user_indice=user_indice,
+            save_percentile=save_percentile,
+            window_width=window_width,
+        )
+        config = _build_config_from_request(
+            in_files=in_files,
+            var_name=var_name,
+            slice_mode=slice_mode,
+            time_range=time_range,
+            threshold=threshold,
+            callback=callback,
+            base_period_time_range=base_period_time_range,
+            bootstrap=bootstrap,
+            only_leap_years=only_leap_years,
+            ignore_feb29th=ignore_Feb29th,
+            interpolation=interpolation,
+            out_unit=out_unit,
+            netcdf_version=netcdf_version,
+            date_event=date_event,
+            min_spell_length=min_spell_length,
+            rolling_window_width=rolling_window_width,
+            sampling_method=sampling_method,
+            run_index=run_index,
+            allow_partial_seasons=allow_partial_seasons,
+            normalized_request=normalized_request,
+        )
+        provenance_user_parameters = _build_index_provenance_user_parameters(
+            index_name=index_name,
+            var_name=var_name,
+            slice_mode=slice_mode,
+            time_range=time_range,
+            out_file=out_file,
+            threshold=threshold,
+            base_period_time_range=base_period_time_range,
+            bootstrap=bootstrap,
+            doy_window_width=doy_window_width,
+            only_leap_years=only_leap_years,
+            ignore_feb29th=ignore_Feb29th,
+            interpolation=interpolation,
+            out_unit=out_unit,
+            netcdf_version=netcdf_version,
+            user_index=user_index,
+            save_thresholds=save_thresholds,
+            date_event=date_event,
+            min_spell_length=min_spell_length,
+            rolling_window_width=rolling_window_width,
+            sampling_method=sampling_method,
+            run_index=run_index,
+            allow_partial_seasons=allow_partial_seasons,
+            normalized_request=normalized_request,
+        )
+        result_ds = _run_index_workflow(
+            config,
+            out_file,
+            callback_percentage_total,
+            callback,
+            provenance_user_parameters=provenance_user_parameters,
+            captured_warnings=captured_warnings,
+        )
+        log.ending_message(time.process_time())
+        return result_ds
 
 
 def _run_index_workflow(
@@ -621,6 +674,8 @@ def _run_index_workflow(
     out_file: str | None,
     callback_percentage_total: int,
     callback: Callable[[int], None],
+    provenance_user_parameters: dict[str, Any] | None = None,
+    captured_warnings: list[Any] | None = None,
 ) -> Dataset:
     """Compute, optionally write, and finalize one climate-index request."""
     result_ds = _compute_climate_index(
@@ -632,14 +687,106 @@ def _run_index_workflow(
         reference=config.reference,
     )
     if out_file is not None:
+        bundle = provenance.build_output_provenance(
+            config=config,
+            result_ds=result_ds,
+            out_file=out_file,
+            entrypoint="icclim.index",
+            user_parameters=provenance_user_parameters,
+            captured_warnings=captured_warnings,
+        )
+        provenance.add_provenance_attrs(result_ds, bundle)
         _write_output_file(
             result_ds,
             config.climate_variables[0].global_metadata["time_encoding"],
             config.netcdf_version,
             out_file,
         )
+        bundle = provenance.finalize_written_output_provenance(out_file, bundle)
+        provenance.write_provenance_json(out_file, bundle)
     callback(callback_percentage_total)
     return result_ds
+
+
+def _build_provenance_user_parameters(kwargs: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: _serialize_provenance_value(value)
+        for key, value in kwargs.items()
+        if key not in {"callback"}
+    }
+
+
+def _build_index_provenance_user_parameters(
+    *,
+    index_name: str | GenericIndicator | StandardIndex | None,
+    var_name: str | Sequence[str] | None,
+    slice_mode: FrequencyLike | Frequency,
+    time_range: Sequence[dt.datetime | str] | None,
+    out_file: str | None,
+    threshold: str | Threshold | Sequence[str | Threshold] | None,
+    base_period_time_range: Sequence[dt.datetime] | Sequence[str] | None,
+    bootstrap: bool | None,
+    doy_window_width: int,
+    only_leap_years: bool,
+    ignore_feb29th: bool,
+    interpolation: str | QuantileInterpolation,
+    out_unit: str | None,
+    netcdf_version: str | NetcdfVersion,
+    user_index: UserIndexDict | None,
+    save_thresholds: bool,
+    date_event: bool,
+    min_spell_length: int | None,
+    rolling_window_width: int | None,
+    sampling_method: SamplingMethodLike,
+    run_index: str | None,
+    allow_partial_seasons: bool | Literal["start", "end"],
+    normalized_request: NormalizedIndexRequest,
+) -> dict[str, Any]:
+    return {
+        "index_name": _serialize_provenance_value(index_name),
+        "normalized_index_name": _serialize_provenance_value(
+            normalized_request.index_name
+        ),
+        "legacy_user_index_used": normalized_request.legacy_user_index is not None,
+        "var_name": _serialize_provenance_value(var_name),
+        "slice_mode": _serialize_provenance_value(slice_mode),
+        "time_range": _serialize_provenance_value(time_range),
+        "out_file": out_file,
+        "threshold": _serialize_provenance_value(threshold),
+        "base_period_time_range": _serialize_provenance_value(base_period_time_range),
+        "bootstrap": bootstrap,
+        "doy_window_width": doy_window_width,
+        "only_leap_years": only_leap_years,
+        "ignore_feb29th": ignore_feb29th,
+        "interpolation": _serialize_provenance_value(interpolation),
+        "out_unit": out_unit,
+        "netcdf_version": _serialize_provenance_value(netcdf_version),
+        "user_index": _serialize_provenance_value(user_index),
+        "save_thresholds": save_thresholds,
+        "date_event": date_event,
+        "min_spell_length": min_spell_length,
+        "rolling_window_width": rolling_window_width,
+        "sampling_method": _serialize_provenance_value(sampling_method),
+        "run_index": run_index,
+        "allow_partial_seasons": allow_partial_seasons,
+    }
+
+
+def _serialize_provenance_value(value: Any) -> Any:
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dt.datetime):
+        return value.isoformat()
+    if isinstance(value, (list, tuple)):
+        return [_serialize_provenance_value(item) for item in value]
+    if isinstance(value, dict):
+        return {
+            str(key): _serialize_provenance_value(item)
+            for key, item in value.items()
+        }
+    if hasattr(value, "name"):
+        return getattr(value, "name")
+    return str(value)
 
 
 def _build_config_from_request(

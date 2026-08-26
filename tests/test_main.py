@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import datetime as dt
+import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -88,6 +89,7 @@ class TestIntegration:
     """
 
     OUTPUT_FILE = Path("out.nc")
+    PROVENANCE_FILE = Path("out.prov.json")
     TIME_RANGE = pd.date_range(start="2042-01-01", end="2045-12-31", freq="D")
     CF_TIME_RANGE = xr.date_range(
         start="2042-01-01",
@@ -152,6 +154,8 @@ class TestIntegration:
         # teardown
         with contextlib.suppress(FileNotFoundError):
             self.OUTPUT_FILE.unlink()
+        with contextlib.suppress(FileNotFoundError):
+            self.PROVENANCE_FILE.unlink()
 
     def test_index_su(self) -> None:
         tas = stub_tas(tas_value=26 + K2C)
@@ -164,6 +168,86 @@ class TestIntegration:
         )
         assert f"icclim version: {icclim_version}" in res.attrs["history"]
         assert res.SU.isel(time=0) == 26  # January
+
+    def test_out_file_writes_provenance_sidecar(self) -> None:
+        tas = stub_tas(tas_value=26 + K2C)
+
+        icclim.index(
+            index_name="SU",
+            in_files=tas,
+            out_file=self.OUTPUT_FILE,
+            slice_mode="year",
+        )
+
+        assert self.PROVENANCE_FILE.exists()
+        payload = json.loads(self.PROVENANCE_FILE.read_text())
+        assert payload["schema_version"] == 1
+        assert payload["software"]["icclim"] == icclim_version
+        assert payload["resolved_parameters"]["indicator_name"] == "SU"
+        assert payload["resolved_parameters"]["bootstrap"]["execution_kind"] == "not_required"
+        assert payload["user_parameters"]["slice_mode"] == "year"
+        assert payload["outputs"]["netcdf_file"]["exists"] is True
+        assert payload["outputs"]["netcdf_file"]["size_bytes"] > 0
+        assert "sha256" in payload["outputs"]["netcdf_file"]
+        assert payload["outputs"]["provenance_path"].endswith("out.prov.json")
+
+        written = xr.open_dataset(self.OUTPUT_FILE)
+        try:
+            assert written.attrs["icclim_version"] == icclim_version
+            assert written.attrs["provenance_file"] == str(self.PROVENANCE_FILE)
+            assert "command" in written.attrs
+        finally:
+            written.close()
+
+    def test_indices_out_file_writes_provenance_sidecar(self) -> None:
+        tas = stub_tas(tas_value=26 + K2C)
+        ds = tas.to_dataset(name="tas")
+        ds["tasmax"] = tas.rename("tasmax")
+        ds["tasmin"] = tas.rename("tasmin")
+
+        icclim.indices(
+            index_group=["SU", "TR"],
+            in_files=ds,
+            out_file=self.OUTPUT_FILE,
+        )
+
+        payload = json.loads(self.PROVENANCE_FILE.read_text())
+        assert payload["run_context"]["entrypoint"] == "icclim.indices"
+        assert payload["user_parameters"]["index_group"] == ["SU", "TR"]
+        assert payload["resolved_parameters"]["requested_indices"] == ["SU", "TR"]
+
+    def test_provenance_captures_typed_warnings(self) -> None:
+        icclim.index(
+            index_name="SU",
+            in_files=self.data,
+            out_file=self.OUTPUT_FILE,
+            out_unit="days",
+        )
+
+        payload = json.loads(self.PROVENANCE_FILE.read_text())
+        assert isinstance(payload["warnings"], list)
+
+    def test_provenance_captures_bootstrap_threshold_details(self) -> None:
+        tas = stub_tas(tas_value=26 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+
+        icclim.sum(
+            in_files=tas,
+            var_name="tas",
+            out_file=self.OUTPUT_FILE,
+            threshold=build_threshold(
+                "> 90 doy_per",
+                reference_period=("2042-01-01", "2044-12-31"),
+            ),
+            time_range=("2042-01-01", "2045-12-31"),
+            slice_mode="year",
+        )
+
+        payload = json.loads(self.PROVENANCE_FILE.read_text())
+        threshold = payload["inputs"][0]["threshold"]
+        bootstrap = payload["resolved_parameters"]["bootstrap"]
+        assert threshold["threshold_kind"] == "day_of_year_percentile_threshold"
+        assert threshold["is_day_of_year_percentile"] is True
+        assert bootstrap["threshold_requires_bootstrap"] is True
 
     def test_index_su__on_dataset(self) -> None:
         res = icclim.index(
