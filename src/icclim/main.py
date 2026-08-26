@@ -778,7 +778,7 @@ def _build_index_provenance_user_parameters(
     }
 
 
-def _serialize_provenance_value(value: Any) -> Any:
+def _serialize_provenance_value(value: object) -> object:
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
     if isinstance(value, dt.datetime):

@@ -67,6 +67,12 @@ autoapi_options = [
     # "special-members",
     "imported-members",
 ]
+suppress_warnings = [
+    "autoapi.not_readable",
+    "autoapi.python_import_resolution",
+    "intersphinx.external",
+]
+nbsphinx_execute = "never"
 
 autosectionlabel_maxdepth = 2
 
@@ -95,8 +101,8 @@ html_css_files = ["css/custom.css"]
 html_favicon = "_static/logo_icclim_favicon__displayed.ico"
 html_theme_options = {
     "logo": {
-        "image_light": "logo_icclim_colored__displayed.svg",
-        "image_dark": "logo_icclim_white__displayed.svg",
+        "image_light": "_static/logo_icclim_colored__displayed.svg",
+        "image_dark": "_static/logo_icclim_white__displayed.svg",
     },
     "icon_links": [
         {
@@ -108,23 +114,33 @@ html_theme_options = {
     ],
 }
 
-intersphinx_mapping = {
-    "clisops": ("https://clisops.readthedocs.io/en/latest/", None),
-    "flox": ("https://flox.readthedocs.io/en/latest/", None),
-    "sklearn": ("https://scikit-learn.org/stable/", None),
-    "statsmodels": ("https://www.statsmodels.org/stable/", None),
-    "numpy": ("https://numpy.org/doc/stable/", None),
-    "xclim": ("https://xclim.readthedocs.io/en/stable/", None),
+_raw_intersphinx_mapping = {
+    "clisops": "https://clisops.readthedocs.io/en/latest/",
+    "flox": "https://flox.readthedocs.io/en/latest/",
+    "sklearn": "https://scikit-learn.org/stable/",
+    "statsmodels": "https://www.statsmodels.org/stable/",
+    "numpy": "https://numpy.org/doc/stable/",
+    "xclim": "https://xclim.readthedocs.io/en/stable/",
+    "scipy": "https://docs.scipy.org/doc/scipy/",
 }
 
-# Dynamic SciPy mapping as it's often flaky or unreachable from some CI/RTD environments
-try:
-    scipy_url = "https://docs.scipy.org/doc/scipy/"
-    # Probe with a 5s timeout to avoid slowing down the build too much
-    requests.get(scipy_url + "objects.inv", timeout=5)
-    intersphinx_mapping["scipy"] = (scipy_url, None)
-except RequestException:
-    print("WARNING: SciPy intersphinx inventory unreachable. Skipping.")  # noqa: T201
+
+def _inventory_is_reachable(inventory_url: str) -> bool:
+    try:
+        requests.get(inventory_url + "objects.inv", timeout=5)
+    except RequestException:
+        return False
+    return True
+
+
+intersphinx_mapping = {}
+for inventory_name, inventory_url in _raw_intersphinx_mapping.items():
+    if not _inventory_is_reachable(inventory_url):
+        print(  # noqa: T201
+            f"WARNING: {inventory_name} intersphinx inventory unreachable. Skipping."
+        )
+        continue
+    intersphinx_mapping[inventory_name] = (inventory_url, None)
 
 intersphinx_timeout = 30
 
