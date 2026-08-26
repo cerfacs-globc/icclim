@@ -2809,7 +2809,7 @@ def custom_index(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -2845,7 +2845,7 @@ def custom_index(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     out_unit : str | None
         ``optional`` Output unit for certain indices: "days" or "%"
         (default: "days").

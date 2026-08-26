@@ -490,7 +490,7 @@ def tx10(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -516,7 +516,7 @@ def tx10(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
@@ -646,7 +646,7 @@ def tx90(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -672,7 +672,7 @@ def tx90(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
@@ -802,7 +802,7 @@ def tn10(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -828,7 +828,7 @@ def tn10(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
@@ -958,7 +958,7 @@ def tn90(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -984,7 +984,7 @@ def tn90(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
@@ -3448,7 +3448,7 @@ def r99(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -3474,7 +3474,7 @@ def r99(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
@@ -3605,7 +3605,7 @@ def pfl90(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -3631,7 +3631,7 @@ def pfl90(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
@@ -3762,7 +3762,7 @@ def pq90(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -3788,7 +3788,7 @@ def pq90(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
@@ -3919,7 +3919,7 @@ def pq99(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -3945,7 +3945,7 @@ def pq99(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
@@ -4073,7 +4073,7 @@ def ffav(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -4209,7 +4209,7 @@ def ff98(
         overlapping period between `base_period_time_range` and the study period is
         bootstrapped.
         #. to compute a reference period for indices such as difference_of_mean
-        (a.k.a anomaly) if a single variable is given in input.
+        (that is, an anomaly) if a single variable is given in input.
     bootstrap : bool | None
         ``optional`` Override bootstrap behavior for day-of-year percentile thresholds.
         Use ``None`` (default) to rely on icclim's overlap-based bootstrap logic,
@@ -4235,7 +4235,7 @@ def ff98(
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
-        Ignored for non percentile based indices.
+        Ignored for non-percentile-based indices.
     netcdf_version : str | NetcdfVersion
         ``optional`` NetCDF version to create (default: "NETCDF3_CLASSIC").
     save_thresholds : bool
