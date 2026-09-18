@@ -2,6 +2,18 @@
  Release history
 #################
 
+******
+7.1.11
+******
+
+date: 2026-09-18
+
+
+-  [enh] Add JSON provenance sidecars for file outputs, including input fingerprints, index definitions, execution context and reproducibility metadata.
+-  [fix] Restore the MAINT API after the provenance integration and keep provenance collection resilient when optional Git or runtime metadata is unavailable.
+-  [doc] Stabilize Read the Docs builds by installing Git LFS through the build image, fetching LFS assets before Sphinx runs and avoiding execution of data-dependent tutorial notebooks.
+-  [maint] Refresh generated API and coverage documentation, project logos, pre-commit hooks and documentation dependency locks.
+
 *******
 7.1.10
 *******
