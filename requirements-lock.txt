@@ -291,7 +291,6 @@ requests==2.33.0
     # via
     #   flit
     #   sphinx
-    #   sphinx-lfs-content
 roman-numerals==4.1.0
     # via sphinx
 rpds-py==0.30.0
@@ -328,8 +327,6 @@ sphinx-autobuild==2025.8.25
 sphinx-codeautolink==0.17.5
     # via icclim (pyproject.toml)
 sphinx-copybutton==0.5.2
-    # via icclim (pyproject.toml)
-sphinx-lfs-content==1.1.10
     # via icclim (pyproject.toml)
 sphinxcontrib-applehelp==2.0.0
     # via sphinx

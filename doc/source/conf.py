@@ -41,8 +41,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     # Makes code example clickable
     "sphinx_codeautolink",
-    # make sphinx extension fetch LFS content
-    "sphinx_lfs_content",
     # Add copy button to code snippets
     "sphinx_copybutton",
     # Add ipython directive

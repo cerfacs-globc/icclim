@@ -6,8 +6,13 @@ sphinx:
 
 build:
   os: "ubuntu-22.04"
+  apt_packages:
+    - git-lfs
   tools:
     python: "3.10"
+  jobs:
+    post_system_dependencies:
+      - git lfs pull
 
 python:
   install:
