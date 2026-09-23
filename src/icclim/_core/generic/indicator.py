@@ -302,6 +302,7 @@ class GenericIndicator(Indicator):
         out_unit: str | None,
         allow_partial_seasons: bool | Literal["start", "end"],
         allow_missing_periods: bool,
+        allow_partial_final_period: bool,
         warn_on_missing_periods: bool,
     ) -> DataArray:
         """
@@ -390,6 +391,7 @@ class GenericIndicator(Indicator):
                     src_freq=src_freq,
                     indexer=indexer or {},
                     allow_partial_seasons=allow_partial_seasons,
+                    allow_partial_final_period=allow_partial_final_period,
                     warn_on_missing_periods=warn_on_missing_periods,
                 )
 
@@ -471,6 +473,7 @@ class GenericIndicator(Indicator):
             out_unit=config.out_unit,
             allow_partial_seasons=config.allow_partial_seasons,
             allow_missing_periods=config.allow_missing_periods,
+            allow_partial_final_period=config.allow_partial_final_period,
             warn_on_missing_periods=config.warn_on_missing_periods,
         )
 
@@ -543,6 +546,7 @@ class GenericIndicator(Indicator):
         src_freq: str | None = None,
         indexer: dict[Any, Any] | None = None,
         allow_partial_seasons: bool | Literal["start", "end"] = False,
+        allow_partial_final_period: bool = False,
         warn_on_missing_periods: bool = False,
     ) -> DataArray:
         """
@@ -595,6 +599,9 @@ class GenericIndicator(Indicator):
             mask = xr.where(mask.time == mask.time[0], False, mask)
         elif allow_partial_seasons == "end":
             # Unmask only the last period
+            mask = xr.where(mask.time == mask.time[-1], False, mask)
+
+        if allow_partial_final_period:
             mask = xr.where(mask.time == mask.time[-1], False, mask)
 
         has_masked_periods = _has_masked_periods(mask)
