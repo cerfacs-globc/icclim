@@ -40,6 +40,7 @@ DEFAULT_ARGS = {
     "date_event": False,
     "run_index": "first",
     "allow_partial_seasons": False,
+    "allow_missing_periods": None,
 }
 
 
@@ -156,6 +157,7 @@ def test_custom_index(index_fun_mock: MagicMock) -> None:
         },
         "run_index": "first",
         "allow_partial_seasons": False,
+        "allow_missing_periods": None,
     }
     call_args = _filter_supported_kwargs(icclim.custom_index, user_index_args)
     icclim.custom_index(**call_args)

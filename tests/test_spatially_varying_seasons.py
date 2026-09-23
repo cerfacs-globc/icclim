@@ -35,6 +35,7 @@ class TestSpatiallyVaryingSeasons:
             in_files={"tas": tas},
             index_name="TG",
             slice_mode=(start, end),
+            allow_missing_periods=True,
         )
 
         # TG is the mean
@@ -70,6 +71,7 @@ class TestSpatiallyVaryingSeasons:
             in_files={"tasmax": tasmax},
             index_name="SU",
             slice_mode=(start, end),
+            allow_missing_periods=True,
         )
 
         # Pixel 1: 10 days >= 25
@@ -109,6 +111,7 @@ class TestSpatiallyVaryingSeasons:
             in_files={"tas": tas},
             index_name="TG",
             slice_mode=(start, end),
+            allow_missing_periods=True,
         )
 
         # Mean should be 10 (ignoring 0s outside the season)

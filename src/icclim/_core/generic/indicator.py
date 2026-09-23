@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from copy import deepcopy
 from functools import reduce
 from typing import TYPE_CHECKING, Any, Literal
+from warnings import warn
 
 import numpy as np
 import xarray as xr
@@ -300,6 +301,8 @@ class GenericIndicator(Indicator):
         indexer: dict[Any, Any] | None,
         out_unit: str | None,
         allow_partial_seasons: bool | Literal["start", "end"],
+        allow_missing_periods: bool,
+        warn_on_missing_periods: bool,
     ) -> DataArray:
         """
         Postprocesses the result of the indicator computation.
@@ -367,7 +370,7 @@ class GenericIndicator(Indicator):
         elif out_unit is not None:
             result = convert_units_to(result, out_unit, context="hydro")
 
-        if self.missing != "skip" and indexer is not None:
+        if self.missing != "skip" and not allow_missing_periods:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
             it = filter(lambda cv: not cv.is_reference, climate_vars)
@@ -385,8 +388,9 @@ class GenericIndicator(Indicator):
                     out_data=result,
                     resample_freq=output_freq,
                     src_freq=src_freq,
-                    indexer=indexer,
+                    indexer=indexer or {},
                     allow_partial_seasons=allow_partial_seasons,
+                    warn_on_missing_periods=warn_on_missing_periods,
                 )
 
         for prop in self.templated_properties:
@@ -466,6 +470,8 @@ class GenericIndicator(Indicator):
             indexer=config.frequency.indexer,
             out_unit=config.out_unit,
             allow_partial_seasons=config.allow_partial_seasons,
+            allow_missing_periods=config.allow_missing_periods,
+            warn_on_missing_periods=config.warn_on_missing_periods,
         )
 
     def __eq__(self, other: object) -> bool:
@@ -537,6 +543,7 @@ class GenericIndicator(Indicator):
         src_freq: str | None = None,
         indexer: dict[Any, Any] | None = None,
         allow_partial_seasons: bool | Literal["start", "end"] = False,
+        warn_on_missing_periods: bool = False,
     ) -> DataArray:
         """
         Handle missing values in climate index computations.
@@ -590,6 +597,18 @@ class GenericIndicator(Indicator):
             # Unmask only the last period
             mask = xr.where(mask.time == mask.time[-1], False, mask)
 
+        has_masked_periods = _has_masked_periods(mask)
+        if warn_on_missing_periods and has_masked_periods:
+            warn(
+                "icclim masked one or more output periods because the source "
+                "time series is incomplete. Pass allow_missing_periods=True to "
+                "compute those periods from the available timesteps.",
+                UserWarning,
+                stacklevel=3,
+            )
+        if not has_masked_periods:
+            return out_data
+
         return out_data.where(~mask)
 
     def _compute_missing_mask(
@@ -618,6 +637,13 @@ class GenericIndicator(Indicator):
             src_timestep=src_freq,
             **indexer,
         )
+
+
+def _has_masked_periods(mask: DataArray) -> bool:
+    try:
+        return bool(mask.any().compute().item())
+    except AttributeError:
+        return bool(mask.any().item())
 
 
 def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:

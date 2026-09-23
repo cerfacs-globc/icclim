@@ -1933,6 +1933,7 @@ class TestIntegration:
             slice_mode="month",
             run_index="first",
             date_event=True,
+            allow_missing_periods=True,
         ).compute()
 
         assert res_first.max_consecutive_occurrence.isel(time=0) == 4
@@ -1956,6 +1957,7 @@ class TestIntegration:
             slice_mode="month",
             run_index="last",
             date_event=True,
+            allow_missing_periods=True,
         ).compute()
 
         assert res_last.max_consecutive_occurrence.isel(time=0) == 4
@@ -1983,6 +1985,7 @@ class TestIntegration:
             threshold=">= 25 degC",
             slice_mode="month",
             min_spell_length=2,
+            allow_missing_periods=True,
         ).compute()
 
         assert res.sum_of_spell_lengths.isel(time=0) == 7
@@ -2456,7 +2459,11 @@ class TestIntegration:
             attrs={"units": "mm/day"},
         )
         precipitation[0:5] = [0.1, 0.1, 0.1, 2, 3]
-        rr = icclim.rr(in_files=precipitation, slice_mode="W").RR
+        rr = icclim.rr(
+            in_files=precipitation,
+            slice_mode="W",
+            allow_missing_periods=True,
+        ).RR
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
         np.testing.assert_almost_equal(rr.isel(time=0), 0.2)
@@ -2474,7 +2481,11 @@ class TestIntegration:
             attrs={"units": "mm/day"},
         )
         precipitation[0:5] = [0.1, 0.1, 0.1, 2, 3]
-        rr = icclim.rr(in_files=precipitation, slice_mode="2W-FRI")
+        rr = icclim.rr(
+            in_files=precipitation,
+            slice_mode="2W-FRI",
+            allow_missing_periods=True,
+        )
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
         np.testing.assert_almost_equal(rr.RR.isel(time=0), 5.3)
