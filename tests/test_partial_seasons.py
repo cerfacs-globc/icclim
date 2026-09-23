@@ -135,5 +135,77 @@ def test_yearly_period_with_missing_months_is_masked_by_default():
     assert res_allowed.SU.values[0] == len(time)
 
 
+def test_allow_partial_final_period_keeps_historical_years_masked():
+    time = pd.date_range("2025-01-01", "2026-09-15", freq="D")
+    time = time[~((time.year == 2025) & time.month.isin([4, 5, 6]))]
+    tas = xr.DataArray(
+        np.full(len(time), 30.0),
+        coords={"time": time},
+        dims=["time"],
+        attrs={"units": "degC"},
+    )
+
+    with pytest.warns(UserWarning, match="source time series is incomplete"):
+        res = icclim.index(
+            in_files=tas,
+            index_name="SU",
+            threshold="> 25 degC",
+            slice_mode="year",
+            allow_partial_final_period=True,
+            logs_verbosity="SILENT",
+        )
+
+    assert np.isnan(res.SU.sel(time="2025").values[0])
+    assert res.SU.sel(time="2026").values[0] == 258
+
+
+def test_allow_partial_final_period_keeps_historical_months_masked():
+    time = pd.date_range("2026-01-01", "2026-09-15", freq="D")
+    time = time[time.month != 4]
+    tas = xr.DataArray(
+        np.full(len(time), 30.0),
+        coords={"time": time},
+        dims=["time"],
+        attrs={"units": "degC"},
+    )
+
+    with pytest.warns(UserWarning, match="source time series is incomplete"):
+        res = icclim.index(
+            in_files=tas,
+            index_name="SU",
+            threshold="> 25 degC",
+            slice_mode="month",
+            allow_partial_final_period=True,
+            logs_verbosity="SILENT",
+        )
+
+    assert np.isnan(res.SU.sel(time="2026-04").values[0])
+    assert res.SU.sel(time="2026-09").values[0] == 15
+
+
+def test_allowed_partial_final_period_does_not_warn_when_it_is_the_only_gap():
+    time = pd.date_range("2026-01-01", "2026-09-15", freq="D")
+    tas = xr.DataArray(
+        np.full(len(time), 30.0),
+        coords={"time": time},
+        dims=["time"],
+        attrs={"units": "degC"},
+    )
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        res = icclim.index(
+            in_files=tas,
+            index_name="SU",
+            threshold="> 25 degC",
+            slice_mode="year",
+            allow_partial_final_period=True,
+            logs_verbosity="SILENT",
+        )
+
+    assert res.SU.values[0] == len(time)
+    assert not any("source time series is incomplete" in str(w.message) for w in caught)
+
+
 if __name__ == "__main__":
     test_allow_partial_seasons()

@@ -103,6 +103,9 @@ class IndexConfig:
         When True, period aggregations are computed from the available source
         timesteps.
         Default is False.
+    allow_partial_final_period : bool
+        When True, strict missing-period masking is still applied, except for the
+        final output period.
     warn_on_missing_periods : bool
         Emit a user warning when the default completeness check masks at least
         one output period.
@@ -130,4 +133,5 @@ class IndexConfig:
     run_index: str | None = None
     allow_partial_seasons: bool | Literal["start", "end"] = False
     allow_missing_periods: bool = False
+    allow_partial_final_period: bool = False
     warn_on_missing_periods: bool = False

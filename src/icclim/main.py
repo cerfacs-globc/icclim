@@ -370,6 +370,7 @@ def index(
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
     allow_missing_periods: bool | None = None,
+    allow_partial_final_period: bool = False,
     *,
     # deprecated params are kwargs only
     window_width: int | None = None,
@@ -543,6 +544,11 @@ def index(
         timesteps only.
         Default is None, which behaves like False and warns if a period is
         masked. Pass False explicitly to keep strict masking without that warning.
+    allow_partial_final_period : bool
+        When True, incomplete historical output periods are still masked, but
+        the final output period is allowed to be computed from available source
+        timesteps. This is useful for an ongoing month or year at the end of a
+        time series. Ignored when ``allow_missing_periods=True``.
 
     Examples
     --------
@@ -644,6 +650,7 @@ def index(
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons or False,
             allow_missing_periods=bool(allow_missing_periods),
+            allow_partial_final_period=allow_partial_final_period,
             warn_on_missing_periods=(
                 allow_missing_periods is None and allow_partial_seasons is None
             ),
@@ -673,6 +680,7 @@ def index(
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
             allow_missing_periods=allow_missing_periods,
+            allow_partial_final_period=allow_partial_final_period,
             normalized_request=normalized_request,
         )
         result_ds = _run_index_workflow(
@@ -766,6 +774,7 @@ def _build_index_provenance_user_parameters(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
     allow_missing_periods: bool | None,
+    allow_partial_final_period: bool,
     normalized_request: NormalizedIndexRequest,
 ) -> dict[str, Any]:
     return {
@@ -796,6 +805,7 @@ def _build_index_provenance_user_parameters(
         "run_index": run_index,
         "allow_partial_seasons": allow_partial_seasons,
         "allow_missing_periods": allow_missing_periods,
+        "allow_partial_final_period": allow_partial_final_period,
     }
 
 
@@ -837,6 +847,7 @@ def _build_config_from_request(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
     allow_missing_periods: bool,
+    allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
     normalized_request: NormalizedIndexRequest,
 ) -> IndexConfig:
@@ -866,6 +877,7 @@ def _build_config_from_request(
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         allow_missing_periods=allow_missing_periods,
+        allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
     )
 
@@ -895,6 +907,7 @@ def _build_config(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
     allow_missing_periods: bool,
+    allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
 ) -> IndexConfig:
     if _uses_legacy_user_index_recipe(legacy_user_index, index_name):
@@ -921,6 +934,7 @@ def _build_config(
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
             allow_missing_periods=allow_missing_periods,
+            allow_partial_final_period=allow_partial_final_period,
             warn_on_missing_periods=warn_on_missing_periods,
         )
     if index_name is not None:
@@ -948,6 +962,7 @@ def _build_config(
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
             allow_missing_periods=allow_missing_periods,
+            allow_partial_final_period=allow_partial_final_period,
             warn_on_missing_periods=warn_on_missing_periods,
         )
     msg = "You must fill either index_name or user_index to compute a climate index."
@@ -1027,6 +1042,7 @@ def _build_legacy_user_index_config(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
     allow_missing_periods: bool,
+    allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
@@ -1074,6 +1090,7 @@ def _build_legacy_user_index_config(
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         allow_missing_periods=allow_missing_periods,
+        allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
     )
 
@@ -1102,6 +1119,7 @@ def _build_standard_index_config(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
     allow_missing_periods: bool,
+    allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
@@ -1159,6 +1177,7 @@ def _build_standard_index_config(
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         allow_missing_periods=allow_missing_periods,
+        allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
     )
 
@@ -1254,6 +1273,7 @@ def _assemble_index_config(
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
     allow_missing_periods: bool,
+    allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
 ) -> IndexConfig:
     return IndexConfig(
@@ -1279,6 +1299,7 @@ def _assemble_index_config(
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
         allow_missing_periods=allow_missing_periods,
+        allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
     )
 
