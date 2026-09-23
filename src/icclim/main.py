@@ -341,7 +341,8 @@ def index(
     rolling_window_width: int | None = 5,
     sampling_method: SamplingMethodLike = RESAMPLE_METHOD,
     run_index: str | None = "first",
-    allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    allow_missing_periods: bool | None = None,
     *,
     # deprecated params are kwargs only
     window_width: int | None = None,
@@ -509,6 +510,12 @@ def index(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool
+        When False, output periods containing missing source timesteps are masked
+        to NaN. When True, aggregations are computed from available source
+        timesteps only.
+        Default is None, which behaves like False and warns if a period is
+        masked. Pass False explicitly to keep strict masking without that warning.
 
     Examples
     --------
@@ -606,7 +613,11 @@ def index(
         rolling_window_width=rolling_window_width,
         sampling_method=sampling_method,
         run_index=run_index,
-        allow_partial_seasons=allow_partial_seasons,
+        allow_partial_seasons=allow_partial_seasons or False,
+        allow_missing_periods=bool(allow_missing_periods),
+        warn_on_missing_periods=(
+            allow_missing_periods is None and allow_partial_seasons is None
+        ),
         normalized_request=normalized_request,
     )
     result_ds = _run_index_workflow(
@@ -663,6 +674,8 @@ def _build_config_from_request(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
+    allow_missing_periods: bool,
+    warn_on_missing_periods: bool,
     normalized_request: NormalizedIndexRequest,
 ) -> IndexConfig:
     """Build an IndexConfig from a normalized user request."""
@@ -690,6 +703,8 @@ def _build_config_from_request(
         sampling_method=sampling_method,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
+        warn_on_missing_periods=warn_on_missing_periods,
     )
 
 
@@ -717,6 +732,8 @@ def _build_config(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
+    allow_missing_periods: bool,
+    warn_on_missing_periods: bool,
 ) -> IndexConfig:
     if _uses_legacy_user_index_recipe(legacy_user_index, index_name):
         return _build_legacy_user_index_config(
@@ -741,6 +758,8 @@ def _build_config(
             sampling_method=sampling_method,
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
+            allow_missing_periods=allow_missing_periods,
+            warn_on_missing_periods=warn_on_missing_periods,
         )
     if index_name is not None:
         return _build_standard_index_config(
@@ -766,6 +785,8 @@ def _build_config(
             sampling_method=sampling_method,
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
+            allow_missing_periods=allow_missing_periods,
+            warn_on_missing_periods=warn_on_missing_periods,
         )
     msg = "You must fill either index_name or user_index to compute a climate index."
     raise InvalidIcclimArgumentError(msg)
@@ -843,6 +864,8 @@ def _build_legacy_user_index_config(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
+    allow_missing_periods: bool,
+    warn_on_missing_periods: bool,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     sampling_frequency = FrequencyRegistry.lookup(slice_mode)  # type: ignore[arg-type]
@@ -888,6 +911,8 @@ def _build_legacy_user_index_config(
         reference=ICCLIM_REFERENCE,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
+        warn_on_missing_periods=warn_on_missing_periods,
     )
 
 
@@ -914,6 +939,8 @@ def _build_standard_index_config(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
+    allow_missing_periods: bool,
+    warn_on_missing_periods: bool,
 ) -> IndexConfig:
     interpolation = QuantileInterpolationRegistry.lookup(interpolation)
     # logical link here link two climate_variable computations as with user_index.
@@ -969,6 +996,8 @@ def _build_standard_index_config(
         reference=reference,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
+        warn_on_missing_periods=warn_on_missing_periods,
     )
 
 
@@ -1062,6 +1091,8 @@ def _assemble_index_config(
     reference: str,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
+    allow_missing_periods: bool,
+    warn_on_missing_periods: bool,
 ) -> IndexConfig:
     return IndexConfig(
         save_thresholds=save_thresholds,
@@ -1085,6 +1116,8 @@ def _assemble_index_config(
         reference=reference,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
+        warn_on_missing_periods=warn_on_missing_periods,
     )
 
 

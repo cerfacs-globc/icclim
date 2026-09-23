@@ -98,6 +98,14 @@ class IndexConfig:
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool
+        When False, output periods containing missing source timesteps are masked.
+        When True, period aggregations are computed from the available source
+        timesteps.
+        Default is False.
+    warn_on_missing_periods : bool
+        Emit a user warning when the default completeness check masks at least
+        one output period.
     """
 
     frequency: Frequency
@@ -121,3 +129,5 @@ class IndexConfig:
     reference: str
     run_index: str | None = None
     allow_partial_seasons: bool | Literal["start", "end"] = False
+    allow_missing_periods: bool = False
+    warn_on_missing_periods: bool = False
