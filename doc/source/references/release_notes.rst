@@ -2,6 +2,25 @@
  Release history
 #################
 
+*****
+7.2.0
+*****
+
+date: 2026-09-25
+
+
+-  [change] **Behavioral change**: icclim now masks output periods to ``NaN``
+   by default when the source time series is incomplete for that period. Previously,
+   yearly or monthly indices could be computed from available timesteps only, even
+   when some source timesteps were missing.
+-  [enh] Add ``allow_missing_periods=True`` to preserve the previous behavior and
+   compute incomplete periods from available timesteps.
+-  [enh] Add ``allow_partial_final_period=True`` to compute only the final
+   incomplete output period, useful for ongoing months or years, while keeping
+   older incomplete periods masked.
+-  [enh] Regenerate the public index-specific API wrappers so the new
+   missing-period options are available on individual index functions.
+
 ******
 7.1.11
 ******
