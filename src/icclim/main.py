@@ -34,7 +34,10 @@ from icclim._core.constants import (
 )
 from icclim._core.generic.indicator import GenericIndicator
 from icclim._core.input_parsing import build_input_dict
-from icclim._core.model.index_config import IndexConfig
+from icclim._core.model.index_config import (
+    IndexConfig,
+    resolve_legacy_completeness_policy,
+)
 from icclim._core.model.index_group import IndexGroup, IndexGroupRegistry
 from icclim._core.model.logical_link import LogicalLinkRegistry
 from icclim._core.model.netcdf_version import NetcdfVersion, NetcdfVersionRegistry
@@ -542,8 +545,11 @@ def index(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -555,16 +561,16 @@ def index(
     Compute Summer Days (SU) from an in-memory xarray DataArray:
 
     >>> import numpy as np, pandas as pd, xarray as xr, icclim
-    >>> time = pd.date_range("2000-01-01", periods=365, freq="D")
+    >>> time = pd.date_range("2000-01-01", periods=366, freq="D")
     >>> tasmax = xr.DataArray(
-    ...     np.full(365, 303.15),
+    ...     np.full(366, 303.15),
     ...     coords={"time": time},
     ...     dims=["time"],
     ...     attrs={"units": "K"},
     ... )
     >>> result = icclim.index(in_files=tasmax, index_name="SU", var_name="tasmax")
     >>> int(result["SU"].isel(time=0).values)
-    365
+    366
 
     Compute a generic index with spatially varying seasons:
 
@@ -698,7 +704,11 @@ def index(
 
 def _reemit_missing_period_warnings(captured_warnings: list[Any]) -> None:
     for item in captured_warnings:
-        if "source time series is incomplete" in str(item.message):
+        message = str(item.message)
+        if (
+            "source time series is incomplete" in message
+            or "completeness policy will mask" in message
+        ):
             warn(item.message, item.category, stacklevel=3)
 
 
@@ -1298,7 +1308,11 @@ def _assemble_index_config(
         reference=reference,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
-        allow_missing_periods=allow_missing_periods,
+        completeness_policy=resolve_legacy_completeness_policy(
+            allow_missing_periods=allow_missing_periods,
+            missing_method=getattr(indicator, "missing", "any"),
+            missing_options=getattr(indicator, "missing_options", None),
+        ),
         allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
     )

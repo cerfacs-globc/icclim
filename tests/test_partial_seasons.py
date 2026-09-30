@@ -1,11 +1,22 @@
 import warnings
 
+import dask.array as da
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from dask.callbacks import Callback
 
 import icclim
+
+
+class _ComputeRecorder(Callback):
+    def __init__(self) -> None:
+        super().__init__()
+        self.graph_sizes: list[int] = []
+
+    def _start(self, dsk: dict) -> None:
+        self.graph_sizes.append(len(dsk))
 
 
 def test_allow_partial_seasons():
@@ -84,7 +95,7 @@ def test_yearly_period_with_missing_months_is_masked_by_default():
         attrs={"units": "degC"},
     )
 
-    with pytest.warns(UserWarning, match="source time series is incomplete"):
+    with pytest.warns(UserWarning, match="could not infer a regular source"):
         res_default = icclim.index(
             in_files=tas,
             index_name="SU",
@@ -93,6 +104,9 @@ def test_yearly_period_with_missing_months_is_masked_by_default():
             logs_verbosity="SILENT",
         )
     assert np.isnan(res_default.SU.values[0])
+    assert res_default.SU.attrs["completeness_policy"] == "strict"
+    assert res_default.SU.attrs["completeness_method"] == "xclim:any"
+    assert res_default.SU.attrs["completeness_options"] == "{}"
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
@@ -104,7 +118,7 @@ def test_yearly_period_with_missing_months_is_masked_by_default():
             logs_verbosity="SILENT",
         )
     incomplete_warnings = [
-        w for w in caught if "source time series is incomplete" in str(w.message)
+        w for w in caught if "could not infer a regular source" in str(w.message)
     ]
     assert len(incomplete_warnings) == 1
     assert np.isnan(res_monthly.SU.sel(time="2001-04").values[0])
@@ -122,7 +136,7 @@ def test_yearly_period_with_missing_months_is_masked_by_default():
             logs_verbosity="SILENT",
         )
     assert np.isnan(res_strict.SU.values[0])
-    assert not any("source time series is incomplete" in str(w.message) for w in caught)
+    assert not any("completeness policy" in str(w.message) for w in caught)
 
     res_allowed = icclim.index(
         in_files=tas,
@@ -133,6 +147,83 @@ def test_yearly_period_with_missing_months_is_masked_by_default():
         logs_verbosity="SILENT",
     )
     assert res_allowed.SU.values[0] == len(time)
+    assert res_allowed.SU.attrs["completeness_policy"] == "none"
+    assert res_allowed.SU.attrs["completeness_method"] == "not_applied"
+    assert res_allowed.SU.attrs["completeness_options"] == "{}"
+
+
+def test_default_missing_check_keeps_dask_input_lazy() -> None:
+    time = pd.date_range("2001-01-01", "2002-12-31", freq="D")
+    tas = xr.DataArray(
+        da.full((len(time), 2, 3), 30.0, chunks=(31, 2, 3)),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0, 3.0]},
+        dims=["time", "lat", "lon"],
+        attrs={"units": "degC"},
+    )
+    recorder = _ComputeRecorder()
+
+    with recorder:
+        result = icclim.index(
+            in_files=tas,
+            index_name="SU",
+            slice_mode="year",
+            logs_verbosity="SILENT",
+        )
+
+    assert recorder.graph_sizes == []
+    assert result.SU.chunks is not None
+
+
+def test_irregular_time_warning_does_not_compute_dask_input() -> None:
+    time = pd.date_range("2001-01-01", "2001-12-31", freq="D")
+    time = time[time.month != 6]
+    tas = xr.DataArray(
+        da.full((len(time), 2, 3), 30.0, chunks=(31, 2, 3)),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0, 3.0]},
+        dims=["time", "lat", "lon"],
+        attrs={"units": "degC"},
+    )
+    recorder = _ComputeRecorder()
+
+    with (
+        recorder,
+        pytest.warns(UserWarning, match="could not infer a regular source"),
+    ):
+        result = icclim.index(
+            in_files=tas,
+            index_name="SU",
+            slice_mode="year",
+            logs_verbosity="SILENT",
+        )
+
+    assert recorder.graph_sizes == []
+    assert result.SU.chunks is not None
+
+
+def test_default_lazily_masks_missing_dask_values() -> None:
+    time = pd.date_range("2001-01-01", "2001-12-31", freq="D")
+    values = np.full((len(time), 1, 2), 30.0)
+    values[0, 0, 0] = np.nan
+    tas = xr.DataArray(
+        da.from_array(values, chunks=(31, 1, 2)),
+        coords={"time": time, "lat": [45.0], "lon": [1.0, 2.0]},
+        dims=["time", "lat", "lon"],
+        attrs={"units": "degC"},
+    )
+    recorder = _ComputeRecorder()
+
+    with recorder:
+        result = icclim.index(
+            in_files=tas,
+            index_name="SU",
+            slice_mode="year",
+            logs_verbosity="SILENT",
+        )
+
+    assert recorder.graph_sizes == []
+    computed = result.SU.compute()
+    assert np.isnan(computed.isel(time=0, lat=0, lon=0))
+    assert computed.isel(time=0, lat=0, lon=1) == len(time)
 
 
 def test_allow_partial_final_period_keeps_historical_years_masked():
@@ -145,7 +236,7 @@ def test_allow_partial_final_period_keeps_historical_years_masked():
         attrs={"units": "degC"},
     )
 
-    with pytest.warns(UserWarning, match="source time series is incomplete"):
+    with pytest.warns(UserWarning, match="could not infer a regular source"):
         res = icclim.index(
             in_files=tas,
             index_name="SU",
@@ -169,7 +260,7 @@ def test_allow_partial_final_period_keeps_historical_months_masked():
         attrs={"units": "degC"},
     )
 
-    with pytest.warns(UserWarning, match="source time series is incomplete"):
+    with pytest.warns(UserWarning, match="could not infer a regular source"):
         res = icclim.index(
             in_files=tas,
             index_name="SU",
@@ -204,7 +295,7 @@ def test_allowed_partial_final_period_does_not_warn_when_it_is_the_only_gap():
         )
 
     assert res.SU.values[0] == len(time)
-    assert not any("source time series is incomplete" in str(w.message) for w in caught)
+    assert not any("completeness policy" in str(w.message) for w in caught)
 
 
 if __name__ == "__main__":

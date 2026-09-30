@@ -927,6 +927,7 @@ class TestIntegration:
             "base_period_time_range": ("2042-01-01", "2043-12-31"),
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "year",
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
@@ -960,6 +961,7 @@ class TestIntegration:
             "base_period_time_range": ("2042-01-01", "2043-12-31"),
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "ms",
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
@@ -1006,6 +1008,7 @@ class TestIntegration:
             "time_range": ("2042-01-01", "2045-12-31"),
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "year",
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
@@ -1697,6 +1700,7 @@ class TestIntegration:
             time_range=("2042-01-01", "2045-12-31"),
             out_file=self.OUTPUT_FILE,
             slice_mode="year",
+            allow_missing_periods=True,
         )
 
         assert not threshold.is_ready
@@ -1781,6 +1785,7 @@ class TestIntegration:
             base_period_time_range=("2042-01-01", "2043-12-31"),
             out_file=self.OUTPUT_FILE,
             slice_mode="ms",
+            allow_missing_periods=True,
         )
         profile = generic_functions.get_bootstrap_profile()
 
@@ -1825,6 +1830,7 @@ class TestIntegration:
             base_period_time_range=("2042-01-01", "2043-12-31"),
             out_file=self.OUTPUT_FILE,
             slice_mode="ms",
+            allow_missing_periods=True,
         )
         profile = generic_functions.get_bootstrap_profile()
 
@@ -2116,6 +2122,7 @@ class TestIntegration:
             "time_range": ("2042-01-01", "2045-12-31"),
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "year",
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
@@ -2361,6 +2368,7 @@ class TestIntegration:
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "year",
             "min_spell_length": 6,
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")

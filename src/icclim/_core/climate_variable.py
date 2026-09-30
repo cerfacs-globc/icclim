@@ -74,6 +74,7 @@ class ClimateVariable:
     reference_period: Sequence[datetime | str] | None = None
     is_reference: bool = False
     bootstrap: bool | None = None
+    source_frequency_was_inferred: bool = True
 
     def build_indicator_metadata(
         self,
@@ -314,7 +315,7 @@ def build_climate_var(
             original_data=threshold_prepare_data,
             conversion_unit=studied_data.attrs[UNITS_KEY],
         )
-    _set_source_frequency_metadata(studied_data)
+    source_frequency_was_inferred = _set_source_frequency_metadata(studied_data)
     return ClimateVariable(
         name=climate_var_name,
         standard_var=standard_var,
@@ -330,6 +331,7 @@ def build_climate_var(
             studied_data.time.attrs.get("freq", DEFAULT_INPUT_FREQUENCY)
         ),
         bootstrap=bootstrap,
+        source_frequency_was_inferred=source_frequency_was_inferred,
     )
 
 
@@ -349,11 +351,12 @@ def _read_study_dataset_and_threshold(
     return study_ds, None
 
 
-def _set_source_frequency_metadata(studied_data: DataArray) -> None:
+def _set_source_frequency_metadata(studied_data: DataArray) -> bool:
     if "time" not in studied_data.coords:
-        return
-    inferred_freq = xarray.infer_freq(studied_data.time) or DEFAULT_INPUT_FREQUENCY
-    studied_data.time.attrs["freq"] = inferred_freq
+        return True
+    inferred_freq = xarray.infer_freq(studied_data.time)
+    studied_data.time.attrs["freq"] = inferred_freq or DEFAULT_INPUT_FREQUENCY
+    return inferred_freq is not None
 
 
 def must_run_bootstrap(
