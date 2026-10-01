@@ -543,16 +543,19 @@ def index(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1339,6 +1342,7 @@ def _assemble_index_config(
             source_frequency=climate_variables[0].source_frequency,
             missing_method=getattr(indicator, "missing", "any"),
             missing_options=getattr(indicator, "missing_options", None),
+            wmo_aggregation=getattr(indicator, "wmo_aggregation", "other"),
         ),
         allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,

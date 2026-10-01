@@ -33,7 +33,11 @@ if TYPE_CHECKING:
     import jinja2
 
     from icclim._core.climate_variable import ClimateVariable
-    from icclim._core.model.index_config import CompletenessPolicy, IndexConfig
+    from icclim._core.model.index_config import (
+        CompletenessPolicy,
+        IndexConfig,
+        WmoAggregationKind,
+    )
     from icclim.frequency import Frequency
 
 
@@ -105,6 +109,8 @@ class GenericIndicator(Indicator):
         The method for handling missing values.
     missing_options: dict | None
         Additional options for handling missing values.
+    wmo_aggregation: WmoAggregationKind
+        Aggregation class used by the WMO completeness profile.
     """
 
     missing: str
@@ -122,6 +128,7 @@ class GenericIndicator(Indicator):
         missing: str = "any",
         missing_options: dict | None = None,
         qualifiers: tuple = (),
+        wmo_aggregation: WmoAggregationKind = "other",
     ) -> None:
         """
         Initialize a GenericIndicator object.
@@ -144,6 +151,9 @@ class GenericIndicator(Indicator):
             The options for handling missing values, by default None.
         qualifiers : tuple, optional
             The qualifiers for the indicator, by default ().
+        wmo_aggregation : {"mean", "count", "sum", "extreme", "other"}, optional
+            Aggregation class used by the WMO completeness profile. Custom
+            indicators default to the conservative ``"other"`` class.
 
         Raises
         ------
@@ -182,6 +192,10 @@ class GenericIndicator(Indicator):
         self.missing_options = missing_options
 
         self.missing = missing or "any"
+        if wmo_aggregation not in {"mean", "count", "sum", "extreme", "other"}:
+            msg = f"Unknown WMO aggregation class: {wmo_aggregation!r}."
+            raise ValueError(msg)
+        self.wmo_aggregation = wmo_aggregation
         en_indicator_templates = deepcopy(INDICATORS_TEMPLATES_EN[name])
         self.name = name
         self.process = process
@@ -639,6 +653,13 @@ class GenericIndicator(Indicator):
         missing_options: dict | None = None,
     ) -> DataArray:
         missing_options = missing_options or {}
+        if missing_class.__name__ == "MissingWMO":
+            return self._compute_wmo_missing_mask(
+                da,
+                resample_freq=resample_freq,
+                indexer=indexer,
+                missing_options=missing_options,
+            )
         try:
             missing_obj = missing_class(**missing_options)
         except TypeError:
@@ -655,6 +676,92 @@ class GenericIndicator(Indicator):
             freq=resample_freq,
             src_timestep=src_freq,
             **indexer,
+        )
+
+    def _compute_wmo_missing_mask(
+        self,
+        da: DataArray,
+        *,
+        resample_freq: str | None,
+        indexer: dict[Any, Any],
+        missing_options: dict[str, Any],
+    ) -> DataArray:
+        """Apply WMO's monthly 11/5 rule lazily without optional flox."""
+        from xclim.core.calendar import select_time  # noqa: PLC0415
+        nm = missing_options.get("nm", 11)
+        nc = missing_options.get("nc", 5)
+        # Materialize only the coordinate, never data. Reindexing to the complete
+        # daily axis makes omitted dates count as consecutive missing days too.
+        month_labels = da.time.resample(time="MS").count().time
+        first_month = month_labels.values[0]
+        last_month = month_labels.values[-1]
+        first_source_time = da.time.values[0]
+        if isinstance(first_source_time, np.datetime64):
+            time_of_day = first_source_time - first_source_time.astype("datetime64[D]")
+        else:
+            midnight = first_source_time.replace(
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0,
+            )
+            time_of_day = first_source_time - midnight
+        first_month += time_of_day
+        last_month += time_of_day
+        month_delta = last_month - first_month
+        if isinstance(month_delta, np.timedelta64):
+            elapsed_days = int(month_delta / np.timedelta64(1, "D"))
+        else:
+            elapsed_days = month_delta.days
+        periods = elapsed_days + int(month_labels.dt.days_in_month.values[-1])
+        complete_time = xr.date_range(
+            start=first_month,
+            periods=periods,
+            freq="D",
+            calendar=da.time.dt.calendar,
+            use_cftime=da.time.dtype == object,
+        )
+        if not da.indexes["time"].equals(complete_time):
+            da = da.reindex(time=complete_time)
+        selected = select_time(da, **indexer) if indexer else da
+        valid = selected.notnull()
+        expected = valid.resample(time="MS").count(dim="time")
+        valid_count = valid.resample(time="MS").sum(dim="time")
+        too_many_missing = (expected - valid_count) >= nm
+        missing = ~valid
+        missing_run_end = missing
+        for offset in range(1, nc):
+            missing_run_end = missing_run_end & missing.shift(
+                time=offset,
+                fill_value=False,
+            )
+        year = valid.time.dt.year
+        month = valid.time.dt.month
+        run_stays_in_month = (
+            (year == year.shift(time=nc - 1))
+            & (month == month.shift(time=nc - 1))
+        )
+        has_consecutive_missing = (
+            (missing_run_end & run_stays_in_month)
+            .astype("int8")
+            .resample(time="MS")
+            .max(dim="time")
+            .astype(bool)
+        )
+        monthly_mask = too_many_missing | has_consecutive_missing
+
+        # A coarser period is invalid when any constituent month is invalid.
+        # The complete daily axis above ensures that absent whole months exist
+        # in this monthly mask, without relying on version-specific xclim aliases.
+        if resample_freq is None:
+            return monthly_mask.any(dim="time")
+        # Integer max avoids an incorrect all-True boolean ``Resample.any``
+        # result in the xarray version paired with xclim 0.53.
+        return (
+            monthly_mask.astype("int8")
+            .resample(time=resample_freq)
+            .max(dim="time")
+            .astype(bool)
         )
 
 
