@@ -647,9 +647,9 @@ class GenericIndicator(Indicator):
                 freq=resample_freq,
                 src_timestep=src_freq,
                 **indexer,
-                **missing_options,
             )
-            return missing_obj()
+            # xclim < 0.59 configures missing-method options at call time.
+            return missing_obj(**missing_options)
         return missing_obj(
             da,
             freq=resample_freq,
