@@ -156,6 +156,15 @@ def _resolve_fraction_policy(
         raise ValueError(msg)
     if minimum_valid_fraction == 1:
         return CompletenessPolicy(name="strict", method="any")
+    if frequency.seasonal_bounds is not None:
+        # xclim's percentage denominator is a shared time axis, whereas these
+        # seasons have a different expected mask in every grid cell.
+        return CompletenessPolicy(
+            name="minimum_valid_fraction",
+            method="any",
+            period="spatial_season_strict_fallback",
+            minimum_valid_fraction=minimum_valid_fraction,
+        )
     # xclim's percentage method masks when the missing fraction reaches its
     # tolerance, so move by one float to make the stated valid fraction inclusive.
     tolerance = float(np.nextafter(round(1 - minimum_valid_fraction, 15), 1))

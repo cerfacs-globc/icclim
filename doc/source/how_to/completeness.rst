@@ -56,7 +56,9 @@ than the default:
    unrestricted = icclim.index(..., completeness="none")
 
 A numeric fraction is inclusive: ``0.8`` accepts a period with exactly 80% valid
-observations. The legacy ``allow_missing_periods`` parameter remains a 7.2
+observations. For spatially varying per-cell seasons it resolves to strict,
+because a shared percentage denominator cannot represent the different expected
+time mask in every cell. The legacy ``allow_missing_periods`` parameter remains a 7.2
 compatibility bridge. When it is explicitly supplied, ``False`` means strict and
 ``True`` means none; it cannot be combined with ``completeness``.
 
