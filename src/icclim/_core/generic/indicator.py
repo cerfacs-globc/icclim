@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     import jinja2
 
     from icclim._core.climate_variable import ClimateVariable
-    from icclim._core.model.index_config import IndexConfig
+    from icclim._core.model.index_config import CompletenessPolicy, IndexConfig
     from icclim.frequency import Frequency
 
 
@@ -301,9 +301,10 @@ class GenericIndicator(Indicator):
         indexer: dict[Any, Any] | None,
         out_unit: str | None,
         allow_partial_seasons: bool | Literal["start", "end"],
-        allow_missing_periods: bool,
+        completeness_policy: CompletenessPolicy,
         allow_partial_final_period: bool,
         warn_on_missing_periods: bool,
+        seasonal_bounds: tuple[DataArray, DataArray] | None,
     ) -> DataArray:
         """
         Postprocesses the result of the indicator computation.
@@ -371,11 +372,19 @@ class GenericIndicator(Indicator):
         elif out_unit is not None:
             result = convert_units_to(result, out_unit, context="hydro")
 
-        if self.missing != "skip" and not allow_missing_periods:
+        if completeness_policy.is_applied:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
             it = filter(lambda cv: not cv.is_reference, climate_vars)
-            das = [cv.studied_data for cv in it]
+            study_variables = list(it)
+            das = [
+                _prepare_data_for_completeness(
+                    cv.studied_data,
+                    seasonal_bounds=seasonal_bounds,
+                    missing_method=completeness_policy.method,
+                )
+                for cv in study_variables
+            ]
             if "time" in result.dims:
                 # If src_freq cannot be inferred by xclim, fall back to universal check_freq
                 if src_freq is None:
@@ -393,10 +402,17 @@ class GenericIndicator(Indicator):
                     allow_partial_seasons=allow_partial_seasons,
                     allow_partial_final_period=allow_partial_final_period,
                     warn_on_missing_periods=warn_on_missing_periods,
+                    missing_method=completeness_policy.method,
+                    missing_options=completeness_policy.options,
+                    completeness_policy_name=completeness_policy.name,
+                    source_frequency_was_inferred=all(
+                        cv.source_frequency_was_inferred for cv in study_variables
+                    ),
                 )
 
         for prop in self.templated_properties:
             result.attrs[prop] = getattr(self, prop)
+        result.attrs.update(completeness_policy.metadata())
         result.attrs["history"] = ""
         return result
 
@@ -472,9 +488,10 @@ class GenericIndicator(Indicator):
             indexer=config.frequency.indexer,
             out_unit=config.out_unit,
             allow_partial_seasons=config.allow_partial_seasons,
-            allow_missing_periods=config.allow_missing_periods,
+            completeness_policy=config.completeness_policy,
             allow_partial_final_period=config.allow_partial_final_period,
             warn_on_missing_periods=config.warn_on_missing_periods,
+            seasonal_bounds=config.frequency.seasonal_bounds,
         )
 
     def __eq__(self, other: object) -> bool:
@@ -548,6 +565,10 @@ class GenericIndicator(Indicator):
         allow_partial_seasons: bool | Literal["start", "end"] = False,
         allow_partial_final_period: bool = False,
         warn_on_missing_periods: bool = False,
+        missing_method: str | None = None,
+        missing_options: dict | None = None,
+        completeness_policy_name: str = "strict",
+        source_frequency_was_inferred: bool = True,
     ) -> DataArray:
         """
         Handle missing values in climate index computations.
@@ -567,7 +588,10 @@ class GenericIndicator(Indicator):
         """
         from xclim.core.missing import MISSING_METHODS  # noqa: PLC0415
 
-        missing_class = MISSING_METHODS[self.missing]
+        if missing_method is None:
+            msg = "An applied completeness policy must define a missing-data method."
+            raise ValueError(msg)
+        missing_class = MISSING_METHODS[missing_method]
 
         # We flag periods according to the missing method. Skip variables without a time coordinate.
         miss = (
@@ -577,6 +601,7 @@ class GenericIndicator(Indicator):
                 resample_freq,
                 src_freq,
                 indexer or {},
+                missing_options or {},
             )
             for da in (in_data if isinstance(in_data, Sequence) else [in_data])
             if "time" in da.coords
@@ -589,32 +614,18 @@ class GenericIndicator(Indicator):
         if isinstance(mask, DataArray) and mask.time.size < out_data.time.size:
             mask = mask.reindex(time=out_data.time, fill_value=True)
 
-        if allow_partial_seasons is True:
-            # Unmask the first and last periods
-            mask = xr.where(
-                (mask.time == mask.time[0]) | (mask.time == mask.time[-1]), False, mask
-            )
-        elif allow_partial_seasons == "start":
-            # Unmask only the first period
-            mask = xr.where(mask.time == mask.time[0], False, mask)
-        elif allow_partial_seasons == "end":
-            # Unmask only the last period
-            mask = xr.where(mask.time == mask.time[-1], False, mask)
+        mask = _allow_requested_partial_periods(
+            mask,
+            allow_partial_seasons=allow_partial_seasons,
+            allow_partial_final_period=allow_partial_final_period,
+        )
 
-        if allow_partial_final_period:
-            mask = xr.where(mask.time == mask.time[-1], False, mask)
-
-        has_masked_periods = _has_masked_periods(mask)
-        if warn_on_missing_periods and has_masked_periods:
-            warn(
-                "icclim masked one or more output periods because the source "
-                "time series is incomplete. Pass allow_missing_periods=True to "
-                "compute those periods from the available timesteps.",
-                UserWarning,
-                stacklevel=3,
+        if warn_on_missing_periods:
+            _warn_if_incomplete_without_computing(
+                mask,
+                completeness_policy_name=completeness_policy_name,
+                source_frequency_was_inferred=source_frequency_was_inferred,
             )
-        if not has_masked_periods:
-            return out_data
 
         return out_data.where(~mask)
 
@@ -625,8 +636,9 @@ class GenericIndicator(Indicator):
         resample_freq: str | None,
         src_freq: str | None,
         indexer: dict[Any, Any],
+        missing_options: dict | None = None,
     ) -> DataArray:
-        missing_options = self.missing_options or {}
+        missing_options = missing_options or {}
         try:
             missing_obj = missing_class(**missing_options)
         except TypeError:
@@ -646,11 +658,50 @@ class GenericIndicator(Indicator):
         )
 
 
-def _has_masked_periods(mask: DataArray) -> bool:
-    try:
-        return bool(mask.any().compute().item())
-    except AttributeError:
-        return bool(mask.any().item())
+def _allow_requested_partial_periods(
+    mask: DataArray,
+    *,
+    allow_partial_seasons: bool | Literal["start", "end"],
+    allow_partial_final_period: bool,
+) -> DataArray:
+    if allow_partial_seasons is True:
+        mask = xr.where(
+            (mask.time == mask.time[0]) | (mask.time == mask.time[-1]),
+            False,
+            mask,
+        )
+    elif allow_partial_seasons == "start":
+        mask = xr.where(mask.time == mask.time[0], False, mask)
+    elif allow_partial_seasons == "end":
+        mask = xr.where(mask.time == mask.time[-1], False, mask)
+    if allow_partial_final_period:
+        mask = xr.where(mask.time == mask.time[-1], False, mask)
+    return mask
+
+
+def _warn_if_incomplete_without_computing(
+    mask: DataArray,
+    *,
+    completeness_policy_name: str,
+    source_frequency_was_inferred: bool,
+) -> None:
+    """Emit available completeness diagnostics without evaluating lazy data."""
+    if not source_frequency_was_inferred:
+        message = (
+            "icclim could not infer a regular source time frequency. The "
+            f"'{completeness_policy_name}' completeness policy will mask "
+            "incomplete output periods. Pass "
+            "allow_missing_periods=True to compute from available timesteps."
+        )
+    elif mask.chunks is None and bool(mask.any().item()):
+        message = (
+            "icclim masked one or more output periods because the source time "
+            "series is incomplete. Pass allow_missing_periods=True to compute "
+            "those periods from the available timesteps."
+        )
+    else:
+        return
+    warn(message, UserWarning, stacklevel=4)
 
 
 def _same_freq_for_all(climate_vars: list[ClimateVariable]) -> bool:
@@ -824,10 +875,31 @@ def _apply_seasonal_mask(
     start_da, end_da = seasonal_bounds
     for climate_var in climate_vars:
         da = climate_var.studied_data
-        doy = da.time.dt.dayofyear
-        mask = xr.where(
-            start_da <= end_da,
-            (doy >= start_da) & (doy <= end_da),
-            (doy >= start_da) | (doy <= end_da),
-        )
+        mask = _spatial_season_mask(da, start_da, end_da)
         climate_var.studied_data = da.where(mask)
+
+
+def _prepare_data_for_completeness(
+    da: DataArray,
+    *,
+    seasonal_bounds: tuple[DataArray, DataArray] | None,
+    missing_method: str | None,
+) -> DataArray:
+    """Exclude intentionally out-of-season cells from strict missing checks."""
+    if seasonal_bounds is None or missing_method != "any":
+        return da
+    expected = _spatial_season_mask(da, *seasonal_bounds)
+    return da.where(expected, other=0)
+
+
+def _spatial_season_mask(
+    da: DataArray,
+    start_da: DataArray,
+    end_da: DataArray,
+) -> DataArray:
+    doy = da.time.dt.dayofyear
+    return xr.where(
+        start_da <= end_da,
+        (doy >= start_da) & (doy <= end_da),
+        (doy >= start_da) | (doy <= end_da),
+    )

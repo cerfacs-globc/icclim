@@ -116,3 +116,31 @@ class TestSpatiallyVaryingSeasons:
 
         # Mean should be 10 (ignoring 0s outside the season)
         assert result.TG.isel(time=0, lat=0, lon=0) == 10
+
+    def test_missing_value_inside_spatial_season_is_masked(self):
+        time = pd.date_range("2001-01-01", periods=365, freq="D")
+        data = np.full((365, 1, 2), 30.0)
+        data[9, 0, 0] = np.nan
+        tasmax = xr.DataArray(
+            data,
+            coords={"time": time, "lat": [45], "lon": [5, 10]},
+            dims=["time", "lat", "lon"],
+            attrs={"units": "degC"},
+        )
+        start = xr.DataArray(
+            [[1, 100]], dims=["lat", "lon"], coords={"lat": [45], "lon": [5, 10]}
+        )
+        end = xr.DataArray(
+            [[50, 150]],
+            dims=["lat", "lon"],
+            coords={"lat": [45], "lon": [5, 10]},
+        )
+
+        result = icclim.index(
+            in_files={"tasmax": tasmax},
+            index_name="SU",
+            slice_mode=(start, end),
+        ).compute()
+
+        assert np.isnan(result.SU.isel(time=0, lat=0, lon=0))
+        assert result.SU.isel(time=0, lat=0, lon=1) == 51

@@ -7,7 +7,8 @@ It holds the compiled configuration for the computation of climate indices.
 from __future__ import annotations
 
 import dataclasses
-from typing import TYPE_CHECKING, Literal
+import json
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -18,6 +19,57 @@ if TYPE_CHECKING:
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
     from icclim.frequency import Frequency
+
+
+@dataclasses.dataclass(frozen=True)
+class CompletenessPolicy:
+    """Resolved missing-data policy used by the indicator execution path."""
+
+    name: str
+    method: str | None
+    options: dict[str, Any] = dataclasses.field(default_factory=dict)
+    reference: str | None = None
+    version: str | None = None
+
+    @property
+    def is_applied(self) -> bool:
+        """Whether a missing-data mask must be applied."""
+        return self.method is not None
+
+    def metadata(self) -> dict[str, str]:
+        """Return stable, NetCDF-serializable provenance attributes."""
+        metadata = {
+            "completeness_policy": self.name,
+            "completeness_method": (
+                f"xclim:{self.method}" if self.method is not None else "not_applied"
+            ),
+            "completeness_options": json.dumps(
+                self.options,
+                sort_keys=True,
+                default=str,
+            ),
+        }
+        if self.reference is not None:
+            metadata["completeness_reference"] = self.reference
+        if self.version is not None:
+            metadata["completeness_policy_version"] = self.version
+        return metadata
+
+
+def resolve_legacy_completeness_policy(
+    *,
+    allow_missing_periods: bool,
+    missing_method: str,
+    missing_options: dict[str, Any] | None,
+) -> CompletenessPolicy:
+    """Resolve the 7.2 public boolean to the internal policy representation."""
+    if allow_missing_periods or missing_method == "skip":
+        return CompletenessPolicy(name="none", method=None)
+    return CompletenessPolicy(
+        name="strict" if missing_method == "any" else missing_method,
+        method=missing_method,
+        options=dict(missing_options or {}),
+    )
 
 
 @dataclasses.dataclass
@@ -98,17 +150,17 @@ class IndexConfig:
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool
-        When False, output periods containing missing source timesteps are masked.
-        When True, period aggregations are computed from the available source
-        timesteps.
-        Default is False.
+    completeness_policy : CompletenessPolicy
+        Resolved missing-data policy. The public ``allow_missing_periods``
+        compatibility parameter is translated to this representation before
+        indicator execution.
     allow_partial_final_period : bool
         When True, strict missing-period masking is still applied, except for the
         final output period.
     warn_on_missing_periods : bool
-        Emit a user warning when the default completeness check masks at least
-        one output period.
+        Emit available diagnostics about an irregular time coordinate or an
+        already-eager completeness mask. Lazy inputs are not evaluated solely
+        to emit a warning.
     """
 
     frequency: Frequency
@@ -132,6 +184,8 @@ class IndexConfig:
     reference: str
     run_index: str | None = None
     allow_partial_seasons: bool | Literal["start", "end"] = False
-    allow_missing_periods: bool = False
+    completeness_policy: CompletenessPolicy = dataclasses.field(
+        default_factory=lambda: CompletenessPolicy(name="strict", method="any")
+    )
     allow_partial_final_period: bool = False
     warn_on_missing_periods: bool = False
