@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pytest
 import xarray as xr
 
 import icclim
@@ -332,6 +333,38 @@ def test_wmo_count_preserves_non_midnight_daily_timestamps() -> None:
     )
 
     assert result.SU.compute().item() == 21
+
+
+@pytest.mark.parametrize(("calendar", "days"), [("noleap", 31), ("360_day", 30)])
+def test_wmo_count_supports_cftime_calendars(calendar: str, days: int) -> None:
+    values = np.full(days, 303.15)
+    values[range(0, 20, 2)] = np.nan
+    data = xr.DataArray(
+        values,
+        coords={
+            "time": xr.date_range(
+                "2001-01-01 12:00",
+                periods=days,
+                freq="D",
+                calendar=calendar,
+                use_cftime=True,
+            )
+        },
+        dims="time",
+        attrs={"units": "K"},
+        name="tasmax",
+    )
+
+    result = icclim.index(
+        data,
+        index_name="SU",
+        var_name="tasmax",
+        slice_mode="month",
+        completeness="wmo",
+        logs_verbosity="SILENT",
+    )
+
+    assert result.SU.compute().item() == days - 10
 
 
 def test_wmo_count_propagates_invalid_month_to_annual_output() -> None:
