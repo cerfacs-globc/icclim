@@ -9,6 +9,7 @@ from icclim._core.model.index_config import (
     resolve_legacy_completeness_policy,
 )
 from icclim.frequency import FrequencyRegistry
+from icclim.generic.registry import GenericIndicatorRegistry
 
 
 def test_strict_policy_has_stable_provenance() -> None:
@@ -216,3 +217,35 @@ def _summer_day_input(number_of_days: int) -> xr.DataArray:
         attrs={"units": "K"},
         name="tasmax",
     )
+
+
+def test_missing_options_support_the_xclim_legacy_call_api() -> None:
+    received = {}
+
+    class LegacyMissingMethod:
+        def __init__(self, da, freq, src_timestep, **indexer) -> None:
+            received.update(
+                da=da,
+                freq=freq,
+                src_timestep=src_timestep,
+                indexer=indexer,
+            )
+
+        def __call__(self, **options):
+            received["options"] = options
+            return xr.DataArray([False], dims="time")
+
+    source = _summer_day_input(350)
+    indicator = GenericIndicatorRegistry.CountOccurrences
+    result = indicator._compute_missing_mask(
+        LegacyMissingMethod,
+        source,
+        "YS",
+        "D",
+        {},
+        {"n": 350},
+    )
+
+    assert not result.item()
+    assert received["options"] == {"n": 350}
+    assert received["indexer"] == {}
