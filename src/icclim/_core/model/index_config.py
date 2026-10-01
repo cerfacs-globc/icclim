@@ -8,7 +8,10 @@ from __future__ import annotations
 
 import dataclasses
 import json
+from numbers import Real
 from typing import TYPE_CHECKING, Any, Literal
+
+import numpy as np
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -30,6 +33,8 @@ class CompletenessPolicy:
     options: dict[str, Any] = dataclasses.field(default_factory=dict)
     reference: str | None = None
     version: str | None = None
+    period: str | None = None
+    minimum_valid_fraction: float | None = None
 
     @property
     def is_applied(self) -> bool:
@@ -53,7 +58,35 @@ class CompletenessPolicy:
             metadata["completeness_reference"] = self.reference
         if self.version is not None:
             metadata["completeness_policy_version"] = self.version
+        if self.period is not None:
+            metadata["completeness_period"] = self.period
+        if self.minimum_valid_fraction is not None:
+            metadata["completeness_minimum_valid_fraction"] = str(
+                self.minimum_valid_fraction
+            )
         return metadata
+
+
+CompletenessLike = Literal["ecad", "strict", "none"] | float | None
+"""Public completeness configuration accepted by :func:`icclim.index`."""
+
+
+_ECAD_MINIMUM_VALID_DAYS = {
+    "year": 350,
+    "half_year": 175,
+    "season": 85,
+    "month": 25,
+}
+_ECAD_PERIOD_DAY_RANGES = {
+    "month": (27, 31),
+    "season": (85, 93),
+    "half_year": (175, 184),
+    "year": (350, 366),
+}
+_ECAD_REFERENCE = (
+    "ECA&D Algorithm Theoretical Basis Document, version 11, section 5.1; "
+    "https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf#page=21"
+)
 
 
 def resolve_legacy_completeness_policy(
@@ -70,6 +103,154 @@ def resolve_legacy_completeness_policy(
         method=missing_method,
         options=dict(missing_options or {}),
     )
+
+
+def resolve_completeness_policy(
+    *,
+    completeness: CompletenessLike,
+    allow_missing_periods: bool | None,
+    frequency: Frequency,
+    source_frequency: Frequency | str | None,
+    missing_method: str,
+    missing_options: dict[str, Any] | None,
+) -> CompletenessPolicy:
+    """Resolve public completeness settings to one execution policy.
+
+    ``None`` selects the ECA&D profile. The legacy boolean remains authoritative
+    when it is explicitly supplied, so existing callers can retain 7.2 behavior.
+    """
+    if allow_missing_periods is not None:
+        if completeness is not None:
+            msg = (
+                "completeness and allow_missing_periods cannot be set together; "
+                "use completeness='none' instead of allow_missing_periods=True."
+            )
+            raise ValueError(msg)
+        return resolve_legacy_completeness_policy(
+            allow_missing_periods=allow_missing_periods,
+            missing_method=missing_method,
+            missing_options=missing_options,
+        )
+
+    completeness = "ecad" if completeness is None else completeness
+    if isinstance(completeness, Real) and not isinstance(completeness, bool):
+        return _resolve_fraction_policy(float(completeness), frequency)
+    if not isinstance(completeness, str):
+        msg = "completeness must be 'ecad', 'strict', 'none', or a fraction in (0, 1]."
+        raise TypeError(msg)
+
+    return _resolve_named_policy(
+        completeness.casefold(),
+        frequency=frequency,
+        source_frequency=source_frequency,
+        missing_method=missing_method,
+    )
+
+
+def _resolve_fraction_policy(
+    minimum_valid_fraction: float,
+    frequency: Frequency,
+) -> CompletenessPolicy:
+    if not 0 < minimum_valid_fraction <= 1:
+        msg = "A numeric completeness value must be greater than 0 and at most 1."
+        raise ValueError(msg)
+    if minimum_valid_fraction == 1:
+        return CompletenessPolicy(name="strict", method="any")
+    # xclim's percentage method masks when the missing fraction reaches its
+    # tolerance, so move by one float to make the stated valid fraction inclusive.
+    tolerance = float(np.nextafter(round(1 - minimum_valid_fraction, 15), 1))
+    return CompletenessPolicy(
+        name="minimum_valid_fraction",
+        method="pct",
+        options={"tolerance": tolerance},
+        period=_classify_ecad_period(frequency),
+        minimum_valid_fraction=minimum_valid_fraction,
+    )
+
+
+def _resolve_named_policy(
+    profile: str,
+    *,
+    frequency: Frequency,
+    source_frequency: Frequency | str | None,
+    missing_method: str,
+) -> CompletenessPolicy:
+    if profile == "none":
+        return CompletenessPolicy(name="none", method=None)
+    if profile == "strict":
+        return CompletenessPolicy(name="strict", method="any")
+    if profile != "ecad":
+        msg = "Unknown completeness profile. Use 'ecad', 'strict', or 'none'."
+        raise ValueError(msg)
+    if missing_method == "skip":
+        return CompletenessPolicy(name="none", method=None)
+
+    period = _classify_ecad_period(frequency)
+    minimum_days = _ECAD_MINIMUM_VALID_DAYS.get(period)
+    observations_per_day = _observations_per_day(source_frequency)
+    if (
+        minimum_days is None
+        or observations_per_day is None
+        or frequency.seasonal_bounds is not None
+    ):
+        # The ATBD only specifies daily inputs and four period classes. Preserve
+        # strict masking for other frequencies and per-cell season definitions.
+        return CompletenessPolicy(
+            name="ecad",
+            method="any",
+            reference=_ECAD_REFERENCE,
+            version="11",
+            period=period or "strict_fallback",
+        )
+    return CompletenessPolicy(
+        name="ecad",
+        method="at_least_n",
+        options={"n": minimum_days * observations_per_day},
+        reference=_ECAD_REFERENCE,
+        version="11",
+        period=period,
+    )
+
+
+def _observations_per_day(source_frequency: Frequency | str | None) -> int | None:
+    """Return a regular daily/sub-daily sampling multiplier when available."""
+    if source_frequency is None:
+        return None
+    delta = getattr(source_frequency, "delta", None)
+    if delta is None:
+        return (
+            1
+            if isinstance(source_frequency, str) and source_frequency.upper() == "D"
+            else None
+        )
+    unit, _ = np.datetime_data(delta.dtype)
+    if unit not in {"D", "h", "m", "s", "ms", "us", "ns"}:
+        return None
+    ratio = float(np.timedelta64(1, "D") / delta)
+    rounded_ratio = round(ratio)
+    if ratio < 1 or not np.isclose(ratio, rounded_ratio):
+        return None
+    return rounded_ratio
+
+
+def _classify_ecad_period(frequency: Frequency) -> str | None:
+    """Map an output frequency to one of the period classes defined by ECA&D."""
+    unit, _ = np.datetime_data(frequency.delta.dtype)
+    amount = int(frequency.delta / np.timedelta64(1, unit))
+    period = "year" if unit == "Y" and amount == 1 else None
+    if unit == "M":
+        period = {1: "month", 3: "season", 6: "half_year", 12: "year"}.get(amount)
+    elif unit in {"D", "h", "m", "s", "ms", "us", "ns"}:
+        days = float(frequency.delta / np.timedelta64(1, "D"))
+        period = next(
+            (
+                name
+                for name, (minimum, maximum) in _ECAD_PERIOD_DAY_RANGES.items()
+                if minimum <= days <= maximum
+            ),
+            None,
+        )
+    return period
 
 
 @dataclasses.dataclass
