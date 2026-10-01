@@ -543,15 +543,6 @@ def index(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
     completeness : {"ecad", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
@@ -562,6 +553,13 @@ def index(
         fraction. Unsupported ECA&D period types and spatially varying seasons
         safely fall back to strict completeness. Do not combine this parameter
         with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source

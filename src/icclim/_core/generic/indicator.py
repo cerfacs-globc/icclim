@@ -690,13 +690,13 @@ def _warn_if_incomplete_without_computing(
         message = (
             "icclim could not infer a regular source time frequency. The "
             f"'{completeness_policy_name}' completeness policy will mask "
-            "incomplete output periods. Pass "
-            "allow_missing_periods=True to compute from available timesteps."
+            "incomplete output periods. Pass completeness='none' to compute "
+            "from available timesteps."
         )
     elif mask.chunks is None and bool(mask.any().item()):
         message = (
             "icclim masked one or more output periods because the source time "
-            "series is incomplete. Pass allow_missing_periods=True to compute "
+            "series is incomplete. Pass completeness='none' to compute "
             "those periods from the available timesteps."
         )
     else:
