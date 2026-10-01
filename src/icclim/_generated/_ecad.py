@@ -196,8 +196,11 @@ def tg(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -328,8 +331,11 @@ def tn(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -460,8 +466,11 @@ def tx(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -592,8 +601,11 @@ def dtr(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -724,8 +736,11 @@ def etr(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -856,8 +871,11 @@ def vdtr(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -988,8 +1006,11 @@ def su(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1123,8 +1144,11 @@ def tr(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1286,8 +1310,11 @@ def wsdi(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1457,8 +1484,11 @@ def tg90p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1628,8 +1658,11 @@ def tn90p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1799,8 +1832,11 @@ def tx90p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1942,8 +1978,11 @@ def txx(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2074,8 +2113,11 @@ def tnx(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2206,8 +2248,11 @@ def csu(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2341,8 +2386,11 @@ def gd4(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2476,8 +2524,11 @@ def fd(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2611,8 +2662,11 @@ def cfd(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2746,8 +2800,11 @@ def hd17(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2881,8 +2938,11 @@ def id(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3044,8 +3104,11 @@ def tg10p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3215,8 +3278,11 @@ def tn10p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3386,8 +3452,11 @@ def tx10p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3529,8 +3598,11 @@ def txn(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3661,8 +3733,11 @@ def tnn(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3821,8 +3896,11 @@ def csdi(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3964,8 +4042,11 @@ def cdd(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4099,8 +4180,11 @@ def prcptot(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4234,8 +4318,11 @@ def rr1(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4369,8 +4456,11 @@ def sdii(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4504,8 +4594,11 @@ def cwd(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4639,8 +4732,11 @@ def rr(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4771,8 +4867,11 @@ def r10mm(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4906,8 +5005,11 @@ def r20mm(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5041,8 +5143,11 @@ def rx1day(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5173,8 +5278,11 @@ def rx5day(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5333,8 +5441,11 @@ def r75p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5497,8 +5608,11 @@ def r75ptot(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5661,8 +5775,11 @@ def r95p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5825,8 +5942,11 @@ def r95ptot(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5989,8 +6109,11 @@ def r99p(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6153,8 +6276,11 @@ def r99ptot(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6289,8 +6415,11 @@ def sd(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6421,8 +6550,11 @@ def sd1(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6556,8 +6688,11 @@ def sd5cm(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6691,8 +6826,11 @@ def sd50cm(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6854,8 +6992,11 @@ def cd(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7031,8 +7172,11 @@ def cw(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7208,8 +7352,11 @@ def wd(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7385,8 +7532,11 @@ def ww(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7534,8 +7684,11 @@ def fxx(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7666,8 +7819,11 @@ def fg6bft(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7801,8 +7957,11 @@ def fgcalm(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7936,8 +8095,11 @@ def fg(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8068,8 +8230,11 @@ def ddnorth(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8203,8 +8368,11 @@ def ddeast(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8338,8 +8506,11 @@ def ddsouth(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8473,8 +8644,11 @@ def ddwest(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8608,8 +8782,11 @@ def gsl(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8755,8 +8932,11 @@ def spi6(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8903,8 +9083,11 @@ def spi3(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -9036,8 +9219,11 @@ def pp(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -9168,8 +9354,11 @@ def ss(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -9300,8 +9489,11 @@ def rh(
         When False, output periods containing missing source timesteps are masked
         to NaN. When True, aggregations are computed from available source
         timesteps only.
-        Default is None, which behaves like False and warns if a period is
-        masked. Pass False explicitly to keep strict masking without that warning.
+        Default is None, which behaves like False. It warns when an irregular
+        source time coordinate is detected, or when an already-eager mask shows
+        an incomplete period. Data-dependent warnings are not emitted for lazy
+        inputs because detecting them would force computation. Pass False
+        explicitly to disable these diagnostic warnings.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
