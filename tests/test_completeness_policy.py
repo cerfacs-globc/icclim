@@ -158,6 +158,17 @@ def test_spatially_varying_season_uses_safe_strict_fallback() -> None:
     assert policy.method == "any"
     assert policy.period == "year"
 
+    fraction_policy = resolve_completeness_policy(
+        completeness=0.8,
+        allow_missing_periods=None,
+        frequency=frequency,
+        source_frequency=FrequencyRegistry.DAY,
+        missing_method="any",
+        missing_options=None,
+    )
+    assert fraction_policy.method == "any"
+    assert fraction_policy.period == "spatial_season_strict_fallback"
+
 
 def test_ecad_annual_boundary_is_applied_to_index_result() -> None:
     below = _summer_day_input(349)
