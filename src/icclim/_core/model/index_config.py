@@ -35,6 +35,8 @@ class CompletenessPolicy:
     version: str | None = None
     period: str | None = None
     minimum_valid_fraction: float | None = None
+    aggregation: str | None = None
+    implementation: str = "xclim"
 
     @property
     def is_applied(self) -> bool:
@@ -46,7 +48,9 @@ class CompletenessPolicy:
         metadata = {
             "completeness_policy": self.name,
             "completeness_method": (
-                f"xclim:{self.method}" if self.method is not None else "not_applied"
+                f"{self.implementation}:{self.method}"
+                if self.method is not None
+                else "not_applied"
             ),
             "completeness_options": json.dumps(
                 self.options,
@@ -64,11 +68,16 @@ class CompletenessPolicy:
             metadata["completeness_minimum_valid_fraction"] = str(
                 self.minimum_valid_fraction
             )
+        if self.aggregation is not None:
+            metadata["completeness_aggregation"] = self.aggregation
         return metadata
 
 
-CompletenessLike = Literal["ecad", "strict", "none"] | float | None
+CompletenessLike = Literal["ecad", "wmo", "strict", "none"] | float | None
 """Public completeness configuration accepted by :func:`icclim.index`."""
+
+WmoAggregationKind = Literal["mean", "count", "sum", "extreme", "other"]
+"""Aggregation classes whose distinct missing-data rules are defined by WMO."""
 
 
 _ECAD_MINIMUM_VALID_DAYS = {
@@ -86,6 +95,11 @@ _ECAD_PERIOD_DAY_RANGES = {
 _ECAD_REFERENCE = (
     "ECA&D Algorithm Theoretical Basis Document, version 11, section 5.1; "
     "https://knmi-ecad-assets-prd.s3.amazonaws.com/documents/atbd.pdf#page=21"
+)
+_WMO_REFERENCE = (
+    "WMO Guidelines on the Calculation of Climate Normals, WMO-No. 1203, "
+    "2017 edition, sections 4.4.1-4.4.3; "
+    "https://library.wmo.int/idurl/4/55797"
 )
 
 
@@ -113,6 +127,7 @@ def resolve_completeness_policy(
     source_frequency: Frequency | str | None,
     missing_method: str,
     missing_options: dict[str, Any] | None,
+    wmo_aggregation: WmoAggregationKind = "other",
 ) -> CompletenessPolicy:
     """Resolve public completeness settings to one execution policy.
 
@@ -136,7 +151,10 @@ def resolve_completeness_policy(
     if isinstance(completeness, Real) and not isinstance(completeness, bool):
         return _resolve_fraction_policy(float(completeness), frequency)
     if not isinstance(completeness, str):
-        msg = "completeness must be 'ecad', 'strict', 'none', or a fraction in (0, 1]."
+        msg = (
+            "completeness must be 'ecad', 'wmo', 'strict', 'none', or a "
+            "fraction in (0, 1]."
+        )
         raise TypeError(msg)
 
     return _resolve_named_policy(
@@ -144,6 +162,7 @@ def resolve_completeness_policy(
         frequency=frequency,
         source_frequency=source_frequency,
         missing_method=missing_method,
+        wmo_aggregation=wmo_aggregation,
     )
 
 
@@ -183,13 +202,20 @@ def _resolve_named_policy(
     frequency: Frequency,
     source_frequency: Frequency | str | None,
     missing_method: str,
+    wmo_aggregation: WmoAggregationKind,
 ) -> CompletenessPolicy:
     if profile == "none":
         return CompletenessPolicy(name="none", method=None)
     if profile == "strict":
         return CompletenessPolicy(name="strict", method="any")
+    if profile == "wmo":
+        return _resolve_wmo_policy(
+            frequency=frequency,
+            source_frequency=source_frequency,
+            aggregation=wmo_aggregation,
+        )
     if profile != "ecad":
-        msg = "Unknown completeness profile. Use 'ecad', 'strict', or 'none'."
+        msg = "Unknown completeness profile. Use 'ecad', 'wmo', 'strict', or 'none'."
         raise ValueError(msg)
     if missing_method == "skip":
         return CompletenessPolicy(name="none", method=None)
@@ -219,6 +245,48 @@ def _resolve_named_policy(
         version="11",
         period=period,
     )
+
+
+def _resolve_wmo_policy(
+    *,
+    frequency: Frequency,
+    source_frequency: Frequency | str | None,
+    aggregation: WmoAggregationKind,
+) -> CompletenessPolicy:
+    """Resolve WMO-No. 1203 sections 4.4.1-4.4.3 by aggregation kind."""
+    period = _classify_ecad_period(frequency)
+    common = {
+        "name": "wmo",
+        "reference": _WMO_REFERENCE,
+        "version": "WMO-No. 1203 (2017)",
+        "aggregation": aggregation,
+    }
+    if (
+        frequency.seasonal_bounds is not None
+        or _observations_per_day(source_frequency) != 1
+        or period is None
+    ):
+        return CompletenessPolicy(
+            method="any",
+            period=f"{period or 'unsupported_period'}_strict_fallback",
+            **common,
+        )
+    if aggregation in {"mean", "count"}:
+        return CompletenessPolicy(
+            method="wmo",
+            options={"nm": 11, "nc": 5},
+            period=period,
+            implementation="icclim",
+            **common,
+        )
+    if aggregation == "extreme":
+        # WMO asks for monthly extremes regardless of the amount of available
+        # daily data. An all-missing period still naturally produces NaN.
+        return CompletenessPolicy(method=None, period=period, **common)
+    # Monthly sums generally require complete daily data. Derived and custom
+    # aggregations use the same conservative fallback because WMO does not
+    # define a generic rule for them.
+    return CompletenessPolicy(method="any", period=period, **common)
 
 
 def _observations_per_day(source_frequency: Frequency | str | None) -> int | None:

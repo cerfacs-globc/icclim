@@ -9,13 +9,17 @@
 -  [change] Use the ECA&D ATBD section 5.1 minimum valid-day rules by default,
    resolving the threshold automatically from annual, half-yearly, seasonal, or
    monthly output frequency.
--  [enh] Add ``completeness`` with explicit ``"ecad"``, ``"strict"``, and
-   ``"none"`` profiles or an inclusive configurable minimum valid fraction.
+-  [enh] Add ``completeness`` with explicit ``"ecad"``, ``"wmo"``,
+   ``"strict"``, and ``"none"`` profiles or an inclusive configurable minimum
+   valid fraction. The WMO profile distinguishes means and counts, sums, simple
+   extrema, and conservatively unclassified operations.
 -  [compat] Keep explicitly supplied ``allow_missing_periods`` values as a 7.2
    compatibility bridge. Spatially varying seasons and output period types not
    defined by ECA&D retain strict completeness.
 -  [meta] Record the resolved period class, reference, policy version, execution
-   options, and configured fraction in output provenance.
+   options, aggregation class, and configured fraction in output provenance.
+-  [doc] Add a migration guide for workflows created before 7.2, including the
+   explicit setting needed to preserve calculate-from-available behavior.
 
 *****
 7.2.1

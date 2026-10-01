@@ -164,16 +164,17 @@ def count_occurrences(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -324,16 +325,17 @@ def max_consecutive_occurrence(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -488,16 +490,17 @@ def sum_of_spell_lengths(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -649,16 +652,17 @@ def excess(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -809,16 +813,17 @@ def deficit(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -969,16 +974,17 @@ def fraction_of_total(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1129,16 +1135,17 @@ def maximum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1289,16 +1296,17 @@ def minimum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1449,16 +1457,17 @@ def average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1609,16 +1618,17 @@ def sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1769,16 +1779,17 @@ def standard_deviation(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -1933,16 +1944,17 @@ def max_of_rolling_sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2098,16 +2110,17 @@ def min_of_rolling_sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2263,16 +2276,17 @@ def max_of_rolling_average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2428,16 +2442,17 @@ def min_of_rolling_average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2589,16 +2604,17 @@ def mean_of_difference(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2749,16 +2765,17 @@ def difference_of_extremes(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -2909,16 +2926,17 @@ def mean_of_absolute_one_time_step_difference(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3078,16 +3096,17 @@ def difference_of_means(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3239,16 +3258,17 @@ def percentile(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
@@ -3441,16 +3461,17 @@ def custom_index(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    completeness : {"ecad", "strict", "none"} | float | None
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
         Completeness rule used to decide whether an output period has enough
         source observations to be calculated. ``None`` selects the ECA&D ATBD
         profile automatically: at least 350 daily values for a year, 175 for a
         half-year, 85 for a three-month season, and 25 for a month. ``strict``
-        requires every expected value, ``none`` always computes from available
-        values, and a fraction in ``(0, 1]`` sets a configurable minimum valid
-        fraction. Unsupported ECA&D period types and spatially varying seasons
-        safely fall back to strict completeness. Do not combine this parameter
-        with the legacy ``allow_missing_periods`` parameter.
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules for means, counts, sums, and simple extrema. Unsupported
+        WMO inputs and unclassified operations safely fall back to strict. ``none``
+        always computes from available values, and a fraction in ``(0, 1]`` sets
+        a configurable minimum valid fraction. Do not combine this parameter with
+        the legacy ``allow_missing_periods`` parameter.
     allow_missing_periods : bool | None
         Compatibility parameter for 7.2 workflows. An explicit False selects
         strict completeness, while True computes from available source values.
