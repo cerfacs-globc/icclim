@@ -688,6 +688,7 @@ class GenericIndicator(Indicator):
     ) -> DataArray:
         """Apply WMO's monthly 11/5 rule lazily without optional flox."""
         from xclim.core.calendar import select_time  # noqa: PLC0415
+
         nm = missing_options.get("nm", 11)
         nc = missing_options.get("nc", 5)
         # Materialize only the coordinate, never data. Reindexing to the complete
@@ -737,9 +738,8 @@ class GenericIndicator(Indicator):
             )
         year = valid.time.dt.year
         month = valid.time.dt.month
-        run_stays_in_month = (
-            (year == year.shift(time=nc - 1))
-            & (month == month.shift(time=nc - 1))
+        run_stays_in_month = (year == year.shift(time=nc - 1)) & (
+            month == month.shift(time=nc - 1)
         )
         has_consecutive_missing = (
             (missing_run_end & run_stays_in_month)
