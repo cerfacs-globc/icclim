@@ -174,6 +174,31 @@ def test_default_missing_check_keeps_dask_input_lazy() -> None:
     assert result.SU.chunks is not None
 
 
+def test_wmo_seasonal_missing_check_keeps_dask_input_lazy() -> None:
+    time = pd.date_range("2000-01-01", "2003-12-31", freq="D")
+    tas = xr.DataArray(
+        da.full((len(time), 2, 3), 30.0, chunks=(31, 2, 3)),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0, 3.0]},
+        dims=["time", "lat", "lon"],
+        attrs={"units": "degC"},
+    )
+    recorder = _ComputeRecorder()
+
+    with recorder:
+        result = icclim.index(
+            in_files=tas,
+            index_name="TG",
+            slice_mode="MAM",
+            completeness="wmo",
+            allow_partial_seasons="end",
+            logs_verbosity="SILENT",
+        )
+
+    assert recorder.graph_sizes == []
+    assert result.TG.chunks is not None
+    assert not result.TG.compute().isnull().any()
+
+
 def test_irregular_time_warning_does_not_compute_dask_input() -> None:
     time = pd.date_range("2001-01-01", "2001-12-31", freq="D")
     time = time[time.month != 6]
