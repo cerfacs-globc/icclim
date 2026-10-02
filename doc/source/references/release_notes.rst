@@ -25,6 +25,8 @@
    explicitly selected; the default ECA&D path does not pay that cost.
 -  [fix] Keep built-in seasonal WMO checks limited to their selected months and
    preserve ``allow_partial_seasons`` behavior at cross-year boundaries.
+-  [fix] Keep custom date-bounded seasons on strict completeness instead of
+   applying calendar-month WMO thresholds.
 -  [fix] Correct ``AMJJAS`` to include September, consistently with its documented
    April-to-September half-year definition.
 
