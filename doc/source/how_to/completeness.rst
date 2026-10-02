@@ -107,9 +107,9 @@ extremes, and the multi-year values used in a climate normal. Consequently,
        aggregation class.
 
 These rules require daily input and standard calendar output periods. Other
-input frequencies and spatially varying per-cell seasons use strict
-completeness. The output attribute ``completeness_aggregation`` records which
-class was selected.
+input frequencies, spatially varying per-cell seasons, and custom date-bounded
+seasons use strict completeness. The output attribute
+``completeness_aggregation`` records which class was selected.
 
 For built-in seasons such as MAM or DJF, WMO completeness evaluates only the
 months belonging to that season. ``allow_partial_seasons`` continues to control

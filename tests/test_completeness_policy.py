@@ -152,6 +152,21 @@ def test_wmo_policy_uses_strict_fallback_outside_daily_standard_periods() -> Non
     assert policy.period == "month_strict_fallback"
 
 
+def test_wmo_policy_uses_strict_fallback_for_custom_date_seasons() -> None:
+    policy = resolve_completeness_policy(
+        completeness="wmo",
+        allow_missing_periods=None,
+        frequency=FrequencyRegistry.lookup(("season", ("15 march", "15 june"))),
+        source_frequency=FrequencyRegistry.DAY,
+        missing_method="any",
+        missing_options=None,
+        wmo_aggregation="mean",
+    )
+
+    assert policy.method == "any"
+    assert policy.period == "season_strict_fallback"
+
+
 def test_numeric_policy_is_a_configurable_minimum_valid_fraction() -> None:
     policy = resolve_completeness_policy(
         completeness=0.8,
@@ -444,7 +459,17 @@ def test_wmo_season_masks_an_omitted_constituent_month() -> None:
     assert np.isnan(result.TG.values).tolist() == [False, True, False, False]
 
 
-@pytest.mark.parametrize("calendar", ["noleap", "360_day"])
+@pytest.mark.parametrize(
+    "calendar",
+    [
+        "standard",
+        "proleptic_gregorian",
+        "julian",
+        "noleap",
+        "all_leap",
+        "360_day",
+    ],
+)
 def test_wmo_seasons_support_cftime_boundaries(calendar: str) -> None:
     end = "2003-12-30" if calendar == "360_day" else "2003-12-31"
     time = xr.date_range(
@@ -502,7 +527,17 @@ def test_wmo_count_preserves_non_midnight_daily_timestamps() -> None:
     assert result.SU.compute().item() == 21
 
 
-@pytest.mark.parametrize(("calendar", "days"), [("noleap", 31), ("360_day", 30)])
+@pytest.mark.parametrize(
+    ("calendar", "days"),
+    [
+        ("noleap", 31),
+        ("all_leap", 31),
+        ("360_day", 30),
+        ("standard", 31),
+        ("julian", 31),
+        ("proleptic_gregorian", 31),
+    ],
+)
 def test_wmo_count_supports_cftime_calendars(calendar: str, days: int) -> None:
     values = np.full(days, 303.15)
     values[range(0, 20, 2)] = np.nan

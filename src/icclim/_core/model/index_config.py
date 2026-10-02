@@ -263,6 +263,7 @@ def _resolve_wmo_policy(
     }
     if (
         frequency.seasonal_bounds is not None
+        or (frequency.indexer is not None and "date_bounds" in frequency.indexer)
         or _observations_per_day(source_frequency) != 1
         or period is None
     ):
