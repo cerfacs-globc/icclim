@@ -134,12 +134,12 @@ cell-wise consecutive-day test is nevertheless required by the scientific rule
 and cannot be removed without changing its meaning.
 
 On the CMCC-ESM2 daily ``tasmax`` validation dataset used for this change
-(1971--2000, 30 × 192 × 288 output values), two same-node runs averaged 21.449 s
-with ECA&D and 25.124 s with WMO: approximately 17% additional wall time. The
-observed cost is specific to that dataset, chunking, storage, and machine; other
-workflows can differ. Selecting WMO affects only calls that explicitly use
-``completeness="wmo"``. It does not add the consecutive-day calculation to the
-default ECA&D path.
+(1971--2000, 30 × 192 × 288 output values), a same-node warmed ECA&D run took
+21.328 s and two WMO runs averaged 24.211 s: approximately 14% additional wall
+time. The observed cost is specific to that dataset, chunking, storage, and
+machine; other workflows can differ. Selecting WMO affects only calls that
+explicitly use ``completeness="wmo"``. It does not add the consecutive-day
+calculation to the default ECA&D path.
 
 Upgrading workflows created before 7.2
 ======================================
