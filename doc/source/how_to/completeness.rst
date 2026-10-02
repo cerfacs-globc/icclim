@@ -46,6 +46,12 @@ The default therefore needs no dataset-specific option::
        slice_mode="year",
    )
 
+The scientific decision remains visible from request to result. icclim resolves
+the requested policy, identifies the index aggregation and output-period class,
+builds the corresponding lazy completeness mask, applies that mask to the index,
+and writes the resolved rule to the output ``completeness_*`` attributes. It does
+not select a policy from the amount of missing data it happens to find.
+
 Explicit policies and custom fractions
 ======================================
 
@@ -110,6 +116,30 @@ monthly values across the years used to calculate a climate normal. It is not a
 generic daily completeness percentage and is therefore not silently applied to
 ordinary index calculations. Use a numeric ``completeness`` value only when a
 minimum valid fraction is the intended index-level rule.
+
+WMO performance cost
+====================
+
+.. warning::
+
+   The WMO mean/count rule is more expensive than ECA&D or strict completeness.
+   In addition to counting valid observations, it must reconstruct omitted daily
+   timestamps, test every cell for runs of five consecutive missing days, and
+   then propagate invalid months to the requested output period. Plan for extra
+   Dask graph tasks and compute time when selecting ``completeness="wmo"``.
+
+The implementation stays lazy for Dask-backed inputs and calculates the
+calendar-dependent expected day count only once along the time axis. The
+cell-wise consecutive-day test is nevertheless required by the scientific rule
+and cannot be removed without changing its meaning.
+
+On the CMCC-ESM2 daily ``tasmax`` validation dataset used for this change
+(1971--2000, 30 × 192 × 288 output values), two same-node runs averaged 21.449 s
+with ECA&D and 25.124 s with WMO: approximately 17% additional wall time. The
+observed cost is specific to that dataset, chunking, storage, and machine; other
+workflows can differ. Selecting WMO affects only calls that explicitly use
+``completeness="wmo"``. It does not add the consecutive-day calculation to the
+default ECA&D path.
 
 Upgrading workflows created before 7.2
 ======================================

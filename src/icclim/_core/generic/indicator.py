@@ -726,7 +726,10 @@ class GenericIndicator(Indicator):
             da = da.reindex(time=complete_time)
         selected = select_time(da, **indexer) if indexer else da
         valid = selected.notnull()
-        expected = valid.resample(time="MS").count(dim="time")
+        # Expected observations depend only on the selected calendar axis. Keep
+        # this one-dimensional so Dask does not repeat the same count in every
+        # spatial cell.
+        expected = valid.time.resample(time="MS").count(dim="time")
         valid_count = valid.resample(time="MS").sum(dim="time")
         too_many_missing = (expected - valid_count) >= nm
         missing = ~valid

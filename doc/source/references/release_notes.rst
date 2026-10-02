@@ -20,6 +20,9 @@
    options, aggregation class, and configured fraction in output provenance.
 -  [doc] Add a migration guide for workflows created before 7.2, including the
    explicit setting needed to preserve calculate-from-available behavior.
+-  [perf] Keep WMO completeness lazy and document its additional compute cost.
+   The five-consecutive-missing-day rule runs only when the WMO profile is
+   explicitly selected; the default ECA&D path does not pay that cost.
 
 *****
 7.2.1
