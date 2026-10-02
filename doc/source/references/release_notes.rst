@@ -23,6 +23,8 @@
 -  [perf] Keep WMO completeness lazy and document its additional compute cost.
    The five-consecutive-missing-day rule runs only when the WMO profile is
    explicitly selected; the default ECA&D path does not pay that cost.
+-  [fix] Keep built-in seasonal WMO checks limited to their selected months and
+   preserve ``allow_partial_seasons`` behavior at cross-year boundaries.
 
 *****
 7.2.1
