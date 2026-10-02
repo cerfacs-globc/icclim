@@ -44,7 +44,7 @@ NEEDS_NORMAL = "NEEDS_NORMAL"
 MONTHS_MAP = {1:"JAN",  2:"FEB", 3:"MAR", 4:"APR", 5:"MAY", 6:"JUN", 7:"JUL", 8:"AUG", 9:"SEP", 10:"OCT", 11:"NOV", 12:"DEC" }
 
 # Season defined by their month numbers
-AMJJAS_MONTHS:list[int] = [*range(4, 9)]
+AMJJAS_MONTHS:list[int] = [*range(4, 10)]
 ONDJFM_MONTHS:list[int] = [10, 11, 12, 1, 2, 3]
 DJF_MONTHS:list[int] = [12, 1, 2]
 MAM_MONTHS:list[int] = [*range(3, 6)]
