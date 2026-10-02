@@ -191,7 +191,7 @@ def _resolve_fraction_policy(
         name="minimum_valid_fraction",
         method="pct",
         options={"tolerance": tolerance},
-        period=_classify_ecad_period(frequency),
+        period=_classify_output_period(frequency),
         minimum_valid_fraction=minimum_valid_fraction,
     )
 
@@ -220,7 +220,7 @@ def _resolve_named_policy(
     if missing_method == "skip":
         return CompletenessPolicy(name="none", method=None)
 
-    period = _classify_ecad_period(frequency)
+    period = _classify_output_period(frequency)
     minimum_days = _ECAD_MINIMUM_VALID_DAYS.get(period)
     observations_per_day = _observations_per_day(source_frequency)
     if (
@@ -254,7 +254,7 @@ def _resolve_wmo_policy(
     aggregation: WmoAggregationKind,
 ) -> CompletenessPolicy:
     """Resolve WMO-No. 1203 sections 4.4.1-4.4.3 by aggregation kind."""
-    period = _classify_ecad_period(frequency)
+    period = _classify_output_period(frequency)
     common = {
         "name": "wmo",
         "reference": _WMO_REFERENCE,
@@ -310,8 +310,8 @@ def _observations_per_day(source_frequency: Frequency | str | None) -> int | Non
     return rounded_ratio
 
 
-def _classify_ecad_period(frequency: Frequency) -> str | None:
-    """Map an output frequency to one of the period classes defined by ECA&D."""
+def _classify_output_period(frequency: Frequency) -> str | None:
+    """Map an output frequency to a supported completeness period class."""
     unit, _ = np.datetime_data(frequency.delta.dtype)
     amount = int(frequency.delta / np.timedelta64(1, unit))
     period = "year" if unit == "Y" and amount == 1 else None
