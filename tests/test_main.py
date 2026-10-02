@@ -2434,6 +2434,28 @@ class TestIntegration:
             index_name="standard_deviation",
         ).compute()
         np.testing.assert_almost_equal(res.standard_deviation.isel(time=0), 0)
+        assert (
+            res.standard_deviation.attrs["units_metadata"] == "temperature: difference"
+        )
+
+    def test_temperature_units_metadata_distinguishes_scale_and_difference(
+        self,
+    ) -> None:
+        tas = stub_tas(tas_value=10 + K2C).rename("tas")
+        tasmax = stub_tas(tas_value=30 + K2C).rename("tasmax")
+        tasmin = stub_tas(tas_value=10 + K2C).rename("tasmin")
+
+        tg = icclim.index(tas, index_name="TG").TG
+        txx = icclim.index(tasmax, index_name="TXx").TXx
+        dtr = icclim.index(
+            [tasmax, tasmin],
+            var_name=["tasmax", "tasmin"],
+            index_name="DTR",
+        ).DTR
+
+        assert tg.attrs["units_metadata"] == "temperature: on_scale"
+        assert txx.attrs["units_metadata"] == "temperature: on_scale"
+        assert dtr.attrs["units_metadata"] == "temperature: difference"
 
     def test_slice_mode__between_date(self) -> None:
         time_range = xr.DataArray(
@@ -2627,6 +2649,33 @@ class TestIntegration:
         rh = icclim.rh(in_files=humidity, slice_mode="month").RH.compute()
         # THEN
         np.testing.assert_almost_equal(rh.isel(time=0), 10)
+        assert rh.attrs["units"] == "%"
+        assert "units_metadata" not in rh.attrs
+        assert rh.attrs["cell_methods"] == "time: mean over days"
+
+    def test_generic_rh_alias_does_not_emit_false_metadata_for_mm_units(self) -> None:
+        humidity = xr.DataArray(
+            np.ones(31),
+            coords={"time": pd.date_range("2001-01-01", periods=31, freq="D")},
+            dims="time",
+            name="RH",
+            attrs={"units": "mm"},
+        )
+
+        with pytest.warns(
+            UserWarning,
+            match="units 'mm' are not dimensionless",
+        ) as caught:
+            result = icclim.index(
+                humidity,
+                index_name="sum",
+                slice_mode="month",
+                logs_verbosity="SILENT",
+            )["sum"]
+
+        assert result.attrs["units"] == "mm"
+        assert result.attrs["standard_name"] == "unknown_variable"
+        assert len(caught) == 1
 
     @pytest.mark.parametrize("subdaily_freq", ["1h", "3h", "6h"])
     def test_tg__subdaily_synthetic_matches_daily_input(

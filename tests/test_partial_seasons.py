@@ -104,9 +104,9 @@ def test_yearly_period_with_missing_months_is_masked_by_default():
             logs_verbosity="SILENT",
         )
     assert np.isnan(res_default.SU.values[0])
-    assert res_default.SU.attrs["completeness_policy"] == "strict"
-    assert res_default.SU.attrs["completeness_method"] == "xclim:any"
-    assert res_default.SU.attrs["completeness_options"] == "{}"
+    assert res_default.SU.attrs["completeness_policy"] == "ecad"
+    assert res_default.SU.attrs["completeness_method"] == "xclim:at_least_n"
+    assert res_default.SU.attrs["completeness_options"] == '{"n": 350}'
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
@@ -174,6 +174,31 @@ def test_default_missing_check_keeps_dask_input_lazy() -> None:
     assert result.SU.chunks is not None
 
 
+def test_wmo_seasonal_missing_check_keeps_dask_input_lazy() -> None:
+    time = pd.date_range("2000-01-01", "2003-12-31", freq="D")
+    tas = xr.DataArray(
+        da.full((len(time), 2, 3), 30.0, chunks=(31, 2, 3)),
+        coords={"time": time, "lat": [45.0, 46.0], "lon": [1.0, 2.0, 3.0]},
+        dims=["time", "lat", "lon"],
+        attrs={"units": "degC"},
+    )
+    recorder = _ComputeRecorder()
+
+    with recorder:
+        result = icclim.index(
+            in_files=tas,
+            index_name="TG",
+            slice_mode="MAM",
+            completeness="wmo",
+            allow_partial_seasons="end",
+            logs_verbosity="SILENT",
+        )
+
+    assert recorder.graph_sizes == []
+    assert result.TG.chunks is not None
+    assert not result.TG.compute().isnull().any()
+
+
 def test_irregular_time_warning_does_not_compute_dask_input() -> None:
     time = pd.date_range("2001-01-01", "2001-12-31", freq="D")
     time = time[time.month != 6]
@@ -200,7 +225,7 @@ def test_irregular_time_warning_does_not_compute_dask_input() -> None:
     assert result.SU.chunks is not None
 
 
-def test_default_lazily_masks_missing_dask_values() -> None:
+def test_default_lazily_applies_ecad_to_missing_dask_values() -> None:
     time = pd.date_range("2001-01-01", "2001-12-31", freq="D")
     values = np.full((len(time), 1, 2), 30.0)
     values[0, 0, 0] = np.nan
@@ -222,8 +247,19 @@ def test_default_lazily_masks_missing_dask_values() -> None:
 
     assert recorder.graph_sizes == []
     computed = result.SU.compute()
-    assert np.isnan(computed.isel(time=0, lat=0, lon=0))
+    assert computed.isel(time=0, lat=0, lon=0) == len(time) - 1
     assert computed.isel(time=0, lat=0, lon=1) == len(time)
+
+    with recorder:
+        strict = icclim.index(
+            in_files=tas,
+            index_name="SU",
+            slice_mode="year",
+            completeness="strict",
+            logs_verbosity="SILENT",
+        )
+    assert recorder.graph_sizes == []
+    assert np.isnan(strict.SU.compute().isel(time=0, lat=0, lon=0))
 
 
 def test_allow_partial_final_period_keeps_historical_years_masked():

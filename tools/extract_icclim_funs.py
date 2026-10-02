@@ -623,6 +623,7 @@ if TYPE_CHECKING:
 
     from icclim.logger import Verbosity
     from icclim._core.model.icclim_types import FrequencyLike, InFileLike, SamplingMethodLike
+    from icclim._core.model.index_config import CompletenessLike
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation

@@ -75,6 +75,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         "count_occurrences",
         count_occurrences,
         definition="Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).",
+        wmo_aggregation="count",
     )
     MaxConsecutiveOccurrence = GenericIndicator(
         "max_consecutive_occurrence",
@@ -88,6 +89,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         definition="Sum the lengths of each consecutive occurrence spell when"
         " threshold(s) are met. The minimum spell length is controlled by"
         " `min_spell_length` (e.g. WSDI, CSDI).",
+        wmo_aggregation="sum",
     )
     Excess = GenericIndicator(
         "excess",
@@ -96,6 +98,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         definition="Compute the excess over the given threshold. The excess is"
         " `sum(x[x>t] - t)` where x is the studied variable and t the threshold"
         " (e.g. GD4).",
+        wmo_aggregation="sum",
     )
     Deficit = GenericIndicator(
         "deficit",
@@ -104,6 +107,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         definition="Compute the deficit below the given threshold. The deficit is"
         " `sum(t - x[x<t])` where x is the studied variable and t the threshold"
         " (e.g. HD17).",
+        wmo_aggregation="sum",
     )
     FractionOfTotal = GenericIndicator(
         "fraction_of_total",
@@ -117,24 +121,28 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         maximum,
         definition="Maximum of values that met threshold(s), if threshold(s) are given"
         " (e.g. Txx, Tnx).",
+        wmo_aggregation="extreme",
     )
     Minimum = GenericIndicator(
         "minimum",
         minimum,
         definition="Minimum of values that met threshold(s), if threshold(s) are given"
         " (e.g. Txn, Tnn).",
+        wmo_aggregation="extreme",
     )
     Average = GenericIndicator(
         "average",
         average,
         definition="Average of values that met threshold(s), if threshold(s) are given"
         " (e.g. Tx, Tn).",
+        wmo_aggregation="mean",
     )
     Sum = GenericIndicator(
         "sum",
         generic_sum,
         definition="Sum of values that met threshold(s), if threshold(s) are given"
         " (e.g. PRCPTOT, RR).",
+        wmo_aggregation="sum",
     )
     StandardDeviation = GenericIndicator(
         "standard_deviation",
@@ -175,6 +183,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         ", or one variable and it's reference period values"
         " (e.g. DTR: `mean(tasmax - tasmin)`).",
         qualifiers=("compute_diff",),
+        wmo_aggregation="mean",
     )
     DifferenceOfExtremes = GenericIndicator(
         "difference_of_extremes",
@@ -186,6 +195,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         " `minimum` for the second variable"
         " (e.g. ETR: `max(tasmax) - min(tasmin)`).",
         qualifiers=("compute_diff",),
+        wmo_aggregation="extreme",
     )
     MeanOfAbsoluteOneTimeStepDifference = GenericIndicator(
         "mean_of_absolute_one_time_step_difference",
@@ -198,6 +208,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         " `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ;"
         " where i is the day of measure).",
         qualifiers=("compute_diff",),
+        wmo_aggregation="mean",
     )
     DifferenceOfMeans = GenericIndicator(
         "difference_of_means",
@@ -212,6 +223,7 @@ class GenericIndicatorRegistry(Registry[GenericIndicator]):
         ", or one variable and it's reference period values"
         " (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.",
         qualifiers=("compute_diff",),
+        wmo_aggregation="mean",
     )
     Percentile = GenericIndicator(
         "percentile",

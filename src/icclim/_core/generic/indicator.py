@@ -33,7 +33,11 @@ if TYPE_CHECKING:
     import jinja2
 
     from icclim._core.climate_variable import ClimateVariable
-    from icclim._core.model.index_config import CompletenessPolicy, IndexConfig
+    from icclim._core.model.index_config import (
+        CompletenessPolicy,
+        IndexConfig,
+        WmoAggregationKind,
+    )
     from icclim.frequency import Frequency
 
 
@@ -105,6 +109,8 @@ class GenericIndicator(Indicator):
         The method for handling missing values.
     missing_options: dict | None
         Additional options for handling missing values.
+    wmo_aggregation: WmoAggregationKind
+        Aggregation class used by the WMO completeness profile.
     """
 
     missing: str
@@ -122,6 +128,7 @@ class GenericIndicator(Indicator):
         missing: str = "any",
         missing_options: dict | None = None,
         qualifiers: tuple = (),
+        wmo_aggregation: WmoAggregationKind = "other",
     ) -> None:
         """
         Initialize a GenericIndicator object.
@@ -144,6 +151,9 @@ class GenericIndicator(Indicator):
             The options for handling missing values, by default None.
         qualifiers : tuple, optional
             The qualifiers for the indicator, by default ().
+        wmo_aggregation : {"mean", "count", "sum", "extreme", "other"}, optional
+            Aggregation class used by the WMO completeness profile. Custom
+            indicators default to the conservative ``"other"`` class.
 
         Raises
         ------
@@ -182,6 +192,10 @@ class GenericIndicator(Indicator):
         self.missing_options = missing_options
 
         self.missing = missing or "any"
+        if wmo_aggregation not in {"mean", "count", "sum", "extreme", "other"}:
+            msg = f"Unknown WMO aggregation class: {wmo_aggregation!r}."
+            raise ValueError(msg)
+        self.wmo_aggregation = wmo_aggregation
         en_indicator_templates = deepcopy(INDICATORS_TEMPLATES_EN[name])
         self.name = name
         self.process = process
@@ -372,6 +386,8 @@ class GenericIndicator(Indicator):
         elif out_unit is not None:
             result = convert_units_to(result, out_unit, context="hydro")
 
+        result = self._annotate_temperature_semantics(result)
+
         if completeness_policy.is_applied:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
@@ -414,6 +430,34 @@ class GenericIndicator(Indicator):
             result.attrs[prop] = getattr(self, prop)
         result.attrs.update(completeness_policy.metadata())
         result.attrs["history"] = ""
+        return result
+
+    def _annotate_temperature_semantics(self, result: DataArray) -> DataArray:
+        """Record whether a temperature result is on-scale or a difference."""
+        if self._is_a_diff_indicator() or self.name == "standard_deviation":
+            semantics = "temperature: difference"
+        elif self.name in {
+            "average",
+            "maximum",
+            "minimum",
+            "percentile",
+            "max_of_rolling_average",
+            "min_of_rolling_average",
+        }:
+            semantics = "temperature: on_scale"
+        else:
+            return result
+        unit = result.attrs.get("units")
+        if unit is None:
+            return result
+        from xclim.core.units import units2pint  # noqa: PLC0415
+
+        try:
+            is_temperature = "[temperature]" in units2pint(unit).dimensionality
+        except (KeyError, TypeError, UndefinedUnitError, ValueError):
+            return result
+        if is_temperature:
+            result.attrs["units_metadata"] = semantics
         return result
 
     # >>> PATCHED helper: difference-aware flag
@@ -639,6 +683,13 @@ class GenericIndicator(Indicator):
         missing_options: dict | None = None,
     ) -> DataArray:
         missing_options = missing_options or {}
+        if missing_class.__name__ == "MissingWMO":
+            return self._compute_wmo_missing_mask(
+                da,
+                resample_freq=resample_freq,
+                indexer=indexer,
+                missing_options=missing_options,
+            )
         try:
             missing_obj = missing_class(**missing_options)
         except TypeError:
@@ -647,14 +698,117 @@ class GenericIndicator(Indicator):
                 freq=resample_freq,
                 src_timestep=src_freq,
                 **indexer,
-                **missing_options,
             )
-            return missing_obj()
+            # xclim < 0.59 configures missing-method options at call time.
+            return missing_obj(**missing_options)
         return missing_obj(
             da,
             freq=resample_freq,
             src_timestep=src_freq,
             **indexer,
+        )
+
+    def _compute_wmo_missing_mask(
+        self,
+        da: DataArray,
+        *,
+        resample_freq: str | None,
+        indexer: dict[Any, Any],
+        missing_options: dict[str, Any],
+    ) -> DataArray:
+        """Apply WMO's monthly 11/5 rule lazily without optional flox."""
+        from xclim.core.calendar import select_time  # noqa: PLC0415
+
+        nm = missing_options.get("nm", 11)
+        nc = missing_options.get("nc", 5)
+        # Materialize only the coordinate, never data. Cover the complete first
+        # and last output periods so partial boundary periods and omitted dates
+        # become explicit missing days before applying an optional season.
+        period_freq = resample_freq or "MS"
+        period_labels = da.time.resample(time=period_freq).count().time
+        first_period = period_labels.values[0]
+        last_period = period_labels.values[-1]
+        first_source_time = da.time.values[0]
+        if isinstance(first_source_time, np.datetime64):
+            time_of_day = first_source_time - first_source_time.astype("datetime64[D]")
+        else:
+            midnight = first_source_time.replace(
+                hour=0,
+                minute=0,
+                second=0,
+                microsecond=0,
+            )
+            time_of_day = first_source_time - midnight
+        first_period += time_of_day
+        next_period = xr.date_range(
+            start=last_period,
+            periods=2,
+            freq=period_freq,
+            calendar=da.time.dt.calendar,
+            use_cftime=da.time.dtype == object,
+        ).values[-1]
+        next_period += time_of_day
+        period_delta = next_period - first_period
+        if isinstance(period_delta, np.timedelta64):
+            periods = int(period_delta / np.timedelta64(1, "D"))
+        else:
+            periods = period_delta.days
+        complete_time = xr.date_range(
+            start=first_period,
+            periods=periods,
+            freq="D",
+            calendar=da.time.dt.calendar,
+            use_cftime=da.time.dtype == object,
+        )
+        if not da.indexes["time"].equals(complete_time):
+            da = da.reindex(time=complete_time)
+        # Drop dates outside a requested season. Keeping them as NaN would make
+        # complete seasons fail WMO checks because non-season months appeared
+        # to be missing observations.
+        selected = select_time(da, drop=True, **indexer) if indexer else da
+        valid = selected.notnull()
+        # Expected observations depend only on the selected calendar axis. Keep
+        # this one-dimensional so Dask does not repeat the same count in every
+        # spatial cell.
+        expected = valid.time.resample(time="MS").count(dim="time")
+        valid_count = valid.resample(time="MS").sum(dim="time")
+        too_many_missing = (expected - valid_count) >= nm
+        missing = ~valid
+        missing_run_end = missing
+        for offset in range(1, nc):
+            missing_run_end = missing_run_end & missing.shift(
+                time=offset,
+                fill_value=False,
+            )
+        year = valid.time.dt.year
+        month = valid.time.dt.month
+        run_stays_in_month = (year == year.shift(time=nc - 1)) & (
+            month == month.shift(time=nc - 1)
+        )
+        has_consecutive_missing = (
+            (missing_run_end & run_stays_in_month)
+            .astype("int8")
+            .resample(time="MS")
+            .max(dim="time")
+            # Resampling a selected season creates empty bins between seasons.
+            # An empty, out-of-season month is not a failed WMO month.
+            .fillna(0)
+            .astype(bool)
+        )
+        monthly_mask = too_many_missing | has_consecutive_missing
+
+        # A coarser period is invalid when any constituent month is invalid.
+        # The complete daily axis above ensures that absent whole months exist
+        # in this monthly mask, without relying on version-specific xclim aliases.
+        if resample_freq is None:
+            return monthly_mask.any(dim="time")
+        # Integer max avoids an incorrect all-True boolean ``Resample.any``
+        # result in the xarray version paired with xclim 0.53.
+        return (
+            monthly_mask.astype("int8")
+            .resample(time=resample_freq)
+            .max(dim="time")
+            .astype(bool)
         )
 
 
@@ -690,13 +844,13 @@ def _warn_if_incomplete_without_computing(
         message = (
             "icclim could not infer a regular source time frequency. The "
             f"'{completeness_policy_name}' completeness policy will mask "
-            "incomplete output periods. Pass "
-            "allow_missing_periods=True to compute from available timesteps."
+            "incomplete output periods. Pass completeness='none' to compute "
+            "from available timesteps."
         )
     elif mask.chunks is None and bool(mask.any().item()):
         message = (
             "icclim masked one or more output periods because the source time "
-            "series is incomplete. Pass allow_missing_periods=True to compute "
+            "series is incomplete. Pass completeness='none' to compute "
             "those periods from the available timesteps."
         )
     else:
