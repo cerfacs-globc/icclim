@@ -359,6 +359,28 @@ def test_wmo_seasons_ignore_out_of_season_months_and_keep_partial_boundaries(
     assert np.isnan(values).tolist() == expected_missing
 
 
+def test_ecad_amjjas_uses_the_complete_april_to_september_half_year() -> None:
+    time = pd.date_range("2001-01-01", "2003-12-31", freq="D")
+    tas = xr.DataArray(
+        np.full(time.size, 303.15),
+        coords={"time": time},
+        dims="time",
+        name="tas",
+        attrs={"units": "K"},
+    )
+
+    result = icclim.index(
+        tas,
+        var_name="tas",
+        index_name="SU",
+        slice_mode="AMJJAS",
+        completeness="ecad",
+        logs_verbosity="SILENT",
+    )
+
+    np.testing.assert_array_equal(result.SU.values, [183, 183, 183])
+
+
 @pytest.mark.parametrize(
     ("allow_partial_seasons", "first_missing", "last_missing"),
     [
