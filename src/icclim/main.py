@@ -713,18 +713,22 @@ def index(
             captured_warnings=captured_warnings,
         )
         log.ending_message(time.process_time())
-    _reemit_missing_period_warnings(captured_warnings)
+    _reemit_actionable_warnings(captured_warnings)
     return result_ds
 
 
-def _reemit_missing_period_warnings(captured_warnings: list[Any]) -> None:
+def _reemit_actionable_warnings(captured_warnings: list[Any]) -> None:
+    emitted: set[tuple[type[Warning], str]] = set()
     for item in captured_warnings:
         message = str(item.message)
-        if (
+        warning_key = (item.category, message)
+        if warning_key not in emitted and (
             "source time series is incomplete" in message
             or "completeness policy will mask" in message
+            or "will not attach that standard-variable metadata" in message
         ):
             warn(item.message, item.category, stacklevel=3)
+            emitted.add(warning_key)
 
 
 def _run_index_workflow(

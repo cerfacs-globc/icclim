@@ -386,6 +386,8 @@ class GenericIndicator(Indicator):
         elif out_unit is not None:
             result = convert_units_to(result, out_unit, context="hydro")
 
+        result = self._annotate_temperature_semantics(result)
+
         if completeness_policy.is_applied:
             # reference variable is a subset of the studied variable,
             # so no need to check it.
@@ -428,6 +430,34 @@ class GenericIndicator(Indicator):
             result.attrs[prop] = getattr(self, prop)
         result.attrs.update(completeness_policy.metadata())
         result.attrs["history"] = ""
+        return result
+
+    def _annotate_temperature_semantics(self, result: DataArray) -> DataArray:
+        """Record whether a temperature result is on-scale or a difference."""
+        if self._is_a_diff_indicator() or self.name == "standard_deviation":
+            semantics = "temperature: difference"
+        elif self.name in {
+            "average",
+            "maximum",
+            "minimum",
+            "percentile",
+            "max_of_rolling_average",
+            "min_of_rolling_average",
+        }:
+            semantics = "temperature: on_scale"
+        else:
+            return result
+        unit = result.attrs.get("units")
+        if unit is None:
+            return result
+        from xclim.core.units import units2pint  # noqa: PLC0415
+
+        try:
+            is_temperature = "[temperature]" in units2pint(unit).dimensionality
+        except (KeyError, TypeError, UndefinedUnitError, ValueError):
+            return result
+        if is_temperature:
+            result.attrs["units_metadata"] = semantics
         return result
 
     # >>> PATCHED helper: difference-aware flag
