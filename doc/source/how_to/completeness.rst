@@ -111,6 +111,11 @@ input frequencies and spatially varying per-cell seasons use strict
 completeness. The output attribute ``completeness_aggregation`` records which
 class was selected.
 
+For built-in seasons such as MAM or DJF, WMO completeness evaluates only the
+months belonging to that season. ``allow_partial_seasons`` continues to control
+incomplete seasons at the start or end of the source series; it does not unmask
+an internal season that fails the WMO missing-day rule.
+
 The WMO 80% criterion is different: it concerns the availability of valid
 monthly values across the years used to calculate a climate normal. It is not a
 generic daily completeness percentage and is therefore not silently applied to

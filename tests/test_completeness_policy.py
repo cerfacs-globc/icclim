@@ -318,6 +318,151 @@ def test_wmo_count_treats_omitted_dates_as_consecutive_missing_days() -> None:
     assert np.isnan(result.SU.compute().item())
 
 
+@pytest.mark.parametrize("index_name", ["TG", "SU"])
+@pytest.mark.parametrize(
+    ("slice_mode", "first_period_is_partial"),
+    [
+        ("MAM", False),
+        ("JJA", False),
+        ("SON", False),
+        ("AMJJAS", False),
+        ("DJF", True),
+        ("ONDJFM", True),
+    ],
+)
+def test_wmo_seasons_ignore_out_of_season_months_and_keep_partial_boundaries(
+    index_name: str,
+    slice_mode: str,
+    first_period_is_partial: bool,
+) -> None:
+    time = pd.date_range("2000-01-01", "2003-12-31", freq="D")
+    tas = xr.DataArray(
+        np.full(time.size, 303.15),
+        coords={"time": time},
+        dims="time",
+        name="tas",
+        attrs={"units": "K"},
+    )
+
+    result = icclim.index(
+        in_files=tas,
+        var_name="tas",
+        index_name=index_name,
+        slice_mode=slice_mode,
+        completeness="wmo",
+        allow_partial_seasons="end",
+        logs_verbosity="SILENT",
+    )
+
+    values = result[index_name].values
+    expected_missing = [first_period_is_partial, *([False] * (values.size - 1))]
+    assert np.isnan(values).tolist() == expected_missing
+
+
+@pytest.mark.parametrize(
+    ("allow_partial_seasons", "first_missing", "last_missing"),
+    [
+        (False, True, True),
+        ("start", False, True),
+        ("end", True, False),
+        (True, False, False),
+    ],
+)
+def test_wmo_cross_year_season_preserves_partial_period_controls(
+    allow_partial_seasons: bool | str,
+    first_missing: bool,
+    last_missing: bool,
+) -> None:
+    time = pd.date_range("2000-01-01", "2003-12-31", freq="D")
+    tas = xr.DataArray(
+        np.full(time.size, 283.15),
+        coords={"time": time},
+        dims="time",
+        name="tas",
+        attrs={"units": "K"},
+    )
+
+    result = icclim.index(
+        in_files=tas,
+        var_name="tas",
+        index_name="TG",
+        slice_mode="DJF",
+        completeness="wmo",
+        allow_partial_seasons=allow_partial_seasons,
+        logs_verbosity="SILENT",
+    )
+
+    missing = np.isnan(result.TG.values)
+    assert missing[0] == first_missing
+    assert not missing[1:-1].any()
+    assert missing[-1] == last_missing
+
+
+def test_wmo_season_masks_an_omitted_constituent_month() -> None:
+    time = pd.date_range("2000-01-01", "2003-12-31", freq="D")
+    time = time[~((time.year == 2001) & (time.month == 4))]
+    tas = xr.DataArray(
+        np.full(time.size, 283.15),
+        coords={"time": time},
+        dims="time",
+        name="tas",
+        attrs={"units": "K"},
+    )
+
+    with pytest.warns(UserWarning, match="could not infer a regular source"):
+        result = icclim.index(
+            in_files=tas,
+            var_name="tas",
+            index_name="TG",
+            slice_mode="MAM",
+            completeness="wmo",
+            logs_verbosity="SILENT",
+        )
+
+    assert np.isnan(result.TG.values).tolist() == [False, True, False, False]
+
+
+@pytest.mark.parametrize("calendar", ["noleap", "360_day"])
+def test_wmo_seasons_support_cftime_boundaries(calendar: str) -> None:
+    end = "2003-12-30" if calendar == "360_day" else "2003-12-31"
+    time = xr.date_range(
+        "2000-01-01",
+        end,
+        freq="D",
+        calendar=calendar,
+        use_cftime=True,
+    )
+    tas = xr.DataArray(
+        np.full(time.size, 283.15),
+        coords={"time": time},
+        dims="time",
+        name="tas",
+        attrs={"units": "K"},
+    )
+
+    mam = icclim.index(
+        tas,
+        var_name="tas",
+        index_name="TG",
+        slice_mode="MAM",
+        completeness="wmo",
+        allow_partial_seasons="end",
+        logs_verbosity="SILENT",
+    )
+    djf = icclim.index(
+        tas,
+        var_name="tas",
+        index_name="TG",
+        slice_mode="DJF",
+        completeness="wmo",
+        allow_partial_seasons="end",
+        logs_verbosity="SILENT",
+    )
+
+    assert not np.isnan(mam.TG.values).any()
+    assert np.isnan(djf.TG.values).tolist() == [True, False, False, False, False]
+
+
 def test_wmo_count_preserves_non_midnight_daily_timestamps() -> None:
     data = _month_with_missing_days(range(0, 20, 2)).assign_coords(
         time=pd.date_range("2001-01-01 12:00", periods=31)

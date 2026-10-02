@@ -691,11 +691,13 @@ class GenericIndicator(Indicator):
 
         nm = missing_options.get("nm", 11)
         nc = missing_options.get("nc", 5)
-        # Materialize only the coordinate, never data. Reindexing to the complete
-        # daily axis makes omitted dates count as consecutive missing days too.
-        month_labels = da.time.resample(time="MS").count().time
-        first_month = month_labels.values[0]
-        last_month = month_labels.values[-1]
+        # Materialize only the coordinate, never data. Cover the complete first
+        # and last output periods so partial boundary periods and omitted dates
+        # become explicit missing days before applying an optional season.
+        period_freq = resample_freq or "MS"
+        period_labels = da.time.resample(time=period_freq).count().time
+        first_period = period_labels.values[0]
+        last_period = period_labels.values[-1]
         first_source_time = da.time.values[0]
         if isinstance(first_source_time, np.datetime64):
             time_of_day = first_source_time - first_source_time.astype("datetime64[D]")
@@ -707,16 +709,22 @@ class GenericIndicator(Indicator):
                 microsecond=0,
             )
             time_of_day = first_source_time - midnight
-        first_month += time_of_day
-        last_month += time_of_day
-        month_delta = last_month - first_month
-        if isinstance(month_delta, np.timedelta64):
-            elapsed_days = int(month_delta / np.timedelta64(1, "D"))
+        first_period += time_of_day
+        next_period = xr.date_range(
+            start=last_period,
+            periods=2,
+            freq=period_freq,
+            calendar=da.time.dt.calendar,
+            use_cftime=da.time.dtype == object,
+        ).values[-1]
+        next_period += time_of_day
+        period_delta = next_period - first_period
+        if isinstance(period_delta, np.timedelta64):
+            periods = int(period_delta / np.timedelta64(1, "D"))
         else:
-            elapsed_days = month_delta.days
-        periods = elapsed_days + int(month_labels.dt.days_in_month.values[-1])
+            periods = period_delta.days
         complete_time = xr.date_range(
-            start=first_month,
+            start=first_period,
             periods=periods,
             freq="D",
             calendar=da.time.dt.calendar,
@@ -724,7 +732,10 @@ class GenericIndicator(Indicator):
         )
         if not da.indexes["time"].equals(complete_time):
             da = da.reindex(time=complete_time)
-        selected = select_time(da, **indexer) if indexer else da
+        # Drop dates outside a requested season. Keeping them as NaN would make
+        # complete seasons fail WMO checks because non-season months appeared
+        # to be missing observations.
+        selected = select_time(da, drop=True, **indexer) if indexer else da
         valid = selected.notnull()
         # Expected observations depend only on the selected calendar axis. Keep
         # this one-dimensional so Dask does not repeat the same count in every
@@ -749,6 +760,9 @@ class GenericIndicator(Indicator):
             .astype("int8")
             .resample(time="MS")
             .max(dim="time")
+            # Resampling a selected season creates empty bins between seasons.
+            # An empty, out-of-season month is not a failed WMO month.
+            .fillna(0)
             .astype(bool)
         )
         monthly_mask = too_many_missing | has_consecutive_missing
