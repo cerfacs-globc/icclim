@@ -29,6 +29,10 @@
    applying calendar-month WMO thresholds.
 -  [fix] Correct ``AMJJAS`` to include September, consistently with its documented
    April-to-September half-year definition.
+-  [meta] Label absolute-temperature outputs as ``temperature: on_scale`` and
+   temperature ranges and standard deviations as ``temperature: difference``.
+   Reject physically incompatible metadata inference for dimensionless variables,
+   such as a variable named ``RH`` whose declared unit is ``mm``.
 
 *****
 7.2.1
