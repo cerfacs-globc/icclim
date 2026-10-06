@@ -102,7 +102,7 @@ flit==3.12.0
     # via icclim (pyproject.toml)
 flit-core==3.12.0
     # via flit
-fsspec==2026.2.0
+fsspec==2026.6.0
     # via
     #   dask
     #   icclim (pyproject.toml)
