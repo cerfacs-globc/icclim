@@ -12,6 +12,16 @@ Output metadata contains at least the following variables:
 -  time_bnds
 -  index
 
+Temperature index variables also carry ``units_metadata`` to distinguish an
+absolute temperature (``temperature: on_scale``) from a temperature difference
+(``temperature: difference``). This distinction changes only the interpretation
+of the unit; it does not alter calculated values.
+
+icclim does not attach standard-variable metadata inferred from a variable name
+when its declared units are physically incompatible. For example, ``RH`` can be
+identified as relative humidity only with dimensionless units such as ``%``;
+``mm`` triggers a warning and the output variable remains unidentified.
+
 ******************************
  lat, lon, lat_bnds, lon_bnds
 ******************************

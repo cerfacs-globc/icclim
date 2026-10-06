@@ -35,8 +35,9 @@ from icclim._core.constants import (
 from icclim._core.generic.indicator import GenericIndicator
 from icclim._core.input_parsing import build_input_dict
 from icclim._core.model.index_config import (
+    CompletenessLike,
     IndexConfig,
-    resolve_legacy_completeness_policy,
+    resolve_completeness_policy,
 )
 from icclim._core.model.index_group import IndexGroup, IndexGroupRegistry
 from icclim._core.model.logical_link import LogicalLinkRegistry
@@ -372,6 +373,7 @@ def index(
     sampling_method: SamplingMethodLike = RESAMPLE_METHOD,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
     *,
@@ -541,15 +543,26 @@ def index(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -655,7 +668,8 @@ def index(
             sampling_method=sampling_method,
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons or False,
-            allow_missing_periods=bool(allow_missing_periods),
+            completeness=completeness,
+            allow_missing_periods=allow_missing_periods,
             allow_partial_final_period=allow_partial_final_period,
             warn_on_missing_periods=(
                 allow_missing_periods is None and allow_partial_seasons is None
@@ -685,6 +699,7 @@ def index(
             sampling_method=sampling_method,
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
+            completeness=completeness,
             allow_missing_periods=allow_missing_periods,
             allow_partial_final_period=allow_partial_final_period,
             normalized_request=normalized_request,
@@ -698,18 +713,22 @@ def index(
             captured_warnings=captured_warnings,
         )
         log.ending_message(time.process_time())
-    _reemit_missing_period_warnings(captured_warnings)
+    _reemit_actionable_warnings(captured_warnings)
     return result_ds
 
 
-def _reemit_missing_period_warnings(captured_warnings: list[Any]) -> None:
+def _reemit_actionable_warnings(captured_warnings: list[Any]) -> None:
+    emitted: set[tuple[type[Warning], str]] = set()
     for item in captured_warnings:
         message = str(item.message)
-        if (
+        warning_key = (item.category, message)
+        if warning_key not in emitted and (
             "source time series is incomplete" in message
             or "completeness policy will mask" in message
+            or "will not attach that standard-variable metadata" in message
         ):
             warn(item.message, item.category, stacklevel=3)
+            emitted.add(warning_key)
 
 
 def _run_index_workflow(
@@ -783,6 +802,7 @@ def _build_index_provenance_user_parameters(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
+    completeness: CompletenessLike,
     allow_missing_periods: bool | None,
     allow_partial_final_period: bool,
     normalized_request: NormalizedIndexRequest,
@@ -814,6 +834,7 @@ def _build_index_provenance_user_parameters(
         "sampling_method": _serialize_provenance_value(sampling_method),
         "run_index": run_index,
         "allow_partial_seasons": allow_partial_seasons,
+        "completeness": completeness,
         "allow_missing_periods": allow_missing_periods,
         "allow_partial_final_period": allow_partial_final_period,
     }
@@ -856,7 +877,8 @@ def _build_config_from_request(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
-    allow_missing_periods: bool,
+    completeness: CompletenessLike,
+    allow_missing_periods: bool | None,
     allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
     normalized_request: NormalizedIndexRequest,
@@ -886,6 +908,7 @@ def _build_config_from_request(
         sampling_method=sampling_method,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
@@ -916,7 +939,8 @@ def _build_config(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
-    allow_missing_periods: bool,
+    completeness: CompletenessLike,
+    allow_missing_periods: bool | None,
     allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
 ) -> IndexConfig:
@@ -943,6 +967,7 @@ def _build_config(
             sampling_method=sampling_method,
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
+            completeness=completeness,
             allow_missing_periods=allow_missing_periods,
             allow_partial_final_period=allow_partial_final_period,
             warn_on_missing_periods=warn_on_missing_periods,
@@ -971,6 +996,7 @@ def _build_config(
             sampling_method=sampling_method,
             run_index=run_index,
             allow_partial_seasons=allow_partial_seasons,
+            completeness=completeness,
             allow_missing_periods=allow_missing_periods,
             allow_partial_final_period=allow_partial_final_period,
             warn_on_missing_periods=warn_on_missing_periods,
@@ -1051,7 +1077,8 @@ def _build_legacy_user_index_config(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
-    allow_missing_periods: bool,
+    completeness: CompletenessLike,
+    allow_missing_periods: bool | None,
     allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
 ) -> IndexConfig:
@@ -1099,6 +1126,7 @@ def _build_legacy_user_index_config(
         reference=ICCLIM_REFERENCE,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
@@ -1128,7 +1156,8 @@ def _build_standard_index_config(
     sampling_method: SamplingMethodLike,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
-    allow_missing_periods: bool,
+    completeness: CompletenessLike,
+    allow_missing_periods: bool | None,
     allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
 ) -> IndexConfig:
@@ -1186,6 +1215,7 @@ def _build_standard_index_config(
         reference=reference,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
@@ -1282,7 +1312,8 @@ def _assemble_index_config(
     reference: str,
     run_index: str | None,
     allow_partial_seasons: bool | Literal["start", "end"],
-    allow_missing_periods: bool,
+    completeness: CompletenessLike,
+    allow_missing_periods: bool | None,
     allow_partial_final_period: bool,
     warn_on_missing_periods: bool,
 ) -> IndexConfig:
@@ -1308,10 +1339,14 @@ def _assemble_index_config(
         reference=reference,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
-        completeness_policy=resolve_legacy_completeness_policy(
+        completeness_policy=resolve_completeness_policy(
+            completeness=completeness,
             allow_missing_periods=allow_missing_periods,
+            frequency=frequency,
+            source_frequency=climate_variables[0].source_frequency,
             missing_method=getattr(indicator, "missing", "any"),
             missing_options=getattr(indicator, "missing_options", None),
+            wmo_aggregation=getattr(indicator, "wmo_aggregation", "other"),
         ),
         allow_partial_final_period=allow_partial_final_period,
         warn_on_missing_periods=warn_on_missing_periods,
