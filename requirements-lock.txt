@@ -385,7 +385,7 @@ urllib3==2.8.0
     # via requests
 uvicorn==0.41.0
     # via sphinx-autobuild
-virtualenv==21.1.0
+virtualenv==21.7.13
     # via pre-commit
 watchfiles==1.1.1
     # via sphinx-autobuild
