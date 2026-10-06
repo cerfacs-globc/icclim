@@ -2,6 +2,8 @@
 # These constrain resolution while keeping relaxed ranges in pyproject.toml.
 
 numpy==2.0.1
+numba==0.62.1
+llvmlite==0.45.1
 xarray==2025.6.1
 xclim==0.58.1
 cf-xarray==0.10.6
@@ -12,7 +14,7 @@ dask==2025.7.0
 netCDF4==1.7.2
 psutil==7.1.0
 zarr==2.18.3
-fsspec==2025.9.0
+fsspec==2026.6.0
 pandas==2.3.2
 dateparser==1.2.2
 pint==0.24.4

@@ -52,7 +52,7 @@ cftime==1.6.5
     #   xclim
 charset-normalizer==3.4.4
     # via requests
-click==8.3.1
+click==8.3.3
     # via
     #   dask
     #   uvicorn
@@ -102,7 +102,7 @@ flit==3.12.0
     # via icclim (pyproject.toml)
 flit-core==3.12.0
     # via flit
-fsspec==2026.2.0
+fsspec==2026.6.0
     # via
     #   dask
     #   icclim (pyproject.toml)
@@ -151,7 +151,7 @@ jupyter-core==5.9.1
     #   nbformat
 jupyterlab-pygments==0.3.0
     # via nbconvert
-llvmlite==0.46.0
+llvmlite==0.45.1
     # via numba
 locket==1.0.0
     # via partd
@@ -178,13 +178,13 @@ netcdf4==1.7.4
     # via icclim (pyproject.toml)
 nodeenv==1.10.0
     # via pre-commit
-numba==0.64.0
+numba==0.62.1
     # via xclim
 numcodecs==0.16.5
     # via
     #   icclim (pyproject.toml)
     #   zarr
-numpy==2.4.2
+numpy==2.3.5
     # via
     #   bottleneck
     #   cftime
@@ -267,7 +267,7 @@ python-dateutil==2.9.0.post0
     #   dateparser
     #   jupyter-client
     #   pandas
-python-discovery==1.1.0
+python-discovery==1.6.1
     # via virtualenv
 pytz==2025.2
     # via dateparser
@@ -354,7 +354,7 @@ toolz==1.1.0
     # via
     #   dask
     #   partd
-tornado==6.5.8
+tornado==6.5.9
     # via jupyter-client
 traitlets==5.14.3
     # via
@@ -385,7 +385,7 @@ urllib3==2.8.0
     # via requests
 uvicorn==0.41.0
     # via sphinx-autobuild
-virtualenv==21.1.0
+virtualenv==21.7.13
     # via pre-commit
 watchfiles==1.1.1
     # via sphinx-autobuild
