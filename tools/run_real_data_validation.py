@@ -595,6 +595,131 @@ def _build_workload(
             time_range=TIME_RANGE,
             slice_mode="month",
         )
+    if workload in {
+        "generic_tas_sum_bootstrap_cftime_monthly",
+        "generic_tas_sum_bootstrap_cftime_yearly",
+    }:
+        tas = _as_cftime_gregorian(_open_var(TAS_GLOB, "tas", chunks=chunks))
+        return icclim.sum(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month" if workload.endswith("_monthly") else "year",
+        )
+    if workload in {
+        "generic_tas_average_bootstrap_cftime_monthly",
+        "generic_tas_average_bootstrap_cftime_yearly",
+    }:
+        tas = _as_cftime_gregorian(_open_var(TAS_GLOB, "tas", chunks=chunks))
+        return icclim.average(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month" if workload.endswith("_monthly") else "year",
+        )
+    if workload in {
+        "generic_tas_fraction_bootstrap_cftime_monthly",
+        "generic_tas_fraction_bootstrap_cftime_yearly",
+    }:
+        tas = _as_cftime_gregorian(_open_var(TAS_GLOB, "tas", chunks=chunks))
+        return icclim.fraction_of_total(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month" if workload.endswith("_monthly") else "year",
+        )
+    if workload in {
+        "generic_tas_spell_bootstrap_cftime_monthly",
+        "generic_tas_spell_bootstrap_cftime_yearly",
+    }:
+        tas = _as_cftime_gregorian(_open_var(TAS_GLOB, "tas", chunks=chunks))
+        return icclim.sum_of_spell_lengths(
+            in_files=tas,
+            var_name="tas",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month" if workload.endswith("_monthly") else "year",
+            min_spell_length=6,
+        )
+    if workload in {
+        "generic_pr_sum_bootstrap_cftime_monthly",
+        "generic_pr_sum_bootstrap_cftime_yearly",
+    }:
+        pr = _as_cftime_gregorian(_open_var(PR_GLOB, "pr", chunks=chunks))
+        return icclim.sum(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month" if workload.endswith("_monthly") else "year",
+        )
+    if workload in {
+        "generic_pr_fraction_bootstrap_cftime_monthly",
+        "generic_pr_fraction_bootstrap_cftime_yearly",
+    }:
+        pr = _as_cftime_gregorian(_open_var(PR_GLOB, "pr", chunks=chunks))
+        return icclim.fraction_of_total(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month" if workload.endswith("_monthly") else "year",
+        )
+    if workload in {
+        "generic_pr_count_bootstrap_cftime_monthly",
+        "generic_pr_count_bootstrap_cftime_yearly",
+    }:
+        pr = _as_cftime_gregorian(_open_var(PR_GLOB, "pr", chunks=chunks))
+        return icclim.count_occurrences(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month" if workload.endswith("_monthly") else "year",
+        )
+    if workload in {
+        "generic_pr_average_bootstrap_cftime_monthly",
+        "generic_pr_average_bootstrap_cftime_yearly",
+    }:
+        pr = _as_cftime_gregorian(_open_var(PR_GLOB, "pr", chunks=chunks))
+        return icclim.average(
+            in_files=pr,
+            var_name="pr",
+            threshold=icclim.build_threshold(
+                "> 90 doy_per",
+                threshold_min_value="1 mm/day",
+                reference_period=BASE_PERIOD,
+            ),
+            time_range=TIME_RANGE,
+            slice_mode="month" if workload.endswith("_monthly") else "year",
+        )
     if workload == "combined_cd_yearly":
         # Compound logical-link indices currently exercise xarray boolean
         # operations that behave differently on lazy arrays across versions.

@@ -44,10 +44,15 @@ Fast path currently supports:
 - simple count operators: ``>``, ``>=``, ``<`` and ``<=``;
 - no ``only_leap_years``;
 - pandas-compatible calendars;
-- supported day-of-year percentile count workloads on ``cftime``
-  calendars through the exact compiled order-statistics route validated
-  against the reference implementation;
-- validated spell reducers that reuse the compiled union-mask route;
+- supported day-of-year percentile counts on standard and proleptic
+  Gregorian ``cftime`` calendars through the exact compiled
+  order-statistics route;
+- unfiltered and ``threshold_min_value``-filtered ``cftime`` ``sum``,
+  ``average`` and ``fraction_of_total`` reducers through the same exact
+  threshold reconstruction and daily union semantics;
+- validated simple one-threshold spell reducers on pandas-compatible
+  calendars through the compiled union-mask route; ``cftime`` spell
+  reducers use the reference path;
 - validated compound count workloads that reuse component-mask
   composition;
 - validated same-variable bounded scalar guards such as
@@ -65,18 +70,13 @@ Cases outside the retained support boundary intentionally fall back to
 the exact tiled bootstrap path or the reference path, depending on the
 family. The most useful future extensions are likely:
 
-- additional ``threshold_min_value`` reducers. As of Friday, July 31, 2026,
-  wet-day style support is now split by reducer after exact real-data
-  validation:
-
-  ``count_occurrences`` and ``average`` stay on the exact tiled bootstrap path,
-  while ``sum`` and ``fraction_of_total`` are field-identical on the optimized
-  path;
-- broader ``cftime`` families beyond supported count workloads. The
-  retained ``cftime`` production path now covers supported day-of-year
-  percentile counts through the exact compiled order-statistics kernel,
-  but spell, filtered and broader value-aggregate cases still need their
-  own validated route;
+- non-Gregorian CF calendars. Their calendar-specific threshold
+  alignment remains on the exact fallback until separately validated;
+- additional ``threshold_min_value`` combinations beyond the current
+  single day-of-year percentile boundary;
+- broader spell/run-length combinations. Simple pandas-compatible
+  one-threshold spells use a compiled boolean union mask, while
+  ``cftime`` spells use the reference path;
 - spell/run-length extension beyond the currently validated simple
   day-of-year percentile cases;
 - broader compound percentile shapes beyond the currently validated
@@ -85,14 +85,13 @@ family. The most useful future extensions are likely:
 - additional reducer families that still need their own exact support
   boundary analysis.
 
-For future spell/run-length optimization work, the likely direction is a
-two-stage design:
+Spell/run-length bootstrap follows a two-stage design:
 
 - compute or bootstrap a daily exceedance mask first, reusing the
   current substitute-year percentile machinery;
-- run spell detection on the bootstrapped mask per substitute year, then
-  aggregate spell metrics across substitute years rather than trying to reduce
-  spells to independent daily counts inside the current kernel.
+- normalize the substitute comparisons into the same daily boolean union
+  mask as the reference logical-link workflow, then run spell detection
+  once on that mask.
 
 Performance notes
 =================
@@ -140,6 +139,54 @@ giant dask graphs. It is much faster than the reliable exact tiled
 fallback, but it is not guaranteed to beat the old graph path on cases
 where that graph path happens to complete.
 
+For the supported exact ``cftime`` count route, a later real-data check
+against commit ``00baef3b`` on Monday, August 24, 2026 confirmed that
+the retained order-statistics redesign is exact on the validated
+``TX90p`` workloads while materially faster than that fair
+pre-optimization baseline:
+
+- monthly ``TX90p``: about 2226 seconds before optimization versus
+  about 979 seconds now;
+- yearly ``TX90p``: about 2160 seconds before optimization versus about
+  1037 seconds now.
+
+That same comparison also confirmed an important boundary for
+interpretation: several broader percentile-bootstrap workloads in
+``00baef3b`` still fail before completion because they predate later
+bootstrap-preparation fixes. So ``00baef3b`` remains the fair timing
+baseline for supported ``cftime`` counts, but not a full executable
+reference for every later optimized family.
+
+The October 2026 extension validation retained unfiltered ``cftime``
+``sum``, ``average`` and ``fraction_of_total``, plus filtered ``sum``.
+All four matched the reference path over the full 65-year field for
+both yearly and monthly output. Annual compiled runs took about 985 to
+1,101 seconds, compared with about 1,109 to 1,253 seconds for the exact
+tiled path. Annual scheduler batch ``MaxRSS`` was about 0.99 to 2.00
+GiB for the compiled runs, 2.83 to 3.22 GiB for the reference runs and
+1.59 to 2.22 GiB for the tiled runs.
+
+The three unfiltered tiled comparisons each differed from both the
+compiled and reference result at the same leap-sensitive 1952 cell.
+The compiled and reference results agreed exactly. This is why the
+reference path, rather than the tiled path alone, is the final
+scientific comparison for this ``cftime`` extension.
+
+The final filtered extension rerun retained ``count_occurrences``,
+``average`` and ``fraction_of_total`` for both yearly and monthly output.
+All six full-field comparisons had zero changed cells and zero maximum
+difference against the reference. Annual compiled runs took about 1,069
+to 1,074 seconds with scheduler ``MaxRSS`` of about 1.33 to 1.38 GiB;
+the corresponding reference runs took about 229 to 238 seconds. The
+compiled route is therefore a bounded-memory, graph-free alternative,
+not a wall-clock speedup when the reference graph completes.
+
+The same rerun rejected compiled ``cftime`` spell routing. Real-data
+cells developed incorrect continuous multi-year runs, and the compiled
+annual run took about 989 seconds versus about 238 seconds for the
+reference. ``cftime`` spells consequently use the reference path.
+The final annual and monthly production-route comparisons were exact.
+
 Further large speedups are more likely to come from reducing Python,
 xarray and dask preparation overhead than from micro-optimising the Numba
 kernel. Promising areas:
@@ -153,7 +200,8 @@ Validation rules
 ================
 
 Do not validate bootstrap changes using mean differences only. Always
-compare the full field against the safe reference path and report at
+compare the full field against the trusted reference path and the
+production fallback path, and report at
 least:
 
 - maximum absolute difference;

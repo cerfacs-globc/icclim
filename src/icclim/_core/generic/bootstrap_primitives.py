@@ -226,6 +226,11 @@ def _reopen_file_backed_study(study: DataArray) -> DataArray | None:
     if selection:
         reopened = reopened.sel(selection)
     reopened = reopened.transpose(*study.dims)
+    if any(reopened.sizes[dim] != study.sizes[dim] for dim in study.dims):
+        return None
+    reopened = reopened.assign_coords(
+        {dim: study.coords[dim] for dim in study.dims if dim in study.coords}
+    )
     reopened.attrs = dict(study.attrs)
     return reopened
 
@@ -247,7 +252,10 @@ def _selection_for_reopened_study(
         if dim == "time":
             if study.sizes["time"] == reopened.sizes["time"]:
                 continue
-            selection[dim] = slice(study[dim].values[0], study[dim].values[-1])
+            selection[dim] = slice(
+                str(study[dim].values[0]),
+                str(study[dim].values[-1]),
+            )
             continue
         selection[dim] = study.indexes[dim]
     return selection

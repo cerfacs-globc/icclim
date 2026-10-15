@@ -226,8 +226,12 @@ In production today:
 - supported day-of-year percentile counts use the compiled count path;
 - supported ``cftime`` day-of-year percentile counts use the exact
   compiled order-statistics count path;
-- selected value aggregates reuse the same threshold semantics;
-- selected spell reducers use the validated compiled union-mask route;
+- unfiltered ``cftime`` ``sum``, ``average`` and
+  ``fraction_of_total`` reuse the same exact threshold reconstruction;
+- filtered ``cftime`` count, ``sum``, ``average`` and
+  ``fraction_of_total`` reuse target-calendar daily threshold unions;
+- selected pandas-compatible spell reducers use the validated compiled
+  union-mask route, while ``cftime`` spells use the reference path;
 - selected compound families reuse component-mask composition;
 - unsupported cases still fall back to exact tiled or reference paths.
 
@@ -298,16 +302,65 @@ The production conclusion is:
 - field equality is the release criterion, not average similarity;
 - unsupported or not yet trusted cases remain on exact fallback paths.
 
+The October 2026 extension round widened the exact compiled ``cftime``
+boundary to unfiltered ``sum``, ``average`` and
+``fraction_of_total``, plus filtered ``sum``. All four were field-exact
+against the reference path for annual and monthly real-data output.
+Annual compiled wall-clock times were about 985 to 1,101 seconds,
+compared with about 1,109 to 1,253 seconds for the tiled fallback.
+
+The initial round rejected the compiled ``cftime`` spell and filtered
+``fraction_of_total`` prototypes. The follow-up investigation identified
+precision loss in spell preparation, missing boolean normalization in
+the tiled spell shortcut and incorrect filtered overlap preparation.
+
+The final full-field rerun retained filtered count, average and
+``fraction_of_total`` for both annual and monthly output, with zero
+changed cells and zero maximum difference against the reference. Each
+substitute threshold is now aligned to the target calendar before the
+daily union is formed. The annual compiled runs took about 1,069 to
+1,074 seconds and about 1.33 to 1.38 GiB of scheduler ``MaxRSS``. The
+reference runs took about 229 to 238 seconds, so the compiled route is
+retained for bounded memory and graph avoidance rather than as a
+wall-clock improvement over a reference graph that completes.
+
+The compiled ``cftime`` spell rerun was not retained. It produced
+continuous multi-year runs in some real-data cells and took about 989
+seconds, compared with about 238 seconds for the reference calculation.
+Routing therefore keeps ``cftime`` spells on the reference path. The
+final routed annual and monthly outputs both had zero changed cells
+against the reference artifacts.
+
+An additional real-data validation pass against commit ``00baef3b`` was
+completed on Monday, August 24, 2026 to compare the current production
+state against the last fair pre-optimization baseline that still
+contains the relevant bootstrap bug fixes preceding the optimization
+campaign.
+
+That pass showed three important points:
+
+- the supported exact ``cftime`` count redesign stayed field-exact on
+  the validated real workloads while improving wall-clock time from
+  about 2226 seconds to about 979 seconds for monthly ``TX90p`` and
+  from about 2160 seconds to about 1037 seconds for yearly ``TX90p``;
+- many older percentile-bootstrap workloads in ``00baef3b`` could no
+  longer serve as a full execution baseline because they still failed on
+  the old ``PercentileDataArray.value`` preparation bug;
+- the remaining output differences against ``00baef3b`` were limited to
+  known legacy semantic corrections, notably spell aggregation and the
+  wet-day ``fraction_of_total`` boundary, rather than new regressions in
+  the retained optimization work.
+
 What remains out of scope
 =========================
 
 The following areas are not yet retained as optimized production
 families:
 
-- broader filtered percentile families beyond the validated reducer
-  split;
-- broader ``cftime`` bootstrap families beyond supported count
-  workloads;
+- filtered percentile shapes beyond the validated single-threshold
+  reducers;
+- non-Gregorian ``cftime`` calendars, which remain on exact fallback
+  paths;
 - more complex spell families that need separate reducer semantics after
   thresholding;
 - any future route whose exactness is not demonstrated against the

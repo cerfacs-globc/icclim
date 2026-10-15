@@ -57,6 +57,15 @@ def _parse_compare_file(path: Path) -> ComparisonSummary:
         elif remainder.startswith("baseline717-"):
             baseline_label = "v717"
             workload = remainder.removeprefix("baseline717-")
+        elif remainder.startswith("preopt-"):
+            baseline_label = "preopt"
+            workload = remainder.removeprefix("preopt-")
+        elif remainder.startswith("exact-tiled-"):
+            baseline_label = "exact-tiled"
+            workload = remainder.removeprefix("exact-tiled-")
+        elif remainder.startswith("reference-"):
+            baseline_label = "reference"
+            workload = remainder.removeprefix("reference-")
         elif remainder.startswith("master-"):
             baseline_label = "master"
             workload = remainder.removeprefix("master-")
@@ -84,6 +93,10 @@ def _parse_compare_file(path: Path) -> ComparisonSummary:
         current_label = "default"
         baseline_label = "alt"
         workload = filename.removeprefix("default-vs-alt-")
+    elif filename.startswith("fallback-vs-reference-"):
+        current_label = "fallback"
+        baseline_label = "reference"
+        workload = filename.removeprefix("fallback-vs-reference-")
     else:
         msg = f"Unsupported compare filename: {path.name}"
         raise ValueError(msg)
@@ -267,6 +280,60 @@ def _workload_notes(workload: str) -> str:
         "tx90p_cftime_monthly": (
             "Gregorian-like cftime monthly validation on real tas values"
         ),
+        "generic_tas_sum_bootstrap_cftime_yearly": (
+            "Gregorian-like cftime unfiltered sum validated through the"
+            " exact compiled threshold route"
+        ),
+        "generic_tas_sum_bootstrap_cftime_monthly": (
+            "Gregorian-like cftime monthly unfiltered sum validated through"
+            " the exact compiled threshold route"
+        ),
+        "generic_tas_average_bootstrap_cftime_yearly": (
+            "Gregorian-like cftime unfiltered average validated through the"
+            " exact compiled threshold route"
+        ),
+        "generic_tas_average_bootstrap_cftime_monthly": (
+            "Gregorian-like cftime monthly unfiltered average validated through"
+            " the exact compiled threshold route"
+        ),
+        "generic_tas_fraction_bootstrap_cftime_yearly": (
+            "Gregorian-like cftime unfiltered fraction_of_total validated"
+            " through the exact compiled threshold route"
+        ),
+        "generic_tas_fraction_bootstrap_cftime_monthly": (
+            "Gregorian-like cftime monthly unfiltered fraction_of_total"
+            " validated through the exact compiled threshold route"
+        ),
+        "generic_tas_spell_bootstrap_cftime_yearly": (
+            "Gregorian-like cftime spell reducer"
+        ),
+        "generic_tas_spell_bootstrap_cftime_monthly": (
+            "Gregorian-like cftime monthly spell reducer"
+        ),
+        "generic_pr_sum_bootstrap_cftime_yearly": (
+            "Gregorian-like cftime filtered sum with threshold_min_value"
+        ),
+        "generic_pr_sum_bootstrap_cftime_monthly": (
+            "Gregorian-like cftime monthly filtered sum with threshold_min_value"
+        ),
+        "generic_pr_fraction_bootstrap_cftime_yearly": (
+            "Gregorian-like cftime filtered fraction_of_total"
+        ),
+        "generic_pr_fraction_bootstrap_cftime_monthly": (
+            "Gregorian-like cftime monthly filtered fraction_of_total"
+        ),
+        "generic_pr_count_bootstrap_cftime_yearly": (
+            "Gregorian-like cftime filtered count_occurrences"
+        ),
+        "generic_pr_count_bootstrap_cftime_monthly": (
+            "Gregorian-like cftime monthly filtered count_occurrences"
+        ),
+        "generic_pr_average_bootstrap_cftime_yearly": (
+            "Gregorian-like cftime filtered average"
+        ),
+        "generic_pr_average_bootstrap_cftime_monthly": (
+            "Gregorian-like cftime monthly filtered average"
+        ),
         "csdi_yearly": "standard cold-spell duration index",
         "generic_tas_count_date_event_monthly": "date_event count control path",
         "combined_cd_yearly": (
@@ -301,10 +368,13 @@ def _build_validation_table(
     comparisons: dict[tuple[str, str, str], ComparisonSummary],
 ) -> str:
     lines = [
-        "| Workload | Current vs master | Changed cells | Max abs diff | Current vs v7.1.7 | Changed cells | Max abs diff | Notes |",
-        "| --- | --- | ---: | ---: | --- | ---: | ---: | --- |",
+        "| Workload | Current vs preopt | Changed cells | Max abs diff | Current vs master | Changed cells | Max abs diff | Current vs v7.1.7 | Changed cells | Max abs diff | Notes |",
+        "| --- | --- | ---: | ---: | --- | ---: | ---: | --- | ---: | ---: | --- |",
     ]
     for workload in workloads:
+        preopt_status = _format_validation_status(
+            comparisons.get(("current", "preopt", workload))
+        )
         master_status = _format_validation_status(
             comparisons.get(("current", "master", workload))
         )
@@ -316,6 +386,9 @@ def _build_validation_table(
             + " | ".join(
                 [
                     workload,
+                    preopt_status[0],
+                    preopt_status[1],
+                    preopt_status[2],
                     master_status[0],
                     master_status[1],
                     master_status[2],
@@ -342,17 +415,19 @@ def _build_performance_table(
     runs: dict[tuple[str, str], RunSummary],
 ) -> str:
     lines = [
-        "| Workload | Current (s) | Master (s) | Delta vs master | Speedup vs master | v7.1.7 (s) | Delta vs v7.1.7 | Speedup vs v7.1.7 | Notes |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
+        "| Workload | Current (s) | Preopt (s) | Delta vs preopt | Speedup vs preopt | Master (s) | Delta vs master | Speedup vs master | v7.1.7 (s) | Delta vs v7.1.7 | Speedup vs v7.1.7 | Notes |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for workload in workloads:
         current = runs.get(("current", workload))
+        preopt = runs.get(("baseline-preopt", workload))
         master = runs.get(("baseline-master", workload))
         v717 = runs.get(("baseline717", workload))
         if workload == "generic_tas_bounded_count_yearly":
             master = runs.get(("baseline-master-bounded-hotfix", workload), master)
             v717 = runs.get(("baseline717-bounded-hotfix", workload), v717)
         current_s = current.duration_seconds if current is not None else None
+        preopt_s = preopt.duration_seconds if preopt is not None else None
         master_s = master.duration_seconds if master is not None else None
         v717_s = v717.duration_seconds if v717 is not None else None
         lines.append(
@@ -361,6 +436,9 @@ def _build_performance_table(
                 [
                     workload,
                     _format_seconds(current_s),
+                    _format_seconds(preopt_s),
+                    _format_percent_change(current_s, preopt_s),
+                    _format_ratio(current_s, preopt_s),
                     _format_seconds(master_s),
                     _format_percent_change(current_s, master_s),
                     _format_ratio(current_s, master_s),
