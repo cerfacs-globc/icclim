@@ -80,6 +80,7 @@ def tav(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Moyenne de la température moyenne.
 
@@ -158,6 +159,10 @@ def tav(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -180,6 +185,7 @@ def tav(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="degree_Celsius",
     )
 
@@ -197,6 +203,7 @@ def txav(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Moyenne de la température maximale.
 
@@ -275,6 +282,10 @@ def txav(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -297,6 +308,7 @@ def txav(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="degree_Celsius",
     )
 
@@ -314,6 +326,7 @@ def trav(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Moyenne de l'amplitude thermique.
 
@@ -392,6 +405,10 @@ def trav(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -414,6 +431,7 @@ def trav(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="degree_Celsius",
     )
 
@@ -435,6 +453,7 @@ def tx10(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Extrême froid de la température maximale journalière (10e centile de la température maximale).
 
@@ -537,6 +556,10 @@ def tx10(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -563,6 +586,7 @@ def tx10(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -591,6 +615,7 @@ def tx90(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Extrême chaud de la température maximale journalière (90e centile de la température maximale).
 
@@ -693,6 +718,10 @@ def tx90(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -719,6 +748,7 @@ def tx90(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -747,6 +777,7 @@ def tn10(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Extrême froid de la température minimale  journalière (10e centile de la température minimale).
 
@@ -849,6 +880,10 @@ def tn10(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -875,6 +910,7 @@ def tn10(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="< 10 doy_per",
             doy_window_width=5,
@@ -903,6 +939,7 @@ def tn90(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Extrême chaud de la température minimale journalière (90e centile de la température minimale).
 
@@ -1005,6 +1042,10 @@ def tn90(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1031,6 +1072,7 @@ def tn90(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -1055,6 +1097,7 @@ def tnfd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de jours de gel (température minimale <= 0°C).
 
@@ -1133,6 +1176,10 @@ def tnfd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1155,6 +1202,7 @@ def tnfd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
@@ -1175,6 +1223,7 @@ def txfd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de jours sans dégel (température maximale <= 0°C).
 
@@ -1253,6 +1302,10 @@ def txfd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1275,6 +1328,7 @@ def txfd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="< 0 degree_Celsius",
         ),
@@ -1295,6 +1349,7 @@ def sd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de journées d'été (température maximale > 25°C).
 
@@ -1373,6 +1428,10 @@ def sd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1395,6 +1454,7 @@ def sd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 25 degree_Celsius",
         ),
@@ -1415,6 +1475,7 @@ def tx35(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de jours de forte chaleur (température maximale > 35°C).
 
@@ -1493,6 +1554,10 @@ def tx35(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1515,6 +1580,7 @@ def tx35(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 35 degree_Celsius",
         ),
@@ -1535,6 +1601,7 @@ def tr(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de nuits tropicales (température minimale > 20°C).
 
@@ -1613,6 +1680,10 @@ def tr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1635,6 +1706,7 @@ def tr(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 20 degree_Celsius",
         ),
@@ -1656,6 +1728,7 @@ def txnd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours anormalement chauds (température maximale supérieure de plus de 5°C à la normale).
@@ -1735,6 +1808,10 @@ def txnd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -1770,6 +1847,7 @@ def txnd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="day",
     )
 
@@ -1788,6 +1866,7 @@ def tnht(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de nuits anormalement chaudes (température minimale supérieure de plus de 5°C à la normale).
@@ -1867,6 +1946,10 @@ def tnht(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -1902,6 +1985,7 @@ def tnht(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="day",
     )
 
@@ -1920,6 +2004,7 @@ def tnnd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours anormalement froids (température minimale inférieure de plus de 5°C à la normale).
@@ -1999,6 +2084,10 @@ def tnnd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -2034,6 +2123,7 @@ def tnnd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="day",
     )
 
@@ -2052,6 +2142,7 @@ def tncwd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de froid (température min < de plus de 5°C à la normale pdt au moins 5j consécutifs).
@@ -2131,6 +2222,10 @@ def tncwd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -2166,6 +2261,7 @@ def tncwd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="day",
     )
 
@@ -2184,6 +2280,7 @@ def txhwd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
     normal_var_name: str | None = None,
 ) -> Dataset:
     """Nombre de jours d'une vague de chaleur (température max > de plus de 5°C à la normale pdt au moins 5j consécutifs).
@@ -2263,6 +2360,10 @@ def txhwd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
     normal : Union[str, Sequence[str], Dataset, DataArray]
         The normal to be compared to.
         Typically, the expected normal dataset should have one value per `lat, lon` couple.
@@ -2298,6 +2399,7 @@ def txhwd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="day",
     )
 
@@ -2315,6 +2417,7 @@ def hdd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Degrés-jours de chauffage (Cumul sur la période des écarts négatifs au seuil de < 17°C par la température qt moyenne).
 
@@ -2393,6 +2496,10 @@ def hdd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2415,6 +2522,7 @@ def hdd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="17 degree_Celsius",
         ),
@@ -2435,6 +2543,7 @@ def cdd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Degrés-jours de climatisation(Cumul sur la période des dépassements du seuil de > 18°C par la température qt moyenne).
 
@@ -2513,6 +2622,10 @@ def cdd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2535,6 +2648,7 @@ def cdd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="18 degree_Celsius",
         ),
@@ -2555,6 +2669,7 @@ def pav(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Précipitations quotidiennes moyennes.
 
@@ -2633,6 +2748,10 @@ def pav(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2655,6 +2774,7 @@ def pav(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="mm/day",
     )
 
@@ -2672,6 +2792,7 @@ def pint(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Précipitation moyenne des jours pluvieux (RR > 1 mm).
 
@@ -2750,6 +2871,10 @@ def pint(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2772,6 +2897,7 @@ def pint(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -2792,6 +2918,7 @@ def rr(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Cumul de précipitation.
 
@@ -2870,6 +2997,10 @@ def rr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2892,6 +3023,7 @@ def rr(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="mm",
     )
 
@@ -2909,6 +3041,7 @@ def rr1mm(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de jours de pluie (précipitations >= 1 mm).
 
@@ -2987,6 +3120,10 @@ def rr1mm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -3009,6 +3146,7 @@ def rr1mm(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -3029,6 +3167,7 @@ def pn20mm(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de jours de fortes précipitations (précipitations >= 20 mm).
 
@@ -3107,6 +3246,10 @@ def pn20mm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -3129,6 +3272,7 @@ def pn20mm(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query=">= 20 mm/day",
         ),
@@ -3149,6 +3293,7 @@ def pxcdd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Période de sécheresse (Max [Nbj consécutifs RR < 1 mm]).
 
@@ -3227,6 +3372,10 @@ def pxcdd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -3249,6 +3398,7 @@ def pxcdd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="< 1 mm/day",
         ),
@@ -3269,6 +3419,7 @@ def pxcwd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre maximum de jours pluvieux consécutifs (Max [Nbj consécutifs RR > 1 mm]).
 
@@ -3347,6 +3498,10 @@ def pxcwd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -3369,6 +3524,7 @@ def pxcwd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query=">= 1 mm/day",
         ),
@@ -3393,6 +3549,7 @@ def r99(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de jours de précipitations extrêmes.
 
@@ -3495,6 +3652,10 @@ def r99(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -3521,6 +3682,7 @@ def r99(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 99 period_per",
             doy_window_width=5,
@@ -3550,6 +3712,7 @@ def pfl90(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Fraction des précipitations journalières intenses.
 
@@ -3652,6 +3815,10 @@ def pfl90(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -3678,6 +3845,7 @@ def pfl90(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 90 period_per",
             doy_window_width=5,
@@ -3707,6 +3875,7 @@ def pq90(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Précipitation quotidienne intense (90e centile des précipitations).
 
@@ -3809,6 +3978,10 @@ def pq90(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -3835,6 +4008,7 @@ def pq90(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 90 doy_per",
             doy_window_width=5,
@@ -3864,6 +4038,7 @@ def pq99(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Précipitation quotidienne extrême (99e centile des précipitations).
 
@@ -3966,6 +4141,10 @@ def pq99(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -3992,6 +4171,7 @@ def pq99(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 99 doy_per",
             doy_window_width=5,
@@ -4018,6 +4198,7 @@ def ffav(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Écart de la vitesse du vent moyenne journalière (par rapport à une periode de référence).
 
@@ -4110,6 +4291,10 @@ def ffav(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -4133,6 +4318,7 @@ def ffav(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         out_unit="m s-1",
     )
 
@@ -4154,6 +4340,7 @@ def ff98(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Nombre de jours de vent fort (vent ≥ 98e centile de la période de référence).
 
@@ -4256,6 +4443,10 @@ def ff98(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -4282,6 +4473,7 @@ def ff98(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
         threshold=build_threshold(
             query="> 98 period_per",
             doy_window_width=5,

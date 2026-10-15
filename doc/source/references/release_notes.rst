@@ -2,6 +2,35 @@
  Release history
 #################
 
+*****
+7.2.1
+*****
+
+date: 2026-09-30
+
+
+-  [fix] Keep completeness masking lazy for dask-backed inputs. The optional
+   missing-period diagnostic no longer executes the dask graph before returning
+   the result.
+-  [fix] Distinguish intentionally out-of-season cells from missing observations
+   when applying strict completeness checks to spatially varying seasons.
+-  [fix] Expose ``allow_missing_periods`` consistently from the generated ECA&D,
+   DCSC and generic convenience functions.
+-  [enh] Record the resolved completeness policy, implementation method and
+   options in output variable metadata in preparation for configurable ECA&D
+   and WMO policies in icclim 7.3.
+
+*****
+7.2.0
+*****
+
+date: 2026-09-23
+
+
+-  [maint] **BREAKING CHANGE** Mask output periods containing missing source
+   observations by default. ``allow_missing_periods=True`` restores calculation
+   from the available observations.
+
 *******
 7.1.10
 *******

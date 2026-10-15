@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pandas as pd
 import pytest
+import xarray as xr
 
 import icclim
 from icclim._core.constants import QUANTILE_BASED, REFERENCE_PERIOD_INDEX
@@ -40,6 +42,7 @@ DEFAULT_ARGS = {
     "date_event": False,
     "run_index": "first",
     "allow_partial_seasons": False,
+    "allow_missing_periods": None,
 }
 
 
@@ -156,6 +159,7 @@ def test_custom_index(index_fun_mock: MagicMock) -> None:
         },
         "run_index": "first",
         "allow_partial_seasons": False,
+        "allow_missing_periods": None,
     }
     call_args = _filter_supported_kwargs(icclim.custom_index, user_index_args)
     icclim.custom_index(**call_args)
@@ -181,6 +185,28 @@ def test_txx__season_slice_mode() -> None:
         res.time_bounds.isel(time=0),
         [np.datetime64("2041-11-01"), np.datetime64("2042-02-28")],
     )
+
+
+def test_generated_generic_api_forwards_allow_missing_periods() -> None:
+    time = pd.date_range("2001-01-01", periods=10, freq="D")
+    tasmax = xr.DataArray(
+        np.full(10, 30.0),
+        coords={"time": time},
+        dims=["time"],
+        attrs={"units": "degC"},
+    )
+
+    result = icclim.count_occurrences(
+        in_files=tasmax,
+        var_name="tasmax",
+        threshold="> 25 degC",
+        slice_mode="month",
+        allow_missing_periods=True,
+        logs_verbosity="SILENT",
+    ).compute()
+
+    assert result.count_occurrences.isel(time=0) == 10
+    assert result.count_occurrences.attrs["completeness_policy"] == "none"
 
 
 def test_txx__months_slice_mode() -> None:

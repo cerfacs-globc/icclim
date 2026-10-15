@@ -72,6 +72,7 @@ def count_occurrences(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Count occurrences when threshold(s) are met (e.g. SU, Tx90p, RR1).
 
@@ -160,6 +161,10 @@ def count_occurrences(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -185,6 +190,7 @@ def count_occurrences(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -204,6 +210,7 @@ def max_consecutive_occurrence(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Count the maximum number of consecutive occurrences when threshold(s) are met (e.g. CDD, CSU, CWD).
 
@@ -292,6 +299,10 @@ def max_consecutive_occurrence(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -317,6 +328,7 @@ def max_consecutive_occurrence(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -337,6 +349,7 @@ def sum_of_spell_lengths(
     min_spell_length: int | None = 6,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Sum the lengths of each consecutive occurrence spell when threshold(s) are met. The minimum spell length is controlled by `min_spell_length` (e.g. WSDI, CSDI).
 
@@ -428,6 +441,10 @@ def sum_of_spell_lengths(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -454,6 +471,7 @@ def sum_of_spell_lengths(
         min_spell_length=min_spell_length,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -473,6 +491,7 @@ def excess(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Compute the excess over the given threshold. The excess is `sum(x[x>t] - t)` where x is the studied variable and t the threshold (e.g. GD4).
 
@@ -561,6 +580,10 @@ def excess(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -586,6 +609,7 @@ def excess(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -605,6 +629,7 @@ def deficit(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Compute the deficit below the given threshold. The deficit is `sum(t - x[x<t])` where x is the studied variable and t the threshold (e.g. HD17).
 
@@ -693,6 +718,10 @@ def deficit(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -718,6 +747,7 @@ def deficit(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -737,6 +767,7 @@ def fraction_of_total(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Compute the fraction of values meeting threshold(s) over the sum of every values (e.g. R75pTOT, R95pTOT).
 
@@ -825,6 +856,10 @@ def fraction_of_total(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -850,6 +885,7 @@ def fraction_of_total(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -869,6 +905,7 @@ def maximum(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Maximum of values that met threshold(s), if threshold(s) are given (e.g. Txx, Tnx).
 
@@ -957,6 +994,10 @@ def maximum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -982,6 +1023,7 @@ def maximum(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -1001,6 +1043,7 @@ def minimum(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Minimum of values that met threshold(s), if threshold(s) are given (e.g. Txn, Tnn).
 
@@ -1089,6 +1132,10 @@ def minimum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1114,6 +1161,7 @@ def minimum(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -1133,6 +1181,7 @@ def average(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Average of values that met threshold(s), if threshold(s) are given (e.g. Tx, Tn).
 
@@ -1221,6 +1270,10 @@ def average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1246,6 +1299,7 @@ def average(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -1265,6 +1319,7 @@ def sum(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Sum of values that met threshold(s), if threshold(s) are given (e.g. PRCPTOT, RR).
 
@@ -1353,6 +1408,10 @@ def sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1378,6 +1437,7 @@ def sum(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -1397,6 +1457,7 @@ def standard_deviation(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Standard deviation of values that met threshold(s), if threshold(s) are given.
 
@@ -1485,6 +1546,10 @@ def standard_deviation(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1510,6 +1575,7 @@ def standard_deviation(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -1530,6 +1596,7 @@ def max_of_rolling_sum(
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Maximum of rolling sum over time dimension (e.g. RX5DAY: maximum 5 days window of precipitation accumulation).
 
@@ -1621,6 +1688,10 @@ def max_of_rolling_sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1647,6 +1718,7 @@ def max_of_rolling_sum(
         rolling_window_width=rolling_window_width,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -1667,6 +1739,7 @@ def min_of_rolling_sum(
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Minimum of rolling sum over time dimension.
 
@@ -1758,6 +1831,10 @@ def min_of_rolling_sum(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1784,6 +1861,7 @@ def min_of_rolling_sum(
         rolling_window_width=rolling_window_width,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -1804,6 +1882,7 @@ def max_of_rolling_average(
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Maximum of rolling average over time dimension.
 
@@ -1895,6 +1974,10 @@ def max_of_rolling_average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -1921,6 +2004,7 @@ def max_of_rolling_average(
         rolling_window_width=rolling_window_width,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -1941,6 +2025,7 @@ def min_of_rolling_average(
     rolling_window_width: int | None = 5,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Minimum of rolling average over time dimension.
 
@@ -2032,6 +2117,10 @@ def min_of_rolling_average(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2058,6 +2147,7 @@ def min_of_rolling_average(
         rolling_window_width=rolling_window_width,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -2077,6 +2167,7 @@ def mean_of_difference(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Average of the difference between two variables, or one variable and it's reference period values (e.g. DTR: `mean(tasmax - tasmin)`).
 
@@ -2165,6 +2256,10 @@ def mean_of_difference(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2190,6 +2285,7 @@ def mean_of_difference(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -2209,6 +2305,7 @@ def difference_of_extremes(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Difference of extremes between two variables, or one variable and it's reference period values. The extremes are always `maximum` for the first variable and `minimum` for the second variable (e.g. ETR: `max(tasmax) - min(tasmin)`).
 
@@ -2297,6 +2394,10 @@ def difference_of_extremes(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2322,6 +2423,7 @@ def difference_of_extremes(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -2341,6 +2443,7 @@ def mean_of_absolute_one_time_step_difference(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Average of the absolute one time step by one time step difference between two variables, or one variable and it's reference period values (e.g. vDTR: `mean((tasmax[i] - tasmin[i]) - (tasmax[i-1] - tasmin[i-1])` ; where i is the day of measure).
 
@@ -2429,6 +2532,10 @@ def mean_of_absolute_one_time_step_difference(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2454,6 +2561,7 @@ def mean_of_absolute_one_time_step_difference(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -2474,6 +2582,7 @@ def difference_of_means(
     sampling_method: SamplingMethodLike = "resample",
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Difference of the average between two variables, or one variable and it's reference period values (e.g. anomaly: `mean(tasmax) - mean(tasmax_ref]))`.
 
@@ -2570,6 +2679,10 @@ def difference_of_means(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2596,6 +2709,7 @@ def difference_of_means(
         sampling_method=sampling_method,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -2615,6 +2729,7 @@ def percentile(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Percentile of a variable.
 
@@ -2703,6 +2818,10 @@ def percentile(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2728,6 +2847,7 @@ def percentile(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )
 
 
@@ -2754,6 +2874,7 @@ def custom_index(
     sampling_method: SamplingMethodLike = "resample",
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] = False,
+    allow_missing_periods: bool | None = None,
 ) -> Dataset:
     """Compute custom indices using simple operators.
 
@@ -2877,6 +2998,10 @@ def custom_index(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
+    allow_missing_periods : bool | None, default=None
+        When False, output periods containing missing source timesteps are masked.
+        When True, aggregations are computed from available source timesteps.
+        None enables strict masking with non-eager diagnostics.
 
     Notes
     -----
@@ -2906,4 +3031,5 @@ def custom_index(
         sampling_method=sampling_method,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        allow_missing_periods=allow_missing_periods,
     )

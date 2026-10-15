@@ -18,5 +18,6 @@ development.
    bootstrap_maintainability_audit
    percentile_bootstrap
    bootstrap_architecture
+   bootstrap_extension_phase_plan
    contributing
    climpact_comparison_protocol

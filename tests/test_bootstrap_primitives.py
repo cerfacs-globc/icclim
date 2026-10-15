@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 import cftime
 import numpy as np
 import pandas as pd
 import pytest
 import xarray as xr
+from xarray.coding.cftimeindex import CFTimeIndex
 
+import icclim
 from icclim._core.generic import bootstrap as bootstrap_module
 from icclim._core.generic.bootstrap import (
-    _build_nominal_full_thresholds,
     _bootstrap_average_kernel,
     _bootstrap_bounded_average_kernel,
     _bootstrap_bounded_count_kernel,
@@ -48,6 +50,9 @@ from icclim._core.generic.bootstrap_primitives import (
 )
 from icclim.threshold.factory import build_threshold
 from tests.testing_utils import stub_pr, stub_tas
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @contextmanager
@@ -99,6 +104,26 @@ def _build_cftime_overlap_case(case_name: str) -> xr.DataArray:
         return tas.chunk({"time": 365, "lat": 1, "lon": 1})
     msg = f"Unsupported case: {case_name}"
     raise ValueError(msg)
+
+
+def _build_cftime_filtered_overlap_case() -> xr.DataArray:
+    time = xr.date_range(
+        "2042-01-01",
+        periods=365 * 5 + 1,
+        freq="D",
+        use_cftime=True,
+    )
+    day = np.arange(len(time))
+    values = 0.35 * (day % 19)
+    values[day % 3 == 0] = 0.0
+    pr = xr.DataArray(
+        values[:, np.newaxis, np.newaxis],
+        dims=["time", "lat", "lon"],
+        coords={"time": time, "lat": [0.0], "lon": [0.0]},
+        attrs={"units": "mm/day"},
+        name="pr",
+    )
+    return pr.chunk({"time": 365, "lat": 1, "lon": 1})
 
 
 def test_build_bootstrap_reference_sample_applies_threshold_floor() -> None:
@@ -234,6 +259,31 @@ def test_materialize_bootstrap_study_loads_chunked_spatial_tiles_exactly() -> No
     materialized = _materialize_bootstrap_study(tas)
 
     xr.testing.assert_identical(materialized, tas.transpose("time", ...).load())
+
+
+def test_file_reopen_preserves_cftime_coordinates(tmp_path) -> None:
+    source = stub_tas(lat_length=2, lon_length=2)
+    source_path = tmp_path / "tas.nc"
+    source.to_netcdf(source_path)
+    file_backed = xr.open_dataarray(source_path, chunks={"time": 2})
+    cftime_study = file_backed.assign_coords(
+        time=[
+            cftime.DatetimeGregorian(
+                timestamp.year,
+                timestamp.month,
+                timestamp.day,
+            )
+            for timestamp in file_backed.indexes["time"]
+        ]
+    ).isel(time=slice(1, -1))
+
+    materialized = _materialize_bootstrap_study(
+        cftime_study,
+        prefer_file_reopen=True,
+    )
+
+    assert isinstance(materialized.indexes["time"], CFTimeIndex)
+    xr.testing.assert_equal(materialized, cftime_study.load())
 
 
 def test_block_slices_covers_full_axis() -> None:
@@ -410,6 +460,7 @@ def _kernel_common_args(
         float(threshold.interpolation.alpha),
         float(threshold.interpolation.beta),
         1,
+        isinstance(ref.study.indexes["time"], CFTimeIndex),
         min_threshold,
     )
     return args, ref.study
@@ -420,6 +471,16 @@ def _count_kernel_args(tas: xr.DataArray, threshold) -> tuple[tuple, xr.DataArra
     nominal_thresholds = _build_nominal_full_thresholds(study, threshold)
     count_args = (args[0], args[1], args[2], nominal_thresholds, *args[3:])
     return count_args, study
+
+
+def _daily_kernel_args(tas: xr.DataArray, threshold) -> tuple[tuple, xr.DataArray]:
+    args, study = _kernel_common_args(tas, threshold)
+    nominal_thresholds = _build_nominal_full_thresholds(
+        study,
+        threshold,
+        args[-1],
+    )
+    return (args[0], args[1], args[2], nominal_thresholds, *args[3:]), study
 
 
 @pytest.mark.parametrize(
@@ -447,7 +508,7 @@ def test_numba_python_kernels_match_wrapper_outputs(kernel, wrapper) -> None:
     if kernel is _bootstrap_count_kernel:
         args, _study = _count_kernel_args(tas, threshold)
     else:
-        args, _study = _kernel_common_args(tas, threshold)
+        args, _study = _daily_kernel_args(tas, threshold)
 
     kernel_result = kernel.py_func(*args)
     wrapper_result = wrapper(tas, threshold, "YS")
@@ -469,11 +530,17 @@ def test_numba_python_union_mask_kernel_matches_wrapper_output() -> None:
         if ref.threshold_floor_in_reference_units is None
         else float(ref.threshold_floor_in_reference_units)
     )
+    nominal_thresholds = _build_nominal_full_thresholds(
+        ref.study,
+        threshold,
+        min_threshold,
+    )
 
     kernel_result = _bootstrap_union_mask_kernel.py_func(
         arr.flat_reference_raw,
         arr.flat_reference_filtered,
         arr.flat_study,
+        nominal_thresholds,
         idx.sample_indices_by_day_of_year,
         idx.reference_index_year,
         idx.reference_index_position,
@@ -487,6 +554,7 @@ def test_numba_python_union_mask_kernel_matches_wrapper_output() -> None:
         float(threshold.interpolation.alpha),
         float(threshold.interpolation.beta),
         1,
+        False,
         min_threshold,
     )
     wrapper_result = compute_doy_percentile_bootstrap_union_exceedance_mask(
@@ -536,13 +604,184 @@ def test_numba_python_count_kernel_matches_constant_cftime_monthly_counts() -> N
         float(threshold.interpolation.alpha),
         float(threshold.interpolation.beta),
         1,
+        True,
         min_threshold,
     )
 
-    expected = tas.resample(time="MS").count(dim="time").values.reshape(
-        kernel_result.shape
+    expected = (
+        tas.resample(time="MS").count(dim="time").values.reshape(kernel_result.shape)
     )
     np.testing.assert_allclose(kernel_result, expected)
+
+
+@pytest.mark.parametrize("indicator_name", ["sum", "average", "fraction_of_total"])
+@pytest.mark.parametrize("case_name", ["constant", "leap_day_cold_spike"])
+@pytest.mark.parametrize("slice_mode", ["month", "year"])
+def test_cftime_value_aggregate_matches_reference_on_overlap_cases(
+    indicator_name: str,
+    case_name: str,
+    slice_mode: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = _build_cftime_overlap_case(case_name).rename("tas")
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            "> 90 doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2044-12-31"),
+        ),
+        "time_range": ("2042-01-01", "2046-12-31"),
+        "slice_mode": slice_mode,
+    }
+
+    api = getattr(icclim, indicator_name)
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = api(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = api(**common_kwargs).compute()
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "safe")
+    exact_tiled = api(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(
+        optimized[indicator_name],
+        reference[indicator_name],
+    )
+    xr.testing.assert_allclose(
+        exact_tiled[indicator_name],
+        reference[indicator_name],
+    )
+
+
+@pytest.mark.parametrize("slice_mode", ["month", "year"])
+def test_cftime_spell_paths_match_reference_on_overlap_case(
+    slice_mode: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    time = xr.date_range(
+        "2042-01-01",
+        periods=365 * 5 + 1,
+        freq="D",
+        use_cftime=True,
+    )
+    tas = xr.DataArray(
+        np.full((len(time), 1, 1), 300.0, dtype=np.float64),
+        dims=["time", "lat", "lon"],
+        coords={"time": time, "lat": [0.0], "lon": [0.0]},
+        attrs={"units": "K"},
+        name="tas",
+    )
+    tas.loc[{"time": slice("2042-01-01", "2042-12-31")}] = 299.0
+    tas.loc[{"time": slice("2043-01-01", "2043-12-31")}] = 303.0
+    for year in (2042, 2043):
+        start = cftime.DatetimeGregorian(year, 7, 10)
+        stop = cftime.DatetimeGregorian(year, 7, 16)
+        tas.loc[{"time": slice(start, stop)}] = 301.0
+    source_path = tmp_path / "tas.nc"
+    tas.assign_coords(
+        time=pd.date_range("2042-01-01", periods=len(time), freq="D")
+    ).to_netcdf(source_path)
+    tas = xr.open_dataarray(
+        source_path,
+        chunks={"time": 365, "lat": 1, "lon": 1},
+    ).assign_coords(time=time)
+
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            "> 90 doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2043-12-31"),
+        ),
+        "time_range": ("2042-01-01", "2046-12-31"),
+        "slice_mode": slice_mode,
+        "min_spell_length": 6,
+    }
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "safe")
+    exact_tiled = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(
+        optimized.sum_of_spell_lengths,
+        reference.sum_of_spell_lengths,
+    )
+    xr.testing.assert_allclose(
+        exact_tiled.sum_of_spell_lengths,
+        reference.sum_of_spell_lengths,
+    )
+
+
+@pytest.mark.parametrize(
+    "indicator_name",
+    ["sum", "count_occurrences", "average", "fraction_of_total"],
+)
+@pytest.mark.parametrize("slice_mode", ["month", "year"])
+def test_cftime_filtered_value_aggregate_matches_reference(
+    indicator_name: str,
+    slice_mode: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pr = _build_cftime_filtered_overlap_case()
+    common_kwargs = {
+        "in_files": pr,
+        "var_name": "pr",
+        "threshold": build_threshold(
+            "> 90 doy_per",
+            threshold_min_value="1 mm/day",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2043-12-31"),
+        ),
+        "time_range": ("2042-01-01", "2046-12-31"),
+        "slice_mode": slice_mode,
+    }
+
+    api = getattr(icclim, indicator_name)
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = api(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = api(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(
+        optimized[indicator_name],
+        reference[indicator_name],
+    )
+
+
+@pytest.mark.parametrize("indicator_name", ["excess", "deficit"])
+@pytest.mark.parametrize("slice_mode", ["month", "year"])
+def test_cftime_numeric_threshold_aggregate_matches_reference(
+    monkeypatch,
+    indicator_name: str,
+    slice_mode: str,
+) -> None:
+    tas = _build_cftime_overlap_case("reference_overlap_shift").rename("tas")
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            "90 doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2044-12-31"),
+        ),
+        "slice_mode": slice_mode,
+    }
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = getattr(icclim, indicator_name)(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = getattr(icclim, indicator_name)(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(
+        optimized[indicator_name],
+        reference[indicator_name],
+    )
 
 
 def test_count_kernel_uses_full_nominal_thresholds_for_leap_non_reference_year() -> (
@@ -574,6 +813,7 @@ def test_count_kernel_uses_full_nominal_thresholds_for_leap_non_reference_year()
         1.0 / 3.0,
         1.0 / 3.0,
         0,
+        False,
         np.nan,
     )
 
@@ -638,6 +878,8 @@ def test_compiled_threshold_bank_prototype_matches_forced_compiled_cftime_counts
     assert current is not None
     assert prototype is not None
     xr.testing.assert_allclose(current, prototype)
+
+
 @pytest.mark.parametrize(
     ("kernel", "wrapper"),
     [
@@ -663,7 +905,7 @@ def test_numba_python_bounded_kernels_match_wrapper_outputs(kernel, wrapper) -> 
     tas = stub_tas(300.0).chunk({"time": 365, "lat": 1, "lon": 1})
     threshold = build_threshold(">= 90 doy_per")
     args, _study = _kernel_common_args(tas, threshold)
-    bounded_args = (*args, np.float32(303.15), 3, 0)
+    bounded_args = (*args[:-2], args[-1], np.float32(303.15), 3, 0)
 
     kernel_result = kernel.py_func(*bounded_args)
     wrapper_result = wrapper(tas, threshold, "YS", 303.15, 3, 0)

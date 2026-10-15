@@ -840,6 +840,7 @@ class TestIntegration:
             "base_period_time_range": ("2042-01-01", "2043-12-31"),
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "year",
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
@@ -873,6 +874,7 @@ class TestIntegration:
             "base_period_time_range": ("2042-01-01", "2043-12-31"),
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "ms",
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
@@ -889,7 +891,7 @@ class TestIntegration:
         assert profile["bootstrap_optimized_tile_count"] == 4
         xr.testing.assert_allclose(default.TX90p, legacy.TX90p)
 
-    def test_count_occurrences__dask_wet_day_bootstrap_uses_exact_tiled_path(
+    def test_count_occurrences__dask_wet_day_bootstrap_uses_optimized_path(
         self,
         monkeypatch,
     ) -> None:
@@ -929,12 +931,8 @@ class TestIntegration:
         default = icclim.count_occurrences(**common_kwargs)
         profile = generic_functions.get_bootstrap_profile()
 
-        assert not hasattr(default.count_occurrences.data, "__dask_graph__")
-        assert profile["bootstrap_count_execution_kind"] == "exact_tiled_bootstrap"
-        assert (
-            profile["bootstrap_count_reason_code"]
-            == "threshold_min_value_requires_exact_tiled_bootstrap"
-        )
+        assert profile["bootstrap_count_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_count_reason_code"] == "optimized_bootstrap_supported"
         assert (
             profile["bootstrap_count_family"] == "filtered_day_of_year_percentile_count"
         )
@@ -1038,7 +1036,7 @@ class TestIntegration:
             reference["sum"],
         )
 
-    def test_average__filtered_exact_tiled_bootstrap_matches_reference_on_overlap_years(
+    def test_average__filtered_optimized_bootstrap_matches_reference_on_overlap_years(
         self,
         monkeypatch,
     ) -> None:
@@ -1080,11 +1078,8 @@ class TestIntegration:
         optimized = icclim.index(**common_kwargs).compute()
         profile = generic_functions.get_bootstrap_profile()
 
-        assert profile["bootstrap_execution_kind"] == "exact_tiled_bootstrap"
-        assert (
-            profile["bootstrap_reason_code"]
-            == "filtered_average_requires_exact_tiled_bootstrap"
-        )
+        assert profile["bootstrap_execution_kind"] == "optimized_bootstrap"
+        assert profile["bootstrap_reason_code"] == "optimized_bootstrap_supported"
         xr.testing.assert_allclose(
             optimized.average,
             reference.average,
@@ -1613,7 +1608,7 @@ class TestIntegration:
         )
 
         assert not threshold.is_ready
-        assert not hasattr(res.count_occurrences.data, "__dask_graph__")
+        assert res.count_occurrences.chunks is not None
 
     @pytest.mark.parametrize("slice_mode", ["JJA", "ONDJFM"])
     def test_index_tx90p__dask_bootstrap_uses_optimized_tiled_seasonal_path(
@@ -1694,6 +1689,7 @@ class TestIntegration:
             base_period_time_range=("2042-01-01", "2043-12-31"),
             out_file=self.OUTPUT_FILE,
             slice_mode="ms",
+            allow_missing_periods=True,
         )
         profile = generic_functions.get_bootstrap_profile()
 
@@ -1738,6 +1734,7 @@ class TestIntegration:
             base_period_time_range=("2042-01-01", "2043-12-31"),
             out_file=self.OUTPUT_FILE,
             slice_mode="ms",
+            allow_missing_periods=True,
         )
         profile = generic_functions.get_bootstrap_profile()
 
@@ -1846,6 +1843,7 @@ class TestIntegration:
             slice_mode="month",
             run_index="first",
             date_event=True,
+            allow_missing_periods=True,
         ).compute()
 
         assert res_first.max_consecutive_occurrence.isel(time=0) == 4
@@ -1869,6 +1867,7 @@ class TestIntegration:
             slice_mode="month",
             run_index="last",
             date_event=True,
+            allow_missing_periods=True,
         ).compute()
 
         assert res_last.max_consecutive_occurrence.isel(time=0) == 4
@@ -1896,6 +1895,7 @@ class TestIntegration:
             threshold=">= 25 degC",
             slice_mode="month",
             min_spell_length=2,
+            allow_missing_periods=True,
         ).compute()
 
         assert res.sum_of_spell_lengths.isel(time=0) == 7
@@ -2026,6 +2026,7 @@ class TestIntegration:
             "time_range": ("2042-01-01", "2045-12-31"),
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "year",
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
@@ -2271,6 +2272,7 @@ class TestIntegration:
             "out_file": self.OUTPUT_FILE,
             "slice_mode": "year",
             "min_spell_length": 6,
+            "allow_missing_periods": True,
         }
 
         monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
@@ -2369,7 +2371,11 @@ class TestIntegration:
             attrs={"units": "mm/day"},
         )
         precipitation[0:5] = [0.1, 0.1, 0.1, 2, 3]
-        rr = icclim.rr(in_files=precipitation, slice_mode="W").RR
+        rr = icclim.rr(
+            in_files=precipitation,
+            slice_mode="W",
+            allow_partial_seasons="start",
+        ).RR.compute()
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
         np.testing.assert_almost_equal(rr.isel(time=0), 0.2)
@@ -2387,7 +2393,11 @@ class TestIntegration:
             attrs={"units": "mm/day"},
         )
         precipitation[0:5] = [0.1, 0.1, 0.1, 2, 3]
-        rr = icclim.rr(in_files=precipitation, slice_mode="2W-FRI")
+        rr = icclim.rr(
+            in_files=precipitation,
+            slice_mode="2W-FRI",
+            allow_partial_seasons="start",
+        ).compute()
         # The 01-01 value is ignored because we clip the wanted season before computing
         # the index
         np.testing.assert_almost_equal(rr.RR.isel(time=0), 5.3)
