@@ -32,6 +32,7 @@ from icclim._core.generic.bootstrap import (
     compute_doy_percentile_bootstrap_fraction_of_total,
     compute_doy_percentile_bootstrap_union_exceedance_count,
     compute_doy_percentile_bootstrap_union_exceedance_mask,
+    compute_doy_percentile_bootstrap_union_mask_eager_prototype,
     compute_doy_percentile_scalar_bounded_bootstrap_count,
     compute_doy_percentile_scalar_bounded_bootstrap_exceedance_average,
     compute_doy_percentile_scalar_bounded_bootstrap_exceedance_sum,
@@ -794,6 +795,91 @@ def test_cftime_spell_paths_match_reference_on_overlap_case(
         exact_tiled.sum_of_spell_lengths,
         reference.sum_of_spell_lengths,
     )
+
+
+@pytest.mark.parametrize(
+    "case_name",
+    ["constant", "leap_day_cold_spike", "reference_overlap_shift"],
+)
+@pytest.mark.parametrize("freq", ["MS", "YS"])
+def test_eager_cftime_union_mask_matches_reference_mask(
+    case_name: str,
+    freq: str,
+) -> None:
+    tas = _build_cftime_overlap_case(case_name)
+    threshold = build_threshold(
+        "> 90 doy_per",
+        doy_window_width=1,
+        reference_period=("2042-01-01", "2044-12-31"),
+    )
+
+    expected = (
+        threshold.compute(tas, freq=freq, bootstrap=True)
+        .fillna(False)
+        .astype(bool)
+        .squeeze()
+    )
+    result = compute_doy_percentile_bootstrap_union_mask_eager_prototype(
+        tas,
+        threshold,
+        freq,
+    )
+
+    assert result is not None
+    xr.testing.assert_equal(result.astype(bool).squeeze(), expected)
+
+
+@pytest.mark.parametrize(
+    ("calendar", "days_per_year", "reference_end"),
+    [
+        ("360_day", 360, "2044-12-30"),
+        ("noleap", 365, "2044-12-31"),
+        ("all_leap", 366, "2044-12-31"),
+    ],
+)
+@pytest.mark.parametrize("filtered", [False, True])
+def test_eager_cftime_union_mask_supports_cf_calendars_and_filtering(
+    calendar: str,
+    days_per_year: int,
+    reference_end: str,
+    filtered: bool,
+) -> None:
+    time = xr.date_range(
+        "2042-01-01",
+        periods=days_per_year * 5,
+        freq="D",
+        calendar=calendar,
+        use_cftime=True,
+    )
+    values = 300.0 + 8.0 * np.sin(np.arange(len(time)) / 17.0)
+    tas = xr.DataArray(
+        values[:, np.newaxis],
+        dims=["time", "cell"],
+        coords={"time": time, "cell": [0]},
+        attrs={"units": "K"},
+        name="tas",
+    ).chunk({"time": days_per_year, "cell": 1})
+    threshold = build_threshold(
+        "> 90 doy_per",
+        threshold_min_value="295 K" if filtered else None,
+        doy_window_width=5,
+        reference_period=("2042-01-01", reference_end),
+    )
+
+    expected = (
+        threshold.compute(tas, freq="YS", bootstrap=True)
+        .fillna(False)
+        .astype(bool)
+        .squeeze()
+    )
+    result = compute_doy_percentile_bootstrap_union_mask_eager_prototype(
+        tas,
+        threshold,
+        "YS",
+    )
+
+    assert result is not None
+    xr.testing.assert_equal(result.astype(bool).squeeze(), expected)
 
 
 def test_filtered_pandas_spell_matches_reference(
