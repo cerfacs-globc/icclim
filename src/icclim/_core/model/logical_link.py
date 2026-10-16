@@ -48,9 +48,12 @@ class LogicalLinkRegistry(Registry[LogicalLink]):
         data_list: list[DataArray],
         op: Callable[[object, object], object],
     ) -> DataArray:
-        normalized_masks = [
-            data.fillna(False).astype(bool, copy=False) for data in data_list
-        ]
+        normalized_masks = []
+        for data in data_list:
+            mask = data.fillna(False).astype(bool, copy=False)
+            if mask.sizes.get("percentiles") == 1:
+                mask = mask.squeeze("percentiles", drop=True)
+            normalized_masks.append(mask)
         return reduce(
             lambda left, right: xr.apply_ufunc(op, left, right, dask="allowed"),
             normalized_masks,

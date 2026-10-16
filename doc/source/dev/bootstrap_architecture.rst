@@ -116,7 +116,10 @@ have a compiled union-mask implementation validated against the trusted
 reference path. The same daily-mask route supports filtered and compound
 pandas-backed spells and multiple percentile values. Simple ``cftime`` spells
 use a bounded eager tiled union mask that retains xclim's percentile and
-calendar operations. Compound ``cftime`` spells remain on the reference path.
+calendar operations. Same-variable compound ``cftime`` spells reuse each
+loaded tile across their component masks, combine those masks immediately and
+run spell detection once. Multi-variable ``cftime`` spells remain on the
+reference path until aligned shared-tile execution is validated.
 
 Percentile compound family
 --------------------------

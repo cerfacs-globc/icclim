@@ -357,6 +357,21 @@ def max_consecutive_occurrence(
             or bootstrap_capability.uses_exact_tiled_bootstrap
         )
     ):
+        if bootstrap_capability.reason_code == (
+            "optimized_compound_spell_bootstrap_supported"
+        ):
+            bootstrap_spell_mask = _compute_eager_tiled_cftime_compound_mask(
+                climate_vars,
+                resample_freq,
+            )
+    if (
+        bootstrap_spell_mask is None
+        and not date_event
+        and (
+            bootstrap_capability.uses_optimized_bootstrap
+            or bootstrap_capability.uses_exact_tiled_bootstrap
+        )
+    ):
         bootstrap_spell_mask = _compute_combined_exceedance_mask(
             climate_vars,
             resample_freq,
@@ -450,6 +465,17 @@ def sum_of_spell_lengths(
             resample_freq,
             bootstrap_capability=bootstrap_capability,
         )
+    if bootstrap_spell_mask is None and (
+        bootstrap_capability.uses_optimized_bootstrap
+        or bootstrap_capability.uses_exact_tiled_bootstrap
+    ):
+        if bootstrap_capability.reason_code == (
+            "optimized_compound_spell_bootstrap_supported"
+        ):
+            bootstrap_spell_mask = _compute_eager_tiled_cftime_compound_mask(
+                climate_vars,
+                resample_freq,
+            )
     if bootstrap_spell_mask is None and (
         bootstrap_capability.uses_optimized_bootstrap
         or bootstrap_capability.uses_exact_tiled_bootstrap
@@ -2416,6 +2442,221 @@ def _compute_eager_tiled_cftime_bootstrap_mask(
         perf_counter() - optimized_start,
     )
     return _transpose_like_study(result, climate_var.studied_data)
+
+
+def _prepare_eager_cftime_compound_threshold(
+    threshold: Threshold,
+    study: DataArray,
+) -> Threshold:
+    from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
+        BoundedThreshold,
+    )
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if not isinstance(threshold, BoundedThreshold):
+        if not isinstance(threshold, PercentileThreshold):
+            return threshold
+        prepared = copy(threshold)
+        prepared.ensure_ready(study)
+        prepared._prepared_value = prepared.value.copy(deep=False).load()  # noqa: SLF001
+        return prepared
+    prepared = copy(threshold)
+    prepared.left_threshold = _prepare_eager_cftime_compound_threshold(
+        threshold.left_threshold,
+        study,
+    )
+    prepared.right_threshold = _prepare_eager_cftime_compound_threshold(
+        threshold.right_threshold,
+        study,
+    )
+    return prepared
+
+
+def _iter_compound_percentile_thresholds(
+    threshold: Threshold,
+) -> list[PercentileThreshold]:
+    from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
+        BoundedThreshold,
+    )
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if isinstance(threshold, PercentileThreshold):
+        return [threshold]
+    if isinstance(threshold, BoundedThreshold):
+        return [
+            *_iter_compound_percentile_thresholds(threshold.left_threshold),
+            *_iter_compound_percentile_thresholds(threshold.right_threshold),
+        ]
+    return []
+
+
+def _slice_eager_cftime_compound_threshold(
+    threshold: Threshold,
+    indexers: dict[str, slice],
+) -> Threshold:
+    from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
+        BoundedThreshold,
+    )
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if isinstance(threshold, PercentileThreshold):
+        return _slice_threshold_for_tile(threshold, indexers)
+    if not isinstance(threshold, BoundedThreshold):
+        return threshold
+    sliced = copy(threshold)
+    sliced.left_threshold = _slice_eager_cftime_compound_threshold(
+        threshold.left_threshold,
+        indexers,
+    )
+    sliced.right_threshold = _slice_eager_cftime_compound_threshold(
+        threshold.right_threshold,
+        indexers,
+    )
+    return sliced
+
+
+def _compute_eager_cftime_compound_component_mask(
+    study: DataArray,
+    threshold: Threshold,
+    resample_freq: Frequency,
+    bootstrap: bool | None,
+) -> DataArray | None:
+    from icclim._core.generic.bootstrap import (  # noqa: PLC0415
+        compute_doy_percentile_bootstrap_union_mask_eager,
+    )
+    from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
+        BoundedThreshold,
+    )
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
+    if isinstance(threshold, BoundedThreshold):
+        left = _compute_eager_cftime_compound_component_mask(
+            study,
+            threshold.left_threshold,
+            resample_freq,
+            bootstrap,
+        )
+        right = _compute_eager_cftime_compound_component_mask(
+            study,
+            threshold.right_threshold,
+            resample_freq,
+            bootstrap,
+        )
+        if left is None or right is None:
+            return None
+        return threshold.logical_link.compute([left, right])
+    if (
+        isinstance(threshold, PercentileThreshold)
+        and threshold.is_doy_per_threshold
+        and must_run_bootstrap(study, threshold, bootstrap)
+    ):
+        return compute_doy_percentile_bootstrap_union_mask_eager(
+            study,
+            threshold,
+            resample_freq.pandas_freq,
+        )
+    return _compute_exceedance_mask(
+        study=study,
+        threshold=threshold,
+        freq=resample_freq.pandas_freq,
+        bootstrap=False,
+    )
+
+
+def _compute_eager_tiled_cftime_compound_mask(
+    climate_vars: list[ClimateVariable],
+    resample_freq: Frequency,
+) -> DataArray | None:
+    from concurrent.futures import ThreadPoolExecutor  # noqa: PLC0415
+
+    from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
+        BoundedThreshold,
+    )
+
+    if len(climate_vars) != 1:
+        return None
+    climate_var = climate_vars[0]
+    study = climate_var.studied_data
+    threshold = climate_var.threshold
+    if not isinstance(threshold, BoundedThreshold):
+        return None
+    if not hasattr(study.indexes.get("time"), "calendar"):
+        return None
+
+    prepared_threshold = _prepare_eager_cftime_compound_threshold(threshold, study)
+    percentile_thresholds = _iter_compound_percentile_thresholds(
+        prepared_threshold
+    )
+    if not percentile_thresholds:
+        return None
+    worker_count = min(3, os.cpu_count() or 1)
+    memory_budget = _parse_byte_size(
+        os.environ.get(
+            "ICCLIM_BOOTSTRAP_SAFE_TILE_MEMORY",
+            _DEFAULT_BOOTSTRAP_SAFE_TILE_MEMORY,
+        )
+    )
+    if study.nbytes <= memory_budget // 4:
+        study = study.load()
+    total_max_cells = min(
+        _get_safe_bootstrap_max_cells(study, component, resample_freq)
+        for component in percentile_thresholds
+    )
+    tiles = _iter_spatial_tiles(
+        study,
+        max(1, total_max_cells // worker_count),
+    )
+
+    def compute_tile(indexers: dict[str, slice]) -> DataArray | None:
+        tile_study = study.isel(indexers).load()
+        tile_threshold = _slice_eager_cftime_compound_threshold(
+            prepared_threshold,
+            indexers,
+        )
+        result = _compute_eager_cftime_compound_component_mask(
+            tile_study,
+            tile_threshold,
+            resample_freq,
+            climate_var.bootstrap,
+        )
+        if result is None:
+            return None
+        return result.assign_coords(
+            {dim: tile_study.coords[dim] for dim in tile_study.dims}
+        )
+
+    optimized_start = perf_counter()
+    with ThreadPoolExecutor(max_workers=worker_count) as pool:
+        tile_results = list(pool.map(compute_tile, tiles))
+    if any(result is None for result in tile_results):
+        return None
+    concrete_results = cast("list[DataArray]", tile_results)
+    if len(concrete_results) == 1:
+        result = concrete_results[0]
+    else:
+        result = xr.combine_by_coords(
+            [
+                tile.to_dataset(name="__icclim_bootstrap_tile")
+                for tile in concrete_results
+            ],
+            combine_attrs="override",
+        )["__icclim_bootstrap_tile"]
+    result.attrs.update(concrete_results[-1].attrs)
+    result.attrs.pop(REFERENCE_PERIOD_ID, None)
+    _profile_bootstrap_inc("bootstrap_optimized_tile_count", len(tiles))
+    _profile_bootstrap_add(
+        "bootstrap_optimized_total_seconds",
+        perf_counter() - optimized_start,
+    )
+    return _transpose_like_study(result, study)
 
 
 def _compute_fast_tiled_bootstrap_spell_mask(

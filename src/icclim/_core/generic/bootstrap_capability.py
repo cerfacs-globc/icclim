@@ -1008,10 +1008,13 @@ def classify_compound_spell_bootstrap(
         reducer_kind=BootstrapReducerKind.SPELL,
         inventory=inventory,
     )
-    if any(_uses_cftime_index(var.studied_data) for var in climate_vars):
+    if any(_uses_cftime_index(var.studied_data) for var in climate_vars) and (
+        len(climate_vars) != 1
+        or not isinstance(climate_vars[0].threshold, BoundedThreshold)
+    ):
         return _reference_bootstrap_path(
             family,
-            "cftime_compound_spell_uses_reference_bootstrap",
+            "cftime_multivariable_compound_spell_uses_reference_bootstrap",
         )
     component_capabilities = [
         component_capability

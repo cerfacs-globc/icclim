@@ -53,6 +53,8 @@ Fast path currently supports:
 - validated simple one-threshold spell reducers through the compiled
   union-mask route on pandas-compatible calendars and the exact eager tiled
   route on ``cftime`` calendars;
+- validated same-variable compound ``cftime`` spells through shared eager
+  spatial tiles;
 - validated compound count workloads that reuse component-mask
   composition;
 - validated same-variable bounded scalar guards such as
@@ -70,13 +72,14 @@ Cases outside the retained support boundary intentionally fall back to
 the exact tiled bootstrap path or the reference path, depending on the
 family. The most useful future extensions are likely:
 
-- additional non-Gregorian CF-calendar families beyond the validated
-  count, common value-reducer and simple-spell routes;
+- additional non-Gregorian CF-calendar families beyond the validated count,
+  common value-reducer, simple-spell and same-variable compound-spell routes;
 - additional ``threshold_min_value`` combinations beyond the current
   single day-of-year percentile boundary;
 - broader spell/run-length combinations. Simple pandas-compatible
   one-threshold spells use a boolean union mask; ``cftime`` uses the exact
-  eager tiled route, while compound ``cftime`` spells use the reference path;
+  eager tiled route; same-variable compound ``cftime`` spells reuse loaded
+  tiles, while multi-variable compounds use the reference path;
 - spell/run-length extension beyond the currently validated simple
   day-of-year percentile cases;
 - broader compound percentile shapes beyond the currently validated
@@ -194,6 +197,12 @@ The same mask route made the annual ``cftime`` ``average`` field-exact in all
 38,220 ACCESS-CM2 output cells, with identical coordinates and attributes. It
 completed in about 173 seconds locally, compared with about 76 seconds for the
 reference graph and roughly 1,000 seconds for the earlier compiled batch route.
+
+A two-percentile ACCESS-CM2 compound spell was also field-exact in all 38,220
+annual cells. Shared-tile evaluation took about 274 seconds, versus about 424
+seconds for two separately materialized eager masks, a 35 percent improvement.
+The local reference graph took about 133 seconds; the eager route is retained
+for bounded, graph-free execution rather than as a faster reference replacement.
 
 Further large speedups are more likely to come from reducing Python,
 xarray and dask preparation overhead than from micro-optimising the Numba
