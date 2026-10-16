@@ -636,6 +636,90 @@ def compute_doy_percentile_bootstrap_union_exceedance_mask(
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
+def compute_doy_percentile_bootstrap_union_mask_eager_prototype(
+    study: DataArray,
+    threshold: PercentileThreshold,
+    freq: str,
+) -> DataArray | None:
+    """Build an exact cftime union mask with eager xclim bootstrap blocks."""
+    multiple = _compute_multiple_percentiles(
+        compute_doy_percentile_bootstrap_union_mask_eager_prototype,
+        study,
+        threshold,
+        freq,
+    )
+    if multiple is not None:
+        return multiple
+    if not _can_compute_optimized_bootstrap(study, threshold, freq):
+        return None
+    if not _use_order_stat_thresholds(study):
+        return None
+
+    import xarray as xr  # noqa: PLC0415
+    from xclim.core.bootstrapping import (  # noqa: PLC0415
+        _get_bootstrap_freq,
+        _get_year_label,
+        build_bootstrap_year_da,
+    )
+    from xclim.core.calendar import percentile_doy, resample_doy  # noqa: PLC0415
+
+    reference_sample = build_bootstrap_reference_sample(study, threshold)
+    loaded_study = reference_sample.study
+    threshold.ensure_ready(loaded_study)
+    nominal_percentile = threshold.value
+    overlap = loaded_study.sel(time=slice(*reference_sample.climatology_bounds))
+    bootstrap_freq = _get_bootstrap_freq(freq)
+    overlap_groups = overlap.resample(time=bootstrap_freq).groups
+    study_groups = loaded_study.resample(time=bootstrap_freq).groups
+    overlap_years = overlap.indexes["time"].year
+    masks = []
+    for year_key, year_slice in study_groups.items():
+        target = loaded_study.isel(time=year_slice)
+        if _get_year_label(year_key) not in overlap_years:
+            masks.append(
+                threshold.compute(target, freq=freq, bootstrap=False)
+                .fillna(False)
+                .astype(bool)
+            )
+            continue
+        substituted = build_bootstrap_year_da(
+            overlap,
+            overlap_groups,
+            year_key,
+        )
+        substitute_percentiles = percentile_doy.__wrapped__(
+            substituted,
+            window=nominal_percentile.attrs["window"],
+            alpha=nominal_percentile.attrs["alpha"],
+            beta=nominal_percentile.attrs["beta"],
+            per=nominal_percentile.percentiles.data[()],
+            copy=False,
+        )
+        if "percentiles" not in nominal_percentile.dims:
+            substitute_percentiles = substitute_percentiles.squeeze("percentiles")
+        if threshold.threshold_min_value is not None:
+            from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+            floor = convert_units_to(
+                threshold.threshold_min_value,
+                substitute_percentiles,
+                context="hydro",
+            )
+            substitute_percentiles = substitute_percentiles.where(
+                substitute_percentiles > floor,
+                floor,
+            )
+        aligned_thresholds = resample_doy(substitute_percentiles, target)
+        masks.append(
+            threshold.operator.compute(target, aligned_thresholds)
+            .fillna(False)
+            .any("_bootstrap")
+        )
+    result = xr.concat(masks, dim="time").astype(bool)
+    result.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+    return result.assign_coords(percentiles=threshold.percentile_coord().item())
+
+
 def compute_doy_percentile_bootstrap_mean_threshold(
     study: DataArray,
     threshold: PercentileThreshold,

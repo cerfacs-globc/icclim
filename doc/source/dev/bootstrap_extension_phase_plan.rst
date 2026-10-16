@@ -141,6 +141,36 @@ on the reference path. The compiled spell helper is not part of the
 retained ``cftime`` production boundary. A final production-route rerun
 confirmed zero changed cells for both annual and monthly spell output.
 
+Alternative ``cftime`` spell algorithm
+--------------------------------------
+
+A new prototype avoids the rejected custom threshold reconstruction. It keeps
+xclim's percentile and calendar-alignment operations, but evaluates one eager,
+spatially bounded bootstrap block at a time. For each overlapping target year,
+it:
+
+1. builds xclim's substitute-year bootstrap dimension;
+2. computes all substitute day-of-year percentiles in one eager block;
+3. applies the public threshold floor and target-calendar alignment;
+4. reduces the substitute comparisons directly with boolean ``any``; and
+5. passes the resulting normalized mask to the existing run-length reducer.
+
+This removes the reference path's large lazy graph and fractional intermediate
+mask without duplicating its percentile arithmetic. The target-calendar
+ordering and boolean-union semantics remain identical to the public workflow.
+Focused tests are exact against the reference mask for monthly and yearly
+Gregorian-like ``cftime`` cases, including leap-sensitive inputs, and for
+``360_day``, ``noleap`` and ``all_leap`` calendars with and without a threshold
+floor.
+
+On a local synthetic 40-year, 30-year-reference, two-cell workload with a
+five-day window, the eager prototype took about 5.6 seconds versus about 103
+seconds for the public lazy reference path, with an identical daily mask. This
+is a useful algorithmic result, not yet a routing decision. The prototype must
+still reproduce the annual and monthly full-field ACCESS-CM2 reference
+artifacts, show that no continuous-run anomaly remains, and improve end-to-end
+spell time before production routing can change.
+
 Compiled routing covers standard and proleptic Gregorian calendars plus the
 validated ``360_day``, ``365_day``/``noleap`` and
 ``366_day``/``all_leap`` CF calendars.
