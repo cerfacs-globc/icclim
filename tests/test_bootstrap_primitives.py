@@ -880,6 +880,44 @@ def test_eager_cftime_union_mask_supports_cf_calendars_and_filtering(
     xr.testing.assert_equal(result.astype(bool), expected)
 
 
+def test_cftime_compound_spell_matches_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+    tas = _build_cftime_overlap_case("reference_overlap_shift")
+    tas = (
+        tas.isel(lat=0, lon=0)
+        .expand_dims(lat=[0.0, 1.0], lon=[0.0, 1.0])
+        .transpose("time", "lat", "lon")
+        .chunk({"time": 365, "lat": 1, "lon": 1})
+        .rename("tas")
+    )
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            thresholds=["> 60 doy_per", "<= 90 doy_per"],
+            logical_link="and",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2044-12-31"),
+        ),
+        "time_range": ("2042-01-01", "2046-12-31"),
+        "slice_mode": "year",
+        "min_spell_length": 3,
+    }
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+
+    assert not hasattr(optimized.sum_of_spell_lengths.data, "__dask_graph__")
+    xr.testing.assert_identical(
+        optimized.sum_of_spell_lengths,
+        reference.sum_of_spell_lengths,
+    )
+
+
 def test_filtered_pandas_spell_matches_reference(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

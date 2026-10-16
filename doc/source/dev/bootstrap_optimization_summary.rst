@@ -343,11 +343,20 @@ operations and formed the boolean daily union before run-length reduction.
 On the full ACCESS-CM2 subset it matched all 13,959,708 reference-mask values,
 reduced mask construction from about 343 to 135 seconds and completed the
 routed annual spell calculation in about 167 seconds. Simple ``cftime`` spells
-now use this route; compound ``cftime`` spells retain the reference path.
+now use this route. Same-variable compound spells reuse each loaded tile across
+their component masks; multi-variable ``cftime`` spells retain the reference
+path.
 The annual ``cftime`` ``average`` also matched all 38,220 reference output
 cells, coordinates and attributes. Its local runtime was about 173 seconds,
 compared with about 76 seconds for the reference graph and roughly 1,000
 seconds for the earlier compiled batch route.
+
+On a two-percentile ACCESS-CM2 compound spell, the shared-tile route matched
+all 38,220 annual reference cells exactly. It completed in about 274 seconds,
+compared with about 424 seconds when the two eager masks were built separately,
+a 35 percent reduction. The local reference graph completed in about 133
+seconds, so the retained route improves bounded eager execution and graph
+avoidance rather than wall-clock time when the reference graph succeeds.
 
 An additional real-data validation pass against commit ``00baef3b`` was
 completed on Monday, August 24, 2026 to compare the current production
@@ -374,8 +383,8 @@ What remains out of scope
 
 The following boundaries retain fallback behavior:
 
-- compound ``cftime`` spell families, which remain outside the validated
-  eager one-threshold route;
+- multi-variable compound ``cftime`` spell families, which still need aligned
+  shared-tile validation;
 - cross-year output groups whose bootstrap substitution epoch uses a non-January
   anchor, outside the established seasonal routes;
 - ``only_leap_years`` and uncommon comparison operators; and

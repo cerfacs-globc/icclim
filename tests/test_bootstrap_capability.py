@@ -684,7 +684,7 @@ def test_single_variable_compound_percentile_spell_routes_to_optimized_path() ->
     assert decision.reason_code == "optimized_compound_spell_bootstrap_supported"
 
 
-def test_cftime_compound_percentile_spell_keeps_reference_path() -> None:
+def test_cftime_compound_percentile_spell_uses_optimized_path() -> None:
     tas = stub_tas(32 + K2C, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
     climate_var = _build_climate_variable(
         tas,
@@ -701,8 +701,35 @@ def test_cftime_compound_percentile_spell_keeps_reference_path() -> None:
         resample_frequency=FrequencyRegistry.YEAR,
     )
 
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_compound_spell_bootstrap_supported"
+
+
+def test_cftime_multivariable_compound_spell_keeps_reference_path() -> None:
+    tas = stub_tas(32 + K2C, use_cftime=True).chunk({"time": 365})
+    pr = tas.rename("pr")
+    pr.attrs["units"] = "mm/day"
+    climate_vars = [
+        _build_climate_variable(
+            tas,
+            {
+                "query": "> 90 doy_per",
+                "reference_period": ("2042-01-01", "2043-12-31"),
+            },
+        ),
+        _build_climate_variable(pr, "<= 1 mm/day"),
+    ]
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="sum_of_spell_lengths",
+        climate_vars=climate_vars,
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
     assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
-    assert decision.reason_code == "cftime_compound_spell_uses_reference_bootstrap"
+    assert decision.reason_code == (
+        "cftime_multivariable_compound_spell_uses_reference_bootstrap"
+    )
 
 
 def test_multi_variable_percentile_count_routes_to_optimized_compound_path() -> None:

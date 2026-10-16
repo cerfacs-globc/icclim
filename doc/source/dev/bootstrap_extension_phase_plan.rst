@@ -66,9 +66,10 @@ days. The 360-day implementation instead retains its native 360-day basis.
 Synthetic overlap cases for count, average and ``fraction_of_total`` match
 the reference workflow on every supported non-Gregorian calendar.
 
-Three boundaries remain deliberate. Simple ``cftime`` spell calculations use
-the exact eager tiled workflow described below; compound ``cftime`` spells
-continue to use the reference workflow. Arbitrary
+Three boundaries remain deliberate. Simple and same-variable compound
+``cftime`` spell calculations use the exact eager tiled workflow described
+below; multi-variable ``cftime`` spells continue to use the reference workflow.
+Arbitrary
 output groups now use the compiled daily-mask route when xclim groups bootstrap
 substitutions by ordinary calendar year. Frequencies whose bootstrap epoch has
 a non-January anchor continue to use the exact tiled fallback unless they are
@@ -178,12 +179,23 @@ source and justifies production routing for simple ``cftime`` spells.
 The same exact eager mask is reused by common ``cftime`` value reducers.
 ``sum``, ``average`` and ``fraction_of_total`` preserve their existing reducer
 semantics after daily selection; filtered denominators still apply the public
-minimum-threshold rule. Compound ``cftime`` spells remain on the reference
-path because combining multiple spell components is outside this retained
-route. A full-field annual ``average`` comparison was exact in all 38,220
-output cells, including coordinates and attributes. It completed in about 173
+minimum-threshold rule. Multi-variable compound ``cftime`` spells remain on
+the reference path. Same-variable compound spells instead compute
+their component masks inside each loaded spatial tile and combine them before
+the run-length reduction. A full-field annual ``average`` comparison was exact
+in all 38,220 output cells, including coordinates and attributes. It completed
+in about 173
 seconds locally, compared with about 76 seconds for the reference graph and
 roughly 1,000 seconds for the earlier compiled batch route.
+
+For an annual same-variable compound spell bounded by the 60th and 90th
+day-of-year percentiles, the shared-tile route matched all 38,220 ACCESS-CM2
+reference cells exactly. It took about 274 seconds, compared with about 424
+seconds when the eager component masks were built independently, a 35 percent
+improvement. The local reference graph completed in about 133 seconds, so this
+route is retained for bounded graph-free execution and for its improvement over
+separate eager masks, not as a wall-clock improvement over a reference graph
+that completes.
 
 Compiled routing covers standard and proleptic Gregorian calendars plus the
 validated ``360_day``, ``365_day``/``noleap`` and
@@ -335,7 +347,9 @@ Retention outcome:
   validation;
 - the replacement eager tiled route is retained for simple ``cftime`` spells
   after exact full-field daily-mask validation and a faster end-to-end run;
-- compound ``cftime`` spells retain the reference route; and
+- same-variable compound ``cftime`` spells reuse a shared eager tile and are
+  retained after exact full-field validation;
+- multi-variable compound ``cftime`` spells retain the reference route; and
 - pandas-compatible simple spell families keep their previously validated
   compiled route.
 
