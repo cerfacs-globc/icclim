@@ -38,7 +38,38 @@ Phase status
 
 The first implementation and full-field validation round completed on
 Friday, October 9, 2026. The follow-up correction and retention round
-completed on Thursday, October 15, 2026.
+completed on Thursday, October 15, 2026. A further operational-route
+extension completed on Friday, October 16, 2026.
+
+The operational-route extension retained the following additions after
+focused comparisons with the reference workflow:
+
+- daily masks shared by extrema, standard deviation, rolling reducers,
+  compound thresholds and date-event counts;
+- mean substituted thresholds for ``excess`` and ``deficit``;
+- filtered scalar-bounded count and value aggregates on ``cftime`` data;
+- sequential exact evaluation of multiple percentiles without duplicating
+  the bootstrap implementation;
+- daily and other output frequencies whose groups remain within one calendar
+  year, in addition to the established anchored seasonal routes;
+- ``360_day``, ``365_day``/``noleap`` and
+  ``366_day``/``all_leap`` calendars; and
+- filtered pandas-backed spells through the shared optimized daily mask.
+
+The 366-day implementation follows the public percentile workflow exactly:
+percentiles are calculated on days 1--365 and interpolated onto 366 target
+days. The 360-day implementation instead retains its native 360-day basis.
+Synthetic overlap cases for count, average and ``fraction_of_total`` match
+the reference workflow on every supported non-Gregorian calendar.
+
+Two boundaries remain deliberate. ``cftime`` spell calculations continue to
+use the reference workflow because the compiled and tiled spell candidates
+did not satisfy the real-data correctness and performance criteria. Arbitrary
+output groups spanning two calendar years continue to use the exact tiled
+fallback; their bootstrap substitution years are not equivalent to the
+calendar-year indexing used by the compiled kernels. The established filtered
+seasonal routes remain supported. ``only_leap_years`` and uncommon comparison
+operators also retain their established fallbacks.
 
 The exact order-statistics threshold reconstruction is now shared by
 the compiled reducers. The initial ``cftime`` validation retained:
@@ -100,9 +131,9 @@ on the reference path. The compiled spell helper is not part of the
 retained ``cftime`` production boundary. A final production-route rerun
 confirmed zero changed cells for both annual and monthly spell output.
 
-Compiled routing is limited to standard and proleptic Gregorian
-``cftime`` calendars. Non-Gregorian CF calendars remain on the exact
-fallback until their calendar-specific alignment is validated.
+Compiled routing covers standard and proleptic Gregorian calendars plus the
+validated ``360_day``, ``365_day``/``noleap`` and
+``366_day``/``all_leap`` CF calendars.
 
 The final annual and monthly full-field comparisons for filtered count,
 average and ``fraction_of_total`` all had zero changed cells and zero
@@ -217,9 +248,8 @@ Recommended design:
 Retention outcome:
 
 - filtered count, ``sum``, ``average`` and ``fraction_of_total`` are
-  retained on the compiled route for the validated Gregorian-like
-  ``cftime`` boundary;
-- non-Gregorian calendars remain on the exact fallback.
+  retained on the compiled route for the validated Gregorian-like and
+  non-Gregorian ``cftime`` calendars.
 
 3. ``cftime`` spell families
 ============================

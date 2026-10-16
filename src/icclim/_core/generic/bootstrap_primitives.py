@@ -494,16 +494,20 @@ def rolling_sample_index_matrix(
     window: int,
 ) -> np.ndarray:
     half_window = window // 2
-    sample_indices: dict[int, list[int]] = {doy: [] for doy in range(1, 366)}
+    calendar = getattr(time, "calendar", None)
+    # xclim computes 366-day percentile climatologies from days 1--365, then
+    # interpolates that series onto 366 days. Keep the same source-day basis.
+    day_count = 360 if calendar == "360_day" else 365
+    sample_indices: dict[int, list[int]] = {doy: [] for doy in range(1, day_count + 1)}
     day_of_years = np.asarray(time.dayofyear, dtype=np.int64)
     for center, day_of_year in enumerate(day_of_years):
-        if day_of_year == LEAP_YEAR_DAY_COUNT:
+        if day_of_year > day_count:
             continue
         start = max(0, center - half_window)
         stop = min(len(time), center + half_window + 1)
         sample_indices[int(day_of_year)].extend(range(start, stop))
     max_samples = max(len(indices) for indices in sample_indices.values())
-    matrix = np.full((365, max_samples), -1, dtype=np.int64)
+    matrix = np.full((day_count, max_samples), -1, dtype=np.int64)
     for day_of_year, indices in sample_indices.items():
         matrix[day_of_year - 1, : len(indices)] = indices
     return matrix

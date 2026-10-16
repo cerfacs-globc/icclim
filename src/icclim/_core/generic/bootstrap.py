@@ -39,6 +39,8 @@ def _compute_multiple_percentiles(
     study: DataArray,
     threshold: PercentileThreshold,
     freq: str,
+    *,
+    percentiles_after_time: bool = False,
     **kwargs,
 ) -> DataArray | None:
     """Evaluate a scalar-percentile kernel sequentially for each percentile."""
@@ -67,11 +69,12 @@ def _compute_multiple_percentiles(
         results,
         dim=xr.IndexVariable("percentiles", percentile_values),
     )
-    return combined.transpose(
-        "time",
-        "percentiles",
-        *(dim for dim in combined.dims if dim not in {"time", "percentiles"}),
+    other_dims = tuple(
+        dim for dim in combined.dims if dim not in {"time", "percentiles"}
     )
+    if percentiles_after_time:
+        return combined.transpose("time", "percentiles", *other_dims)
+    return combined.transpose("time", *other_dims, "percentiles")
 
 
 def bootstrap_array_dtype(study: DataArray) -> np.dtype:
@@ -97,6 +100,7 @@ def compute_doy_percentile_bootstrap_count(
         study,
         threshold,
         freq,
+        percentiles_after_time=True,
     )
     if multiple is not None:
         return multiple
@@ -247,7 +251,12 @@ def compute_doy_percentile_bootstrap_count_threshold_bank_prototype(  # noqa: C9
         for cell in range(n_cells)
     ]
     threshold_bank = np.full(
-        (n_reference_years, n_reference_years, NON_LEAP_YEAR_DAY_COUNT, n_cells),
+        (
+            n_reference_years,
+            n_reference_years,
+            temporal_indexing.sample_indices_by_day_of_year.shape[0],
+            n_cells,
+        ),
         np.nan,
         dtype=np.float64,
     )
@@ -465,6 +474,7 @@ def compute_doy_percentile_bootstrap_union_exceedance_count(
         study,
         threshold,
         freq,
+        percentiles_after_time=True,
     )
     if multiple is not None:
         return multiple
@@ -832,6 +842,7 @@ def compute_doy_percentile_scalar_bounded_bootstrap_count(
         study,
         threshold,
         freq,
+        percentiles_after_time=True,
         scalar_bound=scalar_bound,
         scalar_op_code=scalar_op_code,
         logical_link_code=logical_link_code,
@@ -1353,11 +1364,11 @@ if njit is not None:
         min_threshold,
         max_samples,
     ):
-        thresholds = np.empty(NON_LEAP_YEAR_DAY_COUNT, dtype=np.float64)
+        thresholds = np.empty(sample_indices.shape[0], dtype=np.float64)
         base_buf = np.empty(max_samples, dtype=np.float64)
         removed_buf = np.empty(max_samples, dtype=np.float64)
         inserted_buf = np.empty(max_samples, dtype=np.float64)
-        for doy_i in range(NON_LEAP_YEAR_DAY_COUNT):
+        for doy_i in range(sample_indices.shape[0]):
             base_n = _fill_sorted_nominal_values(
                 flat_ref,
                 sample_indices,
@@ -1585,7 +1596,7 @@ if njit is not None:
             )
             overlap_reference = flat_ref_raw
             threshold_bank = np.full(
-                (n_ref_years, n_ref_years, NON_LEAP_YEAR_DAY_COUNT),
+                (n_ref_years, n_ref_years, sample_indices.shape[0]),
                 np.nan,
                 dtype=np.float64,
             )
@@ -2241,7 +2252,10 @@ if njit is not None:
                     logical_link_code,
                 )
             else:
-                union_thresholds = _initialize_union_threshold_series(op_code)
+                union_thresholds = _initialize_union_threshold_series(
+                    op_code,
+                    sample_indices.shape[0],
+                )
                 for substitute_i in range(n_ref_years):
                     if substitute_i == target_ref_i:
                         continue
@@ -2358,7 +2372,10 @@ if njit is not None:
                     logical_link_code,
                 )
             else:
-                union_thresholds = _initialize_union_threshold_series(op_code)
+                union_thresholds = _initialize_union_threshold_series(
+                    op_code,
+                    sample_indices.shape[0],
+                )
                 for substitute_i in range(n_ref_years):
                     if substitute_i == target_ref_i:
                         continue
@@ -2475,7 +2492,10 @@ if njit is not None:
                     logical_link_code,
                 )
             else:
-                union_thresholds = _initialize_union_threshold_series(op_code)
+                union_thresholds = _initialize_union_threshold_series(
+                    op_code,
+                    sample_indices.shape[0],
+                )
                 for substitute_i in range(n_ref_years):
                     if substitute_i == target_ref_i:
                         continue
@@ -2592,7 +2612,10 @@ if njit is not None:
                     logical_link_code,
                 )
             else:
-                union_thresholds = _initialize_union_threshold_series(op_code)
+                union_thresholds = _initialize_union_threshold_series(
+                    op_code,
+                    sample_indices.shape[0],
+                )
                 for substitute_i in range(n_ref_years):
                     if substitute_i == target_ref_i:
                         continue
@@ -2652,9 +2675,9 @@ if njit is not None:
         beta,
         min_threshold,
     ):
-        thresholds = np.empty(NON_LEAP_YEAR_DAY_COUNT, dtype=np.float64)
+        thresholds = np.empty(sample_indices.shape[0], dtype=np.float64)
         buf = np.empty(max_samples, dtype=np.float64)
-        for doy_i in range(NON_LEAP_YEAR_DAY_COUNT):
+        for doy_i in range(sample_indices.shape[0]):
             threshold_value = _quantile_for_doy_cell(
                 flat_ref,
                 sample_indices,
@@ -3073,20 +3096,20 @@ if njit is not None:
         return float(np.float32(exceedance_total / total))
 
     @njit(cache=True)
-    def _initialize_union_threshold_series(op_code):
+    def _initialize_union_threshold_series(op_code, day_count):
         if op_code in (0, 1):
-            return np.full(NON_LEAP_YEAR_DAY_COUNT, np.inf, dtype=np.float64)
+            return np.full(day_count, np.inf, dtype=np.float64)
         return np.full(
-            NON_LEAP_YEAR_DAY_COUNT,
+            day_count,
             -np.inf,
             dtype=np.float64,
         )
 
     @njit(cache=True)
-    def _initialize_daily_union_thresholds(op_code):
+    def _initialize_daily_union_thresholds(op_code, day_count):
         if op_code in (0, 1):
-            return np.full(LEAP_YEAR_DAY_COUNT, np.inf, dtype=np.float64)
-        return np.full(LEAP_YEAR_DAY_COUNT, -np.inf, dtype=np.float64)
+            return np.full(day_count, np.inf, dtype=np.float64)
+        return np.full(day_count, -np.inf, dtype=np.float64)
 
     @njit(cache=True)
     def _update_daily_union_thresholds(
@@ -3164,7 +3187,7 @@ if njit is not None:
         op_code,
         max_target_doy,
     ):
-        thresholds = _initialize_daily_union_thresholds(op_code)
+        thresholds = _initialize_daily_union_thresholds(op_code, max_target_doy)
         for doy_i in range(max_target_doy):
             threshold_value = flat_nominal_thresholds[doy_i, cell]
             if not np.isnan(threshold_value):
@@ -3176,8 +3199,8 @@ if njit is not None:
         thresholds,
         preserve_precision=False,
     ):
-        converted = np.empty(NON_LEAP_YEAR_DAY_COUNT, dtype=np.float64)
-        for day_i in range(NON_LEAP_YEAR_DAY_COUNT):
+        converted = np.empty(len(thresholds), dtype=np.float64)
+        for day_i in range(len(thresholds)):
             if preserve_precision:
                 converted[day_i] = thresholds[day_i]
             else:
@@ -3277,7 +3300,10 @@ if njit is not None:
             ),
             use_order_stat_thresholds,
         )
-        daily_thresholds = _initialize_daily_union_thresholds(op_code)
+        daily_thresholds = _initialize_daily_union_thresholds(
+            op_code,
+            max_target_doy,
+        )
         _update_daily_union_thresholds(
             daily_thresholds,
             thresholds,
@@ -3307,7 +3333,10 @@ if njit is not None:
         min_threshold,
         interpolate_missing,
     ):
-        daily_thresholds = _initialize_daily_union_thresholds(op_code)
+        daily_thresholds = _initialize_daily_union_thresholds(
+            op_code,
+            max_target_doy,
+        )
         for substitute_i in range(substitute_aligned.shape[1]):
             if substitute_i == target_ref_i:
                 continue
@@ -3358,8 +3387,8 @@ if njit is not None:
         min_threshold,
         interpolate_missing,
     ):
-        daily_thresholds = np.zeros(LEAP_YEAR_DAY_COUNT, dtype=np.float64)
-        counts = np.zeros(LEAP_YEAR_DAY_COUNT, dtype=np.int64)
+        daily_thresholds = np.zeros(max_target_doy, dtype=np.float64)
+        counts = np.zeros(max_target_doy, dtype=np.int64)
         for substitute_i in range(substitute_aligned.shape[1]):
             if substitute_i == target_ref_i:
                 continue
@@ -3405,7 +3434,7 @@ if njit is not None:
 
     @njit(cache=True)
     def _update_union_threshold_series(union_thresholds, thresholds, op_code):
-        for day_i in range(NON_LEAP_YEAR_DAY_COUNT):
+        for day_i in range(len(union_thresholds)):
             threshold_value = thresholds[day_i]
             if np.isnan(threshold_value):
                 continue
@@ -3917,12 +3946,13 @@ if njit is not None:
 
     @njit(cache=True)
     def _adjusted_threshold(thresholds, doy, max_target_doy):
-        if max_target_doy == NON_LEAP_YEAR_DAY_COUNT:
+        source_day_count = len(thresholds)
+        if max_target_doy == source_day_count:
             return thresholds[doy - 1]
-        position = (doy - 1.0) * 364.0 / 365.0
+        position = (doy - 1.0) * (source_day_count - 1.0) / (max_target_doy - 1.0)
         lower = int(np.floor(position))
-        if lower >= 364:
-            return thresholds[364]
+        if lower >= source_day_count - 1:
+            return thresholds[source_day_count - 1]
         gamma = position - lower
         diff = thresholds[lower + 1] - thresholds[lower]
         if gamma >= 0.5:

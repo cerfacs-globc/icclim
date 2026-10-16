@@ -230,8 +230,16 @@ In production today:
   ``fraction_of_total`` reuse the same exact threshold reconstruction;
 - filtered ``cftime`` count, ``sum``, ``average`` and
   ``fraction_of_total`` reuse target-calendar daily threshold unions;
+- validated non-Gregorian CF calendars use calendar-specific daily
+  threshold indexing;
+- extrema, standard deviation, rolling reducers and date-event counts
+  reuse the optimized daily mask;
+- ``excess`` and ``deficit`` reuse the mean substituted threshold;
+- multiple percentile values are evaluated through the same scalar kernels
+  and restored with reference-compatible dimension order;
 - selected pandas-compatible spell reducers use the validated compiled
-  union-mask route, while ``cftime`` spells use the reference path;
+  union-mask route, including filtered spells, while ``cftime`` spells use
+  the reference path;
 - selected compound families reuse component-mask composition;
 - unsupported cases still fall back to exact tiled or reference paths.
 
@@ -354,17 +362,15 @@ That pass showed three important points:
 What remains out of scope
 =========================
 
-The following areas are not yet retained as optimized production
-families:
+The following boundaries retain fallback behavior:
 
-- filtered percentile shapes beyond the validated single-threshold
-  reducers;
-- non-Gregorian ``cftime`` calendars, which remain on exact fallback
-  paths;
-- more complex spell families that need separate reducer semantics after
-  thresholding;
-- any future route whose exactness is not demonstrated against the
-  reference implementation.
+- ``cftime`` spell families, after the optimized candidates failed the
+  real-data correctness and performance criteria;
+- arbitrary output groups spanning calendar years outside the established
+  seasonal routes;
+- ``only_leap_years`` and uncommon comparison operators; and
+- any future route whose exactness is not demonstrated against the reference
+  implementation.
 
 Impact on xclim bootstrap code
 ==============================
