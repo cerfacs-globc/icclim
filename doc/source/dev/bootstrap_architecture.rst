@@ -111,11 +111,12 @@ Examples:
 - generic spell or consecutive-event indicators using percentile
   thresholds.
 
-As of Friday, July 31, 2026, simple one-threshold day-of-year
-percentile spell reducers on pandas-compatible calendars have a compiled
-union-mask implementation validated against the trusted reference path.
-``cftime``, filtered and more complex spell cases use the reference or
-exact fallback, so this family remains only partially specialized.
+Simple day-of-year percentile spell reducers on pandas-compatible calendars
+have a compiled union-mask implementation validated against the trusted
+reference path. The same daily-mask route supports filtered pandas-backed
+spells and multiple percentile values. ``cftime`` spells use the reference
+path after compiled and tiled candidates failed the real-data correctness and
+performance criteria, so this family remains only partially specialized.
 
 Percentile compound family
 --------------------------

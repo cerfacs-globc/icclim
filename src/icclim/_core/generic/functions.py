@@ -86,6 +86,15 @@ _BOOTSTRAP_SAFE_MEMORY_FACTOR = 12
 _BOOTSTRAP_FAST_MEMORY_FACTOR = 4
 
 
+def _force_reference_cftime_spell_masks(
+    climate_vars: list[ClimateVariable],
+) -> bool:
+    return os.environ.get("ICCLIM_BOOTSTRAP_MODE") != "safe" and any(
+        hasattr(climate_var.studied_data.indexes.get("time"), "calendar")
+        for climate_var in climate_vars
+    )
+
+
 def _get_scalar_bounded_bootstrap_spec(
     threshold: Threshold | None,
 ) -> tuple[PercentileThreshold, float, int, int] | None:
@@ -362,6 +371,7 @@ def max_consecutive_occurrence(
         climate_vars,
         resample_freq,
         logical_link,
+        force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
     from xclim.indices import run_length  # noqa: PLC0415
 
@@ -452,6 +462,7 @@ def sum_of_spell_lengths(
         climate_vars,
         resample_freq,
         logical_link,
+        force_reference_bootstrap=_force_reference_cftime_spell_masks(climate_vars),
     )
     from xclim.indices import run_length  # noqa: PLC0415
 
@@ -516,9 +527,8 @@ def excess(
     )
 
     mean_threshold = None
-    if (
-        bootstrap_capability.uses_optimized_bootstrap
-        and isinstance(threshold, PercentileThreshold)
+    if bootstrap_capability.uses_optimized_bootstrap and isinstance(
+        threshold, PercentileThreshold
     ):
         mean_threshold = _compute_fast_tiled_bootstrap_mean_threshold(
             climate_vars[0],
@@ -591,9 +601,8 @@ def deficit(
     )
 
     mean_threshold = None
-    if (
-        bootstrap_capability.uses_optimized_bootstrap
-        and isinstance(threshold, PercentileThreshold)
+    if bootstrap_capability.uses_optimized_bootstrap and isinstance(
+        threshold, PercentileThreshold
     ):
         mean_threshold = _compute_fast_tiled_bootstrap_mean_threshold(
             climate_vars[0],
@@ -2311,9 +2320,7 @@ def _compute_fast_tiled_bootstrap_spell_mask(
         "bootstrap_optimized_total_seconds",
         perf_counter() - optimized_start,
     )
-    result = result.transpose(*climate_var.studied_data.dims)
-    if "percentiles" in result.dims:
-        result = result.squeeze("percentiles")
+    result = _transpose_like_study(result, climate_var.studied_data)
     if all(
         climate_var.studied_data.sizes[dim] == 1
         for dim in climate_var.studied_data.dims
@@ -2615,7 +2622,9 @@ def _slice_climate_var_for_tile(
 
 
 def _transpose_like_study(result: DataArray, study: DataArray) -> DataArray:
-    ordered_dims = tuple(dim for dim in study.dims if dim in result.dims)
+    study_dims = tuple(dim for dim in study.dims if dim in result.dims)
+    extra_dims = tuple(dim for dim in result.dims if dim not in study_dims)
+    ordered_dims = (*study_dims, *extra_dims)
     return result.transpose(*ordered_dims)
 
 
@@ -2844,6 +2853,8 @@ def _compute_combined_exceedance_mask(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
     logical_link: LogicalLink,
+    *,
+    force_reference_bootstrap: bool = False,
 ) -> DataArray:
     exceedance_masks = []
     for climate_var in climate_vars:
@@ -2856,6 +2867,7 @@ def _compute_combined_exceedance_mask(
                 threshold=climate_var.threshold,
                 resample_freq=resample_freq,
                 prepared_inputs_cache={},
+                force_reference_bootstrap=force_reference_bootstrap,
             ).squeeze()
         )
     return logical_link(exceedance_masks)
@@ -2867,24 +2879,38 @@ def _compute_threshold_exceedance_mask(
     threshold: Threshold,
     resample_freq: Frequency,
     prepared_inputs_cache: dict[tuple, BootstrapPreparedInputs] | None = None,
+    force_reference_bootstrap: bool = False,
 ) -> DataArray:
     from icclim._core.generic.threshold.bounded import BoundedThreshold  # noqa: PLC0415
     from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
         PercentileThreshold,
     )
 
+    if force_reference_bootstrap:
+        return _compute_exceedance_mask(
+            study=climate_var.studied_data,
+            threshold=threshold,
+            freq=resample_freq.pandas_freq,
+            bootstrap=must_run_bootstrap(
+                climate_var.studied_data,
+                threshold,
+                climate_var.bootstrap,
+            ),
+        )
     if isinstance(threshold, BoundedThreshold):
         left_mask = _compute_threshold_exceedance_mask(
             climate_var=replace(climate_var, threshold=threshold.left_threshold),
             threshold=threshold.left_threshold,
             resample_freq=resample_freq,
             prepared_inputs_cache=prepared_inputs_cache,
+            force_reference_bootstrap=force_reference_bootstrap,
         )
         right_mask = _compute_threshold_exceedance_mask(
             climate_var=replace(climate_var, threshold=threshold.right_threshold),
             threshold=threshold.right_threshold,
             resample_freq=resample_freq,
             prepared_inputs_cache=prepared_inputs_cache,
+            force_reference_bootstrap=force_reference_bootstrap,
         )
         return _transpose_like_study(
             threshold.logical_link.compute([left_mask.squeeze(), right_mask.squeeze()]),

@@ -126,6 +126,37 @@ def _build_cftime_filtered_overlap_case() -> xr.DataArray:
     return pr.chunk({"time": 365, "lat": 1, "lon": 1})
 
 
+def _build_non_gregorian_overlap_case(calendar: str) -> xr.DataArray:
+    days_per_year = (
+        360
+        if calendar == "360_day"
+        else 366
+        if calendar
+        in {
+            "366_day",
+            "all_leap",
+        }
+        else 365
+    )
+    time = xr.date_range(
+        "2042-01-01",
+        periods=days_per_year * 5,
+        freq="D",
+        calendar=calendar,
+        use_cftime=True,
+    )
+    values = np.full((len(time), 1, 1), 300.0, dtype=np.float32)
+    values[100] = 350.0
+    values[days_per_year + 100] = 250.0
+    return xr.DataArray(
+        values,
+        dims=["time", "lat", "lon"],
+        coords={"time": time, "lat": [0.0], "lon": [0.0]},
+        attrs={"units": "K"},
+        name="tas",
+    ).chunk({"time": days_per_year, "lat": 1, "lon": 1})
+
+
 def test_build_bootstrap_reference_sample_applies_threshold_floor() -> None:
     pr = stub_pr(0.0)
     pr[1:] = 2.0e-5
@@ -421,11 +452,11 @@ def test_compiled_scalar_bounded_wrappers_match_constant_expectations() -> None:
     )
 
 
-def test_compiled_bootstrap_returns_none_when_not_optimized() -> None:
+def test_compiled_bootstrap_returns_none_for_groups_crossing_years() -> None:
     tas = stub_tas(300.0).chunk({"time": 365, "lat": 1, "lon": 1})
     threshold = build_threshold(">= 90 doy_per")
 
-    assert compute_doy_percentile_bootstrap_count(tas, threshold, "D") is None
+    assert compute_doy_percentile_bootstrap_count(tas, threshold, "W-MON") is None
 
 
 def _kernel_common_args(
@@ -718,6 +749,36 @@ def test_cftime_spell_paths_match_reference_on_overlap_case(
     )
 
 
+def test_filtered_pandas_spell_matches_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pr = _build_cftime_filtered_overlap_case().assign_coords(
+        time=pd.date_range("2042-01-01", periods=365 * 5 + 1, freq="D")
+    )
+    common_kwargs = {
+        "in_files": pr,
+        "var_name": "pr",
+        "threshold": build_threshold(
+            "> 90 doy_per",
+            threshold_min_value="1 mm/day",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2043-12-31"),
+        ),
+        "slice_mode": "year",
+        "min_spell_length": 3,
+    }
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(
+        optimized.sum_of_spell_lengths,
+        reference.sum_of_spell_lengths,
+    )
+
+
 @pytest.mark.parametrize(
     "indicator_name",
     ["sum", "count_occurrences", "average", "fraction_of_total"],
@@ -781,6 +842,266 @@ def test_cftime_numeric_threshold_aggregate_matches_reference(
     xr.testing.assert_allclose(
         optimized[indicator_name],
         reference[indicator_name],
+    )
+
+
+@pytest.mark.parametrize(
+    "calendar",
+    ["360_day", "365_day", "noleap", "366_day", "all_leap"],
+)
+@pytest.mark.parametrize(
+    "indicator_name",
+    ["count_occurrences", "average", "fraction_of_total"],
+)
+def test_non_gregorian_bootstrap_matches_reference(
+    calendar: str,
+    indicator_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = _build_non_gregorian_overlap_case(calendar)
+    reference_end = "2043-12-30" if calendar == "360_day" else "2043-12-31"
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            "> 90 doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", reference_end),
+        ),
+        "slice_mode": "year",
+    }
+
+    api = getattr(icclim, indicator_name)
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = api(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = api(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(optimized[indicator_name], reference[indicator_name])
+
+
+def test_daily_bootstrap_output_matches_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = _build_cftime_overlap_case("reference_overlap_shift")
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            "> 90 doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2044-12-31"),
+        ),
+        "slice_mode": "day",
+    }
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = icclim.count_occurrences(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = icclim.count_occurrences(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(
+        optimized.count_occurrences,
+        reference.count_occurrences,
+    )
+
+
+@pytest.mark.parametrize(
+    "indicator_name",
+    ["count_occurrences", "average", "sum", "fraction_of_total", "excess", "deficit"],
+)
+def test_multiple_percentile_bootstrap_matches_reference(
+    indicator_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = _build_cftime_overlap_case("reference_overlap_shift")
+    threshold_kwargs = {
+        "value": [10, 90],
+        "operator": "reach" if indicator_name in {"excess", "deficit"} else ">",
+        "unit": "doy_per",
+        "doy_window_width": 1,
+        "reference_period": ("2042-01-01", "2044-12-31"),
+    }
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(**threshold_kwargs),
+        "slice_mode": "year",
+    }
+
+    api = getattr(icclim, indicator_name)
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = api(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = api(**common_kwargs).compute()
+
+    assert optimized[indicator_name].dims == reference[indicator_name].dims
+    xr.testing.assert_allclose(optimized[indicator_name], reference[indicator_name])
+
+
+@pytest.mark.parametrize(
+    "indicator_name",
+    [
+        "maximum",
+        "minimum",
+        "standard_deviation",
+        "max_of_rolling_sum",
+        "min_of_rolling_sum",
+        "max_of_rolling_average",
+        "min_of_rolling_average",
+    ],
+)
+def test_mask_consumer_bootstrap_matches_reference(
+    indicator_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = _build_cftime_overlap_case("reference_overlap_shift")
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            ">= 50 doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2044-12-31"),
+        ),
+        "slice_mode": "year",
+    }
+
+    api = getattr(icclim, indicator_name)
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = api(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = api(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(optimized[indicator_name], reference[indicator_name])
+
+
+@pytest.mark.parametrize("percentiles", [[90], [10, 90]])
+def test_date_event_bootstrap_matches_reference(
+    percentiles: list[int],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = _build_cftime_overlap_case("reference_overlap_shift")
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            value=percentiles,
+            operator=">",
+            unit="doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2044-12-31"),
+        ),
+        "slice_mode": "year",
+        "date_event": True,
+    }
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = icclim.count_occurrences(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = icclim.count_occurrences(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(
+        optimized.count_occurrences,
+        reference.count_occurrences,
+    )
+
+
+@pytest.mark.parametrize(
+    "indicator_name",
+    ["count_occurrences", "average", "sum", "fraction_of_total"],
+)
+def test_filtered_bounded_bootstrap_matches_reference(
+    indicator_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pr = _build_cftime_filtered_overlap_case()
+    common_kwargs = {
+        "in_files": pr,
+        "var_name": "pr",
+        "threshold": build_threshold(
+            thresholds=["> 90 doy_per", "<= 5 mm/day"],
+            logical_link="and",
+            threshold_min_value="1 mm/day",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2043-12-31"),
+        ),
+        "slice_mode": "year",
+    }
+
+    api = getattr(icclim, indicator_name)
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = api(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = api(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(optimized[indicator_name], reference[indicator_name])
+
+
+@pytest.mark.parametrize(
+    "indicator_name",
+    ["count_occurrences", "average", "sum", "fraction_of_total"],
+)
+def test_multiple_percentile_bounded_bootstrap_matches_reference(
+    indicator_name: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pr = _build_cftime_filtered_overlap_case()
+    percentile = build_threshold(
+        value=[10, 90],
+        operator=">",
+        unit="doy_per",
+        threshold_min_value="1 mm/day",
+        doy_window_width=1,
+        reference_period=("2042-01-01", "2043-12-31"),
+    )
+    common_kwargs = {
+        "in_files": pr,
+        "var_name": "pr",
+        "threshold": build_threshold(
+            thresholds=[percentile, "<= 5 mm/day"],
+            logical_link="and",
+        ),
+        "slice_mode": "year",
+    }
+
+    api = getattr(icclim, indicator_name)
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = api(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = api(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(optimized[indicator_name], reference[indicator_name])
+
+
+def test_multiple_percentile_pandas_spell_matches_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    tas = _build_cftime_overlap_case("reference_overlap_shift").assign_coords(
+        time=pd.date_range("2042-01-01", periods=365 * 5 + 1, freq="D")
+    )
+    common_kwargs = {
+        "in_files": tas,
+        "var_name": "tas",
+        "threshold": build_threshold(
+            value=[10, 90],
+            operator=">",
+            unit="doy_per",
+            doy_window_width=1,
+            reference_period=("2042-01-01", "2044-12-31"),
+        ),
+        "slice_mode": "year",
+        "min_spell_length": 3,
+    }
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = icclim.sum_of_spell_lengths(**common_kwargs).compute()
+
+    xr.testing.assert_allclose(
+        optimized.sum_of_spell_lengths,
+        reference.sum_of_spell_lengths,
     )
 
 
