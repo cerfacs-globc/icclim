@@ -50,9 +50,9 @@ Fast path currently supports:
 - unfiltered and ``threshold_min_value``-filtered ``cftime`` ``sum``,
   ``average`` and ``fraction_of_total`` reducers through the same exact
   threshold reconstruction and daily union semantics;
-- validated simple one-threshold spell reducers on pandas-compatible
-  calendars through the compiled union-mask route; ``cftime`` spell
-  reducers use the reference path;
+- validated simple one-threshold spell reducers through the compiled
+  union-mask route on pandas-compatible calendars and the exact eager tiled
+  route on ``cftime`` calendars;
 - validated compound count workloads that reuse component-mask
   composition;
 - validated same-variable bounded scalar guards such as
@@ -70,13 +70,13 @@ Cases outside the retained support boundary intentionally fall back to
 the exact tiled bootstrap path or the reference path, depending on the
 family. The most useful future extensions are likely:
 
-- non-Gregorian CF calendars. Their calendar-specific threshold
-  alignment remains on the exact fallback until separately validated;
+- additional non-Gregorian CF-calendar families beyond the validated
+  count, common value-reducer and simple-spell routes;
 - additional ``threshold_min_value`` combinations beyond the current
   single day-of-year percentile boundary;
 - broader spell/run-length combinations. Simple pandas-compatible
-  one-threshold spells use a compiled boolean union mask, while
-  ``cftime`` spells use the reference path;
+  one-threshold spells use a boolean union mask; ``cftime`` uses the exact
+  eager tiled route, while compound ``cftime`` spells use the reference path;
 - spell/run-length extension beyond the currently validated simple
   day-of-year percentile cases;
 - broader compound percentile shapes beyond the currently validated
@@ -181,11 +181,19 @@ the corresponding reference runs took about 229 to 238 seconds. The
 compiled route is therefore a bounded-memory, graph-free alternative,
 not a wall-clock speedup when the reference graph completes.
 
-The same rerun rejected compiled ``cftime`` spell routing. Real-data
-cells developed incorrect continuous multi-year runs, and the compiled
-annual run took about 989 seconds versus about 238 seconds for the
-reference. ``cftime`` spells consequently use the reference path.
-The final annual and monthly production-route comparisons were exact.
+The same rerun rejected the original compiled ``cftime`` spell route.
+Its custom threshold reconstruction created incorrect continuous multi-year
+runs and took about 989 seconds. The replacement keeps xclim's percentile and
+calendar operations, evaluates bounded spatial tiles eagerly and reduces the
+substitute comparisons to a boolean daily union before run-length reduction.
+On the full ACCESS-CM2 subset it matched all 13,959,708 daily reference-mask
+values and reduced mask construction from about 343 to 135 seconds. The routed
+annual spell calculation completed eagerly in about 167 seconds.
+
+The same mask route made the annual ``cftime`` ``average`` field-exact in all
+38,220 ACCESS-CM2 output cells, with identical coordinates and attributes. It
+completed in about 173 seconds locally, compared with about 76 seconds for the
+reference graph and roughly 1,000 seconds for the earlier compiled batch route.
 
 Further large speedups are more likely to come from reducing Python,
 xarray and dask preparation overhead than from micro-optimising the Numba

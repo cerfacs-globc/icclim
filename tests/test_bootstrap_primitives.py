@@ -32,7 +32,7 @@ from icclim._core.generic.bootstrap import (
     compute_doy_percentile_bootstrap_fraction_of_total,
     compute_doy_percentile_bootstrap_union_exceedance_count,
     compute_doy_percentile_bootstrap_union_exceedance_mask,
-    compute_doy_percentile_bootstrap_union_mask_eager_prototype,
+    compute_doy_percentile_bootstrap_union_mask_eager,
     compute_doy_percentile_scalar_bounded_bootstrap_count,
     compute_doy_percentile_scalar_bounded_bootstrap_exceedance_average,
     compute_doy_percentile_scalar_bounded_bootstrap_exceedance_sum,
@@ -813,20 +813,19 @@ def test_eager_cftime_union_mask_matches_reference_mask(
         reference_period=("2042-01-01", "2044-12-31"),
     )
 
-    expected = (
-        threshold.compute(tas, freq=freq, bootstrap=True)
-        .fillna(False)
-        .astype(bool)
-        .squeeze()
-    )
-    result = compute_doy_percentile_bootstrap_union_mask_eager_prototype(
+    expected = threshold.compute(tas, freq=freq, bootstrap=True)
+    if "percentiles" in expected.dims:
+        expected = expected.squeeze("percentiles", drop=True)
+    expected = expected.fillna(False).astype(bool).assign_coords(percentiles=90.0)
+    result = compute_doy_percentile_bootstrap_union_mask_eager(
         tas,
         threshold,
         freq,
     )
 
     assert result is not None
-    xr.testing.assert_equal(result.astype(bool).squeeze(), expected)
+    assert result.dims == tas.dims
+    xr.testing.assert_equal(result.astype(bool), expected)
 
 
 @pytest.mark.parametrize(
@@ -866,20 +865,19 @@ def test_eager_cftime_union_mask_supports_cf_calendars_and_filtering(
         reference_period=("2042-01-01", reference_end),
     )
 
-    expected = (
-        threshold.compute(tas, freq="YS", bootstrap=True)
-        .fillna(False)
-        .astype(bool)
-        .squeeze()
-    )
-    result = compute_doy_percentile_bootstrap_union_mask_eager_prototype(
+    expected = threshold.compute(tas, freq="YS", bootstrap=True)
+    if "percentiles" in expected.dims:
+        expected = expected.squeeze("percentiles", drop=True)
+    expected = expected.fillna(False).astype(bool).assign_coords(percentiles=90.0)
+    result = compute_doy_percentile_bootstrap_union_mask_eager(
         tas,
         threshold,
         "YS",
     )
 
     assert result is not None
-    xr.testing.assert_equal(result.astype(bool).squeeze(), expected)
+    assert result.dims == tas.dims
+    xr.testing.assert_equal(result.astype(bool), expected)
 
 
 def test_filtered_pandas_spell_matches_reference(
