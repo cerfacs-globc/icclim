@@ -14,7 +14,6 @@ from dataclasses import dataclass, replace
 from enum import Enum
 from typing import TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 
 from icclim._core.climate_variable import ClimateVariable, must_run_bootstrap
@@ -481,6 +480,17 @@ def _classify_specialized_generic_bootstrap(
             resample_frequency=resample_frequency,
             inventory=inventory,
         )
+    elif _uses_specialized_compound_spell_routing(
+        reducer_kind=reducer_kind,
+        climate_vars=climate_vars,
+        date_event=date_event,
+        inventory=inventory,
+    ):
+        specialized_capability = classify_compound_spell_bootstrap(
+            climate_vars=climate_vars,
+            resample_frequency=resample_frequency,
+            inventory=inventory,
+        )
     return specialized_capability
 
 
@@ -839,6 +849,22 @@ def _uses_specialized_compound_value_aggregate_routing(
     )
 
 
+def _uses_specialized_compound_spell_routing(
+    *,
+    reducer_kind: BootstrapReducerKind,
+    climate_vars: list[ClimateVariable],
+    date_event: bool,
+    inventory: BootstrapThresholdInventory,
+) -> bool:
+    if reducer_kind != BootstrapReducerKind.SPELL or date_event:
+        return False
+    return inventory.bootstrap_required and (
+        len(climate_vars) > 1
+        or inventory.has_bounded_threshold
+        or inventory.threshold_count > 1
+    )
+
+
 def _reference_bootstrap_reason_code(
     *,
     reducer_kind: BootstrapReducerKind,
@@ -976,6 +1002,54 @@ def classify_compound_value_aggregate_bootstrap(
     )
 
 
+def classify_compound_spell_bootstrap(
+    *,
+    climate_vars: list[ClimateVariable],
+    resample_frequency: Frequency,
+    inventory: BootstrapThresholdInventory,
+) -> BootstrapCapability:
+    """Classify a spell assembled from independently computed component masks."""
+    family = _classify_generic_bootstrap_family(
+        reducer_kind=BootstrapReducerKind.SPELL,
+        inventory=inventory,
+    )
+    if any(_uses_cftime_index(var.studied_data) for var in climate_vars):
+        return _reference_bootstrap_path(
+            family,
+            "cftime_compound_spell_uses_reference_bootstrap",
+        )
+    component_capabilities = [
+        component_capability
+        for climate_var in climate_vars
+        for component_capability in _iter_compound_component_bootstrap_capabilities(
+            climate_var=climate_var,
+            threshold_spec=climate_var.threshold,
+            resample_frequency=resample_frequency,
+        )
+    ]
+    if not component_capabilities or any(
+        capability.uses_reference_bootstrap_path
+        for capability in component_capabilities
+    ):
+        return _reference_bootstrap_path(
+            family,
+            "compound_spell_component_requires_reference_bootstrap_path",
+        )
+    if any(
+        capability.uses_exact_tiled_bootstrap for capability in component_capabilities
+    ):
+        return _exact_tiled_bootstrap(
+            family,
+            "compound_spell_component_requires_exact_tiled_bootstrap",
+        )
+    return BootstrapCapability(
+        family=family,
+        execution_kind=BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP,
+        bootstrap_required=True,
+        reason_code="optimized_compound_spell_bootstrap_supported",
+    )
+
+
 def classify_scalar_bounded_bootstrap(
     *,
     climate_var: ClimateVariable,
@@ -1044,13 +1118,6 @@ def _iter_compound_component_bootstrap_capabilities(
         climate_var.bootstrap,
     ):
         return ()
-    if not threshold_spec.is_doy_per_threshold:
-        return (
-            _reference_bootstrap_path(
-                _classify_count_family(threshold_spec),
-                "compound_period_percentile_uses_reference_bootstrap_path",
-            ),
-        )
     return (
         classify_doy_percentile_mask_bootstrap(
             climate_var=replace(climate_var, threshold=threshold_spec),
@@ -1169,22 +1236,23 @@ def _is_optimized_bootstrap_frequency(study: DataArray, freq: str) -> bool:
     if freq in {"MS", "YS"} or freq.startswith("YS-"):
         return True
     try:
-        groups = study.resample(time=freq).groups.values()
+        from icclim._core.generic.bootstrap_primitives import (  # noqa: PLC0415
+            bootstrap_resample_frequency,
+            indices_by_epoch_resample_group,
+            indices_by_resample_group,
+        )
+
+        bootstrap_freq = bootstrap_resample_frequency(freq)
+        if bootstrap_freq not in {"YS", "YE"}:
+            return False
+        epoch_indices = indices_by_resample_group(
+            study,
+            bootstrap_freq,
+        )
+        _, groups, _ = indices_by_epoch_resample_group(study, epoch_indices, freq)
     except (TypeError, ValueError):
         return False
-    time = study.indexes["time"]
-    for indexer in groups:
-        if isinstance(indexer, slice):
-            indices = np.arange(
-                0 if indexer.start is None else indexer.start,
-                len(time) if indexer.stop is None else indexer.stop,
-                1 if indexer.step is None else indexer.step,
-            )
-        else:
-            indices = np.asarray(indexer)
-        if indices.size and np.unique(time[indices].year).size != 1:
-            return False
-    return True
+    return bool(groups) and all(indices.size for indices in groups)
 
 
 def _optimized_count_path_blocker(

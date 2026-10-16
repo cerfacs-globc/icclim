@@ -113,16 +113,21 @@ Examples:
 
 Simple day-of-year percentile spell reducers on pandas-compatible calendars
 have a compiled union-mask implementation validated against the trusted
-reference path. The same daily-mask route supports filtered pandas-backed
-spells and multiple percentile values. ``cftime`` spells use the reference
-path after compiled and tiled candidates failed the real-data correctness and
-performance criteria, so this family remains only partially specialized.
+reference path. The same daily-mask route supports filtered and compound
+pandas-backed spells and multiple percentile values. ``cftime`` spells use the
+reference path after compiled and tiled candidates failed the real-data
+correctness and performance criteria, so this family remains only partially
+specialized.
 
 Percentile compound family
 --------------------------
 
 This family combines several threshold conditions, possibly across
 variables and threshold types.
+
+Period-percentile and scalar components remain static in a compound
+bootstrap expression. Only day-of-year percentile components are rebuilt for
+the overlap substitutions, after which the component masks are combined.
 
 Examples:
 

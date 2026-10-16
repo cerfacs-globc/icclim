@@ -342,31 +342,45 @@ def max_consecutive_occurrence(
         resample_freq=resample_freq,
         date_event=date_event,
     )
+    bootstrap_spell_mask = None
     if len(climate_vars) == 1 and not date_event:
         bootstrap_spell_mask = _compute_bootstrap_spell_mask(
             climate_vars[0],
             resample_freq,
             bootstrap_capability=bootstrap_capability,
         )
-        if bootstrap_spell_mask is not None:
-            from xclim.indices import run_length  # noqa: PLC0415
+    if (
+        bootstrap_spell_mask is None
+        and not date_event
+        and (
+            bootstrap_capability.uses_optimized_bootstrap
+            or bootstrap_capability.uses_exact_tiled_bootstrap
+        )
+    ):
+        bootstrap_spell_mask = _compute_combined_exceedance_mask(
+            climate_vars,
+            resample_freq,
+            logical_link,
+        )
+    if bootstrap_spell_mask is not None:
+        from xclim.indices import run_length  # noqa: PLC0415
 
-            spell_run_lengths = run_length.rle(
-                bootstrap_spell_mask,
-                dim="time",
-                index=kwargs.get("run_index", "first"),
-            )
-            result = spell_run_lengths.resample(time=resample_freq.pandas_freq).max(
-                dim="time"
-            )
-            result = _transpose_like_study(result, climate_vars[0].studied_data)
-            freq = check_freq(climate_vars[0].studied_data, dim="time")
-            return _safe_to_agg_units(
-                result,
-                climate_vars[0].studied_data,
-                "count",
-                deffreq=freq,
-            )
+        spell_run_lengths = run_length.rle(
+            bootstrap_spell_mask,
+            dim="time",
+            index=kwargs.get("run_index", "first"),
+        )
+        result = spell_run_lengths.resample(time=resample_freq.pandas_freq).max(
+            dim="time"
+        )
+        result = _transpose_like_study(result, climate_vars[0].studied_data)
+        freq = check_freq(climate_vars[0].studied_data, dim="time")
+        return _safe_to_agg_units(
+            result,
+            climate_vars[0].studied_data,
+            "count",
+            deffreq=freq,
+        )
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq,
@@ -429,35 +443,45 @@ def sum_of_spell_lengths(
         climate_vars=climate_vars,
         resample_freq=resample_freq,
     )
+    bootstrap_spell_mask = None
     if len(climate_vars) == 1:
         bootstrap_spell_mask = _compute_bootstrap_spell_mask(
             climate_vars[0],
             resample_freq,
             bootstrap_capability=bootstrap_capability,
         )
-        if bootstrap_spell_mask is not None:
-            from xclim.indices import run_length  # noqa: PLC0415
+    if bootstrap_spell_mask is None and (
+        bootstrap_capability.uses_optimized_bootstrap
+        or bootstrap_capability.uses_exact_tiled_bootstrap
+    ):
+        bootstrap_spell_mask = _compute_combined_exceedance_mask(
+            climate_vars,
+            resample_freq,
+            logical_link,
+        )
+    if bootstrap_spell_mask is not None:
+        from xclim.indices import run_length  # noqa: PLC0415
 
-            spell_run_lengths = run_length.rle(
-                bootstrap_spell_mask,
-                dim="time",
-                index=kwargs.get("run_index", "first"),
-            )
-            cropped_run_lengths = spell_run_lengths.where(
-                spell_run_lengths >= min_spell_length,
-                other=0,
-            )
-            result = cropped_run_lengths.resample(time=resample_freq.pandas_freq).sum(
-                dim="time"
-            )
-            result = _transpose_like_study(result, climate_vars[0].studied_data)
-            freq = check_freq(climate_vars[0].studied_data, dim="time")
-            return _safe_to_agg_units(
-                result,
-                climate_vars[0].studied_data,
-                "count",
-                deffreq=freq,
-            )
+        spell_run_lengths = run_length.rle(
+            bootstrap_spell_mask,
+            dim="time",
+            index=kwargs.get("run_index", "first"),
+        )
+        cropped_run_lengths = spell_run_lengths.where(
+            spell_run_lengths >= min_spell_length,
+            other=0,
+        )
+        result = cropped_run_lengths.resample(time=resample_freq.pandas_freq).sum(
+            dim="time"
+        )
+        result = _transpose_like_study(result, climate_vars[0].studied_data)
+        freq = check_freq(climate_vars[0].studied_data, dim="time")
+        return _safe_to_agg_units(
+            result,
+            climate_vars[0].studied_data,
+            "count",
+            deffreq=freq,
+        )
     combined_exceedance_mask = _compute_combined_exceedance_mask(
         climate_vars,
         resample_freq,
@@ -2234,7 +2258,13 @@ def _compute_bootstrap_spell_mask(
     *,
     bootstrap_capability: BootstrapCapability,
 ) -> DataArray | None:
+    from icclim._core.generic.threshold.percentile import (  # noqa: PLC0415
+        PercentileThreshold,
+    )
+
     if not bootstrap_capability.bootstrap_required:
+        return None
+    if not isinstance(climate_var.threshold, PercentileThreshold):
         return None
     if bootstrap_capability.uses_optimized_bootstrap:
         return _compute_fast_tiled_bootstrap_spell_mask(

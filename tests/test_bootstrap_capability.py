@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
 import pytest
@@ -82,6 +83,25 @@ def test_daily_output_uses_optimized_bootstrap_when_groups_stay_within_year() ->
     decision = classify_doy_percentile_count_bootstrap(
         climate_var,
         FrequencyRegistry.DAY,
+    )
+
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+
+
+def test_weekly_output_uses_optimized_bootstrap_across_calendar_years() -> None:
+    tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "query": "> 90 doy_per",
+            "doy_window_width": 1,
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_doy_percentile_count_bootstrap(
+        climate_var,
+        replace(FrequencyRegistry.DAY, pandas_freq="W-MON"),
     )
 
     assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
@@ -643,6 +663,48 @@ def test_single_variable_compound_percentile_count_routes_to_optimized_path() ->
     assert decision.reason_code == "optimized_compound_bootstrap_supported"
 
 
+def test_single_variable_compound_percentile_spell_routes_to_optimized_path() -> None:
+    tas = stub_tas(32 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "thresholds": ["> 90 doy_per", "<= 95 doy_per"],
+            "logical_link": "and",
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="sum_of_spell_lengths",
+        climate_vars=[climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_compound_spell_bootstrap_supported"
+
+
+def test_cftime_compound_percentile_spell_keeps_reference_path() -> None:
+    tas = stub_tas(32 + K2C, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "thresholds": ["> 90 doy_per", "<= 95 doy_per"],
+            "logical_link": "and",
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="sum_of_spell_lengths",
+        climate_vars=[climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
+    assert decision.reason_code == "cftime_compound_spell_uses_reference_bootstrap"
+
+
 def test_multi_variable_percentile_count_routes_to_optimized_compound_path() -> None:
     tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
     pr = stub_tas(5.0).rename("pr")
@@ -746,3 +808,26 @@ def test_bounded_threshold_recursively_requires_bootstrap() -> None:
     )
 
     assert must_run_bootstrap(tas, threshold)
+
+
+def test_compound_period_percentile_is_static_during_doy_bootstrap() -> None:
+    tas = stub_tas(27 + K2C).chunk({"time": 365, "lat": 1, "lon": 1})
+    climate_var = _build_climate_variable(
+        tas,
+        {
+            "thresholds": ["> 90 doy_per", "<= 95 period_per"],
+            "logical_link": "and",
+            "reference_period": ("2042-01-01", "2043-12-31"),
+        },
+    )
+
+    assert climate_var.threshold is not None
+    assert must_run_bootstrap(tas, climate_var.threshold)
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="count_occurrences",
+        climate_vars=[climate_var],
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_compound_bootstrap_supported"

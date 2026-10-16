@@ -241,6 +241,10 @@ In production today:
   union-mask route, including filtered spells, while ``cftime`` spells use
   the reference path;
 - selected compound families reuse component-mask composition;
+- pandas-backed compound spells reuse the same component-mask composition before
+  run-length reduction;
+- weekly and similar cross-calendar-year groups use daily masks when their
+  bootstrap substitutions remain calendar-year based;
 - unsupported cases still fall back to exact tiled or reference paths.
 
 This separation keeps the workflow readable in climate-index terms:
@@ -366,8 +370,8 @@ The following boundaries retain fallback behavior:
 
 - ``cftime`` spell families, after the optimized candidates failed the
   real-data correctness and performance criteria;
-- arbitrary output groups spanning calendar years outside the established
-  seasonal routes;
+- cross-year output groups whose bootstrap substitution epoch uses a non-January
+  anchor, outside the established seasonal routes;
 - ``only_leap_years`` and uncommon comparison operators; and
 - any future route whose exactness is not demonstrated against the reference
   implementation.

@@ -452,11 +452,58 @@ def test_compiled_scalar_bounded_wrappers_match_constant_expectations() -> None:
     )
 
 
-def test_compiled_bootstrap_returns_none_for_groups_crossing_years() -> None:
+def test_compiled_bootstrap_supports_groups_crossing_calendar_years() -> None:
     tas = stub_tas(300.0).chunk({"time": 365, "lat": 1, "lon": 1})
     threshold = build_threshold(">= 90 doy_per")
 
-    assert compute_doy_percentile_bootstrap_count(tas, threshold, "W-MON") is None
+    result = compute_doy_percentile_bootstrap_count(tas, threshold, "W-MON")
+
+    assert result is None
+    union_count = compute_doy_percentile_bootstrap_union_exceedance_count(
+        tas,
+        threshold,
+        "W-MON",
+    )
+    assert union_count is not None
+    xr.testing.assert_allclose(
+        union_count.reset_coords("percentiles", drop=True),
+        tas.resample(time="W-MON").count(),
+    )
+
+
+def test_cross_year_union_count_matches_reference_daily_mask() -> None:
+    rng = np.random.default_rng(4)
+    tas = stub_tas(300.0)
+    tas.data[:, 0, 0] = rng.normal(300.0, 8.0, tas.sizes["time"])
+    threshold_kwargs = {
+        "query": "> 90 doy_per",
+        "doy_window_width": 5,
+        "reference_period": ("2042-01-01", "2043-12-31"),
+    }
+    reference_mask = build_threshold(**threshold_kwargs).compute(
+        tas,
+        freq="W-MON",
+        bootstrap=True,
+    )
+    expected = (
+        reference_mask.fillna(False)
+        .astype(bool)
+        .resample(time="W-MON")
+        .sum(dim="time")
+        .squeeze("percentiles", drop=True)
+    )
+
+    result = compute_doy_percentile_bootstrap_union_exceedance_count(
+        tas.chunk({"time": 365, "lat": 1, "lon": 1}),
+        build_threshold(**threshold_kwargs),
+        "W-MON",
+    )
+
+    assert result is not None
+    xr.testing.assert_equal(
+        result.reset_coords("percentiles", drop=True),
+        expected,
+    )
 
 
 def _kernel_common_args(

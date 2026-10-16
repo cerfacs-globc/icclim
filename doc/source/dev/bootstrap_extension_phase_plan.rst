@@ -55,6 +55,10 @@ focused comparisons with the reference workflow:
 - ``360_day``, ``365_day``/``noleap`` and
   ``366_day``/``all_leap`` calendars; and
 - filtered pandas-backed spells through the shared optimized daily mask.
+- weekly and other cross-calendar-year output groups whose bootstrap epoch is
+  still an ordinary calendar year; and
+- pandas-backed compound spells assembled from independently validated component
+  masks.
 
 The 366-day implementation follows the public percentile workflow exactly:
 percentiles are calculated on days 1--365 and interpolated onto 366 target
@@ -62,14 +66,20 @@ days. The 360-day implementation instead retains its native 360-day basis.
 Synthetic overlap cases for count, average and ``fraction_of_total`` match
 the reference workflow on every supported non-Gregorian calendar.
 
-Two boundaries remain deliberate. ``cftime`` spell calculations continue to
+Three boundaries remain deliberate. ``cftime`` spell calculations continue to
 use the reference workflow because the compiled and tiled spell candidates
 did not satisfy the real-data correctness and performance criteria. Arbitrary
-output groups spanning two calendar years continue to use the exact tiled
-fallback; their bootstrap substitution years are not equivalent to the
-calendar-year indexing used by the compiled kernels. The established filtered
-seasonal routes remain supported. ``only_leap_years`` and uncommon comparison
-operators also retain their established fallbacks.
+output groups now use the compiled daily-mask route when xclim groups bootstrap
+substitutions by ordinary calendar year. Frequencies whose bootstrap epoch has
+a non-January anchor continue to use the exact tiled fallback unless they are
+part of the previously validated seasonal routes. ``only_leap_years`` and
+uncommon comparison operators also retain their established fallbacks.
+
+Period percentiles are static components of a compound bootstrap expression.
+Only day-of-year percentile components are substituted; the resulting daily
+masks are then combined before reduction. Compound spell routing follows the
+same rule on pandas-backed calendars. It does not introduce a separate compound
+percentile algorithm.
 
 The exact order-statistics threshold reconstruction is now shared by
 the compiled reducers. The initial ``cftime`` validation retained:
