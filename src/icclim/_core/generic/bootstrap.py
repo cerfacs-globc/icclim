@@ -636,14 +636,14 @@ def compute_doy_percentile_bootstrap_union_exceedance_mask(
     return out.assign_coords(percentiles=threshold.percentile_coord().item())
 
 
-def compute_doy_percentile_bootstrap_union_mask_eager_prototype(
+def compute_doy_percentile_bootstrap_union_mask_eager(
     study: DataArray,
     threshold: PercentileThreshold,
     freq: str,
 ) -> DataArray | None:
     """Build an exact cftime union mask with eager xclim bootstrap blocks."""
     multiple = _compute_multiple_percentiles(
-        compute_doy_percentile_bootstrap_union_mask_eager_prototype,
+        compute_doy_percentile_bootstrap_union_mask_eager,
         study,
         threshold,
         freq,
@@ -666,7 +666,21 @@ def compute_doy_percentile_bootstrap_union_mask_eager_prototype(
     reference_sample = build_bootstrap_reference_sample(study, threshold)
     loaded_study = reference_sample.study
     threshold.ensure_ready(loaded_study)
-    nominal_percentile = threshold.value
+    nominal_percentile = threshold.value.load()
+    comparison_percentile = nominal_percentile
+    floor = None
+    if threshold.threshold_min_value is not None:
+        from xclim.core.units import convert_units_to  # noqa: PLC0415
+
+        floor = convert_units_to(
+            threshold.threshold_min_value,
+            nominal_percentile,
+            context="hydro",
+        )
+        comparison_percentile = nominal_percentile.where(
+            nominal_percentile > floor,
+            floor,
+        )
     overlap = loaded_study.sel(time=slice(*reference_sample.climatology_bounds))
     bootstrap_freq = _get_bootstrap_freq(freq)
     overlap_groups = overlap.resample(time=bootstrap_freq).groups
@@ -676,11 +690,13 @@ def compute_doy_percentile_bootstrap_union_mask_eager_prototype(
     for year_key, year_slice in study_groups.items():
         target = loaded_study.isel(time=year_slice)
         if _get_year_label(year_key) not in overlap_years:
-            masks.append(
-                threshold.compute(target, freq=freq, bootstrap=False)
-                .fillna(False)
-                .astype(bool)
+            nominal_mask = threshold.operator.compute(
+                target,
+                resample_doy(comparison_percentile, target),
             )
+            if "percentiles" in nominal_mask.dims:
+                nominal_mask = nominal_mask.squeeze("percentiles", drop=True)
+            masks.append(nominal_mask.fillna(False).astype(bool))
             continue
         substituted = build_bootstrap_year_da(
             overlap,
@@ -695,16 +711,12 @@ def compute_doy_percentile_bootstrap_union_mask_eager_prototype(
             per=nominal_percentile.percentiles.data[()],
             copy=False,
         )
-        if "percentiles" not in nominal_percentile.dims:
-            substitute_percentiles = substitute_percentiles.squeeze("percentiles")
-        if threshold.threshold_min_value is not None:
-            from xclim.core.units import convert_units_to  # noqa: PLC0415
-
-            floor = convert_units_to(
-                threshold.threshold_min_value,
-                substitute_percentiles,
-                context="hydro",
+        if "percentiles" in substitute_percentiles.dims:
+            substitute_percentiles = substitute_percentiles.squeeze(
+                "percentiles",
+                drop=True,
             )
+        if floor is not None:
             substitute_percentiles = substitute_percentiles.where(
                 substitute_percentiles > floor,
                 floor,

@@ -238,8 +238,8 @@ In production today:
 - multiple percentile values are evaluated through the same scalar kernels
   and restored with reference-compatible dimension order;
 - selected pandas-compatible spell reducers use the validated compiled
-  union-mask route, including filtered spells, while ``cftime`` spells use
-  the reference path;
+  union-mask route, including filtered spells, while simple ``cftime`` spells
+  use the exact eager tiled union-mask route;
 - selected compound families reuse component-mask composition;
 - pandas-backed compound spells reuse the same component-mask composition before
   run-length reduction;
@@ -336,12 +336,18 @@ reference runs took about 229 to 238 seconds, so the compiled route is
 retained for bounded memory and graph avoidance rather than as a
 wall-clock improvement over a reference graph that completes.
 
-The compiled ``cftime`` spell rerun was not retained. It produced
-continuous multi-year runs in some real-data cells and took about 989
-seconds, compared with about 238 seconds for the reference calculation.
-Routing therefore keeps ``cftime`` spells on the reference path. The
-final routed annual and monthly outputs both had zero changed cells
-against the reference artifacts.
+The compiled ``cftime`` spell rerun was not retained. It produced continuous
+multi-year runs in some real-data cells and took about 989 seconds. A later
+exact eager tiled algorithm retained xclim's percentile and calendar
+operations and formed the boolean daily union before run-length reduction.
+On the full ACCESS-CM2 subset it matched all 13,959,708 reference-mask values,
+reduced mask construction from about 343 to 135 seconds and completed the
+routed annual spell calculation in about 167 seconds. Simple ``cftime`` spells
+now use this route; compound ``cftime`` spells retain the reference path.
+The annual ``cftime`` ``average`` also matched all 38,220 reference output
+cells, coordinates and attributes. Its local runtime was about 173 seconds,
+compared with about 76 seconds for the reference graph and roughly 1,000
+seconds for the earlier compiled batch route.
 
 An additional real-data validation pass against commit ``00baef3b`` was
 completed on Monday, August 24, 2026 to compare the current production
@@ -368,8 +374,8 @@ What remains out of scope
 
 The following boundaries retain fallback behavior:
 
-- ``cftime`` spell families, after the optimized candidates failed the
-  real-data correctness and performance criteria;
+- compound ``cftime`` spell families, which remain outside the validated
+  eager one-threshold route;
 - cross-year output groups whose bootstrap substitution epoch uses a non-January
   anchor, outside the established seasonal routes;
 - ``only_leap_years`` and uncommon comparison operators; and

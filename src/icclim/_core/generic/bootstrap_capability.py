@@ -282,11 +282,6 @@ def _classify_required_spell_bootstrap(
     threshold_spec: PercentileThreshold,
     output_frequency: str,
 ) -> BootstrapCapability:
-    if _uses_cftime_index(study) and os.environ.get("ICCLIM_BOOTSTRAP_MODE") is None:
-        return _reference_bootstrap_path(
-            family,
-            "cftime_spell_uses_reference_bootstrap",
-        )
     return _classify_required_optimized_percentile_bootstrap(
         family=family,
         study=study,

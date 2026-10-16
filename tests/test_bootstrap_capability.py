@@ -248,7 +248,7 @@ def test_cftime_numeric_threshold_aggregate_routes_to_optimized_bootstrap(
     assert decision.reason_code == "optimized_numeric_threshold_bootstrap_supported"
 
 
-def test_cftime_spell_routes_to_reference_bootstrap() -> None:
+def test_cftime_spell_routes_to_optimized_bootstrap() -> None:
     tas = stub_tas(27 + K2C, use_cftime=True).chunk({"time": 365, "lat": 1, "lon": 1})
 
     decision = classify_generic_indicator_bootstrap(
@@ -266,8 +266,8 @@ def test_cftime_spell_routes_to_reference_bootstrap() -> None:
         resample_frequency=FrequencyRegistry.YEAR,
     )
 
-    assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
-    assert decision.reason_code == "cftime_spell_uses_reference_bootstrap"
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_bootstrap_supported"
 
 
 @pytest.mark.parametrize(
