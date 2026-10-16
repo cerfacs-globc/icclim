@@ -32,6 +32,8 @@ class BootstrapTimeAxis(Protocol):
 
 
 LEAP_YEAR_DAY_COUNT = 366
+NON_LEAP_YEAR_DAY_COUNT = 365
+MIN_COMPLETE_BOOTSTRAP_EPOCH = 360
 PREFERRED_BOOTSTRAP_TIME_LOAD_BLOCK = 365
 
 
@@ -50,10 +52,11 @@ class BootstrapReferenceSample:
 class BootstrapTemporalIndexing:
     """Year and resampling indexes shared by bootstrap implementations."""
 
-    reference_year_indices: dict[int, np.ndarray]
-    study_year_indices: dict[int, np.ndarray]
-    output_group_indices: dict[object, np.ndarray]
+    reference_year_indices: dict[object, np.ndarray]
+    study_year_indices: dict[object, np.ndarray]
+    output_group_indices: list[np.ndarray]
     output_group_labels: list[object]
+    output_groups_cross_bootstrap_epochs: bool
     study_year_starts: np.ndarray
     study_year_lengths: np.ndarray
     output_starts: np.ndarray
@@ -365,56 +368,82 @@ def build_bootstrap_temporal_indexing(
     *,
     doy_window_width: int,
 ) -> BootstrapTemporalIndexing:
-    """Build year and grouping indexes shared by bootstrap kernels."""
+    """Build bootstrap-epoch and output-group indexes shared by kernels."""
     study_time = study.indexes["time"]
     reference_time = reference_sample.indexes["time"]
-    reference_year_indices = indices_by_year(reference_time)
-    study_year_indices = indices_by_year(study_time)
-    reference_years = np.asarray(list(reference_year_indices), dtype=np.int64)
-    output_group_indices = indices_by_resample_group(study, freq)
-    output_group_labels = list(output_group_indices)
-    output_years = np.asarray(
-        [int(study_time[indices[0]].year) for indices in output_group_indices.values()],
+    bootstrap_freq = bootstrap_resample_frequency(freq)
+    if bootstrap_freq in {"YS", "YE"}:
+        reference_year_indices = indices_by_resample_group(
+            reference_sample,
+            bootstrap_freq,
+        )
+        study_year_indices = indices_by_resample_group(study, bootstrap_freq)
+    else:
+        reference_year_indices = indices_by_year(reference_time)
+        study_year_indices = indices_by_year(study_time)
+    reference_labels = list(reference_year_indices)
+    study_labels = list(study_year_indices)
+    grouped_output_indices = indices_by_resample_group(study, freq)
+    output_group_labels = list(grouped_output_indices)
+    output_group_indices = list(grouped_output_indices.values())
+    time_epoch_indices = np.empty(len(study_time), dtype=np.int64)
+    for epoch_i, indices in enumerate(study_year_indices.values()):
+        time_epoch_indices[indices] = epoch_i
+    output_epoch_indices = np.asarray(
+        [time_epoch_indices[indices[0]] for indices in output_group_indices],
         dtype=np.int64,
     )
-    bootstrap_years = np.asarray(list(dict.fromkeys(output_years)), dtype=np.int64)
+    output_groups_cross_bootstrap_epochs = any(
+        np.unique(time_epoch_indices[indices]).size > 1
+        for indices in output_group_indices
+    )
+    output_years = np.asarray(
+        [int(study_time[indices[0]].year) for indices in output_group_indices],
+        dtype=np.int64,
+    )
+    bootstrap_years = np.asarray(
+        [int(study_time[indices[0]].year) for indices in study_year_indices.values()],
+        dtype=np.int64,
+    )
     study_year_starts = np.asarray(
-        [study_year_indices[year][0] for year in bootstrap_years],
+        [indices[0] for indices in study_year_indices.values()],
         dtype=np.int64,
     )
     study_year_lengths = np.asarray(
-        [len(study_year_indices[year]) for year in bootstrap_years],
+        [len(indices) for indices in study_year_indices.values()],
         dtype=np.int64,
     )
     output_starts = np.asarray(
-        [indices[0] for indices in output_group_indices.values()],
+        [indices[0] for indices in output_group_indices],
         dtype=np.int64,
     )
     output_lengths = np.asarray(
-        [len(indices) for indices in output_group_indices.values()],
+        [len(indices) for indices in output_group_indices],
         dtype=np.int64,
     )
     source_max_day_of_year = int(reference_time.dayofyear.max())
-    study_year_max_day_of_year = {
-        year: source_max_day_of_year
+    study_year_max_day_of_year = [
+        source_max_day_of_year
         if source_max_day_of_year == LEAP_YEAR_DAY_COUNT
-        else int(study_time[indices].dayofyear.max())
-        for year, indices in study_year_indices.items()
-    }
+        else max_day_of_year_for_times(study_time[indices])
+        for indices in study_year_indices.values()
+    ]
     year_group_starts, year_group_stops = group_bounds_by_year(
-        output_years,
-        bootstrap_years,
+        output_epoch_indices,
+        np.arange(len(study_year_indices), dtype=np.int64),
     )
     year_max_day_of_years = np.asarray(
-        [study_year_max_day_of_year[year] for year in bootstrap_years],
+        study_year_max_day_of_year,
         dtype=np.int64,
     )
+    overlap_years = {int(year) for year in np.unique(reference_time.year)}
     year_to_reference_index = np.asarray(
         [
-            int(np.where(reference_years == year)[0][0])
-            if year in reference_year_indices
+            reference_labels.index(label)
+            if label in reference_year_indices
+            and resample_label_year(label) in overlap_years
             else -1
-            for year in bootstrap_years
+            for label in study_labels
         ],
         dtype=np.int64,
     )
@@ -435,6 +464,7 @@ def build_bootstrap_temporal_indexing(
         study_year_indices=study_year_indices,
         output_group_indices=output_group_indices,
         output_group_labels=output_group_labels,
+        output_groups_cross_bootstrap_epochs=output_groups_cross_bootstrap_epochs,
         study_year_starts=study_year_starts,
         study_year_lengths=study_year_lengths,
         output_starts=output_starts,
@@ -457,6 +487,44 @@ def indices_by_year(time: BootstrapTimeAxis) -> dict[int, np.ndarray]:
     return {int(year): np.where(time.year == year)[0] for year in np.unique(time.year)}
 
 
+def bootstrap_resample_frequency(freq: str) -> str:
+    """Return the anchored annual grouping used by percentile bootstrap."""
+    from xclim.core.calendar import parse_offset  # noqa: PLC0415
+
+    _, base, start_anchor, anchor = parse_offset(freq)
+    bootstrap_freq = "YS" if start_anchor else "YE"
+    if base in {"A", "Y", "Q"} and anchor is not None:
+        bootstrap_freq = f"{bootstrap_freq}-{anchor}"
+    return bootstrap_freq
+
+
+def resample_label_year(label: object) -> int:
+    """Extract the reference year used by xclim for a resample label."""
+    if hasattr(label, "year"):
+        return int(label.year)
+    if isinstance(label, np.datetime64):
+        return int(np.datetime_as_string(label, unit="Y"))
+    return int(str(label)[:4])
+
+
+def max_day_of_year_for_times(time: BootstrapTimeAxis) -> int:
+    """Return the complete calendar-year length for a time subset."""
+    import calendar  # noqa: PLC0415
+
+    calendar_name = getattr(time, "calendar", None)
+    if calendar_name == "360_day":
+        return 360
+    if calendar_name in {"365_day", "noleap"}:
+        return 365
+    if calendar_name in {"366_day", "all_leap"}:
+        return LEAP_YEAR_DAY_COUNT
+    return (
+        LEAP_YEAR_DAY_COUNT
+        if any(calendar.isleap(int(year)) for year in np.unique(time.year))
+        else 365
+    )
+
+
 def indices_by_resample_group(
     da: DataArray,
     freq: str,
@@ -475,6 +543,24 @@ def indices_by_resample_group(
     return out
 
 
+def indices_by_epoch_resample_group(
+    da: DataArray,
+    epoch_indices: dict[object, np.ndarray],
+    freq: str,
+) -> tuple[list[object], list[np.ndarray], np.ndarray]:
+    """Build output groups independently inside each bootstrap epoch."""
+    labels: list[object] = []
+    groups: list[np.ndarray] = []
+    group_epochs: list[int] = []
+    for epoch_i, indices in enumerate(epoch_indices.values()):
+        epoch = da.isel(time=indices)
+        for label, local_indices in indices_by_resample_group(epoch, freq).items():
+            labels.append(label)
+            groups.append(indices[local_indices])
+            group_epochs.append(epoch_i)
+    return labels, groups, np.asarray(group_epochs, dtype=np.int64)
+
+
 def group_bounds_by_year(
     output_years: np.ndarray,
     bootstrap_years: np.ndarray,
@@ -483,6 +569,10 @@ def group_bounds_by_year(
     stops = np.empty(len(bootstrap_years), dtype=np.int64)
     for i, year in enumerate(bootstrap_years):
         group_indices = np.where(output_years == year)[0]
+        if group_indices.size == 0:
+            starts[i] = 0
+            stops[i] = 0
+            continue
         starts[i] = int(group_indices[0])
         stops[i] = int(group_indices[-1]) + 1
     return starts, stops
@@ -514,7 +604,7 @@ def rolling_sample_index_matrix(
 
 
 def ref_index_year_and_position(
-    reference_year_indices: dict[int, np.ndarray],
+    reference_year_indices: dict[object, np.ndarray],
     n_reference_time: int,
 ) -> tuple[np.ndarray, np.ndarray]:
     index_year = np.full(n_reference_time, -1, dtype=np.int64)
@@ -527,7 +617,7 @@ def ref_index_year_and_position(
 
 def substitute_alignment_matrix(
     reference_time: BootstrapTimeAxis,
-    reference_year_indices: dict[int, np.ndarray],
+    reference_year_indices: dict[object, np.ndarray],
 ) -> np.ndarray:
     max_year_length = max(len(indices) for indices in reference_year_indices.values())
     n_years = len(reference_year_indices)
@@ -543,6 +633,7 @@ def substitute_alignment_matrix(
                     target_time,
                     reference_time[substitute_indices],
                     substitute_indices,
+                    target_indices=target_indices,
                 )
             )
     return aligned
@@ -552,9 +643,19 @@ def substitute_indices_aligned_to_target(
     target_time: BootstrapTimeAxis,
     substitute_time: BootstrapTimeAxis,
     substitute_indices: np.ndarray,
+    *,
+    target_indices: np.ndarray | None = None,
 ) -> np.ndarray:
+    if (
+        target_indices is not None
+        and len(substitute_time) < MIN_COMPLETE_BOOTSTRAP_EPOCH
+        and len(substitute_time) < len(target_time)
+    ):
+        return target_indices
     if len(target_time) == len(substitute_time):
         return substitute_indices
+    if target_indices is not None and len(target_time) < NON_LEAP_YEAR_DAY_COUNT:
+        return substitute_indices[: len(target_time)]
     substitute_by_month_day = {
         (int(month), int(day)): int(index)
         for month, day, index in zip(

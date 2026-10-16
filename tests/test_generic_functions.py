@@ -251,6 +251,82 @@ def test_compound_percentile_threshold_reuses_prepared_bootstrap_inputs(
     assert build_calls["count"] == 4
 
 
+def test_compound_percentile_spell_matches_reference() -> None:
+    rng = np.random.default_rng(8)
+    tas = stub_tas(300.0)
+    tas.data[:, 0, 0] = rng.normal(300.0, 8.0, tas.sizes["time"])
+    threshold_kwargs = {
+        "thresholds": ["> 80 doy_per", "<= 95 doy_per"],
+        "logical_link": "and",
+        "doy_window_width": 5,
+        "reference_period": ("2042-01-01", "2043-12-31"),
+    }
+
+    def climate_var(study):
+        return ClimateVariable(
+            name="tas",
+            standard_var=StandardVariableRegistry.TAS,
+            studied_data=study,
+            threshold=build_threshold(**threshold_kwargs),
+            source_frequency=FrequencyRegistry.DAY,
+            global_metadata={},
+        )
+
+    expected = sum_of_spell_lengths(
+        climate_vars=[climate_var(tas)],
+        resample_freq=FrequencyRegistry.YEAR,
+        logical_link=LogicalLinkRegistry.LOGICAL_AND,
+        min_spell_length=2,
+    )
+    result = sum_of_spell_lengths(
+        climate_vars=[climate_var(tas.chunk({"time": 365, "lat": 1, "lon": 1}))],
+        resample_freq=FrequencyRegistry.YEAR,
+        logical_link=LogicalLinkRegistry.LOGICAL_AND,
+        min_spell_length=2,
+    )
+
+    xr.testing.assert_equal(result.compute(), expected)
+
+
+def test_compound_period_percentile_remains_static_during_bootstrap() -> None:
+    rng = np.random.default_rng(12)
+    tas = stub_tas(300.0)
+    tas.data[:, 0, 0] = rng.normal(300.0, 8.0, tas.sizes["time"])
+    threshold_kwargs = {
+        "thresholds": ["> 80 doy_per", "<= 95 period_per"],
+        "logical_link": "and",
+        "doy_window_width": 5,
+        "reference_period": ("2042-01-01", "2043-12-31"),
+    }
+
+    def climate_var(study):
+        return ClimateVariable(
+            name="tas",
+            standard_var=StandardVariableRegistry.TAS,
+            studied_data=study,
+            threshold=build_threshold(**threshold_kwargs),
+            source_frequency=FrequencyRegistry.DAY,
+            global_metadata={},
+        )
+
+    expected = count_occurrences(
+        climate_vars=[climate_var(tas)],
+        resample_freq=FrequencyRegistry.YEAR,
+        logical_link=LogicalLinkRegistry.LOGICAL_AND,
+        date_event=False,
+        to_percent=False,
+    )
+    result = count_occurrences(
+        climate_vars=[climate_var(tas.chunk({"time": 365, "lat": 1, "lon": 1}))],
+        resample_freq=FrequencyRegistry.YEAR,
+        logical_link=LogicalLinkRegistry.LOGICAL_AND,
+        date_event=False,
+        to_percent=False,
+    )
+
+    xr.testing.assert_equal(result.compute(), expected)
+
+
 def test_fraction_of_total_reuses_prepared_bootstrap_inputs_for_compound_threshold(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

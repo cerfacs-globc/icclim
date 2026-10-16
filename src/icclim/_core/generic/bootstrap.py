@@ -113,6 +113,8 @@ def compute_doy_percentile_bootstrap_count(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        return None
     array_inputs = build_bootstrap_array_inputs(
         reference_sample,
         dtype=bootstrap_array_dtype(reference_sample.study),
@@ -415,6 +417,20 @@ def compute_doy_percentile_bootstrap_exceedance_sum(
     reference_sample = prepared_inputs.reference_sample
     temporal_indexing = prepared_inputs.temporal_indexing
     array_inputs = prepared_inputs.array_inputs
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        union_mask = compute_doy_percentile_bootstrap_union_exceedance_mask(
+            study,
+            threshold,
+            freq,
+            prepared_inputs=prepared_inputs,
+        )
+        if union_mask is None:
+            return None
+        result = (
+            reference_sample.study.where(union_mask).resample(time=freq).sum(dim="time")
+        )
+        result.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+        return result.assign_coords(percentiles=threshold.percentile_coord().item())
     min_threshold = (
         np.nan
         if reference_sample.threshold_floor_in_reference_units is None
@@ -490,6 +506,18 @@ def compute_doy_percentile_bootstrap_union_exceedance_count(
     reference_sample = prepared_inputs.reference_sample
     temporal_indexing = prepared_inputs.temporal_indexing
     array_inputs = prepared_inputs.array_inputs
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        union_mask = compute_doy_percentile_bootstrap_union_exceedance_mask(
+            study,
+            threshold,
+            freq,
+            prepared_inputs=prepared_inputs,
+        )
+        if union_mask is None:
+            return None
+        result = union_mask.resample(time=freq).sum(dim="time")
+        result.attrs["units"] = "d"
+        return result.assign_coords(percentiles=threshold.percentile_coord().item())
     min_threshold = (
         np.nan
         if reference_sample.threshold_floor_in_reference_units is None
@@ -705,6 +733,29 @@ def compute_doy_percentile_bootstrap_exceedance_average(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        union_mask = compute_doy_percentile_bootstrap_union_exceedance_mask(
+            study,
+            threshold,
+            freq,
+            prepared_inputs=BootstrapPreparedInputs(
+                reference_sample=reference_sample,
+                temporal_indexing=temporal_indexing,
+                array_inputs=build_bootstrap_array_inputs(
+                    reference_sample,
+                    dtype=bootstrap_array_dtype(reference_sample.study),
+                ),
+            ),
+        )
+        if union_mask is None:
+            return None
+        result = (
+            reference_sample.study.where(union_mask)
+            .resample(time=freq)
+            .mean(dim="time")
+        )
+        result.attrs[REFERENCE_PERIOD_ID] = reference_sample.climatology_bounds
+        return result.assign_coords(percentiles=threshold.percentile_coord().item())
     array_inputs = build_bootstrap_array_inputs(
         reference_sample,
         dtype=bootstrap_array_dtype(reference_sample.study),
@@ -778,6 +829,8 @@ def compute_doy_percentile_bootstrap_fraction_of_total(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        return None
     array_inputs = build_bootstrap_array_inputs(
         reference_sample,
         dtype=bootstrap_array_dtype(reference_sample.study),
@@ -858,6 +911,8 @@ def compute_doy_percentile_scalar_bounded_bootstrap_count(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        return None
     array_inputs = build_bootstrap_array_inputs(
         reference_sample,
         dtype=bootstrap_array_dtype(reference_sample.study),
@@ -931,6 +986,8 @@ def compute_doy_percentile_scalar_bounded_bootstrap_exceedance_sum(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        return None
     array_inputs = build_bootstrap_array_inputs(
         reference_sample,
         dtype=bootstrap_array_dtype(reference_sample.study),
@@ -1005,6 +1062,8 @@ def compute_doy_percentile_scalar_bounded_bootstrap_exceedance_average(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        return None
     array_inputs = build_bootstrap_array_inputs(
         reference_sample,
         dtype=bootstrap_array_dtype(reference_sample.study),
@@ -1079,6 +1138,8 @@ def compute_doy_percentile_scalar_bounded_bootstrap_fraction_of_total(
         freq,
         doy_window_width=threshold.doy_window_width,
     )
+    if temporal_indexing.output_groups_cross_bootstrap_epochs:
+        return None
     array_inputs = build_bootstrap_array_inputs(
         reference_sample,
         dtype=bootstrap_array_dtype(reference_sample.study),
