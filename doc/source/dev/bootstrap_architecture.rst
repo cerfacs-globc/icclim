@@ -118,8 +118,9 @@ pandas-backed spells and multiple percentile values. Simple ``cftime`` spells
 use a bounded eager tiled union mask that retains xclim's percentile and
 calendar operations. Same-variable compound ``cftime`` spells reuse each
 loaded tile across their component masks, combine those masks immediately and
-run spell detection once. Multi-variable ``cftime`` spells remain on the
-reference path until aligned shared-tile execution is validated.
+run spell detection once. Aligned multi-variable ``cftime`` spells use the same
+shared-tile design, loading corresponding tiles from each variable before
+combining their masks. Non-aligned inputs retain the reference path.
 
 Percentile compound family
 --------------------------
@@ -236,6 +237,8 @@ generic indicator families:
 - value aggregates such as ``fraction_of_total``;
 - spell reducers such as ``sum_of_spell_lengths``;
 - multi-variable compound counts that can combine bootstrap component masks;
+- aligned multi-variable compound ``cftime`` spells that combine component
+  masks within bounded shared spatial tiles;
 - bounded single-variable percentile compositions with one day-of-year
   percentile component and one scalar guard joined by ``AND`` or ``OR``.
 

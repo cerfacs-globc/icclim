@@ -705,7 +705,7 @@ def test_cftime_compound_percentile_spell_uses_optimized_path() -> None:
     assert decision.reason_code == "optimized_compound_spell_bootstrap_supported"
 
 
-def test_cftime_multivariable_compound_spell_keeps_reference_path() -> None:
+def test_cftime_multivariable_compound_spell_uses_optimized_path() -> None:
     tas = stub_tas(32 + K2C, use_cftime=True).chunk({"time": 365})
     pr = tas.rename("pr")
     pr.attrs["units"] = "mm/day"
@@ -726,9 +726,21 @@ def test_cftime_multivariable_compound_spell_keeps_reference_path() -> None:
         resample_frequency=FrequencyRegistry.YEAR,
     )
 
+    assert decision.execution_kind == BootstrapExecutionKind.OPTIMIZED_BOOTSTRAP
+    assert decision.reason_code == "optimized_compound_spell_bootstrap_supported"
+
+    climate_vars[1].studied_data = climate_vars[1].studied_data.isel(
+        time=slice(1, None)
+    )
+    decision = classify_generic_indicator_bootstrap(
+        indicator_name="sum_of_spell_lengths",
+        climate_vars=climate_vars,
+        resample_frequency=FrequencyRegistry.YEAR,
+    )
+
     assert decision.execution_kind == BootstrapExecutionKind.REFERENCE_BOOTSTRAP
     assert decision.reason_code == (
-        "cftime_multivariable_compound_spell_uses_reference_bootstrap"
+        "cftime_multivariable_compound_spell_inputs_not_aligned"
     )
 
 

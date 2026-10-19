@@ -79,7 +79,8 @@ family. The most useful future extensions are likely:
 - broader spell/run-length combinations. Simple pandas-compatible
   one-threshold spells use a boolean union mask; ``cftime`` uses the exact
   eager tiled route; same-variable compound ``cftime`` spells reuse loaded
-  tiles, while multi-variable compounds use the reference path;
+  tiles, while aligned multi-variable compounds load and combine corresponding
+  tiles from each input;
 - spell/run-length extension beyond the currently validated simple
   day-of-year percentile cases;
 - broader compound percentile shapes beyond the currently validated
@@ -203,6 +204,12 @@ annual cells. Shared-tile evaluation took about 274 seconds, versus about 424
 seconds for two separately materialized eager masks, a 35 percent improvement.
 The local reference graph took about 133 seconds; the eager route is retained
 for bounded, graph-free execution rather than as a faster reference replacement.
+
+An aligned temperature-and-precipitation compound spell on a 65-year ACCESS-CM2
+sample matched all 1,040 annual reference values and coordinates when the
+generated xclim history string was excluded. It completed eagerly in about 35
+seconds, compared with 57 seconds for the reference route, and returned no dask
+graph.
 
 Further large speedups are more likely to come from reducing Python,
 xarray and dask preparation overhead than from micro-optimising the Numba

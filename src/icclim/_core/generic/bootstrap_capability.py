@@ -1008,14 +1008,34 @@ def classify_compound_spell_bootstrap(
         reducer_kind=BootstrapReducerKind.SPELL,
         inventory=inventory,
     )
-    if any(_uses_cftime_index(var.studied_data) for var in climate_vars) and (
-        len(climate_vars) != 1
-        or not isinstance(climate_vars[0].threshold, BoundedThreshold)
+    cftime_inputs = any(
+        _uses_cftime_index(var.studied_data) for var in climate_vars
+    )
+    if cftime_inputs and len(climate_vars) == 1 and not isinstance(
+        climate_vars[0].threshold,
+        BoundedThreshold,
     ):
         return _reference_bootstrap_path(
             family,
-            "cftime_multivariable_compound_spell_uses_reference_bootstrap",
+            "cftime_compound_spell_uses_reference_bootstrap",
         )
+    if cftime_inputs and len(climate_vars) > 1:
+        reference = climate_vars[0].studied_data
+        if any(
+            candidate.dims != reference.dims
+            or any(
+                candidate.sizes[dim] != reference.sizes[dim]
+                or not candidate.get_index(dim).equals(reference.get_index(dim))
+                for dim in reference.dims
+            )
+            for candidate in (
+                climate_var.studied_data for climate_var in climate_vars[1:]
+            )
+        ):
+            return _reference_bootstrap_path(
+                family,
+                "cftime_multivariable_compound_spell_inputs_not_aligned",
+            )
     component_capabilities = [
         component_capability
         for climate_var in climate_vars

@@ -363,6 +363,7 @@ def max_consecutive_occurrence(
             bootstrap_spell_mask = _compute_eager_tiled_cftime_compound_mask(
                 climate_vars,
                 resample_freq,
+                logical_link,
             )
     if (
         bootstrap_spell_mask is None
@@ -475,6 +476,7 @@ def sum_of_spell_lengths(
             bootstrap_spell_mask = _compute_eager_tiled_cftime_compound_mask(
                 climate_vars,
                 resample_freq,
+                logical_link,
             )
     if bootstrap_spell_mask is None and (
         bootstrap_capability.uses_optimized_bootstrap
@@ -2571,31 +2573,60 @@ def _compute_eager_cftime_compound_component_mask(
     )
 
 
+def _get_aligned_cftime_compound_studies(
+    climate_vars: list[ClimateVariable],
+) -> list[DataArray] | None:
+    if not climate_vars or any(
+        climate_var.threshold is None for climate_var in climate_vars
+    ):
+        return None
+    studies = [climate_var.studied_data for climate_var in climate_vars]
+    if not all(hasattr(study.indexes.get("time"), "calendar") for study in studies):
+        return None
+    reference = studies[0]
+    for candidate in studies[1:]:
+        if candidate.dims != reference.dims:
+            return None
+        if any(
+            candidate.sizes[dim] != reference.sizes[dim]
+            or not candidate.get_index(dim).equals(reference.get_index(dim))
+            for dim in reference.dims
+        ):
+            return None
+    return studies
+
+
 def _compute_eager_tiled_cftime_compound_mask(
     climate_vars: list[ClimateVariable],
     resample_freq: Frequency,
+    logical_link: LogicalLink,
 ) -> DataArray | None:
     from concurrent.futures import ThreadPoolExecutor  # noqa: PLC0415
 
-    from icclim._core.generic.threshold.bounded import (  # noqa: PLC0415
-        BoundedThreshold,
-    )
+    studies = _get_aligned_cftime_compound_studies(climate_vars)
+    if studies is None:
+        return None
+    study = studies[0]
 
-    if len(climate_vars) != 1:
-        return None
-    climate_var = climate_vars[0]
-    study = climate_var.studied_data
-    threshold = climate_var.threshold
-    if not isinstance(threshold, BoundedThreshold):
-        return None
-    if not hasattr(study.indexes.get("time"), "calendar"):
-        return None
-
-    prepared_threshold = _prepare_eager_cftime_compound_threshold(threshold, study)
-    percentile_thresholds = _iter_compound_percentile_thresholds(
-        prepared_threshold
-    )
-    if not percentile_thresholds:
+    prepared_thresholds = [
+        _prepare_eager_cftime_compound_threshold(
+            cast("Threshold", climate_var.threshold),
+            climate_var.studied_data,
+        )
+        for climate_var in climate_vars
+    ]
+    percentile_inputs = [
+        (component_study, percentile_threshold)
+        for component_study, prepared_threshold in zip(
+            studies,
+            prepared_thresholds,
+            strict=True,
+        )
+        for percentile_threshold in _iter_compound_percentile_thresholds(
+            prepared_threshold
+        )
+    ]
+    if not percentile_inputs:
         return None
     worker_count = min(3, os.cpu_count() or 1)
     memory_budget = _parse_byte_size(
@@ -2604,11 +2635,18 @@ def _compute_eager_tiled_cftime_compound_mask(
             _DEFAULT_BOOTSTRAP_SAFE_TILE_MEMORY,
         )
     )
-    if study.nbytes <= memory_budget // 4:
-        study = study.load()
+    if sum(component_study.nbytes for component_study in studies) <= (
+        memory_budget // 4
+    ):
+        studies = [component_study.load() for component_study in studies]
+        study = studies[0]
     total_max_cells = min(
-        _get_safe_bootstrap_max_cells(study, component, resample_freq)
-        for component in percentile_thresholds
+        _get_safe_bootstrap_max_cells(
+            component_study,
+            percentile_threshold,
+            resample_freq,
+        )
+        for component_study, percentile_threshold in percentile_inputs
     )
     tiles = _iter_spatial_tiles(
         study,
@@ -2616,19 +2654,32 @@ def _compute_eager_tiled_cftime_compound_mask(
     )
 
     def compute_tile(indexers: dict[str, slice]) -> DataArray | None:
-        tile_study = study.isel(indexers).load()
-        tile_threshold = _slice_eager_cftime_compound_threshold(
-            prepared_threshold,
-            indexers,
-        )
-        result = _compute_eager_cftime_compound_component_mask(
-            tile_study,
-            tile_threshold,
-            resample_freq,
-            climate_var.bootstrap,
-        )
-        if result is None:
+        tile_studies = [
+            component_study.isel(indexers).load() for component_study in studies
+        ]
+        tile_thresholds = [
+            _slice_eager_cftime_compound_threshold(threshold, indexers)
+            for threshold in prepared_thresholds
+        ]
+        masks = [
+            _compute_eager_cftime_compound_component_mask(
+                tile_study,
+                tile_threshold,
+                resample_freq,
+                climate_var.bootstrap,
+            )
+            for climate_var, tile_study, tile_threshold in zip(
+                climate_vars,
+                tile_studies,
+                tile_thresholds,
+                strict=True,
+            )
+        ]
+        if any(mask is None for mask in masks):
             return None
+        result = logical_link.compute(cast("list[DataArray]", masks))
+        result.attrs = cast("list[DataArray]", masks)[0].attrs.copy()
+        tile_study = tile_studies[0]
         return result.assign_coords(
             {dim: tile_study.coords[dim] for dim in tile_study.dims}
         )
@@ -2649,8 +2700,10 @@ def _compute_eager_tiled_cftime_compound_mask(
             ],
             combine_attrs="override",
         )["__icclim_bootstrap_tile"]
+    result.name = concrete_results[-1].name
     result.attrs.update(concrete_results[-1].attrs)
-    result.attrs.pop(REFERENCE_PERIOD_ID, None)
+    if len(climate_vars) == 1:
+        result.attrs.pop(REFERENCE_PERIOD_ID, None)
     _profile_bootstrap_inc("bootstrap_optimized_tile_count", len(tiles))
     _profile_bootstrap_add(
         "bootstrap_optimized_total_seconds",

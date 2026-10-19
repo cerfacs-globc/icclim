@@ -344,8 +344,9 @@ On the full ACCESS-CM2 subset it matched all 13,959,708 reference-mask values,
 reduced mask construction from about 343 to 135 seconds and completed the
 routed annual spell calculation in about 167 seconds. Simple ``cftime`` spells
 now use this route. Same-variable compound spells reuse each loaded tile across
-their component masks; multi-variable ``cftime`` spells retain the reference
-path.
+their component masks. Aligned multi-variable compounds load corresponding
+tiles from each variable and combine the component masks before spell
+reduction; non-aligned inputs retain the reference path.
 The annual ``cftime`` ``average`` also matched all 38,220 reference output
 cells, coordinates and attributes. Its local runtime was about 173 seconds,
 compared with about 76 seconds for the reference graph and roughly 1,000
@@ -357,6 +358,12 @@ compared with about 424 seconds when the two eager masks were built separately,
 a 35 percent reduction. The local reference graph completed in about 133
 seconds, so the retained route improves bounded eager execution and graph
 avoidance rather than wall-clock time when the reference graph succeeds.
+
+An aligned temperature-and-precipitation compound spell was validated on a
+65-year ACCESS-CM2 sample. The optimized route matched all 1,040 annual output
+values and coordinates, excluding the generated xclim history string, and was
+graph-free. It completed in about 35 seconds versus 57 seconds for the
+reference route, a 1.63-times speedup on that sample.
 
 An additional real-data validation pass against commit ``00baef3b`` was
 completed on Monday, August 24, 2026 to compare the current production
@@ -383,8 +390,7 @@ What remains out of scope
 
 The following boundaries retain fallback behavior:
 
-- multi-variable compound ``cftime`` spell families, which still need aligned
-  shared-tile validation;
+- non-aligned multi-variable compound ``cftime`` spell inputs;
 - cross-year output groups whose bootstrap substitution epoch uses a non-January
   anchor, outside the established seasonal routes;
 - ``only_leap_years`` and uncommon comparison operators; and
