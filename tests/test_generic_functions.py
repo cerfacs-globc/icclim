@@ -473,6 +473,58 @@ def test_spell_bootstrap_materializes_stable_study_without_cache(
     assert True in materialize_calls["prefer_file_reopen"]
 
 
+def test_multivariable_cftime_compound_spell_matches_reference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_SAFE_TILE_CELLS", "1")
+    tas = stub_tas(
+        300.0,
+        use_cftime=True,
+        lat_length=2,
+        lon_length=2,
+    ).chunk({"time": 365, "lat": 1, "lon": 1})
+    pr = xr.full_like(tas, 0.5).rename("pr")
+    pr.attrs["units"] = "mm/day"
+    pr[::5] = 2.0
+    climate_vars = [
+        ClimateVariable(
+            name="tas",
+            standard_var=StandardVariableRegistry.TAS,
+            studied_data=tas,
+            threshold=build_threshold(
+                "> 90 doy_per",
+                reference_period=("2042-01-01", "2043-12-31"),
+            ),
+            source_frequency=FrequencyRegistry.DAY,
+            global_metadata={},
+        ),
+        ClimateVariable(
+            name="pr",
+            standard_var=StandardVariableRegistry.PR,
+            studied_data=pr,
+            threshold=build_threshold("<= 1 mm/day"),
+            source_frequency=FrequencyRegistry.DAY,
+            global_metadata={},
+        ),
+    ]
+    kwargs = {
+        "climate_vars": climate_vars,
+        "resample_freq": FrequencyRegistry.YEAR,
+        "logical_link": LogicalLinkRegistry.LOGICAL_AND,
+        "min_spell_length": 3,
+    }
+
+    monkeypatch.setenv("ICCLIM_BOOTSTRAP_MODE", "default")
+    reference = sum_of_spell_lengths(**kwargs).compute()
+    monkeypatch.delenv("ICCLIM_BOOTSTRAP_MODE")
+    optimized = sum_of_spell_lengths(**kwargs).compute()
+
+    assert not hasattr(optimized.data, "__dask_graph__")
+    reference.attrs.pop("history", None)
+    optimized.attrs.pop("history", None)
+    xr.testing.assert_identical(optimized, reference)
+
+
 @pytest.mark.parametrize(
     "reducer",
     [average, generic_sum, fraction_of_total],

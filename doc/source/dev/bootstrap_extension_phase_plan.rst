@@ -66,10 +66,10 @@ days. The 360-day implementation instead retains its native 360-day basis.
 Synthetic overlap cases for count, average and ``fraction_of_total`` match
 the reference workflow on every supported non-Gregorian calendar.
 
-Three boundaries remain deliberate. Simple and same-variable compound
-``cftime`` spell calculations use the exact eager tiled workflow described
-below; multi-variable ``cftime`` spells continue to use the reference workflow.
-Arbitrary
+Three boundaries remain deliberate. Simple, same-variable compound and aligned
+multi-variable compound ``cftime`` spell calculations use the exact eager tiled
+workflow described below; non-aligned multi-variable inputs continue to use the
+reference workflow. Arbitrary
 output groups now use the compiled daily-mask route when xclim groups bootstrap
 substitutions by ordinary calendar year. Frequencies whose bootstrap epoch has
 a non-January anchor continue to use the exact tiled fallback unless they are
@@ -349,9 +349,16 @@ Retention outcome:
   after exact full-field daily-mask validation and a faster end-to-end run;
 - same-variable compound ``cftime`` spells reuse a shared eager tile and are
   retained after exact full-field validation;
-- multi-variable compound ``cftime`` spells retain the reference route; and
+- aligned multi-variable compound ``cftime`` spells load corresponding tiles
+  together and combine their component masks before spell reduction; and
 - pandas-compatible simple spell families keep their previously validated
   compiled route.
+
+The aligned multi-variable route was also checked on 65 years of ACCESS-CM2
+temperature and precipitation data. Across 1,040 annual output cells it matched
+the reference values and coordinates exactly, completed in about 35 seconds
+instead of 57 seconds, and returned a graph-free result. The generated xclim
+history string was excluded from metadata comparison.
 
 4. Broader compound and filtered shapes
 =======================================
