@@ -35,7 +35,7 @@ boltons==25.0.0
     # via xclim
 bottleneck==1.6.0
     # via xclim
-certifi==2026.2.25
+certifi==2026.10.19
     # via
     #   netcdf4
     #   requests
