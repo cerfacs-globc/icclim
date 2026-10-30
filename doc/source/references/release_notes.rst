@@ -45,7 +45,8 @@ date: 2026-10-30
    dimensions, memory-bounded batches, grouped index output and correct timing
    of lazy calculations.
 -  [security] Refresh the development and documentation lockfile to patched
-   ``filelock``, ``virtualenv`` and ``nbconvert`` releases.
+   ``certifi``, ``filelock``, ``nbconvert``, ``tornado`` and ``virtualenv``
+   releases.
 
 *****
 7.2.1
