@@ -19,6 +19,7 @@ To grasp the basic usage of icclim, you may consider following
    Compute ECA&D indices <recipes_ecad>
    Compute Generic indices <recipes_generic>
    Scale calculations over many stations <station_workflows>
+   Configure period completeness <completeness>
    Use icclim through OCGIS (deprecated) <ocgis>
    Parallelize computation with Dask <dask>
    Migrate deprecated user_index recipes <recipes_custom>

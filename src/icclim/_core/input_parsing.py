@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import xarray as xr
+from pint.errors import DefinitionSyntaxError, UndefinedUnitError
 from xarray.core.dataarray import DataArray
 from xarray.core.dataset import Dataset
 
@@ -182,8 +183,18 @@ def read_dataset(
 
     Examples
     --------
-    >>> files = ["data1.nc", "data2.nc"]
-    >>> ds = read_dataset(files, standard_var="temperature", var_name="temp")
+    >>> import pandas as pd
+    >>> import xarray as xr
+    >>> data = xr.DataArray(
+    ...     [273.15],
+    ...     coords={"time": pd.date_range("2000-01-01", periods=1)},
+    ...     dims="time",
+    ...     name="tas",
+    ...     attrs={"units": "K"},
+    ... )
+    >>> ds = read_dataset(data, var_name="tas")
+    >>> list(ds.data_vars)
+    ['tas']
     """
     if isinstance(in_files, Dataset):
         ds = in_files
@@ -466,7 +477,39 @@ def guess_standard_variable(data: DataArray) -> StandardVariable | None:
         std_var = StandardVariableRegistry.lookup_no_error(
             data.attrs.get("standard_name"),
         )
+    if std_var is not None and _has_incompatible_dimensionless_units(data, std_var):
+        warnings.warn(
+            f"Variable {data.name!r} matches {std_var.standard_name!r}, but its "
+            f"units {data.attrs.get(UNITS_KEY)!r} are not dimensionless. icclim "
+            "will not attach that standard-variable metadata.",
+            UserWarning,
+            stacklevel=2,
+        )
+        return None
     return std_var
+
+
+def _has_incompatible_dimensionless_units(
+    data: DataArray,
+    standard_var: StandardVariable,
+) -> bool:
+    """Detect a physically incompatible match for a dimensionless variable."""
+    if data.attrs.get(UNITS_KEY) is None:
+        return False
+    from xclim.core.units import units2pint  # noqa: PLC0415
+
+    try:
+        expected = units2pint(standard_var.default_units)
+        actual = units2pint(data)
+    except (
+        DefinitionSyntaxError,
+        KeyError,
+        TypeError,
+        UndefinedUnitError,
+        ValueError,
+    ):
+        return False
+    return expected.dimensionless and not actual.dimensionless
 
 
 def is_precipitation_amount(source: xr.DataArray) -> bool:

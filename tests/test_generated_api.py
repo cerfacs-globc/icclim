@@ -42,6 +42,7 @@ DEFAULT_ARGS = {
     "date_event": False,
     "run_index": "first",
     "allow_partial_seasons": False,
+    "completeness": None,
     "allow_missing_periods": None,
     "allow_partial_final_period": False,
 }
@@ -160,6 +161,7 @@ def test_custom_index(index_fun_mock: MagicMock) -> None:
         },
         "run_index": "first",
         "allow_partial_seasons": False,
+        "completeness": None,
         "allow_missing_periods": None,
         "allow_partial_final_period": False,
     }

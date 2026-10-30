@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         InFileLike,
         SamplingMethodLike,
     )
+    from icclim._core.model.index_config import CompletenessLike
     from icclim.frequency import Frequency
     from icclim._core.model.netcdf_version import NetcdfVersion
     from icclim._core.model.quantile_interpolation import QuantileInterpolation
@@ -112,6 +113,7 @@ def tg(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -131,7 +133,7 @@ def tg(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -144,13 +146,13 @@ def tg(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -169,7 +171,7 @@ def tg(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -184,7 +186,7 @@ def tg(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -192,15 +194,26 @@ def tg(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -228,6 +241,7 @@ def tg(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -247,6 +261,7 @@ def tn(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -266,7 +281,7 @@ def tn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -279,13 +294,13 @@ def tn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -304,7 +319,7 @@ def tn(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -319,7 +334,7 @@ def tn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -327,15 +342,26 @@ def tn(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -363,6 +389,7 @@ def tn(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -382,6 +409,7 @@ def tx(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -401,7 +429,7 @@ def tx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -414,13 +442,13 @@ def tx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -439,7 +467,7 @@ def tx(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -454,7 +482,7 @@ def tx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -462,15 +490,26 @@ def tx(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -498,6 +537,7 @@ def tx(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -517,6 +557,7 @@ def dtr(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -536,7 +577,7 @@ def dtr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -549,13 +590,13 @@ def dtr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -574,7 +615,7 @@ def dtr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -589,7 +630,7 @@ def dtr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -597,15 +638,26 @@ def dtr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -633,6 +685,7 @@ def dtr(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -652,6 +705,7 @@ def etr(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -671,7 +725,7 @@ def etr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -684,13 +738,13 @@ def etr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -709,7 +763,7 @@ def etr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -724,7 +778,7 @@ def etr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -732,15 +786,26 @@ def etr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -768,6 +833,7 @@ def etr(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -787,6 +853,7 @@ def vdtr(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -806,7 +873,7 @@ def vdtr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -819,13 +886,13 @@ def vdtr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -844,7 +911,7 @@ def vdtr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -859,7 +926,7 @@ def vdtr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -867,15 +934,26 @@ def vdtr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -903,6 +981,7 @@ def vdtr(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -922,6 +1001,7 @@ def su(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -941,7 +1021,7 @@ def su(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -954,13 +1034,13 @@ def su(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -979,7 +1059,7 @@ def su(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -994,7 +1074,7 @@ def su(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1002,15 +1082,26 @@ def su(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1038,6 +1129,7 @@ def su(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -1060,6 +1152,7 @@ def tr(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -1079,7 +1172,7 @@ def tr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1092,13 +1185,13 @@ def tr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1117,7 +1210,7 @@ def tr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1132,7 +1225,7 @@ def tr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1140,15 +1233,26 @@ def tr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1176,6 +1280,7 @@ def tr(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -1202,6 +1307,7 @@ def wsdi(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -1221,7 +1327,7 @@ def wsdi(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1234,13 +1340,13 @@ def wsdi(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1273,7 +1379,7 @@ def wsdi(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1281,7 +1387,7 @@ def wsdi(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1298,7 +1404,7 @@ def wsdi(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1306,15 +1412,26 @@ def wsdi(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1346,6 +1463,7 @@ def wsdi(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -1376,6 +1494,7 @@ def tg90p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -1395,7 +1514,7 @@ def tg90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1408,13 +1527,13 @@ def tg90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1447,7 +1566,7 @@ def tg90p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1455,7 +1574,7 @@ def tg90p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1472,7 +1591,7 @@ def tg90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1480,15 +1599,26 @@ def tg90p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1520,6 +1650,7 @@ def tg90p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -1550,6 +1681,7 @@ def tn90p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -1569,7 +1701,7 @@ def tn90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1582,13 +1714,13 @@ def tn90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1621,7 +1753,7 @@ def tn90p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1629,7 +1761,7 @@ def tn90p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1646,7 +1778,7 @@ def tn90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1654,15 +1786,26 @@ def tn90p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1694,6 +1837,7 @@ def tn90p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -1724,6 +1868,7 @@ def tx90p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -1743,7 +1888,7 @@ def tx90p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1756,13 +1901,13 @@ def tx90p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1795,7 +1940,7 @@ def tx90p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1803,7 +1948,7 @@ def tx90p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -1820,7 +1965,7 @@ def tx90p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1828,15 +1973,26 @@ def tx90p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -1868,6 +2024,7 @@ def tx90p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -1894,6 +2051,7 @@ def txx(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -1913,7 +2071,7 @@ def txx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -1926,13 +2084,13 @@ def txx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -1951,7 +2109,7 @@ def txx(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -1966,7 +2124,7 @@ def txx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -1974,15 +2132,26 @@ def txx(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2010,6 +2179,7 @@ def txx(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -2029,6 +2199,7 @@ def tnx(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -2048,7 +2219,7 @@ def tnx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2061,13 +2232,13 @@ def tnx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2086,7 +2257,7 @@ def tnx(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2101,7 +2272,7 @@ def tnx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2109,15 +2280,26 @@ def tnx(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2145,6 +2327,7 @@ def tnx(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -2164,6 +2347,7 @@ def csu(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -2183,7 +2367,7 @@ def csu(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2196,13 +2380,13 @@ def csu(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2221,7 +2405,7 @@ def csu(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2236,7 +2420,7 @@ def csu(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2244,15 +2428,26 @@ def csu(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2280,6 +2475,7 @@ def csu(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -2302,6 +2498,7 @@ def gd4(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -2321,7 +2518,7 @@ def gd4(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2334,13 +2531,13 @@ def gd4(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2359,7 +2556,7 @@ def gd4(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2374,7 +2571,7 @@ def gd4(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2382,15 +2579,26 @@ def gd4(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2418,6 +2626,7 @@ def gd4(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -2440,6 +2649,7 @@ def fd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -2459,7 +2669,7 @@ def fd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2472,13 +2682,13 @@ def fd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2497,7 +2707,7 @@ def fd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2512,7 +2722,7 @@ def fd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2520,15 +2730,26 @@ def fd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2556,6 +2777,7 @@ def fd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -2578,6 +2800,7 @@ def cfd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -2597,7 +2820,7 @@ def cfd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2610,13 +2833,13 @@ def cfd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2635,7 +2858,7 @@ def cfd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2650,7 +2873,7 @@ def cfd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2658,15 +2881,26 @@ def cfd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2694,6 +2928,7 @@ def cfd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -2716,6 +2951,7 @@ def hd17(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -2735,7 +2971,7 @@ def hd17(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2748,13 +2984,13 @@ def hd17(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2773,7 +3009,7 @@ def hd17(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2788,7 +3024,7 @@ def hd17(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2796,15 +3032,26 @@ def hd17(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2832,6 +3079,7 @@ def hd17(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -2854,6 +3102,7 @@ def id(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -2873,7 +3122,7 @@ def id(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -2886,13 +3135,13 @@ def id(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -2911,7 +3160,7 @@ def id(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -2926,7 +3175,7 @@ def id(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -2934,15 +3183,26 @@ def id(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -2970,6 +3230,7 @@ def id(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -2996,6 +3257,7 @@ def tg10p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -3015,7 +3277,7 @@ def tg10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3028,13 +3290,13 @@ def tg10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3067,7 +3329,7 @@ def tg10p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3075,7 +3337,7 @@ def tg10p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -3092,7 +3354,7 @@ def tg10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3100,15 +3362,26 @@ def tg10p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3140,6 +3413,7 @@ def tg10p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -3170,6 +3444,7 @@ def tn10p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -3189,7 +3464,7 @@ def tn10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3202,13 +3477,13 @@ def tn10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3241,7 +3516,7 @@ def tn10p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3249,7 +3524,7 @@ def tn10p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -3266,7 +3541,7 @@ def tn10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3274,15 +3549,26 @@ def tn10p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3314,6 +3600,7 @@ def tn10p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -3344,6 +3631,7 @@ def tx10p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -3363,7 +3651,7 @@ def tx10p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3376,13 +3664,13 @@ def tx10p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3415,7 +3703,7 @@ def tx10p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3423,7 +3711,7 @@ def tx10p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -3440,7 +3728,7 @@ def tx10p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3448,15 +3736,26 @@ def tx10p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3488,6 +3787,7 @@ def tx10p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -3514,6 +3814,7 @@ def txn(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -3533,7 +3834,7 @@ def txn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3546,13 +3847,13 @@ def txn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3571,7 +3872,7 @@ def txn(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3586,7 +3887,7 @@ def txn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3594,15 +3895,26 @@ def txn(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3630,6 +3942,7 @@ def txn(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -3649,6 +3962,7 @@ def tnn(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -3668,7 +3982,7 @@ def tnn(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3681,13 +3995,13 @@ def tnn(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3706,7 +4020,7 @@ def tnn(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3721,7 +4035,7 @@ def tnn(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3729,15 +4043,26 @@ def tnn(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3765,6 +4090,7 @@ def tnn(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="degree_Celsius",
@@ -3788,6 +4114,7 @@ def csdi(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -3807,7 +4134,7 @@ def csdi(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3820,13 +4147,13 @@ def csdi(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -3859,7 +4186,7 @@ def csdi(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -3867,7 +4194,7 @@ def csdi(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -3884,7 +4211,7 @@ def csdi(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -3892,15 +4219,26 @@ def csdi(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -3932,6 +4270,7 @@ def csdi(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -3958,6 +4297,7 @@ def cdd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -3977,7 +4317,7 @@ def cdd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -3990,13 +4330,13 @@ def cdd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4015,7 +4355,7 @@ def cdd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4030,7 +4370,7 @@ def cdd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4038,15 +4378,26 @@ def cdd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4074,6 +4425,7 @@ def cdd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -4096,6 +4448,7 @@ def prcptot(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -4115,7 +4468,7 @@ def prcptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4128,13 +4481,13 @@ def prcptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4153,7 +4506,7 @@ def prcptot(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4168,7 +4521,7 @@ def prcptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4176,15 +4529,26 @@ def prcptot(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4212,6 +4576,7 @@ def prcptot(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -4234,6 +4599,7 @@ def rr1(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -4253,7 +4619,7 @@ def rr1(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4266,13 +4632,13 @@ def rr1(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4291,7 +4657,7 @@ def rr1(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4306,7 +4672,7 @@ def rr1(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4314,15 +4680,26 @@ def rr1(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4350,6 +4727,7 @@ def rr1(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -4372,6 +4750,7 @@ def sdii(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -4391,7 +4770,7 @@ def sdii(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4404,13 +4783,13 @@ def sdii(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4429,7 +4808,7 @@ def sdii(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4444,7 +4823,7 @@ def sdii(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4452,15 +4831,26 @@ def sdii(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4488,6 +4878,7 @@ def sdii(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -4510,6 +4901,7 @@ def cwd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -4529,7 +4921,7 @@ def cwd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4542,13 +4934,13 @@ def cwd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4567,7 +4959,7 @@ def cwd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4582,7 +4974,7 @@ def cwd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4590,15 +4982,26 @@ def cwd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4626,6 +5029,7 @@ def cwd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -4648,6 +5052,7 @@ def rr(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -4667,7 +5072,7 @@ def rr(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4680,13 +5085,13 @@ def rr(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4705,7 +5110,7 @@ def rr(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4720,7 +5125,7 @@ def rr(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4728,15 +5133,26 @@ def rr(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4764,6 +5180,7 @@ def rr(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="mm",
@@ -4783,6 +5200,7 @@ def r10mm(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -4802,7 +5220,7 @@ def r10mm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4815,13 +5233,13 @@ def r10mm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4840,7 +5258,7 @@ def r10mm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4855,7 +5273,7 @@ def r10mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -4863,15 +5281,26 @@ def r10mm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -4899,6 +5328,7 @@ def r10mm(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -4921,6 +5351,7 @@ def r20mm(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -4940,7 +5371,7 @@ def r20mm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -4953,13 +5384,13 @@ def r20mm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -4978,7 +5409,7 @@ def r20mm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -4993,7 +5424,7 @@ def r20mm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5001,15 +5432,26 @@ def r20mm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5037,6 +5479,7 @@ def r20mm(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -5059,6 +5502,7 @@ def rx1day(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -5078,7 +5522,7 @@ def rx1day(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5091,13 +5535,13 @@ def rx1day(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5116,7 +5560,7 @@ def rx1day(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5131,7 +5575,7 @@ def rx1day(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5139,15 +5583,26 @@ def rx1day(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5175,6 +5630,7 @@ def rx1day(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="mm/day",
@@ -5194,6 +5650,7 @@ def rx5day(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -5213,7 +5670,7 @@ def rx5day(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5226,13 +5683,13 @@ def rx5day(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5251,7 +5708,7 @@ def rx5day(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5266,7 +5723,7 @@ def rx5day(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5274,15 +5731,26 @@ def rx5day(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5310,6 +5778,7 @@ def rx5day(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="mm",
@@ -5333,6 +5802,7 @@ def r75p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -5352,7 +5822,7 @@ def r75p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5365,13 +5835,13 @@ def r75p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5404,7 +5874,7 @@ def r75p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5412,7 +5882,7 @@ def r75p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5429,7 +5899,7 @@ def r75p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5437,15 +5907,26 @@ def r75p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5477,6 +5958,7 @@ def r75p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="day",
@@ -5500,6 +5982,7 @@ def r75ptot(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -5519,7 +6002,7 @@ def r75ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5532,13 +6015,13 @@ def r75ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5571,7 +6054,7 @@ def r75ptot(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5579,7 +6062,7 @@ def r75ptot(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5596,7 +6079,7 @@ def r75ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5604,15 +6087,26 @@ def r75ptot(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5644,6 +6138,7 @@ def r75ptot(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="%",
@@ -5667,6 +6162,7 @@ def r95p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -5686,7 +6182,7 @@ def r95p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5699,13 +6195,13 @@ def r95p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5738,7 +6234,7 @@ def r95p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5746,7 +6242,7 @@ def r95p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5763,7 +6259,7 @@ def r95p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5771,15 +6267,26 @@ def r95p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5811,6 +6318,7 @@ def r95p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="day",
@@ -5834,6 +6342,7 @@ def r95ptot(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -5853,7 +6362,7 @@ def r95ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -5866,13 +6375,13 @@ def r95ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -5905,7 +6414,7 @@ def r95ptot(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -5913,7 +6422,7 @@ def r95ptot(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -5930,7 +6439,7 @@ def r95ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -5938,15 +6447,26 @@ def r95ptot(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -5978,6 +6498,7 @@ def r95ptot(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="%",
@@ -6001,6 +6522,7 @@ def r99p(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -6020,7 +6542,7 @@ def r99p(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6033,13 +6555,13 @@ def r99p(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6072,7 +6594,7 @@ def r99p(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6080,7 +6602,7 @@ def r99p(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6097,7 +6619,7 @@ def r99p(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6105,15 +6627,26 @@ def r99p(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6145,6 +6678,7 @@ def r99p(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="day",
@@ -6168,6 +6702,7 @@ def r99ptot(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -6187,7 +6722,7 @@ def r99ptot(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6200,13 +6735,13 @@ def r99ptot(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6239,7 +6774,7 @@ def r99ptot(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6247,7 +6782,7 @@ def r99ptot(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6264,7 +6799,7 @@ def r99ptot(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6272,15 +6807,26 @@ def r99ptot(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6312,6 +6858,7 @@ def r99ptot(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="%",
@@ -6331,6 +6878,7 @@ def sd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -6350,7 +6898,7 @@ def sd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6363,13 +6911,13 @@ def sd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6388,7 +6936,7 @@ def sd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6403,7 +6951,7 @@ def sd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6411,15 +6959,26 @@ def sd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6447,6 +7006,7 @@ def sd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="cm",
@@ -6466,6 +7026,7 @@ def sd1(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -6485,7 +7046,7 @@ def sd1(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6498,13 +7059,13 @@ def sd1(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6523,7 +7084,7 @@ def sd1(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6538,7 +7099,7 @@ def sd1(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6546,15 +7107,26 @@ def sd1(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6582,6 +7154,7 @@ def sd1(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -6604,6 +7177,7 @@ def sd5cm(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -6623,7 +7197,7 @@ def sd5cm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6636,13 +7210,13 @@ def sd5cm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6661,7 +7235,7 @@ def sd5cm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6676,7 +7250,7 @@ def sd5cm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6684,15 +7258,26 @@ def sd5cm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6720,6 +7305,7 @@ def sd5cm(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -6742,6 +7328,7 @@ def sd50cm(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -6761,7 +7348,7 @@ def sd50cm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6774,13 +7361,13 @@ def sd50cm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6799,7 +7386,7 @@ def sd50cm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6814,7 +7401,7 @@ def sd50cm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6822,15 +7409,26 @@ def sd50cm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -6858,6 +7456,7 @@ def sd50cm(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -6884,6 +7483,7 @@ def cd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -6903,7 +7503,7 @@ def cd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -6916,13 +7516,13 @@ def cd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -6955,7 +7555,7 @@ def cd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -6963,7 +7563,7 @@ def cd(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -6980,7 +7580,7 @@ def cd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -6988,15 +7588,26 @@ def cd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7028,6 +7639,7 @@ def cd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=[
@@ -7064,6 +7676,7 @@ def cw(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -7083,7 +7696,7 @@ def cw(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7096,13 +7709,13 @@ def cw(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7135,7 +7748,7 @@ def cw(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7143,7 +7756,7 @@ def cw(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -7160,7 +7773,7 @@ def cw(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7168,15 +7781,26 @@ def cw(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7208,6 +7832,7 @@ def cw(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=[
@@ -7244,6 +7869,7 @@ def wd(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -7263,7 +7889,7 @@ def wd(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7276,13 +7902,13 @@ def wd(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7315,7 +7941,7 @@ def wd(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7323,7 +7949,7 @@ def wd(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -7340,7 +7966,7 @@ def wd(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7348,15 +7974,26 @@ def wd(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7388,6 +8025,7 @@ def wd(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=[
@@ -7424,6 +8062,7 @@ def ww(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -7443,7 +8082,7 @@ def ww(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7456,13 +8095,13 @@ def ww(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7495,7 +8134,7 @@ def ww(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7503,7 +8142,7 @@ def ww(
         ``optional`` Option for February 29th (default: False).
     ignore_Feb29th : bool
         ``optional`` Ignoring or not February 29th (default: False).
-    interpolation : str | QuantileInterpolation | None, default="median_unbiased"
+    interpolation : str | QuantileInterpolation | None
         ``optional`` Interpolation method to compute percentile values:
         ``{"linear", "median_unbiased"}``
         Default is "median_unbiased", a.k.a type 8 or method 8.
@@ -7520,7 +8159,7 @@ def ww(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7528,15 +8167,26 @@ def ww(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7568,6 +8218,7 @@ def ww(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=[
@@ -7600,6 +8251,7 @@ def fxx(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -7619,7 +8271,7 @@ def fxx(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7632,13 +8284,13 @@ def fxx(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7657,7 +8309,7 @@ def fxx(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7672,7 +8324,7 @@ def fxx(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7680,15 +8332,26 @@ def fxx(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7716,6 +8379,7 @@ def fxx(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="m s-1",
@@ -7735,6 +8399,7 @@ def fg6bft(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -7754,7 +8419,7 @@ def fg6bft(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7767,13 +8432,13 @@ def fg6bft(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7792,7 +8457,7 @@ def fg6bft(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7807,7 +8472,7 @@ def fg6bft(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7815,15 +8480,26 @@ def fg6bft(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7851,6 +8527,7 @@ def fg6bft(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -7873,6 +8550,7 @@ def fgcalm(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -7892,7 +8570,7 @@ def fgcalm(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -7905,13 +8583,13 @@ def fgcalm(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -7930,7 +8608,7 @@ def fgcalm(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -7945,7 +8623,7 @@ def fgcalm(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -7953,15 +8631,26 @@ def fgcalm(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -7989,6 +8678,7 @@ def fgcalm(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -8011,6 +8701,7 @@ def fg(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -8030,7 +8721,7 @@ def fg(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8043,13 +8734,13 @@ def fg(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8068,7 +8759,7 @@ def fg(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -8083,7 +8774,7 @@ def fg(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8091,15 +8782,26 @@ def fg(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8127,6 +8829,7 @@ def fg(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="m s-1",
@@ -8146,6 +8849,7 @@ def ddnorth(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -8165,7 +8869,7 @@ def ddnorth(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8178,13 +8882,13 @@ def ddnorth(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8203,7 +8907,7 @@ def ddnorth(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -8218,7 +8922,7 @@ def ddnorth(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8226,15 +8930,26 @@ def ddnorth(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8262,6 +8977,7 @@ def ddnorth(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -8284,6 +9000,7 @@ def ddeast(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -8303,7 +9020,7 @@ def ddeast(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8316,13 +9033,13 @@ def ddeast(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8341,7 +9058,7 @@ def ddeast(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -8356,7 +9073,7 @@ def ddeast(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8364,15 +9081,26 @@ def ddeast(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8400,6 +9128,7 @@ def ddeast(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -8422,6 +9151,7 @@ def ddsouth(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -8441,7 +9171,7 @@ def ddsouth(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8454,13 +9184,13 @@ def ddsouth(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8479,7 +9209,7 @@ def ddsouth(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -8494,7 +9224,7 @@ def ddsouth(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8502,15 +9232,26 @@ def ddsouth(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8538,6 +9279,7 @@ def ddsouth(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -8560,6 +9302,7 @@ def ddwest(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -8579,7 +9322,7 @@ def ddwest(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8592,13 +9335,13 @@ def ddwest(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8617,7 +9360,7 @@ def ddwest(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -8632,7 +9375,7 @@ def ddwest(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8640,15 +9383,26 @@ def ddwest(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8676,6 +9430,7 @@ def ddwest(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         threshold=build_threshold(
@@ -8698,6 +9453,7 @@ def gsl(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -8717,7 +9473,7 @@ def gsl(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8730,13 +9486,13 @@ def gsl(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8755,7 +9511,7 @@ def gsl(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -8770,7 +9526,7 @@ def gsl(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8778,15 +9534,26 @@ def gsl(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8814,6 +9581,7 @@ def gsl(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="day",
@@ -8834,6 +9602,7 @@ def spi6(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -8853,7 +9622,7 @@ def spi6(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -8866,13 +9635,13 @@ def spi6(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -8905,7 +9674,7 @@ def spi6(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -8920,7 +9689,7 @@ def spi6(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -8928,15 +9697,26 @@ def spi6(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -8965,6 +9745,7 @@ def spi6(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="",
@@ -8985,6 +9766,7 @@ def spi3(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -9004,7 +9786,7 @@ def spi3(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9017,13 +9799,13 @@ def spi3(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9056,7 +9838,7 @@ def spi3(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -9071,7 +9853,7 @@ def spi3(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9079,15 +9861,26 @@ def spi3(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -9116,6 +9909,7 @@ def spi3(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="",
@@ -9135,6 +9929,7 @@ def pp(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -9154,7 +9949,7 @@ def pp(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9167,13 +9962,13 @@ def pp(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9192,7 +9987,7 @@ def pp(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -9207,7 +10002,7 @@ def pp(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9215,15 +10010,26 @@ def pp(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -9251,6 +10057,7 @@ def pp(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="hPa",
@@ -9270,6 +10077,7 @@ def ss(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -9289,7 +10097,7 @@ def ss(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9302,13 +10110,13 @@ def ss(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9327,7 +10135,7 @@ def ss(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -9342,7 +10150,7 @@ def ss(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9350,15 +10158,26 @@ def ss(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -9386,6 +10205,7 @@ def ss(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="hours",
@@ -9405,6 +10225,7 @@ def rh(
     date_event: bool = False,
     run_index: str | None = "first",
     allow_partial_seasons: bool | Literal["start", "end"] | None = None,
+    completeness: CompletenessLike = None,
     allow_missing_periods: bool | None = None,
     allow_partial_final_period: bool = False,
 ) -> Dataset:
@@ -9424,7 +10245,7 @@ def rh(
         If None (default) on ECA&D index, the variable is guessed based on the
         climate index wanted.
         Mandatory for the deprecated ``user_index`` bridge.
-    slice_mode : FrequencyLike | Frequency, default="year"
+    slice_mode : FrequencyLike | Frequency
         Type of temporal aggregation:
         The possible values are ``{"year", "month", "DJF", "MAM", "JJA", "SON",
         "ONDJFM" or "AMJJAS", ("season", [1,2,3]), ("month", [1,2,3,])}``
@@ -9437,13 +10258,13 @@ def rh(
         ``(start_da, end_da)``.
         Default is "year".
         See :ref:`slice_mode` for details.
-    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None, default=is
+    time_range : list[datetime.datetime ] | list[str]  | tuple[str, str] | None
         ``optional`` Temporal range: upper and lower bounds for temporal subsetting.
         If ``None``, whole period of input files will be processed.
         The dates can either be given as instance of datetime.datetime or as string
         values. For strings, many format are accepted.
         Default is ``None``.
-    out_file : str | None, default="icclim_out.nc"
+    out_file : str | None
         Output NetCDF file name (default: "icclim_out.nc" in the current directory).
         Default is "icclim_out.nc".
         If the input ``in_files`` is a ``Dataset``, ``out_file`` field is ignored.
@@ -9462,7 +10283,7 @@ def rh(
         dask graph path. ``bootstrap=False`` should only be used as an explicit user
         shortcut for fast exploratory assessments, because disabling bootstrap removes
         the overlap correction and can bias percentile-based results.
-    run_index : str | None, default="first"
+    run_index : str | None
         ``optional`` The index to use for the run length encoding (e.g. "first", "last", "mid").
         Default is "first".
         Ignored for non spell indices.
@@ -9477,7 +10298,7 @@ def rh(
     logs_verbosity : str | Verbosity
         ``optional`` Configure how verbose icclim is.
         Possible values: ``{"LOW", "HIGH", "SILENT"}`` (default: "LOW")
-    allow_partial_seasons : bool | "start" | "end", default=False
+    allow_partial_seasons : bool | "start" | "end"
         Flag indicating whether to allow partial seasons to be included in the
         index calculation.
         - True: Unmasks both the first and last periods.
@@ -9485,15 +10306,26 @@ def rh(
         - "start": Unmasks only the first period.
         - "end": Unmasks only the last period.
         Default is False.
-    allow_missing_periods : bool, optional
-        When False, output periods containing missing source timesteps are masked
-        to NaN. When True, aggregations are computed from available source
-        timesteps only.
-        Default is None, which behaves like False. It warns when an irregular
-        source time coordinate is detected, or when an already-eager mask shows
-        an incomplete period. Data-dependent warnings are not emitted for lazy
-        inputs because detecting them would force computation. Pass False
-        explicitly to disable these diagnostic warnings.
+    completeness : {"ecad", "wmo", "strict", "none"} | float | None
+        Completeness rule used to decide whether an output period has enough
+        source observations to be calculated. ``None`` selects the ECA&D ATBD
+        profile automatically: at least 350 daily values for a year, 175 for a
+        half-year, 85 for a three-month season, and 25 for a month. ``strict``
+        requires every expected value. ``wmo`` applies the aggregation-specific
+        WMO-No. 1203 rules: the 11-day/5-consecutive-day monthly rule for means
+        and counts, complete data for sums, and no completeness mask for simple
+        extrema. Unclassified operations, unsupported period types, non-daily
+        WMO inputs, and spatially varying seasons safely fall back to strict.
+        ``none`` always computes from available values, and a fraction in
+        ``(0, 1]`` sets a configurable minimum valid fraction. Do not combine
+        this parameter with the legacy ``allow_missing_periods`` parameter.
+    allow_missing_periods : bool | None
+        Compatibility parameter for 7.2 workflows. An explicit False selects
+        strict completeness, while True computes from available source values.
+        None delegates to ``completeness`` and therefore uses ECA&D by default.
+        When neither parameter is explicit, icclim warns if an irregular source
+        time coordinate is detected or an already-eager mask shows an incomplete
+        period. Lazy inputs are not evaluated solely to emit a warning.
     allow_partial_final_period : bool
         When True, incomplete historical output periods are still masked, but
         the final output period is allowed to be computed from available source
@@ -9521,6 +10353,7 @@ def rh(
         date_event=date_event,
         run_index=run_index,
         allow_partial_seasons=allow_partial_seasons,
+        completeness=completeness,
         allow_missing_periods=allow_missing_periods,
         allow_partial_final_period=allow_partial_final_period,
         out_unit="%",

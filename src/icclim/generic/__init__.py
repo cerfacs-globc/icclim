@@ -13,11 +13,24 @@ built from `icclim.main.index` for generic indicator definitions.
 
 Examples
 --------
+>>> import numpy as np
+>>> import pandas as pd
+>>> import xarray as xr
 >>> from icclim.generic import count_occurrences
 >>> from icclim import build_threshold
+>>> tas = xr.DataArray(
+...     np.full(365, 303.15),
+...     coords={"time": pd.date_range("2001-01-01", periods=365)},
+...     dims="time",
+...     name="tas",
+...     attrs={"units": "K"},
+... )
 >>> thresh = build_threshold(">= 25 °C and <= 30 °C")
->>> result = count_occurrences("tas.nc", thresh).compute()
->>> print(result.count_occurrences)
+>>> result = count_occurrences(
+...     tas, var_name="tas", threshold=thresh, completeness="none"
+... ).compute()
+>>> int(result.count_occurrences.item())
+365
 
 """
 
