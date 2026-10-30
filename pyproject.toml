@@ -216,7 +216,8 @@ ignore = [
   "S607", # The git executable is resolved from the execution environment.
   "TC003" # Runtime warning payloads require the imported warning type.
 ]
-"doc/source/tutorials/notebooks/*.ipynb" = [
+"doc/source/tutorials/notebooks/**/*.ipynb" = [
+  "ICN001", # Keep familiar module names in step-by-step tutorials.
   "PLR2004", # Magic numbers are expected in tutorials for coordinate bounds.
   "T201" # Print statements are standard in notebooks for output display.
 ]
